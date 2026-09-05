@@ -18,26 +18,27 @@
 | Phase | Backlog | Planned | In progress | Blocked | Shipped | Total |
 |---|---|---|---|---|---|---|
 | A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 18 | 19 |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 19 | 17 | 4 | 4 | 33 | 77 |
-| C — C (Reference coworker — Sales end-to-end loop) | 20 | 3 | 2 | 1 | 10 | 36 |
-| D — D (Plugin SDK + MCP) | 5 | 3 | 0 | 1 | 13 | 22 |
-| E — E (Additional coworkers/plugins + documentation) | 40 | 5 | 0 | 0 | 10 | 55 |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 17 | 4 | 4 | 35 | 81 |
+| C — C (Reference coworker — Sales end-to-end loop) | 21 | 3 | 2 | 1 | 10 | 37 |
+| D — D (Plugin SDK + MCP) | 6 | 4 | 0 | 1 | 13 | 24 |
+| E — E (Additional coworkers/plugins + documentation) | 49 | 5 | 0 | 0 | 13 | 67 |
 
-**Board total:** 84 backlog, 28 planned, 6 in progress, 7 blocked, 84 shipped (209 managed cards).
+**Board total:** 97 backlog, 29 planned, 6 in progress, 7 blocked, 89 shipped (228 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
 - `drive-content-indexing` [medium] — Extract and index approved Drive documents
 - `ai-bounded-context` [high] — Enforce bounded AI context and grounding rules
 - `drive-provenance-retrieval` [medium] — Ground AI retrieval in Drive provenance and citations
+- `workshelter-reuse-baseline` [high] — Reconcile the reusable business-plugin baseline before Workshelter adoption
 - `admin-shell-design-system` [high] — Complete the shared professional admin system
-- `admin-settings-consolidation` [medium] — Consolidate Settings and connection ownership
 - `feature-board-interaction-rebuild` [high] — Rebuild Feature Board drag, details, and mobile interaction
 - `additional-tools-canonical-parity` [high] — Modernize and canonically integrate every additional admin tool
+- `admin-settings-consolidation` [medium] — Consolidate Settings and connection ownership
 - `gmail-reply-actions` [high] — Finish reply, local archive, and follow-up actions in Conversations
-- `api-contract-tests` [high] — Add authenticated API contract and failure tests
 - `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
 - `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
+- `api-contract-tests` [high] — Add authenticated API contract and failure tests
 - `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
 - `operating-goals-scorecards` [high] — Add operating goals and scorecards
 - `governed-bulk-operator-actions` [medium] — Add governed bulk operator actions

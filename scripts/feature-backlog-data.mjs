@@ -206,6 +206,7 @@ export const LOOP_ONE = [
   "playwright-inbound-pipeline",
   "autonomous-inbound-responder",
   "scheduling-substrate-decision",
+  "workshelter-reuse-baseline",
 ];
 const LOOP_ONE_SET = new Set(LOOP_ONE);
 
@@ -326,7 +327,7 @@ const CURRENT_IMPLEMENTATION_EVIDENCE = {
     "2026-09-03 shipped: src/lib/revenue-os/work-scheduler.ts (auto-creates 9 daily work items: digest, stale deals, bottleneck, velocity change, health check, integration audit, data quality, overdue scan, revenue stage audit; weekly: reconciliation on Mondays; scans calendar_events 48h ahead for meeting pre-call briefs). Date-based deduplication. Cross-coworker triggers: inbound→Sales+BP+Ops, pipeline won→Finance+Ops, high-stage→BP+Finance, Calendly→Meeting Intel. All 18 handler paths store domain-specific agent memory. Wired in cron route before executeClaimableWork. TypeScript, lint, build, and contract verify pass.",
   "memory-architecture":
     "2026-09-03 shipped: src/lib/revenue-os/memory.ts (five categories: canonical, activity, knowledge, agent, learned_policy). Agent memory with time-decay horizons (session/daily/weekly/permanent). Learned policies with supersession. Unified queryMemory across all categories. 5 AI tools: query_memory, store_agent_memory, get_agent_memory, get_learned_policies, record_learned_policy. Migration: 20260903-memory-architecture.sql. Work executor consults learned policies and stores agent memory after execution. TypeScript, lint, build, and contract verify pass.",
-  "budgets":
+  budgets:
     "2026-09-03 shipped: src/lib/revenue-os/budgets.ts (checkBudgets, recordBudgetUsage, setBudgetLimit, listBudgetLimits). Six budget kinds (model_spend, vendor_api_calls, emails_sent, research_depth, retry_count, runtime_seconds). Per-coworker or global limits with daily/weekly/monthly periods. Work executor checks budgets before execution and records usage after. 90%+ usage triggers audit alert. Migration: 20260903-budgets.sql. 2 AI tools: check_budgets, get_budget_limits. TypeScript, lint, build, and contract verify pass.",
 };
 
@@ -429,6 +430,510 @@ function card({
 }
 
 export const featureBacklog = [
+  // Workshelter reuse: campaigns first, then Support; vertical/channel work stays Later.
+  card({
+    key: "workshelter-reuse-baseline",
+    title: "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+    workstream: "platform",
+    phase: 5,
+    status: "planned",
+    priority: "high",
+    description:
+      "Establish one verified integration baseline containing the completed plugin, branding and five-business demo work before another agent expands Campaigns or Support.\n\nImplementation steps:\n1. Read root/app contracts and inspect worktrees without changing their working files.\n2. Create an isolated integration branch from the current integration target and reconcile completed commits a743947, e150dd2, 72f2102, 2d8d7c3 and c7da31b, including required ancestors; skip patches already present. Preserve unrelated in-progress branches.\n3. Resolve conflicts using current tenancy/action-executor contracts, not by choosing an entire side. Verify extension generated output matches manifests.\n4. Record the exact resulting commit and available canonical services in card evidence; descendants start from that commit.",
+    acceptance: [
+      "Plugin module/runtime boundaries, branding and business demos coexist with the current action executor and tenant services without duplicate registries.",
+      "All prior completed cards and their evidence remain in the manifest/live board; no unrelated code or active claim is discarded.",
+      "A clean committed integration baseline is recorded; no deploy is performed.",
+    ],
+    dependencies: [],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: AGENTS.md; docs/PROJECT_CONTEXT.md; LICENSE; lib/admin/collections/types.ts; components/admin/collections/renderers/index.ts. Accelerate owners/entrypoints: AGENTS.md; docs/NORTHSTAR.md; docs/contributing/EXTENDING.md; extensions/; src/lib/revenue-os/modules.ts; src/lib/revenue-os/README.md; git branch agent/plugin-data-boundary-hardening at c7da31b.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. No rewrite of the plugin SDK or bulk merge of unfinished branches. This is integration proof, not permission to mark historical planned SDK cards complete.",
+    labels: ["config", "reliability"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Run existing plugin boundary, business workflow and demo suites plus extension drift checks. Compare branch ancestry and resulting feature behavior, not commit count alone.",
+  }),
+  card({
+    key: "campaign-saved-audiences",
+    title: "Add canonical saved audiences and explainable campaign eligibility",
+    workstream: "campaigns",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Operators save named lists and nested AND/OR segments, inspect exact sendable counts and exclusion reasons, and use the same audience from UI or AI.\n\nImplementation steps:\n1. Add tenant-owned saved lists/members and segment definitions with versioning and canonical contact references; use additive migrations and RLS.\n2. Expose a typed allowlist of filter fields/operators; reject unknown fields, invalid types, empty rules and excessive nesting.\n3. Implement one bounded, deterministic audience/eligibility service with stable pagination and database-side filtering.\n4. Add read-only preview and saved-audience selection; AI can read previews and propose edits through registered tools.",
+    acceptance: [
+      "Lists and segments round-trip with canonical IDs, scoped counts, deterministic samples and per-reason exclusions.",
+      "Invalid, suppressed, duplicate or ambiguous contacts cannot become sendable; unverified marketing permission never defaults to permission.",
+      "Preview, enrollment and send-time checks share the same eligibility predicates; large audiences do not silently stop at a default row limit.",
+      "Audience failures show retryable errors rather than zero recipients or an all-contacts fallback.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Implement deterministic contact and company identity resolution",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/contacts/segment-definition.ts; lib/contacts/segment-definition.test.ts; lib/contacts/segments.ts; lib/contacts/consent.ts; app/admin/contacts/SegmentsModal.tsx; app/api/admin/contact-segments/preview/route.ts. Accelerate owners/entrypoints: src/lib/revenue-os/identity.ts; src/lib/revenue-os/campaigns.ts; src/app/api/admin/revenue-os/campaigns/; src/app/admin/contacts/page.tsx.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Do not copy Workshelter roster-wide in-memory filtering or its store/customer identity model. This card owns audience selection; campaign-policy-versioning owns the approved membership snapshot.",
+    labels: ["identity", "campaigns"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test two tenants, duplicate/alternate emails, nested rules, invalid operators, >1000 contacts, consent changes, database failure and zero-side-effect preview. Scoped test deliverable: create scripts/test-campaign-saved-audiences.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-saved-audiences.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "email-document-composition",
+    title: "Extend the shared email document and branded layout library",
+    workstream: "campaigns",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    description:
+      "One editable, branded email document powers Campaigns and Email Studio with images, lists, quotes, columns, undo/redo and responsive previews.\n\nImplementation steps:\n1. Extend the existing versioned document contract and migrate/read old five-block documents without losing IDs or formatting.\n2. Adapt pure block-to-Maily compilation and layouts; use tenant branding and approved asset references with explicit unresolved image slots.\n3. Extend the existing shared composer with undo/redo, accessible ordering and desktop/mobile preview.\n4. Make preview, controlled test and final send consume exactly the same validated document renderer, including plain text and unsubscribe footer.",
+    acceptance: [
+      "Old saved/published emails still render; malformed new blocks fail validation before publication or sending.",
+      "Images, quotes, lists and responsive columns render in email-safe HTML with equivalent plain text; unresolved image slots block launch.",
+      "Layouts contain fictional or operator-provided business facts; tenant logo/colors replace Workshelter chrome.",
+      "Edits remain drafts; preview/test/send parity and undo/redo are verified in the actual shared admin components.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Restore Email Studio, sent history, and live template publishing",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/blocks/schema.ts; lib/email/blocks/to-maily-doc.ts; lib/email/blocks/render.ts; lib/email/blocks/layouts.ts; lib/email/blocks/blocks.test.ts; components/admin/email/EmailBlockEditor.tsx; components/admin/email/EmailLivePreview.tsx; lib/admin/campaigns/use-email-history.ts. Accelerate owners/entrypoints: src/lib/email/blocks.ts; src/components/admin/EmailBlockComposer.tsx; src/lib/email/runtime-template.ts; src/lib/revenue-os/branding.ts (reconciled baseline); src/app/admin/emails/page.tsx.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Do not introduce another editor runtime or arbitrary generated HTML. Do not copy Workshelter Sanity assets, social accounts, product claims or company copy.",
+    labels: ["email", "config"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test compatibility, HTML escaping, unsafe URLs, missing assets, merge variables, long text, column stacking, keyboard ordering and preview/test/send parity. Scoped test deliverable: create scripts/test-email-document-composition.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-email-document-composition.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "campaign-business-recipes",
+    title: "Ship newsletter, event invitation and reactivation campaign recipes",
+    workstream: "campaigns",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Provide three editable business starting points that lead from audience selection to reviewed, scheduled and receipted campaigns.\n\nImplementation steps:\n1. Define newsletter and event-invitation templates over the existing campaign document/step schema.\n2. Route customer reactivation through the existing Recovery eligibility and staging service.\n3. Add bounded AI drafting with approved facts, explicit apply-draft, protected manual work and no fabricated assets/prices/deadlines.\n4. Provide coherent recipes in all five fictional workspaces; date-sensitive examples derive from demo scenario time.",
+    acceptance: [
+      "Each recipe can be edited, previewed, approved, scheduled, paused and inspected through the same Campaigns workflow.",
+      "Generating a draft neither saves nor sends; applying a draft is explicit and never overwrites edits silently.",
+      "Reactivation preserves reply/booking/opportunity/suppression stops and does not create a parallel sequence engine.",
+      "Demo recipes show realistic customers, assignments, exclusions and simulated delivery outcomes with reset/persistence.",
+    ],
+    dependencies: [
+      "Finish the Campaigns planning and control workspace",
+      "Complete campaign enrollment and bounded personalization",
+      "Enforce every campaign stop condition immediately",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/sequences/templates.ts; app/admin/sequences/SequencesPageClient.tsx; app/admin/sequences/[id]/EnrollByTagModal.tsx; lib/admin/campaigns/ai-draft-options.ts; components/admin/campaigns/CampaignAiDraftPanel.tsx. Accelerate owners/entrypoints: src/lib/revenue-os/recovery.ts; src/lib/revenue-os/recovery-copy.ts; src/lib/revenue-os/campaigns.ts; src/app/admin/campaigns/page.tsx; src/lib/admin/demo/business-profiles.ts (reconciled baseline).",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. ",
+    labels: ["campaigns", "ai"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test generation failure, malformed model output, unsupported claims, repeat staging, missing recipient variables, stop conditions and all five demo recipes. Scoped test deliverable: create scripts/test-campaign-business-recipes.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-business-recipes.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "support-conversation-triage",
+    title: "Add assignment, snooze and a durable needs-reply conversation queue",
+    workstream: "operations",
+    phase: 4,
+    status: "backlog",
+    priority: "high",
+    description:
+      "An operator can reliably find unanswered customers, assign ownership, snooze work and reply without losing obligations when a thread is opened.\n\nImplementation steps:\n1. Extend the canonical conversation contract with member assignment and snooze deadlines using additive tenant-scoped migrations.\n2. Derive needs-reply from recorded inbound/outbound events, independently of unread styling.\n3. Add templates, bulk triage, deep links, keyboard list/detail navigation and stable filters to the existing conversation surface.\n4. Use the same predicate for Today, navigation counts and AI reads; wake expired snoozes through durable work.",
+    acceptance: [
+      "Reading a thread does not remove needs-reply; a newer customer message reopens the obligation.",
+      "Assignments reference active members of the same tenant; stale/conflicting bulk updates return per-record results.",
+      "Snooze survives reload, expires once and returns work to Today; errors never masquerade as empty queues.",
+      "Reply history, canonical links and current core conversation functionality remain available when Support is disabled.",
+    ],
+    dependencies: [
+      "Add Playwright journeys for Gmail linking, reply, campaign approval, pause, and stops",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/conversations/awaiting-reply.ts; lib/admin/conversations/awaiting-reply.test.ts; app/admin/conversations/ConversationsPageClient.tsx; app/admin/conversations/ConversationListPane.tsx; app/admin/conversations/ConversationReadingPane.tsx; app/admin/conversations/ChatHandoffDetails.tsx; lib/admin/reply-templates.ts. Accelerate owners/entrypoints: src/lib/revenue-os/conversations.ts; src/app/admin/conversations/page.tsx; src/lib/revenue-os/queue.ts; src/lib/revenue-os/tasks.ts.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Campaign verification is an intentional delivery-order dependency: campaigns ship first. Do not import Workshelter source-prefixed identities or duplicate Inbox/Conversations pages.",
+    labels: ["email", "tasks"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test event ordering, anonymous chats, answered/closed/reopened threads, snooze boundaries, concurrent assignment, bulk partial failure, detached deep links and desktop/mobile keyboard triage. Scoped test deliverable: create scripts/test-support-conversation-triage.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-support-conversation-triage.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "support-coworker-plugin",
+    title: "Deliver an optional Support plugin for triage, reply drafting and escalation",
+    workstream: "coworker",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "An optional Support coworker classifies incoming questions, prepares evidence-backed replies and escalates unresolved or overdue work to a human.\n\nImplementation steps:\n1. Declare required conversation, knowledge, task and draft/send capabilities using the existing manifest/module runtime.\n2. Register bounded work kinds for triage, draft reply and escalation with event dedupe, leases and budgets.\n3. Reuse canonical context and tool registry; AI proposes replies and task actions through the normal approval queue.\n4. Expose role, capabilities, pending work, drafts, escalation reasons and terminal receipts in the existing conversation and AI surfaces.",
+    acceptance: [
+      "A fictional question flows through triage, reviewed reply and recorded outcome; an unsupported commitment escalates with evidence.",
+      "Disabled or missing capabilities explain unavailability; queued execution rechecks enablement and authorization.",
+      "Duplicate events/work retries never duplicate tasks or sends; provider uncertainty enters reconciliation.",
+      "Disabling Support stops its new automation while preserving core inbox access, records, receipts and history.",
+    ],
+    dependencies: [
+      "Add assignment, snooze and a durable needs-reply conversation queue",
+      "Build the AI policy, exemplar, ambiguity, and quality control plane",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: components/admin/AIRecordActionsSidebar.tsx; lib/admin-ai/tasks.ts; lib/admin-ai/context.ts; lib/admin-ai/policies.ts; app/admin/conversations/ChatConversationDetail.tsx. Accelerate owners/entrypoints: extensions/; src/lib/revenue-os/conversations.ts; src/lib/revenue-os/coworkers.ts; src/lib/revenue-os/work-items.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/ai-tools.ts.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. New plugin disabled by default in live tenants. Do not fork the agent, memory store, knowledge index, sender or approval system.",
+    labels: ["coworkers", "email"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test two-tenant tool isolation, prompt injection in customer text, budget exhaustion, duplicate triggers, revoked approval, disabled queued work, provider failure and truthful receipts. Scoped test deliverable: create scripts/test-support-coworker-plugin.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-support-coworker-plugin.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "support-knowledge-corrections",
+    title: "Turn flagged answers into reviewed knowledge corrections and regression cases",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Operators inspect why an answer failed, propose a sourced correction, approve it and prove the corrected behavior without teaching the model unreviewed feedback.\n\nImplementation steps:\n1. Attach bounded tool/evidence/validator traces to exact answer IDs with explicit missing-history state.\n2. Build flagged-answer review with proposed source correction and duplicate-safe linkage to the original run.\n3. Require approval and source access validation before publishing knowledge/exemplars; preserve old source/run history.\n4. Turn approved corrections into deterministic regression prompts with expected evidence or escalation outcomes.",
+    acceptance: [
+      "Each flag links to an answer/run and evidence; no raw customer feedback becomes instructions automatically.",
+      "Public-only and internal-only knowledge remain separated across retrieval, preview and export.",
+      "A correction is reviewed, published with revision checking and evaluated against the original failure plus existing regression cases.",
+      "Per-answer verdicts do not show passed when validation was absent or unknown.",
+    ],
+    dependencies: ["Deliver an optional Support plugin for triage, reply drafting and escalation"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: app/admin/ai/tabs/ChatTranscriptView.tsx; app/admin/ai/tabs/ReplyFeedbackPanel.tsx; app/admin/ai/tabs/KnowledgeTab.tsx; lib/admin-ai/feedback.ts; lib/admin-ai/exemplar-retrieval.ts; lib/admin-ai/playbook-template.ts. Accelerate owners/entrypoints: src/lib/revenue-os/claims.ts; src/lib/revenue-os/memory.ts; src/lib/revenue-os/ai-conversations.ts; src/components/admin/AdminAIWorkspace.tsx; existing feedback/quality services owned by agent-learning-feedback-loop and ai-quality-control-plane.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Extend shipped feedback infrastructure; do not rebuild it or auto-promote examples/permissions. Strip unfilled playbook prompts and treat them as missing facts.",
+    labels: ["research", "learning"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test unauthorized source visibility, duplicate flags, stale revisions, malicious feedback, missing telemetry, rejected corrections, failed persistence and regression replay. Scoped test deliverable: create scripts/test-support-knowledge-corrections.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-support-knowledge-corrections.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "support-demo-conformance",
+    title: "Verify Support end to end across all five shared admin demos",
+    workstream: "qa",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Prove useful Support outcomes in every fictional business using actual admin components and the shared session-local demo engine.\n\nImplementation steps:\n1. Add distinct inbound questions, handoffs, reply templates, assignments, snoozes, failed drafts and reviewed corrections for all five scenarios.\n2. Extend the shared demo transport and schema validation; never add replacement demo-only pages.\n3. Automate triage to draft to approve to simulated reply, then customer follow-up, escalation and correction.\n4. Verify reset, persistence, tenant/scenario isolation, plugin toggles and authenticated-founder request isolation; document the runnable journey.",
+    acceptance: [
+      "All five demos show coherent business-specific support workflows, explicit simulated AI/sends and immutable local receipts.",
+      "Refresh/reset/disable/re-enable and failed/retried actions behave truthfully without protected API or provider traffic.",
+      "Actual admin pages pass desktop/mobile, all appearances, keyboard, reduced motion and inspected screenshots with no console errors or overflow.",
+      "Evidence records exact baseline commit, commands and controlled real-provider proof separately from simulation.",
+    ],
+    dependencies: ["Turn flagged answers into reviewed knowledge corrections and regression cases"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/conversations/awaiting-reply.test.ts; lib/admin-ai/feedback.test.ts; lib/admin-ai/exemplar-retrieval.test.ts; tests/admin/campaign-ux.spec.ts (browser test structure only). Accelerate owners/entrypoints: src/lib/admin/demo/runtime.ts; src/lib/admin/demo/business-profiles.ts; scripts/qa-demo-business-workflows.mjs; docs/contracts/ADMIN-DEMO-CONTRACT.md.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. ",
+    labels: ["testing", "email"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Run complete business-demo contract plus focused Support service/API/browser tests; route-guard tests include direct disabled APIs and AI/MCP calls. Scoped test deliverable: create scripts/test-support-demo-conformance.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-support-demo-conformance.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "plugin-record-view-contract",
+    title: "Expose reusable typed grid and board views to business plugins",
+    workstream: "platform",
+    phase: 5,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugins declare typed fields and saved grid/board views while Accelerate owns rendering, query limits and action authorization.\n\nImplementation steps:\n1. Extract only field, view and query contracts demonstrated by Campaigns/Support; adapt current table/kanban primitives.\n2. Register domain read adapters and named actions through the existing entity/tool registry.\n3. Support saved filters, sorting, columns and grouping with field-level permissions, bounded database queries and tenant-owned view state.\n4. Prove one existing screen and one optional plugin use the same renderer without changing business rules.",
+    acceptance: [
+      "A plugin declares a grid and board without copying a page or authorizing raw table mutations.",
+      "Unsupported view types are unavailable in the picker; calendar/gallery/timeline are not advertised as implemented.",
+      "Computed/provider-owned fields remain read-only and mutations call canonical services with required approval.",
+      "Filtered counts and pagination are correct beyond one provider page; saved views cannot expose another tenant or restricted field.",
+    ],
+    dependencies: ["Verify Support end to end across all five shared admin demos"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/collections/types.ts; lib/admin/collections/records.ts; lib/admin/collections/engine/query.ts; lib/admin/collections/engine/predicate-pushdown.test.ts; components/admin/collections/CollectionView.tsx; components/admin/collections/renderers/index.ts. Accelerate owners/entrypoints: src/lib/revenue-os/entity-registry.ts; src/lib/revenue-os/modules.ts; extensions/module-manifest.schema.json; existing admin table/kanban primitives and saved-view services.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Workshelter calendar/gallery/timeline renderers are placeholders. Do not copy its arbitrary endpoint row actions, role map or all-record in-memory sorting. No whole-admin migration.",
+    labels: ["config", "database"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test schema rejection, query bounds, >1000 records, stable pagination, field permissions, action tampering, disabled plugin and equivalent table/board domain transitions. Scoped test deliverable: create scripts/test-plugin-record-view-contract.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-plugin-record-view-contract.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "proposal-option-presentation",
+    title: "Extend Proposal Studio with branded options, specifications and attachments",
+    workstream: "proposals",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Operators assemble professional customer proposals with several priced options, specifications and protected files, then publish a version that records exactly what the customer accepted.\n\nImplementation steps:\n1. Extend the current proposal document model with optional comparison options, specifications, timeline and approved asset references.\n2. Reuse shared branding and document presentation primitives without changing authoritative prices.\n3. Use existing proposal lifecycle services for preview, publication, revocation and customer acceptance against an immutable version.\n4. Connect accepted terms to existing opportunity/onboarding/invoicing services through explicit governed actions.",
+    acceptance: [
+      "Option totals are deterministic and approved; AI cannot invent prices, terms or customer commitments.",
+      "Reordering/editing drafts does not alter a published snapshot or accepted terms.",
+      "Protected attachments resolve only within the authorized proposal/tenant and revoked links fail closed.",
+      "A proposal can be created, published, reviewed and accepted in the shared demo with exact recorded option/version.",
+    ],
+    dependencies: [
+      "Expose reusable typed grid and board views to business plugins",
+      "Complete the proposal lifecycle and version rules",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: app/admin/proposals/[id]/ProposalBuilderClient.tsx; lib/proposals/types.ts; lib/proposals/snapshot.ts; lib/proposals/validate-pricing.ts; lib/proposals/select-option.ts; lib/proposals/confirm.ts; lib/admin/proposals/reorder-options.ts. Accelerate owners/entrypoints: src/lib/revenue-os/proposals.ts; src/app/admin/proposals/; shared branding, business document renderer and invoice presentation services from reconciled baseline.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Do not widen the currently claimed proposal-lifecycle-service ticket. No payment charge, legal e-signature product or new proposal database.",
+    labels: ["proposals", "config"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test version races, duplicate acceptance, revoked access, file permissions, pricing arithmetic, missing assets and existing proposal lifecycle compatibility. Scoped test deliverable: create scripts/test-proposal-option-presentation.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-proposal-option-presentation.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "inventory-stock-plugin",
+    title: "Build an optional inventory plugin with audited stock movements",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "A business tracks materials, stock movements, reorder thresholds and consumption with inspectable receipts rather than a read-only inventory report.\n\nImplementation steps:\n1. Add tenant-owned material identities and append-only stock movements through a dedicated domain service and additive migrations.\n2. Expose grid/detail views with units, thresholds and provenance; compute stock deterministically from reconciled movement state.\n3. Register narrow receive/adjust/reserve/release actions with approval policy, concurrency protection and idempotency.\n4. Create deduplicated low-stock work and a fictional inventory demo; retain movements on plugin disable.",
+    acceptance: [
+      "Receipt, adjustment, reservation and release reconcile to stock without duplicate movements under replay or concurrent work.",
+      "Unit mismatches, over-reservation and unauthorized/cross-tenant updates are rejected with useful errors.",
+      "Low-stock work is linked to the exact material and does not multiply each tick.",
+      "Switching the plugin off refuses APIs/tools/work while preserving history and canonical relationships.",
+    ],
+    dependencies: ["Expose reusable typed grid and board views to business plugins"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/collections/providers/materials.ts; lib/admin/collections/providers/materials.mutations.test.ts; lib/admin/production/get-material-detail.ts; components/admin/production/job-sheet/JobMaterialsPanel.tsx. Accelerate owners/entrypoints: extensions/; canonical entity/capability registries; src/lib/revenue-os/activities.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/work-items.ts; plugin record-view contract.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. No accounting ledger, manufacturing payroll or arbitrary overwrite of stock totals. Introduce no live supplier integration.",
+    labels: ["operations", "database"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test stock arithmetic, same-key replay, concurrent reservation, invalid units, failed commit, disabled queued action and demo reset. Scoped test deliverable: create scripts/test-inventory-stock-plugin.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-inventory-stock-plugin.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "purchasing-receipts-plugin",
+    title: "Add supplier purchasing with approved orders and partial receiving",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "An operator turns a reorder need into a reviewed supplier purchase order, sends it through the governed sender and records partial deliveries against inventory.\n\nImplementation steps:\n1. Model supplier links, purchase-order revisions/lines and per-line receipts with canonical IDs and tenant constraints.\n2. Create a draft from low-stock work with operator-entered price/lead-time facts.\n3. Approve the exact order version before external send; use recorded communications and immutable document snapshots.\n4. Post partial receipts through stock movements with deterministic receipt keys; expose remaining quantities, cancellation and exceptions.",
+    acceptance: [
+      "Draft, approved, sent, partially received, received and cancelled states have guarded transitions and receipts.",
+      "Partial deliveries add stock exactly once; over-receipt requires explicit policy and cannot silently inflate inventory.",
+      "Changed prices/quantities/supplier invalidate send approval; uncertain sends require reconciliation.",
+      "An end-to-end fictional reorder demonstrates approved order, partial receipt, remaining balance and completed work.",
+    ],
+    dependencies: ["Build an optional inventory plugin with audited stock movements"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/production/get-material-pos.ts; lib/admin/production/get-po-suggestions.ts; app/admin/material-pos/[poId]/POPageClient.tsx; app/api/admin/material-pos/[poId]/receive/route.ts; app/api/admin/material-pos/[poId]/send/route.ts. Accelerate owners/entrypoints: inventory-stock-plugin domain service; canonical company/contact identity; recorded communications; action queue; shared business documents and plugin views.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. No automatic supplier selection, payment or financial posting. Route-handler examples are behavior references only; move writes into Accelerate services.",
+    labels: ["operations", "automation"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test split receipts, concurrent/replayed receiving, cancellation races, stale approval, supplier identity, provider failure and stock reconciliation. Scoped test deliverable: create scripts/test-purchasing-receipts-plugin.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-purchasing-receipts-plugin.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "production-quality-plugin",
+    title: "Add production jobs with sample approval and quality gates",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "low",
+    description:
+      "A production business converts accepted specifications into assigned jobs, material commitments, sample approval and inspectable quality checks.\n\nImplementation steps:\n1. Define a bounded job lifecycle linked to the accepted specification/version, assigned members and required materials.\n2. Add sample approval and quality checklist gates that block production/completion when unmet.\n3. Record progress and material consumption through canonical services with replay protection.\n4. Surface blockers/capacity summaries in plugin views and Today using deterministic facts; AI may summarize or propose tasks.",
+    acceptance: [
+      "A job links to the exact accepted specifications and cannot bypass required sample or quality gates via API, UI, AI or board movement.",
+      "Replayed job creation, progress and consumption events are idempotent; amendments preserve evidence.",
+      "Failed quality checks create assigned remediation work with reasons and safe retry paths.",
+      "A fictional production example demonstrates blocked, approved, in-progress, remediation and completed outcomes.",
+    ],
+    dependencies: [
+      "Add supplier purchasing with approved orders and partial receiving",
+      "Extend Proposal Studio with branded options, specifications and attachments",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: components/admin/production/JobDetailSheet.tsx; components/admin/production/job-sheet/JobProgressPanel.tsx; components/admin/production/job-sheet/JobQCPanel.tsx; components/admin/orders/SampleApprovalGateCard.tsx; lib/orders/sample-approval.ts; lib/production/capacity-forecast.ts. Accelerate owners/entrypoints: canonical tasks/work items; accepted proposal snapshot; inventory movement service; plugin record views; action queue and activity ledger.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Keep payroll, tax, workforce surveillance and full ERP scheduling outside this card. Do not import garment-specific statuses into core.",
+    labels: ["operations", "tasks"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test gate bypass attempts, revision changes after sample approval, material availability, concurrent progress, duplicate consumption and demo workflow. Scoped test deliverable: create scripts/test-production-quality-plugin.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-production-quality-plugin.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "mobile-coworker-channel",
+    title: "Expose the existing coworker runtime through a governed WhatsApp operator channel",
+    workstream: "integrations",
+    phase: 6,
+    status: "backlog",
+    priority: "low",
+    description:
+      "An authorized operator can ask for business status and review governed work from WhatsApp using the same agent and permissions as the browser.\n\nImplementation steps:\n1. Extend the existing connector where supported; document exact supported provider capabilities before enabling the channel.\n2. Bind verified sender identity to an active tenant member and validate signed inbound events with durable replay claims.\n3. Adapt channel formatting/chunking and deterministic help/status commands around the existing coworker runtime.\n4. Bind any approval response to the exact actor, action, version and expiry; expose receipts in browser and channel history.",
+    acceptance: [
+      "The same question/tool action has equivalent authorized results in browser and channel without a second agent or tool catalogue.",
+      "Unknown phones, wrong tenants, revoked membership, bad signatures, replayed events and stale approvals fail closed.",
+      "Disabling the channel preserves audit/history and prevents new execution; missing provider capability is explicitly unavailable.",
+      "Fixture-based inbound/read/proposal/approval journeys and controlled provider proof are recorded separately.",
+    ],
+    dependencies: ["Verify Support end to end across all five shared admin demos"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: docs/WHATSAPP_BRIDGE.md; lib/admin-ai/command-agent.ts; lib/admin-ai/whatsapp-utils.ts; lib/admin-ai/whatsapp-utils.test.ts; lib/admin-ai/approval-handler.ts; app/api/webhooks/twilio/whatsapp/route.ts. Accelerate owners/entrypoints: src/lib/revenue-os/integration-adapters.ts; existing tenant WhatsApp webhook; canonical AI tool registry/action queue; coworker runtime; tenant membership and encrypted provider services.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Do not copy Workshelter environment-phone owner override, fixed model, shared store settings or pending_approvals table. No new Twilio account/provider activation in this ticket; if required create a dependency card. No proactive digests/customer messaging in v1.",
+    labels: ["integrations", "coworkers"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test signature/replay handling, tenant/member binding, approval spoofing, duplicate inbound events, chunking and provider failure; real outbound only to an explicitly authorized test operator. Scoped test deliverable: create scripts/test-mobile-coworker-channel.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-mobile-coworker-channel.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  // Retain completed work recorded on the live board and its implementation branch.
+  card({
+    key: "northstar-runtime-consolidation",
+    evidence:
+      "Local implementation verified on agent/northstar-runtime-consolidation in commits 2b2b4e5 and f7ecc94. Audit inventory: 129 recent commits, 928 touched paths including reverted changes, 865 net paths, 12 preserved unmerged branches. Runtime tests cover tenant filtering, failed gates, typed outcomes, stale owners, approval recovery, module ownership, and truthful receipts. Disposable PostgreSQL 14 applies five migrations twice and proves tenant identity, cross-tenant refusal, policy precedence, suspension, concurrent budget/work claims and stale recovery. Core, action execution/reversibility, AI tool gates, OpenRouter resilience, job/task, module/extension, architecture/boundary checks, typecheck, strict lint, full formatting and production build pass locally. Capability preflight uses one query for three keys. Existing cards retain 75 legacy route-write sites, broader provider metering, plugin host wiring, UI/performance and production acceptance. No production migration or deployment performed. Audit report: docs/internal/RUNTIME-AUDIT-2026-09-04.md.",
+    owner: "codex-runtime-consolidation",
+    status: "shipped",
+    title: "Audit recent architecture drift and consolidate runtime contracts",
+    workstream: "runtime",
+    phase: 3,
+    priority: "high",
+    description:
+      "Founder-directed August 29 through September 4 architecture audit and incremental consolidation. Preserve feature development while making shared runtime governance, work receipts, and domain ownership enforceable across entrypoints.",
+    acceptance: [
+      "Record the immutable audit baseline, every recent commit and changed path, unmerged branch disposition, and evidence-backed findings mapped to existing Feature Board cards",
+      "Database errors in budget and policy evaluation fail closed; work deferral, partial execution, and failures never produce completed receipts",
+      "Work transitions reject expired or superseded lease owners and retain bounded retry with truthful summaries",
+      "Canonical authorization governs action execution and learned prose never grants or denies authority",
+      "Shared domain writes and coworker execution remove duplicated behavior without breaking compatibility routes",
+      "Regression tests exercise gates, replay, stale claims, tenancy, and truthful outcomes; query profiling distinguishes measured changes from remaining performance candidates",
+    ],
+    start:
+      "docs/NORTHSTAR.md; src/lib/revenue-os/work-items.ts; work-executor.ts; budgets.ts; autonomy-policy.ts; action-executor.ts; scripts/verify-wiring.mjs. Existing cards own broader UI, provider, and legacy parity acceptance.",
+    guardrails:
+      "User-approved incremental consolidation with feature development continuing. Preserve unrelated work and existing APIs; no production deployment, provider activation, or real-recipient tests. Report uncovered acceptance honestly and retain existing Feature Board ownership.",
+    labels: ["work-engine", "reliability"],
+    verification:
+      "npm run verify:agent-contract; npm run test:runtime-consolidation; npm run test:action-execution; npm run test:core; npm run typecheck; npm run lint -- --max-warnings=0; npm run build; git diff --check. Database changes additionally require disposable PostgreSQL isolation/concurrency verification.",
+  }),
+  card({
+    key: "plugin-data-boundary-hardening",
+    evidence:
+      "Local commit a743947 hardens all four capability data operations. Adversarial data API tests, entity registry tests, isolation verifier, core tests, strict lint, typecheck, formatting and production build passed. Covers cross-tenant and unbound refusal before database access, grants on graph endpoints, selector injection, UTF-8 and strict JSON bounds, secret namespace refusal, conditional concurrent writes and truthful bounded row receipts. No production data changes or deployment. Host integration and real bundled examples continue as separate follow-up.",
+    owner: "codex-foundations",
+    status: "shipped",
+    title: "Close plugin data grant and tenant-boundary bypasses",
+    workstream: "platform",
+    phase: 3,
+    priority: "high",
+    description:
+      "Northstar foundation follow-up: make the existing capability data API enforce host tenant identity, entity grants, readable fields, bounded queries, and namespaced storage consistently before plugin hosts build on it.",
+    acceptance: [
+      "Every data shape refuses an unbound database or a grant for a different tenant before querying or writing",
+      "Recipes enforce the same enabled entity grants as entity queries; graph recipes never expose links to ungranted or disabled entity types",
+      "Database identifiers and readable fields are validated; relationship selection and wildcard projection cannot be introduced through metadata",
+      "Inputs and namespace JSON are bounded by real UTF-8 bytes; malformed filters, invalid limits, and secret namespace rows fail closed",
+      "Adversarial fixtures prove refusal, tenant isolation, grant isolation, exact bounded usage and truthful truncation without providers or production records",
+      "Document the host trust boundary and remaining persisted metering/host wiring acceptance, with core tests, strict lint, typecheck and build evidence",
+    ],
+    dependencies: ["Expose one capability-checked data API with no raw database handle"],
+    start:
+      "docs/NORTHSTAR.md sections 9, 10, 12, 22, 28, 29; src/lib/revenue-os/capability-data-api.ts; entity-registry.ts; scripts/test-capability-data-api.ts; scripts/verify-capability-isolation.mjs.",
+    guardrails:
+      "Founder-directed foundation consolidation. Reuse the existing data API, tenant database marker and entity registry; no parallel ORM or plugin framework, no new provider, no production data changes. Preserve active isolate-host ownership. Grants come from trusted host policy, never plugin arguments. This card does not certify plugin installation, external invocation or distributed metering.",
+    labels: ["security", "data"],
+    verification:
+      "npm run verify:agent-contract; npm run test:capability-data-api; npm run verify:capability-isolation; npm run test:core; npm run typecheck; npm run lint -- --max-warnings=0; npm run format:check; npm run build; git diff --check.",
+  }),
+  card({
+    key: "bundled-report-plugins",
+    evidence:
+      "Local plumbing proof completed: four optional report manifests, compiled QuickJS code, tenant-scoped read grants, shared workbench and generated AI tools. Real isolate tests prove tenant/disabled gates, malformed output, timeouts, missing sources, empty/truncated results, concurrent configuration and failed receipts. Core tests, runtime module/pack verification, typecheck, strict lint, formatting and production build pass. Playwright 1440x1000 and 390x844 verifies all four toggles, keyboard, stale-result removal and error retry with zero console errors; screenshots opened and corrected theme contrast. Sources require explicit host setup; no production setup/deploy. Founder correctly rejected these reports as sufficient business exemplars: they remain optional substrate tests, while substantive invoicing/onboarding/meeting workflows continue in follow-up.",
+    owner: "codex-foundations",
+    status: "shipped",
+    title: "Prove the plugin runtime with four switchable business reports",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "Founder-directed northstar proof: ship useful read-only pipeline risk, overdue commitment and upcoming meeting reports through the existing module registry, capability data boundary and QuickJS isolate. One host and one workspace activation contract serve UI and AI.",
+    acceptance: [
+      "Four bundled plugins calculate useful findings from bounded tenant records with source references, empty states and explicit truncation",
+      "Manifest declarations compile into isolated code and host grants; extensions remain pure data and plugin code receives no raw database or ambient authority",
+      "Current workspace module enablement is checked on every invocation; disabled plugins refuse direct and AI execution",
+      "The shared admin workbench runs reports and uses existing enable/disable configuration, with desktop/mobile keyboard and error-state verification",
+      "Core source registration is an explicit self-host setup command; missing capabilities fail with actionable errors and no runtime schema mutation",
+      "Adversarial host tests, real isolate executions, typecheck, strict lint, build and contributor instructions demonstrate extension without copying infrastructure",
+    ],
+    dependencies: ["Close plugin data grant and tenant-boundary bypasses"],
+    start:
+      "extensions/*.module.json; scripts/build-extension-modules.mjs; src/lib/revenue-os/plugin-isolate.ts; capability-data-api.ts; modules.ts; src/app/admin/integrations/page.tsx.",
+    guardrails:
+      "Use existing module activation and shared tenant/auth/data/trace primitives. Read-only bundled reports, no external sends or new providers. No arbitrary uploaded code, remote installation, marketplace, or claim of complete third-party lifecycle. Preserve other worktrees. Local controlled records only for tests; no production setup or deployment.",
+    labels: ["config", "data"],
+    verification:
+      "Real QuickJS and MemorySupabase integration tests for all four plugins, enable/disable, missing grants, tenant isolation and failures; module/extension checks; repository Playwright desktop/mobile with opened screenshots, keyboard and console checks; verify:agent-contract; typecheck; strict lint; build; git diff --check.",
+  }),
+  card({
+    key: "business-workflow-plugin-exemplars",
+    evidence:
+      "Local implementation complete for all acceptance items: three default-off QuickJS business workflow plugins share bounded manifest schemas, selected canonical identity, activation checks, approval queue and domain execution across UI and AI. Stripe tenant-encrypted connection and rotation, exact-money review, separate send approval, partial checkpoint and same-operation retry are verified against controlled provider fixtures; no live provider acceptance is claimed. Onboarding and meeting plans create assigned dated canonical tasks with replay protection and live completion controls. Shared workspace branding supports hosted logo replacement/removal, business identity, validated contrast, live preview and revision-safe saves. AI presentation drafts retain authoritative Stripe facts and durable AI traces; customer pages require approval, store encrypted revocable links and revalidate live billing facts. Full test:core, disposable PostgreSQL migration twice/RLS/composite references/uniqueness/immutable publication/revocation tests, typecheck, strict lint, formatting, module checks, production build and diff checks pass. Desktop 1440x1000 and mobile 390x844 browser journeys cover logo/color/reset/contrast, invoice partial failure/retry/send/design/publication/revocation, assigned onboarding/completion, public invoice SSR, keyboard, reduced motion and no overflow or console errors; screenshots opened and reviewed. Production dependency audit reports zero vulnerabilities. Contributor documentation records contracts, setup and limits. Work preserved on isolated agent/plugin-data-boundary-hardening branch; production migration/deployment remain rollout work. Follow-up 2026-09-05: real Stripe test-mode verification passed through QuickJS and the shared domain/approval executor with isolated application records. Exact USD 5.00 invoice, intentionally lost successful add-lines response, same-key retry with one invoice and one line, duplicate and disabled approvals, real finalization/test send, live-fact publication/revocation and final void all passed. Repeatable test:stripe-sandbox refuses live keys and unexpected accounts; provider request receipts retained in the local evidence artifact. No bank connection was required. This is real provider proof, not production database or completed-payment proof. No customer sends, charges or production configuration were performed.",
+    owner: "codex-foundations",
+    status: "shipped",
+    title: "Deliver actionable invoicing, onboarding and meeting workflow plugins",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "Founder correction: report-only examples do not prove a business command center. Build substantive optional plugins that prepare concrete business actions, accept editable inputs, obtain approval through the shared queue, execute through existing domain services and preserve durable results. Start with Stripe invoicing, then won-deal onboarding and meeting commitments.",
+    acceptance: [
+      "Stripe credentials remain tenant-scoped and encrypted; invoice drafts, explicit sending and provider status use a fixed Stripe adapter with bounded requests and truthful test/live receipts",
+      "Invoice amounts, customer identity, line items and send recipients are reviewed and revalidated before execution; retries retain operation identity and never silently change an uncertain external effect into success",
+      "Workspace branding provides logo replacement/removal, validated colors, business identity, live document preview and conflict-safe saves; invoice designs consume the shared brand rather than fork configuration",
+      "AI-assisted invoice page designs remain bounded presentation drafts with authoritative billing facts, preview and explicit publication, tenant isolation and revocable customer access",
+      "Won-deal onboarding produces a dated delivery checklist linked to the canonical opportunity; meeting commitments produce reviewable follow-up tasks linked to the stored meeting",
+      "Bundled workflow manifests declare input contracts, permitted actions and scoped context; plugin business logic runs inside QuickJS, with shared auth, activation, approval and execution services",
+      "Turning a plugin off blocks fresh proposals and queued execution, while preserving existing records and history",
+      "The product exposes editable workflow inputs, preview, approval, actual results, partial failure and safe recovery; UI and AI use the same host",
+      "Controlled provider fixtures and real isolate/domain tests prove business outcomes, replay, cross-tenant refusal, malformed inputs, provider errors and disabled states; browser QA, strict lint, typecheck and build pass",
+    ],
+    dependencies: ["Prove the plugin runtime with four switchable business reports"],
+    start:
+      "docs/NORTHSTAR.md; report-plugins.ts; plugin-isolate.ts; actions.ts; action-executor.ts; integration-adapters.ts; tasks.ts; entity-registry.ts; extensions/*.module.json; current Stripe API documentation.",
+    guardrails:
+      "Explicit founder authorization adds invoicing beyond the separate read-only Stripe reconciliation card. Reuse module activation, approved action queue, domain services, tenant encryption and existing schemas wherever possible. No live customer sends, charges, refunds, production configuration, migration or deployment during verification. Missing provider credentials limit real sandbox proof; distinguish deterministic provider fixtures from real Stripe receipts. Do not present report scaffolds as the requested business power.",
+    labels: ["config", "integrations"],
+    verification:
+      "Real QuickJS and controlled domain/provider tests; approval/replay/partial-failure tests; tenant and disabled-plugin gates; desktop/mobile Playwright with opened screenshots, keyboard and console checks; verify:agent-contract; typecheck; strict lint; format:check; build; git diff --check.",
+  }),
+  card({
+    key: "business-plugin-demo-scenarios",
+    evidence:
+      "All five fictional scenario packs now exercise the actual shared admin invoicing, onboarding, meeting commitments, plugins, branding, invoice designer and InvoiceDocument components through the session-local demo transport. Shared schemas validate inputs. Verified canonical customers, scenario-specific line items and assignments, approval/send/publication/revocation receipts, invalid input, replay, disabled action refusal and retry, stale branding revisions, task completion, persistence, reset and isolation. Full test:core, typecheck, strict lint, formatting, demo contract, agent contract, production build and git diff --check passed. Playwright passed all five scenarios at desktop and mobile widths, all five appearances, keyboard interactions and reduced motion with zero escaped protected/provider requests or console errors; screenshots opened and inspected. Separate actual founder-authenticated browser proof passed all five scenarios with zero protected/provider requests, and the test auth session was revoked. Demo AI generation and external effects are explicitly simulated. Atomic claim admission retains the WIP limit; removed duplicate static snapshot rejection so authorized forced claims can complete. No production deployment, schema changes or customer/provider effects.",
+    owner: "codex-foundations",
+    status: "shipped",
+    title: "Demonstrate business plugins and branding across the five fictional workspaces",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "Founder-directed follow-up: make invoicing, client onboarding, meeting commitments, plugin activation and branding explorable in the actual admin demos using coherent fictional business data and useful simulated outcomes.",
+    acceptance: [
+      "All five scenario packs provide business-appropriate invoices, canonical customers and opportunities, assigned task histories and shared branding",
+      "The actual admin pages render populated demo data and support invoice review/approval/send/design/publication, task creation/completion, branding edits and plugin toggles through the shared demo engine",
+      "Demo mutations explicitly identify simulation, retain local receipts, persist in scenario-scoped session state, reset exactly and never call protected APIs or providers",
+      "Disabled plugin proposals and queued execution are refused while history survives; invalid input, stale branding and duplicate approvals are covered",
+      "Desktop/mobile browser journeys cover all five scenarios and appearances, refresh/reset/isolation, keyboard, reduced motion, opened screenshots and zero protected/provider traffic; core demo tests, typecheck, strict lint and build pass",
+    ],
+    dependencies: ["Deliver actionable invoicing, onboarding and meeting workflow plugins"],
+    start:
+      "docs/NORTHSTAR.md; docs/contracts/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo/runtime.ts; scenarios.ts; scenario-profiles.ts; admin invoicing/branding/plugins; TaskWorkflowWorkspace; InvoicePageDesigner; scripts/qa-admin-demo.mjs",
+    guardrails:
+      "Reuse actual admin pages and one scenario demo engine. Scenario packs contain data only. Browser-session writes only; no Supabase mutations, provider calls, production secrets or deployment. Generated AI presentation is explicitly simulated and never changes billing facts.",
+    labels: ["demo", "config"],
+    verification:
+      "test:admin-demo-contract; focused demo business workflow tests and desktop/mobile browser matrix; verify:agent-contract; typecheck; strict lint; build; git diff --check.",
+  }),
   // Phase 0, truth, schema, and operating contract
   card({
     key: "revenue-os-production-migration",
@@ -864,7 +1369,7 @@ export const featureBacklog = [
       "Repair admin overlays, entry motion, tokens, and collapsible navigation",
     ],
     start:
-      "migrations/20260816-email-studio.sql; src/lib/email/registry.ts; src/lib/email/runtime-template.ts; src/app/admin/emails/page.tsx",
+      "migrations/20260816-email-studio.sql; src/lib/email/registry.ts; src/lib/email/runtime-template.ts; src/app/admin/emails/page.tsx. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/blocks/render.ts; lib/email/blocks/to-maily-doc.ts; lib/email/template-contract.ts; app/admin/emails/EmailsPageClient.tsx. Reuse handoff: This existing card owns draft/publish/test/history integrity. Richer blocks/layouts belong to card:email-document-composition; do not recreate template persistence there.",
     guardrails:
       "Use the proven Work+Shelter block-authoring model: a small typed block vocabulary, one render path for preview/test/send, and reusable layout starts. Test sends go only to the authenticated founder. Never store provider keys in templates or let draft edits change live sends implicitly.",
     labels: ["email", "templates", "delivery-history", "publishing"],
@@ -1071,8 +1576,11 @@ export const featureBacklog = [
     dependencies: [
       "Enforce campaign policy envelopes and version reapproval",
       "Build campaign dry-run, exclusion, and sample personalization review",
+      "Extend the shared email document and branded layout library",
+      "Add canonical saved audiences and explainable campaign eligibility",
     ],
-    start: "src/app/admin/campaigns/page.tsx; src/app/api/admin/revenue-os/campaigns/",
+    start:
+      "src/app/admin/campaigns/page.tsx; src/app/api/admin/revenue-os/campaigns/. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: components/admin/campaigns/CampaignFormClient.tsx; components/admin/campaigns/CampaignAiDraftPanel.tsx; components/admin/email/EmailLayoutGallery.tsx; lib/admin/campaigns/use-email-history.ts. Reuse handoff: Extend existing Campaigns/Email Studio IDs and shared composer: saved audience -> layout/AI draft -> explicit apply -> edit -> review -> approve -> schedule -> pause/resume -> per-recipient report. Preserve unsaved changes, undo/redo and exact approval version. Dependencies additionally include card:email-document-composition and card:campaign-saved-audiences; no copied SWR/router/theme stack.",
     guardrails:
       "Never schedule the whole sequence at Resend. Activation is not permission to exceed the displayed envelope.",
     labels: ["campaigns", "workspace"],
@@ -1891,8 +2399,10 @@ export const featureBacklog = [
     dependencies: [
       "Finish one auditable communication sender",
       "Enforce atomic claims and idempotency for jobs and actions",
+      "Add canonical saved audiences and explainable campaign eligibility",
     ],
-    start: "src/lib/revenue-os/campaigns.ts; campaigns API and schema",
+    start:
+      "src/lib/revenue-os/campaigns.ts; campaigns API and schema. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: app/api/admin/campaigns/[campaignId]/launch/route.ts; components/admin/campaigns/CampaignFormClient.tsx; lib/admin/campaigns/review-content.ts. Reuse handoff: Approval snapshots exact canonical audience membership plus content/document revision, sender, schedule, limits and stop policy. Material changes invalidate approval; send-time checks may exclude but never add recipients. Implement atomic activation in the domain service, not the referenced route-owned enrollment loop.",
     guardrails:
       "One-time activation is not blanket permission for arbitrary recipients, copy, cadence, or volume.",
     labels: ["approval", "versioning"],
@@ -1916,8 +2426,10 @@ export const featureBacklog = [
     dependencies: [
       "Enforce campaign policy envelopes and version reapproval",
       "Implement deterministic contact and company identity resolution",
+      "Add canonical saved audiences and explainable campaign eligibility",
     ],
-    start: "campaigns/preview API; Campaigns page",
+    start:
+      "campaigns/preview API; Campaigns page. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/contacts/segments.ts; app/api/admin/campaigns/audience-count/route.ts; lib/admin/campaigns/review-content.ts. Reuse handoff: Use card:campaign-saved-audiences service for exact counts, exclusions and deterministic samples. No write/provider effect; errors never become zero counts. Server review validates stored content and matches the executor; unresolved assets/variables block launch.",
     guardrails:
       "Dry run must have no external side effects and must not expose secret personalization context.",
     labels: ["preview", "safety"],
@@ -1941,7 +2453,8 @@ export const featureBacklog = [
       "Build campaign dry-run, exclusion, and sample personalization review",
       "Enforce bounded AI context and grounding rules",
     ],
-    start: "campaign_members; campaigns/members API; identity and AI services",
+    start:
+      "campaign_members; campaigns/members API; identity and AI services. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/sequences/renderer.ts; lib/contacts/segments.ts; lib/email/sequences/engine.ts. Reuse handoff: Enroll the approved canonical membership/version atomically or with resumable chunk receipts. Personalization uses allowlisted fields and approved fallback text. Preserve truthful partial enrollment and concurrency refusal; do not copy customer/email identity or non-atomic launch logic.",
     guardrails:
       "Do not scrape or invent facts during send execution. Material audience changes require reapproval.",
     labels: ["enrollment", "personalization"],
@@ -1965,7 +2478,8 @@ export const featureBacklog = [
       "Complete campaign enrollment and bounded personalization",
       "Enforce atomic claims and idempotency for jobs and actions",
     ],
-    start: "src/app/api/cron/revenue-campaigns; src/lib/revenue-os/action-executor.ts",
+    start:
+      "src/app/api/cron/revenue-campaigns; src/lib/revenue-os/action-executor.ts. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/sequences/engine.ts; app/api/cron/email-sequences/route.ts. Reuse handoff: Borrow bounded retries, pacing and frequency-cap behavior, not the cron/sender implementation. Execute through existing leases/recorded sender with tenant and recipient budgets, just-in-time consent, version and module checks. Provider acceptance plus local failure requires reconciliation, not blind retry.",
     guardrails:
       "Never pre-schedule the full sequence at Resend and never retry an uncertain provider result without idempotency evidence.",
     labels: ["executor", "queue"],
@@ -1991,7 +2505,8 @@ export const featureBacklog = [
       "Add Resend delivery webhooks and suppression receipts",
       "Complete campaign unsubscribe handling",
     ],
-    start: "campaign member state; messages; webhook routes; calendar/opportunity events",
+    start:
+      "campaign member state; messages; webhook routes; calendar/opportunity events. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/sequences/cancel-enrollment.test.ts; lib/email/sequences/engine.ts; lib/contacts/consent.ts. Reuse handoff: A read is not a reply. New replies, booking, conversion, unsubscribe, bounce and complaint stop eligible future work idempotently. Test pause/disable races against claimed work without erasing already accepted provider facts.",
     guardrails: "Do not rely on nightly cleanup for immediate safety stops.",
     labels: ["stops", "safety"],
     evidence:
@@ -2064,7 +2579,8 @@ export const featureBacklog = [
       "Enforce every campaign stop condition immediately",
       "Consolidate analytics on canonical source-to-revenue data",
     ],
-    start: "Campaigns UI; analytics service; job/webhook receipts",
+    start:
+      "Campaigns UI; analytics service; job/webhook receipts. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/campaigns/get-campaign-report.ts; lib/admin/campaigns/campaign-events.ts; lib/admin/campaigns/report-csv.ts; lib/admin/campaigns/release-regressions.test.ts; app/admin/campaigns/[campaignId]/CampaignReportClient.tsx. Reuse handoff: Expose per-version recipient statuses, backlog, exclusions, safe recovery and message-ID-attributed metrics through one UI/AI read model. Distinguish provider acceptance/delivery and uncertain/failed outcomes. Missing breakdowns must be unavailable/partial, not zero. Opens/clicks remain advisory; no automatic resend-to-non-openers.",
     guardrails:
       "Do not compare versions without labeling policy changes or hide excluded recipients from denominators.",
     labels: ["analytics", "exceptions"],
@@ -2742,7 +3258,8 @@ export const featureBacklog = [
       "Build the governed agent learning feedback loop",
       "Route every AI job through an audited model registry",
     ],
-    start: "AI Operations; agent_run_events; admin settings policy service",
+    start:
+      "AI Operations; agent_run_events; admin settings policy service. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: components/admin/ai/BehaviorTab.tsx; app/admin/ai/tabs/TestChatModal.tsx; app/admin/ai/tabs/PoliciesTab.tsx; lib/admin-ai/exemplar-retrieval.ts; app/api/admin/chat/versions/[id]/revert/route.ts. Reuse handoff: This existing card owns versioned behavior settings, preview, curated exemplars and quality telemetry. Publish and rollback atomically with expected revision; rollback itself creates history and errors cannot return success. Voice/source preferences never weaken safety floors. Borrow the UX, not the unchecked multi-write rollback route. The later support-knowledge-corrections card owns only the concrete flagged-answer-to-correction workflow.",
     guardrails:
       "No automatic exemplar promotion, self-modifying prompt, hidden fallback, or policy-controlled direct write.",
     labels: ["ai", "reliability"],
@@ -3219,8 +3736,11 @@ export const featureBacklog = [
     dependencies: [
       "Finish Conversations as the unified communication inbox",
       "Enforce every campaign stop condition immediately",
+      "Ship newsletter, event invitation and reactivation campaign recipes",
+      "Expose campaign performance, exceptions, and recovery",
     ],
-    start: "Google/Resend fixtures or controlled test accounts; Conversations/Campaigns UI",
+    start:
+      "Google/Resend fixtures or controlled test accounts; Conversations/Campaigns UI. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: tests/admin/campaign-ux.spec.ts; lib/admin/campaigns/release-regressions.test.ts; lib/contacts/segment-definition.test.ts. Reuse handoff: Campaign release gate for Workshelter reuse: test recipes, exact approved audience/document, invalid/stale reviews, duplicate launch, provider uncertainty, per-recipient reports and safe retry. All five scenarios use actual admin pages and shared demo transport; cover desktop/mobile, five themes, keyboard, reduced motion, persistence/reset and authenticated zero protected/provider requests. Keep original Gmail threading acceptance; record controlled-provider evidence separately. Dependencies additionally include card:campaign-business-recipes and card:campaign-performance-exceptions.",
     guardrails: "Do not message uncontrolled recipients; use explicit sandbox/test identities.",
     labels: ["playwright", "campaigns"],
   }),
@@ -5714,9 +6234,15 @@ export const featureBacklog = [
       "Revenue stage audit identifies proposal/negotiation deals stale for 7+ days",
       "All handler outcomes produce audit receipts",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests", "Unify agent permissions into one Autonomy Policy Engine"],
-    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/finance-coworker.ts; src/lib/revenue-os/work-executor.ts",
-    guardrails: "Finance coworker reads CRM data autonomously but writes and alerts require ask_until_trusted level. Never auto-modify financial records.",
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Unify agent permissions into one Autonomy Policy Engine",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/finance-coworker.ts; src/lib/revenue-os/work-executor.ts",
+    guardrails:
+      "Finance coworker reads CRM data autonomously but writes and alerts require ask_until_trusted level. Never auto-modify financial records.",
     labels: ["coworkers", "finance"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5737,9 +6263,14 @@ export const featureBacklog = [
       "Data quality scan detects missing critical fields on contacts and opportunities",
       "All handler outcomes produce audit receipts",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests"],
-    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/operations-coworker.ts; src/lib/revenue-os/work-executor.ts",
-    guardrails: "Operations coworker is read-only — it detects and reports issues, never auto-remediates. Alerts require ask_until_trusted autonomy level.",
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/operations-coworker.ts; src/lib/revenue-os/work-executor.ts",
+    guardrails:
+      "Operations coworker is read-only — it detects and reports issues, never auto-remediates. Alerts require ask_until_trusted autonomy level.",
     labels: ["coworkers", "operations"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5760,9 +6291,16 @@ export const featureBacklog = [
       "Daily operator check-in task surfaces in the inbox",
       "Scheduler produces audit receipts",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests", "Finance Coworker: revenue tracking, overdue detection, and reconciliation", "Operations Coworker: system health, integration monitoring, and data quality"],
-    start: "docs/NORTHSTAR.md §E; src/lib/revenue-os/work-scheduler.ts; src/app/api/cron/work-engine/route.ts",
-    guardrails: "Scheduler only creates work items — it never executes them. Deduplication must be date-based, not attempt-based. Scheduler failures must not block the work engine execution cycle.",
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Finance Coworker: revenue tracking, overdue detection, and reconciliation",
+      "Operations Coworker: system health, integration monitoring, and data quality",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/work-scheduler.ts; src/app/api/cron/work-engine/route.ts",
+    guardrails:
+      "Scheduler only creates work items — it never executes them. Deduplication must be date-based, not attempt-based. Scheduler failures must not block the work engine execution cycle.",
     labels: ["coworkers", "automation"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5786,9 +6324,14 @@ export const featureBacklog = [
       "Memory summary (learned policies + recent agent memory) loaded into every agent grounding contract",
       "MCP server exposes memory/overview resource",
     ],
-    dependencies: ["Build the Evidence and Claim Ledger for AI-derived facts", "Introduce Coworkers as first-class runtime identities with manifests"],
-    start: "docs/NORTHSTAR.md §23; src/lib/revenue-os/memory.ts; migrations/20260903-memory-architecture.sql",
-    guardrails: "Categories must never be collapsed — each retains its own shape. Agent memory is not canonical data. Learned policies are constraints, not capabilities. Memory query failures must not block agent execution.",
+    dependencies: [
+      "Build the Evidence and Claim Ledger for AI-derived facts",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
+    start:
+      "docs/NORTHSTAR.md §23; src/lib/revenue-os/memory.ts; migrations/20260903-memory-architecture.sql",
+    guardrails:
+      "Categories must never be collapsed — each retains its own shape. Agent memory is not canonical data. Learned policies are constraints, not capabilities. Memory query failures must not block agent execution.",
     labels: ["coworkers", "ai-context"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
@@ -5809,9 +6352,13 @@ export const featureBacklog = [
       "90%+ budget usage triggers audit alert",
       "2 AI tools: check_budgets, get_budget_limits",
     ],
-    dependencies: ["Generalise tasks and scheduling into a durable Work Engine", "Introduce Coworkers as first-class runtime identities with manifests"],
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
     start: "docs/NORTHSTAR.md §24; src/lib/revenue-os/budgets.ts; migrations/20260903-budgets.sql",
-    guardrails: "Running out of budget is a normal state, not an error. Budget checks are best-effort — failure to check must not block execution. Budgets constrain autonomous work; human-initiated actions are not gated by budgets.",
+    guardrails:
+      "Running out of budget is a normal state, not an error. Budget checks are best-effort — failure to check must not block execution. Budgets constrain autonomous work; human-initiated actions are not gated by budgets.",
     labels: ["automation", "reliability"],
     verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
   }),
