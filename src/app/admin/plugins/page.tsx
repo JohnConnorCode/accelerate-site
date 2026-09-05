@@ -83,7 +83,10 @@ export default function PluginsPage() {
           </div>
         </AdminSurface>
         {(error || modules.error) && (
-          <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm">
+          <p
+            role="alert"
+            className="rounded-xl border border-[var(--admin-danger)]/30 bg-[var(--admin-danger-soft)] p-4 text-sm"
+          >
             {error || modules.error?.message}
             <button
               type="button"

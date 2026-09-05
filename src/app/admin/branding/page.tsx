@@ -111,7 +111,7 @@ function BrandEditor({ initial, onSaved }: { initial: BrandResponse; onSaved: ()
         </div>
       </div>
       {error && (
-        <p role="alert" className="rounded-xl border border-red-500/30 p-4 text-sm">
+        <p role="alert" className="rounded-xl border border-[var(--admin-danger)]/30 p-4 text-sm">
           {error}
         </p>
       )}

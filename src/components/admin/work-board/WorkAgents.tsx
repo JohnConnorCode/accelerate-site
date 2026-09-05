@@ -101,7 +101,7 @@ export function WorkAgents() {
         Issue 30-day credential
       </button>
       {token && (
-        <div className="mt-3 rounded-xl border border-amber-500/30 p-3">
+        <div className="mt-3 rounded-xl border border-[var(--admin-warning)]/30 p-3">
           <p className="text-xs">
             Copy this credential into your local secret manager now. It is shown once and cleared
             when this section closes.

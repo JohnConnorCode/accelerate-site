@@ -6,7 +6,7 @@ import type { FeatureRequest } from "@/lib/feature-board";
 const field =
   "min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-3 text-sm";
 const button =
-  "min-h-11 rounded-xl border border-[var(--admin-border)] px-4 text-xs font-semibold disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-blue-500";
+  "min-h-11 rounded-xl border border-[var(--admin-border)] px-4 text-xs font-semibold disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]";
 export async function sendWork(
   operation: string,
   feature: FeatureRequest | null,
@@ -105,7 +105,7 @@ export function WorkControls({
         </p>
       )}
       {feature.work_blocker && (
-        <p className="text-sm text-amber-700 dark:text-amber-300">{feature.work_blocker}</p>
+        <p className="text-sm text-[var(--admin-warning)]">{feature.work_blocker}</p>
       )}
       <label className="block text-xs font-semibold">
         Decision, progress or review reason
