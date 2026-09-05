@@ -1,3 +1,4 @@
+import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
 import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
 import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
 import { COLLECTION_AGENT_TOOLS } from "@/lib/revenue-os/collection-agent-contract";
@@ -1394,7 +1395,7 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
     ],
   ];
   rows.push(
-    ...BRANDING_TOOLS.map(
+    ...[...BRANDING_TOOLS, ...MODULE_CONTROL_TOOLS].map(
       (t) =>
         [
           t.name,

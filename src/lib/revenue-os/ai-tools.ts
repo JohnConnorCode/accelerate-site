@@ -1,4 +1,13 @@
 import "server-only";
+import {
+  MODULE_CONTROL_TOOLS,
+  MODULE_CONTROL_TOOL_NAMES,
+  moduleReadSchema,
+  modulePreviewSchema,
+  moduleProposalSchema,
+} from "./module-actions-contract";
+import { readModuleConfiguration } from "./module-configuration-read";
+import { previewModuleConfiguration, proposeModuleConfiguration } from "./module-actions";
 import { readWorkspaceBrand } from "./branding";
 import { previewWorkspaceBrandUpdate, proposeWorkspaceBrandUpdate } from "./branding-actions";
 import {
@@ -335,6 +344,25 @@ export function assertImpactHonoured(tool: AiToolRegistration, output: unknown):
 }
 
 const registry: AiToolRegistration[] = [
+  {
+    ...MODULE_CONTROL_TOOLS[0],
+    inputSchema: z.toJSONSchema(moduleReadSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => readModuleConfiguration(supabase, input),
+  },
+  {
+    ...MODULE_CONTROL_TOOLS[1],
+    inputSchema: z.toJSONSchema(modulePreviewSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => previewModuleConfiguration(supabase, input),
+  },
+  {
+    ...MODULE_CONTROL_TOOLS[2],
+    inputSchema: z.toJSONSchema(moduleProposalSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeModuleConfiguration(supabase, input, actorEmail),
+  },
   {
     ...BRANDING_TOOLS[0],
     inputSchema: z.toJSONSchema(z.object({}).strict()),
@@ -1887,6 +1915,7 @@ const registry: AiToolRegistration[] = [
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
     ...BRANDING_TOOL_NAMES,
+    ...MODULE_CONTROL_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
     ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
       (moduleDef) => moduleDef.aiToolNames || [],
@@ -1926,6 +1955,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   ],
   pipeline: [
     ...BRANDING_TOOL_NAMES,
+    ...MODULE_CONTROL_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",
     "search_contacts",
@@ -1950,6 +1980,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   ],
   outreach: [
     ...BRANDING_TOOL_NAMES,
+    ...MODULE_CONTROL_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",

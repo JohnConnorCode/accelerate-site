@@ -167,3 +167,10 @@ writes and the normal admin form use `saveWorkspaceBrandAsAdmin` in `branding.ts
 `tenant-admin-authority.ts` checks fresh human membership and exact actor/database
 scope before that host obtains a privileged writer. Do not expose this writer to
 plugins or turn the branding action into a generic tenant-config mutation.
+
+`module-actions.ts` adds governed read/preview/proposal adapters for existing
+module controls, with public schemas in `module-actions-contract.ts` and bounded
+projections in `module-configuration-read.ts`. Approval and direct admin writes
+reuse `updateModuleConfigurationAsAdmin`; its existing CAS service checks an AI
+proposal's target revision before bundled-source registration or config updates.
+Module management stays core-owned even when the target plugin is disabled.

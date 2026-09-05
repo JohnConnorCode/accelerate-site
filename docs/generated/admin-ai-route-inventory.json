@@ -1351,13 +1351,14 @@
       ],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/module-actions-contract",
         "@/lib/revenue-os/module-configuration",
         "@/lib/revenue-os/modules",
-        "@/lib/supabase/server",
-        "next/server",
-        "zod"
+        "@/lib/tenancy/context",
+        "next/server"
       ],
-      "sourceSha256": "dc1583bcc102b864647b398dcacc964ebe09850b07b332a15625002a44961754"
+      "sourceSha256": "33e9b419aac5552c0a74663ab7851787289ad62dce4d6cd48bc4828a73dd38f1"
     },
     {
       "source": "src/app/api/admin/tenant/providers/route.ts",

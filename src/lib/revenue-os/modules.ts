@@ -190,6 +190,9 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "/admin/branding",
     ],
     aiToolNames: [
+      "get_module_configuration",
+      "preview_module_configuration",
+      "propose_module_configuration",
       "get_workspace_brand",
       "preview_workspace_brand_update",
       "propose_workspace_brand_update",

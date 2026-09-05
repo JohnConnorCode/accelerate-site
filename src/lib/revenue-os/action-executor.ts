@@ -1,4 +1,5 @@
 import "server-only";
+import { executeModuleConfiguration } from "./module-actions";
 import { executeWorkspaceBrandUpdate } from "./branding-actions";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { executeCollectionReminder } from "./collection-reminders";
@@ -35,6 +36,7 @@ function stringValue(
 }
 
 export const APPROVABLE_ACTIONS = [
+  "update_module_configuration",
   "update_workspace_brand",
   "create_stripe_invoice_draft",
   "send_stripe_invoice",
@@ -124,6 +126,12 @@ export async function approveAndExecuteAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "update_module_configuration": {
+        if (mode !== "approved")
+          throw new Error("Module configuration changes require human approval");
+        result = await executeModuleConfiguration(supabase, payload, actorEmail);
+        break;
+      }
       case "update_workspace_brand": {
         if (mode !== "approved") throw new Error("Branding changes require human approval");
         result = await executeWorkspaceBrandUpdate(supabase, payload, actorEmail);

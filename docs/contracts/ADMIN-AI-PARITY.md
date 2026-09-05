@@ -150,3 +150,29 @@ This closes branding parity only. The larger domain and permission/executor
 initiatives remain open. The demo continues to use its session-local branding
 transport and shared capability metadata; its assistant is a simulation, not a
 live provider-backed agent.
+
+## Implemented plugin and module configuration path
+
+`get_module_configuration` returns current enablement, declared public settings,
+field metadata and revision for one module or the bounded module catalogue.
+`preview_module_configuration` accepts a change such as
+`{"change":{"moduleId":"receivables-collections","settings":{"cooldownHours":24}}}`
+or `{"change":{"moduleId":"receivables-collections","enabled":false}}`.
+It returns exact before/after values and consequences; `propose_module_configuration`
+requires that same change and digest and queues a one-hour pending action.
+
+Human approval uses the same current-admin writer and configuration CAS service
+as the normal module controls. The digest binds tenant, target enablement/settings
+and current module definition; stale changes require another review. Core toggles,
+unknown fields, invalid ranges and no-ops refuse. Disable retains data and receipts;
+core management tools remain available to re-enable the module. Enabling bundled
+plugins may install missing host-owned read policies, which are retained and
+idempotent, not automatically removed by a later disable. Stale target revision
+checks precede that installation. A configuration save and those policy insertions
+are separate operations; no atomic rollback across them is claimed.
+
+No secret values or arbitrary tenant settings are exposed. Provider credentials,
+OAuth, sync controls and the other domain cards remain outstanding. The module
+configuration tool does not run a newly enabled business workflow or grant standing
+autonomy. Registry `revenue-os-tools.v8` includes 56 tools; the shared demo catalogue
+uses the same module-control metadata with simulated outcomes.

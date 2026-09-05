@@ -34,6 +34,13 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "update_module_configuration",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "A new reviewed configuration proposal restores settings or enablement. Bundled read-policy registration and historical effects are retained; no automatic inverse is promised.",
+  },
+  {
     actionType: "update_workspace_brand",
     impact: "internal_write",
     reversibility: "compensable",

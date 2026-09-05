@@ -97,7 +97,7 @@ try {
         }
         const verifyCollectionCapabilities = async (enabled) => {
           await page.goto(root + "/ai?view=capabilities");
-          await page.getByText("Registry revenue-os-tools.v7", { exact: true }).waitFor();
+          await page.getByText("Registry revenue-os-tools.v8", { exact: true }).waitFor();
           for (const [label, ready, connection] of [
             ["Read collection cases", "Ready to read", "No provider connection required"],
             ["preview collection reminder", "Ready to read", "Connection required"],
