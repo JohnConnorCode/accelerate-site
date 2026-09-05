@@ -24,9 +24,12 @@ const shouldRecord = process.argv.includes("--record");
 const checkedAt = new Date().toISOString();
 const tenantScopedTableSet = new Set<string>(TENANT_SCOPED_TABLES);
 const ENTITY_REGISTRY_MIGRATION = "migrations/20260904-entity-registry-link-graph.sql";
+const DELIVERY_HANDOFF_MIGRATION = "migrations/20260905-delivery-handoff.sql";
 const migrationFor = (table: string, column?: string) =>
   table === "entity_types" || table === "entity_links"
     ? ENTITY_REGISTRY_MIGRATION
+    : table === "onboarding_templates"
+      ? DELIVERY_HANDOFF_MIGRATION
     : ["recovery_playbooks", "recovery_candidates", "recovery_outcomes"].includes(table)
     ? "migrations/20260830-revenue-recovery.sql"
     : column === "tenant_id" && tenantScopedTableSet.has(table)
@@ -52,6 +55,8 @@ const migrationFor = (table: string, column?: string) =>
 const migrationForIndex = (name: string) =>
   name.startsWith("idx_entity_")
     ? ENTITY_REGISTRY_MIGRATION
+    : name.startsWith("idx_onboarding_templates") || name === "idx_clients_opportunity"
+      ? DELIVERY_HANDOFF_MIGRATION
     : name.includes("tenant")
       ? "migrations/20260830-shared-database-tenancy.sql"
       : name.includes("ai_") || name === "idx_agent_runs_conversation"
@@ -60,6 +65,8 @@ const migrationForIndex = (name: string) =>
 const migrationForPolicy = (table: string, name: string) =>
   table === "entity_types" || table === "entity_links"
     ? ENTITY_REGISTRY_MIGRATION
+    : table === "onboarding_templates"
+      ? DELIVERY_HANDOFF_MIGRATION
     : name === "Tenant member access" || ["tenants", "tenant_memberships"].includes(table)
       ? "migrations/20260830-shared-database-tenancy.sql"
       : migrationFor(table);
