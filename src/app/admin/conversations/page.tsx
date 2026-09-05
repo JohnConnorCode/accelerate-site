@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Briefcase,
@@ -75,6 +75,7 @@ export default function ConversationsPage() {
   const [intentFilter, setIntentFilter] = useState("all");
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [followUpOnly, setFollowUpOnly] = useState(false);
+  const [assigneeFilter, setAssigneeFilter] = useState<"all" | "unassigned" | "me">("all");
   const [search, setSearch] = useState("");
 
   // Action / Composer states
@@ -86,7 +87,20 @@ export default function ConversationsPage() {
 
   // Modal states
   const [showCreateOppModal, setShowCreateOppModal] = useState(false);
+  const [assigneeEmail, setAssigneeEmail] = useState("");
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+  const [showLinkOpp, setShowLinkOpp] = useState(false);
+  const [oppSearch, setOppSearch] = useState("");
+  const [oppResults, setOppResults] = useState<
+    Array<{
+      id: string;
+      name: string;
+      stage: string;
+      contact_id?: string | null;
+      company_id?: string | null;
+    }>
+  >([]);
+  const [linkingOpp, setLinkingOpp] = useState(false);
   const [oppName, setOppName] = useState("");
   const [oppValue, setOppValue] = useState("0");
   const [taskTitle, setTaskTitle] = useState("");
@@ -104,9 +118,10 @@ export default function ConversationsPage() {
     if (intentFilter !== "all") params.set("intent", intentFilter);
     if (unreadOnly) params.set("unread", "1");
     if (followUpOnly) params.set("followUp", "1");
+    if (assigneeFilter !== "all") params.set("assignee", assigneeFilter);
     if (search.trim()) params.set("search", search.trim());
     return params.toString();
-  }, [selectedId, statusFilter, channelFilter, recordFilter, campaignFilter, intentFilter, unreadOnly, followUpOnly, search]);
+  }, [selectedId, statusFilter, channelFilter, recordFilter, campaignFilter, intentFilter, unreadOnly, followUpOnly, assigneeFilter, search]);
 
   const conversationQuery = useAdminQuery<{
     schemaReady: boolean;
@@ -149,8 +164,12 @@ export default function ConversationsPage() {
     if (result.error) setActionError(result.error.message || "Could not load conversations.");
   }, [refetchConversations]);
 
+  const didAutoSelect = useRef(false);
   useEffect(() => {
-    if (!selectedId && conversations[0]) setSelectedId(conversations[0].id);
+    if (didAutoSelect.current || selectedId || !conversations[0]) return;
+    if (typeof window !== "undefined" && window.innerWidth < 1024) return;
+    didAutoSelect.current = true;
+    setSelectedId(conversations[0].id);
   }, [conversations, selectedId]);
 
   const selected = useMemo(() => {
@@ -190,6 +209,75 @@ export default function ConversationsPage() {
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Status update failed.");
+    }
+  };
+
+  const searchOpportunities = async () => {
+    const query = oppSearch.trim();
+    if (query.length < 2) {
+      toast.error("Enter at least two characters to search opportunities.");
+      return;
+    }
+    try {
+      const data = await fetchJson<{
+        opportunities?: Array<{
+          id: string;
+          name: string;
+          stage: string;
+          contact_id?: string | null;
+          company_id?: string | null;
+        }>;
+      }>(`/api/admin/revenue-os/pipeline?search=${encodeURIComponent(query)}`);
+      setOppResults((data.opportunities ?? []).slice(0, 8));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Opportunity search failed.");
+    }
+  };
+
+  const linkExistingOpportunity = async (opportunity: {
+    id: string;
+    name: string;
+    contact_id?: string | null;
+    company_id?: string | null;
+  }) => {
+    if (!selectedId) return;
+    setLinkingOpp(true);
+    try {
+      await fetchJson("/api/admin/revenue-os/conversations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedId,
+          opportunityId: opportunity.id,
+          contactId: opportunity.contact_id ?? undefined,
+          companyId: opportunity.company_id ?? undefined,
+        }),
+      });
+      toast.success(`Linked ${opportunity.name}.`);
+      setShowLinkOpp(false);
+      setOppSearch("");
+      setOppResults([]);
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not link the opportunity.");
+    } finally {
+      setLinkingOpp(false);
+    }
+  };
+
+  const assignSelected = async (email: string | null) => {
+    if (!selectedId) return;
+    try {
+      await fetchJson("/api/admin/revenue-os/conversations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedId, assigneeEmail: email }),
+      });
+      toast.success(email ? `Conversation assigned to ${email}` : "Assignment cleared.");
+      setAssigneeEmail("");
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Assignment failed.");
     }
   };
 
@@ -334,6 +422,8 @@ export default function ConversationsPage() {
                       key={tab.key}
                       type="button"
                       onClick={() => setStatusFilter(tab.key)}
+                      aria-label={`${tab.label} conversations`}
+                      aria-pressed={statusFilter === tab.key}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-[background-color,color] duration-150",
                         statusFilter === tab.key
@@ -362,6 +452,7 @@ export default function ConversationsPage() {
                   <button
                     type="button"
                     onClick={() => setUnreadOnly(!unreadOnly)}
+                    aria-label="Show unread only"
                     aria-pressed={unreadOnly}
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-medium transition-[background-color,color] duration-150",
@@ -438,6 +529,7 @@ export default function ConversationsPage() {
                   <button
                     type="button"
                     onClick={() => setFollowUpOnly(!followUpOnly)}
+                    aria-label="Show follow-up only"
                     aria-pressed={followUpOnly}
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-medium transition-[background-color,color] duration-150",
@@ -449,6 +541,20 @@ export default function ConversationsPage() {
                     <span className="size-2 rounded-full bg-[var(--admin-ink)]" />
                     Follow-up
                   </button>
+
+                  {/* Assignee Dropdown */}
+                  <select
+                    value={assigneeFilter}
+                    onChange={(e) =>
+                      setAssigneeFilter(e.target.value as "all" | "unassigned" | "me")
+                    }
+                    aria-label="Filter by assignee"
+                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                  >
+                    <option value="all">All Assignees</option>
+                    <option value="unassigned">Unassigned</option>
+                    <option value="me">Assigned to me</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -579,7 +685,10 @@ export default function ConversationsPage() {
                         <div className="flex items-center gap-3 min-w-0">
                           <button
                             type="button"
-                            onClick={() => setSelectedId(null)}
+                            onClick={() => {
+                              didAutoSelect.current = true;
+                              setSelectedId(null);
+                            }}
                             aria-label="Back to conversations"
                             className="grid size-8 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] hover:bg-black/[0.04] hover:text-[var(--admin-ink)] lg:hidden"
                           >
@@ -633,6 +742,7 @@ export default function ConversationsPage() {
                               onClick={() => void updateStatus("archived")}
                               className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-[var(--admin-border)] px-2.5 text-xs font-semibold text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-danger)]"
                               title="Archive conversation"
+                              aria-label="Archive conversation"
                             >
                               <Trash2 className="size-3.5" />
                             </button>
@@ -805,18 +915,74 @@ export default function ConversationsPage() {
                         ) : (
                           <div className="rounded-xl border border-dashed border-[var(--admin-border)] p-3 text-center">
                             <p className="text-[var(--admin-muted)]">No opportunity linked</p>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setOppName(selected.subject || "New Opportunity");
-                                setShowCreateOppModal(true);
-                              }}
-                              className="mt-2 inline-flex items-center gap-1 rounded-lg bg-[var(--admin-ink)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--admin-surface)]"
-                            >
-                              <Plus className="size-3" /> Create Opportunity
-                            </button>
+                            <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOppName(selected.subject || "New Opportunity");
+                                  setShowCreateOppModal(true);
+                                }}
+                                className="inline-flex items-center gap-1 rounded-lg bg-[var(--admin-ink)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--admin-surface)]"
+                              >
+                                <Plus className="size-3" /> Create Opportunity
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setShowLinkOpp(true)}
+                                className="inline-flex items-center gap-1 rounded-lg border border-[var(--admin-border)] px-2.5 py-1.5 text-[11px] font-semibold text-[var(--admin-ink)]"
+                              >
+                                Link existing
+                              </button>
+                            </div>
                           </div>
                         )}
+                      </div>
+
+                      {/* Assignment */}
+                      <div>
+                        <p className="admin-eyebrow mb-2">Assignment</p>
+                        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-3 space-y-2">
+                          <p className="text-[var(--admin-ink)]">
+                            {selected.assignee_email || (
+                              <span className="text-[var(--admin-muted)]">Unassigned</span>
+                            )}
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => void assignSelected("me")}
+                              className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-[var(--admin-ink)] px-2.5 py-1 text-[11px] font-semibold text-[var(--admin-surface)]"
+                            >
+                              Assign to me
+                            </button>
+                            {selected.assignee_email && (
+                              <button
+                                type="button"
+                                onClick={() => void assignSelected(null)}
+                                className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
+                              >
+                                Clear
+                              </button>
+                            )}
+                          </div>
+                          <div className="flex gap-1.5">
+                            <input
+                              value={assigneeEmail}
+                              onChange={(event) => setAssigneeEmail(event.target.value)}
+                              placeholder="name@company.com"
+                              aria-label="Assignee email"
+                              className="min-h-9 min-w-0 flex-1 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2.5 text-xs text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)]/70 focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => void assignSelected(assigneeEmail)}
+                              disabled={!assigneeEmail.trim()}
+                              className="inline-flex min-h-9 shrink-0 items-center rounded-lg border border-[var(--admin-border)] px-2.5 text-[11px] font-semibold text-[var(--admin-ink)] disabled:opacity-40"
+                            >
+                              Assign
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Contact & Company Details */}
@@ -1028,6 +1194,75 @@ export default function ConversationsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showLinkOpp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold text-[var(--admin-ink)]">
+                Link existing opportunity
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLinkOpp(false);
+                  setOppResults([]);
+                }}
+                className="text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
+                aria-label="Close link opportunity"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <form
+              className="mt-4 space-y-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void searchOpportunities();
+              }}
+            >
+              <label className="block text-xs font-semibold text-[var(--admin-ink)]">
+                Search pipeline
+                <input
+                  type="search"
+                  value={oppSearch}
+                  onChange={(event) => setOppSearch(event.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
+                  placeholder="Opportunity name or email"
+                  aria-label="Search opportunities to link"
+                />
+              </label>
+              <button
+                type="submit"
+                className="rounded-lg bg-[var(--admin-ink)] px-3.5 py-1.5 text-xs font-semibold text-[var(--admin-surface)]"
+              >
+                Search
+              </button>
+            </form>
+            <div className="mt-3 space-y-1.5">
+              {oppResults.map((opportunity) => (
+                <button
+                  key={opportunity.id}
+                  type="button"
+                  disabled={linkingOpp}
+                  onClick={() => void linkExistingOpportunity(opportunity)}
+                  className="flex w-full items-center justify-between rounded-lg border border-[var(--admin-border)] px-3 py-2 text-left text-xs text-[var(--admin-ink)] hover:bg-black/[0.04] disabled:opacity-50 dark:hover:bg-white/[0.04]"
+                >
+                  <span className="truncate font-medium">{opportunity.name}</span>
+                  <span className="text-[10px] uppercase text-[var(--admin-muted)]">
+                    {opportunity.stage}
+                  </span>
+                </button>
+              ))}
+              {!oppResults.length && (
+                <p className="text-[11px] text-[var(--admin-muted)]">
+                  Search for a canonical opportunity. Linking never guesses from a name alone.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
