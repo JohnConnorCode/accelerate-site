@@ -104,6 +104,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run format:check
 
+      - name: Verify documentation search
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:search
+
       - name: Run core contract suite
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:core
@@ -177,6 +181,7 @@ jobs:
           npm run test:work-completion -- --browser-fixtures
           node scripts/qa-work-completion.mjs
           node scripts/qa-demo-business-workflows.mjs
+          DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -186,6 +191,7 @@ jobs:
             /tmp/accelerate-turnkey-qa/
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/
+            /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-first-run-server.log
           if-no-files-found: ignore
           retention-days: 7

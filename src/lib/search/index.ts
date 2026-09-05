@@ -151,6 +151,13 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     keywords: ["team", "people", "founder", "advisors", "who we are", "staff"],
   },
   {
+    id: "page-roadmap",
+    title: "Roadmap",
+    description: "Explore planned work and the status of public requests.",
+    href: "/roadmap",
+    keywords: ["roadmap", "planned", "requests", "upcoming"],
+  },
+  {
     id: "page-changelog",
     title: "Changelog",
     description: "What we have shipped recently.",

@@ -232,7 +232,8 @@
     "test:resources": "node --test scripts/test-resource-run.mjs",
     "test:public-roadmap": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-public-roadmap-availability.ts",
     "verify:migrations": "node scripts/run-all-migrations.mjs --check",
-    "test:migration-ledger": "node scripts/test-migration-ledger-postgres.mjs"
+    "test:migration-ledger": "node scripts/test-migration-ledger-postgres.mjs",
+    "qa:docs": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/qa-docs.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
