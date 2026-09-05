@@ -175,6 +175,24 @@ async function main() {
     "the Northern Trust archive must stay out of public search",
   );
 
+  for (const [query, href] of [
+    ["business owners", "/docs/start/business-owners"],
+    ["agencies", "/docs/start/agencies"],
+    ["first developer change", "/docs/extend/first-change"],
+    ["EADDRINUSE", "/docs/start/troubleshooting"],
+    ["SUPABASE_DB_HOST", "/docs/self-hosting/installation"],
+  ]) {
+    const results = searchEntries(
+      index.filter((entry) => entry.group === "Docs"),
+      query,
+      10,
+    );
+    assert.ok(
+      results.some((entry) => entry.href === href),
+      `${query} must find ${href}`,
+    );
+  }
+
   // ---- Normalisation -----------------------------------------------------
 
   assert.equal(normalize("Follow-Up"), "follow up", "hyphens and case must not change matching");

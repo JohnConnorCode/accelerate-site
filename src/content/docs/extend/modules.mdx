@@ -51,4 +51,6 @@ Then create `src/app/admin/acme-inventory/page.tsx`, run `npm run build:extensio
 
 It cannot execute code, override a core module, ship an icon component, or add a schema change. Schema changes are ordered files in `migrations/`. Nothing in `extensions/` is executed. That is why an operator can read exactly what a module can reach before enabling it.
 
-A manifest-registered module's API routes must also be listed in `MODULE_API_DIRECTORIES` (`scripts/verify-module-route-guards.mjs`) or they will not refuse when the module is off.
+For module-owned API routes, use `requireAdminForModule("your-module-id")` in every handler and register the directories in `MODULE_API_DIRECTORIES` (`scripts/verify-module-route-guards.mjs`) so the verifier checks that boundary. Adding a directory to the verifier alone does not enforce runtime authorization.
+
+New to the repository? Start with [your first developer change](/docs/extend/first-change) before adding a write path.

@@ -38,6 +38,17 @@ export const docsManifest: DocsSection[] = [
         description: "Understand Command Center, try a workflow, and choose your next guide.",
       },
       {
+        slug: ["start", "business-owners"],
+        title: "For business owners",
+        description:
+          "Choose a useful first workflow, assign ownership, and measure whether it helps.",
+      },
+      {
+        slug: ["start", "agencies"],
+        title: "For agencies",
+        description: "Onboard client workspaces, verify access, and agree an operational handoff.",
+      },
+      {
         slug: ["start", "daily-path"],
         title: "Your first workflow",
         description: "Try the daily queue and review a proposed action using fictional data.",
@@ -57,11 +68,16 @@ export const docsManifest: DocsSection[] = [
         title: "Modules",
         description: "Optional capabilities a workspace turns on and off without forking the app.",
       },
-
       {
         slug: ["start", "receipts"],
         title: "Check an action result",
         description: "Tell a prepared draft, an approved request, and a completed action apart.",
+      },
+      {
+        slug: ["start", "troubleshooting"],
+        title: "Troubleshooting",
+        description:
+          "Recover from common setup, access, search, and action failures without guessing.",
       },
     ],
   },
@@ -342,6 +358,11 @@ export const docsManifest: DocsSection[] = [
         description: "What every extension inherits: approval, audit, module gating, and MCP.",
       },
       {
+        slug: ["extend", "first-change"],
+        title: "Your first developer change",
+        description: "Run the demo, find the important files, and make a small extension change.",
+      },
+      {
         slug: ["extend", "modules"],
         title: "Add a module",
         description: "Register a JSON manifest and pages. Nothing in extensions/ is executed.",
@@ -407,6 +428,12 @@ export const docsManifest: DocsSection[] = [
         slug: ["self-hosting", "overview"],
         title: "Self-hosting quickstart",
         description: "Explore without credentials, then connect a workspace you control.",
+      },
+      {
+        slug: ["self-hosting", "installation"],
+        title: "Connect your installation",
+        description:
+          "Create the owner account, configure a fresh database, and verify a connected workspace.",
       },
     ],
   },

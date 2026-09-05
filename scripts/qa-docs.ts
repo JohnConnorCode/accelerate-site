@@ -7,6 +7,11 @@ const output = process.env.DOCS_QA_OUTPUT ?? "/tmp/accelerate-docs-takeover-qa";
 const routes = [
   "/docs",
   "/docs/start/daily-path",
+  "/docs/start/business-owners",
+  "/docs/start/agencies",
+  "/docs/extend/first-change",
+  "/docs/self-hosting/installation",
+  "/docs/start/troubleshooting",
   "/docs/command-center",
   "/docs/contacts/import",
   "/docs/extend/mcp-clients",
@@ -60,6 +65,21 @@ async function main() {
           checks.push(`${viewport.width}: ${route} renders without horizontal overflow`);
         }
         await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+        const audiencePaths = page.getByRole("list", { name: "Choose your docs path" });
+        for (const href of [
+          "/docs/start/business-owners",
+          "/docs/start/agencies",
+          "/docs/extend/first-change",
+        ]) {
+          await audiencePaths.locator(`a[href="${href}"]`).click();
+          await page.waitForURL(`**${href}`);
+          await page.locator("main h1").waitFor({ state: "visible" });
+          await page.goBack({ waitUntil: "domcontentloaded" });
+          await audiencePaths.waitFor();
+        }
+        checks.push(
+          `${viewport.width}: each audience path opens its guide and Back returns to the chooser`,
+        );
         const search = page.getByRole("searchbox", { name: "Search the docs" });
         await search.fill("RFC threading");
         await page.getByRole("status").filter({ hasText: "matching guide" }).waitFor();

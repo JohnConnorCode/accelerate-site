@@ -5,11 +5,14 @@
 Learn the essentials and try your first complete workflow.
 
 - [Start here](https://www.acceleratewith.us/docs/start/overview) (updated 2026-09-05): Understand Command Center, try a workflow, and choose your next guide.
+- [For business owners](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-09-05): Choose a useful first workflow, assign ownership, and measure whether it helps.
+- [For agencies](https://www.acceleratewith.us/docs/start/agencies) (updated 2026-09-05): Onboard client workspaces, verify access, and agree an operational handoff.
 - [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-05): Try the daily queue and review a proposed action using fictional data.
 - [Core concepts](https://www.acceleratewith.us/docs/start/core-concepts) (updated 2026-09-05): The people, records, work, and decisions you will see in the workspace.
 - [Your workspace](https://www.acceleratewith.us/docs/start/workspace) (updated 2026-09-05): Check your business context, membership, and available features.
 - [Modules](https://www.acceleratewith.us/docs/start/modules) (updated 2026-09-04): Optional capabilities a workspace turns on and off without forking the app.
 - [Check an action result](https://www.acceleratewith.us/docs/start/receipts) (updated 2026-09-05): Tell a prepared draft, an approved request, and a completed action apart.
+- [Troubleshooting](https://www.acceleratewith.us/docs/start/troubleshooting) (updated 2026-09-05): Recover from common setup, access, search, and action failures without guessing.
 
 ## Command Center
 One shared operating layer for the businesses that need it, and how to run the daily workspace.
@@ -89,6 +92,7 @@ Tenants, setup, settings, integrations, and the Feature Board.
 For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.
 
 - [Extend the runtime](https://www.acceleratewith.us/docs/extend/overview) (updated 2026-09-04): What every extension inherits: approval, audit, module gating, and MCP.
+- [Your first developer change](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-09-05): Run the demo, find the important files, and make a small extension change.
 - [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-09-04): Register a JSON manifest and pages. Nothing in extensions/ is executed.
 - [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-04): Verify credentials, encrypt them, and turn inbound events into canonical records.
 - [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-04): Register a plugin manifest with tools and triggers that still go through governance.
@@ -106,5 +110,6 @@ The discipline that decides most inquiries: respond first, follow through, and l
 Run the Command Center yourself: what you need, how to start, and when to bring us in.
 
 - [Self-hosting quickstart](https://www.acceleratewith.us/docs/self-hosting/overview) (updated 2026-09-05): Explore without credentials, then connect a workspace you control.
+- [Connect your installation](https://www.acceleratewith.us/docs/self-hosting/installation) (updated 2026-09-05): Create the owner account, configure a fresh database, and verify a connected workspace.
 
 - [Documentation landing](https://www.acceleratewith.us/docs): all guides.

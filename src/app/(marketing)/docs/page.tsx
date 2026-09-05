@@ -11,16 +11,34 @@ export const metadata: Metadata = seoMetadata({
     "Learn Command Center, work your daily queue, connect your tools, and extend the runtime.",
 });
 
-const PRIMARY_SECTION_IDS = ["start", "command-center", "extend"] as const;
+const AUDIENCE_PATHS = [
+  {
+    id: "business-owners",
+    title: "For business owners",
+    description: "Choose a first workflow, understand the costs, and measure whether it helps.",
+    href: "/docs/start/business-owners",
+    sectionId: "command-center",
+    action: "Plan your first week",
+  },
+  {
+    id: "agencies",
+    title: "For agencies",
+    description: "Onboard client workspaces, verify access, and prepare a clear handoff.",
+    href: "/docs/start/agencies",
+    sectionId: "workspace",
+    action: "Set up a client pilot",
+  },
+  {
+    id: "developers",
+    title: "For developers",
+    description: "Run the demo, find your way around the code, and make your first change.",
+    href: "/docs/extend/first-change",
+    sectionId: "extend",
+    action: "Make your first change",
+  },
+] as const;
 
 export default function DocsLandingPage() {
-  const primary = docsManifest.filter((section) =>
-    PRIMARY_SECTION_IDS.includes(section.id as (typeof PRIMARY_SECTION_IDS)[number]),
-  );
-  const rest = docsManifest.filter(
-    (section) => !PRIMARY_SECTION_IDS.includes(section.id as (typeof PRIMARY_SECTION_IDS)[number]),
-  );
-
   return (
     <>
       <p className="mb-4 font-mono text-[0.66rem] uppercase tracking-[0.2em] text-white-muted">
@@ -48,22 +66,25 @@ export default function DocsLandingPage() {
           Set up your workspace
         </Link>
       </div>
-      <ol className="mt-12 grid gap-4 sm:grid-cols-3">
-        {primary.map((section) => (
-          <li key={section.id}>
+      <h2 className="mt-12 font-display text-lg font-semibold tracking-[-0.02em] text-heading">
+        Start with what you need
+      </h2>
+      <ul aria-label="Choose your docs path" className="mt-4 grid gap-4 sm:grid-cols-3">
+        {AUDIENCE_PATHS.map((path) => (
+          <li key={path.id}>
             <Link
-              href={`/docs/${section.id}`}
+              href={path.href}
               className="group flex h-full flex-col gap-2 rounded-2xl border border-[var(--rule)] p-6 transition-colors hover:border-[var(--fg)]"
             >
               <span className="flex items-center gap-2 text-sm font-semibold text-heading">
-                <DocsSectionIcon sectionId={section.id} className="h-4 w-4 shrink-0" />
-                {section.title}
+                <DocsSectionIcon sectionId={path.sectionId} className="h-4 w-4 shrink-0" />
+                {path.title}
               </span>
               <span className="text-sm leading-relaxed text-white-secondary">
-                {section.description}
+                {path.description}
               </span>
               <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-medium text-heading">
-                {section.pages.length} {section.pages.length === 1 ? "guide" : "guides"}
+                {path.action}
                 <ArrowRight
                   className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
                   aria-hidden="true"
@@ -72,13 +93,13 @@ export default function DocsLandingPage() {
             </Link>
           </li>
         ))}
-      </ol>
+      </ul>
 
       <h2 className="mt-14 font-display text-lg font-semibold tracking-[-0.02em] text-heading">
         Find a guide by area
       </h2>
       <ul className="mt-4 divide-y divide-[var(--rule)] border-y border-[var(--rule)]">
-        {rest.map((section) => (
+        {docsManifest.map((section) => (
           <li key={section.id}>
             <Link
               href={`/docs/${section.id}`}
