@@ -1,4 +1,6 @@
 import "server-only";
+import { deferWork } from "./work-result";
+import { findWorkDraft } from "./work-drafts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { registerCoworker, getCoworkerManifest, type Coworker } from "./coworkers";
 import { createWorkItem } from "./work-items";
@@ -10,8 +12,10 @@ import { storeAgentMemory } from "./memory";
 import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
 
 // When an AI model is configured, AI-requiring handlers attempt AI execution
-// first and fall back to deterministic logic if the model is unavailable or
-// fails. This keeps the system operational even during model outages.
+// first. Deterministic review remains available when no model is configured;
+// AI failures and unfinished drafts retain their explicit dispositions.
+
+import type { WorkItem } from "./work-items";
 
 // ---------------------------------------------------------------------------
 // Sales Coworker: the reference coworker that proves Phase B primitives.
@@ -267,7 +271,7 @@ export async function scheduleFollowupCheckWork(
 // Work kind handlers: register execution logic for each Sales Coworker kind.
 //
 // These are the actual "workers" that execute when the work engine claims an
-// item. Each handler receives the work item and returns an outcome string.
+// item. Each handler returns an explicit disposition and any durable artifact references.
 //
 // For the reference implementation, these handlers perform structured
 // operations (reads, checks, audit) and create follow-up work items or
@@ -280,6 +284,7 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
   // AI-first: let the model synthesize context and produce a qualification judgment.
   const aiResult = await tryAiExecution(supabase, wi);
   if (aiResult) {
+    if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {
       coworkerId: SALES_COWORKER_ID,
       category: "prior_work",
@@ -294,18 +299,22 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
 
   // Deterministic fallback when AI is unavailable.
   // Read the contact and opportunity to gather context.
-  const { data: contact } = await supabase
+  const { data: contact, error: contactError } = await supabase
     .from("contacts")
     .select("id, email, first_name, last_name, company_id")
     .eq("id", wi.entity_id)
     .maybeSingle();
 
+  if (contactError) throw new Error(contactError.message);
   if (!contact) {
-    return { outcome: `Contact ${wi.entity_id} not found — skipping qualification` };
+    return {
+      status: "skipped",
+      outcome: `Contact ${wi.entity_id} not found — skipping qualification`,
+    };
   }
 
   // Check if there's an open opportunity for this contact.
-  const { data: opportunity } = await supabase
+  const { data: opportunity, error: opportunityError } = await supabase
     .from("opportunities")
     .select("id, stage, company_name")
     .eq("contact_id", contact.id)
@@ -314,6 +323,7 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
     .limit(1)
     .maybeSingle();
 
+  if (opportunityError) throw new Error(opportunityError.message);
   const companyName = opportunity?.company_name ?? "Unknown";
   const stage = opportunity?.stage ?? "none";
 
@@ -330,13 +340,13 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
   if (opportunity && ["new", "contacted"].includes(opportunity.stage)) {
     await createDraftFollowupWork(supabase, {
       opportunityId: opportunity.id,
-      reason: `Lead qualification completed for ${companyName} (stage: ${stage})`,
+      reason: `Lead record reviewed for ${companyName} (stage: ${stage})`,
       source: "sales_coworker",
       actorEmail: "system",
-    }).catch(() => {});
+    });
   }
 
-  const outcome = `Qualified: ${contact.first_name ?? ""} ${contact.last_name ?? ""} at ${companyName} (stage: ${stage})`;
+  const outcome = `Lead record reviewed: ${contact.first_name ?? ""} ${contact.last_name ?? ""} at ${companyName} (stage: ${stage})`;
   await storeAgentMemory(supabase, {
     coworkerId: SALES_COWORKER_ID,
     category: "prior_work",
@@ -347,83 +357,58 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome };
+  return { status: "completed", outcome };
 };
 
 const draftFollowupHandler: WorkKindHandler = async (supabase, wi) => {
-  // AI-first: let the model draft a contextual follow-up.
-  const aiResult = await tryAiExecution(supabase, wi);
-  if (aiResult) {
-    await storeAgentMemory(supabase, {
-      coworkerId: SALES_COWORKER_ID,
-      category: "prior_work",
-      subject: `draft_followup: AI judgment`,
-      body: aiResult.outcome,
-      entityType: wi.entity_type ?? undefined,
-      entityId: wi.entity_id ?? undefined,
-      relevanceHorizon: "daily",
-    }).catch(() => {});
-    return aiResult;
-  }
-
-  // Deterministic fallback.
-  const { data: opportunity } = await supabase
+  const { data: opportunity, error } = await supabase
     .from("opportunities")
-    .select("id, stage, company_name, next_action")
+    .select("id,stage")
+    .eq("tenant_id", wi.tenant_id)
     .eq("id", wi.entity_id)
     .maybeSingle();
-
-  if (!opportunity) {
-    return { outcome: `Opportunity ${wi.entity_id} not found — skipping follow-up draft` };
+  if (error) throw new Error(error.message);
+  if (!opportunity || ["won", "lost"].includes(opportunity.stage)) {
+    return {
+      status: "skipped",
+      outcome: "Opportunity missing or closed; follow-up is no longer needed",
+    };
   }
-
-  await recordAudit(supabase, {
-    actorEmail: "system",
-    action: "sales_coworker.followup_draft_reviewed",
-    entityType: "opportunity",
-    entityId: opportunity.id,
-    source: "automation",
-    after: { stage: opportunity.stage, next_action: opportunity.next_action, work_item: wi.id },
-  });
-
-  // Schedule a follow-up check in 3 business days if not yet terminal.
-  if (!["won", "lost"].includes(opportunity.stage)) {
-    const checkAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
-    await scheduleFollowupCheckWork(supabase, {
-      opportunityId: opportunity.id,
-      checkAt,
-      reason: `Follow-up check after draft for ${opportunity.company_name}`,
-      actorEmail: "system",
-    }).catch(() => {});
-  }
-
-  const outcome = `Follow-up draft reviewed for ${opportunity.company_name} (stage: ${opportunity.stage})`;
-  await storeAgentMemory(supabase, {
-    coworkerId: SALES_COWORKER_ID,
-    category: "prior_work",
-    subject: `draft_followup: ${opportunity.company_name}`,
-    body: outcome,
-    entityType: "opportunity",
-    entityId: opportunity.id,
-    relevanceHorizon: "daily",
-  }).catch(() => {});
-
-  return { outcome };
+  const existing = await findWorkDraft(supabase, wi);
+  if (existing)
+    return {
+      status: "completed",
+      outcome: "Follow-up proposal already prepared",
+      artifacts: [existing],
+    };
+  const result = await tryAiExecution(supabase, wi);
+  if (!result) return deferWork("AI model is unavailable; follow-up draft still needs preparation");
+  if (result.status !== "completed") return result;
+  const draft = await findWorkDraft(supabase, wi);
+  return draft
+    ? { status: "completed", outcome: "Follow-up draft prepared for approval", artifacts: [draft] }
+    : {
+        status: "partial",
+        outcome: "Draft preparation returned without a valid proposal",
+        artifacts: result.artifacts,
+      };
 };
 
 const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
-  const { data: opportunity } = await supabase
+  const { data: opportunity, error: opportunityError } = await supabase
     .from("opportunities")
     .select("id, stage, company_name, updated_at")
     .eq("id", wi.entity_id)
     .maybeSingle();
 
+  if (opportunityError) throw new Error(opportunityError.message);
   if (!opportunity) {
-    return { outcome: `Opportunity ${wi.entity_id} not found` };
+    return { status: "skipped", outcome: `Opportunity ${wi.entity_id} not found` };
   }
 
   if (opportunity.stage !== "proposal") {
     return {
+      status: "skipped",
       outcome: `Opportunity ${opportunity.company_name} no longer in proposal stage (now: ${opportunity.stage})`,
     };
   }
@@ -438,13 +423,13 @@ const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
   });
 
   // Create a draft_followup work item to re-engage.
-  await createDraftFollowupWork(supabase, {
+  const child = await createDraftFollowupWork(supabase, {
     opportunityId: opportunity.id,
     reason: `Stale proposal detected for ${opportunity.company_name}`,
     source: "stale_proposal_detector",
     priority: "high",
     actorEmail: "system",
-  }).catch(() => {});
+  });
 
   const outcome = `Stale proposal reviewed for ${opportunity.company_name} — follow-up queued`;
   await storeAgentMemory(supabase, {
@@ -457,27 +442,33 @@ const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome };
+  return {
+    status: "completed",
+    outcome,
+    artifacts: [{ type: "work_item", id: child.workItem.id }],
+  };
 };
 
 const gatherLeadContextHandler: WorkKindHandler = async (supabase, wi) => {
-  const { data: contact } = await supabase
+  const { data: contact, error: contactError } = await supabase
     .from("contacts")
     .select("id, email, first_name, last_name, company_id")
     .eq("id", wi.entity_id)
     .maybeSingle();
 
+  if (contactError) throw new Error(contactError.message);
   if (!contact) {
-    return { outcome: `Contact ${wi.entity_id} not found` };
+    return { status: "skipped", outcome: `Contact ${wi.entity_id} not found` };
   }
 
   // Check for recent activity (Gmail sync, conversations).
-  const { count: activityCount } = await supabase
+  const { count: activityCount, error: activityError } = await supabase
     .from("activities")
     .select("*", { count: "exact", head: true })
     .eq("contact_id", contact.id)
     .gte("occurred_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
+  if (activityError) throw new Error(activityError.message);
   const contextSummary = activityCount
     ? `${activityCount} activities in the last 30 days`
     : "No recent activity found";
@@ -492,12 +483,12 @@ const gatherLeadContextHandler: WorkKindHandler = async (supabase, wi) => {
   });
 
   // After context is gathered, qualify the lead.
-  await createQualifyLeadWork(supabase, {
+  const child = await createQualifyLeadWork(supabase, {
     contactId: contact.id,
     source: "sales_coworker",
     reason: `Context gathered: ${contextSummary}`,
     actorEmail: "system",
-  }).catch(() => {});
+  });
 
   const outcome = `Context gathered for ${contact.first_name ?? ""} ${contact.last_name ?? ""}: ${contextSummary}`;
   await storeAgentMemory(supabase, {
@@ -510,34 +501,40 @@ const gatherLeadContextHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome };
+  return {
+    status: "completed",
+    outcome,
+    artifacts: [{ type: "work_item", id: child.workItem.id }],
+  };
 };
 
 const scheduleFollowupCheckHandler: WorkKindHandler = async (supabase, wi) => {
-  const { data: opportunity } = await supabase
+  const { data: opportunity, error: opportunityError } = await supabase
     .from("opportunities")
     .select("id, stage, company_name")
     .eq("id", wi.entity_id)
     .maybeSingle();
 
+  if (opportunityError) throw new Error(opportunityError.message);
   if (!opportunity) {
-    return { outcome: `Opportunity ${wi.entity_id} not found` };
+    return { status: "skipped", outcome: `Opportunity ${wi.entity_id} not found` };
   }
 
   if (["won", "lost"].includes(opportunity.stage)) {
     return {
+      status: "skipped",
       outcome: `Opportunity ${opportunity.company_name} is ${opportunity.stage} — no follow-up needed`,
     };
   }
 
   // The check has come due. Create a draft follow-up if the opportunity
   // is still active.
-  await createDraftFollowupWork(supabase, {
+  const child = await createDraftFollowupWork(supabase, {
     opportunityId: opportunity.id,
     reason: `Scheduled follow-up check for ${opportunity.company_name} (stage: ${opportunity.stage})`,
     source: "sales_coworker",
     actorEmail: "system",
-  }).catch(() => {});
+  });
 
   const outcome = `Follow-up check executed for ${opportunity.company_name} (stage: ${opportunity.stage}) — draft queued`;
   await storeAgentMemory(supabase, {
@@ -550,7 +547,11 @@ const scheduleFollowupCheckHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome };
+  return {
+    status: "completed",
+    outcome,
+    artifacts: [{ type: "work_item", id: child.workItem.id }],
+  };
 };
 
 // ---------------------------------------------------------------------------

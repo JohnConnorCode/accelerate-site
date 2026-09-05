@@ -28,7 +28,8 @@ Creating this handoff does not mean those features have been implemented.
 ## Source provenance and reuse rules
 
 - Source checkout: sibling `workshelter-next/` under the common GitHub parent.
-  Every path under “Workshelter references” in a card is relative to that root.
+  Paths under “Workshelter references” are relative to that root; an explicit
+  `workshelter-next/` prefix names the same source checkout.
   Accelerate paths are relative to the active app-root checkout.
 - Inspected source commit: `05eddae3e76e6067ef75bd364e37cc9b6ca692f4`.
   If the sibling has moved, compare the relevant files with that commit. Record

@@ -19,7 +19,7 @@ const resendRoute = readFileSync(
   "utf8",
 );
 const unsubscribeRoute = readFileSync(
-  new URL("../src/app/api/unsubscribe/[token]/route.ts", import.meta.url),
+  new URL("../src/lib/revenue-os/public-unsubscribe.ts", import.meta.url),
   "utf8",
 );
 for (const [label, source] of [

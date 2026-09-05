@@ -1,11 +1,12 @@
 import "server-only";
-import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { recordActivity } from "./activities";
 import { recordStaleClaimRecovery } from "./runs";
 import { safeErrorMessage } from "./db";
 import { createRevenueTask } from "./tasks";
+import { workResultText, type WorkResult } from "./work-result";
+import { randomUUID } from "node:crypto";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -52,24 +53,21 @@ export interface WorkItemClaimResult {
   recoveredStale: boolean;
 }
 
-export interface WorkItemOutcome<T = unknown> {
-  value: T | null;
+export type WorkExecutionStatus = WorkResult["status"];
+export type WorkLease = Pick<WorkItem, "lease_owner" | "lease_expires_at" | "attempt_count">;
+export type { WorkResult } from "./work-result";
+
+export interface WorkItemOutcome {
+  status?: WorkExecutionStatus;
+  error?: string;
+  value: WorkResult | null;
   claimed: boolean;
+  persisted: boolean;
   workItemId: string;
   existingStatus?: string;
   recoveredStale?: boolean;
-  status?: WorkExecutionStatus;
-  error?: string;
+  errors: string[];
 }
-
-export type WorkExecutionStatus =
-  "completed" | "deferred" | "awaiting_approval" | "partial" | "failed";
-export type WorkResult<T = unknown> = { value: T; outcome: string } & (
-  | { status: "completed" }
-  | { status: "deferred" | "awaiting_approval"; nextCheckAt: string }
-  | { status: "partial" | "failed" }
-);
-export type WorkLease = Pick<WorkItem, "lease_owner" | "lease_expires_at" | "attempt_count">;
 
 const DEFAULT_LEASE_DURATION_MS = 30 * 60 * 1000; // 30 minutes, same as job_runs
 
@@ -130,6 +128,8 @@ export async function createWorkItem(
       entity_id: input.entityId || null,
       dedupe_key: input.dedupeKey || null,
       due_at: input.dueAt || null,
+      next_check_at: input.dueAt || null,
+      next_check_reason: input.dueAt ? reason : null,
       max_attempts: input.maxAttempts || 3,
     })
     .select("*")
@@ -152,7 +152,8 @@ export async function createWorkItem(
   await recordActivity(supabase, {
     activityType: "work_item_created",
     title: `Work created: ${objective}`,
-    source: `work_engine:${source}`,
+    source: "work_engine",
+    metadata: { triggerSource: source },
     actorEmail: input.actorEmail || "system",
     externalId: `work_item:${workItem.id}`,
     contactId: input.entityType === "contact" ? input.entityId : undefined,
@@ -234,200 +235,200 @@ export async function claimWorkItem(
 // Execute a work item in a managed wrapper (like withJobRun)
 // ---------------------------------------------------------------------------
 
-export async function withWorkItem<T>(
+export class WorkClaimLostError extends Error {
+  constructor() {
+    super("Work item claim expired or was superseded; this execution no longer owns it");
+  }
+}
+
+/** CAS every transition against the exact claim, including expiry and attempt. */
+export async function transitionOwnedWorkItem(
+  supabase: SupabaseClient,
+  item: WorkItem,
+  changes: Record<string, unknown>,
+): Promise<void> {
+  if (!item.lease_owner || !item.claimed_at || !item.lease_expires_at)
+    throw new WorkClaimLostError();
+  const { data, error } = await supabase
+    .from("work_items")
+    .update(changes)
+    .eq("id", item.id)
+    .eq("tenant_id", item.tenant_id)
+    .eq("lease_owner", item.lease_owner)
+    .eq("claimed_at", item.claimed_at)
+    .eq("attempt_count", item.attempt_count)
+    .eq("lease_expires_at", item.lease_expires_at)
+    .gt("lease_expires_at", new Date().toISOString())
+    .in("status", ["claimed", "in_progress"])
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new WorkClaimLostError();
+}
+
+export async function settleWorkItem(
+  supabase: SupabaseClient,
+  item: WorkItem,
+  result: WorkResult,
+): Promise<string[]> {
+  if (!result.outcome.trim()) throw new Error("Work result must explain its outcome");
+  const now = new Date().toISOString();
+  const outcome = workResultText(result);
+  const changes: Record<string, unknown> = {
+    outcome,
+    lease_owner: null,
+    lease_expires_at: null,
+    error: null,
+    finished_at: null,
+    next_check_at: null,
+    next_check_reason: null,
+  };
+  switch (result.status) {
+    case "completed":
+      changes.status = "completed";
+      changes.finished_at = now;
+      break;
+    case "skipped":
+      changes.status = "cancelled";
+      changes.finished_at = now;
+      break;
+    case "deferred":
+    case "awaiting_approval":
+      if (
+        !Number.isFinite(Date.parse(result.nextCheckAt)) ||
+        Date.parse(result.nextCheckAt) <= Date.parse(now)
+      ) {
+        throw new Error("Deferred work requires a future next check");
+      }
+      Object.assign(changes, {
+        status: "waiting",
+        next_check_at: result.nextCheckAt,
+        next_check_reason: outcome,
+        attempt_count: Math.max(0, item.attempt_count - 1),
+      });
+      break;
+    case "partial":
+    case "failed": {
+      changes.error = outcome;
+      if (item.attempt_count >= item.max_attempts) {
+        changes.status = "failed";
+        changes.finished_at = now;
+      } else {
+        const minutes = Math.min(2 ** Math.max(0, item.attempt_count - 1) * 5, 60);
+        Object.assign(changes, {
+          status: "pending",
+          next_check_at: new Date(Date.now() + minutes * 60_000).toISOString(),
+          next_check_reason: `${result.status}: ${outcome}. Retrying in ${minutes} minutes.`,
+        });
+      }
+      break;
+    }
+    default:
+      throw new Error("Unknown work result disposition");
+  }
+  await transitionOwnedWorkItem(supabase, item, changes);
+  // A telemetry failure after the state commit must not rewrite completed work
+  // as failed or rerun its effects. Surface it on the cycle receipt instead.
+  const errors: string[] = [];
+  try {
+    await recordAudit(supabase, {
+      actorEmail: "system",
+      action: `work_item.${result.status}`,
+      entityType: "work_item",
+      entityId: item.id,
+      source: "automation",
+      before: {
+        status: item.status,
+        attempt_count: item.attempt_count,
+        outcome: item.outcome,
+        error: item.error,
+        finished_at: item.finished_at,
+        next_check_at: item.next_check_at,
+        next_check_reason: item.next_check_reason,
+      },
+      after: {
+        attempt_count: item.attempt_count,
+        ...changes,
+        disposition: result.status,
+        artifacts: result.artifacts ?? [],
+      },
+    });
+  } catch (error) {
+    errors.push(`work-item-audit: ${safeErrorMessage(error)}`);
+    console.error("[work-items] outcome audit failed:", safeErrorMessage(error));
+  }
+  if (result.status === "completed") {
+    try {
+      await recordActivity(supabase, {
+        activityType: "work_item_completed",
+        title: `Work completed: ${item.objective}`,
+        summary: outcome,
+        source: "work_engine",
+        actorEmail: "system",
+        externalId: `work_item:${item.id}:completed`,
+        contactId: item.entity_type === "contact" ? (item.entity_id ?? undefined) : undefined,
+        opportunityId:
+          item.entity_type === "opportunity" ? (item.entity_id ?? undefined) : undefined,
+      });
+    } catch (error) {
+      errors.push(`work-item-activity: ${safeErrorMessage(error)}`);
+      console.error("[work-items] completion activity failed:", safeErrorMessage(error));
+    }
+  }
+  return errors;
+}
+
+export async function withWorkItem(
   supabase: SupabaseClient,
   kind: string,
-  work: (item: WorkItem) => Promise<WorkResult<T>>,
+  work: (item: WorkItem) => Promise<WorkResult>,
   input?: { leaseOwner?: string; leaseDurationMs?: number },
-): Promise<WorkItemOutcome<T>> {
-  const leaseOwner = input?.leaseOwner ?? randomUUID();
+): Promise<WorkItemOutcome> {
+  const leaseOwner = input?.leaseOwner ?? `work:${randomUUID()}`;
   const claim = await claimWorkItem(supabase, {
     kind,
     leaseOwner,
     leaseDurationMs: input?.leaseDurationMs,
   });
-  if (!claim.claimed) return { ...claim, value: null };
+  const base = {
+    claimed: claim.claimed,
+    persisted: false,
+    workItemId: claim.workItemId,
+    existingStatus: claim.existingStatus,
+    recoveredStale: claim.recoveredStale,
+    errors: [] as string[],
+  };
+  if (!claim.claimed) return { ...base, value: null };
   const { data, error } = await supabase
     .from("work_items")
     .select("*")
     .eq("id", claim.workItemId)
     .single();
-  if (error || !data) throw new Error(error?.message ?? "Claimed work item is unavailable");
-  const item = data as WorkItem;
-  if (item.lease_owner !== leaseOwner) throw new Error("Work item lease was superseded");
-  await startWorkItem(supabase, item.id, item);
-  let result: WorkResult<T>;
+  if (error || !data)
+    return { ...base, value: null, errors: [error?.message ?? "Claimed item not found"] };
+  // Snapshot: mutable test clients and future adapters must not alter our fence.
+  const item = { ...data } as WorkItem;
+  if (item.lease_owner !== leaseOwner)
+    return { ...base, value: null, errors: ["Work claim superseded before start"] };
+  let result: WorkResult;
   try {
+    await transitionOwnedWorkItem(supabase, item, {
+      status: "in_progress",
+      started_at: new Date().toISOString(),
+    });
     result = await work(item);
   } catch (error) {
-    const message = safeErrorMessage(error);
-    await failWorkItem(supabase, item.id, message, item);
-    return { ...claim, value: null, status: "failed", error: message };
+    if (error instanceof WorkClaimLostError)
+      return { ...base, value: null, errors: [error.message] };
+    result = { status: "failed", outcome: safeErrorMessage(error) };
   }
-  // Keep persistence outside the handler catch: a receipt failure after an effect
-  // must not convert completed work back into a retryable operation.
-  switch (result.status) {
-    case "completed":
-      await completeWorkItem(supabase, item.id, result.outcome, item);
-      break;
-    case "deferred":
-    case "awaiting_approval":
-      await scheduleCheck(supabase, item.id, result.nextCheckAt, result.outcome, item);
-      break;
-    case "partial":
-    case "failed":
-      await failWorkItem(supabase, item.id, result.outcome, item);
-      break;
-    default:
-      throw new Error("Work handler returned an invalid execution status");
+  try {
+    const errors = await settleWorkItem(supabase, item, result);
+    return { ...base, value: result, status: result.status, persisted: true, errors };
+  } catch (error) {
+    // An unknown write outcome is not permission to attempt a second transition.
+    return { ...base, value: null, errors: [safeErrorMessage(error)] };
   }
-  return {
-    ...claim,
-    value: result.value,
-    status: result.status,
-    ...(result.status === "failed" || result.status === "partial" ? { error: result.outcome } : {}),
-  };
-}
-
-async function transitionOwnedWork(
-  supabase: SupabaseClient,
-  id: string,
-  lease: WorkLease,
-  patch: Record<string, unknown>,
-  statuses: WorkItemStatus[] = ["claimed", "in_progress"],
-): Promise<WorkItem> {
-  if (!lease.lease_owner || !lease.lease_expires_at) throw new Error("A work lease is required");
-  const { data, error } = await supabase
-    .from("work_items")
-    .update(patch)
-    .eq("id", id)
-    .eq("lease_owner", lease.lease_owner)
-    .eq("lease_expires_at", lease.lease_expires_at)
-    .eq("attempt_count", lease.attempt_count)
-    .gt("lease_expires_at", new Date().toISOString())
-    .in("status", statuses)
-    .select("*")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Work item lease expired or was superseded");
-  return data as WorkItem;
-}
-
-export async function startWorkItem(
-  supabase: SupabaseClient,
-  id: string,
-  lease: WorkLease,
-): Promise<void> {
-  await transitionOwnedWork(
-    supabase,
-    id,
-    lease,
-    { status: "in_progress", started_at: new Date().toISOString() },
-    ["claimed"],
-  );
-}
-
-export async function completeWorkItem(
-  supabase: SupabaseClient,
-  id: string,
-  outcome: string,
-  lease: WorkLease,
-): Promise<void> {
-  const item = await transitionOwnedWork(supabase, id, lease, {
-    status: "completed",
-    outcome,
-    error: null,
-    finished_at: new Date().toISOString(),
-    lease_owner: null,
-    lease_expires_at: null,
-  });
-  await recordAudit(supabase, {
-    actorEmail: "system",
-    action: "work_item.completed",
-    entityType: "work_item",
-    entityId: id,
-    source: "automation",
-    after: { status: item.status, outcome, attempt_count: item.attempt_count },
-  });
-  await recordActivity(supabase, {
-    activityType: "work_item_completed",
-    title: `Work completed: ${item.objective}`,
-    summary: outcome,
-    source: "work_engine",
-    actorEmail: "system",
-    externalId: `work_item:${id}:completed`,
-  });
-}
-
-export async function failWorkItem(
-  supabase: SupabaseClient,
-  id: string,
-  message: string,
-  lease: WorkLease,
-): Promise<void> {
-  const { data: before, error } = await supabase
-    .from("work_items")
-    .select("max_attempts")
-    .eq("id", id)
-    .single();
-  if (error) throw new Error(error.message);
-  const exhausted = lease.attempt_count >= before.max_attempts;
-  const reason = `Attempt ${lease.attempt_count} of ${before.max_attempts} failed: ${message}`;
-  const item = await transitionOwnedWork(supabase, id, lease, {
-    status: exhausted ? "failed" : "pending",
-    error: message,
-    outcome: reason,
-    finished_at: exhausted ? new Date().toISOString() : null,
-    next_check_at: exhausted
-      ? null
-      : new Date(
-          Date.now() + Math.min(2 ** Math.max(0, lease.attempt_count - 1) * 5, 60) * 60_000,
-        ).toISOString(),
-    next_check_reason: exhausted ? null : `${reason}. Retrying with bounded backoff.`,
-    lease_owner: null,
-    lease_expires_at: null,
-  });
-  await recordAudit(supabase, {
-    actorEmail: "system",
-    action: exhausted ? "work_item.failed" : "work_item.retry_scheduled",
-    entityType: "work_item",
-    entityId: id,
-    source: "automation",
-    after: { status: item.status, error: message, attempt_count: item.attempt_count },
-  });
-}
-
-export async function scheduleCheck(
-  supabase: SupabaseClient,
-  id: string,
-  nextCheckAt: string,
-  reason: string,
-  lease: WorkLease,
-): Promise<void> {
-  if (
-    !reason.trim() ||
-    !Number.isFinite(Date.parse(nextCheckAt)) ||
-    Date.parse(nextCheckAt) <= Date.now()
-  )
-    throw new Error("A future check time and reason are required");
-  await transitionOwnedWork(supabase, id, lease, {
-    status: "waiting",
-    outcome: reason.trim(),
-    next_check_at: nextCheckAt,
-    next_check_reason: reason.trim(),
-    lease_owner: null,
-    lease_expires_at: null,
-    // Capability/budget deferral did not attempt the handler and must not consume retry allowance.
-    attempt_count: Math.max(0, lease.attempt_count - 1),
-  });
-  await recordAudit(supabase, {
-    actorEmail: "system",
-    action: "work_item.scheduled_check",
-    entityType: "work_item",
-    entityId: id,
-    source: "automation",
-    after: { status: "waiting", next_check_at: nextCheckAt, next_check_reason: reason.trim() },
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -592,4 +593,75 @@ export async function linkWorkItemRun(
     { agent_run_id: runId, action_ids: [...new Set(actionIds)] },
     ["in_progress"],
   );
+}
+
+async function ownedSnapshot(
+  supabase: SupabaseClient,
+  id: string,
+  lease: WorkLease,
+): Promise<WorkItem> {
+  const { data, error } = await supabase.from("work_items").select("*").eq("id", id).single();
+  if (error || !data) throw new Error(error?.message ?? "Work item unavailable");
+  if (
+    data.lease_owner !== lease.lease_owner ||
+    data.lease_expires_at !== lease.lease_expires_at ||
+    data.attempt_count !== lease.attempt_count
+  )
+    throw new WorkClaimLostError();
+  return { ...data } as WorkItem;
+}
+async function transitionOwnedWork(
+  supabase: SupabaseClient,
+  id: string,
+  lease: WorkLease,
+  patch: Record<string, unknown>,
+  statuses: WorkItemStatus[] = ["claimed", "in_progress"],
+) {
+  const item = await ownedSnapshot(supabase, id, lease);
+  if (!statuses.includes(item.status)) throw new WorkClaimLostError();
+  await transitionOwnedWorkItem(supabase, item, patch);
+}
+export async function startWorkItem(supabase: SupabaseClient, id: string, lease: WorkLease) {
+  await transitionOwnedWork(
+    supabase,
+    id,
+    lease,
+    { status: "in_progress", started_at: new Date().toISOString() },
+    ["claimed"],
+  );
+}
+export async function completeWorkItem(
+  supabase: SupabaseClient,
+  id: string,
+  outcome: string,
+  lease: WorkLease,
+) {
+  return settleWorkItem(supabase, await ownedSnapshot(supabase, id, lease), {
+    status: "completed",
+    outcome,
+  });
+}
+export async function failWorkItem(
+  supabase: SupabaseClient,
+  id: string,
+  outcome: string,
+  lease: WorkLease,
+) {
+  return settleWorkItem(supabase, await ownedSnapshot(supabase, id, lease), {
+    status: "failed",
+    outcome,
+  });
+}
+export async function scheduleCheck(
+  supabase: SupabaseClient,
+  id: string,
+  nextCheckAt: string,
+  outcome: string,
+  lease: WorkLease,
+) {
+  return settleWorkItem(supabase, await ownedSnapshot(supabase, id, lease), {
+    status: "deferred",
+    nextCheckAt,
+    outcome,
+  });
 }

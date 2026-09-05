@@ -18,13 +18,16 @@ follow [docs/self-hosting/SELF-HOSTING.md](docs/self-hosting/SELF-HOSTING.md) fi
 
 ```bash
 npm ci
-npm run verify:agent-contract
-npm run typecheck
-npm run lint
+npm run hooks:install
+npm run verify:review
 npm run format:check
-npm run test:core
-npm run build
 ```
+
+Commit hooks check staged content without a build or live database access. Run
+review verification once for the final relevant source tree; the production build
+also checks TypeScript. Standalone `npm run typecheck` is available during editing.
+See [verification workflow](docs/contributing/VERIFICATION-WORKFLOW.md) for CI,
+worktree installation and release boundaries.
 
 Run the closest service or Playwright journey for the behavior you changed. Visual work requires desktop and mobile screenshots, keyboard coverage, console-error checks, and reduced-motion coverage when motion is involved. `node scripts/shot.mjs <path> <label> [width] [height]` and `node scripts/film.mjs <path> <frames> <mode>` are ad hoc Playwright tools for capturing those screenshots against a local dev server; each has a usage comment at the top of the file.
 

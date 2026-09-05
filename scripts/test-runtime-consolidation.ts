@@ -50,6 +50,7 @@ function workFixture() {
     Object.assign(row, {
       status: "claimed",
       lease_owner: args.p_lease_owner,
+      claimed_at: new Date().toISOString(),
       lease_expires_at: future(),
       attempt_count: Number(row.attempt_count) + 1,
     });
@@ -271,21 +272,21 @@ async function main() {
   cycle.fail("budget_limits", { message: "offline" });
   registerWorkKindHandler("audit-fixture", async () => {
     called = true;
-    return { outcome: "must not run" };
+    return { status: "completed", outcome: "must not run" };
   });
   const summary = await executeClaimableWork(cycle.client as never, { kinds: ["audit-fixture"] });
   assert.equal(called, false);
   assert.equal(summary.failed, 1);
   assert.equal(summary.completed, 0);
   assert.equal(summary.executed, 0);
-  assert.equal(workExecutionJobStatus(summary), "partial");
+  assert.equal(workExecutionJobStatus(summary), "failed");
 
   const awaiting = workFixture();
   awaiting.tables.action_queue = [{ id: "a-linked", work_item_id: "work-1", status: "pending" }];
   let approvalReran = false;
   registerWorkKindHandler("audit-fixture", async () => {
     approvalReran = true;
-    return { outcome: "Wrong retry" };
+    return { status: "completed", outcome: "Wrong retry" };
   });
   const waitingSummary = await executeClaimableWork(awaiting.client as never, {
     kinds: ["audit-fixture"],
@@ -293,7 +294,12 @@ async function main() {
   assert.equal(waitingSummary.awaitingApproval, 1);
   assert.equal(approvalReran, false);
   assert.equal(awaiting.rows("work_items")[0]?.status, "waiting");
-  assert.equal(workExecutionJobStatus(waitingSummary), "skipped");
+  assert.equal(workExecutionJobStatus(waitingSummary), "partial");
+  assert.equal(
+    workExecutionJobStatus({ ...waitingSummary, failed: 1, errors: ["another work item failed"] }),
+    "partial",
+    "pending approvals remain visible in mixed failed cycles",
+  );
   const resumed = workFixture();
   resumed.tables.action_queue = [{ id: "a-linked", work_item_id: "work-1", status: "executed" }];
   const resumedSummary = await executeClaimableWork(resumed.client as never, {

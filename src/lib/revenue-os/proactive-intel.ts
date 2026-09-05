@@ -5,6 +5,7 @@ import { recordAudit } from "./audit";
 import { storeAgentMemory } from "./memory";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
+import type { WorkItem } from "./work-items";
 import { retrieveKnowledge } from "./knowledge";
 
 // ---------------------------------------------------------------------------
@@ -296,6 +297,7 @@ const proactiveIntelBriefHandler: WorkKindHandler = async (supabase, wi) => {
   // AI-first: let the model synthesize a richer brief from available data.
   const aiResult = await tryAiExecution(supabase, wi);
   if (aiResult) {
+    if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {
       category: "prior_work",
       subject: "proactive_intel_brief: AI synthesis",
@@ -331,7 +333,7 @@ const proactiveIntelBriefHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome: brief };
+  return { status: "completed", outcome: brief };
 };
 
 export function registerProactiveIntelHandlers(): void {
