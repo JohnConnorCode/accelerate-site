@@ -1,27 +1,38 @@
 ---
 title: "Self-hosting quickstart"
-description: "Clone the repository, connect Supabase, and run the Command Center behind your own agency."
-updated: "2026-09-04"
+description: "Explore without credentials, then connect a workspace you control."
+updated: "2026-09-05"
 ---
 
-The Command Center is MIT licensed. Clone it, connect your own Supabase project, and run the same codebase. You own the code, the database, and any AI provider key you connect.
+You can explore Command Center before connecting a database or provider. A connected installation adds your own workspace, authentication, and provider configuration.
 
-## What you need
+## Explore locally
 
-Someone on your team should be comfortable with a terminal and a database. The managed path exists for teams without that person.
+You need Git, Node.js 22 or later, and npm. Clone the repository and start the app:
 
-- Node 22 or later
-- A Supabase project (URL plus anon and service-role keys)
-- An OpenRouter key for AI operations, and a Resend key for email
+```bash
+git clone https://github.com/JohnConnorCode/accelerate-site.git
+cd accelerate-site
+npm ci
+npm run dev
+```
 
-## Start it locally
+Open the local URL printed in the terminal, then visit `/demo/command-center`. Choose a fictional business and follow [your first workflow](/docs/start/daily-path). This path does not need email or AI provider keys.
 
-Clone the repository and install dependencies, then create a `.env.local` file with your Supabase URL, Supabase keys, founder email, and site URL. Run the ordered migrations, then start the development server.
+## Connect a real workspace
 
-## What you get
+Use a Supabase project and provider accounts you control. Follow the repository's [installation guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/SELF-HOSTING.md) for the exact environment variables, owner-account ordering, migration commands, and verification steps for your checkout.
 
-CRM, pipeline, inbox, campaigns, proposals, and analytics in one application, with AI operations behind approval gates and an audit trail, using your own provider keys. Nothing phones home to us.
+Do not use an existing production database as an installation experiment. The owner identity and migration order matter; skipping a step can leave an account without workspace access.
 
-## Bring us in later
+## Add providers incrementally
 
-Self-host now and add managed execution when the business needs it: configuration around your existing tools, migrations and monitoring handled for you, and training for your team. The contact page is the way to start that conversation.
+Start with one workflow. Connect its providers, then inspect [Setup Center](/docs/workspace/setup). An OpenRouter key enables configured AI workloads; a verified mail connection enables real sending. Neither is required merely to explore the demo.
+
+Before importing real contacts, confirm that you can sign in to the intended workspace and complete a controlled test workflow. Check the action result as well as the screen's success message.
+
+## Keep your installation maintainable
+
+Use the installation and upgrade instructions shipped with your version. Back up your database before upgrades. Keep server credentials in local or hosting-provider secret configuration, not in source control.
+
+For extending the application, start with [Build on it](/docs/extend). For connecting an external assistant, see [MCP client setup](/docs/extend/mcp-clients).

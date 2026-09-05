@@ -27,6 +27,22 @@ async function main() {
     `index has only ${index.length} entries, so it is probably not being built`,
   );
 
+  const docs = index.filter((entry) => entry.group === "Docs");
+  assert.ok(
+    searchEntries(docs, "RFC threading", 5).some(
+      (entry) => entry.href === "/docs/conversations/reply",
+    ),
+    "Guide body terminology must be searchable",
+  );
+  assert.ok(
+    searchEntries(docs, "propose_send_email", 5).some(
+      (entry) => entry.href === "/docs/intelligence/tools",
+    ),
+    "Generated tool names must be searchable",
+  );
+  assert.equal(searchEntries(docs, "Your first workflow", 1)[0]?.href, "/docs/start/daily-path");
+  assert.equal(searchEntries(docs, "zxq_nonexistent_reference", 5).length, 0);
+
   // ---- Every industry is findable by its own name ------------------------
 
   const industries = index.filter((entry) => entry.group === "Industries");

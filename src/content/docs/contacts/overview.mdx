@@ -1,0 +1,21 @@
+---
+title: "Contacts"
+description: "Canonical people and companies, with duplicates proposed rather than guessed."
+updated: "2026-09-04"
+---
+
+Contacts at `/admin/contacts` is the identity ledger. Website submissions, list imports, chat, and mail all resolve here before they become conversations or deals.
+
+How a CSV or pasted list becomes records is in [Importing](/docs/contacts/import).
+
+## Intake
+
+New rows can arrive from the public site, from a CSV or pasted list, or from a provider sync. Imports go through a review batch. The system normalizes and proposes records. Nothing is written until that review is accepted.
+
+## Identity
+
+Canonical IDs win over email joins. Two records that look like one person become a merge proposal. The operator decides. Ambiguous identity is review work.
+
+## Companies
+
+People link to companies, companies to opportunities, opportunities to conversations. That graph is queryable. Asking who can introduce you to a target is a path through those links.

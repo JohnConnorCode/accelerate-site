@@ -1,0 +1,24 @@
+---
+title: "MCP concepts"
+description: "Bounded reads, staged writes, tenant isolation. The same registry the UI uses."
+updated: "2026-09-04"
+---
+
+The Command Center exposes a Model Context Protocol server so Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity can read bounded workspace state and stage proposals. It speaks the handshake `initialize` lifecycle over Streamable HTTP, and also a local stdio adapter for desktop clients.
+
+## Invariants
+
+1. **Bounded reads.** Tools like `get_today_snapshot`, `search_pipeline`, `get_record_timeline`, and `search_knowledge_base` return capped windows. Credentials and tokens are scrubbed.
+2. **Staged writes.** Mutating tools insert into `action_queue`. There is no MCP tool that approves a proposal. Approval happens from an authenticated admin session on [Today](/docs/command-center/today).
+3. **Tenant isolation.** External HTTP requests authenticate with a per-tenant MCP Bearer key from [Integrations](/docs/workspace/integrations), or a founder session. Do not share one key across workspaces.
+
+The tool list is the same registry the UI uses. Adding a tool in `ai-tools.ts` and claiming it on a module is what makes it appear over MCP. You do not maintain a second list.
+
+## Endpoints
+
+- Platform: `/api/mcp`
+- Tenant: `/api/public/<tenantSlug>/mcp`
+
+A `GET` on the tenant endpoint returns a small ok payload you can use to check DNS and deploy before debugging auth.
+
+Client setup is on [Connect an MCP client](/docs/extend/mcp-clients).

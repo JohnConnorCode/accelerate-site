@@ -7,6 +7,9 @@ import { packages } from "@/content/packages";
 import { changelogEntries } from "@/content/changelog";
 import { publicWorkProjects } from "@/content/work";
 import { docsManifest } from "@/content/docs/manifest";
+import { listRevenueAiCapabilities } from "@/lib/revenue-os/ai-tools";
+import { capabilities } from "@/content/command-center";
+import { getDocsPage } from "@/lib/docs";
 import { marketingPositioning } from "@/content/marketing-positioning";
 
 /**
@@ -28,6 +31,8 @@ export interface SearchEntry {
   group: SearchGroup;
   /** Extra text matched against but not displayed: tags, keywords, synonyms. */
   keywords: string[];
+  /** Public reference text, ranked below titles and descriptions. */
+  content?: string;
   /** ISO date where the content has one, for recency tie-breaking. */
   date?: string;
 }
@@ -248,7 +253,29 @@ export function buildSearchIndex(): SearchEntry[] {
         description: page.description,
         href,
         group: "Docs",
-        keywords: ["docs", "guide", "documentation", section.title, page.title],
+        content: [
+          getDocsPage(page.slug)
+            ?.content.replace(/<[^>]*>/g, " ")
+            .replace(/[#*`]/g, ""),
+          page.slug.join("/") === "intelligence/tools"
+            ? listRevenueAiCapabilities()
+                .map((tool) => `${tool.name} ${tool.description}`)
+                .join(" ")
+            : "",
+          page.slug.join("/") === "command-center/capabilities"
+            ? capabilities.map((capability) => `${capability.title} ${capability.detail}`).join(" ")
+            : "",
+        ].join(" "),
+        keywords: [
+          "docs",
+          "guide",
+          "documentation",
+          section.title,
+          page.title,
+          ...(page.slug.join("/") === "intelligence/tools"
+            ? listRevenueAiCapabilities().map((tool) => tool.name)
+            : []),
+        ],
       });
     }
   }

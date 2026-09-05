@@ -1,0 +1,43 @@
+---
+title: "Import contacts"
+description: "Prepare a small list, review the proposed records, and confirm the import."
+updated: "2026-09-05"
+---
+
+Importing brings a CSV or pasted list into a review batch before it creates contacts. Start with a small sample so you can check the field interpretation and identity matches.
+
+**Before you start:** use a workspace you are authorized to update. AI-assisted analysis needs the configured model path to be available. Check [Setup Center](/docs/workspace/setup) if analysis is unavailable.
+
+## 1. Prepare your list
+
+Use clear column names. This fictional CSV is a starting example:
+
+```csv
+fullName,email,phone,companyName,website
+Alex Morgan,alex@example.test,,Example Company,https://example.test
+Jamie Chen,jamie@example.test,,Example Company,https://example.test
+```
+
+A reviewed contact needs a name and at least an email address or phone number. An email must be valid. A supplied website must be a valid domain or HTTP(S) address. Include a business website when you want to identify a company reliably.
+
+## 2. Analyze the source
+
+Open **Contacts** and start an import, or open `/admin/contact-imports`. Upload the file or paste the list, then choose **Analyze and build review**.
+
+The proposed rows are a review snapshot. Analysis has not imported them yet.
+
+## 3. Review the rows
+
+Check names, email addresses, phone numbers, company information, and each row's import decision. Correct errors and exclude rows you do not want. Inspect possible matches rather than assuming similar names identify the same person.
+
+Company information can remain unlinked when there is not enough evidence to identify the business. Resolve warnings deliberately; do not invent missing fields.
+
+## 4. Confirm the import
+
+Save your review changes, then choose **Review approval**. Inspect the exact snapshot and choose **Approve and import** only when it is correct.
+
+## 5. Verify the result
+
+Check the batch result and open a sample of the accepted contacts. Failed rows remain available with a reason. Inspect the existing batch before resubmitting the same file.
+
+Importing contacts does not send email, subscribe them to a campaign, or create an opportunity. Those are separate actions.

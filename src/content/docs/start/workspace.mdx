@@ -1,0 +1,19 @@
+---
+title: "Your workspace"
+description: "Tenants, membership, and how operator access is resolved."
+updated: "2026-09-04"
+---
+
+Accelerate runs many businesses on one application and one database. Each business is a tenant. Every operational row carries tenant ownership. Queries, jobs, and public intake resolve that tenant before they read or write.
+
+## Membership
+
+An operator needs an authenticated account and an active membership on the tenant they are working in. Platform administration is a separate, founder-only path. Tests still need a membership. There is no global see-everything shortcut for fixtures.
+
+## Context
+
+Tenant context is explicit in middleware and in API authorization. Switching workspace replaces the operating data. Demo workspaces are fictional and do not share records with live tenants.
+
+## Where this is configured
+
+Tenants, Setup Center, and Settings live under [Workspace](/docs/workspace). Integrations and module switches are on the same cluster. A workspace that is not ready shows that in Setup Center rather than failing silently later.

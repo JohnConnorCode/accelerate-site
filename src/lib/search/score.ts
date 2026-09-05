@@ -15,7 +15,7 @@ import type { SearchEntry, SearchGroup } from "./index";
 /** A match on the title is worth more than a match anywhere else. */
 const WEIGHTS = {
   titleExact: 1000,
-  titlePrefix: 600,
+  titlePrefix: 450,
   titleWord: 400,
   titleContains: 220,
   keywordExact: 300,
@@ -116,8 +116,10 @@ export function scoreEntry(entry: SearchEntry, terms: string[]): number {
   const title = normalize(entry.title);
   const description = normalize(entry.description);
   const keywords = entry.keywords.map(normalize);
+  const content = normalize(entry.content ?? "");
 
   let total = 0;
+  let bodyMatch = false;
   for (const term of terms) {
     let best = scoreField(title, term, {
       exact: WEIGHTS.titleExact,
@@ -138,10 +140,18 @@ export function scoreEntry(entry: SearchEntry, terms: string[]): number {
 
     if (!best && description.includes(term)) best = WEIGHTS.descriptionContains;
 
+    if (!best && content.includes(term)) {
+      best = 20;
+      bodyMatch = true;
+    }
+
     // A term that matches nothing disqualifies the entry entirely.
     if (!best) return 0;
     total += best;
   }
+
+  // A body mention must not outrank a result matching every term in its metadata.
+  if (bodyMatch) total *= 0.5;
 
   // Shorter titles win ties: "Nonprofits" should beat "AI for nonprofits and
   // membership organisations" when both match equally well.

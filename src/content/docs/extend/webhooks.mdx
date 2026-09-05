@@ -1,0 +1,23 @@
+---
+title: "Inbound webhooks"
+description: "Tenant-scoped public routes, signature checks, replay windows, and canonical ingest."
+updated: "2026-09-04"
+---
+
+Provider inbound events land under `src/app/api/public/[tenantSlug]/webhooks/<provider>/`. The tenant slug is in the path so the handler can resolve tenant context before it touches data.
+
+## What the handler does
+
+1. Resolve the tenant from the slug. Unknown slug fails closed.
+2. Verify the provider signature with `timingSafeEqual`. Reject the request if it does not match.
+3. Reject replays outside a bounded time window.
+4. Call a canonical service (`inbound.ts`, `identity.ts`, `activities.ts`, or the provider's adapter ingest function). Do not insert operational rows in the route.
+5. Return a truthful receipt. HTTP 200 is not proof if the service returned a failure.
+
+## What the handler must not do
+
+- Use `createPlatformServiceRoleClient` for tenant writes. Use `createServiceRoleClient(provider.context)` so every row carries `tenant_id`.
+- Log raw payloads, signatures, or tokens.
+- Call a provider SDK that the existing adapter path already covers.
+
+New providers belong as an [integration adapter](/docs/extend/adapters) plus a webhook folder named for that provider. WhatsApp and HubSpot are the current examples on that generic path.

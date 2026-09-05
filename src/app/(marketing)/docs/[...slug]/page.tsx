@@ -1,3 +1,4 @@
+import { DocsFigure } from "@/components/docs/DocsFigure";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { compileMDX } from "next-mdx-remote/rsc";
@@ -18,17 +19,24 @@ import {
   StepByStep,
   Step,
 } from "@/components/mdx";
+import { DocsCapabilityCatalog } from "@/components/docs/DocsCapabilityCatalog";
+import { DocsApprovalLoop } from "@/components/docs/DocsApprovalLoop";
+import { DocsAiToolCatalog } from "@/components/docs/DocsAiToolCatalog";
 
 // Docs prose stays reference-dense: explanatory components only. Conversion
 // components (CTACard, ToolRecommendation, booking CTAs) are deliberately
-// absent — a docs page ending in a booking call reads as marketing.
+// absent. A docs page ending in a booking call reads as marketing.
 const docsComponents = {
+  DocsFigure,
   Callout,
   CodeBlock,
   ComparisonTable,
   QuoteBlock,
   StepByStep,
   Step,
+  DocsCapabilityCatalog,
+  DocsApprovalLoop,
+  DocsAiToolCatalog,
 };
 
 export function generateStaticParams() {
@@ -81,7 +89,12 @@ export default async function DocsPage({ params }: { params: Promise<{ slug: str
       </p>
       <p className="mt-4 flex items-center gap-1.5 text-sm text-white-muted">
         <Calendar className="h-4 w-4" aria-hidden="true" />
-        Updated {formatDateOnly(page.frontmatter.updated, { month: "long", day: "numeric", year: "numeric" })}
+        Updated{" "}
+        {formatDateOnly(page.frontmatter.updated, {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })}
         <span aria-hidden="true">·</span> {page.readingTime}
       </p>
 

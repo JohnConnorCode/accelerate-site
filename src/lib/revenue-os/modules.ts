@@ -100,6 +100,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["today", "inbox", "activity"],
     routes: ["/admin/today", "/admin/inbox", "/admin/activity"],
+    docsUrl: "/docs/command-center",
     aiToolNames: [
       "get_today_snapshot",
       "get_record_timeline",
@@ -119,6 +120,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["pipeline"],
     routes: ["/admin/pipeline"],
+    docsUrl: "/docs/pipeline",
     aiToolNames: ["search_pipeline", "propose_stage_change"],
   },
   {
@@ -131,6 +133,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["conversations"],
     routes: ["/admin/conversations"],
+    docsUrl: "/docs/conversations",
     aiToolNames: ["propose_send_email", "search_conversations", "propose_conversation_reply"],
   },
   {
@@ -143,6 +146,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["contacts"],
     routes: ["/admin/contacts", "/admin/contact-imports"],
+    docsUrl: "/docs/contacts",
     aiToolNames: ["search_contacts"],
   },
   {
@@ -154,7 +158,29 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["ai"],
     routes: ["/admin/ai"],
-    aiToolNames: ["search_knowledge_base"],
+    docsUrl: "/docs/intelligence",
+    aiToolNames: [
+      "search_knowledge_base",
+      "get_claimable_work",
+      "get_workspace_capabilities",
+      "get_claims_for_entity",
+      "get_autonomy_policies",
+      "get_coworkers",
+      "get_agent_activity_for_entity",
+      "get_plugins",
+      "bootstrap_sales_coworker",
+      "bootstrap_business_pulse_coworker",
+      "bootstrap_meeting_intel_coworker",
+      "bootstrap_finance_coworker",
+      "bootstrap_operations_coworker",
+      "query_memory",
+      "store_agent_memory",
+      "get_agent_memory",
+      "get_learned_policies",
+      "record_learned_policy",
+      "check_budgets",
+      "get_budget_limits",
+    ],
   },
   {
     id: "core-system",
@@ -165,6 +191,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["tenants", "setup", "features", "settings"],
     routes: ["/admin/tenants", "/admin/setup", "/admin/features", "/admin/settings"],
+    docsUrl: "/docs/workspace",
   },
 
   // --- Optional / Pluggable Business Modules ---
@@ -177,6 +204,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["proposals"],
     routes: ["/admin/proposals"],
+    docsUrl: "/docs/proposals",
   },
   {
     id: "campaigns",
@@ -188,6 +216,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["campaigns", "delivery-runs"],
     routes: ["/admin/campaigns", "/admin/email-sequences"],
+    docsUrl: "/docs/outreach",
     aiToolNames: ["propose_campaign_activation"],
     setupChecks: ["email", "campaigns"],
   },
@@ -201,6 +230,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["emails"],
     routes: ["/admin/emails"],
+    docsUrl: "/docs/outreach",
   },
   {
     id: "recovery",
@@ -211,6 +241,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["recovery"],
     routes: ["/admin/recovery"],
+    docsUrl: "/docs/outreach",
   },
   {
     id: "revenue",
@@ -221,6 +252,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["revenue"],
     routes: ["/admin/revenue"],
+    docsUrl: "/docs/pipeline",
   },
   {
     id: "bookings",
@@ -231,6 +263,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["bookings"],
     routes: ["/admin/bookings"],
+    docsUrl: "/docs/delivery",
     setupChecks: ["calendly", "calendar_sync"],
   },
   {
@@ -242,6 +275,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["clients"],
     routes: ["/admin/clients"],
+    docsUrl: "/docs/delivery",
   },
   {
     id: "content",
@@ -252,6 +286,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["content"],
     routes: ["/admin/content"],
+    docsUrl: "/docs/delivery",
   },
   {
     id: "resources",
@@ -262,6 +297,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["resources"],
     routes: ["/admin/resources"],
+    docsUrl: "/docs/delivery",
   },
   {
     id: "leads-capture",
@@ -272,6 +308,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["leads", "chat-leads"],
     routes: ["/admin/leads", "/admin/chat-leads"],
+    docsUrl: "/docs/sources",
   },
   {
     id: "subscribers",
@@ -282,6 +319,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["subscribers"],
     routes: ["/admin/subscribers"],
+    docsUrl: "/docs/sources",
   },
   {
     id: "partners",
@@ -292,6 +330,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["partners"],
     routes: ["/admin/partners"],
+    docsUrl: "/docs/sources",
   },
   {
     id: "website-grades",
@@ -302,6 +341,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["website-grades"],
     routes: ["/admin/website-grades"],
+    docsUrl: "/docs/sources",
   },
   {
     id: "analytics",
@@ -312,6 +352,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["analytics"],
     routes: ["/admin/analytics"],
+    docsUrl: "/docs/intelligence",
   },
   {
     id: "integrations",
@@ -322,6 +363,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["integrations"],
     routes: ["/admin/integrations"],
+    docsUrl: "/docs/workspace",
   },
 ] as const;
 

@@ -1,0 +1,21 @@
+---
+title: "Campaigns"
+description: "Approve a version once, then automation runs inside sender, audience, cadence, limit, and stop rules."
+updated: "2026-09-04"
+---
+
+Open `/admin/campaigns`. Each campaign has a name, a status, a version, and an approved version. Copy that has not been approved does not send.
+
+## Create and approve
+
+New campaign starts as a draft. Edit audience, cadence, send limits, and stop rules. Activation is `propose_campaign_activation` if the assistant stages it, or an explicit approve in the UI. Only the approved version runs.
+
+A later edit bumps `version`. Sends keep using `approved_version` until you approve again.
+
+## What stops a send
+
+Stop rules are re-read before every send: reply, unsubscribe, suppression, exhausted retries. A member who is already stopped is not mailed because the cron woke up. Each send has an idempotency key and a provider receipt. Uncertain provider outcomes refuse blind retry.
+
+## Delivery Runs
+
+`/admin/email-sequences` is sequence and delivery status for the same memberships. Use it for the receipt trail. Campaigns is the editor.

@@ -1,0 +1,19 @@
+---
+title: "Activity"
+description: "The audit ledger: who changed what, when, and from which origin."
+updated: "2026-09-04"
+---
+
+Activity at `/admin/activity` is the operator view of the audit ledger. It records material changes: actor, action, entity, source, and a before/after snapshot. It is how you answer "who did this?" without reading a database.
+
+## What is stored
+
+Each row is one change. Filters cover actor, entity type, action, source, and a date range. Opening a row with a known entity takes you to that record: an opportunity, a conversation, a task on Today, a proposal, or a campaign.
+
+Prompt text, raw customer bodies, tokens, and secrets do not belong here. If a field would leak those, the service redacts it or omits it.
+
+## What it is for
+
+Use Activity when a send, a stage move, or an approval needs a receipt you can show someone. Provider facts stay immutable. Human notes and configuration are edited through their own services, and those edits still write a row.
+
+System exceptions on [Today](/docs/command-center/today) (a missed health cadence, a webhook that keeps failing) are the same facts Setup Center uses. Activity is the history; Today is the queue.

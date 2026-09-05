@@ -1,0 +1,19 @@
+---
+title: "AI Workspace"
+description: "Ask, inspect runs, and review evidence before anything executes."
+updated: "2026-09-04"
+---
+
+`/admin/ai` is the dedicated assistant surface: a conversation, run history, and the capability list. [Ask AI](/docs/command-center/ask) on Today is the same agent with less chrome.
+
+## Asking
+
+Type a question. The workspace sends bounded page context and the registered tools for the selected pack (core, pipeline, or outreach). Tool results come back as receipts. Factual claims in the answer have to cite those receipts.
+
+## Runs
+
+Every turn writes a run with events: which tools ran, how long, token use, and the terminal outcome. Open a run to inspect it. Errors are redacted. Missing schema degrades visibly rather than failing closed with a blank page.
+
+## Capabilities
+
+The in-product capability list and the [AI tool reference](/docs/intelligence/tools) are the same registry. A tool that is off because its module is disabled shows as unavailable, with a reason.

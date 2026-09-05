@@ -1,0 +1,19 @@
+---
+title: "Ask AI"
+description: "Ask with bounded context. Writes still wait in the same approval queue."
+updated: "2026-09-04"
+---
+
+You can ask from Today and from the [AI Workspace](/docs/intelligence/workspace). Both paths use the same tool registry, the same context budget, and the same [approval](/docs/command-center/approvals) queue.
+
+## What a good question looks like
+
+Ask for something the tools can read: today's queue, a contact's timeline, a deal's stage, a knowledge note. The model has to cite an executed tool receipt for a factual claim. If it cannot, the answer is marked partial rather than invented.
+
+## What happens on a write
+
+"Draft a follow-up" or "move this deal" stages a proposal. You still approve it. MCP clients follow the same rule. Nothing in the registry both proposes and approves its own change.
+
+## Tools
+
+The full list is the [AI tool reference](/docs/intelligence/tools), rendered from the live registry. Adding a tool is documented under [Build on it](/docs/extend/tools).
