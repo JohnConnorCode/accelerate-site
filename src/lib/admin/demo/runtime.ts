@@ -1,3 +1,10 @@
+import {
+  createDemoBusinessState,
+  demoTasksForGraph,
+  handleDemoBusinessRequest,
+  DEMO_BUSINESS_MODULES,
+  type DemoBusinessState,
+} from "./business-runtime";
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
 import { clearDemoAppearance } from "./appearance-state";
 import {
@@ -53,6 +60,7 @@ type DemoEmailStudioDetail = {
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
 type DemoState = {
+  business: DemoBusinessState | null;
   completedActions: string[];
   completedTasks: string[];
   stageOverrides: Record<string, string>;
@@ -70,6 +78,7 @@ type DemoState = {
   moduleSettings: Record<string, Record<string, unknown>>;
 };
 const initialState = (): DemoState => ({
+  business: null,
   completedActions: [],
   completedTasks: [],
   stageOverrides: {},
@@ -241,7 +250,11 @@ function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string)
     ],
   };
 }
-function auditHistory(pack: DemoScenarioPack, params: URLSearchParams) {
+function auditHistory(
+  pack: DemoScenarioPack,
+  params: URLSearchParams,
+  business?: DemoBusinessState,
+) {
   const founder = pack.tenant.founder.email;
   const system = pack.tenant.founder.systemActorEmail;
   const samples: Array<{
@@ -318,6 +331,20 @@ function auditHistory(pack: DemoScenarioPack, params: URLSearchParams) {
       createdAt: ago(index * 3 + 1),
     };
   });
+  entries.unshift(
+    ...(business?.receipts ?? []).map((receipt) => ({
+      id: receipt.id,
+      actorEmail: founder,
+      action: "demo.simulated",
+      entityType: "business_workflow",
+      entityId: receipt.id,
+      source: "demo",
+      before: null,
+      after: { operation: receipt.operation },
+      metadata: { simulated: true },
+      createdAt: receipt.at,
+    })),
+  );
   const filtered = entries.filter((entry) => {
     if (params.get("actor") && entry.actorEmail !== params.get("actor")) return false;
     if (params.get("entity") && entry.entityType !== params.get("entity")) return false;
@@ -361,6 +388,22 @@ function queue(pack: DemoScenarioPack, state: DemoState) {
       recommendedNextAction: "Review the exact simulated change",
       href: `/admin/today?focus=approval&action=${item.id}`,
     }));
+  approvals.unshift(
+    ...(state.business?.actions ?? [])
+      .filter((item) => item.status === "pending")
+      .map((item) => ({
+        id: `action:${item.id}`,
+        kind: "approval",
+        title: item.title,
+        summary: item.description,
+        urgency: "normal",
+        dueAt: dateOffset(0),
+        sourceTimestamp: item.created_at,
+        priorityReason: "A simulated business workflow needs approval.",
+        recommendedNextAction: "Review the exact simulated change",
+        href: item.pluginId === "stripe-invoicing" ? "/admin/invoicing" : `/admin/${item.pluginId}`,
+      })),
+  );
   const replies = pack.conversations.slice(0, 2).map((item, index) => {
     const contact = person(pack, item.personId);
     return {
@@ -1765,6 +1808,12 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
   activeRuntime?.restore();
   const pack = DEMO_SCENARIOS[scenarioId];
   const state = loadState(scenarioId);
+  if (!state.business || state.business.version !== 1) {
+    state.business = createDemoBusinessState(pack);
+    saveState(scenarioId, state);
+  }
+  const business = state.business;
+  const scenarioPack = pack;
   const nativeFetch = window.fetch.bind(window);
   const nativeOpen = window.open.bind(window);
   const reset = () => {
@@ -1773,8 +1822,24 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     window.location.reload();
   };
   const demoFetch: typeof window.fetch = async (input, init) => {
+    const pack = {
+      ...scenarioPack,
+      opportunities: scenarioPack.opportunities.map((item) => ({
+        ...item,
+        stage: state.stageOverrides[item.id] || item.stage,
+      })),
+      tasks: [...demoTasksForGraph(business), ...scenarioPack.tasks].map((item) => ({
+        ...item,
+        status: state.completedTasks.includes(item.id) ? "completed" : item.status,
+      })),
+    };
     const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     const url = new URL(raw, window.location.origin);
+    if (url.origin !== window.location.origin)
+      return jsonResponse(
+        { error: "External requests are blocked in this fictional workspace" },
+        403,
+      );
     const path = url.pathname;
     const method = (
       init?.method || (input instanceof Request ? input.method : "GET")
@@ -1792,6 +1857,19 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    const businessResponse = await handleDemoBusinessRequest(
+      pack,
+      business,
+      { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
+      url,
+      method,
+      body,
+      () => {
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+      },
+    );
+    if (businessResponse) return businessResponse;
     const emailTemplateIds = [
       "inquiry-reply",
       "appointment-confirmation",
@@ -1972,6 +2050,15 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({
         providers: [
           {
+            id: `demo-stripe-${scenarioId}`,
+            provider: "stripe",
+            status: "connected",
+            credential_source: "simulated",
+            credential_version: 1,
+            account_email: null,
+            key_metadata: null,
+          },
+          {
             id: `demo-openrouter-${scenarioId}`,
             provider: "openrouter",
             account_email: null,
@@ -2055,10 +2142,10 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({ schemaReady: true, updated: reorder.length });
     }
     if (method === "GET" && path === "/api/admin/tenant/modules") {
-      const tenantConfig = { modules: state.moduleOverrides };
+      const tenantConfig = { modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } };
       return jsonResponse({
         modules: getActiveModules(tenantConfig).map((mod) => mod.id),
-        overrides: state.moduleOverrides,
+        overrides: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
         moduleSettings: state.moduleSettings,
       });
     }
@@ -2076,11 +2163,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         if (moduleDef.isCore)
           return jsonResponse({ error: "Core modules cannot be disabled" }, 400);
         state.moduleOverrides[moduleId] = payload.enabled;
+        business.receipts.unshift({
+          id: crypto.randomUUID(),
+          operation: `${payload.enabled ? "Enabled" : "Disabled"} ${moduleDef.name}`,
+          at: new Date().toISOString(),
+          simulated: true,
+        });
         saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
         return jsonResponse({
           moduleId,
           enabled: payload.enabled,
-          modules: getActiveModules({ modules: state.moduleOverrides }).map((mod) => mod.id),
+          modules: getActiveModules({
+            modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
+          }).map((mod) => mod.id),
         });
       }
       if (payload.settings && typeof payload.settings === "object") {
@@ -2331,31 +2427,34 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/revenue-os/actions")
       return jsonResponse({
-        actions: pack.actions
-          .filter((item) => !state.completedActions.includes(item.id))
-          .map((item, index) => ({
-            id: item.id,
-            action_type: item.type,
-            title: item.title,
-            description: item.description,
-            urgency: index < 2 ? "high" : "normal",
-            reasoning: item.description,
-            status: "pending",
-            created_at: ago(index + 1),
-            expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
-            payload:
-              item.type === "send_gmail_reply"
-                ? {
-                    to: person(pack, item.personId).email,
-                    subject: pack.conversations[index]!.subject,
-                    body: item.body,
-                  }
-                : {
-                    opportunityId: pack.opportunities[index]!.id,
-                    stage: "proposal",
-                    reason: item.description,
-                  },
-          })),
+        actions: [
+          ...business.actions.filter((item) => item.status === "pending"),
+          ...pack.actions
+            .filter((item) => !state.completedActions.includes(item.id))
+            .map((item, index) => ({
+              id: item.id,
+              action_type: item.type,
+              title: item.title,
+              description: item.description,
+              urgency: index < 2 ? "high" : "normal",
+              reasoning: item.description,
+              status: "pending",
+              created_at: ago(index + 1),
+              expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
+              payload:
+                item.type === "send_gmail_reply"
+                  ? {
+                      to: person(pack, item.personId).email,
+                      subject: pack.conversations[index]!.subject,
+                      body: item.body,
+                    }
+                  : {
+                      opportunityId: pack.opportunities[index]!.id,
+                      stage: "proposal",
+                      reason: item.description,
+                    },
+            })),
+        ],
       });
     if (path === "/api/admin/revenue-os/pipeline")
       return jsonResponse({
@@ -2470,7 +2569,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         proposalRevenue: 24600,
       });
     }
-    if (path === "/api/admin/activity") return jsonResponse(auditHistory(pack, url.searchParams));
+    if (path === "/api/admin/activity")
+      return jsonResponse(auditHistory(pack, url.searchParams, business));
     if (path === "/api/admin/revenue-os/ai/conversations")
       return jsonResponse({
         schemaReady: true,
@@ -2549,4 +2649,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
   };
   activeRuntime = { scenarioId, restore, reset };
   return { pack, reset, restore };
+}
+
+export function readDemoModuleConfig(id: DemoScenarioId) {
+  return { modules: { ...DEMO_BUSINESS_MODULES, ...loadState(id).moduleOverrides } };
 }

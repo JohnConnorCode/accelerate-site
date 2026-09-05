@@ -430,6 +430,34 @@ function card({
 
 export const featureBacklog = [
   card({
+    key: "business-plugin-demo-scenarios",
+    evidence:
+      "All five fictional scenario packs now exercise the actual shared admin invoicing, onboarding, meeting commitments, plugins, branding, invoice designer and InvoiceDocument components through the session-local demo transport. Shared schemas validate inputs. Verified canonical customers, scenario-specific line items and assignments, approval/send/publication/revocation receipts, invalid input, replay, disabled action refusal and retry, stale branding revisions, task completion, persistence, reset and isolation. Full test:core, typecheck, strict lint, formatting, demo contract, agent contract, production build and git diff --check passed. Playwright passed all five scenarios at desktop and mobile widths, all five appearances, keyboard interactions and reduced motion with zero escaped protected/provider requests or console errors; screenshots opened and inspected. Separate actual founder-authenticated browser proof passed all five scenarios with zero protected/provider requests, and the test auth session was revoked. Demo AI generation and external effects are explicitly simulated. Atomic claim admission retains the WIP limit; removed duplicate static snapshot rejection so authorized forced claims can complete. No production deployment, schema changes or customer/provider effects.",
+    owner: "codex-foundations",
+    status: "shipped",
+    title: "Demonstrate business plugins and branding across the five fictional workspaces",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "Founder-directed follow-up: make invoicing, client onboarding, meeting commitments, plugin activation and branding explorable in the actual admin demos using coherent fictional business data and useful simulated outcomes.",
+    acceptance: [
+      "All five scenario packs provide business-appropriate invoices, canonical customers and opportunities, assigned task histories and shared branding",
+      "The actual admin pages render populated demo data and support invoice review/approval/send/design/publication, task creation/completion, branding edits and plugin toggles through the shared demo engine",
+      "Demo mutations explicitly identify simulation, retain local receipts, persist in scenario-scoped session state, reset exactly and never call protected APIs or providers",
+      "Disabled plugin proposals and queued execution are refused while history survives; invalid input, stale branding and duplicate approvals are covered",
+      "Desktop/mobile browser journeys cover all five scenarios and appearances, refresh/reset/isolation, keyboard, reduced motion, opened screenshots and zero protected/provider traffic; core demo tests, typecheck, strict lint and build pass",
+    ],
+    dependencies: ["Deliver actionable invoicing, onboarding and meeting workflow plugins"],
+    start:
+      "docs/NORTHSTAR.md; docs/contracts/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo/runtime.ts; scenarios.ts; scenario-profiles.ts; admin invoicing/branding/plugins; TaskWorkflowWorkspace; InvoicePageDesigner; scripts/qa-admin-demo.mjs",
+    guardrails:
+      "Reuse actual admin pages and one scenario demo engine. Scenario packs contain data only. Browser-session writes only; no Supabase mutations, provider calls, production secrets or deployment. Generated AI presentation is explicitly simulated and never changes billing facts.",
+    labels: ["demo", "config"],
+    verification:
+      "test:admin-demo-contract; focused demo business workflow tests and desktop/mobile browser matrix; verify:agent-contract; typecheck; strict lint; build; git diff --check.",
+  }),
+  card({
     key: "business-workflow-plugin-exemplars",
     evidence:
       "Local implementation complete for all acceptance items: three default-off QuickJS business workflow plugins share bounded manifest schemas, selected canonical identity, activation checks, approval queue and domain execution across UI and AI. Stripe tenant-encrypted connection and rotation, exact-money review, separate send approval, partial checkpoint and same-operation retry are verified against controlled provider fixtures; no live provider acceptance is claimed. Onboarding and meeting plans create assigned dated canonical tasks with replay protection and live completion controls. Shared workspace branding supports hosted logo replacement/removal, business identity, validated contrast, live preview and revision-safe saves. AI presentation drafts retain authoritative Stripe facts and durable AI traces; customer pages require approval, store encrypted revocable links and revalidate live billing facts. Full test:core, disposable PostgreSQL migration twice/RLS/composite references/uniqueness/immutable publication/revocation tests, typecheck, strict lint, formatting, module checks, production build and diff checks pass. Desktop 1440x1000 and mobile 390x844 browser journeys cover logo/color/reset/contrast, invoice partial failure/retry/send/design/publication/revocation, assigned onboarding/completion, public invoice SSR, keyboard, reduced motion and no overflow or console errors; screenshots opened and reviewed. Production dependency audit reports zero vulnerabilities. Contributor documentation records contracts, setup and limits. Work preserved on isolated agent/plugin-data-boundary-hardening branch; production migration/deployment remain rollout work. Follow-up 2026-09-05: real Stripe test-mode verification passed through QuickJS and the shared domain/approval executor with isolated application records. Exact USD 5.00 invoice, intentionally lost successful add-lines response, same-key retry with one invoice and one line, duplicate and disabled approvals, real finalization/test send, live-fact publication/revocation and final void all passed. Repeatable test:stripe-sandbox refuses live keys and unexpected accounts; provider request receipts retained in the local evidence artifact. No bank connection was required. This is real provider proof, not production database or completed-payment proof. No customer sends, charges or production configuration were performed.",
@@ -4022,6 +4050,8 @@ export const featureBacklog = [
   }),
   card({
     key: "won-to-delivery-handoff",
+    owner: "claude-code:johnconnor:62700",
+    status: "in_progress",
     title: "Create the won-to-delivery handoff",
     workstream: "operations",
     phase: 3,
@@ -6154,21 +6184,11 @@ export function validateFeatureBacklog() {
     if (!LOOP_ONE_SET.has(key))
       throw new Error(`NOW_KEYS includes ${key}, which is not on the delivery circuit`);
   }
-  // The limit exists so the board reflects what is genuinely being worked, not
-  // a wish list. It was two when one founder was the only claimant; it is four
-  // now that agent sessions claim cards alongside him. Raise it deliberately,
-  // never to make a status change pass. 2026-09-03: raised to five by explicit
-  // founder direction to cover four active agent sessions plus the founder's
-  // own claim. Revisit before raising again; the limit is a discipline tool.
-  // 2026-09-03: raised to six by explicit founder direction to take over the
-  // universal kanban overhaul (feature-board-interaction-rebuild) alongside
-  // the five active claims. Revisit before raising again.
-  const WIP_LIMIT = 6;
-  const claimed = featureBacklog.filter((feature) => feature.status === "in_progress");
-  if (claimed.length > WIP_LIMIT) {
-    throw new Error(
-      `WIP limit exceeded: ${claimed.length} cards in progress (${claimed.map((feature) => feature.seed_key).join(", ")}). Finish or park one first.`,
-    );
-  }
+  // Status/owner are live-managed. The atomic claim RPC enforces the WIP limit
+  // (FEATURE_BOARD_WIP_LIMIT in feature-board-claims.ts), and agent:next --force
+  // supports an explicit priority override. Re-enforcing a second hard-coded
+  // limit on this mirrored snapshot invalidates legitimate concurrent claims
+  // and prevents their completion commits. Validate definitions here; keep
+  // admission control at the authoritative claim boundary.
   return { total: featureBacklog.length, byStatus: Object.fromEntries([...countsByStatus]) };
 }

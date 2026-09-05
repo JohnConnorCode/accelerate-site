@@ -423,3 +423,29 @@ and payment-method acceptance remain release-specific verification.
 Stripe's authoritative semantics: [invoice creation](https://docs.stripe.com/api/invoices/create),
 [sending](https://docs.stripe.com/api/invoices/send), and
 [idempotent requests](https://docs.stripe.com/api/idempotent_requests).
+
+### Business workflows in the full admin demos
+
+All five `/demo/command-center/<scenario>` workspaces render the actual admin
+invoicing, branding, plugins, onboarding and meeting-commitment pages. There is no
+second demo UI. `business-profiles.ts` contributes fictional service descriptions,
+minor-unit prices and task suggestions to each scenario pack. `business-runtime.ts`
+is part of the existing browser demo transport; it reuses the shared invoice,
+branding, presentation and task input contracts and simulates their operations.
+
+The scenario starts with open, paid and draft invoices, assigned delivery tasks,
+its business mark and its shared brand. Review, approval, simulated send, AI
+presentation, publication/revocation, task completion and module changes write
+only to the scenario's versioned session state and local receipts. Tasks and pending
+approvals enter the existing Today/task/approval views; receipts appear in Activity.
+The sample-logo control uses the existing scenario mark without remote downloads.
+Demo customer links reopen the shared invoicing page in a customer-preview state
+and work only inside the same scenario's browser session; they are not public links.
+The real public invoice route and real provider connections remain unchanged.
+
+Use `npm run test:demo-business-workflows` for all five normalized scenario graphs,
+input refusals, disabled execution, replay, branding conflicts and publication
+revocation. Run `npm run qa:demo-business-workflows` against a local app (override
+`PLAYWRIGHT_BASE_URL` when needed) for the actual shared UI, desktop/mobile
+journeys, scenario persistence/reset and appearances. The browser harness refuses
+and reports any protected API or external request that escapes the demo transport.

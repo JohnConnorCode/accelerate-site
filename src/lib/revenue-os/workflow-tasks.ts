@@ -2,28 +2,10 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { z } from "zod";
+import { workflowTaskBatchSchema as batchSchema } from "./workflow-task-contract";
 import { createRevenueTask } from "./tasks";
 import { checkpointActionResult } from "./actions";
 import { requireEnabledPlugin } from "./plugin-host";
-const taskSchema = z
-  .object({
-    title: z.string().trim().min(1).max(200),
-    description: z.string().trim().max(2000),
-    dueDate: z.iso.date(),
-    assigneeUserId: z.uuid(),
-  })
-  .strict();
-const batchSchema = z
-  .object({
-    opportunityId: z.uuid().optional(),
-    meetingId: z.uuid().optional(),
-    tasks: z.array(taskSchema).min(1).max(10),
-  })
-  .strict()
-  .refine((input) => Boolean(input.opportunityId) !== Boolean(input.meetingId), {
-    message: "Choose exactly one source record",
-  });
 export async function reviewWorkflowTasks(db: SupabaseClient, payload: Record<string, unknown>) {
   if (!tenantIdForDatabase(db)) throw new Error("Task workflows require a tenant-bound database");
   const input = batchSchema.parse(

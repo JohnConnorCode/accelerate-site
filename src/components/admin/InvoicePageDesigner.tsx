@@ -1,4 +1,5 @@
 "use client";
+import { useAdminDemo } from "./AdminDemoBoundary";
 import { useState } from "react";
 import { Copy, Sparkles, X } from "lucide-react";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
@@ -36,6 +37,7 @@ export function InvoicePageDesigner({
   onClose: () => void;
   onProposed: () => Promise<void>;
 }) {
+  const demo = useAdminDemo();
   const [design, setDesign] = useState(defaultInvoiceDesign),
     [brief, setBrief] = useState(
       "A clean, warm and professional invoice for an ongoing business relationship.",
@@ -99,6 +101,7 @@ export function InvoicePageDesigner({
       )}
       {notice && (
         <p role="status" className="mt-4 text-sm">
+          {demo ? "Simulated · " : ""}
           {notice}
         </p>
       )}
@@ -140,7 +143,9 @@ export function InvoicePageDesigner({
               Draft with AI
             </button>
             <p className="admin-copy mt-3 text-xs leading-5">
-              Uses your workspace’s AI connection. You can also edit the design directly.
+              {demo
+                ? "Simulated AI presentation from this fictional business. No AI provider is called."
+                : "Uses your workspace’s AI connection. You can also edit the design directly."}
             </p>
           </div>
           <label className="block text-sm font-medium">
@@ -272,7 +277,12 @@ export function InvoicePageDesigner({
                 : `Expires ${new Date(page.expiresAt).toLocaleDateString()}`}
             </p>
             {page.token && !page.revokedAt && (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                {demo && (
+                  <AdminLink className={button} href={`/admin/invoicing?demoInvoice=${page.token}`}>
+                    Open demo invoice
+                  </AdminLink>
+                )}
                 <button
                   type="button"
                   className={button}
@@ -280,7 +290,9 @@ export function InvoicePageDesigner({
                   onClick={() =>
                     void perform(async () => {
                       await navigator.clipboard.writeText(
-                        `${window.location.origin}/t/${encodeURIComponent(pages.data!.tenantSlug)}/invoice/${page.token}`,
+                        demo
+                          ? `${window.location.origin}/demo/command-center/${demo.scenarioId}/invoicing?demoInvoice=${page.token}`
+                          : `${window.location.origin}/t/${encodeURIComponent(pages.data!.tenantSlug)}/invoice/${page.token}`,
                       );
                       setNotice("Customer invoice link copied.");
                     })

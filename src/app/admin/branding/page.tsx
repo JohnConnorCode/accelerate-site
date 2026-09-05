@@ -6,9 +6,11 @@ import { Palette, RotateCcw, Save } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
+import { DEMO_SCENARIOS } from "@/lib/admin/demo/scenarios";
+import { DemoBusinessNotice } from "@/components/admin/DemoBusinessNotice";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
-import { InvoiceDocument } from "@/components/business/InvoiceDocument";
+import { InvoiceDocument, type InvoiceDocumentData } from "@/components/business/InvoiceDocument";
 import {
   contrastRatio,
   workspaceBrandSchema,
@@ -18,8 +20,13 @@ const field =
   "mt-2 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm text-[var(--admin-ink)]";
 const button =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[.96] disabled:opacity-50 disabled:cursor-not-allowed";
-type BrandResponse = { brand: WorkspaceBrand; revision: string };
+type BrandResponse = {
+  brand: WorkspaceBrand;
+  revision: string;
+  previewInvoice?: InvoiceDocumentData;
+};
 function BrandEditor({ initial, onSaved }: { initial: BrandResponse; onSaved: () => void }) {
+  const demo = useAdminDemo();
   const [brand, setBrand] = useState(initial.brand),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -143,7 +150,27 @@ function BrandEditor({ initial, onSaved }: { initial: BrandResponse; onSaved: ()
               invoice surface.
             </p>
             <div className="mt-5 space-y-4">
-              {textField("logoUrl", "Logo image URL", 2048, "url")}
+              {demo ? (
+                <div>
+                  <p className="admin-copy text-sm">
+                    The demo uses its fictional business mark. External logo downloads are disabled.
+                  </p>
+                  <button
+                    type="button"
+                    className={`${button} mt-3`}
+                    onClick={() =>
+                      edit(
+                        "logoUrl",
+                        `https://${DEMO_SCENARIOS[demo.scenarioId].tenant.brand.domain}/demo-logo.svg`,
+                      )
+                    }
+                  >
+                    Use sample logo
+                  </button>
+                </div>
+              ) : (
+                textField("logoUrl", "Logo image URL", 2048, "url")
+              )}
               {brand.logoUrl && (
                 <button type="button" className={button} onClick={() => edit("logoUrl", "")}>
                   Remove logo
@@ -218,21 +245,23 @@ function BrandEditor({ initial, onSaved }: { initial: BrandResponse; onSaved: ()
           <InvoiceDocument
             brand={valid ? brand : initial.brand}
             preview
-            invoice={{
-              number: "INV-0042",
-              customerName: "Sample Customer",
-              customerEmail: "billing@example.com",
-              currency: "usd",
-              lines: [
-                { description: "Business systems implementation", amount: 240000 },
-                { description: "Team onboarding and training", amount: 60000 },
-              ],
-              total: 300000,
-              amountPaid: 0,
-              amountRemaining: 300000,
-              status: "Draft",
-              dueLabel: "Within 14 days",
-            }}
+            invoice={
+              initial.previewInvoice ?? {
+                number: "INV-0042",
+                customerName: "Sample Customer",
+                customerEmail: "billing@example.com",
+                currency: "usd",
+                lines: [
+                  { description: "Business systems implementation", amount: 240000 },
+                  { description: "Team onboarding and training", amount: 60000 },
+                ],
+                total: 300000,
+                amountPaid: 0,
+                amountRemaining: 300000,
+                status: "Draft",
+                dueLabel: "Within 14 days",
+              }
+            }
           />
         </div>
       </div>
@@ -240,13 +269,11 @@ function BrandEditor({ initial, onSaved }: { initial: BrandResponse; onSaved: ()
   );
 }
 export default function BrandingPage() {
-  const demo = useAdminDemo();
   const cache = useQueryClient();
   const router = useRouter();
   const query = useAdminQuery<BrandResponse>(
     ["admin", "workspace-branding"],
     "/api/admin/tenant/branding",
-    { enabled: !demo },
   );
   return (
     <div className="space-y-6 pb-10">
@@ -254,15 +281,8 @@ export default function BrandingPage() {
         title="Branding"
         subtitle="Make every customer document feel like your business."
       />
-      {demo ? (
-        <AdminSurface padding="lg">
-          <h2 className="font-semibold">Workspace branding</h2>
-          <p className="admin-copy mt-2">
-            The fictional demo keeps its sample identity. Open your workspace to manage its
-            branding.
-          </p>
-        </AdminSurface>
-      ) : query.error ? (
+      <DemoBusinessNotice />
+      {query.error ? (
         <AdminSurface padding="lg">
           <p role="alert">{query.error.message}</p>
           <button className={`${button} mt-4`} onClick={() => void query.refetch()}>

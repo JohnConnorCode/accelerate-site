@@ -50,6 +50,11 @@ is silently a no-op. Everything else about a card (title, description,
 acceptance, dependencies, labels) is still manifest-owned; edit it there
 and reconcile with `npm run seed:features -- --apply` then `--verify`.
 
+WIP admission is enforced by the atomic claim service, including the dispatcher's
+explicit `--force` override. Manifest verification checks card definitions and
+mirrored state; it does not impose a second concurrency gate that would prevent
+already-claimed work from completing.
+
 ## 2. Write the implementation contract
 
 Before code, answer in the card evidence or working notes:

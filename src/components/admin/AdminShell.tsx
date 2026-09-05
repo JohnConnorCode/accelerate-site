@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { tenant } from "@/config/tenant";
 import {
   useCallback,
@@ -145,6 +146,8 @@ export default function AdminShell({
   // the persistent layout must follow the current public demo URL or its
   // breadcrumb and active navigation state remain stuck on the first route.
   const effectivePathname = resolveAdminPathname(pathname, scenarioId, demoRoute);
+  const demo = useAdminDemo();
+  const effectiveModuleConfig = demo?.moduleConfig ?? moduleConfig;
   const visibleNavSections = useMemo(() => {
     const roleFiltered = adminNavSections
       .map((section) => ({
@@ -157,9 +160,9 @@ export default function AdminShell({
         ),
       }))
       .filter((section) => section.links.length > 0);
-    const moduleFiltered = filterNavSectionsByTenant(roleFiltered, moduleConfig ?? tenant);
+    const moduleFiltered = filterNavSectionsByTenant(roleFiltered, effectiveModuleConfig ?? tenant);
     return applyNavLayoutOverride(moduleFiltered, navLayoutOverride);
-  }, [isPlatformAdmin, scenarioId, navLayoutOverride, moduleConfig]);
+  }, [isPlatformAdmin, scenarioId, navLayoutOverride, effectiveModuleConfig]);
   const visibleNavLinks = useMemo(
     () => visibleNavSections.flatMap((section) => section.links),
     [visibleNavSections],

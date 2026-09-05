@@ -1,11 +1,25 @@
 "use client";
+import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
+import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 import { useState } from "react";
 import Image from "next/image";
 import type { WorkspaceBrand } from "@/lib/revenue-os/branding-contract";
 import { brandButtonInk } from "@/lib/revenue-os/branding-contract";
 /** Failed remote assets retain a readable identity instead of a broken image. */
 export function BusinessLogo({ brand }: { brand: WorkspaceBrand }) {
+  const demo = useAdminDemo();
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  if (demo && brand.logoUrl)
+    return (
+      <span
+        role="img"
+        aria-label={brand.name}
+        className="mb-3 inline-flex size-12"
+        style={{ color: brand.accentColor }}
+      >
+        <DemoScenarioMark scenarioId={demo.scenarioId} className="size-12" />
+      </span>
+    );
   return brand.logoUrl && failedUrl !== brand.logoUrl ? (
     <Image
       unoptimized

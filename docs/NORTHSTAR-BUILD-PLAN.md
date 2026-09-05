@@ -18,12 +18,12 @@
 | Phase                                                      | Backlog | Planned | In progress | Blocked | Shipped | Total |
 | ---------------------------------------------------------- | ------- | ------- | ----------- | ------- | ------- | ----- |
 | A — A (Complete Loop One — See + Remember)                 | 0       | 0       | 0           | 1       | 18      | 19    |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 20      | 17      | 4           | 4       | 34      | 79    |
+| B — B (Agent Runtime foundation — Notice + Act primitives) | 19      | 17      | 5           | 4       | 34      | 79    |
 | C — C (Reference coworker — Sales end-to-end loop)         | 20      | 3       | 2           | 1       | 10      | 36    |
 | D — D (Plugin SDK + MCP)                                   | 5       | 3       | 0           | 1       | 13      | 22    |
-| E — E (Additional coworkers/plugins + documentation)       | 40      | 5       | 0           | 0       | 12      | 57    |
+| E — E (Additional coworkers/plugins + documentation)       | 40      | 5       | 0           | 0       | 13      | 58    |
 
-**Board total:** 85 backlog, 28 planned, 6 in progress, 7 blocked, 87 shipped (213 managed cards).
+**Board total:** 84 backlog, 28 planned, 7 in progress, 7 blocked, 88 shipped (214 managed cards).
 
 ## Dispatchable now (`npm run agent:next` picks from this set)
 
@@ -40,7 +40,6 @@
 - `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
 - `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
 - `operating-goals-scorecards` [high] — Add operating goals and scorecards
-- `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
 - `governed-bulk-operator-actions` [medium] — Add governed bulk operator actions
 - `integration-adapter-contract` [high] — Define the provider integration adapter contract
 - `guided-first-run-setup` [medium] — Guide first-run setup inside the product, not the terminal
@@ -59,6 +58,7 @@
 - `ai-model-job-registry` — Route every AI job through an audited model registry (claude-code:johnconnor:57291)
 - `system-health-report` — Build the system-health report and freshness thresholds (claude-code:johnconnor:9960)
 - `booking-mode-contract-reconciliation` — Reconcile booking activation and health truth (claude-code:johnconnor:9960)
+- `won-to-delivery-handoff` — Create the won-to-delivery handoff (claude-code:johnconnor:62700)
 
 ## Blocked
 
