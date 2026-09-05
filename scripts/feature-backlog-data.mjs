@@ -1416,10 +1416,11 @@ export const featureBacklog = [
   }),
   card({
     key: "de-vertical-inbound",
+    owner: "claude-code:johnconnor:9960",
     title: "Turn the roofing ingestion path into a configurable playbook",
     workstream: "foundation",
     phase: 2,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
     description:
       "Replace the vertical-specific inbound capture function with one generic qualification path that takes an industry playbook as data, so roofing becomes one configuration entry instead of an exported code path that every future installation inherits.",
@@ -1473,10 +1474,11 @@ export const featureBacklog = [
   }),
   card({
     key: "command-palette-tools",
+    owner: "claude-code:johnconnor:41088",
     title: "Connect the command palette to real Revenue OS actions",
     workstream: "admin",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "medium",
     description:
       "Make search and commands navigate records, create tasks/opportunities, compose messages, open setup actions, and invoke safe AI reads.",
@@ -2070,10 +2072,11 @@ export const featureBacklog = [
 
   card({
     key: "proposal-lifecycle-service",
+    owner: "claude-code:johnconnor:9960",
     title: "Complete the proposal lifecycle and version rules",
     workstream: "proposals",
     phase: 3,
-    status: "planned",
+    status: "in_progress",
     priority: "high",
     description:
       "Control draft, sent, viewed, accepted, declined, expired, and superseded states with linked contact, company, and opportunity.",
@@ -2669,7 +2672,7 @@ export const featureBacklog = [
   }),
   card({
     key: "ai-model-job-registry",
-    owner: "claude-code:johnconnor:97666",
+    owner: "claude-code:johnconnor:57291",
     title: "Route every AI job through an audited model registry",
     workstream: "ai",
     phase: 4,
@@ -3687,6 +3690,8 @@ export const featureBacklog = [
   }),
   card({
     key: "booking-mode-contract-reconciliation",
+    owner: "claude-code:johnconnor:9960",
+    status: "in_progress",
     title: "Reconcile booking activation and health truth",
     workstream: "integrations",
     phase: 2,
@@ -3900,6 +3905,8 @@ export const featureBacklog = [
   }),
   card({
     key: "won-to-delivery-handoff",
+    owner: "claude-code:johnconnor:62700",
+    status: "in_progress",
     title: "Create the won-to-delivery handoff",
     workstream: "operations",
     phase: 3,
@@ -3924,6 +3931,8 @@ export const featureBacklog = [
     labels: ["tasks", "pipeline"],
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-delivery-handoff.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-delivery-handoff.mjs; npm run build; git diff --check.",
+    evidence:
+      "2026-09-05 OpenCode slice (commit 7712951): delivery-handoff.ts service (canonical client linkage, versioned templates with supersede, dedupe-keyed milestone tasks, partial/replay semantics, audit/activity receipts), migration 20260905 applied live, contract bumped with verify attribution, record workspace Delivery section (status, next milestone, overdue blockers). Deterministic suite 6/6; full test:core green; tsc, lint, contract, diff-check green. Live proof with zero leftovers: namespaced contact/company/opportunity created, handoff created 3-commitment engagement, replay converged clean, single engagement confirmed, all fixtures purged. NOT DONE: qa-delivery-handoff.mjs browser journey (named in verification, does not exist yet), demo fixture exposure, production proof.",
   }),
   card({
     key: "client-success-lifecycle-workspace",
