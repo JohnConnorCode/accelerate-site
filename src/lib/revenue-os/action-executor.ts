@@ -35,6 +35,7 @@ export const APPROVABLE_ACTIONS = [
   "activate_campaign",
   "admin_layout_change",
   "create_founder_note",
+  "identity_review",
 ] as const;
 
 export async function approveAndExecuteAction(
@@ -284,6 +285,11 @@ export async function approveAndExecuteAction(
           captureSource: "ai_answer",
         });
         break;
+      case "identity_review":
+        // Identity is never resolved by a generic approval: the founder's
+        // link/create/no-match/defer choice lives in the review workbench,
+        // which owns the claim. Fail closed and point there.
+        throw new Error("Resolve this item in the Identity review workbench");
       default:
         throw new Error(`Action type ${action.action_type} is not registered for execution`);
     }

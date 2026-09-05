@@ -89,6 +89,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     rationale:
       "Notes have no delete primitive by design; removal is a deliberate manual act, not an automatic undo.",
   },
+  {
+    actionType: "identity_review",
+    impact: "internal_write",
+    reversibility: "irreversible",
+    rationale:
+      "The executor always refuses this type and points at the review workbench, so no effect ever exists to undo; autonomous runs refuse like all irreversible effects.",
+  },
 ] as const;
 
 export function reversibilityOf(actionType: string): ActionReversibility {

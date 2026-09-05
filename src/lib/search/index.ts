@@ -6,7 +6,8 @@ import { services } from "@/content/services";
 import { packages } from "@/content/packages";
 import { changelogEntries } from "@/content/changelog";
 import { publicWorkProjects } from "@/content/work";
-import { TEAM_MEMBERS } from "@/content/team";
+import { docsManifest } from "@/content/docs/manifest";
+import { marketingPositioning } from "@/content/marketing-positioning";
 
 /**
  * One index for site search.
@@ -17,7 +18,7 @@ import { TEAM_MEMBERS } from "@/content/team";
  * written lists all had to be remembered. Nothing here is hand written.
  */
 export type SearchGroup =
-  "Articles" | "Industries" | "Services" | "Packages" | "Work" | "Pages" | "Changelog";
+  "Articles" | "Industries" | "Services" | "Packages" | "Work" | "Pages" | "Changelog" | "Docs";
 
 export interface SearchEntry {
   id: string;
@@ -137,26 +138,11 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     keywords: ["verticals", "sectors", "who you work with"],
   },
   {
-    id: "page-team",
-    title: "Team",
-    description: "The operators and advisors behind the team.",
-    href: "/team",
-    keywords: ["team", "people", "founder", "advisors", "who we are", "staff"],
-  },
-  {
     id: "page-changelog",
     title: "Changelog",
     description: "What we have shipped recently.",
     href: "/changelog",
     keywords: ["updates", "releases", "news", "what is new"],
-  },
-  {
-    id: "page-roadmap",
-    title: "Roadmap",
-    description:
-      "What's shipped, in progress, planned, and backlog, generated from the same manifest the app reads.",
-    href: "/roadmap",
-    keywords: ["feature board", "backlog", "planned", "help wanted", "contribute", "public roadmap"],
   },
 ];
 
@@ -236,19 +222,6 @@ export function buildSearchIndex(): SearchEntry[] {
     entries.push({ ...page, group: "Pages" });
   }
 
-  // Team bios derive from the same template the pages render, so a new
-  // member is searchable the moment they land in TEAM_MEMBERS.
-  for (const member of TEAM_MEMBERS) {
-    entries.push({
-      id: `team-${member.slug}`,
-      title: member.name,
-      description: member.summary,
-      href: `/team/${member.slug}`,
-      group: "Pages",
-      keywords: ["team", "people", member.name, member.role, member.group],
-    });
-  }
-
   // Only the most recent changelog entries; the whole history would drown
   // everything else in a query like "campaign".
   for (const entry of changelogEntries.slice(0, 12)) {
@@ -262,6 +235,32 @@ export function buildSearchIndex(): SearchEntry[] {
       date: entry.publishedAt,
     });
   }
+
+  // Docs pages come from the manifest, not a hand list, so a new page is
+  // searchable the moment it lands in the tree. Section roots collapse to
+  // their overview, matching the route loader.
+  for (const section of docsManifest) {
+    for (const page of section.pages) {
+      const href = `/docs/${page.slug.join("/")}`;
+      entries.push({
+        id: `docs-${page.slug.join("-")}`,
+        title: page.title,
+        description: page.description,
+        href,
+        group: "Docs",
+        keywords: ["docs", "guide", "documentation", section.title, page.title],
+      });
+    }
+  }
+  // The landing itself is findable too.
+  entries.push({
+    id: "docs-landing",
+    title: "Documentation",
+    description: marketingPositioning.docsBlurb,
+    href: "/docs",
+    group: "Docs",
+    keywords: ["docs", "documentation", "guides", "help", "manual"],
+  });
 
   cached = entries;
   return entries;

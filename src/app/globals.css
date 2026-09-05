@@ -3660,6 +3660,113 @@ summary:focus-visible {
 }
 
 /* ========================================
+   DOCS PROSE
+   Reference-dense rhythm for /docs: tighter than the article class
+   (.prose-dark), whose large display headings make dense pages unusable.
+   Same typefaces and tokens, smaller steps and closer spacing.
+   ======================================== */
+
+.prose-docs {
+  font-size: 1rem;
+}
+
+.prose-docs h1 {
+  font-family: var(--font-jost, "Jost", sans-serif);
+  font-weight: 600;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  color: var(--fg);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-docs h2 {
+  font-family: var(--font-jost, "Jost", sans-serif);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 2.4vw, 1.65rem);
+  line-height: 1.2;
+  color: var(--fg);
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 7rem;
+  text-wrap: balance;
+}
+
+.prose-docs h3 {
+  font-family: var(--font-jost, "Jost", sans-serif);
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  color: var(--fg);
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  scroll-margin-top: 7rem;
+  text-wrap: balance;
+}
+
+.prose-docs h4,
+.prose-docs h5,
+.prose-docs h6 {
+  font-family: var(--font-jost, "Jost", sans-serif);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--fg);
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-docs p {
+  color: var(--mid);
+  line-height: 1.7;
+  margin-top: 0;
+  margin-bottom: 1.1rem;
+  text-wrap: pretty;
+}
+
+.prose-docs ul,
+.prose-docs ol {
+  color: var(--mid);
+  line-height: 1.65;
+  margin-bottom: 1.1rem;
+  padding-left: 1.5rem;
+}
+
+.prose-docs ul {
+  list-style: disc;
+}
+.prose-docs ol {
+  list-style: decimal;
+}
+.prose-docs li {
+  margin-bottom: 0.35rem;
+}
+
+.prose-docs a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: opacity 0.2s ease;
+}
+.prose-docs a:hover {
+  opacity: 0.6;
+}
+
+.prose-docs strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.prose-docs code {
+  background: var(--rule);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0;
+  font-size: 0.875em;
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  color: var(--fg);
+}
+
+/* ========================================
    EDITORIAL HOMEPAGE SECTIONS
    Ported from the reference mockup — evidence, outcomes, where-it-pays rows,
    approach/steps, plan deck, credentials, FAQ, marquee, final CTA. Used by the

@@ -4,7 +4,7 @@ import type { MetadataRoute } from "next";
 import { getAllArticles, getAllCategories, getAllTags } from "@/lib/mdx";
 import { verticals } from "@/content/verticals";
 import { publicWorkProjects } from "@/content/work";
-import { TEAM_MEMBERS } from "@/content/team";
+import { docsManifest, flattenDocsPages } from "@/content/docs/manifest";
 
 const BASE_URL = "https://www.acceleratewith.us";
 
@@ -43,17 +43,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastMod: LAST_CONTENT_UPDATE,
     })),
     { path: "/about", priority: 0.7, freq: "monthly", lastMod: "2026-02-01" },
-    { path: "/team", priority: 0.7, freq: "monthly", lastMod: "2026-09-04" },
-    // Team bios derive from the template system so a new member is
-    // discoverable the moment they land in TEAM_MEMBERS.
-    ...TEAM_MEMBERS.map((member) => ({
-      path: `/team/${member.slug}`,
-      priority: 0.5,
-      freq: "monthly" as const,
-      lastMod: "2026-09-04",
-    })),
     { path: "/contact", priority: 0.7, freq: "monthly", lastMod: "2026-01-15" },
     { path: "/learn", priority: 0.8, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
+    { path: "/docs", priority: 0.8, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
+    // Derived from the docs manifest rather than listed by hand, for the
+    // same reason as the verticals note below: a hand list silently omits
+    // whatever the manifest adds next. Section roots collapse to their
+    // overview, matching the route loader.
+    ...flattenDocsPages().map((page) => ({
+      path: `/docs/${page.slug.join("/")}`,
+      priority: 0.6,
+      freq: "monthly" as const,
+      lastMod: LAST_CONTENT_UPDATE,
+    })),
+    ...docsManifest.map((section) => ({
+      path: `/docs/${section.id}`,
+      priority: 0.6,
+      freq: "monthly" as const,
+      lastMod: LAST_CONTENT_UPDATE,
+    })),
     { path: "/partners", priority: 0.5, freq: "monthly", lastMod: "2026-01-10" },
     { path: "/changelog", priority: 0.4, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
     { path: "/privacy", priority: 0.3, freq: "monthly", lastMod: "2025-12-01" },

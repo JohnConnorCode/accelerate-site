@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
-import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
+import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
 import { transitionOpportunity } from "@/lib/revenue-os/pipeline";
 import { loadPipelineStages } from "@/lib/revenue-os/pipeline-stage-resolver";
@@ -79,10 +79,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
-  const linked = await attachRevenueLinkage(supabase, data || [], {
+  const linked = await attachRevenueLinkageWithTelemetry(supabase, data || [], {
     sourceRecordType: "solution_request",
     emailField: "contact_email",
-  });
+  }, { route: "admin-leads" });
 
   return NextResponse.json({
     leads: linked.records,
