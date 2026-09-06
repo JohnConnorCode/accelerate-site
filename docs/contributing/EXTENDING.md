@@ -312,6 +312,42 @@ isolate bindings, persistent event subscriptions, distributed metering, or the
 separate third-party plugin review lifecycle. Those retain their Feature Board
 acceptance rather than inheriting a claim of completion from bundled examples.
 
+### Isolate transport and resource contract
+
+The report and workflow hosts use the same `plugin-isolate.ts` boundary. Plugin
+JavaScript executes in a fresh QuickJS context, with only the synchronous bindings
+selected by the trusted host from its declared sources. Those bindings receive JSON
+values, never a database client, environment object or provider credential. Core
+host callbacks must remain bounded: a guest interrupt cannot preempt synchronous
+JavaScript running in the Node host.
+
+Only plain JSON crosses the boundary. Nested functions, `undefined`, non-finite
+numbers, bigint, symbols, accessors, sparse/extended arrays, cycles, custom objects
+such as dates/maps, and asynchronous results are refused. Convert dates explicitly
+to strings before returning them. Shared references are allowed as repeated JSON
+values. A private codec captures pristine intrinsics before plugin execution, so
+replacing guest `JSON` or `Object` methods cannot change transport validation.
+Property accessors are not evaluated during transport; proxy traps execute only
+inside the interruptible guest context.
+
+Each transported value is limited to 256 KiB of UTF-8 JSON, 10,000 visited values
+and 64 nested levels. The existing 64 KiB source-snapshot and business input/output
+limits remain tighter where applicable. Code is limited to 256 KiB; an evaluation
+allows at most 10,000 host calls and 32 arguments per call. Resource options must
+be finite integers: timeout 1 through 30,000 ms and heap 256 KiB through 64 MiB.
+The normal business hosts retain their 250 ms / 8 MiB budgets. Serialization runs
+inside the same guest deadline and the runtime is disposed after success or failure.
+
+`npm run test:plugin-isolate`, required by `test:core` in CI, measures the **first
+evaluation including WASM initialization** against the 50 ms acceptance budget.
+It reports that measurement separately from fresh-context timing with the WASM
+module already cached. Neither measurement includes Node startup, module loading,
+or business data reads. Adversarial tests cover transport, authority probes,
+allocation refusal, invalid resource options, timeouts and subsequent host recovery.
+`PluginIsolateError.receipt.timedOut` comes from the host deadline. On failures,
+`memoryLimited` is `null`: QuickJS does not expose a trustworthy allocation-failure
+flag, and plugin-supplied error text must not become an authoritative diagnosis.
+
 ### Actionable business workflow exemplars
 
 The primary examples are now **Stripe invoicing**, **Client onboarding**, and
