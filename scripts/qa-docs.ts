@@ -437,10 +437,8 @@ async function main() {
           assert.equal(await page.locator("[data-demo-interactive]").count(), 0);
           await gallery.getByRole("button", { name: "Show slide 1 of 7" }).click();
           await gallery
-            .locator("img")
-            .evaluateAll((images) =>
-              Promise.all(images.map((image) => (image as HTMLImageElement).decode())),
-            );
+            .locator('button[tabindex="0"] img')
+            .evaluate((image) => (image as HTMLImageElement).decode());
           await page.screenshot({
             path: `${output}/${width}-${reducedMotion}-product-gallery.png`,
           });
