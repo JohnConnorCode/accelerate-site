@@ -11,3 +11,7 @@ package-lock.json
 supabase/.temp
 # Deterministic source inventory emitted by scripts/admin-ai-inventory.mjs.
 docs/generated/admin-ai-route-inventory.json
+# Dated machine exports and report: their generators own deterministic formatting.
+docs/planning/backlog-snapshot.json
+docs/planning/backlog-audit.json
+docs/NORTHSTAR-BUILD-PLAN.md

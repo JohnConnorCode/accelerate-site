@@ -4,12 +4,18 @@ This file is the mandatory starting point for every implementation agent. The
 goal is repeatable delivery by agents with different capability levels, without
 rediscovering architecture or inventing new write paths.
 
-If the repo isn't running yet, none of this is reachable: some of the docs
-below assume a deployed or locally running instance with migrations applied
-and a founder account. Follow
-[docs/self-hosting/SELF-HOSTING.md](docs/self-hosting/SELF-HOSTING.md) first, then come back here.
+For local exploration, follow [Start development](docs/contributing/DEVELOPER-START.md)
+and open the fictional demo. It requires no provider or database credentials.
+For a connected installation, follow
+[the self-hosting guide](docs/self-hosting/SELF-HOSTING.md). Shared ticket pickup
+also requires the scoped access described below.
 
 ## Pick up work
+
+Start with [the developer handoff](docs/contributing/DEVELOPER-START.md). Run
+`npm run dev:doctor` for local exploration and `npm run dev:doctor -- --board`
+before shared dispatch. The latter checks authenticated protocol and write
+enforcement without claiming or mutating work.
 
 ```
 npm run agent:next
@@ -34,8 +40,8 @@ operator recovery. There is no force bypass.
 
 1. `docs/NORTHSTAR.md` for the platform vision: agent-native business runtime,
    Coworkers, WorkItems, capability graph, autonomy ladder, and implementation phases.
-2. The claimed card in `/admin/features` and its matching entry in
-   `scripts/feature-backlog-data.mjs`.
+2. The live card and its structured execution packet. Git templates are historical
+   references, not permission to overwrite a newer live specification.
 3. `docs/contributing/AGENT-TICKET-RUNBOOK.md` for the pickup, execution, evidence, and handoff
    procedure.
 4. `docs/contracts/FEATURE-BOARD-TAXONOMY.md` before adding, relabeling, promoting, or
@@ -58,6 +64,16 @@ operator recovery. There is no force bypass.
 
 Run `npm run verify:agent-contract` before implementation. If it fails, repair
 the contract or card detail before changing product behavior.
+
+## Inspect before claiming
+
+`npm run agent:show -- --card <key>` prints the live packet without claiming.
+Add `--json` for machine-readable output. A feature or bug must have an explicit
+north star outcome, current gap, scope, exclusions, references, ordered steps,
+recovery cases, repository base and acceptance-linked verification environments.
+The service reports missing contract fields instead of claiming incomplete work.
+`npm run backlog:snapshot` explicitly refreshes the dated report input; ordinary
+verification is offline and does not rewrite live work or shared source files.
 
 ## One operating path
 
@@ -142,6 +158,11 @@ the current code; explain the steps, saved result and recovery in plain language
   Workspace paths.
 
 ## Release authority and repository reconciliation
+
+- Before hosting diagnosis, read `deployment-target.json` and the account preflight in
+  [DEPLOY.md](DEPLOY.md). Verify the exact project/team with `npm run deploy:check`
+  before pulling configuration or building. A wrong CLI login is not evidence of
+  a provider suspension; establish account access before researching hosting errors.
 
 - Production deployment is founder-controlled. Never deploy, alias, promote,
   roll back, or otherwise change the live site unless the founder explicitly
