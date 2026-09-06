@@ -17,7 +17,7 @@ function attachTenant(values: unknown, tenantId: string): unknown {
   return { ...(values as Record<string, unknown>), tenant_id: tenantId };
 }
 
-function bindTenantDatabase(
+export function bindTenantDatabase(
   client: SupabaseClient,
   tenantId: string,
   enforceFilters = false,
@@ -146,4 +146,56 @@ export function createServiceRoleClient(systemContext?: TenantSystemContext) {
     { global: { headers: { "x-tenant-id": systemContext.tenantId } } },
   );
   return bindTenantDatabase(client, systemContext.tenantId, true, systemContext.tenantSlug);
+}
+
+const COLLECTION_HOST_RPCS = [
+  "sync_collection_observations",
+  "update_collection_case",
+  "reserve_collection_reminder",
+  "reconcile_collection_reminder",
+] as const;
+/** Narrow server bridge for verified Collections writes. Actor reads remain on
+ * their RLS client. Only these host-owned RPCs may cross the boundary, after a
+ * current membership/lifecycle check; no privileged database handle escapes. */
+export async function callCollectionHostRpc(
+  database: SupabaseClient,
+  operation: (typeof COLLECTION_HOST_RPCS)[number],
+  args: Record<string, unknown>,
+) {
+  if (!(COLLECTION_HOST_RPCS as readonly string[]).includes(operation))
+    throw new Error("Collection host operation is not allowed");
+  const tenantId = tenantIdForDatabase(database);
+  if (!tenantId) throw new Error("Collection host requires a tenant-bound database");
+  const context = getTenantRequestContext();
+  // Background hosts already carry their explicit service context. Never
+  // elevate an arbitrary database simply because no actor context exists.
+  if (context?.kind !== "actor") return database.rpc(operation, args);
+  if (context.database !== database || context.tenant.id !== tenantId || context.role !== "admin")
+    throw new Error("Collection host actor/database context mismatch");
+  const [tenant, member] = await Promise.all([
+    database.from("tenants").select("status").eq("id", tenantId).maybeSingle(),
+    database
+      .from("tenant_memberships")
+      .select("role,status")
+      .eq("tenant_id", tenantId)
+      .eq("user_id", context.user.id)
+      .maybeSingle(),
+  ]);
+  if (
+    tenant.error ||
+    tenant.data?.status !== "active" ||
+    member.error ||
+    member.data?.status !== "active" ||
+    member.data?.role !== "admin"
+  )
+    throw new Error("Collection host requires current active admin membership");
+  const host = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      global: { headers: { "x-tenant-id": tenantId } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    },
+  );
+  return host.rpc(operation, args);
 }

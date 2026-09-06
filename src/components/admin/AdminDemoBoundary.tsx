@@ -20,7 +20,7 @@ import {
   isDemoScenarioId,
   type DemoScenarioId,
 } from "@/lib/admin/demo/scenarios";
-import { installAdminDemoRuntime } from "@/lib/admin/demo/runtime";
+import { readDemoModuleConfig, installAdminDemoRuntime } from "@/lib/admin/demo/runtime";
 import { readDemoAppearance } from "@/lib/admin/demo/appearance-state";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime"
 interface AdminDemoContextValue {
   scenarioId: DemoScenarioId;
   reset: () => void;
+  moduleConfig: { modules: Partial<Record<string, boolean>> };
 }
 
 const AdminDemoContext = createContext<AdminDemoContextValue | null>(null);
@@ -39,6 +40,9 @@ export function AdminDemoBoundary({
   scenarioId: DemoScenarioId | null;
   children: React.ReactNode;
 }) {
+  const [moduleConfig, setModuleConfig] = useState<{ modules: Partial<Record<string, boolean>> }>({
+    modules: { "stripe-invoicing": true, "client-onboarding": true, "meeting-commitments": true },
+  });
   const resetRef = useRef<null | (() => void)>(null);
   const { setTheme } = useTheme();
   const pathname = usePathname();
@@ -54,9 +58,18 @@ export function AdminDemoBoundary({
     setTheme(readDemoAppearance(activeScenarioId));
     const runtime = installAdminDemoRuntime(activeScenarioId);
     resetRef.current = runtime.reset;
+    const updateModules = () => {
+      const next = readDemoModuleConfig(activeScenarioId);
+      setModuleConfig((previous) =>
+        JSON.stringify(previous) === JSON.stringify(next) ? previous : next,
+      );
+    };
+    updateModules();
+    window.addEventListener("admin:demo-state", updateModules);
     (window as Window & { __accelerateAdminDemoRuntime?: string }).__accelerateAdminDemoRuntime =
       activeScenarioId;
     return () => {
+      window.removeEventListener("admin:demo-state", updateModules);
       delete (window as Window & { __accelerateAdminDemoRuntime?: string })
         .__accelerateAdminDemoRuntime;
       resetRef.current = null;
@@ -68,7 +81,7 @@ export function AdminDemoBoundary({
   if (!activeScenarioId) return <>{children}</>;
 
   return (
-    <AdminDemoContext.Provider value={{ scenarioId: activeScenarioId, reset }}>
+    <AdminDemoContext.Provider value={{ scenarioId: activeScenarioId, reset, moduleConfig }}>
       {children}
     </AdminDemoContext.Provider>
   );

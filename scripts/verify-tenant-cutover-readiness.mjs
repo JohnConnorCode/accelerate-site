@@ -166,7 +166,7 @@ export function readRepositoryState() {
   const requiredPaths = [
     "migrations/20260830-tenant-uniqueness-cutover.sql",
     "migrations/20260831-tenant-suspension-guards.sql",
-    "docs/TENANT-CUTOVER-RUNBOOK.md",
+    "docs/internal/TENANT-CUTOVER-RUNBOOK.md",
     "scripts/test-tenant-suspension-postgres.mjs",
     "scripts/test-tenant-cutover-readiness.mjs",
     "scripts/verify-tenant-production-isolation.mjs",

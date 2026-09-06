@@ -17,7 +17,7 @@ assert.ok(
   "admin links must retain canonical workspace URLs",
 );
 
-const contract = readFileSync("docs/MULTI-TENANCY-CONTRACT.md", "utf8");
+const contract = readFileSync("docs/contracts/MULTI-TENANCY-CONTRACT.md", "utf8");
 assert.ok(
   contract.includes("`/t/{tenantSlug}/admin/{route}`"),
   "the tenancy contract must name the implemented canonical workspace URL",

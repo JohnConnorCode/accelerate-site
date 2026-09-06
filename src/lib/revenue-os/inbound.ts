@@ -5,8 +5,12 @@ import { safeAttribution } from "@/lib/opportunities";
 import type { UTMData } from "@/lib/utm";
 import { recordAudit } from "./audit";
 import { resolveOrCreateIdentity } from "./identity";
-import { canTransition, canonicalStage, transitionOpportunity } from "./pipeline";
+import { transitionOpportunity } from "./pipeline";
+import { loadPipelineStages } from "./pipeline-stage-resolver";
 import { createRevenueTask } from "./tasks";
+import { createQualifyLeadWork } from "./sales-coworker";
+import { createDetectVelocityChangeWork } from "./business-pulse-coworker";
+import { createDataQualityScanWork } from "./operations-coworker";
 import {
   RESPONDER_POLICY_VERSION,
   respondToInbound,
@@ -29,7 +33,8 @@ export type CanonicalInboundInput = {
   utm?: UTMData | null;
 };
 
-export type RoofingInboundInput = {
+export type PlaybookInboundInput = {
+  playbookKey?: string;
   email: string;
   companyWebsite: string;
   role: string;
@@ -40,6 +45,8 @@ export type RoofingInboundInput = {
   utm?: UTMData | null;
   qualification: Qualification;
 };
+
+export type RoofingInboundInput = PlaybookInboundInput;
 
 function companyNameFromWebsite(website: string) {
   try {
@@ -184,6 +191,26 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
     dedupeKey: `inbound-follow-up:${opportunity.id}`,
     actorEmail: tenant.founder.systemActorEmail,
   });
+  // Create a durable work item for the Sales Coworker to qualify this lead.
+  await createQualifyLeadWork(supabase, {
+    contactId: identity.contact.id,
+    source: input.source,
+    reason: `Inbound ${input.source} inquiry from ${identity.company.name}`,
+    actorEmail: tenant.founder.systemActorEmail,
+  }).catch((err) => {
+    console.error(
+      "[inbound] failed to create qualify_lead work item:",
+      err instanceof Error ? err.message : String(err),
+    );
+  });
+  // Business Pulse: pipeline metrics changed with this new lead.
+  await createDetectVelocityChangeWork(supabase, {
+    actorEmail: tenant.founder.systemActorEmail,
+  }).catch(() => {});
+  // Operations: new records should be checked for data completeness.
+  await createDataQualityScanWork(supabase, {
+    actorEmail: tenant.founder.systemActorEmail,
+  }).catch(() => {});
   await recordAudit(supabase, {
     actorEmail: tenant.founder.systemActorEmail,
     action: "inbound.captured",
@@ -236,14 +263,23 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
 }
 
 /**
- * Single canonical ingestion path for the roofing qualifier. It deliberately
- * keeps the legacy fields alive while adding canonical identity, activities,
- * transition history, attribution, and an actionable owner commitment.
+ * Generic qualification path driven by configured industry playbooks.
+ * Preserves exact canonical behaviour, source tags, dedupe keys, and audit receipts.
  */
-export async function ingestRoofingQualification(
+export async function ingestPlaybookQualification(
   supabase: SupabaseClient,
-  input: RoofingInboundInput,
+  input: PlaybookInboundInput,
 ) {
+  const playbookKey = input.playbookKey || "roofing";
+  const matchedPlaybook = tenant.playbooks.find((p) => p.key === playbookKey) || {
+    key: playbookKey,
+    label: playbookKey.charAt(0).toUpperCase() + playbookKey.slice(1),
+    industry: playbookKey,
+    sourceTag: `${playbookKey}_qualifier`,
+    path: `/${playbookKey}`,
+    nextAction: `Respond to qualified ${playbookKey} audit request`,
+  };
+
   const { data: matches, error: matchError } = await supabase
     .from("opportunities")
     .select("id,qualifier_token,qualified,stage,contact_id,company_id,next_action,next_action_at")
@@ -269,12 +305,13 @@ export async function ingestRoofingQualification(
     qualifier_token: existing?.qualifier_token || input.qualifierToken,
     message_variant: input.messageVariant?.slice(0, 80) || null,
     source: attribution.utm_source || "website",
-    source_detail: attribution.utm_campaign || "roofing_qualifier",
+    source_detail: attribution.utm_campaign || matchedPlaybook.sourceTag,
     ...attribution,
   };
 
   let opportunity: {
     id: string;
+    tenant_id: string;
     qualifier_token: string | null;
     stage: string;
     contact_id: string | null;
@@ -287,7 +324,7 @@ export async function ingestRoofingQualification(
       .from("opportunities")
       .update(legacyFields)
       .eq("id", existing.id)
-      .select("id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
+      .select("id,tenant_id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
       .single();
     if (error) throw new Error(error.message);
     opportunity = data;
@@ -300,11 +337,11 @@ export async function ingestRoofingQualification(
         pipeline: "sales",
         probability: 10,
         next_action: input.qualification.qualified
-          ? "Respond to qualified roofing audit request"
+          ? matchedPlaybook.nextAction
           : "Review nurture qualification",
         next_action_at: new Date().toISOString(),
       })
-      .select("id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
+      .select("id,tenant_id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
       .single();
     if (error) throw new Error(error.message);
     opportunity = data;
@@ -315,52 +352,57 @@ export async function ingestRoofingQualification(
     email: input.email,
     companyName: companyNameFromWebsite(input.companyWebsite),
     website: input.companyWebsite,
-    industry: "roofing",
-    source: "roofing_qualifier",
+    industry: matchedPlaybook.industry,
+    source: matchedPlaybook.sourceTag,
   });
   const linkPatch: Record<string, unknown> = {
     contact_id: identity.contact.id,
     company_id: identity.company.id,
   };
   if (!opportunity.next_action && input.qualification.qualified) {
-    linkPatch.next_action = "Respond to qualified roofing audit request";
+    linkPatch.next_action = matchedPlaybook.nextAction;
     linkPatch.next_action_at = new Date().toISOString();
   }
   const { data: linked, error: linkError } = await supabase
     .from("opportunities")
     .update(linkPatch)
     .eq("id", opportunity.id)
-    .select("id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
+    .select("id,tenant_id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
     .single();
   if (linkError) throw new Error(linkError.message);
   opportunity = linked;
 
-  const currentStage = canonicalStage(opportunity.stage);
-  if (
-    currentStage &&
-    currentStage !== targetStage &&
-    canTransition(opportunity.stage, targetStage)
-  ) {
-    opportunity = (await transitionOpportunity(supabase, {
-      id: opportunity.id,
-      to: targetStage,
-      actorEmail: tenant.founder.systemActorEmail,
-      source: "roofing_qualifier",
-      reason: input.qualification.reason,
-    })) as typeof opportunity;
+  const stages = await loadPipelineStages(supabase, opportunity.tenant_id);
+  const currentStage = stages.canonicalStage(opportunity.stage);
+  if (currentStage && currentStage !== stages.canonicalStage(targetStage)) {
+    try {
+      opportunity = (await transitionOpportunity(supabase, {
+        id: opportunity.id,
+        to: targetStage,
+        actorEmail: tenant.founder.systemActorEmail,
+        source: matchedPlaybook.sourceTag,
+        reason: input.qualification.reason,
+      })) as typeof opportunity;
+    } catch (transitionError) {
+      // Best-effort: a tenant may have renamed/removed the default
+      // "qualified"/"nurture" stages this intake path targets. The
+      // opportunity stays wherever it already was rather than failing the
+      // whole public form submission.
+      console.error("[inbound] could not auto-transition qualifier opportunity:", transitionError);
+    }
   }
 
-  const activityId = `roofing-qualifier:${opportunity.id}:${input.qualification.qualified ? "qualified" : "nurture"}`;
+  const activityId = `${matchedPlaybook.key}-qualifier:${opportunity.id}:${input.qualification.qualified ? "qualified" : "nurture"}`;
   await recordActivity(supabase, {
     activityType: "form_submission",
     title: input.qualification.qualified
-      ? "Qualified roofing audit request"
-      : "Roofing nurture inquiry",
+      ? `Qualified ${matchedPlaybook.label.toLowerCase()} audit request`
+      : `${matchedPlaybook.label} nurture inquiry`,
     summary: input.qualification.reason,
     contactId: identity.contact.id,
     companyId: identity.company.id,
     opportunityId: opportunity.id,
-    source: "roofing_qualifier",
+    source: matchedPlaybook.sourceTag,
     externalId: activityId,
     metadata: {
       role: input.role,
@@ -373,7 +415,7 @@ export async function ingestRoofingQualification(
   if (input.qualification.qualified) {
     const dueDate = new Date().toISOString().slice(0, 10);
     await createRevenueTask(supabase, {
-      title: `Respond to qualified roofing audit request: ${identity.company.name}`,
+      title: `${matchedPlaybook.nextAction}: ${identity.company.name}`,
       description: `Review ${input.primaryLeak.replaceAll("_", " ")} and offer next steps to ${input.email}.`,
       dueDate,
       priority: "high",
@@ -381,14 +423,29 @@ export async function ingestRoofingQualification(
       relatedId: opportunity.id,
       relatedName: identity.company.name,
       opportunityId: opportunity.id,
-      source: "roofing_qualifier",
+      source: matchedPlaybook.sourceTag,
       dedupeKey: `inbound-follow-up:${opportunity.id}`,
       actorEmail: tenant.founder.systemActorEmail,
     });
   }
+  // Create coworker work items for the playbook path (same as canonical inbound).
+  if (input.qualification.qualified) {
+    await createQualifyLeadWork(supabase, {
+      contactId: identity.contact.id,
+      source: matchedPlaybook.sourceTag,
+      reason: `Playbook ${matchedPlaybook.key} qualification from ${identity.company.name}`,
+      actorEmail: tenant.founder.systemActorEmail,
+    }).catch(() => {});
+    await createDetectVelocityChangeWork(supabase, {
+      actorEmail: tenant.founder.systemActorEmail,
+    }).catch(() => {});
+    await createDataQualityScanWork(supabase, {
+      actorEmail: tenant.founder.systemActorEmail,
+    }).catch(() => {});
+  }
   await recordAudit(supabase, {
     actorEmail: tenant.founder.systemActorEmail,
-    action: "inbound.roofing_qualified",
+    action: `inbound.${matchedPlaybook.key}_qualified`,
     entityType: "opportunity",
     entityId: opportunity.id,
     source: "webhook",
@@ -400,4 +457,15 @@ export async function ingestRoofingQualification(
     metadata: { existing: Boolean(existing), qualified: input.qualification.qualified },
   });
   return { opportunity, existing: Boolean(existing), identity };
+}
+
+/**
+ * Single canonical ingestion path for the roofing qualifier. Delegates to
+ * the generic playbook ingestion with `playbookKey: "roofing"`.
+ */
+export async function ingestRoofingQualification(
+  supabase: SupabaseClient,
+  input: RoofingInboundInput,
+) {
+  return ingestPlaybookQualification(supabase, { ...input, playbookKey: "roofing" });
 }

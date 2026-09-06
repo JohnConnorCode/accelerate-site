@@ -1,0 +1,38 @@
+---
+title: "Self-hosting quickstart"
+description: "Explore without credentials, then connect a workspace you control."
+updated: "2026-09-05"
+---
+
+You can explore Command Center before connecting a database or provider. A connected installation adds your own workspace, authentication, and provider configuration.
+
+## Explore locally
+
+You need Git, Node.js 22 or later, and npm. Clone the repository and start the app:
+
+```bash
+git clone https://github.com/JohnConnorCode/accelerate-site.git
+cd accelerate-site
+npm ci
+npm run dev
+```
+
+Open the local URL printed in the terminal, then visit `/demo/command-center`. Choose a fictional business and follow [your first workflow](/docs/start/daily-path). This path does not need email or AI provider keys.
+
+## Connect a real workspace
+
+Use a Supabase project and provider accounts you control. Follow [Connect your installation](/docs/self-hosting/installation) for the environment variables, owner-account ordering, migration commands, and verification steps. For version-specific details, use `docs/self-hosting/SELF-HOSTING.md` in your checkout.
+
+Do not use an existing production database as an installation experiment. The owner identity and migration order matter; skipping a step can leave an account without workspace access.
+
+## Add providers incrementally
+
+Start with one workflow. Connect its providers, then inspect [Setup Center](/docs/workspace/setup). An OpenRouter key enables configured AI workloads; a verified mail connection enables real sending. Neither is required merely to explore the demo.
+
+Before importing real contacts, confirm that you can sign in to the intended workspace and complete a controlled test workflow. Check the action result as well as the screen's success message.
+
+## Keep your installation maintainable
+
+Use the installation and upgrade instructions shipped with your version. Back up your database before upgrades. Keep server credentials in local or hosting-provider secret configuration, not in source control.
+
+For extending the application, start with [Build on it](/docs/extend). For connecting an external assistant, see [MCP client setup](/docs/extend/mcp-clients).

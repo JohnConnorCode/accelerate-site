@@ -372,6 +372,7 @@ export default function ContactImportsPage() {
                     ref={fileInput}
                     className="sr-only"
                     type="file"
+                    aria-label="Upload contacts file"
                     accept=".csv,.tsv,.json,.txt,text/csv,text/tab-separated-values,application/json,text/plain"
                     onChange={(event) => void chooseFile(event.target.files?.[0])}
                   />

@@ -1,0 +1,282 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "stripe-invoicing",
+  "name": "Stripe invoicing",
+  "description": "Create reviewed invoices for CRM customers, approve sending, and track Stripe payment status.",
+  "category": "revenue",
+  "defaultEnabled": false,
+  "navLinks": [
+    {
+      "id": "stripe-invoicing",
+      "label": "Invoicing",
+      "href": "/admin/invoicing",
+      "icon": "FileText",
+      "description": "Customer invoices and payment status",
+      "moreGroup": "Revenue"
+    }
+  ],
+  "routes": ["/admin/invoicing"],
+  "aiToolNames": [
+    "prepare_stripe_invoicing",
+    "propose_stripe_invoicing",
+    "propose_stripe_invoice_send",
+    "preview_invoice_page",
+    "propose_invoice_page"
+  ],
+  "workflow": {
+    "version": 1,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "contactId": { "type": "string", "maxLength": 36, "minLength": 36 },
+        "customerId": { "type": "string", "minLength": 5, "maxLength": 84 },
+        "currency": { "type": "string", "enum": ["usd", "eur", "gbp", "cad", "aud"] },
+        "daysUntilDue": { "type": "integer", "minimum": 1, "maximum": 90 },
+        "memo": { "type": "string", "maxLength": 500 },
+        "lines": {
+          "minItems": 1,
+          "maxItems": 10,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "quantity": { "type": "integer", "minimum": 1, "maximum": 10000 },
+              "unitAmount": { "type": "integer", "minimum": 1, "maximum": 100000000 }
+            },
+            "required": ["description", "quantity", "unitAmount"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
+      "additionalProperties": false
+    },
+    "actions": ["create_stripe_invoice_draft"],
+    "sources": [
+      {
+        "name": "contact",
+        "type": "workflow_contacts",
+        "columns": ["id", "full_name", "primary_email"],
+        "inputKey": "contactId"
+      }
+    ],
+    "inputContract": "stripe-invoice-draft-v1",
+    "policy": {
+      "version": 1,
+      "action": "create_stripe_invoice_draft",
+      "trustCeiling": "always-propose",
+      "evidence": {
+        "kind": "canonical-record",
+        "inputKey": "contactId",
+        "sourceType": "workflow_contacts"
+      },
+      "idempotency": { "request": "workflow-request-v1", "effect": "stripe-action-v1" },
+      "tier": 3,
+      "impact": "external_action",
+      "reversibility": "irreversible"
+    },
+    "contractHash": "4b55e5f61e5fbe871d213bda1220dd7047e89f3666cf3892392b121d6d752a8c",
+    "tools": [
+      {
+        "operation": "prepare-workflow",
+        "name": "prepare_stripe_invoicing",
+        "description": "Prepare Stripe invoicing: Create reviewed invoices for CRM customers, approve sending, and track Stripe payment status.. Returns a reviewable plan, never executes it.",
+        "serviceTarget": "revenue-os.workflow-plugins",
+        "connectionRequirement": "none",
+        "impact": "read",
+        "confirmationRequired": false,
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "contactId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "customerId": {
+              "type": "string",
+              "minLength": 5,
+              "maxLength": 84,
+              "pattern": "^cus_[A-Za-z0-9]{1,80}$"
+            },
+            "currency": { "type": "string", "enum": ["usd", "eur", "gbp", "cad", "aud"] },
+            "daysUntilDue": { "type": "integer", "minimum": 1, "maximum": 90 },
+            "memo": { "type": "string", "maxLength": 500 },
+            "lines": {
+              "minItems": 1,
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "description": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "quantity": { "type": "integer", "minimum": 1, "maximum": 10000 },
+                  "unitAmount": { "type": "integer", "minimum": 1, "maximum": 100000000 }
+                },
+                "required": ["description", "quantity", "unitAmount"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
+          "additionalProperties": false
+        }
+      },
+      {
+        "operation": "propose-workflow",
+        "name": "propose_stripe_invoicing",
+        "description": "Stage the exact previewed Stripe invoicing for human approval. Use its digest and a stable UUID requestId. Never executes the action.",
+        "serviceTarget": "revenue-os.workflow-plugins",
+        "connectionRequirement": "none",
+        "impact": "internal_write",
+        "confirmationRequired": true,
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "object",
+              "properties": {
+                "contactId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "customerId": {
+                  "type": "string",
+                  "minLength": 5,
+                  "maxLength": 84,
+                  "pattern": "^cus_[A-Za-z0-9]{1,80}$"
+                },
+                "currency": { "type": "string", "enum": ["usd", "eur", "gbp", "cad", "aud"] },
+                "daysUntilDue": { "type": "integer", "minimum": 1, "maximum": 90 },
+                "memo": { "type": "string", "maxLength": 500 },
+                "lines": {
+                  "minItems": 1,
+                  "maxItems": 10,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "description": { "type": "string", "minLength": 1, "maxLength": 200 },
+                      "quantity": { "type": "integer", "minimum": 1, "maximum": 10000 },
+                      "unitAmount": { "type": "integer", "minimum": 1, "maximum": 100000000 }
+                    },
+                    "required": ["description", "quantity", "unitAmount"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
+              "additionalProperties": false
+            },
+            "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "requestId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": ["input", "digest", "requestId"],
+          "additionalProperties": false
+        }
+      },
+      {
+        "operation": "propose-invoice-send",
+        "name": "propose_stripe_invoice_send",
+        "description": "Stage sending an existing completed Stripe invoice for explicit human approval. Does not send it.",
+        "serviceTarget": "revenue-os.stripe-invoicing",
+        "connectionRequirement": "none",
+        "impact": "internal_write",
+        "confirmationRequired": true,
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "creationActionId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": ["creationActionId"],
+          "additionalProperties": false
+        }
+      },
+      {
+        "operation": "preview-invoice-page",
+        "name": "preview_invoice_page",
+        "description": "Preview a bounded customer invoice design using workspace branding and authoritative Stripe billing facts. Returns the publication digest; does not publish.",
+        "serviceTarget": "revenue-os.invoice-pages",
+        "connectionRequirement": "none",
+        "impact": "read",
+        "confirmationRequired": false,
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "creationActionId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "design": {
+              "type": "object",
+              "properties": {
+                "layout": { "type": "string", "enum": ["classic", "editorial"] },
+                "heading": { "type": "string", "minLength": 1, "maxLength": 80 },
+                "introduction": { "type": "string", "maxLength": 500 },
+                "closing": { "type": "string", "maxLength": 300 }
+              },
+              "required": ["layout", "heading", "introduction", "closing"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["creationActionId", "design"],
+          "additionalProperties": false
+        }
+      },
+      {
+        "operation": "propose-invoice-page",
+        "name": "propose_invoice_page",
+        "description": "Stage the exact previewed invoice page for human publication approval. Does not publish or email the customer.",
+        "serviceTarget": "revenue-os.invoice-pages",
+        "connectionRequirement": "none",
+        "impact": "internal_write",
+        "confirmationRequired": true,
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "creationActionId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "design": {
+              "type": "object",
+              "properties": {
+                "layout": { "type": "string", "enum": ["classic", "editorial"] },
+                "heading": { "type": "string", "minLength": 1, "maxLength": 80 },
+                "introduction": { "type": "string", "maxLength": 500 },
+                "closing": { "type": "string", "maxLength": 300 }
+              },
+              "required": ["layout", "heading", "introduction", "closing"],
+              "additionalProperties": false
+            },
+            "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "requestId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": ["creationActionId", "design", "digest", "requestId"],
+          "additionalProperties": false
+        }
+      }
+    ]
+  }
+}

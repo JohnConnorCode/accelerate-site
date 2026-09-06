@@ -1,6 +1,17 @@
 import { tenant } from "@/config/tenant";
 
-export const REVENUE_STAGES = [
+/**
+ * DEFAULT_PIPELINE_STAGES / DEFAULT_STAGE_META are the seed values migrated
+ * into `kanban_columns` (board_key="pipeline") — they are no longer the
+ * enforced stage set. A tenant's actual pipeline stages, labels, roles, and
+ * probabilities are admin add/renamable/deletable at runtime; read them via
+ * `loadPipelineStages()` (./pipeline-stage-resolver), never from this
+ * constant. This stays around only as (a) the default seed reference and (b)
+ * a synchronous fallback for a couple of legacy display-only widgets
+ * (src/lib/admin/pipeline-stages.ts) that haven't been made per-tenant-async
+ * yet — see that file for the accepted scope trim.
+ */
+export const DEFAULT_PIPELINE_STAGES = [
   "new",
   "contacted",
   "qualified",
@@ -12,10 +23,13 @@ export const REVENUE_STAGES = [
   "nurture",
 ] as const;
 
-export type RevenueStage = (typeof REVENUE_STAGES)[number];
+/** No longer a literal union enforced anywhere — stage keys are admin-defined
+ * per tenant now. Kept as a named alias since it's still a useful type-level
+ * label at existing call sites (`as RevenueStage`, `stage: RevenueStage`). */
+export type RevenueStage = string;
 
 const DEFAULT_STAGE_META: Record<
-  RevenueStage,
+  (typeof DEFAULT_PIPELINE_STAGES)[number],
   {
     label: string;
     probability: number;
@@ -33,12 +47,9 @@ const DEFAULT_STAGE_META: Record<
   nurture: { label: "Nurture", probability: 10, tone: "neutral" },
 };
 
-/**
- * Stage keys are canonical and never configurable: the database constraint, the
- * transition rules, and every analytics query are built on them. Only the label
- * a human reads is per-tenant, so a different business can call `meeting` a
- * Consultation without any of that moving.
- */
+/** Default seed labels, with the bootstrap tenant's static config override
+ * applied — used only where a synchronous, non-tenant-aware fallback is
+ * unavoidable (see the file-level comment above). */
 export const REVENUE_STAGE_META = Object.fromEntries(
   Object.entries(DEFAULT_STAGE_META).map(([stage, meta]) => [
     stage,
@@ -46,7 +57,7 @@ export const REVENUE_STAGE_META = Object.fromEntries(
   ]),
 ) as typeof DEFAULT_STAGE_META;
 
-export const LEGACY_STAGE_MAP: Record<string, RevenueStage> = {
+export const LEGACY_STAGE_MAP: Record<string, string> = {
   calendar_viewed: "qualified",
   booked: "meeting",
   showed: "meeting",

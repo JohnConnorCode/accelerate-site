@@ -2,59 +2,33 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { resolveOrCreateIdentity } from "./identity";
-import { LEGACY_STAGE_MAP, REVENUE_STAGE_META, REVENUE_STAGES, type RevenueStage } from "./types";
 import { normalizeEmail } from "./db";
 import { recordActivity } from "./activities";
-
-const TRANSITIONS: Record<RevenueStage, readonly RevenueStage[]> = {
-  new: ["contacted", "qualified", "nurture", "lost"],
-  contacted: ["qualified", "meeting", "nurture", "lost"],
-  qualified: ["meeting", "proposal", "nurture", "lost"],
-  meeting: ["proposal", "qualified", "nurture", "lost"],
-  proposal: ["negotiation", "won", "lost", "nurture"],
-  negotiation: ["proposal", "won", "lost"],
-  won: [],
-  lost: ["nurture", "contacted"],
-  nurture: ["contacted", "qualified", "lost"],
-};
-
-export function canonicalStage(stage: string): RevenueStage | null {
-  if (REVENUE_STAGES.includes(stage as RevenueStage)) return stage as RevenueStage;
-  return LEGACY_STAGE_MAP[stage] ?? null;
-}
-
-export function canTransition(from: string, to: string): boolean {
-  const canonicalFrom = canonicalStage(from);
-  const canonicalTo = canonicalStage(to);
-  return canonicalFrom && canonicalTo
-    ? canonicalFrom === canonicalTo || TRANSITIONS[canonicalFrom].includes(canonicalTo)
-    : false;
-}
-
-const TERMINAL_REOPEN_POLICY: Record<"won" | "lost", readonly RevenueStage[]> = {
-  won: [],
-  lost: ["contacted", "nurture"],
-};
-
-function isTerminalStage(stage: RevenueStage) {
-  return stage === "won" || stage === "lost";
-}
+import { loadPipelineStages } from "./pipeline-stage-resolver";
+import { createDetectOverduePaymentsWork } from "./finance-coworker";
+import { createRevenueStageAuditWork } from "./finance-coworker";
+import { createDetectStaleDealsWork } from "./business-pulse-coworker";
+import { createDataQualityScanWork } from "./operations-coworker";
 
 function requireReopenEligibility(
-  from: RevenueStage,
-  to: RevenueStage,
+  fromRole: "open" | "won" | "lost",
+  toRole: "open" | "won" | "lost",
+  from: string,
+  to: string,
   reason: string | undefined,
   allowReopen: boolean,
 ) {
-  if (!isTerminalStage(from) || from === to) return;
-  if (!allowReopen)
+  // Only leaving a terminal role entirely counts as "reopening" — moving
+  // between two stages that share the same terminal role (e.g. two
+  // different admin-created "won" stages) is a lateral re-categorization of
+  // an already-closed deal, not a reopen, so it needs no justification.
+  if (fromRole === "open" || fromRole === toRole || from === to) return;
+  if (!allowReopen) {
     throw new Error(
       `Reopen policy for terminal-stage opportunities is disabled for ${from}->${to}.`,
     );
-  if (!reason?.trim()) throw new Error(`A reason is required to reopen ${from} opportunities.`);
-  if (!TERMINAL_REOPEN_POLICY[from].includes(to)) {
-    throw new Error(`Reopening ${from} opportunities to ${to} is not allowed by policy.`);
   }
+  if (!reason?.trim()) throw new Error(`A reason is required to reopen ${from} opportunities.`);
 }
 
 export async function createOpportunity(
@@ -97,8 +71,12 @@ export async function createOpportunity(
       stage: "new",
       source,
       estimated_value: Math.max(0, Number(input.estimatedValue) || 0),
-      next_action: input.nextAction ?? null,
-      next_action_at: input.nextActionAt ?? null,
+      next_action: input.nextAction?.trim() || null,
+      // An empty string (the common case: the create form's date field left
+      // blank) is not a valid timestamp — Postgres rejects it outright,
+      // unlike a genuinely absent field. Only a non-empty value is passed
+      // through.
+      next_action_at: input.nextActionAt?.trim() ? input.nextActionAt : null,
       owner_email: input.actorEmail,
     })
     .select("*")
@@ -200,43 +178,52 @@ export async function transitionOpportunity(
     reason?: string;
     lossReason?: string;
     allowTerminalReopen?: boolean;
+    /** Position within the target column (drag-and-drop); omitted keeps the
+     * existing sort_order untouched, e.g. for non-drag stage changes. */
+    sortOrder?: number;
   },
 ) {
   const { data: current, error: readError } = await supabase
     .from("opportunities")
-    .select("id, stage, probability, won_value, estimated_value, loss_reason")
+    .select("id, tenant_id, stage, probability, won_value, estimated_value, loss_reason")
     .eq("id", input.id)
     .maybeSingle();
   if (readError) throw new Error(readError.message);
   if (!current) throw new Error("Opportunity not found");
-  const canonicalFrom = canonicalStage(current.stage);
-  if (!canonicalFrom) throw new Error(`Current stage ${current.stage} is not recognized`);
-  const canonicalTo = canonicalStage(input.to);
+
+  const stages = await loadPipelineStages(supabase, current.tenant_id);
+  const canonicalFrom = stages.canonicalStage(current.stage);
+  if (!canonicalFrom) throw new Error(`Invalid pipeline stage: ${current.stage}`);
+  const canonicalTo = stages.canonicalStage(input.to);
   if (!canonicalTo) throw new Error(`Cannot move an opportunity to unknown stage ${input.to}`);
-  if (!canTransition(current.stage, canonicalTo)) {
-    throw new Error(`Cannot move an opportunity from ${current.stage} to ${input.to}`);
-  }
+
+  const fromMeta = stages.getMeta(canonicalFrom)!;
+  const toMeta = stages.getMeta(canonicalTo)!;
+
   requireReopenEligibility(
+    fromMeta.role,
+    toMeta.role,
     canonicalFrom,
     canonicalTo,
     input.reason,
     Boolean(input.allowTerminalReopen),
   );
-  if (canonicalTo === "lost" && !input.lossReason?.trim()) {
+  if (toMeta.role === "lost" && !input.lossReason?.trim()) {
     throw new Error("A loss reason is required when closing an opportunity as lost");
   }
 
   const now = new Date().toISOString();
   const patch: Record<string, unknown> = {
     stage: canonicalTo,
-    probability: REVENUE_STAGE_META[canonicalTo].probability,
+    probability: toMeta.probability,
     last_activity_at: now,
-    closed_at: ["won", "lost"].includes(canonicalTo) ? now : null,
+    closed_at: toMeta.role !== "open" ? now : null,
   };
-  if (canonicalTo === "lost") patch.loss_reason = input.lossReason!.trim();
-  if (canonicalTo !== "lost") patch.loss_reason = null;
-  if (canonicalTo === "won" && Number(current.won_value || 0) === 0)
+  if (toMeta.role === "lost") patch.loss_reason = input.lossReason!.trim();
+  else patch.loss_reason = null;
+  if (toMeta.role === "won" && Number(current.won_value || 0) === 0)
     patch.won_value = Number(current.estimated_value || 0);
+  if (Number.isFinite(input.sortOrder)) patch.sort_order = input.sortOrder;
 
   const { data: updated, error: updateError } = await supabase
     .from("opportunities")
@@ -270,7 +257,7 @@ export async function transitionOpportunity(
     }),
     recordActivity(supabase, {
       activityType: "opportunity_stage_changed",
-      title: `Opportunity moved to ${REVENUE_STAGE_META[canonicalTo].label}`,
+      title: `Opportunity moved to ${toMeta.label}`,
       summary: input.reason?.trim() || null,
       opportunityId: input.id,
       source: input.source ?? "admin",
@@ -284,6 +271,21 @@ export async function transitionOpportunity(
       occurredAt: now,
     }),
   ]);
+
+  // Trigger relevant coworker work based on the transition role.
+  // These are fire-and-forget — the transition must succeed regardless.
+  if (toMeta.role === "won") {
+    createDetectOverduePaymentsWork(supabase).catch(() => {});
+    createDataQualityScanWork(supabase).catch(() => {});
+  } else if (toMeta.role === "lost") {
+    createDetectStaleDealsWork(supabase).catch(() => {});
+    createRevenueStageAuditWork(supabase).catch(() => {});
+    createDataQualityScanWork(supabase).catch(() => {});
+  } else if (canonicalTo === "proposal" || canonicalTo === "negotiation") {
+    // High-value stage entry — pulse should re-evaluate pipeline health.
+    createDetectStaleDealsWork(supabase).catch(() => {});
+    createRevenueStageAuditWork(supabase).catch(() => {});
+  }
 
   return updated;
 }

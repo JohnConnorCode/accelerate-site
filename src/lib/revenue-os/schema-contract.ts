@@ -5,9 +5,34 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-08-30.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-06.3";
 
 export const TENANT_SCOPED_TABLES = [
+  "collection_reminder_attempts",
+  "collection_cases",
+  "collection_observations",
+  "collection_case_invoices",
+  "collection_events",
+  "collection_commands",
+
+  "invoice_pages",
+  "work_items",
+  "workspace_capabilities",
+  "coworkers",
+  "claims",
+  "evidence",
+  "autonomy_policies",
+  "autonomy_hard_floors",
+  "agent_memory",
+  "learned_policies",
+  "budget_limits",
+  "budget_usage",
+  "budget_receipts",
+  "plugins",
+  "plugin_tools",
+  "plugin_triggers",
+  "kanban_columns",
+
   "action_queue",
   "activities",
   "admin_notifications",
@@ -37,9 +62,12 @@ export const TENANT_SCOPED_TABLES = [
   "email_sequences",
   "email_template_versions",
   "email_templates",
+  "entity_links",
+  "entity_types",
   "integration_connections",
   "job_runs",
   "messages",
+  "onboarding_templates",
   "opportunities",
   "opportunity_stage_events",
   "partner_applications",
@@ -65,6 +93,18 @@ export const TENANT_SCOPED_TABLES = [
 const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 
 const BASE_REVENUE_SCHEMA_TABLES = [
+  {
+    table: "work_items",
+    columns: [
+      "id",
+      "status",
+      "lease_owner",
+      "lease_expires_at",
+      "attempt_count",
+      "action_ids",
+      "agent_run_id",
+    ],
+  },
   {
     table: "contacts",
     columns: [
@@ -103,11 +143,24 @@ const BASE_REVENUE_SCHEMA_TABLES = [
   },
   {
     table: "tasks",
-    columns: ["id", "contact_id", "company_id", "opportunity_id", "source", "dedupe_key", "status"],
+    columns: [
+      "id",
+      "contact_id",
+      "company_id",
+      "opportunity_id",
+      "source",
+      "dedupe_key",
+      "status",
+      "assigned_to",
+    ],
   },
   {
     table: "conversations",
     columns: ["id", "channel", "external_id", "contact_id", "opportunity_id", "status"],
+  },
+  {
+    table: "onboarding_templates",
+    columns: ["id", "template_key", "version", "active", "milestones"],
   },
   {
     table: "messages",
@@ -128,6 +181,33 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     table: "campaigns",
     columns: ["id", "name", "status", "version", "approved_version", "policy"],
   },
+  {
+    table: "entity_types",
+    columns: [
+      "id",
+      "type_key",
+      "label",
+      "backing_table",
+      "id_column",
+      "fk_catalog",
+      "identity_fields",
+      "soft_delete_column",
+      "is_disabled",
+      "metadata",
+    ],
+  },
+  {
+    table: "entity_links",
+    columns: [
+      "id",
+      "source_type",
+      "source_id",
+      "target_type",
+      "target_id",
+      "link_type",
+      "metadata",
+    ],
+  },
   { table: "campaign_steps", columns: ["id", "campaign_id", "step_order", "delay_days", "active"] },
   {
     table: "campaign_members",
@@ -147,7 +227,10 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     columns: ["id", "opportunity_id", "contact_id", "company_id", "status", "version"],
   },
   { table: "proposal_events", columns: ["id", "proposal_id", "event_type", "source"] },
-  { table: "action_queue", columns: ["id", "action_type", "status", "dedupe_key", "expires_at"] },
+  {
+    table: "action_queue",
+    columns: ["id", "action_type", "status", "dedupe_key", "expires_at", "work_item_id"],
+  },
   {
     table: "job_runs",
     columns: [
@@ -282,6 +365,82 @@ const BASE_REVENUE_SCHEMA_TABLE_NAMES = new Set<string>(
 
 export const REVENUE_SCHEMA_TABLES = [
   {
+    table: "collection_reminder_attempts",
+    columns: [
+      "tenant_id",
+      "action_id",
+      "case_id",
+      "state",
+      "digest",
+      "case_revision",
+      "cooldown_hours",
+      "message_id",
+      "provider_id",
+      "sent_at",
+      "created_at",
+      "updated_at",
+    ],
+  },
+  {
+    table: "collection_cases",
+    columns: [
+      "id",
+      "tenant_id",
+      "contact_id",
+      "currency",
+      "status",
+      "revision",
+      "disputed",
+      "paused",
+      "pause_until",
+      "promise_date",
+      "owner_email",
+      "next_action",
+      "settled_at",
+    ],
+  },
+  {
+    table: "collection_observations",
+    columns: [
+      "id",
+      "tenant_id",
+      "request_id",
+      "creation_action_id",
+      "contact_id",
+      "provider_account",
+      "credential_version",
+      "invoice_id",
+      "test_mode",
+      "currency",
+      "status",
+      "remaining",
+      "due_date",
+      "observed_at",
+      "provider_request_id",
+    ],
+  },
+  {
+    table: "collection_case_invoices",
+    columns: ["tenant_id", "case_id", "creation_action_id", "observation_id"],
+  },
+  {
+    table: "collection_events",
+    columns: [
+      "id",
+      "tenant_id",
+      "case_id",
+      "request_id",
+      "kind",
+      "actor_email",
+      "before_state",
+      "after_state",
+    ],
+  },
+  {
+    table: "collection_commands",
+    columns: ["tenant_id", "request_id", "command_hash", "result", "created_at"],
+  },
+  {
     table: "tenants",
     columns: [
       "id",
@@ -345,7 +504,8 @@ export const REVENUE_SCHEMA_TABLES = [
 ];
 
 export const REVENUE_SCHEMA_CONSTRAINTS = [
-  { table: "opportunities", name: "opportunities_stage_check" },
+  // Pipeline stages are workspace-defined by the kanban migration; the old
+  // hard-coded CHECK is deliberately removed by 20260902-kanban-columns.sql.
   { table: "opportunities", name: "opportunities_probability_check" },
   { table: "proposals", name: "proposals_status_check" },
   { table: "schema_verification_runs", name: "schema_verification_runs_status_check" },
@@ -370,9 +530,20 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_tenant_memberships_user_active",
   "idx_companies_tenant_domain_unique",
   "idx_webhook_receipts_tenant_provider_id",
+  "idx_entity_types_tenant_key_unique",
+  "idx_entity_links_tuple_unique",
+  "idx_entity_links_source",
+  "idx_entity_links_target",
+  "idx_onboarding_templates_tenant_id_id",
+  "idx_onboarding_templates_active_key",
+  "idx_clients_opportunity",
 ] as const;
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
+  "public.reserve_collection_reminder(uuid)",
+  "public.reconcile_collection_reminder(uuid)",
+  "public.sync_collection_observations(uuid,jsonb,text)",
+  "public.update_collection_case(uuid,integer,uuid,jsonb,text)",
   "public.revenue_os_touch_updated_at()",
   "public.publish_email_template(text,text)",
   "public.claim_contact_import_batch(uuid,text)",
@@ -398,6 +569,10 @@ export const REVENUE_SCHEMA_POLICIES = [
   { table: "tenant_memberships", name: "Own membership read" },
   { table: "contacts", name: "Tenant member access" },
   { table: "admin_settings", name: "Tenant member access" },
+  { table: "entity_types", name: "Tenant member access" },
+  { table: "entity_links", name: "Tenant member access" },
+  { table: "onboarding_templates", name: "Service role full access" },
+  { table: "onboarding_templates", name: "Tenant member access" },
 ] as const;
 
 export type RevenueSchemaStatus =

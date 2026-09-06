@@ -47,7 +47,7 @@ const workCardSource = readFileSync(
   join(process.cwd(), "src/components/work/WorkCard.tsx"),
   "utf8",
 );
-const workMotionContract = join(process.cwd(), "docs/WORK-MOTION-CONTRACT.md");
+const workMotionContract = join(process.cwd(), "docs/contracts/WORK-MOTION-CONTRACT.md");
 
 assert.ok(existsSync(workMotionContract), "Work motion needs a durable ownership contract");
 assert.ok(

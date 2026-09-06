@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "tenantId": "00000000-0000-4000-8000-000000000001",
+  "asOf": "2026-09-05T12:00:00.000Z",
+  "observedAt": "2026-09-05T11:55:00.000Z",
+  "complete": true,
+  "cooldownHours": 72,
+  "policies": [
+    {
+      "accountId": "00000000-0000-4000-8000-000000000002",
+      "currency": "usd",
+      "communicationSuppressed": false,
+      "promiseDate": null,
+      "lastReminderAt": null
+    }
+  ],
+  "invoices": [
+    {
+      "id": "in_example_site_setup",
+      "tenantId": "00000000-0000-4000-8000-000000000001",
+      "accountId": "00000000-0000-4000-8000-000000000002",
+      "currency": "usd",
+      "status": "open",
+      "amountRemaining": 12500,
+      "dueDate": "2026-09-01",
+      "disputed": false,
+      "paused": false,
+      "pauseUntil": null
+    },
+    {
+      "id": "in_example_monthly_service",
+      "tenantId": "00000000-0000-4000-8000-000000000001",
+      "accountId": "00000000-0000-4000-8000-000000000002",
+      "currency": "usd",
+      "status": "open",
+      "amountRemaining": 7500,
+      "dueDate": "2026-09-03",
+      "disputed": false,
+      "paused": false,
+      "pauseUntil": null
+    },
+    {
+      "id": "in_example_disputed_change",
+      "tenantId": "00000000-0000-4000-8000-000000000001",
+      "accountId": "00000000-0000-4000-8000-000000000002",
+      "currency": "usd",
+      "status": "open",
+      "amountRemaining": 5000,
+      "dueDate": "2026-08-28",
+      "disputed": true,
+      "paused": false,
+      "pauseUntil": null
+    }
+  ]
+}

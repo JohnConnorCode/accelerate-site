@@ -9,11 +9,15 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 ### Fixed
 
 - Homepage marquee ("how we help" ticker) sat invisible for 8.3s before fading in; reduced to 0.3s.
+- Module enablement now actually gates routes, not only navigation. A disabled module's pages show a notice and its API routes refuse the request; before this, both still answered.
+- The MCP server negotiates protocol version against the client's request instead of a hardcoded constant, and now supports CORS and session IDs, fixing real compatibility with ChatGPT's native Connectors and other current MCP clients.
+- The integration adapter registry is now the actual resolution point for WhatsApp and HubSpot writes, replacing a duplicated if/else chain its own documentation had already claimed it replaced.
 
 ### Added
 
 - Prettier formatting, enforced in CI.
 - Product changelog page gained category filtering and full-text search.
+- `propose_task_update`: an MCP tool and admin AI capability to complete, snooze, or edit an existing task, staged through the same approval queue as every other mutation.
 
 ### Changed
 

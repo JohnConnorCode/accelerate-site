@@ -9,11 +9,16 @@ import {
   type OpenRouterMessage,
 } from "@/lib/ai/openrouter";
 import { loadAgentLearningSignals } from "./agent-learning";
+import { listClaimableWork } from "./work-items";
+import { listWorkspaceCapabilities } from "./capabilities";
+import { listClaimsForEntity } from "./claims";
+import { listLearnedPolicies, retrieveAgentMemory } from "./memory";
 import {
   AI_TOOL_REGISTRY_VERSION,
   executeRegisteredRevenueTool,
   selectRevenueToolPack,
-  toOpenRouterTools,
+  toActivatedOpenRouterTools,
+  refreshRevenueToolContext,
   type RevenueToolPackId,
 } from "./ai-tools";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
@@ -50,6 +55,10 @@ export interface CommandAgentOptions {
   surface?: string;
   conversationId?: string | null;
   pageContext?: CommandPageContext | null;
+  /** The calling tenant's active module configuration, so a disabled module's
+   * AI tools are unavailable to the agent exactly as they are to the UI and
+   * to MCP. Falls back to every optional module enabled when omitted. */
+  tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
   signal?: AbortSignal;
   onRunStarted?: (event: { runId: string | null; model: string; pack: RevenueToolPackId }) => void;
   onAssistantDelta?: (delta: string) => void;
@@ -146,10 +155,51 @@ export async function runRevenueCommandAgent(
     content: message.content,
   }));
   const toolNames: string[] = [];
+  const stagedToolNames = new Set<string>();
+  let activeBundleId: string | null = null;
   let inputTokens = 0;
   let outputTokens = 0;
   try {
     const learningSignals = await loadAgentLearningSignals(supabase);
+    // Bounded work-item summary so the agent knows what durable work is queued.
+    const claimableWork = await listClaimableWork(supabase, { limit: 10 });
+    const workQueueSummary = claimableWork.length
+      ? `Work engine queue (${claimableWork.length} claimable): ${claimableWork.map((w) => `${w.kind}[${w.priority}](${w.objective.slice(0, 60)})`).join("; ")}. Use get_claimable_work for details.`
+      : "Work engine queue is empty — no claimable work items.";
+    // Bounded capability summary so the agent knows what the workspace can do.
+    const availableCapabilities = await listWorkspaceCapabilities(supabase, {
+      availableOnly: true,
+    });
+    const capabilitySummary = availableCapabilities.length
+      ? `Workspace capabilities (${availableCapabilities.length} available): ${availableCapabilities.map((c) => `${c.capability_key}${c.policy === "approval_required" ? "[approval]" : ""}`).join(", ")}. Use get_workspace_capabilities for details.`
+      : "No workspace capabilities registered yet.";
+    // Entity-scoped claims summary when page context has an entity.
+    let claimsSummary: string | undefined;
+    const pageEntity = options.pageContext?.entity;
+    if (pageEntity) {
+      const entityClaims = await listClaimsForEntity(supabase, {
+        entityType: pageEntity.type,
+        entityId: pageEntity.id,
+        status: ["unverified", "supported", "conflicted", "verified"],
+      });
+      if (entityClaims.length) {
+        claimsSummary = `Claims for ${pageEntity.type} (${entityClaims.length}): ${entityClaims.map((c) => `${c.field}=${c.proposed_value}[${c.status}/${c.best_evidence ?? "?"}]`).join("; ")}. Use get_claims_for_entity for details.`;
+      }
+    }
+    // Memory summary: active learned policies + recent agent memory.
+    const activePolicies = await listLearnedPolicies(supabase);
+    const recentAgentMemory = await retrieveAgentMemory(supabase, { limit: 5 });
+    const memorySummary =
+      [
+        activePolicies.length
+          ? `Learned policies (${activePolicies.length}): ${activePolicies.map((p) => `"${p.rule}" (${p.action_key})`).join("; ")}. Use get_learned_policies for details.`
+          : undefined,
+        recentAgentMemory.length
+          ? `Recent agent memory (${recentAgentMemory.length}): ${recentAgentMemory.map((m) => `${m.category}: ${m.subject}`).join("; ")}. Use get_agent_memory for details.`
+          : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined;
     // Without this the model reasons about "today" and "follow up in 3 days"
     // from its training cutoff. Everything this agent does is time-sensitive.
     const now = new Date();
@@ -159,19 +209,33 @@ export async function runRevenueCommandAgent(
       const grounding = buildRevenueAiGroundingContract({
         today,
         learningSignals,
+        workQueueSummary,
+        capabilitySummary,
+        claimsSummary,
+        memorySummary,
         pageContext: context,
-        toolPack: selectedPack,
+        toolPack: activeBundleId ?? "bounded core with cross-domain discovery",
       });
+      const liveContext = await refreshRevenueToolContext({
+        supabase,
+        actorEmail,
+        tenantConfig: options.tenantConfig,
+      });
+      const activeTools = toActivatedOpenRouterTools(activeBundleId, liveContext);
+      const advertisedNames = new Set(activeTools.map((tool) => tool.function.name));
       const request = {
         database: supabase,
         model,
         maxTokens: 1200,
         signal: options.signal,
         messages: [
-          { role: "system" as const, content: `${SYSTEM_CONTRACT}\n\n${grounding}` },
+          {
+            role: "system" as const,
+            content: `${SYSTEM_CONTRACT}\n\n${grounding}\nThe initial pack is navigation context only. Use discover_tool_bundles for any admin capability missing from the current tools, then activate_tool_bundle. Activation replaces the previous bundle for subsequent turns of this run; it does not approve actions. Only call tools advertised on this turn. Active bundle: ${activeBundleId ?? "core only"}.`,
+          },
           ...transcript,
         ],
-        tools: toOpenRouterTools(selectedPack),
+        tools: activeTools,
       };
       let bufferedAnswer = "";
       const response = options.onAssistantDelta
@@ -214,7 +278,7 @@ export async function runRevenueCommandAgent(
           return {
             text: safeAnswer,
             runId: run.id,
-            proposedActions: toolNames.filter((name) => name.startsWith("propose_")),
+            proposedActions: [...stagedToolNames],
           };
         }
         if (options.onAssistantDelta) options.onAssistantDelta(bufferedAnswer || text);
@@ -227,7 +291,7 @@ export async function runRevenueCommandAgent(
         return {
           text,
           runId: run.id,
-          proposedActions: toolNames.filter((name) => name.startsWith("propose_")),
+          proposedActions: [...stagedToolNames],
         };
       }
       for (const use of uses) {
@@ -242,11 +306,23 @@ export async function runRevenueCommandAgent(
           toolInput = {};
         }
         try {
+          if (!advertisedNames.has(name))
+            throw new Error(
+              `Tool ${name} is not loaded on this turn. Discover and activate its bundle first.`,
+            );
+          const dispatchContext = await refreshRevenueToolContext({
+            supabase,
+            actorEmail,
+            tenantConfig: options.tenantConfig,
+          });
           const { output, tool } = await executeRegisteredRevenueTool(
-            { supabase, actorEmail, toolPack: selectedPack },
+            dispatchContext,
             name,
             toolInput,
           );
+          if (name === "activate_tool_bundle") {
+            activeBundleId = (output as { activeBundleId: string }).activeBundleId;
+          }
           await recordAgentRunEvent(supabase, run, {
             eventType: "tool_result",
             toolName: name,
@@ -272,7 +348,10 @@ export async function runRevenueCommandAgent(
             failed: false,
           });
           const proposal = proposalSummary(output, tool.impact);
-          if (proposal) options.onProposalStaged?.(proposal);
+          if (proposal) {
+            stagedToolNames.add(name);
+            options.onProposalStaged?.(proposal);
+          }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Tool failed";
           await recordAgentRunEvent(supabase, run, {
@@ -299,7 +378,7 @@ export async function runRevenueCommandAgent(
     // was marked failed, and any propose_* actions staged on earlier turns
     // stayed in the queue as orphans with no conversation explaining them.
     // Return what was gathered and name the proposals instead.
-    const staged = toolNames.filter((name) => name.startsWith("propose_"));
+    const staged = [...stagedToolNames];
     const partial = [
       transcript
         .filter((entry) => entry.role === "assistant")

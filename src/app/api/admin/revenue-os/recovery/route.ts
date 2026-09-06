@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import {
   activateCampaign,
   executeDueCampaignMembers,
@@ -15,7 +15,7 @@ import {
 } from "@/lib/revenue-os/recovery";
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("recovery");
   if (auth instanceof NextResponse) return auth;
   try {
     const supabase = auth.database;
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("recovery");
   if (auth instanceof NextResponse) return auth;
   try {
     const body = (await request.json()) as Record<string, unknown>;
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("recovery");
   if (auth instanceof NextResponse) return auth;
   try {
     const body = (await request.json()) as {

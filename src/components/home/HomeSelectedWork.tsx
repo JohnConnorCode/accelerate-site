@@ -13,7 +13,10 @@ export function HomeSelectedWork() {
     { className: "lg:col-span-7 lg:pt-24", aspect: "cinematic" as const },
   ];
   return (
-    <section className="section-y relative overflow-hidden border-t border-[var(--rule)]">
+    <section
+      id="selected-work"
+      className="section-y relative overflow-hidden border-t border-[var(--rule)]"
+    >
       <AmbientField />
       <Container>
         <div className="flex flex-wrap items-end justify-between gap-6">

@@ -151,11 +151,41 @@ export function findSecondBrainRollupGaps(cards, requiredImplementations) {
   return gaps;
 }
 
+// A board that cannot dispatch is a broken board: if zero dependency-ready
+// backlog/planned cards carry milestone:now|next, an agent asking "what
+// should I work on?" gets no legal answer even when startable work exists.
+export function findDispatchDeadlock(cards) {
+  const graph = buildDependencyGraph(cards);
+  const claimable = cards.filter((c) => c.status === "backlog" || c.status === "planned");
+  const ready = claimable.filter((c) => {
+    const deps = graph.edges.get(c.seed_key) ?? [];
+    return deps.every((depKey) => graph.byKey.get(depKey)?.status === "shipped");
+  });
+  const dispatchable = ready.filter((c) => {
+    const m = milestoneOf(c);
+    return m === "now" || m === "next";
+  });
+  if (ready.length > 0 && dispatchable.length === 0) {
+    return [
+      `Dispatch deadlock: ${ready.length} dependency-ready backlog/planned card(s) exist but none carry milestone:now or milestone:next.`,
+    ];
+  }
+  return [];
+}
+
 export function collectFeatureBoardIntegrityFailures(
   cards,
   { loopKeys, nowKeys, secondBrainImplementations },
 ) {
   const failures = [];
+  // Separate from `failures`: active-dependency violations are about
+  // another card's *live, currently-valid* claim elsewhere on the board —
+  // state that can appear or disappear purely from a different agent's
+  // concurrent progress, unrelated to whatever this commit's diff actually
+  // touches. Blocking every commit in the repo on it would hand any single
+  // in-flight claim (however premature) veto power over unrelated work.
+  // Still surfaced loudly (both call sites print these), just not fatal.
+  const warnings = [];
   const graph = buildDependencyGraph(cards);
 
   for (const item of graph.missing) {
@@ -175,17 +205,15 @@ export function collectFeatureBoardIntegrityFailures(
     );
   }
   for (const item of findActiveDependencyViolations(cards, graph.edges)) {
-    failures.push(
+    warnings.push(
       `[${item.from}] is in progress but depends on unsatisfied [${item.to}] (${item.status})`,
     );
   }
   for (const card of cards.filter((item) => item.status === "in_progress")) {
+    // Evidence is proof of completion; a card just claimed through the live
+    // claim RPC has none yet and that's expected — verify-agent-contract.mjs
+    // enforces evidence at shipped, not here.
     if (!card.owner?.trim()) failures.push(`[${card.seed_key}] is in progress without an Owner`);
-    if (!String(card.notes).includes("Current implementation evidence:")) {
-      failures.push(
-        `[${card.seed_key}] is in progress without current/remaining implementation evidence`,
-      );
-    }
   }
   for (const item of findMilestoneNoteMismatches(cards)) {
     failures.push(
@@ -203,5 +231,6 @@ export function collectFeatureBoardIntegrityFailures(
       `[${item.key}] roll-up is missing ${item.missing}${item.reason ? ` (${item.reason})` : ""}`,
     );
   }
-  return failures;
+  failures.push(...findDispatchDeadlock(cards));
+  return { failures, warnings };
 }

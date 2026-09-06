@@ -2,14 +2,21 @@
 
 Read `AGENTS.md` before changing this repository. It is the canonical engineering and ticket handoff contract for every coding agent.
 
+**Start with the northstar.** Read `docs/NORTHSTAR.md` to understand what
+Accelerate is building: an agent-native business runtime, not a CRM, chatbot,
+dashboard, or fixed SaaS app. The five product layers (See → Remember → Notice
+→ Act → Learn), ten architectural principles, and implementation phases (A–E)
+govern every implementation decision.
+
 Important references:
 
-- `docs/REVENUE-OS-ENGINEERING-CONTRACT.md` — data, automation, AI, security, and failure invariants.
-- `docs/AGENT-TICKET-RUNBOOK.md` — pickup, evidence, recovery, and handoff.
-- `docs/MULTI-TENANCY-CONTRACT.md` — shared-database authorization and isolation.
-- `docs/NAVIGATION-RUNTIME-CONTRACT.md` — navigation, loading, focus, and motion.
-- `docs/ADMIN-DEMO-CONTRACT.md` — fictional workspace boundary and browser QA.
-- `docs/MARKETING-POSITIONING-CONTRACT.md` — public copy and positioning.
+- `docs/NORTHSTAR.md` — the platform vision: Coworkers, WorkItems, capability graph, autonomy ladder, evidence ledger, and implementation phases.
+- `docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md` — data, automation, AI, security, and failure invariants.
+- `docs/contributing/AGENT-TICKET-RUNBOOK.md` — pickup, evidence, recovery, and handoff.
+- `docs/contracts/MULTI-TENANCY-CONTRACT.md` — shared-database authorization and isolation.
+- `docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md` — navigation, loading, focus, and motion.
+- `docs/contracts/ADMIN-DEMO-CONTRACT.md` — fictional workspace boundary and browser QA.
+- `docs/contracts/MARKETING-POSITIONING-CONTRACT.md` — public copy and positioning.
 - `src/lib/revenue-os/README.md` — authoritative domain modules and callers.
 
 Never use real customer data, production credentials, or unapproved production mutations for development or verification. Public contributors must use fictional fixtures and infrastructure they control.

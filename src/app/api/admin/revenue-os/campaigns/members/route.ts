@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { normalizeEmail } from "@/lib/revenue-os/db";
 import { findCanonicalContactByEmail } from "@/lib/revenue-os/identity";
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("campaigns");
   if (auth instanceof NextResponse) return auth;
   const body = (await request.json()) as {
     campaignId?: string;

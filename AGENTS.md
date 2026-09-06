@@ -4,37 +4,76 @@ This file is the mandatory starting point for every implementation agent. The
 goal is repeatable delivery by agents with different capability levels, without
 rediscovering architecture or inventing new write paths.
 
-If the repo isn't running yet, none of this is reachable: `/admin/features`
-in step 1 below requires a deployed or locally running instance with
-migrations applied and a founder account. Follow
-[docs/SELF-HOSTING.md](docs/SELF-HOSTING.md) first, then come back here.
+For local exploration, follow [Start development](docs/contributing/DEVELOPER-START.md)
+and open the fictional demo. It requires no provider or database credentials.
+For a connected installation, follow
+[the self-hosting guide](docs/self-hosting/SELF-HOSTING.md). Shared ticket pickup
+also requires the scoped access described below.
+
+## Pick up work
+
+Start with [the developer handoff](docs/contributing/DEVELOPER-START.md). Run
+`npm run dev:doctor` for local exploration and `npm run dev:doctor -- --board`
+before shared dispatch. The latter checks authenticated protocol and write
+enforcement without claiming or mutating work.
+
+```
+npm run agent:next
+```
+
+Read [the work protocol](docs/contracts/UNIVERSAL-WORK-BOARD.md) first. Configure
+`WORK_BOARD_URL` and a project-scoped `WORK_BOARD_TOKEN` issued by the founder.
+The CLI uses HTTP and needs no database credentials. `agent:next` atomically
+claims ready work and prints the full live contract. A worktree requires the
+card's approved repository base branch and exact commit. Never guess a base or
+fall back into another agent's checkout.
+
+Use `agent:status`, `agent:heartbeat -- --card <key>`, and
+`agent:release -- --card <key>`. `agent:complete -- --card <key>
+--evidence-file <path.json>` submits named passing checks and the exact commit
+for review. It preserves the worktree. Completion, review, merge, cleanup and
+production deployment are separate facts/actions. Keep claim session files
+private and renew within the 30-minute lease; expired work requires explicit
+operator recovery. There is no force bypass.
 
 ## Read in this order
 
-1. The claimed card in `/admin/features` and its matching entry in
-   `scripts/feature-backlog-data.mjs`.
-2. `docs/AGENT-TICKET-RUNBOOK.md` for the pickup, execution, evidence, and handoff
+1. `docs/NORTHSTAR.md` for the platform vision: agent-native business runtime,
+   Coworkers, WorkItems, capability graph, autonomy ladder, and implementation phases.
+2. The live card and its structured execution packet. Git templates are historical
+   references, not permission to overwrite a newer live specification.
+3. `docs/contributing/AGENT-TICKET-RUNBOOK.md` for the pickup, execution, evidence, and handoff
    procedure.
-3. `docs/FEATURE-BOARD-TAXONOMY.md` before adding, relabeling, promoting, or
+4. `docs/contracts/FEATURE-BOARD-TAXONOMY.md` before adding, relabeling, promoting, or
    reorganizing backlog cards.
-4. `docs/REVENUE-OS-ENGINEERING-CONTRACT.md` for data, automation, AI, security,
+5. `docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md` for data, automation, AI, security,
    and failure invariants.
-5. `docs/MULTI-TENANCY-CONTRACT.md` before changing schema, authorization,
+6. `docs/contracts/MULTI-TENANCY-CONTRACT.md` before changing schema, authorization,
    admin routing, public intake, integrations, jobs, or tenant configuration.
-6. `src/lib/revenue-os/README.md` for authoritative modules and callers.
-7. `docs/REVENUE-OS-SETUP.md` when the ticket touches schema, providers, secrets,
+7. `src/lib/revenue-os/README.md` for authoritative modules and callers.
+8. `docs/self-hosting/REVENUE-OS-SETUP.md` when the ticket touches schema, providers, secrets,
    health, or production activation.
-8. `docs/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
+9. `docs/contracts/MARKETING-POSITIONING-CONTRACT.md` before changing any public marketing
    copy, metadata, search description, public assistant positioning, or CTA.
-9. `docs/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
-   scroll restoration, route focus, loading states, or page transitions.
-10. `docs/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
+10. `docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md` before changing links, history,
+    scroll restoration, route focus, loading states, or page transitions.
+11. `docs/contracts/ADMIN-DEMO-CONTRACT.md` before changing either demo, the admin runtime,
     admin navigation, demo fixtures, or demo QA.
-11. `docs/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
+12. `docs/contracts/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
     primitives, scroll behavior, or portfolio animation QA.
 
 Run `npm run verify:agent-contract` before implementation. If it fails, repair
 the contract or card detail before changing product behavior.
+
+## Inspect before claiming
+
+`npm run agent:show -- --card <key>` prints the live packet without claiming.
+Add `--json` for machine-readable output. A feature or bug must have an explicit
+north star outcome, current gap, scope, exclusions, references, ordered steps,
+recovery cases, repository base and acceptance-linked verification environments.
+The service reports missing contract fields instead of claiming incomplete work.
+`npm run backlog:snapshot` explicitly refreshes the dated report input; ordinary
+verification is offline and does not rewrite live work or shared source files.
 
 ## One operating path
 
@@ -56,23 +95,40 @@ Every capability follows this sequence:
 - Provider facts and audit history are immutable. Human notes and configuration
   are editable through explicit services.
 
-## Ticket state is source-controlled
+## AI and admin operation parity
 
-- `scripts/feature-backlog-data.mjs` is the durable definition of every managed
-  card. `/admin/features` is its operational projection.
-- Claim work by setting a specific Owner and `in_progress` state in the manifest,
-  adding current evidence, then intentionally reconciling with
-  `npm run seed:features -- --apply`.
-- Do not create a second roadmap. Newly discovered work becomes a detailed card
-  with a stable key, dependencies, starting points, guardrails, acceptance, and
-  verification evidence.
-- Keep managed labels inside `docs/FEATURE-BOARD-TAXONOMY.md`: one milestone,
+Read [the universal AI/admin contract](docs/contracts/ADMIN-AI-PARITY.md) before
+adding or changing admin business controls, mutation routes or plugin operations.
+Every authorized admin operation must have a governed conversational equivalent:
+shared service, exact proposal, human approval, freshness/permission recheck and
+truthful receipt. Missing parity belongs on the live board, not in an implicit
+exception. Update the source inventory after reviewing changed route operations.
+
+## The live board owns work truth
+
+- `/admin/features` and the shared work service own card definitions, UUID
+  dependencies, revisions, claims, decisions and immutable execution events.
+- Git contains schemas, card templates and explicit dated exports. Edit a live
+  card through the UI, scoped HTTP/MCP API, or a reviewed import plan. Never use
+  an old checkout to overwrite newer specifications or archive unlisted cards.
+- `npm run seed:features -- --plan /tmp/work-plan.json --cards key1,key2` creates
+  a proposal. Review its full diff before `--apply --plan /tmp/work-plan.json`.
+  Revision conflicts require refresh and review; retry identical requests with
+  the same request key. See the work protocol for exports and reconciliation.
+- Newly discovered work becomes a detailed card with a stable key, explicit
+  prerequisites, scope, references, acceptance and verification. No second roadmap.
+- Keep labels inside `docs/contracts/FEATURE-BOARD-TAXONOMY.md`: one milestone,
   category, phase, and one or two reusable capabilities. Never add one-off labels.
-- Do not mark a card `shipped` until every acceptance item has attached evidence.
-  Local success cannot satisfy an acceptance item that explicitly requires
-  production proof.
+- Submit implementation evidence for review only after every acceptance item is
+  verified. Local success cannot satisfy an item that requires production proof.
 - Never delete source tables or compatibility routes until the reconciliation
   card proves field and row-count parity in production.
+
+## Documentation
+
+Read [the documentation writing guide](docs/contributing/DOCUMENTATION-STYLE.md)
+before changing product guides. Verify screen names and data-source claims against
+the current code; explain the steps, saved result and recovery in plain language.
 
 ## Safe change rules
 
@@ -103,6 +159,11 @@ Every capability follows this sequence:
 
 ## Release authority and repository reconciliation
 
+- Before hosting diagnosis, read `deployment-target.json` and the account preflight in
+  [DEPLOY.md](DEPLOY.md). Verify the exact project/team with `npm run deploy:check`
+  before pulling configuration or building. A wrong CLI login is not evidence of
+  a provider suspension; establish account access before researching hosting errors.
+
 - Production deployment is founder-controlled. Never deploy, alias, promote,
   roll back, or otherwise change the live site unless the founder explicitly
   instructs that production action. Completing, committing, or verifying work is
@@ -120,16 +181,38 @@ Every capability follows this sequence:
   work shipped from a clean primary worktree alone; the worktree and branch audit
   is required evidence.
 
+## Local resource budget
+
+- Run only one heavy job at a time across worktrees. Never overlap builds,
+  typechecks, full suites, or browser QA on the development machine.
+- `build`, `build:qa`, and `typecheck` use the shared resource gate. Wrap other
+  heavy commands with `npm run resources:run -- <command> [args...]`.
+- If the gate refuses or stops work, retain the failed receipt and address the
+  resource constraint. Do not bypass it, retry repeatedly, or raise limits to
+  force a pass. Use a suitable remote runner for larger verification.
+- Reuse compatible installed dependencies; do not copy dependency trees for
+  each check. Remove only your own disposable build/browser output after use.
+- Close servers and browsers you start when their check ends. Inspect ownership
+  before stopping any pre-existing process; never force-quit unrelated apps.
+
 ## Verification minimum
 
 For every code ticket:
 
 1. `npm run verify:agent-contract`
-2. `npx tsc --noEmit`
+2. TypeScript validation: `npm run typecheck` or a successful production build
+   of the same relevant source tree (the build includes type checking).
 3. `npm run lint`
 4. The closest scoped unit, API, or Playwright journey named by the card
-5. `npm run build` before a shipped handoff
+5. `npm run build` before a shipped application-code handoff. Documentation or
+   tooling-only changes use their scoped checks when application/build inputs are unchanged.
 6. `git diff --check`
+
+Run expensive verification once for the final relevant source tree, not again
+merely to commit or update ticket prose. Rerun affected checks when inputs change,
+a failure is fixed, or new evidence warrants it. Commit hooks must be fast and
+offline; live Feature Board checks remain explicit operational commands. See
+[verification workflow](docs/contributing/VERIFICATION-WORKFLOW.md).
 
 Visual and interaction work additionally requires repository Playwright at the
 affected desktop and mobile widths, opened screenshots, console-error checks,

@@ -78,8 +78,9 @@ export function AICapabilities() {
   );
   if (!data && !error)
     return (
-      <div className="grid min-h-[46vh] place-items-center">
-        <Loader2 className="size-5 animate-spin text-[var(--admin-muted)]" />
+      <div className="grid min-h-[46vh] place-items-center" role="status">
+        <Loader2 className="size-5 animate-spin text-[var(--admin-muted)]" aria-hidden="true" />
+        <span className="sr-only">Loading capabilities…</span>
       </div>
     );
   if (error)

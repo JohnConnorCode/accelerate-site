@@ -1,3 +1,4 @@
+import { deploymentPreflight } from "./deployment-preflight.mjs";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
@@ -22,6 +23,7 @@ function releaseId() {
 }
 
 const [mode, ...args] = process.argv.slice(2);
+if (mode === "vercel-build" || mode === "vercel-deploy") deploymentPreflight();
 const deploymentId = releaseId();
 const env = { ...process.env, NEXT_DEPLOYMENT_ID: deploymentId };
 

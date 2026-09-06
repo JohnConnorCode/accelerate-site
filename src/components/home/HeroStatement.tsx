@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 /** The original hero explanation, held for the next scroll beat. */
 export function HeroStatement() {
@@ -28,12 +29,29 @@ export function HeroStatement() {
 
   return (
     <section ref={ref} className={`hero-statement${revealed ? " is-revealed" : ""}`}>
-      <div className="wrap">
-        <p className="hero-statement-copy">
-          We identify where work is slow or revenue is missed, then build and improve the smallest
-          useful system. That can include CRM connections, voice-to-text workflows, or better
-          inquiry capture.
-        </p>
+      <div className="wrap hero-statement-layout">
+        <div className="hero-statement-aside">
+          <p className="label">Built around your business</p>
+          <nav aria-label="Explore the homepage" className="home-section-links">
+            <Link href="#systems">
+              How we help <span aria-hidden="true">↓</span>
+            </Link>
+            <Link href="#selected-work">
+              See our work <span aria-hidden="true">↓</span>
+            </Link>
+            <Link href="#command-center">
+              Explore Command Center <span aria-hidden="true">↓</span>
+            </Link>
+          </nav>
+        </div>
+        <div>
+          <p className="hero-statement-copy">We start with the work your team does every day.</p>
+          <p className="hero-statement-detail">
+            We identify where work is slow or revenue is missed, then build and improve the smallest
+            useful system. That can include CRM connections, voice-to-text workflows, or better
+            inquiry capture.
+          </p>
+        </div>
       </div>
     </section>
   );

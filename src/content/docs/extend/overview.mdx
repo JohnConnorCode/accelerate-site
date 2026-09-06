@@ -1,0 +1,25 @@
+---
+title: "Extend the runtime"
+description: "What every extension inherits: approval, audit, module gating, and MCP."
+updated: "2026-09-04"
+---
+
+You can add a module, an integration adapter, a plugin, or an MCP client without forking core. Inbound provider events use webhooks. You do not get a private write path.
+
+- [Add a module](/docs/extend/modules). Register a JSON manifest and pages. Nothing in `extensions/` is executed.
+- [Add an integration adapter](/docs/extend/adapters). Verify credentials, encrypt them, and turn inbound events into canonical records.
+- [Plugins](/docs/extend/plugins). Register tools and triggers that still go through governance.
+- [Add an AI tool](/docs/extend/tools). Schema, impact tier, service boundary. Mutating tools propose.
+- [MCP concepts](/docs/extend/mcp) and [connect a client](/docs/extend/mcp-clients). Bounded reads, staged writes, tenant isolation.
+- [Inbound webhooks](/docs/extend/webhooks). Tenant-scoped public routes, signature checks, replay windows.
+
+Every extension inherits the same governance, by construction:
+
+- **Approval queue.** A mutating AI tool can only stage a proposal into `action_queue`. The registry throws if a write tool does not stage one, and if a read tool does.
+- **Audit ledger.** Writes through `src/lib/revenue-os/` land in `audit_log` with actor, origin, and before/after state. No secrets.
+- **Module gating.** Disable a module and its nav disappears, its pages show a disabled notice, its API refuses, and its tools report unavailable to the in-app agent and to MCP.
+- **MCP exposure.** The MCP server offers the same registry the UI uses, with the same impact tier and the same gates.
+
+Domain writes belong in `src/lib/revenue-os/`. Route handlers, UI, cron, webhooks, and AI tools are adapters. They do not own business rules.
+
+The field-by-field contract still lives in `docs/contributing/EXTENDING.md` in the repository. These pages are the operator-and-agent version of that contract, kept to shipped behavior.

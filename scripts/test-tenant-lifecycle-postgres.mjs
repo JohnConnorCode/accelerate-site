@@ -1,3 +1,5 @@
+import assert from "node:assert/strict";
+import { bootstrapOwnerMembershipSql } from "./lib/bootstrap-owner-membership.mjs";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -184,6 +186,49 @@ try {
     .split("\n")
     .at(-1);
   console.log(output);
+  // Exercise the actual installer transaction over the existing lifecycle RPC.
+  run(psql, [
+    ...args,
+    "-c",
+    `UPDATE tenants SET config='{"founder":{"email":"founder@example.com"}}'::jsonb WHERE id=accelerate_default_tenant_id();`,
+  ]);
+  const installSql = bootstrapOwnerMembershipSql(
+    "acce1e8e-0000-4000-8000-000000000001",
+    "11111111-1111-4111-8111-111111111111",
+    "founder@example.com",
+  );
+  run(psql, args, { input: installSql });
+  run(psql, args, { input: installSql });
+  assert.equal(
+    run(psql, [
+      ...args,
+      "-t",
+      "-A",
+      "-c",
+      `SELECT count(*) FROM platform_audit_log WHERE tenant_id=accelerate_default_tenant_id() AND action='tenant.membership_granted';`,
+    ]).trim(),
+    "1",
+  );
+  run(psql, [
+    ...args,
+    "-c",
+    `UPDATE tenant_memberships SET status='revoked' WHERE tenant_id=accelerate_default_tenant_id();`,
+  ]);
+  const refused = spawnSync(psql, args, { input: installSql, encoding: "utf8" });
+  assert.notEqual(refused.status, 0);
+  assert.equal(
+    run(psql, [
+      ...args,
+      "-t",
+      "-A",
+      "-c",
+      `SELECT status FROM tenant_memberships WHERE tenant_id=accelerate_default_tenant_id();`,
+    ]).trim(),
+    "revoked",
+  );
+  console.log(
+    "PASS: installer owner activation uses canonical audit once; replay is inert and revoked membership remains revoked.",
+  );
 } finally {
   if (started) spawnSync(pgCtl, ["-D", data, "-m", "fast", "-w", "stop"], { encoding: "utf8" });
   if (root.startsWith(join(tmpdir(), "accelerate-tenant-lifecycle-")))

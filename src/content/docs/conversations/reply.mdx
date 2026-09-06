@@ -1,0 +1,31 @@
+---
+title: "Reply to a conversation"
+description: "Find the right thread, review the recipient, and check the send result."
+updated: "2026-09-05"
+---
+
+Use Conversations when you need to answer a customer with the earlier messages in view. You need access to the workspace and a working send connection for the relevant channel.
+
+## 1. Find the thread
+
+Open **Conversations**. Search for the person or subject, or narrow the list by status, channel, assignment, unread messages, or follow-up. Open the conversation and confirm that it belongs to the person you intend to contact.
+
+## 2. Review the context
+
+Read the recent messages and check the linked contact and opportunity. Link the conversation to the relevant records when needed so the reply is visible in the right business context.
+
+## 3. Write and send
+
+Write your reply in the composer. Check the recipient and complete message, then follow the composer's send confirmation. This is a manual send; it uses the conversation sender rather than requiring you to create an AI proposal first.
+
+If the assistant prepared the reply, review its staged proposal through [Approvals](/docs/command-center/approvals). Both paths use the same underlying send service.
+
+## 4. Confirm the result
+
+Check the send result in the conversation. A provider accepting a send is different from a later delivery event. If the request times out or the result is uncertain, inspect the original request before sending again.
+
+## If a reply cannot be sent
+
+Check the channel connection in [Setup Center](/docs/workspace/setup). Gmail replies also need a valid thread anchor. A missing thread anchor is refused rather than silently creating a new conversation. For developers, this includes the Message-ID and References used for RFC threading.
+
+Share the visible error and conversation identifier with your administrator when you need help. Do not include credentials.

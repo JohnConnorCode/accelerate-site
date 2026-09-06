@@ -1,0 +1,21 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "commitment-watch",
+  "name": "Overdue commitments",
+  "description": "Find unfinished tasks whose due date has passed.",
+  "category": "intelligence",
+  "defaultEnabled": false,
+  "navLinks": [],
+  "routes": [],
+  "aiToolNames": ["run_commitment_watch"],
+  "report": {
+    "version": 1,
+    "sources": [
+      {
+        "name": "records",
+        "type": "report_tasks",
+        "columns": ["id", "title", "status", "due_date"]
+      }
+    ]
+  }
+}

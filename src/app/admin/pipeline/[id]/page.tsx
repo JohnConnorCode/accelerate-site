@@ -31,7 +31,9 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
-import { REVENUE_STAGE_META, type RevenueStage } from "@/lib/revenue-os/types";
+import { useKanbanColumns } from "@/lib/kanban/useKanbanColumns";
+
+type RevenueStage = string;
 
 type Item = Record<string, unknown> & { id: string };
 interface RecordModel {
@@ -76,6 +78,14 @@ interface RecordModel {
   conversations: Item[];
   meetings: Item[];
   proposals: Item[];
+  engagement: {
+    id: string;
+    business_name: string | null;
+    status: string | null;
+    next_milestone: { key: string; title: string | null } | null;
+    blockers: Array<{ title: string; due_date: string | null }>;
+    handed_off_at: string | null;
+  } | null;
   activity: Array<
     Item & {
       activity_type: string;
@@ -204,8 +214,10 @@ export default function OpportunityRecordPage() {
     }
   }
 
+  const { columns: pipelineColumns } = useKanbanColumns("pipeline");
   const opportunity = record?.opportunity;
   const stage = opportunity?.canonical_stage ?? "new";
+  const stageLabel = pipelineColumns.find((column) => column.column_key === stage)?.label ?? stage;
   return (
     <div className="space-y-5 pb-12">
       <Link
@@ -305,7 +317,7 @@ export default function OpportunityRecordPage() {
               {[
                 {
                   label: "Stage",
-                  value: REVENUE_STAGE_META[stage].label,
+                  value: stageLabel,
                   note: `${opportunity.probability}% probability`,
                   icon: Target,
                 },
@@ -516,6 +528,48 @@ export default function OpportunityRecordPage() {
                     </button>
                   </form>
                 </Section>
+
+                {record.engagement && (
+                  <Section
+                    id="delivery"
+                    title="Delivery"
+                    count={record.engagement.blockers.length || undefined}
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-[var(--admin-ink)]">
+                          {record.engagement.business_name || "Engagement"}
+                        </p>
+                        <span className="rounded-full bg-black/[0.05] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-[var(--admin-muted)] dark:bg-white/[0.07]">
+                          {record.engagement.status || "onboarding"}
+                        </span>
+                      </div>
+                      <p className="admin-copy text-xs">
+                        Next milestone:{" "}
+                        <span className="font-semibold text-[var(--admin-ink)]">
+                          {record.engagement.next_milestone?.title || "All commitments complete"}
+                        </span>
+                      </p>
+                      {record.engagement.blockers.length > 0 && (
+                        <ul className="space-y-1.5">
+                          {record.engagement.blockers.map((blocker) => (
+                            <li
+                              key={`${blocker.title}-${blocker.due_date}`}
+                              className="flex items-center justify-between gap-2 rounded-lg bg-black/[0.025] px-2.5 py-1.5 text-xs dark:bg-white/[0.03]"
+                            >
+                              <span className="min-w-0 flex-1 truncate font-medium text-[var(--admin-ink)]">
+                                {blocker.title}
+                              </span>
+                              <span className="shrink-0 tabular-nums text-[var(--admin-muted)]">
+                                {blocker.due_date || "No date"}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </Section>
+                )}
 
                 <Section id="contact" title="Contact">
                   {record.contact ? (

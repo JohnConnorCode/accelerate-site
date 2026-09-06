@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createRevenueTask } from "@/lib/revenue-os/tasks";
+import { createRevenueTask, patchOperatorTask, deleteOperatorTask } from "@/lib/revenue-os/tasks";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -95,44 +95,19 @@ export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = auth.database;
-  const body = await request.json();
-  const { id, status, snoozed_until, title, description, due_date, priority } = body;
-
-  if (!id) {
-    return NextResponse.json({ error: "Task id is required" }, { status: 400 });
+  try {
+    const body = await request.json();
+    const task = await patchOperatorTask(auth.database, {
+      ...body,
+      actorEmail: auth.user.email || "founder",
+    });
+    return NextResponse.json({ task });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not update task" },
+      { status: 400 },
+    );
   }
-
-  const updateData: Record<string, unknown> = {};
-
-  if (status) {
-    updateData.status = status;
-    if (status === "completed") {
-      updateData.completed_at = new Date().toISOString();
-    }
-  }
-  if (snoozed_until) {
-    updateData.snoozed_until = snoozed_until;
-    updateData.status = "snoozed";
-  }
-  if (title !== undefined) updateData.title = title;
-  if (description !== undefined) updateData.description = description;
-  if (due_date !== undefined) updateData.due_date = due_date;
-  if (priority !== undefined) updateData.priority = priority;
-
-  const { data, error } = await supabase
-    .from("tasks")
-    .update(updateData)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
-  }
-
-  return NextResponse.json({ task: data });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -147,12 +122,13 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Task id is required" }, { status: 400 });
   }
 
-  const { error } = await supabase.from("tasks").delete().eq("id", id);
-
-  if (error) {
-    console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+  try {
+    await deleteOperatorTask(supabase, id, auth.user.email || "founder");
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not delete task" },
+      { status: 400 },
+    );
   }
-
-  return NextResponse.json({ success: true });
 }

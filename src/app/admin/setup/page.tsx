@@ -203,6 +203,16 @@ const setupGuides: Record<string, SetupGuide> = {
     href: "/admin/integrations#workspace-provider-heading",
     linkLabel: "Configure OpenRouter",
   },
+  mcp_server: {
+    steps: [
+      "Revenue OS includes a built-in MCP server complying with the 2024-11-05 protocol specification.",
+      "For Claude Desktop or Claude Code, configure stdio execution using scripts/revenue-os-mcp.ts.",
+      "For ChatGPT or Cursor, connect via the HTTP JSON-RPC endpoint at /api/mcp with your REVENUE_OS_API_KEY Bearer token.",
+      "All 14 registered AI tools run with bounded query limits; mutations always stage in action_queue for founder review.",
+    ],
+    href: "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/MCP-SETUP.md",
+    linkLabel: "Open MCP Integration Guide",
+  },
   contact_importer: {
     steps: [
       "Apply migrations/20260816-contact-importer.sql after the Revenue OS migration.",

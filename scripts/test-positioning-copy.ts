@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { marketingPositioning } from "../src/content/marketing-positioning";
 
 const ROOT = process.cwd();
-const CONTRACT = "docs/MARKETING-POSITIONING-CONTRACT.md";
+const CONTRACT = "docs/contracts/MARKETING-POSITIONING-CONTRACT.md";
 
 assert.ok(existsSync(CONTRACT), "the durable marketing positioning contract is missing");
 const contract = readFileSync(CONTRACT, "utf8");
@@ -74,6 +74,9 @@ const scopedFiles = [
     "src/content/verticals.ts",
     "src/content/industry-visuals.ts",
     "src/content/open-source.ts",
+    "src/content/email-sequences.ts",
+    "src/lib/email/registry.ts",
+    "src/lib/email/templates.ts",
     "src/lib/search/index.ts",
     "src/app/(marketing)/page.tsx",
     "src/app/layout.tsx",
@@ -98,6 +101,9 @@ const banned = [
   { re: /\bzero-latency\b/i, why: "consultant filler" },
   { re: /\bhigh-leverage\b/i, why: "consultant filler" },
   { re: /engineer(?:ed|ing)? (?:them|it) out of existence/i, why: "opaque consultant framing" },
+  { re: /The Accelerate Team/, why: "old team sign-off; prospect mail is signed by the founder" },
+  { re: /Solution Generator/, why: "old product name; the artifact is a plan" },
+  { re: /Launch package/, why: "old packaging; recommend the smallest solution for the business" },
 ];
 
 // Mutation checks: prove the guard catches the two regressions that prompted

@@ -20,7 +20,6 @@ import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { Button } from "@/components/ui/Button";
 import { SectionMarker } from "@/components/v2/SectionMarker";
 import { BlueprintGrid } from "@/components/v2/BlueprintGrid";
-import { fadeUp } from "@/lib/animations";
 import { serviceOverviewItems } from "@/content/services-overview";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -131,11 +130,7 @@ export function ServicesOverview() {
           })}
         </div>
 
-        <AnimateOnScroll
-          variants={fadeUp}
-          delay={0.15}
-          className="mt-12 flex flex-wrap items-center gap-4"
-        >
+        <AnimateOnScroll delay={0.15} className="mt-12 flex flex-wrap items-center gap-4">
           <Link href="/contact">
             <Button variant="primary" size="lg">
               Book a Free Strategy Call

@@ -118,11 +118,25 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    // Send email notifications (non-blocking — form succeeds even if email fails)
-    try {
-      await sendContactEmail(formData);
-    } catch (emailError) {
-      console.error("Email send failed (submission still saved):", emailError);
+    // Send email notifications (non-blocking: form succeeds even if email fails).
+    // QA journeys submit with reserved markers (see scripts/qa-inbound-pipeline.mjs):
+    // their canonical + operator writes are the assertion target, so those stay,
+    // but no outbound mail goes anywhere: otherwise every journey run pages the
+    // founder with admin alerts for a fixture lead.
+    const qaAddress = email.trim().toLowerCase();
+    const isQaSubmission =
+      qaAddress.endsWith("@example.invalid") ||
+      qaAddress.startsWith("qa-") ||
+      qaAddress.startsWith("qa_") ||
+      utm?.utm_source === "qa-journey";
+    if (isQaSubmission) {
+      console.log("[contact] QA submission: outbound email suppressed, record kept.");
+    } else {
+      try {
+        await sendContactEmail(formData);
+      } catch (emailError) {
+        console.error("Email send failed (submission still saved):", emailError);
+      }
     }
 
     return NextResponse.json({ success: true });

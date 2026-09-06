@@ -189,6 +189,7 @@ export function EmailComposeModal({
               <select
                 value={selectedTemplate}
                 onChange={(e) => applyTemplate(e.target.value)}
+                aria-label="Template"
                 className="admin-field"
               >
                 {templates.map((t) => (

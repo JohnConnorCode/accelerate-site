@@ -1,6 +1,6 @@
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { rateLimit } from "@/lib/rate-limit";
 import { openRouterJson } from "@/lib/ai/openrouter";
 import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
@@ -97,7 +97,7 @@ function validateProposal(value: unknown) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("proposals");
   if (auth instanceof NextResponse) return auth;
 
   const adminKey = auth.user.email ?? auth.user.id;

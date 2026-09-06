@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/auth";
-import { attachRevenueLinkage } from "@/lib/revenue-os/legacy-adapter";
+import { requireAdminForModule } from "@/lib/admin/module-guard";
+import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("clients");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -20,10 +20,15 @@ export async function GET(request: NextRequest) {
       console.error("Database error:", error.message);
       return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
     }
-    const linked = await attachRevenueLinkage(supabase, data ? [data] : [], {
-      sourceRecordType: "client",
-      emailField: "contact_email",
-    });
+    const linked = await attachRevenueLinkageWithTelemetry(
+      supabase,
+      data ? [data] : [],
+      {
+        sourceRecordType: "client",
+        emailField: "contact_email",
+      },
+      { route: "admin-clients" },
+    );
     return NextResponse.json({
       client: linked.records[0] ?? data,
       canonicalSchemaReady: linked.schemaReady,
@@ -56,10 +61,15 @@ export async function GET(request: NextRequest) {
     0,
   );
 
-  const linked = await attachRevenueLinkage(supabase, data || [], {
-    sourceRecordType: "client",
-    emailField: "contact_email",
-  });
+  const linked = await attachRevenueLinkageWithTelemetry(
+    supabase,
+    data || [],
+    {
+      sourceRecordType: "client",
+      emailField: "contact_email",
+    },
+    { route: "admin-clients" },
+  );
 
   return NextResponse.json({
     clients: linked.records,
@@ -70,7 +80,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("clients");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;
@@ -126,7 +136,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requireAdminForModule("clients");
   if (auth instanceof NextResponse) return auth;
 
   const supabase = auth.database;

@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveOpenRouterCredential } from "@/lib/ai/openrouter-credentials";
+import { handleMcpRequest, MCP_REVENUE_OS_PROMPTS } from "./mcp-server";
 import {
   INTEGRATION_REGISTRY_VERSION,
   integrationRegistry,
@@ -377,6 +378,26 @@ export async function loadIntegrationCatalog(
   const latestAgent = agentResult.data?.[0];
   const latestSchema = schemaResult.data?.[0];
 
+  // A real probe, not a hardcoded constant: actually dispatch tools/list
+  // through the same handler /api/mcp and every tenant MCP endpoint use, so
+  // this reflects whether the tool registry genuinely loads and responds,
+  // not whether the setup author remembered to keep a status string honest.
+  let mcpStatus: "success" | "failed" = "failed";
+  let mcpToolCount = 0;
+  try {
+    const probeResponse = await handleMcpRequest(
+      { jsonrpc: "2.0", id: "setup-probe", method: "tools/list" },
+      { supabase, actorEmail: "setup-check@internal" },
+    );
+    const tools = (probeResponse?.result as { tools?: unknown[] } | undefined)?.tools;
+    if (Array.isArray(tools) && tools.length > 0) {
+      mcpStatus = "success";
+      mcpToolCount = tools.length;
+    }
+  } catch {
+    mcpStatus = "failed";
+  }
+
   return buildIntegrationCatalog({
     schemaAvailable: evidenceTablesAvailable,
     configured: {
@@ -389,8 +410,18 @@ export async function loadIntegrationCatalog(
       resend: configured("RESEND_API_KEY", "RESEND_FROM_EMAIL"),
       resend_webhooks: configured("RESEND_WEBHOOK_SECRET"),
       openrouter: Boolean(openRouterCredential),
+      mcp: mcpStatus === "success",
+      whatsapp: configured("WHATSAPP_APP_SECRET") || configured("WHATSAPP_ACCESS_TOKEN"),
     },
     runtime: {
+      mcp: {
+        status: mcpStatus,
+        checkedAt,
+        detail:
+          mcpStatus === "success"
+            ? `MCP JSON-RPC 2.0 protocol server responded with ${mcpToolCount} tools and ${MCP_REVENUE_OS_PROMPTS.length} prompt workflows`
+            : "MCP JSON-RPC 2.0 protocol server did not respond to a live tools/list probe",
+      },
       supabase: {
         status:
           !evidenceTablesAvailable ||

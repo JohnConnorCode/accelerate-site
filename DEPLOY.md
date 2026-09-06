@@ -2,6 +2,31 @@
 
 The repository supports a prebuilt Vercel release path, but every fork must link its own hosting project and configure its own environment.
 
+## Account and project preflight
+
+Read `deployment-target.json` before any hosting diagnosis. The Accelerate installation expects:
+
+| Setting       | Expected value                     |
+| ------------- | ---------------------------------- |
+| Project       | `accelerate-site`                  |
+| Project ID    | `prj_w46n3AgV4L4IGEJZ0WzCBCZhDTot` |
+| Team ID       | `team_aoXdtupaCmY2LDwBtCd4d7If`    |
+| Canonical URL | `https://www.acceleratewith.us`    |
+
+These are nonsecret installation identifiers. Fork maintainers must replace them with their own reviewed target; never change them merely to make an unexpected login pass.
+
+Run `vercel whoami` and `vercel teams ls` first. Confirm access to the expected team ID, then inspect the exact project:
+
+```bash
+vercel api '/v9/projects/prj_w46n3AgV4L4IGEJZ0WzCBCZhDTot?teamId=team_aoXdtupaCmY2LDwBtCd4d7If'
+```
+
+If access fails, correct the CLI login with `vercel login` using the existing project owner's account or an authorized team member. Do not create a replacement project, copy another checkout's hosting configuration, investigate billing, or infer suspension from an unrelated account. If the request fails after identity matches, distinguish network/authentication errors from an explicit provider restriction.
+
+After confirming access, use `vercel link --project accelerate-site --scope <verified-team-slug>` in this checkout and run `npm run deploy:check`. The check compares the local link and environment overrides with the declared IDs and verifies authenticated access to that exact project/team. It stops before configuration pull, Vercel build, upload or rollback when identity cannot be verified.
+
+Observed during handoff: CLI login `website-4827` listed only `theresa-vs-projects`, which could not find this project. Correct account access is the immediate prerequisite. The separate GitHub status text `Account is blocked.` does not establish the cause of that CLI mismatch or prove the intended hosting account is suspended.
+
 ## First deployment
 
 1. Create or select a Vercel project you control.

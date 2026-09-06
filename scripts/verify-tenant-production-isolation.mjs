@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
 
-const PROJECT_REF = "skjypuwkceoiunyhhqlm";
+const PROJECT_REF = process.env.ISOLATION_PROOF_PROJECT_REF;
+if (!PROJECT_REF) {
+  throw new Error(
+    "ISOLATION_PROOF_PROJECT_REF is required. The proof pins every mutation to one Supabase project you control; it must never be inferred from the ambient environment.",
+  );
+}
 const CONFIRMATION = "--confirm-controlled-production-isolation";
 if (!process.argv.includes(CONFIRMATION)) {
   throw new Error(`Refusing production mutations without ${CONFIRMATION}`);
@@ -21,7 +26,7 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 assert.equal(
   new URL(url).hostname,
   `${PROJECT_REF}.supabase.co`,
-  "controlled isolation proof must target only the fixed Accelerate Supabase project",
+  "controlled isolation proof must target only the pinned Supabase project",
 );
 const service = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },

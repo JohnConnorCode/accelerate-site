@@ -1,0 +1,4859 @@
+{
+  "schemaVersion": 1,
+  "auditedExport": "2026-09-05T19:55:31.272Z",
+  "originalCount": 250,
+  "audit": [
+    {
+      "key": "feature-board-dependency-integrity",
+      "id": "b673da9d-62a7-4fe0-8392-7e9f664ab7ec",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Enforce Feature Board dependency integrity",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "identity-resolution-service",
+      "id": "55a39fe1-8fc5-4653-8bae-7b644e0e3f22",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Implement deterministic contact and company identity resolution",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "activity-ledger-normalization",
+      "id": "b40b6172-74fe-46b8-a70d-f3d4f7d1ad33",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Normalize the cross-channel activity ledger",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "pipeline-stage-board",
+      "id": "921deea8-13a2-4393-bad9-0f6ada763638",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish the canonical Pipeline workspace",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "record-detail-workspace",
+      "id": "eeecf788-8b01-4510-a201-1fb4a5944064",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build contextual contact, company, and opportunity details",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "pipeline-saved-views",
+      "id": "3bcf90a1-19fa-4aca-a735-e68dc4f7ad2f",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add useful Pipeline saved views and ownership filters",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "task-dedup-service",
+      "id": "0907829e-ba39-4271-8e06-11087aac39b8",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the canonical task generator with deduplication",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "priority-selector-service",
+      "id": "c862bea9-36e2-416b-8dea-1bfaef4624d6",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Create the shared operator-priority selector",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "today-operator-inbox",
+      "id": "5c3fa225-4b9d-46f3-a516-dcf3d19b4cef",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish Today as the prioritized operator inbox",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "canonical-attribution",
+      "id": "0a019b64-b7ff-4f42-8f00-2d248ba27640",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Consolidate analytics on canonical source-to-revenue data",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "cloneable-command-center-contract",
+      "id": "2c300091-a149-46fa-93d9-70fd9e196c79",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Adopt instance-per-client cloning as the Command Center product shape",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "tenant-config-seam",
+      "id": "4d624ee4-cf51-43ba-a4b7-9a19defceb45",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Extract every business fact into one tenant configuration",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "shared-database-multi-tenancy-contract",
+      "id": "4d8ed1d8-3bbb-435e-b500-eb005dfec7f9",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Adopt shared-database multi-tenancy as the Command Center product shape",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "tenant-control-plane-schema",
+      "id": "fa2b4a7b-6221-42a7-9bde-3ba70f860036",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the tenant control plane and backfill Accelerate",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "tenant-context-authorization",
+      "id": "2e8076bf-e643-4daa-8438-7c412719f542",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Enforce tenant context through authentication and domain services",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "tenant-workspace-provisioning",
+      "id": "42a7acc7-46d1-4058-bdd2-8a7320e03c77",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Ship tenant workspaces, switching, and founder provisioning",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "atomic-execution-claims",
+      "id": "1405a833-f14e-4194-b32a-7f627c5cb357",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Enforce atomic claims and idempotency for jobs and actions",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "setup-control-plane",
+      "id": "4bccf0e3-20ca-492b-993b-21b2f50af26c",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish Setup Center as the operational control plane",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "secret-storage-hardening",
+      "id": "c4f79a67-b80b-436a-8320-6787b5b96557",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Harden encrypted secret and token storage",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "tenant-provider-public-boundaries",
+      "id": "ec926d3d-f857-4da0-962b-512773b196c3",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Tenant-isolate providers, public intake, webhooks, and jobs",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "tenant-isolation-cutover",
+      "id": "e5c0158d-c4c1-49d6-b018-fe56c25d009e",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Prove multi-tenant isolation and activate the first client",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "integration-capability-platform",
+      "id": "77b862ef-aded-49e8-ba7f-bc0e961030cf",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "system-health-report"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the provider capability platform and integration catalog",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "communication-sender-service",
+      "id": "50fa9cd7-3d04-45e7-a053-47d468ee2c44",
+      "revision": 1,
+      "status": "blocked",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish one auditable communication sender",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "openrouter-ai-gateway",
+      "id": "238ed744-d1e6-4ace-ba6d-1e6875382753",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Standardize every AI workflow on the OpenRouter gateway",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "founder-note-capture",
+      "id": "334a1988-660a-4c59-a660-5a080b2b6f27",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": true,
+      "title": "Give the founder's own knowledge a way in",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "google-oauth-first-sync",
+      "id": "b29a9372-9489-4a3e-8357-497274c478de",
+      "revision": 2,
+      "status": "blocked",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Connect Google OAuth and complete the first Workspace sync",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "gmail-incremental-sync",
+      "id": "7447b1e5-c545-4c2c-9346-31a87fdd4db7",
+      "revision": 1,
+      "status": "blocked",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "google-oauth-first-sync"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Import Gmail incrementally with cursor recovery",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "gmail-thread-idempotency",
+      "id": "7d6d3c2e-fbee-4b39-8939-1ca4d7643427",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "communication-sender-service",
+        "gmail-incremental-sync"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Preserve Gmail threading and message idempotency",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "gmail-record-association",
+      "id": "2c13c895-94e3-4f77-8999-56a2be14f950",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Associate Gmail threads with canonical revenue records",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "conversations-operator-inbox",
+      "id": "6b9476fc-81a7-4980-be4d-56e651933529",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish Conversations as the unified communication inbox",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "calendar-sync-association",
+      "id": "5237d4f6-7e12-41da-a16c-02ff0d2668a4",
+      "revision": 1,
+      "status": "blocked",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "google-oauth-first-sync"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Synchronize Calendar events and associate revenue records",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "second-brain-see",
+      "id": "54f766f4-8d08-44a9-981f-d18f29af939e",
+      "revision": 1,
+      "status": "blocked",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "initiative",
+      "unverifiedPrerequisites": [
+        "calendar-sync-association",
+        "gmail-incremental-sync",
+        "google-oauth-first-sync"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Phase A: give the system eyes",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "drive-folder-boundary",
+      "id": "d77c50f1-da2f-477b-ae24-8c68980e6d08",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "google-oauth-first-sync"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Enforce selected-folder Drive access boundaries",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "drive-content-indexing",
+      "id": "f615aa27-5f36-4fc9-a826-e6164742e727",
+      "revision": 1,
+      "status": "planned",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Extract and index approved Drive documents",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "audit-ledger-coverage",
+      "id": "4c85b378-a349-48df-a0f2-6ac23815614a",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Complete before/after audit coverage for material changes",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-tool-registry",
+      "id": "90aff928-df9d-4281-aafc-f242835ad18f",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Complete AI tool registry and impact tiers",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-bounded-context",
+      "id": "6d8fed66-ee0e-4b8e-b4a9-99f0c7c46342",
+      "revision": 6,
+      "status": "planned",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Enforce bounded AI context and grounding rules",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-command-runtime",
+      "id": "20fa6cd0-d742-4b8c-b732-8197c511d9e6",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "ai-bounded-context"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the persistent streamed AI command runtime",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-run-traces",
+      "id": "0f3d282c-982d-43b5-854b-0c43ec8489fb",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Complete AI run traces, tool evidence, errors, and usage",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-command-workspace",
+      "id": "59856f2a-b2d2-4e9d-87b4-5ed706e0b951",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Ship one operator-grade AI workspace everywhere",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-confirmation-system",
+      "id": "f9333123-b83f-4497-bcc1-4eed00ccb3a6",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish the shared AI confirmation system",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "drive-provenance-retrieval",
+      "id": "3cb8b864-df2c-4796-81ec-9583847d9d24",
+      "revision": 1,
+      "status": "planned",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "ai-bounded-context",
+        "drive-content-indexing"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Ground AI retrieval in Drive provenance and citations",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "second-brain-remember",
+      "id": "9fc7bd3c-1d31-4c59-917f-55297be71829",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "drive-provenance-retrieval",
+        "second-brain-see",
+        "ai-bounded-context",
+        "drive-content-indexing"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Phase B: a knowledge substrate with provenance",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "playwright-inbound-pipeline",
+      "id": "ff735c21-6eae-4490-a61d-52e27c1a8f3f",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": true,
+      "title": "Add Playwright journey for inbound capture and pipeline progression",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "autonomous-inbound-responder",
+      "id": "7a49e8d6-fc52-4587-9856-a4fe9e05c450",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "communication-sender-service"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Answer every inbound inquiry inside an approved response policy",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "scheduling-substrate-decision",
+      "id": "b9705fec-9219-4d68-b6fc-63f59cfb7e6e",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Decide the scheduling substrate",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "workshelter-reuse-baseline",
+      "id": "fa637a2b-9703-458c-b5a2-bf2df5fb7157",
+      "revision": 5,
+      "status": "in_progress",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "preserve active attempt",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "business-workflow-plugin-exemplars",
+      "id": "174dc615-a603-47f1-8abb-20e314616c90",
+      "revision": 2,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Deliver actionable invoicing, onboarding and meeting workflow plugins",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-data-boundary-hardening",
+      "id": "30744b53-b524-4acf-8101-556acd4d8b3a",
+      "revision": 2,
+      "status": "shipped",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Close plugin data grant and tenant-boundary bypasses",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "legacy-api-adapters",
+      "id": "5432f57e-e354-4b37-bb95-efd1da1a77c6",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Back legacy admin reads with canonical adapters",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "business-plugin-demo-scenarios",
+      "id": "684a23df-d937-461d-a91d-86de90ebdf34",
+      "revision": 2,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Demonstrate business plugins and branding across the five fictional workspaces",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "feature-board-interaction-rebuild",
+      "id": "7dc7a953-eb32-44c9-85b8-69ad2f91061d",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Rebuild Feature Board drag, details, and mobile interaction",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "work-completion-truth",
+      "id": "99aea12f-d14e-46ae-a9eb-031eb5a513a0",
+      "revision": 6,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Require truthful coworker completion and durable Sales drafts",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "northstar-runtime-consolidation",
+      "id": "a6424323-cd64-4380-b279-5e54bed0d2e9",
+      "revision": 2,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Audit recent architecture drift and consolidate runtime contracts",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "verification-workflow-efficiency",
+      "id": "c0c75f7c-f3e0-4b13-9f89-1896f9a880e2",
+      "revision": 3,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Make commits fast while preserving reliable review and release verification",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "admin-settings-consolidation",
+      "id": "d74a8032-ff28-4c22-a4d2-4b6bb7e209e7",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Consolidate Settings and connection ownership",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "bundled-report-plugins",
+      "id": "f0cf301d-b726-4015-b960-77cf17f4ad20",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Prove the plugin runtime with four switchable business reports",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "revenue-os-production-migration",
+      "id": "fa1ee465-9282-478c-b17b-e61612f4980e",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Verify the production Revenue OS schema",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "campaign-saved-audiences",
+      "id": "2728ee42-6763-47a9-b700-f46fc27c4fe8",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add canonical saved audiences and explainable campaign eligibility",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "feature-board-operational",
+      "id": "6657f42d-3973-4d4a-b4a2-0f919d8fedec",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Operate the Feature Board as the delivery source of truth",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "admin-a11y-keyboard-mobile",
+      "id": "8a0a3286-da60-44c4-a472-4f271e4de824",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "route-state-resilience",
+        "admin-shell-design-system"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Complete keyboard, accessibility, reduced-motion, and mobile parity",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "admin-shell-design-system",
+      "id": "8b5bbaac-0f75-4818-bace-739420dc57ef",
+      "revision": 1,
+      "status": "planned",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Complete the shared professional admin system",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "universal-work-board",
+      "id": "d50afe5d-ad8f-4870-b914-7ec089081c78",
+      "revision": 5,
+      "status": "in_review",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "preserve active attempt",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Make the Feature Board an authoritative human and agent work system",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "email-document-composition",
+      "id": "280c1f16-fb19-4d32-bfad-1ec8a61268e0",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "email-studio-runtime",
+        "workshelter-reuse-baseline"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Extend the shared email document and branded layout library",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "schema-drift-verification",
+      "id": "36f483db-d327-4c4b-b1af-b8c04fd0f579",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add schema-version and drift verification",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "email-studio-runtime",
+      "id": "417fe1d6-cf14-4350-a686-12ad0bf1a20c",
+      "revision": 1,
+      "status": "blocked",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "communication-sender-service"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Restore Email Studio, sent history, and live template publishing",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "install-runbook",
+      "id": "531557a1-8505-44de-be79-60221ec9bbcd",
+      "revision": 6,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "de-vertical-inbound"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Prove a fresh fork reaches its first usable business workspace",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "additional-tools-canonical-parity",
+      "id": "f1abf523-9c76-4119-9388-8b6294f7cc35",
+      "revision": 1,
+      "status": "planned",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "split",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Modernize and canonically integrate every additional admin tool",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "google-token-health-reconnect",
+      "id": "553f0c14-6d34-4e0c-b3f9-651560515b4e",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "google-oauth-first-sync"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add Google token health, scope drift, and reconnect recovery",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "campaign-business-recipes",
+      "id": "8a78155e-46a8-4f16-871b-abf35bbe1834",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-enrollment-personalization",
+        "campaign-stop-conditions",
+        "campaign-workspace-ui"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Ship newsletter, event invitation and reactivation campaign recipes",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "legacy-canonical-reconciliation",
+      "id": "d17be8e8-4026-4a1f-bb11-11de7415611b",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Reconcile legacy records with the canonical model",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "proposal-workspace-ui",
+      "id": "3039a951-a635-4c81-b6d7-f0d56a7b4c81",
+      "revision": 1,
+      "status": "planned",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "proposal-lifecycle-service",
+        "proposal-public-decisions"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish the founder Proposal workspace",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "support-conversation-triage",
+      "id": "59206357-b61c-4cdd-a4ac-a0e5381c532d",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Customer support",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "playwright-gmail-campaign"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add assignment, snooze and a durable needs-reply conversation queue",
+      "classification": {
+        "phase": "E",
+        "initiative": "Customer support",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "gmail-pubsub-watch",
+      "id": "8472b4f8-fae4-4fb6-8498-dd7e74af47e2",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "gmail-incremental-sync"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add Gmail Pub/Sub watch renewal with scheduled fallback",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "integration-adapter-contract",
+      "id": "db9a87ae-4d66-4196-9063-a35757d066ae",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Define the provider integration adapter contract",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "gmail-reply-actions",
+      "id": "36cb962a-dadd-4095-a69a-e52aa60e0a9b",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish reply, local archive, and follow-up actions in Conversations",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "route-state-resilience",
+      "id": "6ebfb3e7-d4eb-4b6c-80a1-8527a69c6d26",
+      "revision": 1,
+      "status": "planned",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "admin-shell-design-system"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Standardize loading, errors, retry, and preserved route state",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "site-capacity-visual-rebuild",
+      "id": "7962964a-a085-4d06-864d-289d00711adf",
+      "revision": 1,
+      "status": "blocked",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Rebuild the public site around capacity liberation and editorial visuals",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "campaign-workspace-ui",
+      "id": "ca46cdcb-d558-4908-9472-623f591bfcf7",
+      "revision": 1,
+      "status": "planned",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-saved-audiences",
+        "email-document-composition",
+        "campaign-dry-run",
+        "campaign-policy-versioning"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish the Campaigns planning and control workspace",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "pipeline-transition-service",
+      "id": "cbac3cfe-3cba-4e3b-a1ae-4af92db1ebb9",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish the canonical pipeline transition service",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "support-coworker-plugin",
+      "id": "d9d39443-f635-4266-92ce-cce63a40016e",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Customer support",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "ai-quality-control-plane",
+        "support-conversation-triage"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Deliver an optional Support plugin for triage, reply drafting and escalation",
+      "classification": {
+        "phase": "E",
+        "initiative": "Customer support",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "integration-adapter-registry-resolution",
+      "id": "ebe4662c-eae2-4b8d-bc0e-4bbf2f1a9ce6",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Make the integration adapter registry the real resolution point",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "support-knowledge-corrections",
+      "id": "157773c4-9253-47e2-aca2-0cf11d0330bd",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Customer support",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "support-coworker-plugin"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Turn flagged answers into reviewed knowledge corrections and regression cases",
+      "classification": {
+        "phase": "E",
+        "initiative": "Customer support",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "de-vertical-inbound",
+      "id": "2a7cbbac-7700-459a-a59d-fcbbbfb121c0",
+      "revision": 1,
+      "status": "planned",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Turn the roofing ingestion path into a configurable playbook",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "gmail-ai-triage-actions",
+      "id": "cfad1c44-42f2-4ca3-a33f-80335324f02b",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "gmail-reply-actions",
+        "ai-bounded-context"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add grounded AI drafting, intent classification, and next-action suggestions",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "support-demo-conformance",
+      "id": "64bcc070-a35f-42a0-8349-4ec6b2a89067",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Customer support",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "support-knowledge-corrections"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Verify Support end to end across all five shared admin demos",
+      "classification": {
+        "phase": "E",
+        "initiative": "Customer support",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "command-palette-tools",
+      "id": "6bf361e3-1e43-4fc7-a154-3b2b28b823b9",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Connect the command palette to real Revenue OS actions",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "precall-briefs",
+      "id": "ffeefb64-6505-407f-b159-6a956b28adf5",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "calendar-sync-association",
+        "ai-bounded-context"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Generate grounded pre-call briefs",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-record-view-contract",
+      "id": "439c2400-78f6-4c5a-9b6c-6c1bf165ee44",
+      "revision": 4,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "custom-data-model"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Build business-specific record screens from supported view contracts",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "postmeeting-workflow",
+      "id": "6ce4bb38-094f-486b-8a02-75337db3678b",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "calendar-sync-association"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build post-meeting notes and commitment extraction",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "google-admin-sync-controls",
+      "id": "d04f5c25-5622-4f54-acf0-1b6eb1da853b",
+      "revision": 1,
+      "status": "planned",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "google-oauth-first-sync"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add scoped Google sync controls to admin integrations",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "proposal-option-presentation",
+      "id": "e5fa2ca8-85fc-4e40-8c0e-cc37c9252835",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-record-view-contract",
+        "proposal-lifecycle-service"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Extend Proposal Studio with branded options, specifications and attachments",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "inventory-stock-plugin",
+      "id": "bebbe169-f3fe-4b90-92bb-90896b07dbfa",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-record-view-contract"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build an optional inventory plugin with audited stock movements",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "purchasing-receipts-plugin",
+      "id": "b4a140c2-f84d-4f7b-b76a-19ccfa4b6b28",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "inventory-stock-plugin"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add supplier purchasing with approved orders and partial receiving",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "calendar-confirmation-flow",
+      "id": "f7b6f3aa-28ba-4867-a349-1d80318c5823",
+      "revision": 1,
+      "status": "planned",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "calendar-sync-association"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add confirmation-gated Calendar create, reschedule, and cancel",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "proposal-delivery-receipts",
+      "id": "fb6c1d69-6861-4981-9ab4-4a14089198ee",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "communication-sender-service",
+        "proposal-lifecycle-service"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Send proposals through the auditable communication service",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "campaign-policy-versioning",
+      "id": "749cd661-fe80-4cf0-84e7-73cb2f22e05e",
+      "revision": 1,
+      "status": "planned",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-saved-audiences",
+        "communication-sender-service"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Enforce campaign policy envelopes and version reapproval",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "proposal-pdf-expiry-followup",
+      "id": "e95374b1-3add-4e9b-93df-9f047c7d95fb",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "proposal-public-decisions"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish proposal PDF, expiry, superseding, and follow-up",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "production-quality-plugin",
+      "id": "e95c7daf-d9fd-427b-9840-5fe66a81f4de",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "purchasing-receipts-plugin",
+        "proposal-option-presentation"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add production jobs with sample approval and quality gates",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "admin-overlay-motion-recovery",
+      "id": "5b88347d-0252-4b89-bf77-bf3a60bfe4f8",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "admin-shell-design-system"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Repair admin overlays, entry motion, tokens, and collapsible navigation",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "campaign-dry-run",
+      "id": "655c7589-6755-4b2a-bff2-b8aceed9f5c8",
+      "revision": 1,
+      "status": "planned",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-saved-audiences",
+        "campaign-policy-versioning"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build campaign dry-run, exclusion, and sample personalization review",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "tenant-ai-sponsorship-control",
+      "id": "856e6130-84fe-4eff-8ad4-fa4f3ec4d69f",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "ai-model-job-registry"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add explicit platform-sponsored AI budgets per tenant",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "mobile-coworker-channel",
+      "id": "a388385e-c4e1-4a9b-9323-00dc3ae4d695",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "support-demo-conformance"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Expose the existing coworker runtime through a governed WhatsApp operator channel",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "campaign-jit-executor",
+      "id": "00514d92-9a18-4ded-a416-5ad43878609a",
+      "revision": 1,
+      "status": "planned",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-policy-versioning",
+        "campaign-enrollment-personalization"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finish the just-in-time internal campaign executor",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-company-research",
+      "id": "27a58cd7-bbca-4bf4-a124-a2b274209151",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "ai-bounded-context"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build grounded company research and revenue-leak analysis",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "campaign-stop-conditions",
+      "id": "88f23151-f8bd-4dc4-a3e6-cdb271915f17",
+      "revision": 1,
+      "status": "planned",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-jit-executor",
+        "campaign-unsubscribe"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Enforce every campaign stop condition immediately",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-opportunity-ranking",
+      "id": "8ac6e285-c68a-4f9f-82e3-456d534fc39a",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "ai-bounded-context"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Rank today\u2019s best opportunities with evidence",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-message-drafting",
+      "id": "9edcd1b4-44a8-4ee5-ad07-e56a4a5e0c10",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "communication-sender-service",
+        "ai-bounded-context"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Draft personalized first-touch and reply messages safely",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-meeting-intelligence",
+      "id": "6d4f19cc-260f-4038-9fdd-7c1fc8121293",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "postmeeting-workflow"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Summarize meetings and extract reviewable commitments",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "analytics-workspace",
+      "id": "24b0e92a-7ae2-4305-9d4d-d3098fba767e",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Rebuild Analytics around decisions and data quality",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-proposal-audit",
+      "id": "acc0b669-9aae-48ae-bf65-a41060a27a9e",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "drive-provenance-retrieval",
+        "proposal-lifecycle-service"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Draft audits and proposals from approved evidence",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "campaign-unsubscribe",
+      "id": "3bb6db66-892c-4c50-ad16-1afcf0495138",
+      "revision": 1,
+      "status": "planned",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-jit-executor"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Complete campaign unsubscribe handling",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-analytics-setup-help",
+      "id": "71440289-5c31-4d6b-aa6f-4eec338e5979",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "ai-bounded-context"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Explain pipeline health, campaign results, forecast risk, and setup",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "proposal-lifecycle-service",
+      "id": "8ef5112c-f077-4c5a-b9d8-24067fcc8029",
+      "revision": 1,
+      "status": "planned",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Complete the proposal lifecycle and version rules",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "setup-behavioral-tests",
+      "id": "9861048e-a28b-4769-b25a-22a29a426ba9",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "system-health-report"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add safe behavioral tests and recovery actions to Setup Center",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "webhook-cron-api-defense",
+      "id": "9a36db0f-ad07-4097-ad1a-b3680346fdcc",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Harden webhook, cron, replay, validation, and rate-limit defenses",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "proposal-public-decisions",
+      "id": "fad6d4ec-9648-47af-a33d-b38dbe24d059",
+      "revision": 1,
+      "status": "planned",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "proposal-lifecycle-service"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Make public proposal views and decisions idempotent",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "notification-dispatch-preferences",
+      "id": "0d4fe2ba-8a4f-4129-83bc-1ed07eac26f1",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "communication-sender-service"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Wire notification preferences into actual dispatch",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-quality-control-plane",
+      "id": "0dae3167-5d30-43c4-9d17-d555ed07d296",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "ai-model-job-registry"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the AI policy, exemplar, ambiguity, and quality control plane",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "api-contract-tests",
+      "id": "15cd544f-9704-4c67-bf5e-4c3af2f5ac4f",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add authenticated API contract and failure tests",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "campaign-enrollment-personalization",
+      "id": "870a7451-c0cb-4f4f-9e3f-34cd63b10aca",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-dry-run",
+        "ai-bounded-context"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Complete campaign enrollment and bounded personalization",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "second-brain-notice",
+      "id": "d8062f88-f572-4c4b-903c-c6674a332e84",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "initiative",
+      "unverifiedPrerequisites": [
+        "notification-dispatch-preferences",
+        "proactive-operator-intelligence",
+        "precall-briefs"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Phase C: notice without being asked",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "campaign-performance-exceptions",
+      "id": "6bddded9-7b78-4781-99fe-1c2f6a22e4a7",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Audience to approved campaign",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-stop-conditions"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Expose campaign performance, exceptions, and recovery",
+      "classification": {
+        "phase": "E",
+        "initiative": "Audience to approved campaign",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "second-brain-act",
+      "id": "e2675e19-9895-44b9-87de-171c39172efb",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "initiative",
+      "unverifiedPrerequisites": [
+        "second-brain-see",
+        "postmeeting-workflow",
+        "automation-policy-registry"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Phase D: a policy registry, not bespoke agents",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "second-brain-learn",
+      "id": "8708ff7f-f094-46a5-bc7c-d22b4b381014",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "initiative",
+      "unverifiedPrerequisites": [
+        "ai-meeting-intelligence",
+        "second-brain-act"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Phase E: link action to outcome",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "playwright-proposal-setup",
+      "id": "aa39159a-f9f4-4651-9eb6-8814b1e77188",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "setup-behavioral-tests",
+        "proposal-public-decisions"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add Playwright journeys for proposals and Setup recovery",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "second-brain-trust",
+      "id": "517be489-af0a-4143-8d01-8c13ebd925d9",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "initiative",
+      "unverifiedPrerequisites": [
+        "second-brain-learn"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Phase F: one accountable surface",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "a11y-visual-qa",
+      "id": "93677994-70fa-4ef8-85a2-81dc83d1bced",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "admin-a11y-keyboard-mobile"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add accessibility, reduced-motion, and visual regression coverage",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ship-command",
+      "id": "3f953ef1-e554-4eca-8b24-5cdca7a1fff0",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "api-contract-tests",
+        "revenue-os-tests"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Create one guarded Revenue OS ship command",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "resend-webhooks",
+      "id": "4a1f4eb2-f62d-4158-bed4-42214fb15c5d",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "communication-sender-service"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": true,
+      "title": "Add Resend delivery webhooks and suppression receipts",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-model-job-registry",
+      "id": "aca51297-d19e-44da-8bb5-862f61233824",
+      "revision": 3,
+      "status": "blocked",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Route every AI job through an audited model registry",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "production-burn-in",
+      "id": "74d4ce07-fd9a-4331-adea-1545844dcc3f",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "production-browser-qa",
+        "system-health-report"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Complete a 14-day automation health burn-in",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "booking-mode-contract-reconciliation",
+      "id": "34796fc1-5305-45bc-a40f-77c9ed13b9ed",
+      "revision": 1,
+      "status": "planned",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Reconcile booking activation and health truth",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "proactive-operator-intelligence",
+      "id": "9712b407-6dc7-4d85-9c7e-8abde70ae7b0",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "ai-bounded-context",
+        "system-health-report"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Deliver proactive operator briefs and leading indicators",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "system-health-report",
+      "id": "86d8b4a7-3fc5-4f4d-b9bd-485e71e1eadd",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the system-health report and freshness thresholds",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "task-operator-workspace",
+      "id": "b385ad65-1757-4716-b14e-7c018671c9e3",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "route-state-resilience"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the canonical Tasks workspace",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "revenue-os-tests",
+      "id": "63adf6ab-2fb5-4e86-a206-eed2066a9249",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-policy-versioning"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add Revenue OS service-level unit coverage",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "identity-review-workbench",
+      "id": "ff6b69ad-c754-4898-9cd5-6306d08c31b5",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the identity review workbench",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "production-browser-qa",
+      "id": "7bdb5319-f877-4c8a-8ce4-2b0d71d120ac",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "ship-command",
+        "google-oauth-first-sync"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Run authenticated production admin QA on desktop and mobile",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "data-quality-repair-center",
+      "id": "9972ce52-f282-4196-b0c9-23c6120e13fa",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "stage-history-analytics-reconciliation",
+        "additional-tools-canonical-parity"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the data-quality repair center",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "open-source-release-readiness",
+      "id": "2b491711-c2a7-473c-ab88-571c69601c7e",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Prepare the repository for a safe public launch",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ai-contact-importer",
+      "id": "488e346b-5b2c-491b-81ae-b5a66d2e5854",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Import and clean ad hoc contacts with AI review and approval",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "stage-history-analytics-reconciliation",
+      "id": "bdced8d5-d08f-4032-8694-85ef2bc0053b",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Reconcile analytics with canonical stage history",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "incident-receipt-recovery-console",
+      "id": "63ca26b7-e1ee-4ed0-999b-2168c53f5018",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "system-health-report"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the incident, receipt, and recovery console",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-module-contract",
+      "id": "693bedb0-fdb0-4c48-8c2a-5cefa8afed93",
+      "revision": 1,
+      "status": "planned",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "guided-first-run-setup"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Define a plugin/module contract for optional business capabilities",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "operating-goals-scorecards",
+      "id": "9a0d21b5-7de8-4140-9074-3def575d4676",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add operating goals and scorecards",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "forecast-scenario-planner",
+      "id": "839cfcde-5e03-46f7-83ee-b9d27fa2c335",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "operating-goals-scorecards",
+        "stage-history-analytics-reconciliation"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add versioned forecast scenario planning",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "playwright-gmail-campaign",
+      "id": "0b38c34a-acfc-42fa-917c-9c72c2bd3d09",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "C",
+      "initiative": "Lead to meeting and follow-up",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-performance-exceptions",
+        "campaign-stop-conditions",
+        "campaign-business-recipes"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add Playwright journeys for Gmail linking, reply, campaign approval, pause, and stops",
+      "classification": {
+        "phase": "C",
+        "initiative": "Lead to meeting and follow-up",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "won-to-delivery-handoff",
+      "id": "ce4b1797-c948-4e44-8315-b6e4306b2a0b",
+      "revision": 1,
+      "status": "planned",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Create the won-to-delivery handoff",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "client-success-lifecycle-workspace",
+      "id": "6ff88ba3-81ed-471c-ba51-d5383759f16b",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "communication-sender-service",
+        "won-to-delivery-handoff"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the client-success lifecycle workspace",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "governed-bulk-operator-actions",
+      "id": "5aedec16-9c92-44a8-994b-832f271aa645",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add governed bulk operator actions",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "agent-learning-feedback-loop",
+      "id": "f8fa94f1-94da-4f64-88c5-6ad54ff9f0c2",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the governed agent learning feedback loop",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "mcp-ai-tool-bridge",
+      "id": "3c15eada-62ce-45d7-bc6d-8ca5bdfce089",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Expose the governed tool registry through MCP",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "automation-policy-registry",
+      "id": "ceccf7de-3fae-4cc4-b1b6-4a566fca09f6",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-policy-versioning"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Generalize approved automation policies",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "client-instance-portability",
+      "id": "39ad2508-1952-440a-975c-6481ca9f8103",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "install-runbook"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Prove client-instance export and restore portability",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "microsoft-365-workspace-parity",
+      "id": "0aedeef8-1213-466b-898e-33eea3cbf4b1",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "communication-sender-service",
+        "integration-adapter-contract"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add optional Microsoft 365 workspace parity",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "founder-access-rls",
+      "id": "83784fbd-395e-4bbc-be01-60e24c35a66c",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Verify founder-only admin access and service-only data policies",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "stripe-revenue-reconciliation",
+      "id": "fbc7c0cc-15a8-4502-b339-de6aea9fff1c",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "integration-adapter-contract"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add optional Stripe revenue reconciliation",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "slack-notification-approval-surface",
+      "id": "139f15c9-ff8e-45f0-83e2-d9b4fe302da5",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "notification-dispatch-preferences",
+        "integration-adapter-contract"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add optional Slack notification and approval delivery",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "operations-alerting",
+      "id": "fd938b21-25d4-4faa-9910-24ebd102c85e",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "notification-dispatch-preferences",
+        "system-health-report"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add actionable health alerts and recovery runbooks",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "notion-knowledge-source",
+      "id": "19160e40-8f64-48e1-b646-ee77d7d49808",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "drive-provenance-retrieval",
+        "integration-adapter-contract"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add optional Notion knowledge ingestion",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "marketing-positioning-copy-reset",
+      "id": "927d064c-573b-410a-8a61-14cc6a107f78",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Lock the full-service AI positioning and reset public marketing copy",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "guided-first-run-setup",
+      "id": "1783f75a-0456-416d-b2cf-8245f6481915",
+      "revision": 4,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "install-runbook"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Guide an owner from empty workspace to a useful business outcome",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "command-center-demo-mode",
+      "id": "7cf7109e-b2a5-41d3-bd70-b63e0fcec192",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Ship an isolated, persistent Command Center demo mode",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "vertical-business-templates",
+      "id": "9f214d47-6c00-4d55-8cad-47f1a283fb9c",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-module-contract"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Ship 2-3 vertical business templates (roofing, law firm, agency)",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "selected-work-portfolio",
+      "id": "dbdd7ca1-6150-4c4e-aeb5-2a83e1c88bb3",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the selected work portfolio",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "portfolio-art-direction-motion",
+      "id": "e0d96b38-c9e6-49d7-9702-da6e2ab1526d",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Give every portfolio case distinct art direction and restrained motion",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "csv-hubspot-importers",
+      "id": "ff3dcb96-7f06-4d5f-97f0-aa9b7158b0c0",
+      "revision": 4,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "runtime-record-permission-contract"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Bring existing business data into Accelerate without identity drift",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "public-site-motion-performance",
+      "id": "5312d991-b1d2-410e-a03c-b8c12a611812",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Repair public-site motion and static delivery",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "integration-adapter-sdk",
+      "id": "dc0e8b53-5417-4ead-8c38-40ef7eb76e70",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-module-contract"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Publish an integration adapter SDK for third-party connections",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "agent-runbooks",
+      "id": "ebf08d69-3613-47d7-824e-3d5d64c3dfe6",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Maintain agent-ready architecture and recovery runbooks",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "create-accelerate-cli",
+      "id": "faccba65-9cb2-437f-b947-bf63463f7e1a",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-module-contract",
+        "vertical-business-templates"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Ship a create-accelerate scaffolding CLI",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "full-admin-demo-runtime",
+      "id": "9041910b-4f98-4193-8654-86801f33ed4b",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "admin-shell-design-system"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the isolated full-admin demo runtime",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "custom-data-model",
+      "id": "9f61567f-817a-4b15-9f3f-d2db0961f217",
+      "revision": 4,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-module-contract",
+        "runtime-record-permission-contract"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Let businesses extend records without creating another backend",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "roles-and-permissions",
+      "id": "d6f78406-79ce-4655-ac1c-d7479a1e6061",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add real roles, record ownership, and per-object agent permissions",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "full-admin-demo-scenarios",
+      "id": "e07a5d0a-5401-4030-aaf1-8741f83743bd",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Ship three complete full-admin demo scenarios",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "server-side-saved-views",
+      "id": "58512422-d083-4870-99fe-1d2ba36f2c57",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "custom-data-model"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Move saved views server-side and make record pages configurable",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "five-business-admin-demo-suite",
+      "id": "e7911db0-780d-4418-969d-0f08be1686c7",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Deliver five complete targeted business demo workspaces",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "dashboards-and-metrics",
+      "id": "b79d08fe-0205-4e3b-8cc0-912af15c8237",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "stage-history-analytics-reconciliation",
+        "roles-and-permissions"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add user-defined dashboards and metrics",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "public-shell-route-consistency",
+      "id": "d67be044-3cfa-4e64-b165-c3a64579c2f2",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Keep every public route inside the standard site shell",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "workflow-builder",
+      "id": "d1e10fa2-5193-4212-b470-e5b95e2fe766",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "campaign-stop-conditions",
+        "automation-policy-registry"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build a visual trigger, condition, and action workflow designer",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "one-click-vercel-deploy",
+      "id": "1f00d614-8c72-4eb0-90a5-9c2c4a9c4b61",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "install-runbook"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Ship a one-click Vercel deploy button",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "public-records-api",
+      "id": "990aed63-9d16-4806-8e27-3bbe777f4ced",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "roles-and-permissions"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Publish a public REST API for canonical records",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "entity-registry-and-link-graph",
+      "id": "03f172da-8fea-4567-8c58-4b27748436f3",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add an open entity registry and a polymorphic link graph",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "module-route-gating-enforcement",
+      "id": "6d0b609b-ad95-4da1-9518-c2a06dbc0c6d",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "plugin-module-contract"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Enforce module enablement on routes, not only navigation",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "module-contract-gate-hardening",
+      "id": "7b2f59ab-0f89-481c-93c0-a5d6daeed065",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Close the module contract gaps that let unreachable code ship",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "generic-record-merge",
+      "id": "a5b5f76f-a134-4686-9bed-73b0b1c7b7f5",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add foreign-key-safe generic record merge with supersession",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "unified-action-executor",
+      "id": "c0ba727c-225c-49bf-a11d-de5883f65381",
+      "revision": 1,
+      "status": "planned",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Route every write through one executor with reversibility and compensators",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "durable-work-engine",
+      "id": "cfad9f78-6f16-4b3a-9138-ad04a8fab63d",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Generalise tasks and scheduling into a durable Work Engine",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "batch-identity-preflight",
+      "id": "24126ef4-a643-430e-af35-375ba9e9e7c6",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "unified-action-executor"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Resolve identity in batches before any write that could create a person",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "capability-graph-canonical",
+      "id": "f033b93d-f8ac-43cd-b8c1-fa074c9afca0",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build one canonical Capability Graph for workspace capabilities",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "durable-event-bus",
+      "id": "361081e5-43fe-4f46-bff7-49dd3a264543",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "unified-action-executor"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add a durable, replayable event bus with at-least-once delivery",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "evidence-claim-ledger",
+      "id": "aab8a3bd-613c-4449-bc7f-fc7d75bd6f9c",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the Evidence and Claim Ledger for AI-derived facts",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "autonomy-policy-engine",
+      "id": "2b7fe864-52c7-42a7-a352-c4be4a0f4caf",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "action-trust-ladder",
+        "automation-policy-registry"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Unify agent permissions into one Autonomy Policy Engine",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "capability-scoped-data-api",
+      "id": "72535e78-bb06-41f9-9041-154f1ff7d378",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "investigate evidence",
+      "unverifiedPrerequisites": [
+        "unified-action-executor"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Expose one capability-checked data API with no raw database handle",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "coworker-model",
+      "id": "b03f5830-a66b-4582-9d76-896fca1874cb",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Introduce Coworkers as first-class runtime identities with manifests",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "write-provenance-enforcement",
+      "id": "d6cce439-d8d2-4507-b4f4-f13e257e9d8c",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "batch-identity-preflight",
+        "unified-action-executor"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Require declared evidence on every write, enforced at the executor",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "agent-activity-surface",
+      "id": "68469b8f-8b3e-40ab-a3cc-db1c583e3f6f",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add Agent Activity surfaces on every major business record",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-isolate-host",
+      "id": "87c2f035-10c5-4268-b7f8-98b3e1aae548",
+      "revision": 1,
+      "status": "planned",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Run plugin code in an isolate with no ambient authority",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "finance-coworker",
+      "id": "7ee13e73-f6e5-4074-8928-a30bc201e978",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Finance Coworker: revenue tracking, overdue detection, and reconciliation",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-manifest-generator",
+      "id": "fa943704-96df-41b3-8809-d2d7a0954415",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-isolate-host"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Generate the plugin manifest from validators and fail on drift",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-connection-broker",
+      "id": "3fd34cb4-4585-4659-94fb-dda42c7dbb23",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-isolate-host",
+        "integration-adapter-registry-resolution"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Hold plugin credentials in a broker the isolate can never read",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "operations-coworker",
+      "id": "e5f07612-1ff0-463d-b4d9-2a83c2b2f7a8",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Operations Coworker: system health, integration monitoring, and data quality",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "work-scheduler",
+      "id": "59a47be1-ad1c-43fd-a022-75540f866700",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Work scheduler: auto-create recurring daily and weekly coworker work items",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-install-lifecycle",
+      "id": "76eb4ac7-90a8-49e6-a7ae-01f0220dafa5",
+      "revision": 4,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-manifest-generator",
+        "plugin-contract-versioning"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Make plugin activation, upgrade and removal predictable",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-usage-and-budget-metering",
+      "id": "4934b8e5-41bf-4fbc-88ae-c11cc3880c4e",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-install-lifecycle",
+        "tenant-ai-sponsorship-control"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Meter plugin usage and enforce a spend budget that halts cleanly",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "memory-architecture",
+      "id": "7f14d035-e279-4092-8be5-40a6bab30af5",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Memory architecture: five distinct memory categories with unified query",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "budgets",
+      "id": "2ed7bb93-152c-4f33-8d02-6c55627e6270",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Resource budgets for autonomous workers with explicit spending caps",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "action-trust-ladder",
+      "id": "46438728-8314-4f29-acf7-65879fb6ee19",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-install-lifecycle",
+        "unified-action-executor"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add a per-action trust ladder with a permanent irreversible floor",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "trust-graduation-engine",
+      "id": "53d9b98a-f5f3-4b34-9901-9e0c1486d433",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "action-trust-ladder"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Propose trust promotion on evidence and demote automatically on failure",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "action-undo-and-compensation",
+      "id": "2512c9a8-a942-42b1-909a-e7a649d6981f",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "action-trust-ladder"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Give every auto-executed reversible action a working 24-hour undo",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "approval-surfaces-and-edit-feedback",
+      "id": "2d821b9c-8062-4451-8fff-5b41613c0f44",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "trust-graduation-engine",
+        "write-provenance-enforcement"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Make approval inline, batched, and edit-then-approve, with edits as training data",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "tool-bundles-progressive-disclosure",
+      "id": "d1537dec-f09d-4808-8347-bb294e554758",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-manifest-generator"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Group tools into bundles and load them on demand",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "report-recipe-engine",
+      "id": "50304489-3353-4120-a37e-b36a333c0165",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Make server-computed report recipes a registrable primitive",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "declarative-card-renderer",
+      "id": "4f7d113c-00fc-41ea-8877-e19d345d7509",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "report-recipe-engine",
+        "plugin-manifest-generator"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Render dashboard cards from JSON so the Tier 0 floor stays at twenty lines",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "ui-slots-and-sandboxed-panels",
+      "id": "c3828ff3-5860-428e-af53-157b58cbf1e9",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "declarative-card-renderer",
+        "plugin-isolate-host"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add UI slots and sandboxed panels that cannot escape their frame",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-skill-registry",
+      "id": "c3d79a41-de7b-44ee-8858-43c64a035359",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "tool-bundles-progressive-disclosure"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Add a skill registry where instructions can never grant capabilities",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-cli-and-scaffold",
+      "id": "8017d5bb-5b73-4a73-9942-9880d9cd0f48",
+      "revision": 6,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-manifest-generator"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Give developers a working first business plugin with init, build and check",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-conformance-kit",
+      "id": "453ce1d4-4b80-4b66-a1bf-187886f597bb",
+      "revision": 5,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "action-undo-and-compensation",
+        "plugin-install-lifecycle",
+        "plugin-cli-and-scaffold"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Prove a plugin completes a safe business workflow before release",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-exemplar-tier0-chart",
+      "id": "e805b5d3-d1ea-4e8f-bf67-441706bf1d16",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "declarative-card-renderer"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Exemplar Tier 0: a dashboard chart that is pure JSON",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-exemplar-tier1-business-pulse",
+      "id": "c7e28e47-4425-437b-b7e3-f601d61a43a1",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "approval-surfaces-and-edit-feedback",
+        "report-recipe-engine"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Exemplar Tier 1: Business Pulse as one recipe, not five stitched queries",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-exemplar-tier2-meeting-intelligence",
+      "id": "d008bbc2-e88f-4984-a2d3-07508eef2dbb",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "batch-identity-preflight",
+        "durable-event-bus",
+        "action-trust-ladder",
+        "write-provenance-enforcement"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Exemplar Tier 2: Meeting Intelligence, the integration test for every primitive",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-exemplar-tier3-enrichment",
+      "id": "f971c03c-da03-47d6-be03-b2c9c49f440a",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-connection-broker",
+        "plugin-usage-and-budget-metering"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Exemplar Tier 3: external enrichment with a budget and a fill-empty-only policy",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-developer-documentation",
+      "id": "c18a55c7-1e59-476b-89f4-91f4e4a0d1d1",
+      "revision": 5,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-conformance-kit",
+        "plugin-cli-and-scaffold",
+        "plugin-contract-versioning"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Publish one version-matched developer journey and business exemplar guide",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-registry-and-signing",
+      "id": "d562fef4-6ce2-4ca0-b972-08e43fb443d3",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-conformance-kit"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Publish a signed plugin registry with trust tiers that gate defaults",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-vertical-distributions",
+      "id": "1f9de005-6dd5-4793-a1ef-fcde85262793",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-registry-and-signing"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Ship verticals as signed bundles of plugins, settings and layout",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "plugin-contract-versioning",
+      "id": "f4d60b6a-188e-49a5-ae6a-549fded96e41",
+      "revision": 4,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "plugin-cli-and-scaffold"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Version the public extension contracts before inviting external plugins",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "docs-site-infrastructure",
+      "id": "ab4d5139-30e6-457c-a0ba-e10c3071787f",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Product and developer adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Build the documentation site infrastructure at /docs",
+      "classification": {
+        "phase": "E",
+        "initiative": "Product and developer adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "docs-integration-surfaces",
+      "id": "8aef39c1-223d-454d-9bb5-118dd8a3c46f",
+      "revision": 1,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Product and developer adoption",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Wire docs into search, sitemap, navigation and a generated llms index",
+      "classification": {
+        "phase": "E",
+        "initiative": "Product and developer adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "docs-module-coverage-gate",
+      "id": "15dc3021-daa0-43f6-967a-e0ebc04e4bde",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "D",
+      "initiative": "Supported extension platform",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Make a module that ships without documentation a red build",
+      "classification": {
+        "phase": "D",
+        "initiative": "Supported extension platform",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "docs-content-first-pass",
+      "id": "dfbe5ef0-1487-4edb-9676-218eda6af795",
+      "revision": 1,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Product and developer adoption",
+      "disposition": "split",
+      "unverifiedPrerequisites": [
+        "docs-module-coverage-gate"
+      ],
+      "existingStructuredAcceptance": false,
+      "missingSpecificReference": false,
+      "title": "Write the 49-page documentation spine in link-dependency order",
+      "classification": {
+        "phase": "E",
+        "initiative": "Product and developer adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "receivables-collections-plugin",
+      "id": "71806e4f-d6f1-4c9b-8915-8fa22a9b3659",
+      "revision": 3,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Delivery, invoicing and collections",
+      "disposition": "initiative",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline",
+        "plugin-record-view-contract"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Receivables and dispute resolution plugin",
+      "classification": {
+        "phase": "E",
+        "initiative": "Delivery, invoicing and collections",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "retainer-renewals-plugin",
+      "id": "4166be1c-9a7c-465f-847d-29f6317fe5a2",
+      "revision": 2,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Delivery, invoicing and collections",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline",
+        "project-time-margin-plugin"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Retainer entitlements and client renewals plugin",
+      "classification": {
+        "phase": "E",
+        "initiative": "Delivery, invoicing and collections",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "scope-change-control-plugin",
+      "id": "ee2b15c5-2274-4c56-b671-b7c9d981c425",
+      "revision": 2,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Delivery, invoicing and collections",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline",
+        "client-approval-room-plugin",
+        "project-time-margin-plugin"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Scope change and commercial approval plugin",
+      "classification": {
+        "phase": "E",
+        "initiative": "Delivery, invoicing and collections",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "client-approval-room-plugin",
+      "id": "eb3544c6-7e06-4781-9c85-15fd9da05616",
+      "revision": 2,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline",
+        "plugin-record-view-contract"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Client deliverable review and approval room plugin",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "delivery-capacity-plugin",
+      "id": "627141e4-93fd-43ef-9e17-f8a5d2ff4e13",
+      "revision": 2,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline",
+        "won-to-delivery-handoff"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Delivery capacity and assignment planning plugin",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "project-time-margin-plugin",
+      "id": "6d9da4fd-12ac-4caf-a4da-d32495c99f40",
+      "revision": 2,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Delivery, invoicing and collections",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline",
+        "won-to-delivery-handoff"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Project time, billable usage and margin control plugin",
+      "classification": {
+        "phase": "E",
+        "initiative": "Delivery, invoicing and collections",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "client-document-intake-plugin",
+      "id": "019b8d49-fc7e-4ecc-a7d7-5432b2b3dd1d",
+      "revision": 2,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline",
+        "client-approval-room-plugin"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Client document and access readiness plugin",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "vendor-obligations-plugin",
+      "id": "ffdefa87-fb92-4fd8-8d4f-a6918c229e6b",
+      "revision": 2,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Delivery, invoicing and collections",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline",
+        "purchasing-receipts-plugin"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Vendor subscriptions and obligation management plugin",
+      "classification": {
+        "phase": "E",
+        "initiative": "Delivery, invoicing and collections",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "expense-approval-plugin",
+      "id": "009be791-c8d2-4e73-8bc0-07dbc1c9de21",
+      "revision": 2,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Delivery, invoicing and collections",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline",
+        "project-time-margin-plugin"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Expense intake, approval and reimbursement tracking plugin",
+      "classification": {
+        "phase": "E",
+        "initiative": "Delivery, invoicing and collections",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "hiring-workflow-plugin",
+      "id": "a3496667-5e83-47c2-86fd-b3fd612c7dbd",
+      "revision": 2,
+      "status": "backlog",
+      "phase": "E",
+      "initiative": "Business operations and adoption",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "workshelter-reuse-baseline",
+        "delivery-capacity-plugin"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Hiring pipeline and interview coordination plugin",
+      "classification": {
+        "phase": "E",
+        "initiative": "Business operations and adoption",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "release-migration-ledger",
+      "id": "8cbbcf80-4d1d-47a4-8ad2-a2e6029546ea",
+      "revision": 11,
+      "status": "shipped",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Make clean installation and upgrades use a verified migration ledger",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "first-value-business-journey",
+      "id": "94148555-0dc2-4e36-840b-e9ed80637ef2",
+      "revision": 3,
+      "status": "backlog",
+      "phase": "A",
+      "initiative": "First useful business journey",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "guided-first-run-setup"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Deliver the first lead-to-delivery-and-invoice journey",
+      "classification": {
+        "phase": "A",
+        "initiative": "First useful business journey",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "runtime-record-permission-contract",
+      "id": "71cf7f74-6717-48b4-bd39-26c04325e3ea",
+      "revision": 3,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Make record and action permissions consistent for UI, agents and plugins",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "release-restore-upgrade-proof",
+      "id": "0ffce226-c47c-4ba6-80c1-3797b57d4e8c",
+      "revision": 3,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Prove workspace recovery and upgrades preserve business truth",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "release-performance-envelope",
+      "id": "66ce87a5-95fa-4af3-b83e-2d3459b0e177",
+      "revision": 3,
+      "status": "backlog",
+      "phase": "B",
+      "initiative": "Shared runtime and execution quality",
+      "disposition": "clarify",
+      "unverifiedPrerequisites": [
+        "runtime-record-permission-contract"
+      ],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Establish honest scale limits for the business runtime",
+      "classification": {
+        "phase": "B",
+        "initiative": "Shared runtime and execution quality",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "receivables-decision-engine",
+      "id": "66490005-438c-40ec-9f69-d4345b0ea044",
+      "revision": 6,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Delivery, invoicing and collections",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Collections Action Desk: decide the next safe action per account",
+      "classification": {
+        "phase": "E",
+        "initiative": "Delivery, invoicing and collections",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "receivables-case-lifecycle",
+      "id": "3a731af2-0561-4130-845e-80f06fb42148",
+      "revision": 8,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Delivery, invoicing and collections",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Collections Action Desk: persist cases, disputes and payment promises",
+      "classification": {
+        "phase": "E",
+        "initiative": "Delivery, invoicing and collections",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "receivables-approved-reminders",
+      "id": "692eb07e-2246-4f4b-9dc1-2d6e0823c2a2",
+      "revision": 9,
+      "status": "shipped",
+      "phase": "E",
+      "initiative": "Delivery, invoicing and collections",
+      "disposition": "retain history",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Collections Action Desk: send one approved and freshly validated reminder",
+      "classification": {
+        "phase": "E",
+        "initiative": "Delivery, invoicing and collections",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    },
+    {
+      "key": "receivables-workspace-demo",
+      "id": "61261294-c69c-45de-a9c8-ee759ad19e15",
+      "revision": 7,
+      "status": "in_progress",
+      "phase": "E",
+      "initiative": "Delivery, invoicing and collections",
+      "disposition": "preserve active attempt",
+      "unverifiedPrerequisites": [],
+      "existingStructuredAcceptance": true,
+      "missingSpecificReference": false,
+      "title": "Collections Action Desk: deliver the operator workspace and business proof",
+      "classification": {
+        "phase": "E",
+        "initiative": "Delivery, invoicing and collections",
+        "origin": "2026-09-05 audit; frozen specifications preserved"
+      }
+    }
+  ]
+}

@@ -249,7 +249,8 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
         <select
           value={ai.activeConversationId ?? ""}
           onChange={(event) => void ai.selectConversation(event.target.value || null)}
-          className="mt-2 min-h-10 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
+          aria-label="AI conversation"
+          className="mt-2 min-h-10 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
         >
           <option value="">New conversation</option>
           {ai.conversations.map((conversation) => (
@@ -434,11 +435,11 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
                         >
                           <span className="mt-0.5 text-[var(--admin-muted)]">
                             {tool.status === "running" ? (
-                              <Loader2 className="size-3 animate-spin" />
+                              <Loader2 className="size-3 animate-spin" aria-hidden="true" />
                             ) : tool.status === "failed" ? (
-                              <CircleAlert className="size-3 text-rose-600" />
+                              <CircleAlert className="size-3 text-rose-600" aria-hidden="true" />
                             ) : (
-                              <Check className="size-3 text-emerald-600" />
+                              <Check className="size-3 text-emerald-600" aria-hidden="true" />
                             )}
                           </span>
                           <span className="min-w-0">
@@ -544,7 +545,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
             <button
               type="button"
               onClick={() => void ai.archiveActive()}
-              className="inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 hover:text-[var(--admin-ink)]"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 hover:text-[var(--admin-ink)]"
             >
               <Archive className="size-3" />
               Archive

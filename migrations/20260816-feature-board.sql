@@ -70,21 +70,13 @@ REVOKE ALL ON FUNCTION reorder_feature_requests(JSONB) FROM PUBLIC;
 REVOKE ALL ON FUNCTION reorder_feature_requests(JSONB) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION reorder_feature_requests(JSONB) TO service_role;
 
--- Seed the known Revenue OS follow-up work. Stable keys keep reruns safe while
--- leaving titles, details, and ordering editable in the board after creation.
-INSERT INTO feature_requests
-  (seed_key, title, description, status, priority, labels, sort_order, acceptance_criteria, source)
-VALUES
-  ('revenue-os-production-migration', 'Apply and verify the Revenue OS migrations', 'Run the canonical Revenue OS migration followed by this Feature Board migration in production, then refresh every Setup Center check.', 'planned', 'urgent', ARRAY['database','launch'], 1000, 'Both migrations apply without errors; Setup Center reports both schemas ready; legacy opportunity data remains present.', 'revenue-os-plan'),
-  ('production-browser-qa', 'Run production admin QA on desktop and mobile', 'Verify Today, Pipeline, Conversations, Campaigns, Proposals, Setup Center, and this board using the founder account.', 'planned', 'urgent', ARRAY['qa','launch'], 2000, 'Critical paths pass at desktop and mobile widths with no console errors or inaccessible controls.', 'revenue-os-plan'),
-  ('campaign-unsubscribe', 'Complete campaign unsubscribe handling', 'Add a public unsubscribe endpoint, List-Unsubscribe headers, durable suppression state, and an operator-visible receipt.', 'backlog', 'urgent', ARRAY['campaigns','compliance'], 1000, 'One click suppresses the contact, queued steps stop, future campaigns exclude them, and the action is audited.', 'revenue-os-plan'),
-  ('google-oauth-first-sync', 'Configure Google OAuth and run first Workspace sync', 'Enable Gmail, Calendar, and Drive APIs; add encrypted OAuth credentials; connect the founder account; and verify source receipts.', 'backlog', 'high', ARRAY['google','integration'], 2000, 'Gmail and Calendar sync successfully; only approved Drive folders are indexed; failures appear in Setup Center.', 'revenue-os-plan'),
-  ('resend-webhooks', 'Add Resend delivery webhooks and suppression receipts', 'Process delivered, bounced, complained, opened, and clicked events idempotently and connect hard failures to campaign stop controls.', 'backlog', 'high', ARRAY['email','webhooks'], 3000, 'Webhook signatures are verified, receipts are idempotent, bounces and complaints suppress future sends, and activity is visible.', 'revenue-os-plan'),
-  ('gmail-incremental-sync', 'Harden Gmail incremental synchronization', 'Persist history cursors, renew watches, recover expired cursors, and expose partial failures without duplicating messages.', 'backlog', 'high', ARRAY['gmail','reliability'], 4000, 'Repeated syncs are idempotent; expired history recovers safely; watch renewal and terminal receipts are observable.', 'revenue-os-plan'),
-  ('canonical-attribution', 'Consolidate analytics on canonical source-to-revenue data', 'Make revenue reporting use contacts, companies, opportunities, stage events, and campaign attribution as its single source.', 'backlog', 'high', ARRAY['analytics','revenue'], 5000, 'Admin totals reconcile from first touch through won revenue and legacy dashboards no longer disagree.', 'revenue-os-plan'),
-  ('revenue-os-tests', 'Add Revenue OS unit and browser coverage', 'Cover identity resolution, stage rules, campaign stops, action approvals, OAuth failure states, and the Feature Board reorder contract.', 'backlog', 'high', ARRAY['qa','reliability'], 6000, 'Automated tests protect all material write boundaries and run cleanly in CI and locally.', 'revenue-os-plan'),
-  ('calendar-confirmation-flow', 'Add confirmation-gated calendar actions', 'Let the Revenue copilot propose creating or rescheduling a meeting while requiring the founder to approve the exact attendees and time.', 'backlog', 'medium', ARRAY['calendar','ai'], 7000, 'No event is written before confirmation; approved changes are idempotent and appear in the audit ledger.', 'revenue-os-plan'),
-  ('drive-content-indexing', 'Extract and index approved Drive documents', 'Fetch text from selected documents, track content hashes, and ground research and proposal drafts in current approved material.', 'backlog', 'medium', ARRAY['drive','ai'], 8000, 'Only allowlisted folders are read, unchanged documents are skipped, and citations identify the source document.', 'revenue-os-plan'),
-  ('admin-settings-consolidation', 'Consolidate admin settings and connection ownership', 'Remove duplicate controls, keep secrets environment-only, and route operational connection management through Setup Center.', 'backlog', 'medium', ARRAY['admin','setup'], 9000, 'Every setting has one authoritative surface and Setup Center links directly to it.', 'revenue-os-plan'),
-  ('production-burn-in', 'Complete a 14-day automation health burn-in', 'Monitor campaign and Workspace jobs, provider receipts, retries, and audit history before increasing automation volume.', 'backlog', 'medium', ARRAY['operations','launch'], 10000, 'Fourteen consecutive days show terminal receipts, no silent failures, and documented recovery for any degraded run.', 'revenue-os-plan')
-ON CONFLICT (seed_key) DO NOTHING;
+-- This table intentionally starts empty. Accelerate's own 154-card roadmap
+-- lives in scripts/feature-backlog-data.mjs (source of truth) and is applied
+-- only to Accelerate's own reference deployment via
+-- `npm run seed:features -- --apply` (see docs/REVENUE-OS-SETUP.md). A
+-- fresh self-hosted install should not inherit Accelerate's product roadmap
+-- as its own Feature Board; use this table for your own backlog instead.
+-- (An earlier version of this migration inserted 12 stale, differently
+-- worded copies of Accelerate roadmap cards here; that duplicated and
+-- drifted from the manifest, so it was removed rather than kept in sync by
+-- hand in two places.)

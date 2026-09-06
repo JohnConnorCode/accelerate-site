@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { loadOperatorQueue } from "@/lib/revenue-os/queue";
-import { canonicalStage } from "@/lib/revenue-os/pipeline";
+import { loadPipelineStages } from "@/lib/revenue-os/pipeline-stage-resolver";
 import { loadOperationalHealth } from "@/lib/revenue-os/health";
 
 export async function GET() {
@@ -23,7 +23,7 @@ export async function GET() {
       loadOperatorQueue(supabase),
       supabase
         .from("opportunities")
-        .select("id,stage,estimated_value,won_value,next_action_at,last_activity_at"),
+        .select("id,stage,estimated_value,won_value,probability,next_action_at,last_activity_at"),
       supabase.from("campaigns").select("id,status"),
       supabase.from("conversations").select("id,unread_count,status"),
       supabase.from("proposals").select("id,status,total_one_time,total_monthly"),
@@ -41,26 +41,25 @@ export async function GET() {
     ].find(Boolean);
     if (firstError) throw firstError;
     const opportunities = opportunitiesResult.data ?? [];
-    const open = opportunities.filter(
-      (item) => !["won", "lost"].includes(canonicalStage(item.stage) ?? item.stage),
-    );
+    const stages = await loadPipelineStages(supabase, auth.tenant.id);
+    const isOpenStage = (rawStage: string) => {
+      const canonical = stages.canonicalStage(rawStage);
+      return canonical ? stages.role(canonical) === "open" : true;
+    };
+    const open = opportunities.filter((item) => isOpenStage(item.stage));
     const pipelineValue = open.reduce((sum, item) => sum + Number(item.estimated_value || 0), 0);
-    const weightedValue = open.reduce((sum, item) => {
-      const stage = canonicalStage(item.stage);
-      const probability =
-        stage === "won"
-          ? 1
-          : stage === "negotiation"
-            ? 0.85
-            : stage === "proposal"
-              ? 0.7
-              : stage === "meeting"
-                ? 0.55
-                : stage === "qualified"
-                  ? 0.4
-                  : 0.15;
-      return sum + Number(item.estimated_value || 0) * probability;
-    }, 0);
+    // Uses each opportunity's own stored `probability` (kept in sync with its
+    // stage's configured probability by transitionOpportunity()) rather than
+    // re-deriving one from the stage name — the two used to be two
+    // independently hardcoded, disagreeing sources of truth.
+    const weightedValue = open.reduce(
+      (sum, item) =>
+        sum +
+        (Number(item.estimated_value || 0) *
+          Math.min(100, Math.max(0, Number(item.probability || 0)))) /
+          100,
+      0,
+    );
     const wonRevenue = opportunities.reduce((sum, item) => sum + Number(item.won_value || 0), 0);
     const integrations = integrationResult.data ?? [];
 

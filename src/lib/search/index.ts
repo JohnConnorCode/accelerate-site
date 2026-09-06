@@ -6,6 +6,12 @@ import { services } from "@/content/services";
 import { packages } from "@/content/packages";
 import { changelogEntries } from "@/content/changelog";
 import { publicWorkProjects } from "@/content/work";
+import { TEAM_MEMBERS } from "@/content/team";
+import { docsManifest } from "@/content/docs/manifest";
+import { listRevenueAiCapabilities } from "@/lib/revenue-os/ai-tools";
+import { capabilities } from "@/content/command-center";
+import { getDocsPage } from "@/lib/docs";
+import { marketingPositioning } from "@/content/marketing-positioning";
 
 /**
  * One index for site search.
@@ -16,7 +22,7 @@ import { publicWorkProjects } from "@/content/work";
  * written lists all had to be remembered. Nothing here is hand written.
  */
 export type SearchGroup =
-  "Articles" | "Industries" | "Services" | "Packages" | "Work" | "Pages" | "Changelog";
+  "Articles" | "Industries" | "Services" | "Packages" | "Work" | "Pages" | "Changelog" | "Docs";
 
 export interface SearchEntry {
   id: string;
@@ -26,6 +32,8 @@ export interface SearchEntry {
   group: SearchGroup;
   /** Extra text matched against but not displayed: tags, keywords, synonyms. */
   keywords: string[];
+  /** Public reference text, ranked below titles and descriptions. */
+  content?: string;
   /** ISO date where the content has one, for recency tie-breaking. */
   date?: string;
 }
@@ -60,7 +68,7 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     id: "page-command-center-demo",
     title: "Command Center Demo",
     description:
-      "Explore three complete fictional operating workspaces using the real Command Center interface.",
+      "Explore five complete fictional operating workspaces using the real Command Center interface.",
     href: "/demo/command-center",
     keywords: ["demo", "sandbox", "interactive", "admin demo", "product demo"],
   },
@@ -134,6 +142,20 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     description: "How this works in your specific line of business.",
     href: "/industries",
     keywords: ["verticals", "sectors", "who you work with"],
+  },
+  {
+    id: "page-team",
+    title: "Team",
+    description: "The operators and advisors behind the team.",
+    href: "/team",
+    keywords: ["team", "people", "founder", "advisors", "who we are", "staff"],
+  },
+  {
+    id: "page-roadmap",
+    title: "Roadmap",
+    description: "Explore planned work and the status of public requests.",
+    href: "/roadmap",
+    keywords: ["roadmap", "planned", "requests", "upcoming"],
   },
   {
     id: "page-changelog",
@@ -220,6 +242,19 @@ export function buildSearchIndex(): SearchEntry[] {
     entries.push({ ...page, group: "Pages" });
   }
 
+  // Team bios derive from the same template the pages render, so a new
+  // member is searchable the moment they land in TEAM_MEMBERS.
+  for (const member of TEAM_MEMBERS) {
+    entries.push({
+      id: `team-${member.slug}`,
+      title: member.name,
+      description: member.summary,
+      href: `/team/${member.slug}`,
+      group: "Pages",
+      keywords: ["team", "people", member.name, member.role, member.group],
+    });
+  }
+
   // Only the most recent changelog entries; the whole history would drown
   // everything else in a query like "campaign".
   for (const entry of changelogEntries.slice(0, 12)) {
@@ -233,6 +268,54 @@ export function buildSearchIndex(): SearchEntry[] {
       date: entry.publishedAt,
     });
   }
+
+  // Docs pages come from the manifest, not a hand list, so a new page is
+  // searchable the moment it lands in the tree. Section roots collapse to
+  // their overview, matching the route loader.
+  for (const section of docsManifest) {
+    for (const page of section.pages) {
+      const href = `/docs/${page.slug.join("/")}`;
+      entries.push({
+        id: `docs-${page.slug.join("-")}`,
+        title: page.title,
+        description: page.description,
+        href,
+        group: "Docs",
+        content: [
+          getDocsPage(page.slug)
+            ?.content.replace(/<[^>]*>/g, " ")
+            .replace(/[#*`]/g, ""),
+          page.slug.join("/") === "intelligence/tools"
+            ? listRevenueAiCapabilities()
+                .map((tool) => `${tool.name} ${tool.description}`)
+                .join(" ")
+            : "",
+          page.slug.join("/") === "command-center/capabilities"
+            ? capabilities.map((capability) => `${capability.title} ${capability.detail}`).join(" ")
+            : "",
+        ].join(" "),
+        keywords: [
+          "docs",
+          "guide",
+          "documentation",
+          section.title,
+          page.title,
+          ...(page.slug.join("/") === "intelligence/tools"
+            ? listRevenueAiCapabilities().map((tool) => tool.name)
+            : []),
+        ],
+      });
+    }
+  }
+  // The landing itself is findable too.
+  entries.push({
+    id: "docs-landing",
+    title: "Documentation",
+    description: marketingPositioning.docsBlurb,
+    href: "/docs",
+    group: "Docs",
+    keywords: ["docs", "documentation", "guides", "help", "manual"],
+  });
 
   cached = entries;
   return entries;

@@ -19,6 +19,7 @@ import { loadRevenueAnalytics } from "../src/lib/revenue-os/analytics";
 import { ingestInboundLead } from "../src/lib/revenue-os/inbound";
 import { transitionOpportunity } from "../src/lib/revenue-os/pipeline";
 import { createServiceRoleClient } from "../src/lib/supabase/server";
+import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/constants";
 
 const PREFIX = "revenue-os-demo";
 const cleanupOnly = process.argv.includes("--cleanup");
@@ -154,7 +155,7 @@ async function main() {
     created.push({ company: entry.company, stage, value: entry.value });
   }
 
-  const analytics = await loadRevenueAnalytics(supabase, 30);
+  const analytics = await loadRevenueAnalytics(supabase, ACCELERATE_TENANT_ID, 30);
   console.log(
     JSON.stringify(
       {

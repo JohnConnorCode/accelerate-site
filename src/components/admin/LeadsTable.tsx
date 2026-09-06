@@ -179,7 +179,7 @@ export function LeadsTable({
                 onChange={(e) => setBulkStatus(e.target.value)}
                 aria-label="Set status for selected leads"
                 disabled={bulkBusy}
-                className="rounded-lg glass px-3 py-1.5 text-sm text-white-primary bg-transparent focus:outline-none disabled:opacity-50"
+                className="rounded-lg glass px-3 py-1.5 text-sm text-white-primary bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2 disabled:opacity-50"
               >
                 <option value="">Change status to...</option>
                 {statusOptions.map((s) => (
@@ -244,7 +244,7 @@ export function LeadsTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border-glass">
-              <th className="px-4 py-3 w-10">
+              <th scope="col" className="px-4 py-3 w-10">
                 <input
                   type="checkbox"
                   checked={selectedIds.size === filtered.length && filtered.length > 0}
@@ -278,10 +278,17 @@ export function LeadsTable({
                 Industry
               </SortHeader>
               <th
-                className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase cursor-pointer hover:text-white-secondary select-none"
-                onClick={handleScoreSort}
+                scope="col"
+                aria-sort={
+                  scoreSort ? (scoreSort === "asc" ? "ascending" : "descending") : undefined
+                }
+                className="px-4 py-3 text-left text-xs font-semibold text-white-muted uppercase select-none"
               >
-                <span className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handleScoreSort}
+                  className="flex cursor-pointer items-center gap-1 uppercase hover:text-white-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]/40 focus-visible:ring-offset-2"
+                >
                   Score
                   <ArrowUpDown
                     className={cn(
@@ -290,7 +297,7 @@ export function LeadsTable({
                     )}
                   />
                   {scoreSort && <span className="text-[10px] text-white-muted">{scoreSort}</span>}
-                </span>
+                </button>
               </th>
               <SortHeader
                 field="lead_status"
@@ -308,7 +315,7 @@ export function LeadsTable({
               >
                 Date
               </SortHeader>
-              <th className="px-4 py-3 w-10"></th>
+              <th scope="col" className="px-4 py-3 w-10"></th>
             </tr>
           </thead>
           <tbody>
@@ -411,10 +418,15 @@ function SortHeader({ field, children, onSort, sortField, sortOrder }: SortHeade
   const active = sortField === field;
   return (
     <th
-      className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase cursor-pointer hover:text-white-secondary select-none"
-      onClick={() => onSort(field)}
+      scope="col"
+      aria-sort={active ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
+      className="px-4 py-3 text-left text-xs font-semibold text-white-muted uppercase select-none"
     >
-      <span className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        className="flex cursor-pointer items-center gap-1 uppercase hover:text-white-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]/40 focus-visible:ring-offset-2"
+      >
         {children}
         <ArrowUpDown
           className={cn("h-3 w-3", active ? "text-white-primary" : "text-white-muted/50")}
@@ -424,7 +436,7 @@ function SortHeader({ field, children, onSort, sortField, sortOrder }: SortHeade
             {sortOrder === "asc" ? "asc" : "desc"}
           </span>
         )}
-      </span>
+      </button>
     </th>
   );
 }

@@ -33,13 +33,16 @@ CREATE POLICY "Authenticated users can update settings"
   USING (true);
 
 -- Seed with known configuration keys
+-- Seed values below are BOOTSTRAP_* token placeholders (see
+-- scripts/lib/bootstrap-identity.mjs), resolved from environment variables
+-- when applied through npm run db:migrate / db:migrate:all. Unset, they
+-- default to the reference Accelerate deployment's own values.
 INSERT INTO admin_settings (key, value, is_secret, description) VALUES
-  ('ANTHROPIC_API_KEY', '', true, 'Anthropic Claude API key for AI features'),
   ('RESEND_API_KEY', '', true, 'Resend API key for email delivery'),
-  ('RESEND_FROM_EMAIL', 'Accelerate <hello@acceleratewith.us>', false, 'Sender email address for outgoing emails'),
-  ('ADMIN_EMAIL', 'hello@acceleratewith.us', false, 'Admin notification email address'),
+  ('RESEND_FROM_EMAIL', '__BOOTSTRAP_BRAND_NAME__ <__BOOTSTRAP_SETTINGS_FROM_EMAIL__>', false, 'Sender email address for outgoing emails'),
+  ('ADMIN_EMAIL', '__BOOTSTRAP_SETTINGS_ADMIN_EMAIL__', false, 'Admin notification email address'),
   ('NEXT_PUBLIC_PLAUSIBLE_DOMAIN', '', false, 'Plausible analytics domain'),
   ('CRON_SECRET', '', true, 'Secret token for cron job authentication'),
-  ('SITE_URL', 'https://acceleratewith.us', false, 'Public site URL'),
-  ('BUSINESS_NAME', 'Accelerate', false, 'Business display name')
+  ('SITE_URL', '__BOOTSTRAP_BRAND_SITE_URL_BARE__', false, 'Public site URL'),
+  ('BUSINESS_NAME', '__BOOTSTRAP_BRAND_NAME__', false, 'Business display name')
 ON CONFLICT DO NOTHING;

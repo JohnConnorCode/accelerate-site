@@ -78,6 +78,41 @@ assert.doesNotMatch(
   "headers must not collapse onto one LF-only line",
 );
 
+// A retained RFC parent produces real RFC threading headers: the reply
+// names the actual Message-ID, never a provider id wrapped in <>.
+const rfcPrepared = prepareGmailReply({
+  ownerEmail: "john@acceleratewith.us",
+  recipient: "alex@example.com",
+  conversationSubject: "Scope review",
+  latest: {
+    external_id: "gmail-opaque-9",
+    subject: "Scope review",
+    references_header: "<root@mail> <mid-1@mail>",
+    rfc_message_id: "<mid-1@mail>",
+  },
+  body: "Thanks — I can do Thursday.",
+});
+assert.equal(rfcPrepared.inReplyTo, "<mid-1@mail>");
+assert.equal(rfcPrepared.references, "<root@mail> <mid-1@mail>");
+assert.doesNotMatch(
+  rfcPrepared.references ?? "",
+  /gmail-opaque-9/,
+  "no provider id may leak into References when RFC ids exist",
+);
+assert.match(rfcPrepared.raw, /^In-Reply-To: <mid-1@mail>$/m);
+
+// Without a retained RFC id the legacy provider-id form is preserved so old
+// rows keep threading through the Gmail threadId anchor.
+const legacyPrepared = prepareGmailReply({
+  ownerEmail: "john@acceleratewith.us",
+  recipient: "alex@example.com",
+  conversationSubject: "Scope review",
+  latest: { external_id: "msg-9", subject: "Scope review", references_header: "<root@mail>" },
+  body: "Thanks.",
+});
+assert.equal(legacyPrepared.inReplyTo, "<msg-9>");
+assert.equal(legacyPrepared.references, "<root@mail> <msg-9>");
+
 console.log(
   JSON.stringify(
     {
@@ -89,6 +124,8 @@ console.log(
         "raw-headers",
         "recipient-guard",
         "missing-original-id",
+        "rfc-parent-threading",
+        "legacy-provider-fallback",
       ],
     },
     null,

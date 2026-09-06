@@ -11,7 +11,7 @@ const route = readFileSync("src/app/api/admin/tenants/route.ts", "utf8");
 const directory = readFileSync("src/app/admin/tenants/page.tsx", "utf8");
 const callback = readFileSync("src/app/auth/callback/route.ts", "utf8");
 const templates = readFileSync("src/lib/email/templates.ts", "utf8");
-const setup = readFileSync("docs/REVENUE-OS-SETUP.md", "utf8");
+const setup = readFileSync("docs/self-hosting/REVENUE-OS-SETUP.md", "utf8");
 
 for (const functionName of [
   "platform_create_tenant",

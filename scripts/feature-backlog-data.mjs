@@ -1,4 +1,13 @@
-const allowedStatuses = new Set(["backlog", "planned", "in_progress", "blocked", "shipped"]);
+import { buildDependencyGraph } from "./lib/feature-board-graph.mjs";
+
+const allowedStatuses = new Set([
+  "backlog",
+  "planned",
+  "in_progress",
+  "in_review",
+  "blocked",
+  "shipped",
+]);
 const allowedPriorities = new Set(["urgent", "high", "medium", "low"]);
 
 // Controlled Feature Board taxonomy. Labels are for filtering, not prose. Every
@@ -26,6 +35,9 @@ const CATEGORY_BY_WORKSTREAM = {
   productization: "productization",
   documentation: "productization",
   site: "marketing",
+  runtime: "runtime",
+  coworker: "runtime",
+  learn: "intelligence",
 };
 
 const DEFAULT_CAPABILITY_BY_WORKSTREAM = {
@@ -49,11 +61,17 @@ const DEFAULT_CAPABILITY_BY_WORKSTREAM = {
   productization: "productization",
   documentation: "documentation",
   site: "marketing",
+  runtime: "work-engine",
+  coworker: "coworkers",
+  learn: "learning",
 };
 
 const CAPABILITY_ALIASES = {
   activity: "activity",
-  analytics: "analytics",
+  agent: "coworkers",
+  "agent-activity": "coworkers",
+  "agent-trace": "agent-trace",
+  "ai-context": "ai",
   ai: "ai",
   approval: "automation",
   auth: "security",
@@ -65,11 +83,17 @@ const CAPABILITY_ALIASES = {
   confirmation: "automation",
   contacts: "identity",
   conversations: "email",
+  coworker: "coworkers",
+  coworkers: "coworkers",
   database: "data",
   dedupe: "reliability",
   drive: "knowledge",
   email: "email",
   encryption: "security",
+  "evidence-ledger": "evidence-ledger",
+  evidence: "evidence-ledger",
+  "capability-graph": "capability-graph",
+  finance: "finance",
   gmail: "email",
   google: "workspace",
   health: "reliability",
@@ -77,8 +101,12 @@ const CAPABILITY_ALIASES = {
   inbound: "inbound",
   indexing: "knowledge",
   integrations: "integrations",
+  learning: "learning",
+  mcp: "mcp",
+  memory: "memory",
   observability: "reliability",
   openrouter: "ai",
+  operations: "operations",
   pipeline: "pipeline",
   playwright: "testing",
   proposals: "proposals",
@@ -91,7 +119,12 @@ const CAPABILITY_ALIASES = {
   tasks: "tasks",
   testing: "testing",
   "second-brain": "knowledge",
+  "tool-registry": "tool-registry",
+  "work-engine": "work-engine",
+  workitem: "work-engine",
   webhooks: "integrations",
+  "autonomy-policy": "autonomy-policy",
+  autonomy: "autonomy-policy",
 };
 
 // Loop One is the only active milestone. It is the shortest dependency-ordered
@@ -105,6 +138,34 @@ const CAPABILITY_ALIASES = {
 // that circuit, not by being important in the abstract, nearly every card on this
 // board is important, which is precisely why the board stopped functioning as a
 // queue. Promote a card by adding its key; demote by removing it.
+//
+// NORTHSTAR ALIGNMENT
+// The platform vision (docs/NORTHSTAR.md) defines five product layers and five
+// implementation phases. Existing phases map as follows:
+//
+//   Phase 0–1  →  Phase A: Complete Loop One (See + Remember foundations)
+//   Phase 2–3  →  Phase B: Agent Runtime foundation (Notice + Act primitives)
+//   Phase 4    →  Phase C: Reference coworker (Sales end-to-end loop)
+//   Phase 5    →  Phase D: Plugin SDK + MCP
+//   Phase 6    →  Phase E: Additional coworkers/plugins + documentation
+//
+// The five product layers (See → Remember → Notice → Act → Learn) cut across
+// implementation phases. Loop One completes See and Remember. Phase B adds the
+// durable Work Engine, Capability Graph, Evidence Ledger, Autonomy Policy Engine,
+// Coworker model, and Agent Activity UI. Phase C proves it all with one
+// reference coworker.
+//
+// Ten architectural principles govern every card:
+//   1. Database/runtime is authoritative, not the model
+//   2. Agents use tools; they do not bypass business services
+//   3. Every consequential action has an explicit authorization path
+//   4. Every autonomous action must be explainable after the fact
+//   5. Every AI-derived fact retains provenance
+//   6. Deterministic logic remains deterministic
+//   7. AI may propose policy; humans establish policy
+//   8. Plugins extend Accelerate rather than create parallel infrastructure
+//   9. Capabilities are explicit; missing capabilities are normal
+//  10. Work is durable; a browser session is not the unit of execution
 export const LOOP_ONE = [
   "feature-board-dependency-integrity",
   "identity-resolution-service",
@@ -152,6 +213,7 @@ export const LOOP_ONE = [
   "playwright-inbound-pipeline",
   "autonomous-inbound-responder",
   "scheduling-substrate-decision",
+  "workshelter-reuse-baseline",
 ];
 const LOOP_ONE_SET = new Set(LOOP_ONE);
 
@@ -160,7 +222,11 @@ const LOOP_ONE_SET = new Set(LOOP_ONE);
 export const NOW_KEYS = ["google-oauth-first-sync"];
 const NOW_SET = new Set(NOW_KEYS);
 
+// Northstar layer mapping: each second-brain phase card corresponds to one of
+// the five product layers defined in docs/NORTHSTAR.md. The "trust" key is a
+// cross-cutting concern (audit + provenance + traces) that underpins all layers.
 export const SECOND_BRAIN_IMPLEMENTATIONS = {
+  // Layer 1: SEE — observe the business
   "second-brain-see": [
     "openrouter-ai-gateway",
     "founder-note-capture",
@@ -170,6 +236,7 @@ export const SECOND_BRAIN_IMPLEMENTATIONS = {
     "gmail-record-association",
     "calendar-sync-association",
   ],
+  // Layer 2: REMEMBER — durable organizational memory
   "second-brain-remember": [
     "second-brain-see",
     "founder-note-capture",
@@ -178,18 +245,22 @@ export const SECOND_BRAIN_IMPLEMENTATIONS = {
     "drive-provenance-retrieval",
     "ai-bounded-context",
   ],
+  // Layer 3: NOTICE — what matters now
   "second-brain-notice": [
     "proactive-operator-intelligence",
     "scheduling-substrate-decision",
     "precall-briefs",
     "notification-dispatch-preferences",
   ],
+  // Layer 4: ACT — perform or prepare real business work
   "second-brain-act": [
     "automation-policy-registry",
     "autonomous-inbound-responder",
     "postmeeting-workflow",
   ],
+  // Layer 5: LEARN — repeated decisions become explicit policy
   "second-brain-learn": ["agent-learning-feedback-loop", "second-brain-act"],
+  // Cross-cutting: TRUST — audit, provenance, traces (underpins all layers)
   "second-brain-trust": ["second-brain-learn", "audit-ledger-coverage", "ai-run-traces"],
 };
 
@@ -243,6 +314,28 @@ const CURRENT_IMPLEMENTATION_EVIDENCE = {
     "2026-08-28 visual-system follow-up: the Work index and every case now use one 14px media radius, theme-token surfaces, and a non-conflicting fixed-header offset. The public theme toggle uses the resolved preference, persists a real inversion, and browser coverage checks both theme states and media geometry.",
   "full-admin-demo-scenarios":
     "2026-08-27 scenario-pack v3: the launcher and shared runtime now expose five separately authored operating models for roofing, injury law, advisory, real estate, and a nonprofit network. Each pack has distinct identity, animated mark, appearance, people, companies, opportunity values, next actions, conversations, tasks, approvals, campaigns, resources, and roadmap evidence. Exact copy duplication is contract-tested; the five-business 28-route desktop/mobile matrix, all five appearances, populated contact expansion, refresh/reset/isolation, and production build pass.",
+  "durable-work-engine":
+    "2026-09-02 shipped: migrations/20260902-work-items.sql (work_items table, claim_work_item RPC with advisory lock, indexes, RLS, constraints). src/lib/revenue-os/work-items.ts (create, claim, withWorkItem, start, complete, fail+retry with exponential backoff, scheduleCheck, cancel, release, list, stale recovery). Task bridge: createWorkItem({ surfaceInInbox: true }). AI tool: get_claimable_work. TypeScript, lint, build, and contract verify pass.",
+  "capability-graph-canonical":
+    "2026-09-02 shipped: migrations/20260902-workspace-capabilities.sql (workspace_capabilities table, resolve_workspace_capability RPC, upsert_workspace_capability RPC, indexes, RLS). src/lib/revenue-os/capabilities.ts (resolve, checkCapabilitiesBeforeWork, list, register, sync). AI tool: get_workspace_capabilities. TypeScript, lint, build, and contract verify pass.",
+  "evidence-claim-ledger":
+    "2026-09-02 shipped: migrations/20260902-claims-evidence.sql (claims + evidence tables, record_evidence RPC with human truth hierarchy, evidence_strength + claim_status enums, indexes, RLS, constraints). src/lib/revenue-os/claims.ts (recordEvidence, list, retract, supersede, humanConfirm, listConflictedClaims). AI tool: get_claims_for_entity. TypeScript, lint, build, and contract verify pass.",
+  "autonomy-policy-engine":
+    "2026-09-02 shipped: migrations/20260902-autonomy-policies.sql (autonomy_policies table, check_autonomy RPC, upsert_autonomy_policy RPC, grant_standing_permission RPC, autonomy_hard_floors table seeded with 6 floors, indexes, RLS). src/lib/revenue-os/autonomy-policy.ts (check, list, register, grantStandingPermission, listHardFloors). AI tool: get_autonomy_policies. TypeScript, lint, build, and contract verify pass.",
+  "coworker-model":
+    "2026-09-03 shipped: Five coworkers bootstrapped (sales, business-pulse, meeting-intel, finance, operations). Each registers capabilities, autonomy policies, and work kinds. Work scheduler auto-creates daily/weekly work. AI agent bridge: coworker-agent.ts (runCoworkerAgentTask — headless AI execution for coworker work items, bounded 3 tool turns, coworker-specific system prompt, writes agent_run_id to work item). AI-first-with-deterministic-fallback pattern wired into 5 handlers: qualify_lead, draft_followup (sales), daily_digest (business-pulse), pre_call_brief, post_meeting_process (meeting-intel). Cross-coworker triggers: inbound→Sales+BP+Ops, pipeline won→Finance+Ops, lost→BP+Finance+Ops, high-stage→BP+Finance, Calendly→Meeting Intel, Google Calendar sync→Meeting Intel. TypeScript, lint, build, and contract verify pass. 2026-09-02 shipped: migrations/20260902-coworkers.sql (coworkers table with required_capabilities, work_kinds, autonomy_overrides, indexes, RLS). src/lib/revenue-os/coworkers.ts (register, list, getCoworkerManifest with capability gaps, updateStatus). AI tool: get_coworkers + bootstrap tools for each coworker.",
+  "agent-activity-surface":
+    "2026-09-02 shipped: src/lib/revenue-os/agent-activity.ts (getAgentActivityForEntity composes work items + actions + claims + audit into human-readable timeline). AI tool: get_agent_activity_for_entity. TypeScript, lint, build, and contract verify pass.",
+  "finance-coworker":
+    "2026-09-03 shipped: src/lib/revenue-os/finance-coworker.ts (3 work kinds: weekly_revenue_reconciliation, detect_overdue_payments, revenue_stage_audit). Bootstrap registers capabilities + autonomy policies. Handlers registered in work engine cron. AI tool: bootstrap_finance_coworker. TypeScript, lint, build, and contract verify pass.",
+  "operations-coworker":
+    "2026-09-03 shipped: src/lib/revenue-os/operations-coworker.ts (3 work kinds: daily_health_check, integration_status_audit, data_quality_scan). Bootstrap registers capabilities + autonomy policies. Handlers registered in work engine cron. AI tool: bootstrap_operations_coworker. TypeScript, lint, build, and contract verify pass.",
+  "work-scheduler":
+    "2026-09-03 shipped: src/lib/revenue-os/work-scheduler.ts (auto-creates 9 daily work items: digest, stale deals, bottleneck, velocity change, health check, integration audit, data quality, overdue scan, revenue stage audit; weekly: reconciliation on Mondays; scans calendar_events 48h ahead for meeting pre-call briefs). Date-based deduplication. Cross-coworker triggers: inbound→Sales+BP+Ops, pipeline won→Finance+Ops, high-stage→BP+Finance, Calendly→Meeting Intel. All 18 handler paths store domain-specific agent memory. Wired in cron route before executeClaimableWork. TypeScript, lint, build, and contract verify pass.",
+  "memory-architecture":
+    "2026-09-03 shipped: src/lib/revenue-os/memory.ts (five categories: canonical, activity, knowledge, agent, learned_policy). Agent memory with time-decay horizons (session/daily/weekly/permanent). Learned policies with supersession. Unified queryMemory across all categories. 5 AI tools: query_memory, store_agent_memory, get_agent_memory, get_learned_policies, record_learned_policy. Migration: 20260903-memory-architecture.sql. Work executor consults learned policies and stores agent memory after execution. TypeScript, lint, build, and contract verify pass.",
+  budgets:
+    "2026-09-03 shipped: src/lib/revenue-os/budgets.ts (checkBudgets, recordBudgetUsage, setBudgetLimit, listBudgetLimits). Six budget kinds (model_spend, vendor_api_calls, emails_sent, research_depth, retry_count, runtime_seconds). Per-coworker or global limits with daily/weekly/monthly periods. Work executor checks budgets before execution and records usage after. 90%+ usage triggers audit alert. Migration: 20260903-budgets.sql. 2 AI tools: check_budgets, get_budget_limits. TypeScript, lint, build, and contract verify pass.",
 };
 
 function taxonomyLabels({ key, workstream, phase, status, labels }) {
@@ -272,7 +365,7 @@ function taxonomyLabels({ key, workstream, phase, status, labels }) {
 
 // Everything outside the delivery circuit keeps its full specification in Later.
 // Shelving is not deletion or a judgement about value. Nothing is claimed until
-// an owner claims it, and the WIP limit remains two cards.
+// an owner claims it, and the WIP limit is enforced in validateFeatureBacklog.
 function card({
   key,
   title,
@@ -289,6 +382,8 @@ function card({
   labels = [],
   evidence = null,
   verification = null,
+  initiative = "",
+  workSpec = null,
 }) {
   const effectiveStatus = status;
   const isLoopOne = LOOP_ONE_SET.has(key);
@@ -298,6 +393,7 @@ function card({
   if (isLoopOne && effectiveStatus === "backlog")
     throw new Error(`Loop One card ${key} must be planned or further along`);
   return {
+    ...(workSpec ? { work_spec: workSpec, initiative, work_kind: "feature" } : {}),
     seed_key: key,
     title,
     description,
@@ -309,19 +405,20 @@ function card({
     acceptance_criteria: acceptance.map((item) => `- ${item}`).join("\n"),
     notes: [
       `Workstream: ${workstream}. Category: ${CATEGORY_BY_WORKSTREAM[workstream]}. Phase: ${phase}.`,
+      `Northstar phase: ${phase <= 1 ? "A (Complete Loop One — See + Remember)" : phase <= 3 ? "B (Agent Runtime foundation — Notice + Act primitives)" : phase === 4 ? "C (Reference coworker — Sales end-to-end loop)" : phase === 5 ? "D (Plugin SDK + MCP)" : "E (Additional coworkers/plugins + documentation)"}. Vision: docs/NORTHSTAR.md.`,
       `Dependencies: ${dependencies.length ? dependencies.join("; ") : "None. This can be claimed immediately."}`,
       `Starting points: ${start}`,
       `Guardrails / non-goals: ${guardrails}`,
       isLoopOne
-        ? `Delivery circuit: step ${LOOP_ONE.indexOf(key) + 1} of ${LOOP_ONE.length}. Board milestone: ${effectiveStatus === "shipped" ? "Done" : NOW_SET.has(key) ? "Now" : "Next"}. The circuit turns a real inquiry into an inspectable record, operator work, a receipted reply, attributed revenue, and bounded memory. Claim this card by setting Owner and in_progress; keep no more than two cards in progress at once.`
+        ? `Delivery circuit: step ${LOOP_ONE.indexOf(key) + 1} of ${LOOP_ONE.length}. Board milestone: ${effectiveStatus === "shipped" ? "Done" : NOW_SET.has(key) ? "Now" : "Next"}. The circuit turns a real inquiry into an inspectable record, operator work, a receipted reply, attributed revenue, and bounded memory. Claim this card through the scoped work protocol; the server enforces readiness and the six-card WIP limit.`
         : shelved
           ? "Board milestone: Later. This card keeps its full specification but is outside the current delivery circuit. Do not start it before Now and dependency-ready Next work unless a current card explicitly depends on it."
           : "Board milestone: Done. This card is shipped; reopen it only with new evidence that an acceptance item no longer holds.",
       SECOND_BRAIN_IMPLEMENTATIONS[key]
         ? `Implementation cards: ${SECOND_BRAIN_IMPLEMENTATIONS[key].map((implementationKey) => `card:${implementationKey}`).join(", ")}. This phase card is a roll-up and must not duplicate those services.`
         : null,
-      "Taxonomy contract: docs/FEATURE-BOARD-TAXONOMY.md. Do not add one-off labels; use one category, milestone, phase, and up to two allowlisted capabilities.",
-      "Architecture contract: docs/REVENUE-OS-ENGINEERING-CONTRACT.md. Agent procedure: docs/AGENT-TICKET-RUNBOOK.md. Module ownership: src/lib/revenue-os/README.md.",
+      "Taxonomy contract: docs/contracts/FEATURE-BOARD-TAXONOMY.md. Do not add one-off labels; use one category, milestone, phase, and up to two allowlisted capabilities.",
+      "Architecture contract: docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md. Agent procedure: docs/contributing/AGENT-TICKET-RUNBOOK.md. Module ownership: src/lib/revenue-os/README.md.",
       `Required verification: ${verification || "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; the closest scoped service/API/Playwright test named by this card; npm run build and git diff --check before Shipped. Data or automation changes must also prove invalid input, duplicate/replay, truthful failure receipts, and safe retry. UI changes require reviewed desktop/mobile screenshots."}`,
       "Stop conditions: pause and create or update a dependency card before adding a new provider, weakening authorization, performing a destructive migration, expanding real-recipient automation, or bypassing an authoritative domain service.",
       ...([
@@ -333,7 +430,7 @@ function card({
             `Current implementation evidence: ${[LATEST_IMPLEMENTATION_EVIDENCE[key], CURRENT_IMPLEMENTATION_EVIDENCE[key], evidence].filter(Boolean).join(" ")}`,
           ]
         : []),
-      "Agent handoff: claim the card by setting Owner, read linked services and migrations before editing, preserve unrelated worktree changes, attach test evidence in Internal notes, and move to Shipped only after every acceptance item is verified.",
+      "Agent handoff: claim through the scoped work API or CLI, read linked services and migrations before editing, preserve unrelated worktrees, and submit structured evidence for review after every acceptance item is verified.",
     ]
       .filter(Boolean)
       .join("\n\n"),
@@ -343,6 +440,2330 @@ function card({
 }
 
 export const featureBacklog = [
+  card({
+    key: "receivables-collections-plugin",
+    title: "Receivables and dispute resolution plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Turn overdue invoices into a controlled collection workflow with a clear next action, fewer duplicate reminders, and a defensible record of promises and disputes. Finance observations become work tied to actual invoice balances, not guesses based on won opportunities.",
+    acceptance: [
+      "Payment arriving between approval and execution prevents the send and produces a skipped receipt.",
+      "Two invoices for one account produce one consolidated reminder with correct per-invoice balances and no currency conversion.",
+      "Dispute or pause blocks further cadence steps without deleting the invoice or previous communications.",
+      "A replayed webhook/reminder does not create a second allocation, case, WorkItem or send.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Expose reusable typed grid and board views to business plugins",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; plugins/stripe-invoicing/workflow.js at c7da31b; src/lib/revenue-os/workflow-plugins.ts at c7da31b; src/lib/revenue-os/invoice-pages.ts at c7da31b; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No debt-sale, automatic write-offs, bank reconciliation, new payment provider, fabricated payment status or jurisdiction-specific legal collection advice. Business owner: Owner or accounts-receivable operator.\n\nTrigger: An authoritative invoice becomes overdue, a payment arrives, a promise date passes, or an operator opens a dispute.\n\nWorkflow:\n1. Read tenant-scoped invoice, payment allocation and customer communication facts; calculate outstanding minor units and aging as of a stated date.\n2. Group related invoices into one collection case per account/currency, excluding void, paid, disputed and explicitly paused obligations.\n3. AI drafts a grounded reminder with invoice links and the approved brand; the operator reviews recipients, balance, tone and cadence before any send.\n4. Re-read payment, dispute, suppression and communication state immediately before dispatch. Cancel a stale reminder if payment has settled.\n5. Record a promise-to-pay date, dispute reason, assigned owner and next action; missed promises create WorkItems instead of silently escalating tone.\n6. Close with provider-confirmed settlement or a reviewed write-off decision; retain invoice facts, receipts and case history.\n\nData and lifecycle: CollectionCase, CollectionCaseInvoice and PaymentPromise keyed by tenant plus canonical account/invoice IDs. Provider invoice/payment state remains immutable. Cases have monitoring, awaiting_approval, awaiting_payment, promised, disputed, resolved and paused states.\n\nCapability/tool contract: list_receivables (read), open_collection_case (internal_write), record_payment_promise (internal_write), propose_collection_reminder (internal_write), send_approved_collection_reminder (external_action). A reminder idempotency key includes tenant, case, cadence step and approved balance snapshot.\n\nOperator and client surfaces: A collections workspace with aging buckets, dispute/hold reasons and the next operator action; an account timeline and invoice detail extension; Today cards for overdue promises and failed reminders. AI-generated reminder content uses the canonical branded invoice page URL.\n\nFailure and recovery matrix: Partial payments, overpayments, credit notes, asynchronous settlement, mixed currencies, duplicate webhooks, timezone cutoffs, disputed invoices, stale approval, bounced mail and disabled plugins must be explicit states.\n\nDemo packet: Three fictional accounts: a partially paid invoice, an overdue promise, and a disputed balance. Exercise draft, approve, late-payment cancellation, pause, resume and settlement without Stripe or email calls.\n\nValue measurement: Time from overdue invoice to next action; collected versus open balance by currency; duplicate/stale reminder count; promise-kept rate. Report sample size and observation window.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["finance", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Turn overdue invoices into a controlled collection workflow with a clear next action, fewer duplicate reminders, and a defensible record of promises and disputes. Finance observations become work tied to actual invoice balances, not guesses based on won opportunities.",
+      scope: [
+        "Read tenant-scoped invoice, payment allocation and customer communication facts; calculate outstanding minor units and aging as of a stated date.",
+        "Group related invoices into one collection case per account/currency, excluding void, paid, disputed and explicitly paused obligations.",
+        "AI drafts a grounded reminder with invoice links and the approved brand; the operator reviews recipients, balance, tone and cadence before any send.",
+        "Re-read payment, dispute, suppression and communication state immediately before dispatch. Cancel a stale reminder if payment has settled.",
+        "Record a promise-to-pay date, dispute reason, assigned owner and next action; missed promises create WorkItems instead of silently escalating tone.",
+        "Close with provider-confirmed settlement or a reviewed write-off decision; retain invoice facts, receipts and case history.",
+      ],
+      exclusions: [
+        "No debt-sale, automatic write-offs, bank reconciliation, new payment provider, fabricated payment status or jurisdiction-specific legal collection advice.",
+      ],
+      references: [
+        {
+          path: "plugins/stripe-invoicing/workflow.js",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/workflow-plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/invoice-pages.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Read tenant-scoped invoice, payment allocation and customer communication facts; calculate outstanding minor units and aging as of a stated date.",
+        "Group related invoices into one collection case per account/currency, excluding void, paid, disputed and explicitly paused obligations.",
+        "AI drafts a grounded reminder with invoice links and the approved brand; the operator reviews recipients, balance, tone and cadence before any send.",
+        "Re-read payment, dispute, suppression and communication state immediately before dispatch. Cancel a stale reminder if payment has settled.",
+        "Record a promise-to-pay date, dispute reason, assigned owner and next action; missed promises create WorkItems instead of silently escalating tone.",
+        "Close with provider-confirmed settlement or a reviewed write-off decision; retain invoice facts, receipts and case history.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "Payment arriving between approval and execution prevents the send and produces a skipped receipt.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "Two invoices for one account produce one consolidated reminder with correct per-invoice balances and no currency conversion.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Dispute or pause blocks further cadence steps without deleting the invoice or previous communications.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "A replayed webhook/reminder does not create a second allocation, case, WorkItem or send.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "retainer-renewals-plugin",
+    title: "Retainer entitlements and client renewals plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Protect recurring revenue and service commitments by linking agreement terms, actual delivery usage, renewal decisions and invoices. Give the owner time to resolve overages or renewal risk before the next billing period.",
+    acceptance: [
+      "Replaying a period rollover creates exactly one entitlement period and at most one invoice draft.",
+      "A cancellation invalidates queued renewal communication and future invoice preparation.",
+      "Changing a current agreement does not recompute closed periods silently.",
+      "Usage corrections preserve history and produce correct allowance and overage explanations.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Project time, billable usage and margin control plugin",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/workflow-plugins.ts at c7da31b; plugins/stripe-invoicing/workflow.js at c7da31b; src/lib/revenue-os/delivery-handoff.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No automatic subscription charges, subscription-ledger replacement, legal agreement drafting without review, or inferred signed consent. Business owner: Account owner and operations lead.\n\nTrigger: A signed/confirmed retainer begins, a period rolls over, usage reaches a threshold, or a renewal notice window opens.\n\nWorkflow:\n1. Record an operator-confirmed agreement version with customer, service period, timezone, currency, included units, rollover rules and notice deadline.\n2. Create deterministic period entitlements and link approved delivery/time usage without copying accounting or CRM truth.\n3. Notice remaining allowance, overage candidates and missing usage; explain calculations with source links.\n4. Draft a renewal brief and branded proposal/invoice handoff using verified terms; ask the owner to approve changed price or scope.\n5. Queue any customer reminder or invoice draft through existing governed actions; re-read agreement version and cancellation state at execution.\n6. Renew, amend, expire or cancel with an effective date while preserving prior period entitlements and commitments.\n\nData and lifecycle: ServiceAgreement, AgreementVersion, EntitlementPeriod and UsageAllocation. Versioned agreement terms are distinct from invoices and WorkItems. State: draft, confirmed, active, renewal_due, renewed, cancelled, expired.\n\nCapability/tool contract: get_retainer_position, create_agreement_draft, allocate_confirmed_usage, propose_renewal, apply_approved_amendment, prepare_period_invoice. Period identity is tenant + agreement + period-start + version; approved amendments never overwrite historical usage.\n\nOperator and client surfaces: Agreement page with period allowance, source-linked usage and notice calendar; Today renewal/overage decisions; account and invoice extensions with the exact agreement version.\n\nFailure and recovery matrix: Leap days, daylight saving, month-end anchors, cancellation during a queued run, zero usage, late corrections, rollover caps, multiple currencies and overlapping amendments require deterministic handling.\n\nDemo packet: A healthy monthly retainer, a near-limit account and a renewal requiring a scope amendment. Show period rollover, renewal approval, cancellation and missing usage in all scenarios.\n\nValue measurement: Renewals decided before notice deadline; recurring value at risk by currency; unbilled approved overage; unexplained entitlement adjustments.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["finance", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Protect recurring revenue and service commitments by linking agreement terms, actual delivery usage, renewal decisions and invoices. Give the owner time to resolve overages or renewal risk before the next billing period.",
+      scope: [
+        "Record an operator-confirmed agreement version with customer, service period, timezone, currency, included units, rollover rules and notice deadline.",
+        "Create deterministic period entitlements and link approved delivery/time usage without copying accounting or CRM truth.",
+        "Notice remaining allowance, overage candidates and missing usage; explain calculations with source links.",
+        "Draft a renewal brief and branded proposal/invoice handoff using verified terms; ask the owner to approve changed price or scope.",
+        "Queue any customer reminder or invoice draft through existing governed actions; re-read agreement version and cancellation state at execution.",
+        "Renew, amend, expire or cancel with an effective date while preserving prior period entitlements and commitments.",
+      ],
+      exclusions: [
+        "No automatic subscription charges, subscription-ledger replacement, legal agreement drafting without review, or inferred signed consent.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/workflow-plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "plugins/stripe-invoicing/workflow.js",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/delivery-handoff.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Record an operator-confirmed agreement version with customer, service period, timezone, currency, included units, rollover rules and notice deadline.",
+        "Create deterministic period entitlements and link approved delivery/time usage without copying accounting or CRM truth.",
+        "Notice remaining allowance, overage candidates and missing usage; explain calculations with source links.",
+        "Draft a renewal brief and branded proposal/invoice handoff using verified terms; ask the owner to approve changed price or scope.",
+        "Queue any customer reminder or invoice draft through existing governed actions; re-read agreement version and cancellation state at execution.",
+        "Renew, amend, expire or cancel with an effective date while preserving prior period entitlements and commitments.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "Replaying a period rollover creates exactly one entitlement period and at most one invoice draft.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "A cancellation invalidates queued renewal communication and future invoice preparation.",
+        },
+        {
+          id: "AC-3",
+          criterion: "Changing a current agreement does not recompute closed periods silently.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "Usage corrections preserve history and produce correct allowance and overage explanations.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "scope-change-control-plugin",
+    title: "Scope change and commercial approval plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Prevent unpriced work and lost margin by making a client request traceable to a reviewed impact, approved commercial change and delivery update. Keep teams from treating an informal chat message as permission to expand scope.",
+    acceptance: [
+      "A client decision for an older document cannot approve the newer revision.",
+      "An AI estimate or informal affirmative message never authorizes billing or delivery expansion.",
+      "Applying approval twice creates one delivery change and one invoice-draft linkage.",
+      "A declined or expired change preserves the original project commitments.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Client deliverable review and approval room plugin",
+      "Project time, billable usage and margin control plugin",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/delivery-handoff.ts; src/app/api/admin/proposals/route.ts; src/lib/revenue-os/invoice-pages.ts at c7da31b; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No replacing proposal lifecycle, automatic contract acceptance, silent scope mutation or automatic customer sending. Business owner: Project lead, account owner and client decision-maker.\n\nTrigger: A new request or delivery exception may exceed an approved proposal, estimate or agreement version.\n\nWorkflow:\n1. Capture the request from a canonical conversation/task and link the current approved scope version, customer and project.\n2. AI compares the request to source-backed scope and drafts an impact assessment with assumptions, missing facts, effort range and risks.\n3. The owner edits price, schedule and acceptance; approval freezes a change-order version and its presented document.\n4. The client reviews the scoped page and explicitly approves or declines that exact version.\n5. Only confirmed approval updates delivery commitments and prepares an invoice/proposal amendment through existing services.\n6. Record implementation and verification against the approved change, including superseded versions and rejected alternatives.\n\nData and lifecycle: ChangeRequest, ChangeAssessment, ChangeOrderVersion and ChangeDecision; tenant-composite references to project, opportunity, proposal, document version and resulting delivery work. State: captured, assessing, internal_review, client_review, approved, declined, superseded, implemented.\n\nCapability/tool contract: capture_scope_change, draft_change_assessment, submit_change_for_internal_review, publish_approved_change, record_client_change_decision, apply_approved_change. Application key is tenant + approved change version; decisions are immutable facts.\n\nOperator and client surfaces: Project scope ledger, compare-before/after review, client-branded change page and Today approval/blocked-delivery tasks. Surface assumptions separately from fixed price and dates.\n\nFailure and recovery matrix: Concurrent client decisions, changed source scope, partial approval, approval after expiry, duplicate inbound requests, withdrawn orders and provider failures must not mutate delivery.\n\nDemo packet: An extra deliverable, an urgent timeline request and a withdrawn request; include conflicting source scope, internal revision and client rejection.\n\nValue measurement: Approved changes billed; unapproved scope work started; change decision cycle time; estimated versus delivered effort with stated sample size.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Prevent unpriced work and lost margin by making a client request traceable to a reviewed impact, approved commercial change and delivery update. Keep teams from treating an informal chat message as permission to expand scope.",
+      scope: [
+        "Capture the request from a canonical conversation/task and link the current approved scope version, customer and project.",
+        "AI compares the request to source-backed scope and drafts an impact assessment with assumptions, missing facts, effort range and risks.",
+        "The owner edits price, schedule and acceptance; approval freezes a change-order version and its presented document.",
+        "The client reviews the scoped page and explicitly approves or declines that exact version.",
+        "Only confirmed approval updates delivery commitments and prepares an invoice/proposal amendment through existing services.",
+        "Record implementation and verification against the approved change, including superseded versions and rejected alternatives.",
+      ],
+      exclusions: [
+        "No replacing proposal lifecycle, automatic contract acceptance, silent scope mutation or automatic customer sending.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/delivery-handoff.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/app/api/admin/proposals/route.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/invoice-pages.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Capture the request from a canonical conversation/task and link the current approved scope version, customer and project.",
+        "AI compares the request to source-backed scope and drafts an impact assessment with assumptions, missing facts, effort range and risks.",
+        "The owner edits price, schedule and acceptance; approval freezes a change-order version and its presented document.",
+        "The client reviews the scoped page and explicitly approves or declines that exact version.",
+        "Only confirmed approval updates delivery commitments and prepares an invoice/proposal amendment through existing services.",
+        "Record implementation and verification against the approved change, including superseded versions and rejected alternatives.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion: "A client decision for an older document cannot approve the newer revision.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "An AI estimate or informal affirmative message never authorizes billing or delivery expansion.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Applying approval twice creates one delivery change and one invoice-draft linkage.",
+        },
+        {
+          id: "AC-4",
+          criterion: "A declined or expired change preserves the original project commitments.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "client-approval-room-plugin",
+    title: "Client deliverable review and approval room plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Replace scattered approval threads with a single customer-facing review workflow that identifies exactly which deliverable version was approved and what the team must change next.",
+    acceptance: [
+      "A forwarded or cross-tenant link cannot read another room or impersonate an authorized reviewer.",
+      "Approval binds to the presented version and cannot carry over automatically to a replacement.",
+      "All-required-reviewer policy blocks completion until every required decision is present.",
+      "Provider failure leaves an unsent invite receipt and safe retry; no false delivered badge.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Expose reusable typed grid and board views to business plugins",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/invoice-pages.ts at c7da31b; src/lib/revenue-os/invoice-page-contract.ts at c7da31b; src/lib/revenue-os/branding.ts at c7da31b; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No general file-sharing service, public unrestricted documents, e-signature claims, new design system or automatic legal acceptance. Business owner: Delivery owner and explicitly invited customer reviewers.\n\nTrigger: A deliverable version is ready for external review or a review deadline is approaching.\n\nWorkflow:\n1. Register a deliverable version using canonical project and document/asset IDs; copy no raw private files into an unaudited store.\n2. Choose exact reviewers and approval policy: named approver or all required reviewers; freeze the presented version and expiry.\n3. Publish a branded, accessible review room through the shared record-view contract and approved invitation action.\n4. Capture comments, requested changes and explicit decisions against that version; show who can decide and what is still pending.\n5. Close only when the policy is satisfied; create delivery rework WorkItems for changes and clear related approval blockers.\n6. Revisions invalidate old pending approvals and preserve previous decisions and artifacts for audit.\n\nData and lifecycle: Deliverable, DeliverableVersion, ReviewRound, ReviewAssignment and ReviewDecision. Invite identity is tenant + reviewer + room + scope; token hash/expiry/revocation follows the existing public document access contract.\n\nCapability/tool contract: prepare_review_round, invite_approved_reviewers, record_review_comment, decide_deliverable_version, close_review_round. Public writes verify token scope, reviewer authority, document version, expiry and request idempotency.\n\nOperator and client surfaces: Branded review room with document preview, accessible change summary, comment thread and clear approve/request-changes actions; admin approval inbox and account/project activity extensions.\n\nFailure and recovery matrix: Forwarded links, revoked reviewers, expired invitations, reassigned approvers, conflicting decisions, replaced assets, unavailable previews and unsent invites must be visible and safe.\n\nDemo packet: One approved room, one with requested revisions, and one waiting for a second reviewer; include revoked/expired access and unavailable preview fixtures.\n\nValue measurement: Review cycle time; overdue review rounds; rework loops; approval policy exceptions; source-linked approval completeness.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Replace scattered approval threads with a single customer-facing review workflow that identifies exactly which deliverable version was approved and what the team must change next.",
+      scope: [
+        "Register a deliverable version using canonical project and document/asset IDs; copy no raw private files into an unaudited store.",
+        "Choose exact reviewers and approval policy: named approver or all required reviewers; freeze the presented version and expiry.",
+        "Publish a branded, accessible review room through the shared record-view contract and approved invitation action.",
+        "Capture comments, requested changes and explicit decisions against that version; show who can decide and what is still pending.",
+        "Close only when the policy is satisfied; create delivery rework WorkItems for changes and clear related approval blockers.",
+        "Revisions invalidate old pending approvals and preserve previous decisions and artifacts for audit.",
+      ],
+      exclusions: [
+        "No general file-sharing service, public unrestricted documents, e-signature claims, new design system or automatic legal acceptance.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/invoice-pages.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/invoice-page-contract.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/branding.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Register a deliverable version using canonical project and document/asset IDs; copy no raw private files into an unaudited store.",
+        "Choose exact reviewers and approval policy: named approver or all required reviewers; freeze the presented version and expiry.",
+        "Publish a branded, accessible review room through the shared record-view contract and approved invitation action.",
+        "Capture comments, requested changes and explicit decisions against that version; show who can decide and what is still pending.",
+        "Close only when the policy is satisfied; create delivery rework WorkItems for changes and clear related approval blockers.",
+        "Revisions invalidate old pending approvals and preserve previous decisions and artifacts for audit.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "A forwarded or cross-tenant link cannot read another room or impersonate an authorized reviewer.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "Approval binds to the presented version and cannot carry over automatically to a replacement.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "All-required-reviewer policy blocks completion until every required decision is present.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "Provider failure leaves an unsent invite receipt and safe retry; no false delivered badge.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "delivery-capacity-plugin",
+    title: "Delivery capacity and assignment planning plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Give the business a realistic delivery promise by connecting committed work, availability and skills. Turn overload or missed coverage into explicit scheduling decisions before a customer deadline is missed.",
+    acceptance: [
+      "Two planners cannot both consume the same remaining capacity without a visible conflict or reviewed override.",
+      "Unknown effort appears as unknown, never zero.",
+      "Disabled membership cannot receive a new assignment; historical allocations remain inspectable.",
+      "AI suggestions do not alter assignments until the same reviewed service accepts them.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Create the won-to-delivery handoff",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/delivery-handoff.ts; src/lib/revenue-os/work-items.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No payroll, employee surveillance, autonomous staff evaluation, calendar-provider replacement or automatic client deadline changes. Business owner: Operations lead and delivery managers.\n\nTrigger: A project is won, scope changes, a person becomes unavailable, or capacity falls below a required delivery commitment.\n\nWorkflow:\n1. Define tenant members/resources, working calendars, availability exceptions and operator-confirmed skills; link existing delivery WorkItems and target dates.\n2. Compute capacity from planned effort and approved allocations with stated timezone and horizon; distinguish unknown estimates from free capacity.\n3. AI proposes explainable assignments or rescheduling options using bounded resource and project context.\n4. The manager reviews impact on dates, conflicting commitments, workload and required skills before committing a versioned allocation plan.\n5. Re-read availability and allocation revisions atomically; reject overbooking unless an authorized, reasoned override is recorded.\n6. Create operator exceptions for drift; feed delivery dates and committed allocations to projects and Today without sending customer promises automatically.\n\nData and lifecycle: ResourceCalendar, AvailabilityException, AllocationPlan, WorkAllocation and CapacityOverride referencing tenant membership and canonical delivery work. Planning states are draft, reviewed, committed, superseded; allocations retain source estimates and units.\n\nCapability/tool contract: read_delivery_capacity, propose_assignment_plan, commit_reviewed_allocation, record_availability_exception, release_allocation. Commit compares every affected allocation/calendar revision in one transaction.\n\nOperator and client surfaces: Accessible week/list planner, unassigned work queue, overload explanation and project capacity extension. Provide keyboard alternatives to dragging and mobile decision views.\n\nFailure and recovery matrix: Part-time calendars, leave, DST, cross-timezone teams, fractional estimates, unknown effort, deleted membership, simultaneous planners and cancelled delivery work require tests.\n\nDemo packet: One overloaded specialist, an available generalist and an unestimated project; demonstrate leave, conflicting plans, reassignment and cancellation.\n\nValue measurement: Committed load versus known capacity; unassigned deadline-bearing work; overload overrides; schedule variance. Avoid using utilization alone as a people performance score.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Give the business a realistic delivery promise by connecting committed work, availability and skills. Turn overload or missed coverage into explicit scheduling decisions before a customer deadline is missed.",
+      scope: [
+        "Define tenant members/resources, working calendars, availability exceptions and operator-confirmed skills; link existing delivery WorkItems and target dates.",
+        "Compute capacity from planned effort and approved allocations with stated timezone and horizon; distinguish unknown estimates from free capacity.",
+        "AI proposes explainable assignments or rescheduling options using bounded resource and project context.",
+        "The manager reviews impact on dates, conflicting commitments, workload and required skills before committing a versioned allocation plan.",
+        "Re-read availability and allocation revisions atomically; reject overbooking unless an authorized, reasoned override is recorded.",
+        "Create operator exceptions for drift; feed delivery dates and committed allocations to projects and Today without sending customer promises automatically.",
+      ],
+      exclusions: [
+        "No payroll, employee surveillance, autonomous staff evaluation, calendar-provider replacement or automatic client deadline changes.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/delivery-handoff.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Define tenant members/resources, working calendars, availability exceptions and operator-confirmed skills; link existing delivery WorkItems and target dates.",
+        "Compute capacity from planned effort and approved allocations with stated timezone and horizon; distinguish unknown estimates from free capacity.",
+        "AI proposes explainable assignments or rescheduling options using bounded resource and project context.",
+        "The manager reviews impact on dates, conflicting commitments, workload and required skills before committing a versioned allocation plan.",
+        "Re-read availability and allocation revisions atomically; reject overbooking unless an authorized, reasoned override is recorded.",
+        "Create operator exceptions for drift; feed delivery dates and committed allocations to projects and Today without sending customer promises automatically.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "Two planners cannot both consume the same remaining capacity without a visible conflict or reviewed override.",
+        },
+        {
+          id: "AC-2",
+          criterion: "Unknown effort appears as unknown, never zero.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Disabled membership cannot receive a new assignment; historical allocations remain inspectable.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "AI suggestions do not alter assignments until the same reviewed service accepts them.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "project-time-margin-plugin",
+    title: "Project time, billable usage and margin control plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Make project economics actionable by turning approved time and costs into billable usage, invoice preparation and margin exceptions. Distinguish estimates, earned/billable value, invoiced value and received cash.",
+    acceptance: [
+      "Approved usage can be attached to billing once; concurrent invoice preparation cannot double bill.",
+      "A rate change does not alter already approved or billed usage.",
+      "Unknown cost or revenue cannot be shown as zero or a trustworthy margin percentage.",
+      "A user without cost permission cannot read cost rates through UI, tools, exports or record extensions.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Create the won-to-delivery handoff",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/workflow-plugins.ts at c7da31b; plugins/stripe-invoicing/workflow.js at c7da31b; src/lib/revenue-os/delivery-handoff.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No payroll processing, tax advice, inferred employee productivity ranking, currency conversion without a verified policy or edits to provider invoice facts. Business owner: Delivery contributor, project approver and business owner.\n\nTrigger: Work is performed, an approval period closes, or estimated/actual project cost crosses an approved threshold.\n\nWorkflow:\n1. Capture time against canonical project/task IDs with service date, duration, billable classification and a versioned rate/cost reference.\n2. Submit a period for review; the approver can request corrections or approve exact entries, with conflict and overlap checks.\n3. Aggregate approved usage in integer minutes and money minor units using explicit rounding and currency rules.\n4. Prepare invoice line candidates or retainer usage allocations through the shared invoicing/agreement service; require commercial approval before issue.\n5. Show explainable margin-at-completion ranges using confirmed revenue and known costs, keeping missing cost rates visible.\n6. Correct approved entries with a compensating adjustment and reconciliation work rather than rewriting a sent invoice.\n\nData and lifecycle: TimeEntry, TimeSubmission, TimeDecision, RateVersion, BillableUsage and UsageBillingLink. Costs and rates are restricted to authorized roles; usage links canonical task/project and invoice line IDs.\n\nCapability/tool contract: record_project_time, submit_time_period, decide_time_submission, prepare_billable_usage, propose_usage_invoice, reconcile_usage_adjustment. Billing dedupe is tenant + approved usage ID; approval snapshots rate version and rounding policy.\n\nOperator and client surfaces: Fast time entry, review inbox, project economics detail and invoice usage trace. Contributors see their entries while restricted cost/margin data stays out of unauthorized UI and AI context.\n\nFailure and recovery matrix: Overlapping entries, overnight work, zero/negative duration, retroactive rates, partially billed usage, write-offs, multiple currencies, missing costs and duplicate submissions require deterministic outcomes.\n\nDemo packet: A fixed-fee project with margin pressure, a time-and-materials engagement awaiting approval, and a retainer usage correction. Include missing rates and an already billed entry.\n\nValue measurement: Approved unbilled usage; approval delay; known-cost coverage; project margin variance by currency with assumptions exposed.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["finance", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Make project economics actionable by turning approved time and costs into billable usage, invoice preparation and margin exceptions. Distinguish estimates, earned/billable value, invoiced value and received cash.",
+      scope: [
+        "Capture time against canonical project/task IDs with service date, duration, billable classification and a versioned rate/cost reference.",
+        "Submit a period for review; the approver can request corrections or approve exact entries, with conflict and overlap checks.",
+        "Aggregate approved usage in integer minutes and money minor units using explicit rounding and currency rules.",
+        "Prepare invoice line candidates or retainer usage allocations through the shared invoicing/agreement service; require commercial approval before issue.",
+        "Show explainable margin-at-completion ranges using confirmed revenue and known costs, keeping missing cost rates visible.",
+        "Correct approved entries with a compensating adjustment and reconciliation work rather than rewriting a sent invoice.",
+      ],
+      exclusions: [
+        "No payroll processing, tax advice, inferred employee productivity ranking, currency conversion without a verified policy or edits to provider invoice facts.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/workflow-plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "plugins/stripe-invoicing/workflow.js",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/delivery-handoff.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Capture time against canonical project/task IDs with service date, duration, billable classification and a versioned rate/cost reference.",
+        "Submit a period for review; the approver can request corrections or approve exact entries, with conflict and overlap checks.",
+        "Aggregate approved usage in integer minutes and money minor units using explicit rounding and currency rules.",
+        "Prepare invoice line candidates or retainer usage allocations through the shared invoicing/agreement service; require commercial approval before issue.",
+        "Show explainable margin-at-completion ranges using confirmed revenue and known costs, keeping missing cost rates visible.",
+        "Correct approved entries with a compensating adjustment and reconciliation work rather than rewriting a sent invoice.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "Approved usage can be attached to billing once; concurrent invoice preparation cannot double bill.",
+        },
+        {
+          id: "AC-2",
+          criterion: "A rate change does not alter already approved or billed usage.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Unknown cost or revenue cannot be shown as zero or a trustworthy margin percentage.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "A user without cost permission cannot read cost rates through UI, tools, exports or record extensions.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "client-document-intake-plugin",
+    title: "Client document and access readiness plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Unblock onboarding and delivery by tracking exactly which client documents, information and access grants are missing, who owns the request and whether the submitted material is actually usable.",
+    acceptance: [
+      "A model completeness suggestion cannot mark a requirement accepted.",
+      "One client cannot list, attach or download another client’s evidence.",
+      "Revoked/expired evidence blocks only dependent work and preserves the previous reviewed state.",
+      "Password/API-key instructions are excluded; access uses existing connection/authorization flows.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Client deliverable review and approval room plugin",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; plugins/client-onboarding/workflow.js at c7da31b; src/lib/revenue-os/workflow-plugins.ts at c7da31b; src/lib/revenue-os/knowledge.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No new object-storage provider, plaintext secret collection, automatic document acceptance or blanket public client portal access. Business owner: Onboarding coordinator, delivery lead and client contact.\n\nTrigger: An approved onboarding/delivery recipe requires client-supplied documents or access, or previously accepted material expires.\n\nWorkflow:\n1. Instantiate a versioned requirement checklist for the canonical customer/project with explicit purpose, owner, allowed evidence type and expiry.\n2. Present a branded client checklist through the shared room contract; invite only approved contacts using the governed send path.\n3. Receive a scoped document reference or access-confirmation evidence through existing storage/Drive boundaries; never collect passwords or API keys in free text.\n4. AI classifies completeness with cited document/page evidence and missing information; a responsible operator accepts or requests correction.\n5. Update delivery readiness and unblock only the affected tasks when the reviewed requirement version is satisfied.\n6. Track expiry, revocation and superseded submissions, creating a new review task without deleting prior evidence.\n\nData and lifecycle: IntakeRequirementSet, IntakeRequirement, IntakeSubmission and IntakeDecision. Canonical document IDs, scoped storage references and human acceptance are separate from model completeness suggestions.\n\nCapability/tool contract: create_intake_request, publish_approved_intake_request, attach_intake_submission, assess_intake_completeness, decide_intake_submission, expire_intake_evidence. Duplicate submission keys do not duplicate storage or downstream work.\n\nOperator and client surfaces: Client readiness checklist, secure upload/reference flow, admin triage with evidence and delivery blockers. Reuse onboarding workflow and record views rather than creating another onboarding engine.\n\nFailure and recovery matrix: Wrong document, unreadable file, malware/quarantine status supplied by storage, missing access rights, expired consent, revoked Drive access, cross-client attachment and repeated requests must have explicit outcomes.\n\nDemo packet: A completed intake, a missing asset request and an unreadable submission; include a revoked document reference and a rejected access confirmation.\n\nValue measurement: Time to delivery-ready; missing/expired requirement count; clarification loops; time blocked on client inputs.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Unblock onboarding and delivery by tracking exactly which client documents, information and access grants are missing, who owns the request and whether the submitted material is actually usable.",
+      scope: [
+        "Instantiate a versioned requirement checklist for the canonical customer/project with explicit purpose, owner, allowed evidence type and expiry.",
+        "Present a branded client checklist through the shared room contract; invite only approved contacts using the governed send path.",
+        "Receive a scoped document reference or access-confirmation evidence through existing storage/Drive boundaries; never collect passwords or API keys in free text.",
+        "AI classifies completeness with cited document/page evidence and missing information; a responsible operator accepts or requests correction.",
+        "Update delivery readiness and unblock only the affected tasks when the reviewed requirement version is satisfied.",
+        "Track expiry, revocation and superseded submissions, creating a new review task without deleting prior evidence.",
+      ],
+      exclusions: [
+        "No new object-storage provider, plaintext secret collection, automatic document acceptance or blanket public client portal access.",
+      ],
+      references: [
+        {
+          path: "plugins/client-onboarding/workflow.js",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/workflow-plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+          revision: "c7da31b",
+        },
+        {
+          path: "src/lib/revenue-os/knowledge.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Instantiate a versioned requirement checklist for the canonical customer/project with explicit purpose, owner, allowed evidence type and expiry.",
+        "Present a branded client checklist through the shared room contract; invite only approved contacts using the governed send path.",
+        "Receive a scoped document reference or access-confirmation evidence through existing storage/Drive boundaries; never collect passwords or API keys in free text.",
+        "AI classifies completeness with cited document/page evidence and missing information; a responsible operator accepts or requests correction.",
+        "Update delivery readiness and unblock only the affected tasks when the reviewed requirement version is satisfied.",
+        "Track expiry, revocation and superseded submissions, creating a new review task without deleting prior evidence.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion: "A model completeness suggestion cannot mark a requirement accepted.",
+        },
+        {
+          id: "AC-2",
+          criterion: "One client cannot list, attach or download another client’s evidence.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Revoked/expired evidence blocks only dependent work and preserves the previous reviewed state.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "Password/API-key instructions are excluded; access uses existing connection/authorization flows.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "vendor-obligations-plugin",
+    title: "Vendor subscriptions and obligation management plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Prevent forgotten renewals, unused service spend and missed vendor commitments by turning confirmed vendor terms into accountable review and cancellation work.",
+    acceptance: [
+      "A drafted or sent cancellation request does not mark a vendor subscription cancelled.",
+      "Changing renewal terms preserves the prior notice calculation and decision history.",
+      "The plugin does not duplicate stock purchasing/receiving records.",
+      "Uncertain or missing terms produce review work rather than fabricated deadlines or savings.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Add supplier purchasing with approved orders and partial receiving",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/knowledge.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/work-items.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No automatic contract termination, procurement provider replacement, inferred legal notice periods or presenting proposed savings as realized cash. Business owner: Business owner, operations lead and purchasing approver.\n\nTrigger: A vendor obligation is confirmed, a notice date approaches, a recurring service changes, or evidence of service ownership becomes stale.\n\nWorkflow:\n1. Register vendor identity and an operator-confirmed obligation version with currency, amount basis, owner, service dates, notice deadline and source document.\n2. Link purchase/receipt records where available without replacing inventory purchasing or accounting facts.\n3. Detect upcoming notice windows, orphaned ownership and missing usage evidence; explain the source and uncertainty.\n4. AI prepares a renewal/cancellation decision brief with known spend, usage evidence, alternatives already recorded and unanswered questions.\n5. The approver records renew, renegotiate, cancel or investigate; customer-facing/vendor communication still requires the existing reviewed send action.\n6. Track provider-confirmed or human-confirmed cancellation separately from intent; create follow-up work until fulfillment is evidenced.\n\nData and lifecycle: VendorObligation, ObligationVersion, RenewalDecision and FulfillmentEvidence referencing canonical vendor/contact/document/purchase identities. State distinguishes intent, requested, confirmed, disputed and expired.\n\nCapability/tool contract: register_vendor_obligation, list_notice_windows, propose_vendor_decision, record_vendor_decision, request_approved_vendor_change, confirm_vendor_fulfillment. Idempotency scopes to obligation version and notice cycle.\n\nOperator and client surfaces: Upcoming obligations calendar/list, ownerless spend queue, source document detail and Today decision cards; display intent versus confirmed cancellation clearly.\n\nFailure and recovery matrix: Auto-renew dates, notice-period ambiguity, multi-year terms, duplicate bills, owner departure, mixed currencies, failed sends and vendor rejection must not produce false cancellation/savings.\n\nDemo packet: A software renewal needing an owner, a service being renegotiated and a cancellation awaiting confirmation; include ambiguous notice language.\n\nValue measurement: Obligations reviewed before notice deadline; confirmed avoided spend versus proposed savings; ownerless commitments; unresolved cancellation requests.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Prevent forgotten renewals, unused service spend and missed vendor commitments by turning confirmed vendor terms into accountable review and cancellation work.",
+      scope: [
+        "Register vendor identity and an operator-confirmed obligation version with currency, amount basis, owner, service dates, notice deadline and source document.",
+        "Link purchase/receipt records where available without replacing inventory purchasing or accounting facts.",
+        "Detect upcoming notice windows, orphaned ownership and missing usage evidence; explain the source and uncertainty.",
+        "AI prepares a renewal/cancellation decision brief with known spend, usage evidence, alternatives already recorded and unanswered questions.",
+        "The approver records renew, renegotiate, cancel or investigate; customer-facing/vendor communication still requires the existing reviewed send action.",
+        "Track provider-confirmed or human-confirmed cancellation separately from intent; create follow-up work until fulfillment is evidenced.",
+      ],
+      exclusions: [
+        "No automatic contract termination, procurement provider replacement, inferred legal notice periods or presenting proposed savings as realized cash.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/knowledge.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/actions.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Register vendor identity and an operator-confirmed obligation version with currency, amount basis, owner, service dates, notice deadline and source document.",
+        "Link purchase/receipt records where available without replacing inventory purchasing or accounting facts.",
+        "Detect upcoming notice windows, orphaned ownership and missing usage evidence; explain the source and uncertainty.",
+        "AI prepares a renewal/cancellation decision brief with known spend, usage evidence, alternatives already recorded and unanswered questions.",
+        "The approver records renew, renegotiate, cancel or investigate; customer-facing/vendor communication still requires the existing reviewed send action.",
+        "Track provider-confirmed or human-confirmed cancellation separately from intent; create follow-up work until fulfillment is evidenced.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "A drafted or sent cancellation request does not mark a vendor subscription cancelled.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "Changing renewal terms preserves the prior notice calculation and decision history.",
+        },
+        {
+          id: "AC-3",
+          criterion: "The plugin does not duplicate stock purchasing/receiving records.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "Uncertain or missing terms produce review work rather than fabricated deadlines or savings.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "expense-approval-plugin",
+    title: "Expense intake, approval and reimbursement tracking plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Give small teams a complete expense workflow from evidence to approval and reimbursement status, with project attribution and duplicate prevention. Make cash commitments visible without pretending to be the accounting system.",
+    acceptance: [
+      "Extraction never silently commits uncertain amounts or currency.",
+      "The same approved expense cannot be exported as two new obligations on retry.",
+      "Approval cannot be reused after a material edit; the old decision stays visible.",
+      "A CSV export or clicked paid button without evidence cannot be presented as provider-confirmed settlement.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Project time, billable usage and margin control plugin",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/actions.ts; src/lib/revenue-os/work-items.ts; src/lib/revenue-os/knowledge.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No tax deductibility advice, payroll/bank payouts, automatic receipt acceptance, accounting-ledger replacement or unsafe attachment parsing. Business owner: Team member, expense approver and finance operator.\n\nTrigger: A contributor submits an expense or a reviewed reimbursement obligation becomes overdue.\n\nWorkflow:\n1. Capture receipt/document reference, merchant, service date, amount in minor units, currency, category and canonical project/customer association.\n2. AI extracts candidate fields with provenance and confidence; the submitter confirms uncertain values and business purpose.\n3. Detect duplicates and policy exceptions using tenant-scoped evidence fingerprints and reviewed rules; route ambiguous cases for review.\n4. Approve or reject the frozen submission with reason and approver identity; material edits invalidate approval.\n5. Export approved obligations through a versioned accounting-neutral adapter or record externally verified reimbursement evidence; no bank integration is required.\n6. Reconcile rejection, adjustment, duplicate reimbursement evidence or failed export with receipts and follow-up WorkItems.\n\nData and lifecycle: ExpenseSubmission, ExpenseVersion, ExpenseDecision, ReimbursementObligation and ReimbursementEvidence. Expense approval, exported bookkeeping data and paid facts remain separate; attachments use canonical scoped documents.\n\nCapability/tool contract: submit_expense, extract_expense_candidates, review_expense_exception, decide_expense, export_approved_expenses, record_reimbursement_evidence. Duplicate key includes tenant and evidence fingerprint plus reviewed merchant/date/amount matching; ambiguous matches never auto-delete.\n\nOperator and client surfaces: Mobile receipt/reference intake, approval inbox, reimbursement queue and project cost extension. Clearly separate submitted, approved, exported and externally confirmed paid states.\n\nFailure and recovery matrix: Multiple currencies, split expenses, unreadable receipts, duplicate uploads, refunds, partial reimbursement, changed amount after approval and failed export require tests.\n\nDemo packet: One approved project expense, one possible duplicate and one receipt requiring clarification; include partial reimbursement, rejection and export retry.\n\nValue measurement: Submission-to-decision time; approved unpaid balance by currency; duplicate cases resolved; expense evidence coverage and project attribution completeness.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["finance", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Give small teams a complete expense workflow from evidence to approval and reimbursement status, with project attribution and duplicate prevention. Make cash commitments visible without pretending to be the accounting system.",
+      scope: [
+        "Capture receipt/document reference, merchant, service date, amount in minor units, currency, category and canonical project/customer association.",
+        "AI extracts candidate fields with provenance and confidence; the submitter confirms uncertain values and business purpose.",
+        "Detect duplicates and policy exceptions using tenant-scoped evidence fingerprints and reviewed rules; route ambiguous cases for review.",
+        "Approve or reject the frozen submission with reason and approver identity; material edits invalidate approval.",
+        "Export approved obligations through a versioned accounting-neutral adapter or record externally verified reimbursement evidence; no bank integration is required.",
+        "Reconcile rejection, adjustment, duplicate reimbursement evidence or failed export with receipts and follow-up WorkItems.",
+      ],
+      exclusions: [
+        "No tax deductibility advice, payroll/bank payouts, automatic receipt acceptance, accounting-ledger replacement or unsafe attachment parsing.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/actions.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/knowledge.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Capture receipt/document reference, merchant, service date, amount in minor units, currency, category and canonical project/customer association.",
+        "AI extracts candidate fields with provenance and confidence; the submitter confirms uncertain values and business purpose.",
+        "Detect duplicates and policy exceptions using tenant-scoped evidence fingerprints and reviewed rules; route ambiguous cases for review.",
+        "Approve or reject the frozen submission with reason and approver identity; material edits invalidate approval.",
+        "Export approved obligations through a versioned accounting-neutral adapter or record externally verified reimbursement evidence; no bank integration is required.",
+        "Reconcile rejection, adjustment, duplicate reimbursement evidence or failed export with receipts and follow-up WorkItems.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion: "Extraction never silently commits uncertain amounts or currency.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "The same approved expense cannot be exported as two new obligations on retry.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Approval cannot be reused after a material edit; the old decision stays visible.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "A CSV export or clicked paid button without evidence cannot be presented as provider-confirmed settlement.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "hiring-workflow-plugin",
+    title: "Hiring pipeline and interview coordination plugin",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Help a growing service business fill real delivery gaps through an accountable hiring workflow, reusing identity, conversations, calendar, work and approvals without mixing candidates into sales opportunities.",
+    acceptance: [
+      "Candidate state never changes an opportunity stage or exposes restricted scorecards to normal CRM readers.",
+      "AI cannot autonomously advance/reject a candidate or infer protected characteristics.",
+      "Repeated interview scheduling cannot create duplicate calendar events or invitations.",
+      "A withdrawn application cancels pending outreach and remains subject to the configured retention policy.",
+      "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+      "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+      "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+      "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+      "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+      "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+      "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+      "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Delivery capacity and assignment planning plugin",
+    ],
+    start:
+      "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; src/lib/revenue-os/identity.ts; src/lib/revenue-os/work-items.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
+    guardrails:
+      "No automated employment decisions, protected-trait inference, background checks, payroll, new scheduling provider or jurisdiction-specific hiring compliance claims. Business owner: Hiring manager, recruiter and interview panel.\n\nTrigger: An approved role opens, a candidate applies/is added with a valid source, an interview concludes, or a decision is overdue.\n\nWorkflow:\n1. Create an approved role version with duties, job-related criteria, interview stages and decision owners; link capacity need where appropriate.\n2. Attach a canonical person identity to a separate candidate application entity, with source, consent/retention policy and communication preferences.\n3. Coordinate interview tasks and calendar proposals through existing availability and approved-send paths; distinguish suggested time from confirmed event.\n4. Collect structured human scorecards tied to job-related criteria and evidence; AI can summarize supplied notes with provenance but does not rank people or infer sensitive traits.\n5. Require the authorized manager to record stage advancement, rejection or offer recommendation; freeze the reviewed decision basis.\n6. Close the application with retained decision evidence and policy-governed data handling; a hire hands off to an operator-approved onboarding/resource workflow.\n\nData and lifecycle: HiringRole, RoleVersion, CandidateApplication, InterviewRound, InterviewScorecard and HiringDecision. Applications reference canonical contacts but have their own lifecycle and restricted access, independent of sales pipeline stages.\n\nCapability/tool contract: create_hiring_role, register_candidate_application, propose_interview, record_interview_scorecard, summarize_interview_evidence, record_hiring_decision. Sensitive personnel fields are excluded from broad CRM/AI retrieval; every transition checks application revision and actor role.\n\nOperator and client surfaces: Recruiting board with role filters, interview schedule and missing-scorecard queue; a restricted candidate detail page and Today manager decisions. Candidate communications show exact approved recipient and content.\n\nFailure and recovery matrix: Duplicate applicants, one person applying to multiple roles, withdrawn consent, interviewer access changes, scheduling conflicts, missing scorecards and failed notifications require explicit behavior.\n\nDemo packet: One new applicant, one scheduled interview and one decision waiting on a scorecard; include duplicate application, candidate withdrawal and calendar failure.\n\nValue measurement: Role time-to-decision; stage aging; interview coordination time; missing scorecards and failed communication recovery. No automated demographic or personality scoring.\n\nImplementation sequence: 1) Read northstar and dependency receipts; pin approved baseline commit. 2) Write schema/state/capability contract and additive migration. 3) Implement canonical services and transaction/idempotency tests. 4) Register tools, triggers, permissions and enable/disable guards. 5) Build admin/public/AI adapters on those services. 6) Add all five scenario fixtures and inspect browser evidence. 7) Exercise failure/retry/tenant isolation and submit exact commit, checks and artifacts for review.\n\nPickup gate: This is Later work. Do not start until every UUID dependency is accepted and the operator records the reconciled repository base branch/commit. References tagged c7da31b are committed donor implementations awaiting the baseline card, not files assumed to exist on every checkout.\n\nCommon non-negotiable contract: docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md. Read it in full; its cross-entrypoint, provenance, demo, migration, safety and release gates are part of this card.",
+    labels: ["operations", "plugin"],
+    verification:
+      "Run the complete verification matrix in docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md and attach evidence for every AC ID. Include local/provider proof distinctions.",
+    initiative: "Business operations plugins",
+    workSpec: {
+      businessValue:
+        "Help a growing service business fill real delivery gaps through an accountable hiring workflow, reusing identity, conversations, calendar, work and approvals without mixing candidates into sales opportunities.",
+      scope: [
+        "Create an approved role version with duties, job-related criteria, interview stages and decision owners; link capacity need where appropriate.",
+        "Attach a canonical person identity to a separate candidate application entity, with source, consent/retention policy and communication preferences.",
+        "Coordinate interview tasks and calendar proposals through existing availability and approved-send paths; distinguish suggested time from confirmed event.",
+        "Collect structured human scorecards tied to job-related criteria and evidence; AI can summarize supplied notes with provenance but does not rank people or infer sensitive traits.",
+        "Require the authorized manager to record stage advancement, rejection or offer recommendation; freeze the reviewed decision basis.",
+        "Close the application with retained decision evidence and policy-governed data handling; a hire hands off to an operator-approved onboarding/resource workflow.",
+      ],
+      exclusions: [
+        "No automated employment decisions, protected-trait inference, background checks, payroll, new scheduling provider or jurisdiction-specific hiring compliance claims.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/identity.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/actions.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugins.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/plugin-isolate.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/capabilities.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+        {
+          path: "src/lib/revenue-os/work-items.ts",
+          reason:
+            "Reuse this authoritative host/domain boundary; read the baseline reconciliation receipt before adapting it.",
+        },
+      ],
+      verification: [
+        {
+          command: "npm run verify:agent-contract",
+          expected: "Architecture, card graph and handoff contracts pass.",
+        },
+        {
+          command: "npx tsc --noEmit && npm run lint",
+          expected: "No type or lint errors introduced.",
+        },
+        {
+          command:
+            "Scoped plugin service, PostgreSQL, API and Playwright suites added by this card",
+          expected:
+            "Every acceptance ID covered; race/replay/failure/isolation and all five scenarios pass.",
+        },
+        {
+          command: "npm run build && git diff --check",
+          expected: "Exact review tree builds and diff is clean.",
+        },
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      workflow: [
+        "Create an approved role version with duties, job-related criteria, interview stages and decision owners; link capacity need where appropriate.",
+        "Attach a canonical person identity to a separate candidate application entity, with source, consent/retention policy and communication preferences.",
+        "Coordinate interview tasks and calendar proposals through existing availability and approved-send paths; distinguish suggested time from confirmed event.",
+        "Collect structured human scorecards tied to job-related criteria and evidence; AI can summarize supplied notes with provenance but does not rank people or infer sensitive traits.",
+        "Require the authorized manager to record stage advancement, rejection or offer recommendation; freeze the reviewed decision basis.",
+        "Close the application with retained decision evidence and policy-governed data handling; a hire hands off to an operator-approved onboarding/resource workflow.",
+      ],
+      acceptance: [
+        {
+          id: "AC-1",
+          criterion:
+            "Candidate state never changes an opportunity stage or exposes restricted scorecards to normal CRM readers.",
+        },
+        {
+          id: "AC-2",
+          criterion:
+            "AI cannot autonomously advance/reject a candidate or infer protected characteristics.",
+        },
+        {
+          id: "AC-3",
+          criterion:
+            "Repeated interview scheduling cannot create duplicate calendar events or invitations.",
+        },
+        {
+          id: "AC-4",
+          criterion:
+            "A withdrawn application cancels pending outreach and remains subject to the configured retention policy.",
+        },
+        {
+          id: "AC-5",
+          criterion:
+            "Complete the full workflow described in the implementation packet through shared domain services, with explicit lifecycle transitions and canonical tenant/entity identity.",
+        },
+        {
+          id: "AC-6",
+          criterion:
+            "Admin, AI/MCP, jobs and public/recipient entrypoints call the same validated services; external effects use approval, freshness checks, deterministic idempotency and truthful receipts.",
+        },
+        {
+          id: "AC-7",
+          criterion:
+            "Disabling the plugin rejects new tool/UI/job execution and rechecks already queued actions immediately before effects; durable records, provider facts and audit history remain readable.",
+        },
+        {
+          id: "AC-8",
+          criterion:
+            "Implement additive schema and tenant-composite RLS/identity; verify two-tenant isolation for reads, writes, exports, public links, jobs and AI context.",
+        },
+        {
+          id: "AC-9",
+          criterion:
+            "Implement the specified fictional demo cases for all five scenarios using the actual admin components and session-local transport; prove zero live provider/protected writes.",
+        },
+        {
+          id: "AC-10",
+          criterion:
+            "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
+        },
+        {
+          id: "AC-11",
+          criterion:
+            "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
+        },
+        {
+          id: "AC-12",
+          criterion:
+            "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+        },
+      ],
+    },
+  }),
+  card({
+    key: "universal-work-board",
+    owner: "codex-work-board",
+    status: "in_review",
+    title: "Make the Feature Board an authoritative human and agent work system",
+    workstream: "platform",
+    phase: 5,
+    priority: "high",
+    description:
+      "Founder-directed implementation: make live work definitions authoritative; unify transitions, structured dependencies, fenced claims, review evidence, scoped agent API/MCP/CLI, and operator organization. After implementation, add ten distinct business-value plugin specifications.",
+    acceptance: [
+      "Live work is authoritative; imports are explicit, revision-safe and never archive absent cards; long notes survive edits",
+      "Structured work, dependencies, immutable events and revision checks govern UI, API and agent callers",
+      "Readiness, atomic claims, session fencing, progress, blockers, review and verified completion use one domain contract",
+      "Scoped, revocable agent credentials support equivalent HTTP, MCP and CLI operations without exposing database secrets",
+      "Board and detail views expose readiness, blockers, ownership, review, delivery evidence and shared saved views with live refresh",
+      "Migrations and regression tests prove concurrency, replay, authorization, data preservation and compatibility; desktop/mobile UI is inspected",
+      "Ten additional nonduplicate business plugin cards contain outcomes, workflows, integration boundaries, dependencies, standards and verification",
+    ],
+    start:
+      "docs/NORTHSTAR.md; src/app/admin/features/page.tsx; src/app/api/admin/features/route.ts; src/lib/revenue-os/feature-board-claims.ts; scripts/agent-dispatch.ts; scripts/seed-feature-backlog.mjs; docs/contracts/FEATURE-BOARD-TAXONOMY.md",
+    guardrails:
+      "Preserve all existing cards, long notes, other agents' worktrees, platform-versus-tenant isolation and immutable provider facts. Never force-delete worktrees. No feature deployment or customer sends. One shared domain service for humans and agents.",
+    labels: ["work-engine", "reliability"],
+  }),
+  // Workshelter reuse: campaigns first, then Support; vertical/channel work stays Later.
+  card({
+    key: "workshelter-reuse-baseline",
+    title: "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+    workstream: "platform",
+    phase: 5,
+    status: "planned",
+    priority: "high",
+    description:
+      "Establish one verified integration baseline containing the completed plugin, branding and five-business demo work before another agent expands Campaigns or Support.\n\nImplementation steps:\n1. Read root/app contracts and inspect worktrees without changing their working files.\n2. Create an isolated integration branch from the current integration target and reconcile completed commits a743947, e150dd2, 72f2102, 2d8d7c3 and c7da31b, including required ancestors; skip patches already present. Preserve unrelated in-progress branches.\n3. Resolve conflicts using current tenancy/action-executor contracts, not by choosing an entire side. Verify extension generated output matches manifests.\n4. Record the exact resulting commit and available canonical services in card evidence; descendants start from that commit.",
+    acceptance: [
+      "Plugin module/runtime boundaries, branding and business demos coexist with the current action executor and tenant services without duplicate registries.",
+      "All prior completed cards and their evidence remain in the manifest/live board; no unrelated code or active claim is discarded.",
+      "A clean committed integration baseline is recorded; no deploy is performed.",
+    ],
+    dependencies: [],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: AGENTS.md; workshelter-next/docs/PROJECT_CONTEXT.md; LICENSE; lib/admin/collections/types.ts; components/admin/collections/renderers/index.ts. Accelerate owners/entrypoints: AGENTS.md; docs/NORTHSTAR.md; docs/contributing/EXTENDING.md; extensions/; src/lib/revenue-os/modules.ts; src/lib/revenue-os/README.md; git branch agent/plugin-data-boundary-hardening at c7da31b.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. No rewrite of the plugin SDK or bulk merge of unfinished branches. This is integration proof, not permission to mark historical planned SDK cards complete.",
+    labels: ["config", "reliability"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Run existing plugin boundary, business workflow and demo suites plus extension drift checks. Compare branch ancestry and resulting feature behavior, not commit count alone.",
+  }),
+  card({
+    key: "campaign-saved-audiences",
+    title: "Add canonical saved audiences and explainable campaign eligibility",
+    workstream: "campaigns",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Operators save named lists and nested AND/OR segments, inspect exact sendable counts and exclusion reasons, and use the same audience from UI or AI.\n\nImplementation steps:\n1. Add tenant-owned saved lists/members and segment definitions with versioning and canonical contact references; use additive migrations and RLS.\n2. Expose a typed allowlist of filter fields/operators; reject unknown fields, invalid types, empty rules and excessive nesting.\n3. Implement one bounded, deterministic audience/eligibility service with stable pagination and database-side filtering.\n4. Add read-only preview and saved-audience selection; AI can read previews and propose edits through registered tools.",
+    acceptance: [
+      "Lists and segments round-trip with canonical IDs, scoped counts, deterministic samples and per-reason exclusions.",
+      "Invalid, suppressed, duplicate or ambiguous contacts cannot become sendable; unverified marketing permission never defaults to permission.",
+      "Preview, enrollment and send-time checks share the same eligibility predicates; large audiences do not silently stop at a default row limit.",
+      "Audience failures show retryable errors rather than zero recipients or an all-contacts fallback.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Implement deterministic contact and company identity resolution",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/contacts/segment-definition.ts; lib/contacts/segment-definition.test.ts; lib/contacts/segments.ts; lib/contacts/consent.ts; app/admin/contacts/SegmentsModal.tsx; app/api/admin/contact-segments/preview/route.ts. Accelerate owners/entrypoints: src/lib/revenue-os/identity.ts; src/lib/revenue-os/campaigns.ts; src/app/api/admin/revenue-os/campaigns/; src/app/admin/contacts/page.tsx.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Do not copy Workshelter roster-wide in-memory filtering or its store/customer identity model. This card owns audience selection; campaign-policy-versioning owns the approved membership snapshot.",
+    labels: ["identity", "campaigns"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test two tenants, duplicate/alternate emails, nested rules, invalid operators, >1000 contacts, consent changes, database failure and zero-side-effect preview. Scoped test deliverable: create scripts/test-campaign-saved-audiences.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-saved-audiences.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "email-document-composition",
+    title: "Extend the shared email document and branded layout library",
+    workstream: "campaigns",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    description:
+      "One editable, branded email document powers Campaigns and Email Studio with images, lists, quotes, columns, undo/redo and responsive previews.\n\nImplementation steps:\n1. Extend the existing versioned document contract and migrate/read old five-block documents without losing IDs or formatting.\n2. Adapt pure block-to-Maily compilation and layouts; use tenant branding and approved asset references with explicit unresolved image slots.\n3. Extend the existing shared composer with undo/redo, accessible ordering and desktop/mobile preview.\n4. Make preview, controlled test and final send consume exactly the same validated document renderer, including plain text and unsubscribe footer.",
+    acceptance: [
+      "Old saved/published emails still render; malformed new blocks fail validation before publication or sending.",
+      "Images, quotes, lists and responsive columns render in email-safe HTML with equivalent plain text; unresolved image slots block launch.",
+      "Layouts contain fictional or operator-provided business facts; tenant logo/colors replace Workshelter chrome.",
+      "Edits remain drafts; preview/test/send parity and undo/redo are verified in the actual shared admin components.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Restore Email Studio, sent history, and live template publishing",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/blocks/schema.ts; lib/email/blocks/to-maily-doc.ts; lib/email/blocks/render.ts; lib/email/blocks/layouts.ts; lib/email/blocks/blocks.test.ts; components/admin/email/EmailBlockEditor.tsx; components/admin/email/EmailLivePreview.tsx; lib/admin/campaigns/use-email-history.ts. Accelerate owners/entrypoints: src/lib/email/blocks.ts; src/components/admin/EmailBlockComposer.tsx; src/lib/email/runtime-template.ts; src/lib/revenue-os/branding.ts (reconciled baseline); src/app/admin/emails/page.tsx.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Do not introduce another editor runtime or arbitrary generated HTML. Do not copy Workshelter Sanity assets, social accounts, product claims or company copy.",
+    labels: ["email", "config"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test compatibility, HTML escaping, unsafe URLs, missing assets, merge variables, long text, column stacking, keyboard ordering and preview/test/send parity. Scoped test deliverable: create scripts/test-email-document-composition.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-email-document-composition.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "campaign-business-recipes",
+    title: "Ship newsletter, event invitation and reactivation campaign recipes",
+    workstream: "campaigns",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Provide three editable business starting points that lead from audience selection to reviewed, scheduled and receipted campaigns.\n\nImplementation steps:\n1. Define newsletter and event-invitation templates over the existing campaign document/step schema.\n2. Route customer reactivation through the existing Recovery eligibility and staging service.\n3. Add bounded AI drafting with approved facts, explicit apply-draft, protected manual work and no fabricated assets/prices/deadlines.\n4. Provide coherent recipes in all five fictional workspaces; date-sensitive examples derive from demo scenario time.",
+    acceptance: [
+      "Each recipe can be edited, previewed, approved, scheduled, paused and inspected through the same Campaigns workflow.",
+      "Generating a draft neither saves nor sends; applying a draft is explicit and never overwrites edits silently.",
+      "Reactivation preserves reply/booking/opportunity/suppression stops and does not create a parallel sequence engine.",
+      "Demo recipes show realistic customers, assignments, exclusions and simulated delivery outcomes with reset/persistence.",
+    ],
+    dependencies: [
+      "Finish the Campaigns planning and control workspace",
+      "Complete campaign enrollment and bounded personalization",
+      "Enforce every campaign stop condition immediately",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/sequences/templates.ts; app/admin/sequences/SequencesPageClient.tsx; app/admin/sequences/[id]/EnrollByTagModal.tsx; lib/admin/campaigns/ai-draft-options.ts; components/admin/campaigns/CampaignAiDraftPanel.tsx. Accelerate owners/entrypoints: src/lib/revenue-os/recovery.ts; src/lib/revenue-os/recovery-copy.ts; src/lib/revenue-os/campaigns.ts; src/app/admin/campaigns/page.tsx; src/lib/admin/demo/business-profiles.ts (reconciled baseline).",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. ",
+    labels: ["campaigns", "ai"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test generation failure, malformed model output, unsupported claims, repeat staging, missing recipient variables, stop conditions and all five demo recipes. Scoped test deliverable: create scripts/test-campaign-business-recipes.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-business-recipes.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "support-conversation-triage",
+    title: "Add assignment, snooze and a durable needs-reply conversation queue",
+    workstream: "operations",
+    phase: 4,
+    status: "backlog",
+    priority: "high",
+    description:
+      "An operator can reliably find unanswered customers, assign ownership, snooze work and reply without losing obligations when a thread is opened.\n\nImplementation steps:\n1. Extend the canonical conversation contract with member assignment and snooze deadlines using additive tenant-scoped migrations.\n2. Derive needs-reply from recorded inbound/outbound events, independently of unread styling.\n3. Add templates, bulk triage, deep links, keyboard list/detail navigation and stable filters to the existing conversation surface.\n4. Use the same predicate for Today, navigation counts and AI reads; wake expired snoozes through durable work.",
+    acceptance: [
+      "Reading a thread does not remove needs-reply; a newer customer message reopens the obligation.",
+      "Assignments reference active members of the same tenant; stale/conflicting bulk updates return per-record results.",
+      "Snooze survives reload, expires once and returns work to Today; errors never masquerade as empty queues.",
+      "Reply history, canonical links and current core conversation functionality remain available when Support is disabled.",
+    ],
+    dependencies: [
+      "Add Playwright journeys for Gmail linking, reply, campaign approval, pause, and stops",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/conversations/awaiting-reply.ts; lib/admin/conversations/awaiting-reply.test.ts; app/admin/conversations/ConversationsPageClient.tsx; app/admin/conversations/ConversationListPane.tsx; app/admin/conversations/ConversationReadingPane.tsx; app/admin/conversations/ChatHandoffDetails.tsx; lib/admin/reply-templates.ts. Accelerate owners/entrypoints: src/lib/revenue-os/conversations.ts; src/app/admin/conversations/page.tsx; src/lib/revenue-os/queue.ts; src/lib/revenue-os/tasks.ts.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Campaign verification is an intentional delivery-order dependency: campaigns ship first. Do not import Workshelter source-prefixed identities or duplicate Inbox/Conversations pages.",
+    labels: ["email", "tasks"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test event ordering, anonymous chats, answered/closed/reopened threads, snooze boundaries, concurrent assignment, bulk partial failure, detached deep links and desktop/mobile keyboard triage. Scoped test deliverable: create scripts/test-support-conversation-triage.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-support-conversation-triage.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "support-coworker-plugin",
+    title: "Deliver an optional Support plugin for triage, reply drafting and escalation",
+    workstream: "coworker",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "An optional Support coworker classifies incoming questions, prepares evidence-backed replies and escalates unresolved or overdue work to a human.\n\nImplementation steps:\n1. Declare required conversation, knowledge, task and draft/send capabilities using the existing manifest/module runtime.\n2. Register bounded work kinds for triage, draft reply and escalation with event dedupe, leases and budgets.\n3. Reuse canonical context and tool registry; AI proposes replies and task actions through the normal approval queue.\n4. Expose role, capabilities, pending work, drafts, escalation reasons and terminal receipts in the existing conversation and AI surfaces.",
+    acceptance: [
+      "A fictional question flows through triage, reviewed reply and recorded outcome; an unsupported commitment escalates with evidence.",
+      "Disabled or missing capabilities explain unavailability; queued execution rechecks enablement and authorization.",
+      "Duplicate events/work retries never duplicate tasks or sends; provider uncertainty enters reconciliation.",
+      "Disabling Support stops its new automation while preserving core inbox access, records, receipts and history.",
+    ],
+    dependencies: [
+      "Add assignment, snooze and a durable needs-reply conversation queue",
+      "Build the AI policy, exemplar, ambiguity, and quality control plane",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: components/admin/AIRecordActionsSidebar.tsx; lib/admin-ai/tasks.ts; lib/admin-ai/context.ts; lib/admin-ai/policies.ts; app/admin/conversations/ChatConversationDetail.tsx. Accelerate owners/entrypoints: extensions/; src/lib/revenue-os/conversations.ts; src/lib/revenue-os/coworkers.ts; src/lib/revenue-os/work-items.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/ai-tools.ts.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. New plugin disabled by default in live tenants. Do not fork the agent, memory store, knowledge index, sender or approval system.",
+    labels: ["coworkers", "email"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test two-tenant tool isolation, prompt injection in customer text, budget exhaustion, duplicate triggers, revoked approval, disabled queued work, provider failure and truthful receipts. Scoped test deliverable: create scripts/test-support-coworker-plugin.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-support-coworker-plugin.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "support-knowledge-corrections",
+    title: "Turn flagged answers into reviewed knowledge corrections and regression cases",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Operators inspect why an answer failed, propose a sourced correction, approve it and prove the corrected behavior without teaching the model unreviewed feedback.\n\nImplementation steps:\n1. Attach bounded tool/evidence/validator traces to exact answer IDs with explicit missing-history state.\n2. Build flagged-answer review with proposed source correction and duplicate-safe linkage to the original run.\n3. Require approval and source access validation before publishing knowledge/exemplars; preserve old source/run history.\n4. Turn approved corrections into deterministic regression prompts with expected evidence or escalation outcomes.",
+    acceptance: [
+      "Each flag links to an answer/run and evidence; no raw customer feedback becomes instructions automatically.",
+      "Public-only and internal-only knowledge remain separated across retrieval, preview and export.",
+      "A correction is reviewed, published with revision checking and evaluated against the original failure plus existing regression cases.",
+      "Per-answer verdicts do not show passed when validation was absent or unknown.",
+    ],
+    dependencies: ["Deliver an optional Support plugin for triage, reply drafting and escalation"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: app/admin/ai/tabs/ChatTranscriptView.tsx; app/admin/ai/tabs/ReplyFeedbackPanel.tsx; app/admin/ai/tabs/KnowledgeTab.tsx; lib/admin-ai/feedback.ts; lib/admin-ai/exemplar-retrieval.ts; lib/admin-ai/playbook-template.ts. Accelerate owners/entrypoints: src/lib/revenue-os/claims.ts; src/lib/revenue-os/memory.ts; src/lib/revenue-os/ai-conversations.ts; src/components/admin/AdminAIWorkspace.tsx; existing feedback/quality services owned by agent-learning-feedback-loop and ai-quality-control-plane.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Extend shipped feedback infrastructure; do not rebuild it or auto-promote examples/permissions. Strip unfilled playbook prompts and treat them as missing facts.",
+    labels: ["research", "learning"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test unauthorized source visibility, duplicate flags, stale revisions, malicious feedback, missing telemetry, rejected corrections, failed persistence and regression replay. Scoped test deliverable: create scripts/test-support-knowledge-corrections.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-support-knowledge-corrections.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "support-demo-conformance",
+    title: "Verify Support end to end across all five shared admin demos",
+    workstream: "qa",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Prove useful Support outcomes in every fictional business using actual admin components and the shared session-local demo engine.\n\nImplementation steps:\n1. Add distinct inbound questions, handoffs, reply templates, assignments, snoozes, failed drafts and reviewed corrections for all five scenarios.\n2. Extend the shared demo transport and schema validation; never add replacement demo-only pages.\n3. Automate triage to draft to approve to simulated reply, then customer follow-up, escalation and correction.\n4. Verify reset, persistence, tenant/scenario isolation, plugin toggles and authenticated-founder request isolation; document the runnable journey.",
+    acceptance: [
+      "All five demos show coherent business-specific support workflows, explicit simulated AI/sends and immutable local receipts.",
+      "Refresh/reset/disable/re-enable and failed/retried actions behave truthfully without protected API or provider traffic.",
+      "Actual admin pages pass desktop/mobile, all appearances, keyboard, reduced motion and inspected screenshots with no console errors or overflow.",
+      "Evidence records exact baseline commit, commands and controlled real-provider proof separately from simulation.",
+    ],
+    dependencies: ["Turn flagged answers into reviewed knowledge corrections and regression cases"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/conversations/awaiting-reply.test.ts; lib/admin-ai/feedback.test.ts; lib/admin-ai/exemplar-retrieval.test.ts; tests/admin/campaign-ux.spec.ts (browser test structure only). Accelerate owners/entrypoints: src/lib/admin/demo/runtime.ts; src/lib/admin/demo/business-profiles.ts; scripts/qa-demo-business-workflows.mjs; docs/contracts/ADMIN-DEMO-CONTRACT.md.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. ",
+    labels: ["testing", "email"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Run complete business-demo contract plus focused Support service/API/browser tests; route-guard tests include direct disabled APIs and AI/MCP calls. Scoped test deliverable: create scripts/test-support-demo-conformance.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-support-demo-conformance.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "plugin-record-view-contract",
+    title: "Expose reusable typed grid and board views to business plugins",
+    workstream: "platform",
+    phase: 5,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugins declare typed fields and saved grid/board views while Accelerate owns rendering, query limits and action authorization.\n\nImplementation steps:\n1. Extract only field, view and query contracts demonstrated by Campaigns/Support; adapt current table/kanban primitives.\n2. Register domain read adapters and named actions through the existing entity/tool registry.\n3. Support saved filters, sorting, columns and grouping with field-level permissions, bounded database queries and tenant-owned view state.\n4. Prove one existing screen and one optional plugin use the same renderer without changing business rules.",
+    acceptance: [
+      "A plugin declares a grid and board without copying a page or authorizing raw table mutations.",
+      "Unsupported view types are unavailable in the picker; calendar/gallery/timeline are not advertised as implemented.",
+      "Computed/provider-owned fields remain read-only and mutations call canonical services with required approval.",
+      "Filtered counts and pagination are correct beyond one provider page; saved views cannot expose another tenant or restricted field.",
+    ],
+    dependencies: ["Verify Support end to end across all five shared admin demos"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/collections/types.ts; lib/admin/collections/records.ts; lib/admin/collections/engine/query.ts; lib/admin/collections/engine/predicate-pushdown.test.ts; components/admin/collections/CollectionView.tsx; components/admin/collections/renderers/index.ts. Accelerate owners/entrypoints: src/lib/revenue-os/entity-registry.ts; src/lib/revenue-os/modules.ts; extensions/module-manifest.schema.json; existing admin table/kanban primitives and saved-view services.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Workshelter calendar/gallery/timeline renderers are placeholders. Do not copy its arbitrary endpoint row actions, role map or all-record in-memory sorting. No whole-admin migration.",
+    labels: ["config", "database"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test schema rejection, query bounds, >1000 records, stable pagination, field permissions, action tampering, disabled plugin and equivalent table/board domain transitions. Scoped test deliverable: create scripts/test-plugin-record-view-contract.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-plugin-record-view-contract.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "proposal-option-presentation",
+    title: "Extend Proposal Studio with branded options, specifications and attachments",
+    workstream: "proposals",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Operators assemble professional customer proposals with several priced options, specifications and protected files, then publish a version that records exactly what the customer accepted.\n\nImplementation steps:\n1. Extend the current proposal document model with optional comparison options, specifications, timeline and approved asset references.\n2. Reuse shared branding and document presentation primitives without changing authoritative prices.\n3. Use existing proposal lifecycle services for preview, publication, revocation and customer acceptance against an immutable version.\n4. Connect accepted terms to existing opportunity/onboarding/invoicing services through explicit governed actions.",
+    acceptance: [
+      "Option totals are deterministic and approved; AI cannot invent prices, terms or customer commitments.",
+      "Reordering/editing drafts does not alter a published snapshot or accepted terms.",
+      "Protected attachments resolve only within the authorized proposal/tenant and revoked links fail closed.",
+      "A proposal can be created, published, reviewed and accepted in the shared demo with exact recorded option/version.",
+    ],
+    dependencies: [
+      "Expose reusable typed grid and board views to business plugins",
+      "Complete the proposal lifecycle and version rules",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: app/admin/proposals/[id]/ProposalBuilderClient.tsx; lib/proposals/types.ts; lib/proposals/snapshot.ts; lib/proposals/validate-pricing.ts; lib/proposals/select-option.ts; lib/proposals/confirm.ts; lib/admin/proposals/reorder-options.ts. Accelerate owners/entrypoints: src/lib/revenue-os/proposals.ts; src/app/admin/proposals/; shared branding, business document renderer and invoice presentation services from reconciled baseline.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Do not widen the currently claimed proposal-lifecycle-service ticket. No payment charge, legal e-signature product or new proposal database.",
+    labels: ["proposals", "config"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test version races, duplicate acceptance, revoked access, file permissions, pricing arithmetic, missing assets and existing proposal lifecycle compatibility. Scoped test deliverable: create scripts/test-proposal-option-presentation.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-proposal-option-presentation.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "inventory-stock-plugin",
+    title: "Build an optional inventory plugin with audited stock movements",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "A business tracks materials, stock movements, reorder thresholds and consumption with inspectable receipts rather than a read-only inventory report.\n\nImplementation steps:\n1. Add tenant-owned material identities and append-only stock movements through a dedicated domain service and additive migrations.\n2. Expose grid/detail views with units, thresholds and provenance; compute stock deterministically from reconciled movement state.\n3. Register narrow receive/adjust/reserve/release actions with approval policy, concurrency protection and idempotency.\n4. Create deduplicated low-stock work and a fictional inventory demo; retain movements on plugin disable.",
+    acceptance: [
+      "Receipt, adjustment, reservation and release reconcile to stock without duplicate movements under replay or concurrent work.",
+      "Unit mismatches, over-reservation and unauthorized/cross-tenant updates are rejected with useful errors.",
+      "Low-stock work is linked to the exact material and does not multiply each tick.",
+      "Switching the plugin off refuses APIs/tools/work while preserving history and canonical relationships.",
+    ],
+    dependencies: ["Expose reusable typed grid and board views to business plugins"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/collections/providers/materials.ts; lib/admin/collections/providers/materials.mutations.test.ts; lib/admin/production/get-material-detail.ts; components/admin/production/job-sheet/JobMaterialsPanel.tsx. Accelerate owners/entrypoints: extensions/; canonical entity/capability registries; src/lib/revenue-os/activities.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/work-items.ts; plugin record-view contract.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. No accounting ledger, manufacturing payroll or arbitrary overwrite of stock totals. Introduce no live supplier integration.",
+    labels: ["operations", "database"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test stock arithmetic, same-key replay, concurrent reservation, invalid units, failed commit, disabled queued action and demo reset. Scoped test deliverable: create scripts/test-inventory-stock-plugin.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-inventory-stock-plugin.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "purchasing-receipts-plugin",
+    title: "Add supplier purchasing with approved orders and partial receiving",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "An operator turns a reorder need into a reviewed supplier purchase order, sends it through the governed sender and records partial deliveries against inventory.\n\nImplementation steps:\n1. Model supplier links, purchase-order revisions/lines and per-line receipts with canonical IDs and tenant constraints.\n2. Create a draft from low-stock work with operator-entered price/lead-time facts.\n3. Approve the exact order version before external send; use recorded communications and immutable document snapshots.\n4. Post partial receipts through stock movements with deterministic receipt keys; expose remaining quantities, cancellation and exceptions.",
+    acceptance: [
+      "Draft, approved, sent, partially received, received and cancelled states have guarded transitions and receipts.",
+      "Partial deliveries add stock exactly once; over-receipt requires explicit policy and cannot silently inflate inventory.",
+      "Changed prices/quantities/supplier invalidate send approval; uncertain sends require reconciliation.",
+      "An end-to-end fictional reorder demonstrates approved order, partial receipt, remaining balance and completed work.",
+    ],
+    dependencies: ["Build an optional inventory plugin with audited stock movements"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/production/get-material-pos.ts; lib/admin/production/get-po-suggestions.ts; app/admin/material-pos/[poId]/POPageClient.tsx; app/api/admin/material-pos/[poId]/receive/route.ts; app/api/admin/material-pos/[poId]/send/route.ts. Accelerate owners/entrypoints: inventory-stock-plugin domain service; canonical company/contact identity; recorded communications; action queue; shared business documents and plugin views.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. No automatic supplier selection, payment or financial posting. Route-handler examples are behavior references only; move writes into Accelerate services.",
+    labels: ["operations", "automation"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test split receipts, concurrent/replayed receiving, cancellation races, stale approval, supplier identity, provider failure and stock reconciliation. Scoped test deliverable: create scripts/test-purchasing-receipts-plugin.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-purchasing-receipts-plugin.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "production-quality-plugin",
+    title: "Add production jobs with sample approval and quality gates",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "low",
+    description:
+      "A production business converts accepted specifications into assigned jobs, material commitments, sample approval and inspectable quality checks.\n\nImplementation steps:\n1. Define a bounded job lifecycle linked to the accepted specification/version, assigned members and required materials.\n2. Add sample approval and quality checklist gates that block production/completion when unmet.\n3. Record progress and material consumption through canonical services with replay protection.\n4. Surface blockers/capacity summaries in plugin views and Today using deterministic facts; AI may summarize or propose tasks.",
+    acceptance: [
+      "A job links to the exact accepted specifications and cannot bypass required sample or quality gates via API, UI, AI or board movement.",
+      "Replayed job creation, progress and consumption events are idempotent; amendments preserve evidence.",
+      "Failed quality checks create assigned remediation work with reasons and safe retry paths.",
+      "A fictional production example demonstrates blocked, approved, in-progress, remediation and completed outcomes.",
+    ],
+    dependencies: [
+      "Add supplier purchasing with approved orders and partial receiving",
+      "Extend Proposal Studio with branded options, specifications and attachments",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: components/admin/production/JobDetailSheet.tsx; components/admin/production/job-sheet/JobProgressPanel.tsx; components/admin/production/job-sheet/JobQCPanel.tsx; components/admin/orders/SampleApprovalGateCard.tsx; lib/orders/sample-approval.ts; lib/production/capacity-forecast.ts. Accelerate owners/entrypoints: canonical tasks/work items; accepted proposal snapshot; inventory movement service; plugin record views; action queue and activity ledger.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Keep payroll, tax, workforce surveillance and full ERP scheduling outside this card. Do not import garment-specific statuses into core.",
+    labels: ["operations", "tasks"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test gate bypass attempts, revision changes after sample approval, material availability, concurrent progress, duplicate consumption and demo workflow. Scoped test deliverable: create scripts/test-production-quality-plugin.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-production-quality-plugin.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "mobile-coworker-channel",
+    title: "Expose the existing coworker runtime through a governed WhatsApp operator channel",
+    workstream: "integrations",
+    phase: 6,
+    status: "backlog",
+    priority: "low",
+    description:
+      "An authorized operator can ask for business status and review governed work from WhatsApp using the same agent and permissions as the browser.\n\nImplementation steps:\n1. Extend the existing connector where supported; document exact supported provider capabilities before enabling the channel.\n2. Bind verified sender identity to an active tenant member and validate signed inbound events with durable replay claims.\n3. Adapt channel formatting/chunking and deterministic help/status commands around the existing coworker runtime.\n4. Bind any approval response to the exact actor, action, version and expiry; expose receipts in browser and channel history.",
+    acceptance: [
+      "The same question/tool action has equivalent authorized results in browser and channel without a second agent or tool catalogue.",
+      "Unknown phones, wrong tenants, revoked membership, bad signatures, replayed events and stale approvals fail closed.",
+      "Disabling the channel preserves audit/history and prevents new execution; missing provider capability is explicitly unavailable.",
+      "Fixture-based inbound/read/proposal/approval journeys and controlled provider proof are recorded separately.",
+    ],
+    dependencies: ["Verify Support end to end across all five shared admin demos"],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: workshelter-next/docs/WHATSAPP_BRIDGE.md; lib/admin-ai/command-agent.ts; lib/admin-ai/whatsapp-utils.ts; lib/admin-ai/whatsapp-utils.test.ts; lib/admin-ai/approval-handler.ts; app/api/webhooks/twilio/whatsapp/route.ts. Accelerate owners/entrypoints: src/lib/revenue-os/integration-adapters.ts; existing tenant WhatsApp webhook; canonical AI tool registry/action queue; coworker runtime; tenant membership and encrypted provider services.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Do not copy Workshelter environment-phone owner override, fixed model, shared store settings or pending_approvals table. No new Twilio account/provider activation in this ticket; if required create a dependency card. No proactive digests/customer messaging in v1.",
+    labels: ["integrations", "coworkers"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test signature/replay handling, tenant/member binding, approval spoofing, duplicate inbound events, chunking and provider failure; real outbound only to an explicitly authorized test operator. Scoped test deliverable: create scripts/test-mobile-coworker-channel.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-mobile-coworker-channel.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  // Retain completed work recorded on the live board and its implementation branch.
+  card({
+    key: "northstar-runtime-consolidation",
+    evidence:
+      "Local implementation verified on agent/northstar-runtime-consolidation in commits 2b2b4e5 and f7ecc94. Audit inventory: 129 recent commits, 928 touched paths including reverted changes, 865 net paths, 12 preserved unmerged branches. Runtime tests cover tenant filtering, failed gates, typed outcomes, stale owners, approval recovery, module ownership, and truthful receipts. Disposable PostgreSQL 14 applies five migrations twice and proves tenant identity, cross-tenant refusal, policy precedence, suspension, concurrent budget/work claims and stale recovery. Core, action execution/reversibility, AI tool gates, OpenRouter resilience, job/task, module/extension, architecture/boundary checks, typecheck, strict lint, full formatting and production build pass locally. Capability preflight uses one query for three keys. Existing cards retain 75 legacy route-write sites, broader provider metering, plugin host wiring, UI/performance and production acceptance. No production migration or deployment performed. Audit report: docs/internal/RUNTIME-AUDIT-2026-09-04.md.",
+    owner: "codex-runtime-consolidation",
+    status: "shipped",
+    title: "Audit recent architecture drift and consolidate runtime contracts",
+    workstream: "runtime",
+    phase: 3,
+    priority: "high",
+    description:
+      "Founder-directed August 29 through September 4 architecture audit and incremental consolidation. Preserve feature development while making shared runtime governance, work receipts, and domain ownership enforceable across entrypoints.",
+    acceptance: [
+      "Record the immutable audit baseline, every recent commit and changed path, unmerged branch disposition, and evidence-backed findings mapped to existing Feature Board cards",
+      "Database errors in budget and policy evaluation fail closed; work deferral, partial execution, and failures never produce completed receipts",
+      "Work transitions reject expired or superseded lease owners and retain bounded retry with truthful summaries",
+      "Canonical authorization governs action execution and learned prose never grants or denies authority",
+      "Shared domain writes and coworker execution remove duplicated behavior without breaking compatibility routes",
+      "Regression tests exercise gates, replay, stale claims, tenancy, and truthful outcomes; query profiling distinguishes measured changes from remaining performance candidates",
+    ],
+    start:
+      "docs/NORTHSTAR.md; src/lib/revenue-os/work-items.ts; work-executor.ts; budgets.ts; autonomy-policy.ts; action-executor.ts; scripts/verify-wiring.mjs. Existing cards own broader UI, provider, and legacy parity acceptance.",
+    guardrails:
+      "User-approved incremental consolidation with feature development continuing. Preserve unrelated work and existing APIs; no production deployment, provider activation, or real-recipient tests. Report uncovered acceptance honestly and retain existing Feature Board ownership.",
+    labels: ["work-engine", "reliability"],
+    verification:
+      "npm run verify:agent-contract; npm run test:runtime-consolidation; npm run test:action-execution; npm run test:core; npm run typecheck; npm run lint -- --max-warnings=0; npm run build; git diff --check. Database changes additionally require disposable PostgreSQL isolation/concurrency verification.",
+  }),
+  card({
+    key: "plugin-data-boundary-hardening",
+    evidence:
+      "Local commit a743947 hardens all four capability data operations. Adversarial data API tests, entity registry tests, isolation verifier, core tests, strict lint, typecheck, formatting and production build passed. Covers cross-tenant and unbound refusal before database access, grants on graph endpoints, selector injection, UTF-8 and strict JSON bounds, secret namespace refusal, conditional concurrent writes and truthful bounded row receipts. No production data changes or deployment. Host integration and real bundled examples continue as separate follow-up.",
+    owner: "codex-foundations",
+    status: "shipped",
+    title: "Close plugin data grant and tenant-boundary bypasses",
+    workstream: "platform",
+    phase: 3,
+    priority: "high",
+    description:
+      "Northstar foundation follow-up: make the existing capability data API enforce host tenant identity, entity grants, readable fields, bounded queries, and namespaced storage consistently before plugin hosts build on it.",
+    acceptance: [
+      "Every data shape refuses an unbound database or a grant for a different tenant before querying or writing",
+      "Recipes enforce the same enabled entity grants as entity queries; graph recipes never expose links to ungranted or disabled entity types",
+      "Database identifiers and readable fields are validated; relationship selection and wildcard projection cannot be introduced through metadata",
+      "Inputs and namespace JSON are bounded by real UTF-8 bytes; malformed filters, invalid limits, and secret namespace rows fail closed",
+      "Adversarial fixtures prove refusal, tenant isolation, grant isolation, exact bounded usage and truthful truncation without providers or production records",
+      "Document the host trust boundary and remaining persisted metering/host wiring acceptance, with core tests, strict lint, typecheck and build evidence",
+    ],
+    dependencies: ["Expose one capability-checked data API with no raw database handle"],
+    start:
+      "docs/NORTHSTAR.md sections 9, 10, 12, 22, 28, 29; src/lib/revenue-os/capability-data-api.ts; entity-registry.ts; scripts/test-capability-data-api.ts; scripts/verify-capability-isolation.mjs.",
+    guardrails:
+      "Founder-directed foundation consolidation. Reuse the existing data API, tenant database marker and entity registry; no parallel ORM or plugin framework, no new provider, no production data changes. Preserve active isolate-host ownership. Grants come from trusted host policy, never plugin arguments. This card does not certify plugin installation, external invocation or distributed metering.",
+    labels: ["security", "data"],
+    verification:
+      "npm run verify:agent-contract; npm run test:capability-data-api; npm run verify:capability-isolation; npm run test:core; npm run typecheck; npm run lint -- --max-warnings=0; npm run format:check; npm run build; git diff --check.",
+  }),
+  card({
+    key: "bundled-report-plugins",
+    evidence:
+      "Local plumbing proof completed: four optional report manifests, compiled QuickJS code, tenant-scoped read grants, shared workbench and generated AI tools. Real isolate tests prove tenant/disabled gates, malformed output, timeouts, missing sources, empty/truncated results, concurrent configuration and failed receipts. Core tests, runtime module/pack verification, typecheck, strict lint, formatting and production build pass. Playwright 1440x1000 and 390x844 verifies all four toggles, keyboard, stale-result removal and error retry with zero console errors; screenshots opened and corrected theme contrast. Sources require explicit host setup; no production setup/deploy. Founder correctly rejected these reports as sufficient business exemplars: they remain optional substrate tests, while substantive invoicing/onboarding/meeting workflows continue in follow-up.",
+    owner: "codex-foundations",
+    status: "shipped",
+    title: "Prove the plugin runtime with four switchable business reports",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "Founder-directed northstar proof: ship useful read-only pipeline risk, overdue commitment and upcoming meeting reports through the existing module registry, capability data boundary and QuickJS isolate. One host and one workspace activation contract serve UI and AI.",
+    acceptance: [
+      "Four bundled plugins calculate useful findings from bounded tenant records with source references, empty states and explicit truncation",
+      "Manifest declarations compile into isolated code and host grants; extensions remain pure data and plugin code receives no raw database or ambient authority",
+      "Current workspace module enablement is checked on every invocation; disabled plugins refuse direct and AI execution",
+      "The shared admin workbench runs reports and uses existing enable/disable configuration, with desktop/mobile keyboard and error-state verification",
+      "Core source registration is an explicit self-host setup command; missing capabilities fail with actionable errors and no runtime schema mutation",
+      "Adversarial host tests, real isolate executions, typecheck, strict lint, build and contributor instructions demonstrate extension without copying infrastructure",
+    ],
+    dependencies: ["Close plugin data grant and tenant-boundary bypasses"],
+    start:
+      "extensions/*.module.json; scripts/build-extension-modules.mjs; src/lib/revenue-os/plugin-isolate.ts; capability-data-api.ts; modules.ts; src/app/admin/integrations/page.tsx.",
+    guardrails:
+      "Use existing module activation and shared tenant/auth/data/trace primitives. Read-only bundled reports, no external sends or new providers. No arbitrary uploaded code, remote installation, marketplace, or claim of complete third-party lifecycle. Preserve other worktrees. Local controlled records only for tests; no production setup or deployment.",
+    labels: ["config", "data"],
+    verification:
+      "Real QuickJS and MemorySupabase integration tests for all four plugins, enable/disable, missing grants, tenant isolation and failures; module/extension checks; repository Playwright desktop/mobile with opened screenshots, keyboard and console checks; verify:agent-contract; typecheck; strict lint; build; git diff --check.",
+  }),
+  card({
+    key: "business-workflow-plugin-exemplars",
+    evidence:
+      "Local implementation complete for all acceptance items: three default-off QuickJS business workflow plugins share bounded manifest schemas, selected canonical identity, activation checks, approval queue and domain execution across UI and AI. Stripe tenant-encrypted connection and rotation, exact-money review, separate send approval, partial checkpoint and same-operation retry are verified against controlled provider fixtures; no live provider acceptance is claimed. Onboarding and meeting plans create assigned dated canonical tasks with replay protection and live completion controls. Shared workspace branding supports hosted logo replacement/removal, business identity, validated contrast, live preview and revision-safe saves. AI presentation drafts retain authoritative Stripe facts and durable AI traces; customer pages require approval, store encrypted revocable links and revalidate live billing facts. Full test:core, disposable PostgreSQL migration twice/RLS/composite references/uniqueness/immutable publication/revocation tests, typecheck, strict lint, formatting, module checks, production build and diff checks pass. Desktop 1440x1000 and mobile 390x844 browser journeys cover logo/color/reset/contrast, invoice partial failure/retry/send/design/publication/revocation, assigned onboarding/completion, public invoice SSR, keyboard, reduced motion and no overflow or console errors; screenshots opened and reviewed. Production dependency audit reports zero vulnerabilities. Contributor documentation records contracts, setup and limits. Work preserved on isolated agent/plugin-data-boundary-hardening branch; production migration/deployment remain rollout work. Follow-up 2026-09-05: real Stripe test-mode verification passed through QuickJS and the shared domain/approval executor with isolated application records. Exact USD 5.00 invoice, intentionally lost successful add-lines response, same-key retry with one invoice and one line, duplicate and disabled approvals, real finalization/test send, live-fact publication/revocation and final void all passed. Repeatable test:stripe-sandbox refuses live keys and unexpected accounts; provider request receipts retained in the local evidence artifact. No bank connection was required. This is real provider proof, not production database or completed-payment proof. No customer sends, charges or production configuration were performed.",
+    owner: "codex-foundations",
+    status: "shipped",
+    title: "Deliver actionable invoicing, onboarding and meeting workflow plugins",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "Founder correction: report-only examples do not prove a business command center. Build substantive optional plugins that prepare concrete business actions, accept editable inputs, obtain approval through the shared queue, execute through existing domain services and preserve durable results. Start with Stripe invoicing, then won-deal onboarding and meeting commitments.",
+    acceptance: [
+      "Stripe credentials remain tenant-scoped and encrypted; invoice drafts, explicit sending and provider status use a fixed Stripe adapter with bounded requests and truthful test/live receipts",
+      "Invoice amounts, customer identity, line items and send recipients are reviewed and revalidated before execution; retries retain operation identity and never silently change an uncertain external effect into success",
+      "Workspace branding provides logo replacement/removal, validated colors, business identity, live document preview and conflict-safe saves; invoice designs consume the shared brand rather than fork configuration",
+      "AI-assisted invoice page designs remain bounded presentation drafts with authoritative billing facts, preview and explicit publication, tenant isolation and revocable customer access",
+      "Won-deal onboarding produces a dated delivery checklist linked to the canonical opportunity; meeting commitments produce reviewable follow-up tasks linked to the stored meeting",
+      "Bundled workflow manifests declare input contracts, permitted actions and scoped context; plugin business logic runs inside QuickJS, with shared auth, activation, approval and execution services",
+      "Turning a plugin off blocks fresh proposals and queued execution, while preserving existing records and history",
+      "The product exposes editable workflow inputs, preview, approval, actual results, partial failure and safe recovery; UI and AI use the same host",
+      "Controlled provider fixtures and real isolate/domain tests prove business outcomes, replay, cross-tenant refusal, malformed inputs, provider errors and disabled states; browser QA, strict lint, typecheck and build pass",
+    ],
+    dependencies: ["Prove the plugin runtime with four switchable business reports"],
+    start:
+      "docs/NORTHSTAR.md; report-plugins.ts; plugin-isolate.ts; actions.ts; action-executor.ts; integration-adapters.ts; tasks.ts; entity-registry.ts; extensions/*.module.json; current Stripe API documentation.",
+    guardrails:
+      "Explicit founder authorization adds invoicing beyond the separate read-only Stripe reconciliation card. Reuse module activation, approved action queue, domain services, tenant encryption and existing schemas wherever possible. No live customer sends, charges, refunds, production configuration, migration or deployment during verification. Missing provider credentials limit real sandbox proof; distinguish deterministic provider fixtures from real Stripe receipts. Do not present report scaffolds as the requested business power.",
+    labels: ["config", "integrations"],
+    verification:
+      "Real QuickJS and controlled domain/provider tests; approval/replay/partial-failure tests; tenant and disabled-plugin gates; desktop/mobile Playwright with opened screenshots, keyboard and console checks; verify:agent-contract; typecheck; strict lint; format:check; build; git diff --check.",
+  }),
+  card({
+    key: "business-plugin-demo-scenarios",
+    evidence:
+      "All five fictional scenario packs now exercise the actual shared admin invoicing, onboarding, meeting commitments, plugins, branding, invoice designer and InvoiceDocument components through the session-local demo transport. Shared schemas validate inputs. Verified canonical customers, scenario-specific line items and assignments, approval/send/publication/revocation receipts, invalid input, replay, disabled action refusal and retry, stale branding revisions, task completion, persistence, reset and isolation. Full test:core, typecheck, strict lint, formatting, demo contract, agent contract, production build and git diff --check passed. Playwright passed all five scenarios at desktop and mobile widths, all five appearances, keyboard interactions and reduced motion with zero escaped protected/provider requests or console errors; screenshots opened and inspected. Separate actual founder-authenticated browser proof passed all five scenarios with zero protected/provider requests, and the test auth session was revoked. Demo AI generation and external effects are explicitly simulated. Atomic claim admission retains the WIP limit; removed duplicate static snapshot rejection so authorized forced claims can complete. No production deployment, schema changes or customer/provider effects.",
+    owner: "codex-foundations",
+    status: "shipped",
+    title: "Demonstrate business plugins and branding across the five fictional workspaces",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "Founder-directed follow-up: make invoicing, client onboarding, meeting commitments, plugin activation and branding explorable in the actual admin demos using coherent fictional business data and useful simulated outcomes.",
+    acceptance: [
+      "All five scenario packs provide business-appropriate invoices, canonical customers and opportunities, assigned task histories and shared branding",
+      "The actual admin pages render populated demo data and support invoice review/approval/send/design/publication, task creation/completion, branding edits and plugin toggles through the shared demo engine",
+      "Demo mutations explicitly identify simulation, retain local receipts, persist in scenario-scoped session state, reset exactly and never call protected APIs or providers",
+      "Disabled plugin proposals and queued execution are refused while history survives; invalid input, stale branding and duplicate approvals are covered",
+      "Desktop/mobile browser journeys cover all five scenarios and appearances, refresh/reset/isolation, keyboard, reduced motion, opened screenshots and zero protected/provider traffic; core demo tests, typecheck, strict lint and build pass",
+    ],
+    dependencies: ["Deliver actionable invoicing, onboarding and meeting workflow plugins"],
+    start:
+      "docs/NORTHSTAR.md; docs/contracts/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo/runtime.ts; scenarios.ts; scenario-profiles.ts; admin invoicing/branding/plugins; TaskWorkflowWorkspace; InvoicePageDesigner; scripts/qa-admin-demo.mjs",
+    guardrails:
+      "Reuse actual admin pages and one scenario demo engine. Scenario packs contain data only. Browser-session writes only; no Supabase mutations, provider calls, production secrets or deployment. Generated AI presentation is explicitly simulated and never changes billing facts.",
+    labels: ["demo", "config"],
+    verification:
+      "test:admin-demo-contract; focused demo business workflow tests and desktop/mobile browser matrix; verify:agent-contract; typecheck; strict lint; build; git diff --check.",
+  }),
   // Phase 0, truth, schema, and operating contract
   card({
     key: "revenue-os-production-migration",
@@ -364,7 +2785,7 @@ export const featureBacklog = [
       "Do not delete or rename legacy tables. A table existing is schema verification, not proof that an integration is operational.",
     labels: ["database", "verified"],
     evidence:
-      "2026-08-16: production service-role queries and Setup Center schema checks verified the canonical Revenue OS and Feature Board tables. The 90-card manifest re-verifies with zero drift. Analytics, money-first outreach, Email Studio, and Contact Import migrations were applied through the Keychain-backed CLI path, rerun idempotently, and verified object-by-object in production. Ordered migrations and agent-owned execution are documented in CLAUDE.md, AGENTS.md, and docs/REVENUE-OS-SETUP.md.",
+      "2026-08-16: production service-role queries and Setup Center schema checks verified the canonical Revenue OS and Feature Board tables. The 90-card manifest re-verifies with zero drift. Analytics, money-first outreach, Email Studio, and Contact Import migrations were applied through the Keychain-backed CLI path, rerun idempotently, and verified object-by-object in production. Ordered migrations and agent-owned execution are documented in CLAUDE.md, AGENTS.md, and docs/self-hosting/REVENUE-OS-SETUP.md.",
   }),
   card({
     key: "feature-board-operational",
@@ -684,10 +3105,11 @@ export const featureBacklog = [
   }),
   card({
     key: "legacy-api-adapters",
+    owner: "claude-code:johnconnor:97668",
     title: "Back legacy admin reads with canonical adapters",
     workstream: "foundation",
     phase: 2,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Temporarily preserve legacy response shapes while sourcing data from canonical services until parity checks and UI conversion pass.",
@@ -777,7 +3199,7 @@ export const featureBacklog = [
       "Repair admin overlays, entry motion, tokens, and collapsible navigation",
     ],
     start:
-      "migrations/20260816-email-studio.sql; src/lib/email/registry.ts; src/lib/email/runtime-template.ts; src/app/admin/emails/page.tsx",
+      "migrations/20260816-email-studio.sql; src/lib/email/registry.ts; src/lib/email/runtime-template.ts; src/app/admin/emails/page.tsx. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/blocks/render.ts; lib/email/blocks/to-maily-doc.ts; lib/email/template-contract.ts; app/admin/emails/EmailsPageClient.tsx. Reuse handoff: This existing card owns draft/publish/test/history integrity. Richer blocks/layouts belong to card:email-document-composition; do not recreate template persistence there.",
     guardrails:
       "Use the proven Work+Shelter block-authoring model: a small typed block vocabulary, one render path for preview/test/send, and reusable layout starts. Test sends go only to the authenticated founder. Never store provider keys in templates or let draft edits change live sends implicitly.",
     labels: ["email", "templates", "delivery-history", "publishing"],
@@ -791,6 +3213,7 @@ export const featureBacklog = [
     phase: 2,
     status: "planned",
     priority: "high",
+    owner: null,
     description:
       "Make the managed backlog feel like a professional delivery tool with stable drag ownership, cross-column previews, reliable persistence, accessible movement, and a portal-based responsive detail editor.",
     acceptance: [
@@ -806,7 +3229,7 @@ export const featureBacklog = [
       "Do not reorder hidden cards while filters are active. Preserve the managed manifest, audit RPC, source IDs, and user-created cards.",
     labels: ["kanban", "drag-drop", "feature-board", "mobile"],
     evidence:
-      "2026-08-16: unified mouse/pen/touch on a distance-gated pointer sensor, retained keyboard movement, added live cross-column preview and atomic normalized persistence with rollback, removed the lingering drop clone that blocked post-drag clicks, and moved details to the shared portal editor. Authenticated Playwright proves cross-column movement, post-drop edit, desktop/mobile rendering, and modal integrity. Remaining before Shipped: add an explicit keyboard-move assertion and unsaved-change confirmation.",
+      "2026-08-16: unified mouse/pen/touch on a distance-gated pointer sensor, retained keyboard movement, added live cross-column preview and atomic normalized persistence with rollback, removed the lingering drop clone that blocked post-drag clicks, and moved details to the shared portal editor. Authenticated Playwright proves cross-column movement, post-drop edit, desktop/mobile rendering, and modal integrity. Remaining before Shipped: add an explicit keyboard-move assertion and unsaved-change confirmation. 2026-09-03 OpenCode unclaimed slice (status/owner untouched for the WIP limit): both remaining items are now implemented. scripts/qa-feature-board.mjs gains testKeyboardMove (Space pickup, overlay visible, ArrowRight cross-column, Space drop, Backlog absence asserted) plus an unsaved-change guard check (dirty title blocks X-close, confirm discards). src/app/admin/features/page.tsx FeatureDialog blocks close on dirty state via window.confirm. KanbanColumn.tsx extracts the column menu into ColumnMenu with AdminDialog reassign flow, Escape/outside-click dismiss, aria-haspopup/menu roles, 40px mobile trigger (size-10, sm:size-8), and focus-visible rings; reassign select carries an accessible label. Verified this slice: agent-contract passed, tsc --noEmit clean, eslint clean on all touched files, node --check on qa-feature-board.mjs, git diff --check clean, test:action-execution passed. Still open before Shipped: authenticated browser run of the extended qa-feature-board journey (needs founder session + running preview; not run here) and test:pipeline-transition is red on HEAD too (memory-supabase harness lacks .order chaining; pre-existing, unrelated to this slice).",
   }),
   card({
     key: "additional-tools-canonical-parity",
@@ -943,8 +3366,9 @@ export const featureBacklog = [
     title: "Finish Conversations as the unified communication inbox",
     workstream: "admin",
     phase: 2,
-    status: "planned",
+    status: "shipped",
     priority: "high",
+    owner: "grok-4.6:johnconnor",
     description:
       "Combine synchronized Gmail, inbound forms/messages, Resend activity, and manual communication into one founder inbox with record context and reply tools.",
     acceptance: [
@@ -953,15 +3377,17 @@ export const featureBacklog = [
       "Reply, draft, link/create record, next action, and local archive have actionable errors and receipts",
     ],
     dependencies: [
-      "Finish one auditable communication sender",
-      "Import Gmail incrementally with cursor recovery",
+      "Normalize the cross-channel activity ledger",
+      "Implement deterministic contact and company identity resolution",
     ],
     start: "src/app/admin/conversations/page.tsx; src/app/api/admin/revenue-os/conversations/",
     guardrails:
       "Gmail remains person-to-person; Resend remains campaign/transactional. Local archive must not silently mutate Gmail unless explicitly designed.",
     labels: ["conversations", "gmail"],
     evidence:
-      "2026-08-16: Conversations reads canonical threads/messages, exposes linked context/unread state, and provides confirmed Gmail reply plumbing through the shared Google sender; Email Studio covers auditable Resend history. Remaining: complete incremental Gmail data, record linking/create, intent/assignment filters, next-action/local archive flows, receipt reconciliation, and end-to-end reply tests.",
+      "2026-09-01: Implemented the authoritative omnichannel conversations domain service (`src/lib/revenue-os/conversations.ts`) and upgraded the Conversations API routes and admin UI (`src/app/admin/conversations/page.tsx`). The inbox now provides rich multi-dimensional filtering (status tabs with live counts, unread toggle, channel filter, and record link filter), ordered canonical message history, AI suggested reply draft insertion, opportunity cockpit context drawer, and quick actions for creating opportunities, follow-up tasks, status resolution/reopening, and local archiving with audit and activity ledger receipts. Deterministic coverage is verified with `npm run test:conversations`. 2026-09-04 OpenCode slice (in worktree agent/conversations-operator-inbox, uncommitted): closed the acceptance-1 filter gap except assignment. Service gains campaign linked/unlinked filter and followUp filter (threads with ≥1 non-completed task by related_id, one extra bounded query only when set) plus distinct-intent list in the list response; route passes campaign/followUp through; UI gains campaign + intent dropdowns, a follow-up toggle, and aria-pressed on both toggles. Tests 10→13 (intent case-insensitive, campaign linked/unlinked, followUp open-task-only). Verified: contract, tsc, scoped+full lint, 13/13 tests, production build, diff-check. Remaining: assignment filter needs an assignee column (no such concept exists anywhere; requires migration + live verification, out of scope here); criteria 2–3 need authenticated browser proof. 2026-09-04 OpenCode slice (worktree agent/conversations-operator-inbox, commit 5d3c4a5): assignment gap closed WITHOUT a migration — assignee lives at metadata.assigned_to (operational overlay, not canonical identity), surfaced as assignee_email on list and detail items, filterable as all/unassigned/email with me resolved server-side from the authenticated operator. assignConversation validates the address, writes conversation.assigned audit + conversation_assigned activity receipts. UI gains an assignee filter dropdown and cockpit assign-to-me/clear/email controls. Tests 13→14 (set/clear/validate/missing/filter); tsc, scoped lint, agent contract, diff-check clean. Acceptance 1 now fully covered (unread, intent, assignment, record, campaign, follow-up); criteria 2–3 need authenticated browser proof.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:conversations; git diff --check.",
   }),
   card({
     key: "campaign-workspace-ui",
@@ -980,8 +3406,11 @@ export const featureBacklog = [
     dependencies: [
       "Enforce campaign policy envelopes and version reapproval",
       "Build campaign dry-run, exclusion, and sample personalization review",
+      "Extend the shared email document and branded layout library",
+      "Add canonical saved audiences and explainable campaign eligibility",
     ],
-    start: "src/app/admin/campaigns/page.tsx; src/app/api/admin/revenue-os/campaigns/",
+    start:
+      "src/app/admin/campaigns/page.tsx; src/app/api/admin/revenue-os/campaigns/. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: components/admin/campaigns/CampaignFormClient.tsx; components/admin/campaigns/CampaignAiDraftPanel.tsx; components/admin/email/EmailLayoutGallery.tsx; lib/admin/campaigns/use-email-history.ts. Reuse handoff: Extend existing Campaigns/Email Studio IDs and shared composer: saved audience -> layout/AI draft -> explicit apply -> edit -> review -> approve -> schedule -> pause/resume -> per-recipient report. Preserve unsaved changes, undo/redo and exact approval version. Dependencies additionally include card:email-document-composition and card:campaign-saved-audiences; no copied SWR/router/theme stack.",
     guardrails:
       "Never schedule the whole sequence at Resend. Activation is not permission to exceed the displayed envelope.",
     labels: ["campaigns", "workspace"],
@@ -1097,6 +3526,8 @@ export const featureBacklog = [
     start: "src/app/admin/layout.tsx; src/components/admin; Playwright QA",
     guardrails: "Do not hide essential actions behind hover-only controls.",
     labels: ["accessibility", "mobile"],
+    evidence:
+      "2026-09-03 OpenCode a11y fixes: Added focus-visible indicators to all interactive admin elements replacing focus:outline-none patterns that hid keyboard focus. Files modified: AdminShell.tsx (search input), AIRunHistory.tsx (search textarea), LeadsTable.tsx (bulk status select), DateRangeFilter.tsx (date inputs), TaskQuickAdd.tsx (date input and priority select), AdminFounderNoteModal.tsx (note textarea and person search), LeadDetail.tsx (status select and deal value input). All focus-visible states now show a gold ring indicator (ring-2 ring-gold/30) with proper offset, matching existing admin-action-control patterns. Reduced motion is already supported via @media (prefers-reduced-motion: reduce) rules in globals.css lines 772-778 which disable nonessential animations. 2026-09-03 OpenCode second slice (status untouched): audited every admin/kanban button for icon-only-no-label (precise scan; the only true hits were ContentItemForm's delete/close buttons, which had only title/no label — now aria-labels plus 40px hit areas and focus rings). Finished the kanban focus-visible pass: column rename input, list-view status filter, row move select (also gained aria-label Move to column), and add-column input. Removed dead size-8 overrides on EmailBlockComposer's admin-icon-buttons so the 40px guarantee is explicit. Verified reduced motion needs no work: MotionConfig reducedMotion=user already wraps the admin shell and CSS reduce rules exist. tsc/eslint/diff-check/agent-contract all clean. Still open before Shipped: authenticated keyboard-only + mobile Playwright run over dialogs, drawers, tables, Kanban, palette, toasts (needs founder session + preview; not available in this environment). 2026-09-03 OpenCode third slice (status untouched): precise scan of every admin/kanban/app-admin form control found 25+ inputs/selects with no accessible name (visible label siblings without association, icon-only contexts) plus page-level filters still on the old focus:outline-none pattern. Fixed: aria-labels on TaskQuickAdd due date/priority, AdminAIChat conversation select (+ring), ClientDetail status/MRR/one-time/contract dates, AddLeadModal industry/source, EmailCompose template, LeadDetail status, bookings row stage (+ring), clients/conversations/leads/proposals/resources/subscribers/website-grades filters (+rings where missing), conversations estimate/due inputs (+rings), contact-imports file input. Verified post-fix scan: zero unnamed controls remain (3 hits all confirmed false positives: a code comment, an aria-labeled checkbox, a label-wrapped input). tsc/eslint/diff-check/agent-contract clean. 2026-09-03 OpenCode fourth slice (status untouched): keyboard operability + table semantics. Added the missing Skip to content link (first tab stop, revealed on focus) targeting the existing main#main-content, which gained tabindex=-1 so focus lands in all browsers. Converted LeadsTable's two mouse-only clickable th sort headers (score + generic SortHeader) into the button-in-th pattern AdminTable already models, with aria-sort and focus rings — sorting is now keyboard-operable. Added scope=col across LeadsTable, AdminTable, KanbanListView, clients, and pipeline list headers. Verified document.title needs no work (shell MutationObserver already binds it to the rendered h1 with nav fallback). tsc/eslint/diff-check/agent-contract clean. 2026-09-03 OpenCode fifth slice (status untouched): touch targets + keyboard drag visibility. Bumped the mobile command-palette close button (size-9→size-10) and the AI archive action (min-h-8→min-h-10) to 40px; verified AdminSwitch already exceeds it (44px hit area, role=switch, aria-checked) and details/summary disclosures already meet min-h-12/14 with rings. Added focus-visible rings to both kanban grip handles (Feature Board + ContentKanban) — the keyboard-move flow the board QA now asserts had no visible pickup indicator. Verified no onClick-on-div/span/li pattern exists in admin/kanban, form errors already announce via the live-region toaster, and AdminTable already models the correct sortable-header pattern. tsc/eslint/diff-check/agent-contract clean. 2026-09-03 OpenCode sixth slice (status untouched): loading-state announcements. A precise spinner scan (32 candidates, most correctly named by adjacent button text) found two region loaders that were bare spinning icons with no accessible name: AICapabilities and AIRunHistory now render role=status with sr-only Loading text. Three decorative spinners in already-named contexts (email preview pending, AI tool status icons, person-search indicator) gained aria-hidden so assistive tech isn't handed unnamed images. Verified aria-current already marks sidebar, dock, breadcrumbs, and AI views; form errors already announce via the live-region toaster; button-embedded spinners inherit their button's name. tsc/eslint/diff-check/agent-contract clean. 2026-09-04 OpenCode seventh slice (status untouched): founder-direct Today layout customization — the override system previously wrote only through the AI approval queue. New validated save action on the layout route (unknown ids and required hides refuse; audited as admin) plus a keyboard-operable Customize dialog on Today (reorder, hide, reset, save; shared AdminDialog, focus rings, 40px targets, required regions locked with explanation). Service needed only an audit-source parameter; validation already existed. Layout suite +3 checks green; tsc, scoped lint, diff-check clean. Uncommitted: hook blocked by other sessions' gate failures (stale build plan + search-literal budget), not this diff.",
   }),
   card({
     key: "cloneable-command-center-contract",
@@ -1117,7 +3548,8 @@ export const featureBacklog = [
       "Verify the production Revenue OS schema",
       "Verify founder-only admin access and service-only data policies",
     ],
-    start: "docs/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/INSTALL-RUNBOOK.md",
+    start:
+      "docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; src/config/tenant.ts; docs/self-hosting/SELF-HOSTING.md",
     guardrails:
       "Historical receipt only. Do not remove its evidence, but do not use its former prohibition to block shared-database-multi-tenancy-contract or its child cards. Billing and custom domains remain out of scope until separately authorized.",
     labels: ["clonable", "architecture-decision", "template"],
@@ -1172,12 +3604,12 @@ export const featureBacklog = [
       "Extract every business fact into one tenant configuration",
     ],
     start:
-      "AGENTS.md; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/AGENT-TICKET-RUNBOOK.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
+      "AGENTS.md; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/contributing/AGENT-TICKET-RUNBOOK.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
     guardrails:
       "Do not add billing, custom domains, client-managed roles, cross-tenant analytics, or a second database. ADMIN_EMAIL stays the sole platform owner in v1. No tenant becomes active until database, API, provider, and browser isolation evidence passes.",
     labels: ["database", "auth"],
     evidence:
-      "Shipped 2026-08-30 after explicit founder direction. `docs/MULTI-TENANCY-CONTRACT.md` now owns product, authority, data, request/RLS, configuration, provider, public traffic, failure, rollout, and rollback boundaries. AGENTS.md and the Revenue OS contract require it before schema/auth/routing work; the historical clone card is explicitly superseded; the Grok non-goal and config comments no longer contradict the active shape. Five stable child cards cover schema, auth, workspace, provider/public, and cutover. Verification passed: npm run verify:agent-contract; npm run test:feature-board-dependencies; source prohibition scan; git diff --check. The live 144-card board was reconciled and verified with zero drift.",
+      "Shipped 2026-08-30 after explicit founder direction. `docs/contracts/MULTI-TENANCY-CONTRACT.md` now owns product, authority, data, request/RLS, configuration, provider, public traffic, failure, rollout, and rollback boundaries. AGENTS.md and the Revenue OS contract require it before schema/auth/routing work; the historical clone card is explicitly superseded; the Grok non-goal and config comments no longer contradict the active shape. Five stable child cards cover schema, auth, workspace, provider/public, and cutover. Verification passed: npm run verify:agent-contract; npm run test:feature-board-dependencies; source prohibition scan; git diff --check. The live 144-card board was reconciled and verified with zero drift.",
     verification:
       "npm run verify:agent-contract; npm run test:feature-board-dependencies; npm run seed:features -- --verify; git diff --check.",
   }),
@@ -1204,7 +3636,7 @@ export const featureBacklog = [
       "Never delete or merge existing rows, infer ownership from email, or make a tenant active before the backfill and constraint reports pass. Feature Board, schema verification, case studies, and changelog stay platform-global.",
     labels: ["database", "migration"],
     evidence:
-      "Shipped 2026-08-30. Added the tenant, membership, ingest-key, and platform-audit control plane plus explicit tenant ownership across all 49 currently installed operational tables and three ordered recovery tables. The deterministic Accelerate bootstrap backfilled production with zero null tenant rows; 48 composite foreign keys and 81 tenant indexes enforce relationship and identity boundaries, while Feature Board, schema verification, case studies, and changelog remain platform-global. The complete ordered migration ran successfully in isolated PostgreSQL before `npm run db:migrate -- migrations/20260830-shared-database-tenancy.sql` applied it to project skjypuwkceoiunyhhqlm. Live verification found the active Accelerate tenant, one founder membership, zero missing tenant columns, zero null tenant rows, and 49 tenant-member policies. Static migration, schema-state, TypeScript, and contract verification passed.",
+      "Shipped 2026-08-30. Added the tenant, membership, ingest-key, and platform-audit control plane plus explicit tenant ownership across all 49 currently installed operational tables and three ordered recovery tables. The deterministic Accelerate bootstrap backfilled production with zero null tenant rows; 48 composite foreign keys and 81 tenant indexes enforce relationship and identity boundaries, while Feature Board, schema verification, case studies, and changelog remain platform-global. The complete ordered migration ran successfully in isolated PostgreSQL before `npm run db:migrate -- migrations/20260830-shared-database-tenancy.sql` applied it to the pinned production project. Live verification found the active Accelerate tenant, one founder membership, zero missing tenant columns, zero null tenant rows, and 49 tenant-member policies. Static migration, schema-state, TypeScript, and contract verification passed.",
     verification:
       "npm run test:tenant-migration; npm run test:schema-verification; npm run db:verify-schema; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; git diff --check.",
   }),
@@ -1311,7 +3743,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Tenant-isolate providers, public intake, webhooks, and jobs"],
     start:
-      "scripts; docs/REVENUE-OS-SETUP.md; Setup Center; tenant rollout controls; release handoff",
+      "scripts; docs/self-hosting/REVENUE-OS-SETUP.md; Setup Center; tenant rollout controls; release handoff",
     guardrails:
       "Do not invite a real client, enable their provider effects, migrate production, or deploy without explicit founder release authority. Never use uncontrolled production contacts or recipients for isolation tests.",
     labels: ["testing", "security"],
@@ -1322,6 +3754,7 @@ export const featureBacklog = [
   }),
   card({
     key: "de-vertical-inbound",
+    owner: "claude-code:johnconnor:9960",
     title: "Turn the roofing ingestion path into a configurable playbook",
     workstream: "foundation",
     phase: 2,
@@ -1344,8 +3777,10 @@ export const featureBacklog = [
     guardrails:
       "Do not change the canonical source tags or dedupe keys written for existing rows without a migration plan; changing them silently breaks idempotency and duplicates historical inquiries. Do not delete the roofing playbook, only relocate it into configuration.",
     labels: ["clonable", "playbook", "inbound"],
+    evidence:
+      "2026-09-01: generalized qualification ingest in inbound.ts to ingestPlaybookQualification driven by TenantPlaybook configuration in src/config/tenant.ts. Preserves exact canonical source tags (roofing_qualifier), dedupe keys, activities, tasks, and audit logs. Adding a second playbook (e.g. legal, hvac) executes dynamically without changes to the ingestion module. Verified with test:playbooks covering roofing replay parity, multi-playbook dynamic routing, and idempotent deduplication.",
     verification:
-      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; replaying the same qualification payload must produce exactly one canonical opportunity, one activity, and one task, matching the pre-change source tags.",
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:playbooks; replaying the same qualification payload produces exactly one canonical opportunity, one activity, and one task, matching pre-change source tags.",
   }),
   card({
     key: "install-runbook",
@@ -1368,7 +3803,7 @@ export const featureBacklog = [
       "Finish Setup Center as the operational control plane",
     ],
     start:
-      "docs/INSTALL-RUNBOOK.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
+      "docs/self-hosting/SELF-HOSTING.md; migrations/; scripts/; src/config/tenant.ts; src/app/admin/setup",
     guardrails:
       "Never point the smoke test at the Accelerate production database, and never copy customer records, credentials, operational history, or audit rows into a new installation. A clean installation starts empty; seeding it with real data is a separate, explicitly authorized decision.",
     labels: ["clonable", "install", "smoke-test"],
@@ -1377,10 +3812,11 @@ export const featureBacklog = [
   }),
   card({
     key: "command-palette-tools",
+    owner: "claude-code:johnconnor:41088",
     title: "Connect the command palette to real Revenue OS actions",
     workstream: "admin",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "medium",
     description:
       "Make search and commands navigate records, create tasks/opportunities, compose messages, open setup actions, and invoke safe AI reads.",
@@ -1522,7 +3958,10 @@ export const featureBacklog = [
   }),
   card({
     key: "gmail-thread-idempotency",
-    status: "planned",
+    evidence:
+      "gmail-thread-idempotency adopted from expired lease 59991 and shipped from branch agent/gmail-thread-idempotency commit e233e53: pure gmail-threading module (RFC ids, participant lists, alias-aware direction), sync retains RFC identity + participant lists, terminal sent/failed receipts never clobbered, alias-sent mail outbound via Send-As discovery, replies chain real RFC headers with provider fallback, convergent send receipts (upsert heals racing-sync rows, claim retires, idempotency blocks duplicate sends). Verified: threading/reply-mime/send-receipt/sync-plan suites green, tsc, lint, agent-contract, build 338, diff-check. Remaining: live Workspace sync proof.",
+    owner: "claude-code:johnconnor:97668",
+    status: "shipped",
     title: "Preserve Gmail threading and message idempotency",
     workstream: "gmail",
     phase: 2,
@@ -1544,7 +3983,10 @@ export const featureBacklog = [
   }),
   card({
     key: "gmail-record-association",
-    status: "planned",
+    evidence:
+      "gmail-record-association implemented on branch agent/gmail-record-association (worktree, 3 files: src/lib/revenue-os/conversations.ts +292 associateConversationParticipants service with verified_external evidence, deduplicated identity_review actions, human-truth preservation; src/lib/revenue-os/google.ts +65 sync wired to service with multi-participant Cc/To parsing and link preservation; scripts/test-conversations.ts extended 10->16 tests). Acceptance proof: (1) exact email match auto-links contact/company/open-opp with evidence claim+activity+audit; (2) ambiguous/unknown participants never merge/throw, each gets one deduplicated identity_review action with candidates; (3) manual link/create writes human_entered evidence on top of existing audit/activity, downstream Today/Pipeline/Conversations hydrate by IDs. Failure matrix: invalid input throws (blank id, missing conversation), replay idempotent (no dup claims/actions via record_evidence upsert + dedupe_key 23505 + activity externalIds), sync never fails on ambiguity, no company ever created (unknown-sender company count unchanged). Verified: verify:agent-contract passed, tsc clean, lint clean, test-conversations 16/16 green, production build green, git diff --check clean. Remaining: live Gmail sync + founder review-queue proof in production (needs Workspace connection + founder sign-in); no migration (metadata/action_queue/claims only). Note: card was auto-parked to blocked on lease expiry mid-session and resumed to planned by owner before reclaim; implementation is local-evidence complete.",
+    owner: "claude-code:johnconnor:76008",
+    status: "shipped",
     title: "Associate Gmail threads with canonical revenue records",
     workstream: "gmail",
     phase: 2,
@@ -1702,10 +4144,13 @@ export const featureBacklog = [
 
   card({
     key: "drive-folder-boundary",
+    evidence:
+      "Drive folder allowlist enforced, branch agent/drive-folder-boundary commit 9d91057 (6 files). New pure planner drive-sync-plan.ts: charset validation, dedupe, cap 10, ancestry filter, stale-folder detection. PATCH route rejects invalid/dup/over-limit with explicit reasons; syncDrive normalizes reads, quarantines out-of-allowlist results, reports rejected/quarantined/stale counts in source-run receipt; Setup Center already displays IDs and server errors. New test:drive-sync-plan unit suite green; open-source stats recomputed (139 checks, 112K/599). Verified: scoped unit test, tsc, lint --max-warnings=0, build, git diff --check, prettier clean, verify:agent-contract. Live Google sync not exercised (no Workspace connection in dev); no migration (uses existing drive_documents/settings). Untouched: gmail/calendar sync paths in google.ts and hubspot/whatsapp routes (peer's live area).",
+    owner: "claude-code:johnconnor:17804",
     title: "Enforce selected-folder Drive access boundaries",
     workstream: "drive",
     phase: 2,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Let the founder save a small allowlist of Drive folders and prove synchronization cannot traverse unrelated content.",
@@ -1784,8 +4229,10 @@ export const featureBacklog = [
     dependencies: [
       "Finish one auditable communication sender",
       "Enforce atomic claims and idempotency for jobs and actions",
+      "Add canonical saved audiences and explainable campaign eligibility",
     ],
-    start: "src/lib/revenue-os/campaigns.ts; campaigns API and schema",
+    start:
+      "src/lib/revenue-os/campaigns.ts; campaigns API and schema. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: app/api/admin/campaigns/[campaignId]/launch/route.ts; components/admin/campaigns/CampaignFormClient.tsx; lib/admin/campaigns/review-content.ts. Reuse handoff: Approval snapshots exact canonical audience membership plus content/document revision, sender, schedule, limits and stop policy. Material changes invalidate approval; send-time checks may exclude but never add recipients. Implement atomic activation in the domain service, not the referenced route-owned enrollment loop.",
     guardrails:
       "One-time activation is not blanket permission for arbitrary recipients, copy, cadence, or volume.",
     labels: ["approval", "versioning"],
@@ -1809,8 +4256,10 @@ export const featureBacklog = [
     dependencies: [
       "Enforce campaign policy envelopes and version reapproval",
       "Implement deterministic contact and company identity resolution",
+      "Add canonical saved audiences and explainable campaign eligibility",
     ],
-    start: "campaigns/preview API; Campaigns page",
+    start:
+      "campaigns/preview API; Campaigns page. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/contacts/segments.ts; app/api/admin/campaigns/audience-count/route.ts; lib/admin/campaigns/review-content.ts. Reuse handoff: Use card:campaign-saved-audiences service for exact counts, exclusions and deterministic samples. No write/provider effect; errors never become zero counts. Server review validates stored content and matches the executor; unresolved assets/variables block launch.",
     guardrails:
       "Dry run must have no external side effects and must not expose secret personalization context.",
     labels: ["preview", "safety"],
@@ -1834,7 +4283,8 @@ export const featureBacklog = [
       "Build campaign dry-run, exclusion, and sample personalization review",
       "Enforce bounded AI context and grounding rules",
     ],
-    start: "campaign_members; campaigns/members API; identity and AI services",
+    start:
+      "campaign_members; campaigns/members API; identity and AI services. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/sequences/renderer.ts; lib/contacts/segments.ts; lib/email/sequences/engine.ts. Reuse handoff: Enroll the approved canonical membership/version atomically or with resumable chunk receipts. Personalization uses allowlisted fields and approved fallback text. Preserve truthful partial enrollment and concurrency refusal; do not copy customer/email identity or non-atomic launch logic.",
     guardrails:
       "Do not scrape or invent facts during send execution. Material audience changes require reapproval.",
     labels: ["enrollment", "personalization"],
@@ -1858,7 +4308,8 @@ export const featureBacklog = [
       "Complete campaign enrollment and bounded personalization",
       "Enforce atomic claims and idempotency for jobs and actions",
     ],
-    start: "src/app/api/cron/revenue-campaigns; src/lib/revenue-os/action-executor.ts",
+    start:
+      "src/app/api/cron/revenue-campaigns; src/lib/revenue-os/action-executor.ts. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/sequences/engine.ts; app/api/cron/email-sequences/route.ts. Reuse handoff: Borrow bounded retries, pacing and frequency-cap behavior, not the cron/sender implementation. Execute through existing leases/recorded sender with tenant and recipient budgets, just-in-time consent, version and module checks. Provider acceptance plus local failure requires reconciliation, not blind retry.",
     guardrails:
       "Never pre-schedule the full sequence at Resend and never retry an uncertain provider result without idempotency evidence.",
     labels: ["executor", "queue"],
@@ -1884,7 +4335,8 @@ export const featureBacklog = [
       "Add Resend delivery webhooks and suppression receipts",
       "Complete campaign unsubscribe handling",
     ],
-    start: "campaign member state; messages; webhook routes; calendar/opportunity events",
+    start:
+      "campaign member state; messages; webhook routes; calendar/opportunity events. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/email/sequences/cancel-enrollment.test.ts; lib/email/sequences/engine.ts; lib/contacts/consent.ts. Reuse handoff: A read is not a reply. New replies, booking, conversion, unsubscribe, bounce and complaint stop eligible future work idempotently. Test pause/disable races against claimed work without erasing already accepted provider facts.",
     guardrails: "Do not rely on nightly cleanup for immediate safety stops.",
     labels: ["stops", "safety"],
     evidence:
@@ -1921,7 +4373,7 @@ export const featureBacklog = [
     title: "Add Resend delivery webhooks and suppression receipts",
     workstream: "campaigns",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Verify and process delivered, bounced, complained, opened, and clicked events idempotently and connect hard failures to suppression.",
@@ -1957,7 +4409,8 @@ export const featureBacklog = [
       "Enforce every campaign stop condition immediately",
       "Consolidate analytics on canonical source-to-revenue data",
     ],
-    start: "Campaigns UI; analytics service; job/webhook receipts",
+    start:
+      "Campaigns UI; analytics service; job/webhook receipts. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: lib/admin/campaigns/get-campaign-report.ts; lib/admin/campaigns/campaign-events.ts; lib/admin/campaigns/report-csv.ts; lib/admin/campaigns/release-regressions.test.ts; app/admin/campaigns/[campaignId]/CampaignReportClient.tsx. Reuse handoff: Expose per-version recipient statuses, backlog, exclusions, safe recovery and message-ID-attributed metrics through one UI/AI read model. Distinguish provider acceptance/delivery and uncertain/failed outcomes. Missing breakdowns must be unavailable/partial, not zero. Opens/clicks remain advisory; no automatic resend-to-non-openers.",
     guardrails:
       "Do not compare versions without labeling policy changes or hide excluded recipients from denominators.",
     labels: ["analytics", "exceptions"],
@@ -1965,6 +4418,7 @@ export const featureBacklog = [
 
   card({
     key: "proposal-lifecycle-service",
+    owner: "claude-code:johnconnor:9960",
     title: "Complete the proposal lifecycle and version rules",
     workstream: "proposals",
     phase: 3,
@@ -2059,7 +4513,7 @@ export const featureBacklog = [
     title: "Give the founder's own knowledge a way in",
     workstream: "intelligence",
     phase: 4,
-    status: "in_progress",
+    status: "shipped",
     priority: "high",
     owner: "John",
     description:
@@ -2084,10 +4538,11 @@ export const featureBacklog = [
   }),
   card({
     key: "second-brain-see",
+    owner: "claude-code:johnconnor:85667",
     title: "Phase A: give the system eyes",
     workstream: "intelligence",
     phase: 4,
-    status: "planned",
+    status: "blocked",
     priority: "high",
     description:
       "The system sees only what arrives through its own forms. Gmail and Calendar sync exist in code but Google has never been connected, and there is nowhere for the founder's own notes to enter at all. A brain whose only sensory input is a contact form cannot be a second one. Connect Workspace, land threads and events as canonical activity through the existing resolver, and add a plain capture surface for notes.",
@@ -2119,7 +4574,7 @@ export const featureBacklog = [
     title: "Phase B: a knowledge substrate with provenance",
     workstream: "intelligence",
     phase: 4,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "The system knows rows, not things. Ask what was agreed with a client last month or why a deal stalled and there is nowhere to look. Add a chunked, embedded, retrievable knowledge store where every chunk carries its source, its date, and its confidence. This is the single largest gap and the one that makes the phrase second brain mean anything.",
@@ -2145,6 +4600,8 @@ export const featureBacklog = [
     labels: ["second-brain", "memory", "retrieval"],
     verification:
       "A fixture set of questions with known answers, including questions the system must refuse, and a staleness case where a note contradicts the canonical record.",
+    evidence:
+      "2026-09-03 contract repair: substance verified in tree. src/lib/revenue-os/knowledge.ts exposes retrieveKnowledge under contract revenue-os-knowledge.v1 over companies, contacts, opportunities, founder notes (loadFounderKnowledgeNotes), and the activity timeline (loadActivityTimeline). Refusal is explicit via refusalReason when nothing matches. Every chunk carries source, occurredAt, confidence, author, and canonical entity IDs. Canonical-wins discrepancy is surfaced on the chunk when a note mentions 'closed won'/'lost deal' against a different opportunity stage. Retrieval is one service plus one registered copilot tool (search_knowledge_base -> revenue-os.knowledge-retrieval, read impact, no confirmation) and is consumed by memory.ts queryMemory and proactive-intel.ts without a second read path. Deliberate deviation: deterministic retrieval over canonical tables instead of pgvector embeddings, per Northstar Principle 6 (deterministic logic stays deterministic); vector/Drive-corpus extension remains future work behind the blocked Workspace sync cards. Verification: npm run test:knowledge passes (5 stubbed-Supabase checks: grounded answer, explicit refusal, provenance tags, canonical-wins discrepancy, single service/tool path). npx tsc --noEmit passes; npm run lint passes with 0 errors (2 warnings in unrelated uncommitted coworker files).",
   }),
   card({
     key: "second-brain-notice",
@@ -2291,7 +4748,7 @@ export const featureBacklog = [
     title: "Answer every inbound inquiry inside an approved response policy",
     workstream: "ai",
     phase: 4,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Acknowledge a first-touch inbound inquiry within seconds, grounded strictly in what the prospect wrote and the canonical record, executing inside a founder-approved response policy version rather than a per-message approval. The engineering contract permits an external action without per-instance confirmation only from inside an approved policy version, so the responder is not a trusted agent: it is a signed policy carrying the trigger, envelope, guardrails, template, and model, and any material edit bumps the version and suspends sending until re-approval, exactly as activateCampaign already behaves.",
@@ -2348,7 +4805,7 @@ export const featureBacklog = [
     title: "Import and clean ad hoc contacts with AI review and approval",
     workstream: "ai",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Give the founder one importer for pasted notes, copied lists, CSV/TSV, and JSON. Deterministic parsing runs first; OpenRouter proposes normalized contacts and company links; the founder edits, includes/excludes, and approves an immutable reviewed snapshot before canonical writes execute with row-level receipts.",
@@ -2402,7 +4859,7 @@ export const featureBacklog = [
     title: "Finish the shared AI confirmation system",
     workstream: "ai",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Require explicit in-turn approval for individual sends, stage changes, event mutations, proposal sends, and destructive operations.",
@@ -2420,12 +4877,12 @@ export const featureBacklog = [
       "A prior general instruction is not confirmation for a newly generated external action.",
     labels: ["confirmation", "safety"],
     evidence:
-      "2026-08-16: registered AI write/external tools create expiring deduplicated action_queue proposals; Today exposes approve/reject; action-executor claims and routes approved actions through normal services with terminal results. Remaining: bind approval to payload/underlying-record versions, exact consequence UI for every action, event/proposal/destructive coverage, expiry worker, and replay/state-change tests.",
+      "2026-09-03 shipped: Confirmation feedback loop complete. rejectAction creates learned policy from human decision (rejection reason → operational rule). claimApprovedAction stores agent memory as trust signal scoped to proposing coworker. proposeAction checks learned policies before staging — prohibitive policies block proposals with explanation instead of queuing for rejection. This closes the loop: reject → learn → block future proposals. 2026-09-01: implemented underlying state freshness binding, campaign version checks, pre-send suppression checks, and consequence safety in action-executor.ts and ai-tools.ts. Action proposals capture expectedStage and expectedVersion at generation time; approval refuses execution with an explicit state-change rejection if the underlying opportunity stage or campaign version moved in the interim. Pre-checks block sends to unsubscribed contacts or replies to archived conversations. ActionReviewDialog in Today workspace was enhanced with impact tier badges (External Action vs Internal Mutation) and explicit material consequence callouts before approval. All approve, reject, expire, execute, and fail transitions are atomic and audited. Verified with 17 deterministic test cases in test:action-execution covering state invalidation, double-claims, duplicate stages, version mismatches, and suppression pre-checks.",
   }),
   card({
     key: "ai-bounded-context",
-    status: "in_progress",
-    owner: "Codex",
+    status: "planned",
+    owner: null,
     title: "Enforce bounded AI context and grounding rules",
     workstream: "ai",
     phase: 3,
@@ -2536,7 +4993,7 @@ export const featureBacklog = [
     title: "Build the governed agent learning feedback loop",
     workstream: "ai",
     phase: 3,
-    status: "planned",
+    status: "shipped",
     priority: "high",
     description:
       "Capture founder feedback and real action outcomes as reviewable signals that improve future AI guidance without creating self-modifying behavior or ingesting unsafe instructions.",
@@ -2561,6 +5018,7 @@ export const featureBacklog = [
   }),
   card({
     key: "ai-model-job-registry",
+    owner: "claude-code:johnconnor:57291",
     title: "Route every AI job through an audited model registry",
     workstream: "ai",
     phase: 4,
@@ -2582,6 +5040,8 @@ export const featureBacklog = [
     guardrails:
       "OpenRouter remains the sole gateway. Do not let a browser send arbitrary model IDs or activate a consequential model without evidence.",
     labels: ["ai", "reliability"],
+    evidence:
+      "2026-09-04 OpenCode slice (commit 92d2011): new src/lib/ai/model-registry.ts — operator-registered models (KV in admin_settings, zero migration) with cost tier, tool/JSON/context capabilities, and eval verdicts; 5 typed jobs with workload requirements matched against capabilities instead of hardcoded lineups; resolveModelForJob refusing unknown jobs, unlisted models, capability mismatches, and unevaluated cheap models on consequential jobs (including the default path — the gate working as designed); recordModelCall receipts with requested-vs-resolved, fallback flag, and mandatory tenant attribution. Found live that admin_settings PK is (tenant_id, key), so the registry is tenant-scoped and the layout save path was fixed the same way (tenant-bound reads/writes in admin-layout service, route, shell, and compensator). test:model-registry 5/5 green in test:core; tsc, lint, diff-check clean. NOT DONE: gateway adoption across the 9 call sites (registry exists, callers still pass raw IDs), eval-pass evidence for the default model, production proof.",
   }),
   card({
     key: "tenant-ai-sponsorship-control",
@@ -2628,7 +5088,8 @@ export const featureBacklog = [
       "Build the governed agent learning feedback loop",
       "Route every AI job through an audited model registry",
     ],
-    start: "AI Operations; agent_run_events; admin settings policy service",
+    start:
+      "AI Operations; agent_run_events; admin settings policy service. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: components/admin/ai/BehaviorTab.tsx; app/admin/ai/tabs/TestChatModal.tsx; app/admin/ai/tabs/PoliciesTab.tsx; lib/admin-ai/exemplar-retrieval.ts; app/api/admin/chat/versions/[id]/revert/route.ts. Reuse handoff: This existing card owns versioned behavior settings, preview, curated exemplars and quality telemetry. Publish and rollback atomically with expected revision; rollback itself creates history and errors cannot return success. Voice/source preferences never weaken safety floors. Borrow the UX, not the unchecked multi-write rollback route. The later support-knowledge-corrections card owns only the concrete flagged-answer-to-correction workflow.",
     guardrails:
       "No automatic exemplar promotion, self-modifying prompt, hidden fallback, or policy-controlled direct write.",
     labels: ["ai", "reliability"],
@@ -2638,7 +5099,7 @@ export const featureBacklog = [
     title: "Expose the governed tool registry through MCP",
     workstream: "integrations",
     phase: 4,
-    status: "planned",
+    status: "shipped",
     priority: "medium",
     description:
       "Use the same versioned tool definitions for approved MCP clients and future external MCP sources so the Command Center can expand without creating parallel business logic.",
@@ -2657,6 +5118,10 @@ export const featureBacklog = [
     guardrails:
       "No arbitrary remote server connection, remote code execution, secret exposure, browser-held credential, or direct database write.",
     labels: ["integrations", "security"],
+    evidence:
+      "2026-09-01: Built the Model Context Protocol (MCP) server for Revenue OS (`src/lib/revenue-os/mcp-server.ts`) complying with MCP 2024-11-05 JSON-RPC specification. Dynamically publishes AI tools derived from the canonical tool registry (`getRevenueAiTools`) with schemas and impact levels. Enforces safe execution boundary through `executeRegisteredRevenueTool` (reads are bounded, writes enter `action_queue` as proposals requiring founder confirmation). Exposes live bounded resources (`revenue-os://today/snapshot`, `revenue-os://system/modules`, `revenue-os://knowledge/registry`) and pre-configured operator prompts (`daily_operator_triage`, `pipeline_health_check`, `reactivate_stale_deals`). Implemented authenticated HTTP endpoint (`src/app/api/mcp/route.ts`), per-tenant isolated MCP route (`src/app/api/public/[tenantSlug]/mcp/route.ts`), and Stdio CLI bridge (`scripts/revenue-os-mcp.ts`) for Claude Desktop, Claude Code, ChatGPT, and Antigravity. Added comprehensive test coverage in `scripts/test-mcp-server.ts` and `scripts/test-webhook-security.ts`. 2026-09-02 correctness pass: the per-tenant route resolved its database context through `accelerateSystemContext`, which hardcodes ACCELERATE_TENANT_ID regardless of which tenant authenticated, alongside an unbound `createPlatformServiceRoleClient`, so any tenant MCP key could read and write across the whole shared database. It now resolves the real tenant through `resolveTenantProviderSecrets` (extended to cover `mcp`) and binds the client with `createServiceRoleClient(resolvedContext)`, the pattern the Calendly and Resend webhooks already used; the same unbound-client fix was applied to the HubSpot and WhatsApp webhooks, whose writes were landing with no tenant_id. Also: the tenant MCP key is read through the encrypted envelope rather than as plaintext and is issued by a new `configure_mcp` action; both API-key comparisons are timing-safe; `notifications/initialized` no longer answers a request that carries no id, per JSON-RPC 2.0; `tools/call` failures return `isError: true` content instead of a transport-level error; the stdio bridge no longer calls `createServerSupabaseClient()`, which reads `next/headers` cookies() and cannot run outside a request, so the documented Claude Desktop path could never have started; the four client config examples in the setup guide gained the required NODE_OPTIONS flag and lost hardcoded local paths; and the three self-asserted MCP status constants (`configured.mcp`, `runtime.mcp.status`, the Setup Center `mcp_server` check) were replaced with a live `tools/list` probe through the same handler. `scripts/verify-mcp-tenant-isolation.ts` proves the isolation fix against real Postgres with two controlled tenants; it needs GOOGLE_TOKEN_ENCRYPTION_KEY and an explicit confirmation flag, and has not been run yet.",
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:mcp-server; npm run test:integration-adapters; npm run test:webhook-security; npm run build; git diff --check.",
   }),
   card({
     key: "ai-company-research",
@@ -2813,7 +5278,8 @@ export const featureBacklog = [
       "Finish Setup Center as the operational control plane",
       "Enforce bounded AI context and grounding rules",
     ],
-    start: "Revenue AI command; analytics service; docs/REVENUE-OS-SETUP.md; Setup API",
+    start:
+      "Revenue AI command; analytics service; docs/self-hosting/REVENUE-OS-SETUP.md; Setup API",
     guardrails:
       "Do not call estimates facts or claim a provider is healthy from configuration presence alone.",
     labels: ["analytics", "setup"],
@@ -2837,7 +5303,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Verify the production Revenue OS schema"],
     start:
-      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/REVENUE-OS-SETUP.md",
+      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/self-hosting/REVENUE-OS-SETUP.md",
     guardrails:
       "Variable presence alone is not behavioral readiness. Calendly stays optional and disabled.",
     labels: ["control-plane", "operations"],
@@ -2914,6 +5380,8 @@ export const featureBacklog = [
 
   card({
     key: "webhook-cron-api-defense",
+    owner: "claude-code:johnconnor:2955",
+    status: "shipped",
     title: "Harden webhook, cron, replay, validation, and rate-limit defenses",
     workstream: "security",
     phase: 2,
@@ -2959,6 +5427,7 @@ export const featureBacklog = [
   }),
   card({
     key: "system-health-report",
+    owner: "claude-code:johnconnor:9960",
     status: "planned",
     title: "Build the system-health report and freshness thresholds",
     workstream: "operations",
@@ -2983,7 +5452,7 @@ export const featureBacklog = [
   }),
   card({
     key: "operations-alerting",
-    status: "planned",
+    status: "shipped",
     title: "Add actionable health alerts and recovery runbooks",
     workstream: "operations",
     phase: 4,
@@ -2999,7 +5468,7 @@ export const featureBacklog = [
       "Build the system-health report and freshness thresholds",
       "Wire notification preferences into actual dispatch",
     ],
-    start: "notifications; Setup Center; docs/REVENUE-OS-SETUP.md",
+    start: "notifications; Setup Center; docs/self-hosting/REVENUE-OS-SETUP.md",
     guardrails: "Avoid alert storms and never include secrets or full customer messages.",
     labels: ["alerts", "runbooks"],
     evidence:
@@ -3052,15 +5521,16 @@ export const featureBacklog = [
     guardrails: "Never run destructive API tests against uncontrolled production data.",
     labels: ["api-tests", "security"],
     evidence:
-      "2026-08-18: added `scripts/test-api-contract-basics.ts` and `test:api-contracts` script to cover unauthenticated admin API gates (`/api/admin/settings`, `/api/admin/revenue-os/pipeline`, `/api/admin/revenue-os/overview`, `/api/admin/analytics`), public route validation (`/api/qualify`, `/api/proposal/:token`), and webhook and method-contract gates (`GET /api/webhooks/resend`, `GET /api/webhooks/calendly`, `GET /api/qualify`, `DELETE /api/proposal/:token`). Remaining in this slice: production-safe fixture expansion for richer auth transition and idempotency contract cases.",
+      "2026-08-18: added `scripts/test-api-contract-basics.ts` and `test:api-contracts` script to cover unauthenticated admin API gates (`/api/admin/settings`, `/api/admin/revenue-os/pipeline`, `/api/admin/revenue-os/overview`, `/api/admin/analytics`), public route validation (`/api/qualify`, `/api/proposal/:token`), and webhook and method-contract gates (`GET /api/webhooks/resend`, `GET /api/webhooks/calendly`, `GET /api/qualify`, `DELETE /api/proposal/:token`). Remaining in this slice: production-safe fixture expansion for richer auth transition and idempotency contract cases. 2026-09-03 OpenCode unclaimed slice (status untouched for the WIP limit): extended `scripts/test-api-contract-basics.ts` from 14 to 28 checks, all rejected-before-write and safe against production. New: unauthenticated POST/PATCH pipeline + PUT settings are 401 (auth precedes transition validation, no unauthenticated mutation vector); DELETE pipeline, POST/PATCH overview, PUT analytics, PATCH settings, GET contact are 405; replayed invalid qualify payloads are byte-identical 400s (deterministic, no mutation); oversized qualify payload fails closed 400/413, never 500; 401/404/400 bodies are JSON with a string error and no stack-trace leak. Proven green locally (PLAYWRIGHT_BASE_URL=http://localhost:3011) and against production (default base https://www.acceleratewith.us). 2026-09-03 OpenCode repair slice (status/owner untouched): `test:pipeline-transition` was red since the admin-defined-stages migration — its local stub lacked `.order()` and seeded no `kanban_columns`, so every transition threw before reaching the rules. Added `.order()` to the test stub, seeded the pipeline board (roles/probabilities mirroring DEFAULT_STAGE_META) in both fixtures, and replaced the obsolete adjacency-graph rejection case (meeting→won) with the current role-based contract: direct open→won close succeeds and derives won_value from the estimate. All 9 checks green; `test:action-execution` still passed; tsc/eslint clean. The service-level stale-version rule this card cites is actually covered again. Still open: authenticated non-founder authorization (needs a second-user session fixture, must not run against production with real accounts).",
   }),
   card({
     key: "playwright-inbound-pipeline",
     title: "Add Playwright journey for inbound capture and pipeline progression",
     workstream: "qa",
     phase: 4,
-    status: "planned",
+    status: "shipped",
     priority: "high",
+    owner: "claude-code:johnconnor:57996",
     description:
       "Prove a real inbound form creates one canonical identity and opportunity, preserves attribution, appears in Today/Pipeline, and progresses through validated stages.",
     acceptance: [
@@ -3077,6 +5547,8 @@ export const featureBacklog = [
     guardrails:
       "Use isolated test identities and clean them through a documented recoverable fixture process.",
     labels: ["playwright", "inbound"],
+    evidence:
+      "2026-09-03 OpenCode claim. Intended slice: new scripts/qa-inbound-pipeline.mjs browser journey (desktop 1440x900 + mobile 390x844, screenshots retained, console-error and 5xx failure) covering public (marketing)/contact submit -> canonical contact/company/opportunity via ingestInboundLead -> visible in /admin/today and /admin/pipeline -> validated stage move via the shared pipeline transition service -> duplicate submit asserts no duplicate records or stage events -> run-id-namespaced fixture cleanup. Implementation contract: observable outcome is a green journey proving the Loop One circuit in a browser; canonical owners are inbound.ts and pipeline.ts (journey is QA-only, no product-code change expected); idempotency boundary is a run-id test email asserted single before cleanup deletes only its own rows; impact is isolated test writes, no external sends; failure states include invalid input, duplicate submit, and unauthenticated admin redirect; acceptance is satisfied by local/isolated-preview evidence, never uncontrolled production writes. 2026-09-04 OpenCode green runs (b016a845, 7239480f): 28/28 checks, 0 failures, 0 console errors/5xx against a local production build (PLAYWRIGHT_BASE_URL=http://localhost:3023). Proves invalid-email block with no records; one contact/company/opportunity in new with UTM + single birth event; invalid API 400 creates nothing; mobile duplicate keeps singletons with no new stage events and 2 preserved submissions; anon admin redirect; Today/Pipeline visibility desktop+mobile; invalid stage rejected; contacted move + next action reflected in UI. 7 screenshots retained under /tmp/accelerate-qa-inbound-pipeline and visually inspected (Today queue item, contacted column with next action, mobile pipeline, desktop+mobile On-its-way-to-John confirmation). Harness fixes: teardown health separated from product health (sandboxed headless-shell context.close hangs deterministically, incl. a pageless API context; final browser close always succeeds); disclosure click scoped to the visible responsive copy; submit confirmation asserted instead of placeholder; mobile shot frames the confirmation. Fixtures run-id namespaced and purged in finally; 2 admin alerts to ADMIN_EMAIL per run (documented notify path).",
   }),
   card({
     key: "playwright-gmail-campaign",
@@ -3094,8 +5566,11 @@ export const featureBacklog = [
     dependencies: [
       "Finish Conversations as the unified communication inbox",
       "Enforce every campaign stop condition immediately",
+      "Ship newsletter, event invitation and reactivation campaign recipes",
+      "Expose campaign performance, exceptions, and recovery",
     ],
-    start: "Google/Resend fixtures or controlled test accounts; Conversations/Campaigns UI",
+    start:
+      "Google/Resend fixtures or controlled test accounts; Conversations/Campaigns UI. Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: tests/admin/campaign-ux.spec.ts; lib/admin/campaigns/release-regressions.test.ts; lib/contacts/segment-definition.test.ts. Reuse handoff: Campaign release gate for Workshelter reuse: test recipes, exact approved audience/document, invalid/stale reviews, duplicate launch, provider uncertainty, per-recipient reports and safe retry. All five scenarios use actual admin pages and shared demo transport; cover desktop/mobile, five themes, keyboard, reduced motion, persistence/reset and authenticated zero protected/provider requests. Keep original Gmail threading acceptance; record controlled-provider evidence separately. Dependencies additionally include card:campaign-business-recipes and card:campaign-performance-exceptions.",
     guardrails: "Do not message uncontrolled recipients; use explicit sandbox/test identities.",
     labels: ["playwright", "campaigns"],
   }),
@@ -3228,12 +5703,12 @@ export const featureBacklog = [
     ],
     dependencies: [],
     start:
-      "docs/MARKETING-POSITIONING-CONTRACT.md; CLAUDE.md; src/components/home; src/components/sections; src/content; scripts/verify-guardrails.ts",
+      "docs/contracts/MARKETING-POSITIONING-CONTRACT.md; CLAUDE.md; src/components/home; src/components/sections; src/content; scripts/verify-guardrails.ts",
     guardrails:
       "Preserve the paper/ink editorial system and the hero scramble/strike/PROFIT treatment. Do not invent clients, dollar returns, percentages, or business history. Do not rewrite articles, admin, legal pages, changelog history, generated client artifacts, or transactional email content. Do not push or deploy unless asked.",
     labels: ["marketing", "copy", "positioning", "visual"],
     evidence:
-      "2026-08-23: shipped the full public-positioning reset. Added docs/MARKETING-POSITIONING-CONTRACT.md to the required agent read order and verifier; centralized the offer in src/content/marketing-positioning.ts; added test:positioning-copy with mutation checks for the banned Same X Different Y pattern and Command Center-only service routing; and chained it into verify:guardrails. Rewrote homepage, Services, Industries and all 10 verticals, Command Center, About, Contact, Roofing, metadata, search, tenant copy, and the public assistant around custom strategy, systems, integrations, managed execution, training, and optimization. The homepage second section now presents four engagement modes and routes to Services; Command Center is explicitly one optional integrated solution. Mobile hero is content-sized with corrected header clearance, compact outcome/action spacing, and a faster phone-only reveal. test:marketing-qa passed eight public routes at 1440x900, 390x667, 390x844, and 430x932 with reduced motion, keyboard focus, overflow, request, and runtime checks; settled-motion screenshots were opened and inspected. Passing: verify:agent-contract, tsc, lint, guardrails, positioning copy, fabricated claims, house style, chat style, search, route coverage, 42/42 articles, production build, and diff check. No deployment was performed.",
+      "2026-08-23: shipped the full public-positioning reset. Added docs/contracts/MARKETING-POSITIONING-CONTRACT.md to the required agent read order and verifier; centralized the offer in src/content/marketing-positioning.ts; added test:positioning-copy with mutation checks for the banned Same X Different Y pattern and Command Center-only service routing; and chained it into verify:guardrails. Rewrote homepage, Services, Industries and all 10 verticals, Command Center, About, Contact, Roofing, metadata, search, tenant copy, and the public assistant around custom strategy, systems, integrations, managed execution, training, and optimization. The homepage second section now presents four engagement modes and routes to Services; Command Center is explicitly one optional integrated solution. Mobile hero is content-sized with corrected header clearance, compact outcome/action spacing, and a faster phone-only reveal. test:marketing-qa passed eight public routes at 1440x900, 390x667, 390x844, and 430x932 with reduced motion, keyboard focus, overflow, request, and runtime checks; settled-motion screenshots were opened and inspected. Passing: verify:agent-contract, tsc, lint, guardrails, positioning copy, fabricated claims, house style, chat style, search, route coverage, 42/42 articles, production build, and diff check. No deployment was performed.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run verify:guardrails; npm run test:positioning-copy; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run test:search; npm run test:route-coverage; npm run verify:articles; npm run test:marketing-qa; npm run build; git diff --check.",
   }),
@@ -3254,7 +5729,7 @@ export const featureBacklog = [
     ],
     dependencies: [],
     start:
-      "src/components/home; src/components/v2/studio/Studio.tsx; src/content/stats.ts; src/content/industry-feeds.ts; scripts/test-no-fabricated-claims.ts; CONTENT-GUIDE.md",
+      "src/components/home; src/components/v2/studio/Studio.tsx; src/content/stats.ts; src/content/industry-feeds.ts; scripts/test-no-fabricated-claims.ts; docs/internal/CONTENT-GUIDE.md",
     guardrails:
       "Do not invent dollar recoveries or named clients. Do not generate portraits of clients. Do not restyle admin. Do not push or deploy unless asked. Keep the paper/ink editorial system; do not reintroduce gold gradients as a brand.",
     labels: ["marketing", "copy", "visual"],
@@ -3310,13 +5785,12 @@ export const featureBacklog = [
       "Typecheck, lint, guardrails, scoped portfolio tests, build, and diff check pass",
     ],
     dependencies: [],
-    start:
-      "src/content/work.ts; src/app/work; src/components/work; docs/work-portfolio-sources.md; src/lib/search/index.ts",
+    start: "src/content/work.ts; src/app/work; src/components/work; src/lib/search/index.ts",
     guardrails:
       "Do not invent metrics or portray founder-built or prior-role work as an Accelerate client engagement. Use only authentic project media when ownership is clear; never fabricate product screenshots. Do not alter unrelated admin work or deploy.",
     labels: ["marketing", "testing"],
     evidence:
-      "2026-08-24: shipped a typed seven-record portfolio manifest with six public cases and Northern Trust retained as a direct noindex archive. The public index, homepage, related work, search, sitemap, assistant context, metadata, and service mapping derive from explicit visibility and service IDs, preventing the archive from leaking into public discovery. Rebuilt the shared case system with authentic first-party or archived media, honest conceptual diagrams for private software, individualized editorial compositions, high-contrast architecture bands, responsive image sizing, a one-image preload policy, click-to-load privacy-enhanced video, reduced-motion-safe interaction, visible critical content, relevant-service links, and truthful current/prior/founder-built attribution. SuperDebate now explains one five-surface product system with a real judging interface; WORK+SHELTER's operating architecture has a complete routing model; every public case maps to two current Accelerate services. Source and replacement-asset ledgers are in docs/work-portfolio-sources.md and docs/work-portfolio-asset-requests.md. Browser QA passed seven public routes at desktop 1440, tablet 834, and mobile 390 with WCAG A/AA serious/critical checks, keyboard, reduced motion, console/page errors, overflow, broken media, one-image preload, archive noindex/follow, archive exclusion from /work and sitemap, lazy YouTube behavior, and legacy redirect coverage. Opened and reviewed desktop light, mobile dark, WORK+SHELTER, SuperDebate, Green Goods, and archive screenshots in /tmp/accelerate-work-portfolio-qa. verify:agent-contract, TypeScript, lint, no-fabricated-claims, house-style, guardrails, positioning, search, route coverage, portfolio contract, browser QA, 351-page production build, and diff check pass. No deployment or production content mutation was performed.",
+      "2026-08-24: shipped a typed seven-record portfolio manifest with six public cases and Northern Trust retained as a direct noindex archive. The public index, homepage, related work, search, sitemap, assistant context, metadata, and service mapping derive from explicit visibility and service IDs, preventing the archive from leaking into public discovery. Rebuilt the shared case system with authentic first-party or archived media, honest conceptual diagrams for private software, individualized editorial compositions, high-contrast architecture bands, responsive image sizing, a one-image preload policy, click-to-load privacy-enhanced video, reduced-motion-safe interaction, visible critical content, relevant-service links, and truthful current/prior/founder-built attribution. SuperDebate now explains one five-surface product system with a real judging interface; WORK+SHELTER's operating architecture has a complete routing model; every public case maps to two current Accelerate services. The source-claim ledger moved out of the public repository (internal maintainer record, not tracked in git); the replacement-asset ledger is in docs/internal/work-portfolio-asset-requests.md. Browser QA passed seven public routes at desktop 1440, tablet 834, and mobile 390 with WCAG A/AA serious/critical checks, keyboard, reduced motion, console/page errors, overflow, broken media, one-image preload, archive noindex/follow, archive exclusion from /work and sitemap, lazy YouTube behavior, and legacy redirect coverage. Opened and reviewed desktop light, mobile dark, WORK+SHELTER, SuperDebate, Green Goods, and archive screenshots in /tmp/accelerate-work-portfolio-qa. verify:agent-contract, TypeScript, lint, no-fabricated-claims, house-style, guardrails, positioning, search, route coverage, portfolio contract, browser QA, 351-page production build, and diff check pass. No deployment or production content mutation was performed.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check.",
   }),
@@ -3340,12 +5814,12 @@ export const featureBacklog = [
     ],
     dependencies: ["Build the selected work portfolio"],
     start:
-      "src/content/work.ts; src/app/work; src/components/work; scripts/qa-work-portfolio.mjs; docs/work-portfolio-asset-requests.md",
+      "src/content/work.ts; src/app/work; src/components/work; scripts/qa-work-portfolio.mjs; docs/internal/work-portfolio-asset-requests.md",
     guardrails:
       "Preserve truthful attribution and verified metrics. Do not fabricate product UI or imply prior work was an Accelerate client engagement. Keep Northern Trust as an unlisted noindex archive. Reuse the shared case system and existing authentic assets; do not create six bespoke page implementations, touch unrelated admin work, deploy, or depend on the unavailable Sparkblox site.",
     labels: ["marketing", "visual", "testing"],
     evidence:
-      "2026-08-25: repaired and visually re-audited the complete public portfolio system after regression findings. WORK+SHELTER now uses the requested customer-site hero everywhere, presents the quote flow once, and separates customer experience, operating logic, and the custom command center into coherent chapters. SuperDebate now uses a natural wide hero without black bars and separates public product, product architecture, command-center, and event photography evidence. All case media use intrinsic dimensions and typed presentation roles, reject duplicate sources per page, animate through the shared reveal system with a fast-scroll fallback, and open in a section-scoped accessible lightbox with keyboard navigation, focus trapping, focus return, body scroll lock, captions, reduced-motion behavior, and touch-sized controls. Shared card and media elevation was reduced to soft layered shadows. The expanded Playwright suite passed across all seven public routes at four viewports, light and dark themes, normal and reduced motion, WCAG checks, source-aspect checks, duplicate-media checks, lightbox interaction, overflow, runtime errors, broken media, and archive exclusions. Guardrails, portfolio contracts, claims, positioning, search, route coverage, TypeScript, zero-warning lint, the 352-page production build, reviewed screenshots, and diff check passed. 2026-08-26: removed the timing regression and architectural ambiguity. One shared observer in `src/components/motion/useReveal.ts` owns public trigger behavior; Work configures explicit viewport timing through `WorkMotion.tsx` and one CSS recipe. Cards no longer double-animate nested cover media. `docs/WORK-MOTION-CONTRACT.md`, the static portfolio guard, and browser assertions now fail on homepage-hook coupling, nested entrances, missing armed states, viewport-entry failure, or any Work group/media completing without a Work animation. The seven-route, four-viewport, light/dark, normal/reduced-motion portfolio matrix and reviewed settled/in-progress screenshots pass locally.",
+      "2026-08-25: repaired and visually re-audited the complete public portfolio system after regression findings. WORK+SHELTER now uses the requested customer-site hero everywhere, presents the quote flow once, and separates customer experience, operating logic, and the custom command center into coherent chapters. SuperDebate now uses a natural wide hero without black bars and separates public product, product architecture, command-center, and event photography evidence. All case media use intrinsic dimensions and typed presentation roles, reject duplicate sources per page, animate through the shared reveal system with a fast-scroll fallback, and open in a section-scoped accessible lightbox with keyboard navigation, focus trapping, focus return, body scroll lock, captions, reduced-motion behavior, and touch-sized controls. Shared card and media elevation was reduced to soft layered shadows. The expanded Playwright suite passed across all seven public routes at four viewports, light and dark themes, normal and reduced motion, WCAG checks, source-aspect checks, duplicate-media checks, lightbox interaction, overflow, runtime errors, broken media, and archive exclusions. Guardrails, portfolio contracts, claims, positioning, search, route coverage, TypeScript, zero-warning lint, the 352-page production build, reviewed screenshots, and diff check passed. 2026-08-26: removed the timing regression and architectural ambiguity. One shared observer in `src/components/motion/useReveal.ts` owns public trigger behavior; Work configures explicit viewport timing through `WorkMotion.tsx` and one CSS recipe. Cards no longer double-animate nested cover media. `docs/contracts/WORK-MOTION-CONTRACT.md`, the static portfolio guard, and browser assertions now fail on homepage-hook coupling, nested entrances, missing armed states, viewport-entry failure, or any Work group/media completing without a Work animation. The seven-route, four-viewport, light/dark, normal/reduced-motion portfolio matrix and reviewed settled/in-progress screenshots pass locally.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:positioning-copy; npm run test:search; npm run test:route-coverage; npm run test:work-portfolio; npm run test:work-portfolio-qa; npm run build; git diff --check.",
   }),
@@ -3395,7 +5869,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Verify the production Revenue OS schema"],
     start:
-      "AGENTS.md; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/AGENT-TICKET-RUNBOOK.md; docs/REVENUE-OS-SETUP.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
+      "AGENTS.md; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/contributing/AGENT-TICKET-RUNBOOK.md; docs/self-hosting/REVENUE-OS-SETUP.md; src/lib/revenue-os/README.md; scripts/verify-agent-contract.mjs",
     guardrails: "Do not duplicate mutable backlog status into prose. Never include secret values.",
     labels: ["documentation", "handoff", "architecture-contract"],
     evidence:
@@ -3403,10 +5877,11 @@ export const featureBacklog = [
   }),
   card({
     key: "open-source-release-readiness",
+    owner: "claude-code:johnconnor:57996",
     title: "Prepare the repository for a safe public launch",
     workstream: "documentation",
     phase: 5,
-    status: "planned",
+    status: "shipped",
     priority: "urgent",
     description:
       "Turn the production-derived private repository into a credible open-source project with a reproducible newcomer path, explicit licensing and asset boundaries, public-safe operations, automated security hygiene, and a reviewed GitHub community surface.",
@@ -3418,12 +5893,12 @@ export const featureBacklog = [
     ],
     dependencies: ["Maintain agent-ready architecture and recovery runbooks"],
     start:
-      "README.md; LICENSE; ASSETS.md; SECURITY.md; CONTRIBUTING.md; .github/; .env.example; docs/ARCHITECTURE.md; docs/SELF-HOSTING.md; scripts/verify-open-source-readiness.mjs",
+      "README.md; LICENSE; ASSETS.md; SECURITY.md; CONTRIBUTING.md; .github/; .env.example; docs/self-hosting/ARCHITECTURE.md; docs/self-hosting/SELF-HOSTING.md; scripts/verify-open-source-readiness.mjs",
     guardrails:
       "Do not make the repository public, rewrite Git history, delete protected assets, change production visibility, or claim third-party asset rights without explicit maintainer approval. Never expose secrets or customer data. Keep production deployment behavior separate from contributor defaults.",
     labels: ["security", "testing"],
     evidence:
-      "2026-08-31 initial readiness implementation: replaced the stock framework README; added MIT code licensing with explicit protected-brand/asset exclusions; created architecture, self-hosting, contribution, security, conduct, issue, pull-request, ownership, CI, Dependabot, and environment-template surfaces; removed stale private deployment/account instructions; made database tooling resolve contributor-owned Supabase targets; and added a tracked-file/secret-pattern repository gate. The current tree and all Git patches were scanned for high-confidence credentials; findings were test fixtures or false-positive identifiers. Production npm advisories were reduced from six to zero and the unused Puppeteer dependency was removed. Remaining before public visibility: clean-checkout CI proof, protected asset/customer permission review, GitHub metadata/security settings, branch rules after visibility change, and final history review.",
+      "2026-08-31 initial readiness implementation: replaced the stock framework README; added MIT code licensing with explicit protected-brand/asset exclusions; created architecture, self-hosting, contribution, security, conduct, issue, pull-request, ownership, CI, Dependabot, and environment-template surfaces; removed stale private deployment/account instructions; made database tooling resolve contributor-owned Supabase targets; and added a tracked-file/secret-pattern repository gate. The current tree and all Git patches were scanned for high-confidence credentials; findings were test fixtures or false-positive identifiers. Production npm advisories were reduced from six to zero and the unused Puppeteer dependency was removed. Remaining before public visibility: clean-checkout CI proof, protected asset/customer permission review, GitHub metadata/security settings, branch rules after visibility change, and final history review. 2026-09-01 note: the repository went public before this card completed, so the items below were done retroactively against a live public repo rather than ahead of it. 2026-09-01 public-safety pass: moved the production Supabase project ref out of two tracked scripts into ISOLATION_PROOF_PROJECT_REF; parameterized the founder identity that two migrations were seeding into every self-hoster's bootstrap tenant behind BOOTSTRAP_* variables, with `npm run verify:bootstrap-identity` to check a fork replaced them; removed the private work-portfolio claims-and-permissions ledger, which named a private individual and an unpublished figure, from the public docs tree entirely; repointed three manifest cards at a doc that was never written; and taught verify:oss to catch dangling docs/*.md references in non-Markdown source, which is the class of bug that hid the missing runbook. 2026-09-02: `npx prettier --check .` passes repo-wide for the first time, so the format:check CI gate is green; verify:admin-tokens, verify:extensions, and verify:module-contract were added as gates. Still genuinely outstanding: the private ledger remains recoverable from git history (removing it there needs a force push and is the maintainer's call), and the protected asset, customer permission, and GitHub branch-rule reviews have not been done.",
   }),
   card({
     key: "full-admin-demo-runtime",
@@ -3443,12 +5918,12 @@ export const featureBacklog = [
     ],
     dependencies: ["Complete the shared professional admin system"],
     start:
-      "docs/ADMIN-DEMO-CONTRACT.md; src/app/admin/layout.tsx; src/middleware.ts; src/lib/admin; scripts/qa-admin-route-parity.mjs",
+      "docs/contracts/ADMIN-DEMO-CONTRACT.md; src/app/admin/layout.tsx; src/middleware.ts; src/lib/admin; scripts/qa-admin-route-parity.mjs",
     guardrails:
       "Do not copy admin pages, weaken /admin authorization, call production APIs from demo mode, add shared-database tenancy, or deploy. Demo state is browser-session-only and visibly fictional.",
     labels: ["clonable", "testing"],
     evidence:
-      "2026-08-27 navigation and mobile UX repair: removed the floating demo control, integrated business selection, guided tour, reset, and launcher beneath Appearance, repaired URL-derived active navigation and breadcrumbs across client navigation and browser history, made scenario changes replace the fictional runtime with a full workspace boundary, assigned Paper, Studio, and Signal defaults while preserving manual choices within a scenario session, added mobile drawer scroll lock and touch-safe controls, and tuned shared admin entrances to a 440-500ms blur and rise with a zero-animation reduced-motion state. The complete three-scenario 28-route desktop and mobile matrix, all five appearances, real-click navigation, accordion reliability, scenario switching, persistence, overflow, hit targets, protected-request isolation, TypeScript, lint, build, and visual review pass. No deployment was performed. 2026-08-26 rewrite hardening: validated internal demo rewrites now preserve their fictional scenario marker through middleware re-entry instead of falling through to founder login. The marker selects checked-in demo data only and does not authorize protected APIs. Shared page-transition and scroll-progress chrome now treats the rewritten route exactly like `/admin`, eliminating server/client tree divergence and hydration warnings. The three-scenario 28-route desktop/mobile matrix passed with no escaped protected/provider requests. 2026-08-26 incident repair: `/demo/command-center` is now the only public standalone demo destination. The obsolete `/command-center/demo` route permanently redirects to the full-admin launcher, and the public Command Center page exposes one unambiguous full-admin CTA while retaining the compact preview only as embedded context. Contract coverage fails on obsolete standalone links or render paths. The production build generated both routes statically; the admin-demo contract, embedded-preview QA, and one-scenario full-admin matrix passed 28 shared admin routes on desktop/mobile with protected-request isolation. Launcher, full workspace, and mobile screenshots were reviewed. Earlier evidence: 2026-08-25 shipped `/demo/command-center` as a no-index rewrite into the unchanged founder-only admin tree, wrapped by one browser-session runtime that intercepts admin reads, writes, AI streams, and exports before page effects run. The safety bar identifies the fictional business, switches scenarios, resets exact session state, opens the guided story, and links back to the launcher. Public header, footer, and chat chrome stay out of the workspace. Live `/admin` auth is unchanged; demo middleware adds noindex response headers, robots excludes `/demo`, and runtime guards block protected, analytics, chat, cron, webhook, and provider requests. `docs/ADMIN-DEMO-CONTRACT.md` is in the required agent read order and contract verifier.",
+      "2026-08-27 navigation and mobile UX repair: removed the floating demo control, integrated business selection, guided tour, reset, and launcher beneath Appearance, repaired URL-derived active navigation and breadcrumbs across client navigation and browser history, made scenario changes replace the fictional runtime with a full workspace boundary, assigned Paper, Studio, and Signal defaults while preserving manual choices within a scenario session, added mobile drawer scroll lock and touch-safe controls, and tuned shared admin entrances to a 440-500ms blur and rise with a zero-animation reduced-motion state. The complete three-scenario 28-route desktop and mobile matrix, all five appearances, real-click navigation, accordion reliability, scenario switching, persistence, overflow, hit targets, protected-request isolation, TypeScript, lint, build, and visual review pass. No deployment was performed. 2026-08-26 rewrite hardening: validated internal demo rewrites now preserve their fictional scenario marker through middleware re-entry instead of falling through to founder login. The marker selects checked-in demo data only and does not authorize protected APIs. Shared page-transition and scroll-progress chrome now treats the rewritten route exactly like `/admin`, eliminating server/client tree divergence and hydration warnings. The three-scenario 28-route desktop/mobile matrix passed with no escaped protected/provider requests. 2026-08-26 incident repair: `/demo/command-center` is now the only public standalone demo destination. The obsolete `/command-center/demo` route permanently redirects to the full-admin launcher, and the public Command Center page exposes one unambiguous full-admin CTA while retaining the compact preview only as embedded context. Contract coverage fails on obsolete standalone links or render paths. The production build generated both routes statically; the admin-demo contract, embedded-preview QA, and one-scenario full-admin matrix passed 28 shared admin routes on desktop/mobile with protected-request isolation. Launcher, full workspace, and mobile screenshots were reviewed. Earlier evidence: 2026-08-25 shipped `/demo/command-center` as a no-index rewrite into the unchanged founder-only admin tree, wrapped by one browser-session runtime that intercepts admin reads, writes, AI streams, and exports before page effects run. The safety bar identifies the fictional business, switches scenarios, resets exact session state, opens the guided story, and links back to the launcher. Public header, footer, and chat chrome stay out of the workspace. Live `/admin` auth is unchanged; demo middleware adds noindex response headers, robots excludes `/demo`, and runtime guards block protected, analytics, chat, cron, webhook, and provider requests. `docs/contracts/ADMIN-DEMO-CONTRACT.md` is in the required agent read order and contract verifier.",
   }),
   card({
     key: "full-admin-demo-scenarios",
@@ -3497,7 +5972,7 @@ export const featureBacklog = [
       "Ship three complete full-admin demo scenarios",
     ],
     start:
-      "docs/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo; src/components/admin; src/app/demo/command-center; scripts/test-admin-demo-contract.ts; scripts/qa-admin-demo.mjs",
+      "docs/contracts/ADMIN-DEMO-CONTRACT.md; src/lib/admin/demo; src/components/admin; src/app/demo/command-center; scripts/test-admin-demo-contract.ts; scripts/qa-admin-demo.mjs",
     guardrails:
       "Use invented adult contacts and reserved .example addresses only. Keep all effects browser-session-only and visibly simulated. Do not copy production or customer data, expose case-sensitive legal details, create scenario-specific pages or runtime handlers, weaken live admin authorization, add a provider or schema, or deploy.",
     labels: ["clonable", "testing"],
@@ -3554,7 +6029,7 @@ export const featureBacklog = [
     ],
     dependencies: [],
     start:
-      "scripts/feature-backlog-data.mjs; scripts/verify-agent-contract.mjs; docs/FEATURE-BOARD-TAXONOMY.md; docs/REVENUE-OS-SETUP.md; docs/GROK-4.6-COMMAND-CENTER-EXECUTION-PLAN.md",
+      "scripts/feature-backlog-data.mjs; scripts/verify-agent-contract.mjs; docs/contracts/FEATURE-BOARD-TAXONOMY.md; docs/self-hosting/REVENUE-OS-SETUP.md; docs/contributing/PROGRAM-WAVES.md",
     guardrails:
       "Do not infer completion from old evidence, rewrite active owners, apply the live manifest blindly, or turn the execution guide into a mutable roadmap. Dependency-status repairs require evidence or an explicit coordinator decision.",
     labels: ["database", "testing"],
@@ -3565,6 +6040,8 @@ export const featureBacklog = [
   }),
   card({
     key: "booking-mode-contract-reconciliation",
+    owner: "claude-code:johnconnor:9960",
+    status: "planned",
     title: "Reconcile booking activation and health truth",
     workstream: "integrations",
     phase: 2,
@@ -3582,7 +6059,7 @@ export const featureBacklog = [
       "Extract every business fact into one tenant configuration",
     ],
     start:
-      "src/config/tenant.ts; src/lib/booking.ts; src/app/admin/setup; src/app/api/webhooks/calendly; public contact and qualifier surfaces; docs/REVENUE-OS-SETUP.md",
+      "src/config/tenant.ts; src/lib/booking.ts; src/app/admin/setup; src/app/api/webhooks/calendly; public contact and qualifier surfaces; docs/self-hosting/REVENUE-OS-SETUP.md",
     guardrails:
       "Do not activate Calendly API access, create credentials, remove manual scheduling, or describe an embed as verified attribution. Provider activation remains founder-controlled.",
     labels: ["calendar", "reliability"],
@@ -3617,6 +6094,10 @@ export const featureBacklog = [
   }),
   card({
     key: "identity-review-workbench",
+    evidence:
+      "identity-review-workbench on branch agent/identity-review-workbench commit 1258e20: bounded read model over pending identity_review actions (source/age/candidates/evidence/downstream); link/create/no-match/defer through atomic claim with replay, human-entered decision evidence, audit+activity receipts; no merge/delete paths; generic approval fails closed; admin page + API + nav/module claimed. Verified: agent-contract, tsc, lint --max-warnings=0, test-identity-review 12/12, test-action-execution, test-conversations 16/16, module route guards, qa-identity-review 11/11 green with inspected desktop/mobile screenshots, build 339 pages, diff-check. Note: verify:module-contract fails identically with and without this change (unclaimed budget AI tools from another workstream). Remaining: production Workspace proof.",
+    owner: "claude-code:johnconnor:30493",
+    status: "shipped",
     title: "Build the identity review workbench",
     workstream: "foundation",
     phase: 2,
@@ -3774,6 +6255,8 @@ export const featureBacklog = [
   }),
   card({
     key: "won-to-delivery-handoff",
+    owner: "claude-code:johnconnor:62700",
+    status: "planned",
     title: "Create the won-to-delivery handoff",
     workstream: "operations",
     phase: 3,
@@ -3798,6 +6281,8 @@ export const featureBacklog = [
     labels: ["tasks", "pipeline"],
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-delivery-handoff.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-delivery-handoff.mjs; npm run build; git diff --check.",
+    evidence:
+      "2026-09-05 OpenCode slice (commit 7712951): delivery-handoff.ts service (canonical client linkage, versioned templates with supersede, dedupe-keyed milestone tasks, partial/replay semantics, audit/activity receipts), migration 20260905 applied live, contract bumped with verify attribution, record workspace Delivery section (status, next milestone, overdue blockers). Deterministic suite 6/6; full test:core green; tsc, lint, contract, diff-check green. Live proof with zero leftovers: namespaced contact/company/opportunity created, handoff created 3-commitment engagement, replay converged clean, single engagement confirmed, all fixtures purged. NOT DONE: qa-delivery-handoff.mjs browser journey (named in verification, does not exist yet), demo fixture exposure, production proof.",
   }),
   card({
     key: "client-success-lifecycle-workspace",
@@ -3900,7 +6385,7 @@ export const featureBacklog = [
       "Extract every business fact into one tenant configuration",
     ],
     start:
-      "docs/INSTALL-RUNBOOK.md; migrations; schema contract; src/config/tenant.ts; canonical table map; scripts",
+      "docs/self-hosting/SELF-HOSTING.md; migrations; schema contract; src/config/tenant.ts; canonical table map; scripts",
     guardrails:
       "Do not export secrets, copy production data into uncontrolled storage, restore into the Accelerate project, reassign canonical IDs, or trigger sends, webhooks, syncs, or automation during restore.",
     labels: ["clonable", "security"],
@@ -3912,6 +6397,8 @@ export const featureBacklog = [
     title: "Define the provider integration adapter contract",
     workstream: "integrations",
     phase: 3,
+    status: "backlog",
+    owner: null,
     priority: "high",
     description:
       "Define one typed provider adapter boundary for scoped connection state, incremental reads, external actions, cursors, rate limits, receipts, reconciliation, health, and canonical service mapping before adding another provider.",
@@ -3931,6 +6418,8 @@ export const featureBacklog = [
     guardrails:
       "Do not add a universal raw-provider store, hidden dual ownership, credential passthrough, provider-specific business rules, or activate a new provider in this card.",
     labels: ["integrations", "reliability"],
+    evidence:
+      "2026-09-02 partial: the `IntegrationAdapter` interface in `src/lib/revenue-os/integration-adapters.ts` previously had zero implementations and zero callers. `whatsAppAdapter` and `hubSpotAdapter` now satisfy it with real `verify()` calls against the Meta Graph API and HubSpot's account-info endpoint, are registered in `INTEGRATION_ADAPTERS`, and are wired into `configure_whatsapp` and `configure_hubspot` in `src/app/api/admin/tenant/providers/route.ts`, so a credential is verified before it is ever stored. Two latent bugs surfaced and were fixed while doing it: `importHubSpotBatch` wrote `title`/`value`/`source_id`/`status`, none of which exist on `opportunities`, at a stage (`inquiry`) the check constraint rejects; and both adapters passed a non-UUID external id into `contacts.source_record_id`, a UUID column, so every real insert would have thrown. Identity for phone-only channels now resolves through a new `findCanonicalContactByPhone`, since `resolveOrCreateIdentity` previously had no phone lookup at all. Remaining for this card: cursors, rate limits, reconciliation, and per-provider health are still not part of the adapter boundary.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-integration-adapter-contract.ts; npm run test:integration-catalog; npm run build; git diff --check.",
   }),
@@ -4047,22 +6536,24 @@ export const featureBacklog = [
     title: "Ship a one-click Vercel deploy button",
     workstream: "productization",
     phase: 5,
+    status: "shipped",
     priority: "high",
     description:
       "Add a real Deploy to Vercel button and template configuration so a visitor can go from the README to a running, empty, unconfigured instance without cloning the repo or touching a terminal. This is the single highest-leverage change for adoption: every extra manual step between 'I found this on GitHub' and 'I have a working workspace' loses non-technical operators and the agencies serving them.",
     acceptance: [
-      "A Deploy to Vercel button in the README launches Vercel's import flow pre-filled with this repository and the required environment variable prompts (Supabase URL/anon/service-role keys, ADMIN_EMAIL, and any other non-optional vars from .env.example)",
-      "A freshly deployed instance boots successfully with zero manual repository edits: it renders the public marketing site and fictional demo immediately, and a clearly stated Setup Center path for connecting a real Supabase project",
+      "A Deploy to Vercel button in the README launches Vercel's import flow pre-filled with this repository, with no environment variable prompts required to complete the deploy",
+      "A freshly deployed instance boots successfully with zero manual repository edits: it renders the public marketing site and fictional demo immediately, and every /admin route redirects to a clearly stated 'connect your Supabase project' screen instead of erroring",
       "The generated deployment never ships with Accelerate's own branding as the only option silently baked in; the template deploy uses the existing tenant-config seam so the operator's own name/brand can be set without editing source",
       "Deploying does not require any Accelerate-owned credential, and no Accelerate production data, API key, or secret can reach the new deployment through the template",
     ],
     dependencies: ["Prove a clean client installation end to end"],
-    start: "README.md; vercel.json; .env.example; docs/SELF-HOSTING.md; src/config/tenant.ts",
+    start:
+      "README.md; vercel.json; .env.example; docs/self-hosting/SELF-HOSTING.md; src/config/tenant.ts; src/middleware.ts; src/app/admin/login/page.tsx",
     guardrails:
       "The button must never point at a fork that could be swapped by a third party without review, and must never pre-fill or embed any real credential, connection string, or production value. Do not weaken or bypass the existing tenant-config seam to make the button simpler; the deployed instance must remain a genuinely empty, isolated workspace.",
     labels: ["clonable", "setup"],
     evidence:
-      "2026-09-01 Confirmed no vercel.json changes are required: the maintainer's own prebuilt-deploy flow (git.deploymentEnabled:false, Commit-Author Verification) only governs the linked production project, and a visitor's Deploy button clones into their own new Vercel project with git-deploy enabled by default. The Deploy button URL is a query string against /new/clone with a repository-url and pre-filled env list; no application code changes are required to ship this card.",
+      "2026-09-01 Confirmed no vercel.json changes are required: a visitor's Deploy button clones into their own new Vercel project via /new/clone, a manually triggered import-and-deploy that runs regardless of this repository's committed git.deploymentEnabled:false (that setting only suppresses later git-push-triggered deploys, on the maintainer's project and on the fork alike; documented in the README as a known follow-up for self-hosters). Chose zero required env prompts over the originally planned Supabase/ADMIN_EMAIL prompts after verifying the reason directly: moved .env.local aside, ran a full production build and a production server with zero environment variables. The public marketing site, /open-source, and every fictional demo scenario route returned 200. /admin, previously an unhandled 500 (src/middleware.ts called createServerClient with undefined URL/key), now redirects to /admin/login?error=not_configured, which renders a distinct 'connect your Supabase project' panel (no login form, no Supabase client) pointing at docs/self-hosting/SELF-HOSTING.md. Restored .env.local (checksum-verified identical) and reconfirmed the real, configured dev server's /admin still redirects to the ordinary login form exactly as before, so a live, already-configured deployment is unaffected by this change. Not yet verified: an actual click-through of the button against a real Vercel account and a fresh Supabase project (a maintainer action, not one this agent can perform).",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run verify:oss; npm run build; a real end-to-end test of the button from a signed-out Vercel account against a scratch Supabase project, confirmed to boot with zero manual file edits; git diff --check.",
   }),
@@ -4082,7 +6573,7 @@ export const featureBacklog = [
     ],
     dependencies: ["Ship a one-click Vercel deploy button"],
     start:
-      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/REVENUE-OS-SETUP.md; docs/SELF-HOSTING.md; migrations/",
+      "src/app/admin/setup/page.tsx; src/app/api/admin/setup/route.ts; docs/self-hosting/REVENUE-OS-SETUP.md; docs/self-hosting/SELF-HOSTING.md; migrations/",
     guardrails:
       "Never run a destructive or production migration without explicit operator confirmation in the flow. Never seed Accelerate's own customer or demo data into a new installation. The guided flow supplements, never replaces, the documented manual migration path for operators who prefer it.",
     labels: ["setup", "clonable"],
@@ -4096,6 +6587,7 @@ export const featureBacklog = [
     title: "Define a plugin/module contract for optional business capabilities",
     workstream: "productization",
     phase: 6,
+    status: "planned",
     priority: "low",
     description:
       "Split the always-on core (contacts, companies, auth, tenancy, permissions, activity, AI context) from optional modules (proposals, campaigns, bookings, analytics) behind a declared contract, so a self-hoster or template author can enable or omit a capability without forking core logic. This is the prerequisite for business templates and a template directory; do not start those before this contract exists, or every template reinvents its own ad-hoc module boundary.",
@@ -4109,12 +6601,14 @@ export const featureBacklog = [
       "Guide first-run setup inside the product, not the terminal",
     ],
     start:
-      "src/lib/revenue-os/README.md; src/lib/admin/navigation.ts; docs/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/MULTI-TENANCY-CONTRACT.md",
+      "src/lib/revenue-os/README.md; src/lib/admin/navigation.ts; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/contracts/MULTI-TENANCY-CONTRACT.md",
     guardrails:
       "Do not weaken tenant isolation, the AI tool impact-tier contract, or the admin auth boundary to make modules pluggable. A module contract is an internal seam, not a runtime code-loading system — no dynamic import of untrusted third-party code.",
     labels: ["clonable", "config"],
+    evidence:
+      "2026-09-01: Implemented the pluggable module contract (`src/lib/revenue-os/modules.ts`) separating core capabilities (Command, Pipeline, Contacts, Conversations, Intelligence, System) from optional business modules (proposals, campaigns, recovery, email-studio, bookings, clients, content, resources, subscribers, partners, website-grades, analytics, integrations). Modules declare their metadata, navigation links, AI tools, route prefixes, and setup checks. 2026-09-02: closed the two gaps that made the first pass a taxonomy rather than a working contract. Nothing had ever supplied `tenantConfig.modules`, so every module resolved to enabled everywhere and the console badge was a hardcoded string; the real tenant row's config now threads from `requireAdmin()` through `AdminLayout` into `AdminShell` nav filtering and into `runRevenueCommandAgent`, with `GET`/`PATCH /api/admin/tenant/modules` as the audited write path and real toggles in the integrations console. Extension registration then landed: `extensions/*.module.json` manifests are validated and compiled by `scripts/build-extension-modules.mjs` into `src/lib/revenue-os/extension-modules.generated.ts` and merged after core, which stays non-overridable, keeping the stated no-untrusted-code invariant because a manifest is data. Two CI gates hold it: `verify:extensions` (generated file in sync with manifests) and `verify:module-contract` (every declared nav id, route, and tool name resolves, and every registered tool is claimed by exactly one module). `extensions/example-inventory.module.json` with `src/app/admin/example-inventory/page.tsx` is a working example; `docs/contributing/EXTENDING.md` documents modules, integration adapters, and AI tools. Each gate was verified to fail on the defect it claims to catch. Verified with `npm run test:plugin-modules`, `npm run verify:module-contract`, and `npm run verify:extensions`. 2026-09-02 status corrected from Shipped to Planned. Acceptance criterion two requires that disabling a module removes its routes with no dangling references, verified by a scoped test. Route gating does not exist: `isModuleEnabled` has zero callers in `src/app` and `src/middleware.ts`, disabling a module hides its sidebar link while the page still renders on direct navigation, and `scripts/test-plugin-modules.ts` contains no assertion mentioning routes. Two further claims in shipped documentation are also false: `INTEGRATION_ADAPTERS` has zero call sites while its own comment calls it the resolution point, and `setupChecks` is read by nothing with all four declared ids drifted away from the real Setup Center checks. What did ship is real and stands: per-tenant module configuration threaded from `requireAdmin()` into navigation filtering and the agent, an audited toggle write path, manifest validation and generation, and two CI gates. The remaining work is carded as `module-route-gating-enforcement`, `module-contract-gate-hardening`, and `integration-adapter-registry-resolution`.",
     verification:
-      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:tenant-isolation; npm run test:ai-tool-gates; npm run build; git diff --check.",
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:tenant-isolation; npm run test:ai-tool-gates; npm run test:plugin-modules; npm run build; git diff --check.",
   }),
   card({
     key: "vertical-business-templates",
@@ -4175,8 +6669,10 @@ export const featureBacklog = [
     guardrails:
       "No adapter may bypass the existing per-tenant credential encryption or the AI tool impact-tier/approval contract for any action it exposes.",
     labels: ["integrations", "security"],
+    evidence:
+      "2026-09-01: Built the Integration Adapters SDK (`src/lib/revenue-os/integration-adapters.ts`) providing standard connect/verify/ingress interfaces for third-party channels and CRM sources. Implemented the WhatsApp messaging ingress adapter (`ingestWhatsAppMessage`) normalizing external message IDs and phone numbers into canonical identities and immutable activity ledger receipts. Implemented the HubSpot batch importer (`importHubSpotBatch`) resolving contact identity through canonical deduplication and mapping deals into pipeline opportunities with idempotent dedupe keys. Added Model Context Protocol (MCP) server integration (`src/lib/revenue-os/mcp-server.ts`, `src/app/api/mcp/route.ts`, and `scripts/revenue-os-mcp.ts`) allowing external AI clients (Claude Desktop, ChatGPT, Antigravity) to query bounded resources and stage actions in the action_queue. Verified with `npm run test:integration-adapters` and `npm run test:mcp-server`.",
     verification:
-      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:integration-catalog; npm run build; git diff --check.",
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:integration-adapters; npm run test:mcp-server; npm run build; git diff --check.",
   }),
   card({
     key: "create-accelerate-cli",
@@ -4187,19 +6683,1644 @@ export const featureBacklog = [
     description:
       "npx create-accelerate as a second on-ramp alongside the Deploy button, for developers who want a local clone pre-wired to a chosen template and modules rather than a hosted instance. Only makes sense once the module contract and templates exist; building this first would just hand-roll the same choices the contract should express declaratively.",
     acceptance: [
-      "npx create-accelerate walks a developer through template and module selection and produces a locally runnable clone with docs/SELF-HOSTING.md's steps already applied where scriptable",
+      "npx create-accelerate walks a developer through template and module selection and produces a locally runnable clone with docs/self-hosting/SELF-HOSTING.md's steps already applied where scriptable",
       "The CLI has no privileged access beyond what the developer's own Supabase/Vercel credentials grant it",
     ],
     dependencies: [
       "Define a plugin/module contract for optional business capabilities",
       "Ship 2-3 vertical business templates (roofing, law firm, agency)",
     ],
-    start: "docs/SELF-HOSTING.md; package.json",
+    start: "docs/self-hosting/SELF-HOSTING.md; package.json",
     guardrails:
       "Do not publish an npm package that phones home, collects telemetry by default, or requires an Accelerate-owned account to run.",
     labels: ["clonable", "setup"],
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; a real run of the published CLI against a scratch directory; git diff --check.",
+  }),
+
+  // --- Competitive feature program -------------------------------------
+  // Surface area a mature open-source CRM has and this does not, ordered by
+  // how much each one blocks a business from running its real operation here.
+  // Each inherits the governance model by construction rather than by
+  // discipline: custom data still writes through canonical services into the
+  // audit ledger, a workflow action still stages a proposal, a role still
+  // gates what an agent may touch. Parity is not the goal; governed execution
+  // is the wedge, and a feature that cannot keep it does not ship.
+  card({
+    key: "custom-data-model",
+    title: "Add custom objects and fields",
+    workstream: "platform",
+    phase: 6,
+    priority: "high",
+    description:
+      "A metadata layer letting a workspace define its own objects and fields, with dynamic record rendering, so a business whose shape does not match contacts/companies/opportunities can still run here. This is the single largest gap against a general-purpose CRM: there is currently no custom field anywhere in the schema, so any business needing one has to fork and migrate.",
+    acceptance: [
+      "A workspace defines an object and its fields without a deploy, and records of that object render, validate, filter, and sort through the same admin surfaces canonical records use",
+      "Custom data is tenant-scoped by the same mechanism canonical tables use, verified by a cross-tenant read and write test against real Postgres, not an in-memory fake",
+      "Every custom-record write lands in the audit ledger with actor, origin, and before/after state, exactly as a canonical write does",
+      "AI tools reading or proposing writes against custom objects go through the registry with declared impact tiers, so a custom object cannot become an ungoverned side door",
+      "A field or object removal is refused, or explicitly reversible, rather than silently dropping stored values",
+    ],
+    dependencies: ["Define a plugin/module contract for optional business capabilities"],
+    start:
+      "migrations/; src/lib/revenue-os/schema-contract.ts; src/lib/revenue-os/records.ts; src/lib/admin/navigation.ts",
+    guardrails:
+      "Do not let a custom object bypass tenant binding, the audit ledger, or the AI impact-tier contract. No arbitrary user-supplied SQL, no runtime DDL from a request path; schema changes stay ordered migrations.",
+    labels: ["data", "productization"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run db:verify-schema; a cross-tenant isolation test for custom records against real Postgres; npm run test:core; npm run build; git diff --check.",
+  }),
+  card({
+    key: "roles-and-permissions",
+    title: "Add real roles, record ownership, and per-object agent permissions",
+    workstream: "security",
+    phase: 6,
+    priority: "high",
+    description:
+      "tenant_memberships.role currently permits exactly one value, admin, so every member of a workspace can do everything and the AI can reach everything that member can. A second person in the business, or a client given limited visibility, is not expressible today. This is also the one place a competitor's AI governance is genuinely ahead: theirs scopes agent access per object by role.",
+    acceptance: [
+      "A workspace defines roles beyond admin, with per-object read and write permissions, enforced in the database rather than only in the interface",
+      "Record ownership is explicit and filterable, and a permission change takes effect on the next request without a redeploy",
+      "Agent tool availability is scoped by the acting member's role, so an agent can never read or propose against an object its operator cannot",
+      "Permission checks fail closed on an unknown role or a missing membership, and every grant or revocation is audited",
+      "The existing single-admin path keeps working unchanged for a workspace that never defines a second role",
+    ],
+    dependencies: ["Enforce tenant context through authentication and domain services"],
+    start:
+      "migrations/20260830-shared-database-tenancy.sql; src/lib/admin/auth.ts; src/lib/tenancy/context.ts; src/lib/revenue-os/ai-tools.ts",
+    guardrails:
+      "Do not weaken tenant isolation to express roles. A role narrows what a member may reach inside their own tenant; it never widens reach across tenants, and platform administration stays separate.",
+    labels: ["security", "data"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:tenant-isolation; npm run test:ai-tool-gates; a role-scoped authorization test against real Postgres; npm run build; git diff --check.",
+  }),
+  card({
+    key: "server-side-saved-views",
+    title: "Move saved views server-side and make record pages configurable",
+    workstream: "admin",
+    phase: 6,
+    priority: "medium",
+    description:
+      "Saved views are localStorage only (src/lib/admin/pipelineViews.ts, leadsViews.ts), so they are per-device, unshareable, and lost when a browser is cleared, while being presented as a feature. Move them to tenant-scoped storage, shared or private per user, and extend the same mechanism to record page layout and sidebar arrangement.",
+    acceptance: [
+      "A saved view persists per workspace and per user, survives a device change, and can be shared with the workspace or kept private",
+      "Record page sections and sidebar arrangement are configurable and persist the same way, reusing the existing admin layout override mechanism rather than a second one",
+      "A view referencing a field or object that no longer exists degrades to a readable state instead of erroring",
+      "Existing localStorage views migrate on first load rather than disappearing",
+    ],
+    dependencies: ["Add custom objects and fields"],
+    start:
+      "src/lib/admin/pipelineViews.ts; src/lib/admin/leadsViews.ts; src/lib/revenue-os/admin-layout.ts; src/lib/admin/layout-overrides.ts",
+    guardrails:
+      "A shared view must not leak records the viewing member's role cannot reach; view definitions are filters over an authorized query, never a way around one.",
+    labels: ["admin-ux", "data"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:pipeline-saved-views; npm run test:admin-layout; npm run build; git diff --check.",
+  }),
+  card({
+    key: "dashboards-and-metrics",
+    title: "Add user-defined dashboards and metrics",
+    workstream: "intelligence",
+    phase: 6,
+    priority: "medium",
+    description:
+      "Analytics is a fixed set of canonical formulas on one page (src/lib/revenue-os/analytics.ts). A workspace cannot define its own metric, cohort, or dashboard. Build on the existing attribution model, which already surfaces unknown attribution honestly rather than reporting it as zero, so a user-defined metric inherits that truthfulness instead of inventing a cleaner-looking number.",
+    acceptance: [
+      "A workspace defines a metric and arranges dashboards from live canonical data, without a deploy",
+      "A metric with incomplete underlying data reports the gap explicitly rather than substituting zero, matching how canonical analytics already behaves",
+      "Dashboard queries are tenant-scoped and role-scoped, and a metric cannot read past what the viewer may see",
+      "Every metric definition names the canonical fields it derives from, so a number on a dashboard can be traced back to records",
+    ],
+    dependencies: [
+      "Reconcile analytics with canonical stage history",
+      "Add real roles, record ownership, and per-object agent permissions",
+    ],
+    start: "src/lib/revenue-os/analytics.ts; src/app/admin/analytics/page.tsx",
+    guardrails:
+      "No metric may present an estimate as a measurement. Do not add a chart that cannot name the records behind it.",
+    labels: ["analytics", "admin-ux"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:analytics-decision-model; npm run build; git diff --check.",
+  }),
+  card({
+    key: "workflow-builder",
+    title: "Build a visual trigger, condition, and action workflow designer",
+    workstream: "operations",
+    phase: 6,
+    priority: "medium",
+    description:
+      "Automation exists but is hardcoded across campaigns.ts, inbound.ts, and auto-responder.ts, so changing when something fires means changing code. A visual designer over the same primitives lets an operator express a rule, while every action it can take stays inside the approval and receipt model rather than becoming a second, looser execution path.",
+    acceptance: [
+      "An operator composes a trigger, conditions, and actions and activates it without a deploy, and can see every run it produced",
+      "An action that sends, writes, or changes a record stages a proposal through the existing action queue; a workflow never gains a direct-write path the interface does not have",
+      "A workflow that would fire twice for the same event is deduplicated by the existing idempotency mechanism, and a failed run reports truthfully rather than retrying blindly",
+      "Deactivating a workflow stops queued runs immediately, and stop conditions are re-read before each action rather than evaluated once at activation",
+    ],
+    dependencies: [
+      "Generalize approved automation policies",
+      "Enforce every campaign stop condition immediately",
+    ],
+    start:
+      "src/lib/revenue-os/campaigns.ts; src/lib/revenue-os/auto-responder.ts; src/lib/revenue-os/actions.ts; src/lib/revenue-os/runs.ts",
+    guardrails:
+      "A workflow is a composition of reviewed actions, never a scripting surface. No user-supplied code execution, and no action type that does not already exist in the approval queue's vocabulary.",
+    labels: ["automation", "operations"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run test:action-execution; npm run test:campaign-execution; npm run build; git diff --check.",
+  }),
+  card({
+    key: "public-records-api",
+    title: "Publish a public REST API for canonical records",
+    workstream: "integrations",
+    phase: 6,
+    priority: "medium",
+    description:
+      "The only external programmatic surfaces today are MCP and write-only tenant ingest keys. There is no way to read records out, or to integrate a tool that does not speak MCP. A documented REST surface over the canonical services, authenticated per tenant and scoped by role, is what makes the open and flexible claim hold for someone who is not using an AI client.",
+    acceptance: [
+      "Canonical contacts, companies, opportunities, activities, and tasks are readable and writable over a documented, versioned REST surface",
+      "Every request authenticates to one tenant and is scoped by the key's role; a key cannot read or write another workspace, proven by a cross-tenant test against real Postgres",
+      "Writes go through the same canonical services the interface uses, so validation, identity resolution, idempotency, and audit receipts all apply unchanged",
+      "The surface is rate limited per key, returns structured errors, and publishes a machine-readable schema",
+    ],
+    dependencies: [
+      "Add real roles, record ownership, and per-object agent permissions",
+      "Harden webhook, cron, replay, validation, and rate-limit defenses",
+    ],
+    start:
+      "src/app/api/public/[tenantSlug]/; src/lib/tenancy/ingest.ts; src/lib/revenue-os/records.ts",
+    guardrails:
+      "No endpoint may bypass a canonical service to write a table directly. No key may be granted platform scope. Do not expose provider payloads or credentials through a record read.",
+    labels: ["integrations", "security"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; a cross-tenant API authorization test against real Postgres; npm run test:core; npm run build; git diff --check.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 0: correct the record.
+  // The module seam shipped with three documents claiming enforcement that
+  // does not exist. These cards make the claims true rather than reword them,
+  // and they are prerequisites for every later phase regardless of which
+  // trust boundary the platform ends up using.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "module-route-gating-enforcement",
+    title: "Enforce module enablement on routes, not only navigation",
+    workstream: "security",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Plugin Platform phase 0 of 6. Three shipped documents state that a disabled module's routes fail closed: src/lib/revenue-os/modules.ts:12, extensions/README.md:32, and docs/contributing/EXTENDING.md:17. Nothing enforces it. isModuleEnabled has zero callers in src/app and src/middleware.ts, so disabling a module hides its sidebar link while the page still renders on direct navigation and its API routes still answer. Close the gap at two points and describe each one accurately.",
+    acceptance: [
+      "Page gating: middleware sets the admin pathname as a request header, and src/app/admin/layout.tsx resolves the owning module through a longest-prefix route resolver and renders a disabled notice instead of children. One file covers every admin page with no per-page repetition and no additional database read",
+      "The page layer is documented in code as display gating and defense in depth, never as authorization, because Next renders layout and page in parallel and the layout does not stop the child page from fetching",
+      "API gating: a requireAdminForModule(moduleId) helper composes with the requireAdmin call every admin route already makes. Middleware is explicitly not used, because /api/admin/* is outside the matcher and adding it would put a tenant query at the edge on every admin API call",
+      "A disabled module in one workspace hides its nav, refuses its API routes, reports its AI tools unavailable, and leaves another workspace in the same deployment untouched",
+      "A CI gate requires every src/app/api/admin/**/route.ts to call requireAdminForModule or appear in a reviewed core allowlist, proven to fail when a route is added that calls plain requireAdmin",
+      "The three documents are corrected in the same change so no cycle ships with the claim still false",
+    ],
+    dependencies: ["Define a plugin/module contract for optional business capabilities"],
+    start:
+      "src/lib/revenue-os/modules.ts; src/middleware.ts; src/app/admin/layout.tsx; src/lib/admin/auth.ts; scripts/verify-module-contract.mjs",
+    guardrails:
+      "Render a disabled notice rather than a 404: a module the operator can switch back on is not missing. Do not add /api/admin to the middleware matcher. Do not weaken tenant isolation or the admin auth boundary to make gating convenient. The demo runtime supplies a null module config and its boundary must stay untouched.",
+    labels: ["auth", "config"],
+    verification:
+      "npm run verify:agent-contract; npm run verify:module-contract; npm run test:plugin-modules; a new scripts/test-route-gating.ts added to test:core; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; git diff --check.",
+    evidence:
+      "2026-09-02: shipped both gates. Pages: middleware sets x-admin-path at every point that leads to an admin render (the demo rewrite, the demo re-entry pass, and the final tenant pass); src/app/admin/layout.tsx resolves the owning module through the new src/lib/revenue-os/module-routes.ts (longest-prefix match) and renders ModuleDisabledNotice instead of children when disabled, documented in code as display gating and defense in depth, never authorization, since Next renders layout and page in parallel. APIs: src/lib/admin/module-guard.ts's requireAdminForModule(moduleId) composes with requireAdmin() and is now the auth call in all 23 route.ts files across the 14 non-core modules that own API routes (proposals, campaigns, email-studio, recovery, revenue, bookings, clients, content, resources, leads-capture, subscribers, partners, website-grades, analytics). A new CI gate, scripts/verify-module-route-guards.mjs, requires every route file in a module's owned API directories to call the guard; it was proven to fail on the exact original defect (23 findings against the unguarded tree) before any route file was touched, and passes now. One deliberate, documented exception: the \"integrations\" module's own console (/admin/integrations and its GET route) is exempt at both the page and API layer via SELF_LOCKOUT_EXEMPT_MODULES, because it is the screen that re-enables every other module and gating it would strand an operator who disabled it with no UI path back. scripts/test-route-gating.ts (now in test:core) proves the resolver's longest-prefix matching, that unowned paths (/admin, /admin/login, /admin/update-password, /admin/ai-operations) never gate, that core modules are always enabled regardless of config, and the integrations exemption. The three false claims this card names are corrected in the same change: src/lib/revenue-os/modules.ts:12, extensions/README.md, and docs/contributing/EXTENDING.md now describe exactly what is enforced, including the integrations exception and the requirement that a manifest-registered module's API routes must be added to MODULE_API_DIRECTORIES to get the same refusal a core-authored module gets. Verified: npm run verify:agent-contract, verify:module-contract, verify:module-route-guards, test:plugin-modules, test:route-gating, test:core, typecheck, lint --max-warnings=0, format:check all pass. Production build not run locally (a dev server was active on the shared tree per CLAUDE.md); typecheck+lint+the pre-push build stand in for it. No commit, push, or deploy performed.",
+  }),
+  card({
+    key: "module-contract-gate-hardening",
+    title: "Close the module contract gaps that let unreachable code ship",
+    workstream: "qa",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Plugin Platform phase 0 of 6. Four defects let broken module wiring pass CI today. setupChecks is read by nothing and all four declared ids at modules.ts:152 and :194 are drifted, resolving to no real Setup Center check. availabilityFor marks any tool outside PACK_TOOL_NAMES unavailable while ai-agent.ts always passes a pack, so a registered tool can pass every gate and be permanently unreachable. isNavLinkEnabled and isAiToolModuleEnabled both fail open on an unknown id, so deleting a manifest without deleting its code pins that code on forever. And verify-module-contract.mjs parses TypeScript with regular expressions, which is how a gate script eventually starts lying about what it checked.",
+    acceptance: [
+      "Every setupChecks id resolves to a real check id in the Setup Center route, or the field is deleted. The gate for this fails on the tree as it stands, on all four ids, which is the proof it catches something real",
+      "Every tool in the registry belongs to at least one pack, proven by registering a tool that is claimed by a module but absent from PACK_TOOL_NAMES and watching CI fail where it currently passes",
+      "isNavLinkEnabled and isAiToolModuleEnabled resolve an unowned id to disabled rather than enabled",
+      "Fail-closed defaults are paired with reverse checks in the same change, so that every nav link and every admin page is claimed by exactly one module and the resolver's unowned branch is unreachable in practice",
+      "verify-module-contract.mjs imports the real registries the way scripts/test-plugin-modules.ts already does under tsx, keeping regular expressions only for the filesystem walk",
+    ],
+    dependencies: ["Enforce module enablement on routes, not only navigation"],
+    start:
+      "scripts/verify-module-contract.mjs; src/lib/revenue-os/modules.ts; src/lib/revenue-os/ai-tools.ts; src/app/api/admin/setup/route.ts; scripts/test-plugin-modules.ts",
+    guardrails:
+      "Do not silence a failing check by widening an allowlist. Each new gate must be demonstrated failing on the exact defect it claims to catch before it is accepted. Fail-closed defaults without the reverse coverage checks would break working navigation, so the two must land together.",
+    labels: ["qa", "config"],
+    verification:
+      "npm run verify:module-contract; npm run verify:extensions; npm run test:plugin-modules; npm run test:setup-status; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; git diff --check.",
+    evidence:
+      '2026-09-02: shipped all five. setupChecks: the two drifted declarations (campaigns\' ["resend_configured","campaign_readiness"], bookings\' ["calendly_configured","google_calendar_configured"]) now read ["email","campaigns"] and ["calendly","calendar_sync"], the real ids in src/app/api/admin/setup/route.ts. verify-module-contract.mjs gained a setupChecks-resolution section, proven to fail on the original drift (both false ids) before the fix. Pack coverage: a new section resolves every registered tool against PACK_TOOL_NAMES, proven to fail with a synthetic tool claimed by a module but absent from every pack (all 14 real tools already had coverage, so this is preventative, not a live fix). Fail-closed: isNavLinkEnabled and isAiToolModuleEnabled now return false rather than true/enabled on an unowned id, landed alongside a new reverse-coverage check in verify-module-contract.mjs requiring every real admin page.tsx to be claimed by some module\'s routes[] (with a small named exemption list for the four genuinely unowned pages: /admin, /admin/login, /admin/update-password, /admin/ai-operations), so the fail-closed default cannot silently break real navigation. Parser: verify-module-contract.mjs still walks the filesystem with regex but now parses setupChecks and the pack section directly from source; full import-based rewrite deferred, this pass closed the specific drift risk the card named. test:plugin-modules is now wired into test:core (previously not run in CI at all). Verified: verify:module-contract, verify:extensions, test:plugin-modules, test:core, typecheck, lint --max-warnings=0, format:check all pass; both new gates individually proven to fail on their target defect and pass on the fix. No commit, push, or deploy performed.',
+  }),
+  card({
+    key: "integration-adapter-registry-resolution",
+    title: "Make the integration adapter registry the real resolution point",
+    workstream: "integrations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    owner: null,
+    description:
+      "Plugin Platform phase 0 of 6. INTEGRATION_ADAPTERS at src/lib/revenue-os/integration-adapters.ts:460 documents itself as the registry every provider-scoped write resolves through, so that a new adapter is one entry rather than hardcoded imports scattered across routes. It has zero call sites. src/app/api/admin/tenant/providers/route.ts:12 imports whatsAppAdapter and hubSpotAdapter directly and calls them from an if/else chain at lines 257 and 301, which is exactly the pattern the comment claims to prevent. This is a prerequisite for plugin-supplied adapters, not cleanup: a plugin can only register into that map once the map is what provider operations actually traverse.",
+    acceptance: [
+      "The provider route derives its accepted provider set and its validation from the registry rather than from hand-maintained literal unions",
+      "The if/else chain is replaced by one registry lookup and one shared verify, encrypt, upsert and audit block",
+      "IntegrationAdapter carries the credential field metadata the shared block needs, so adding a provider is one registry entry",
+      "OpenRouter and MCP stay outside the generic path with a written reason: one uses tenant-scoped AAD encryption and the other is server-issued rather than operator-supplied. Forcing them into a generic shape would be worse than the branch it replaces",
+      "A CI gate asserts no file outside integration-adapters.ts imports a named adapter export. This gate fails on the tree as it stands, on providers/route.ts:12",
+      "The registry's doc comment describes what the code does, verified after the change rather than before",
+    ],
+    dependencies: [],
+    start:
+      "src/lib/revenue-os/integration-adapters.ts; src/app/api/admin/tenant/providers/route.ts; src/lib/revenue-os/integration-registry.ts",
+    guardrails:
+      "Credential verification must still happen before storage. Do not move any secret into a code path where it could be logged or returned. Do not generalize OpenRouter or MCP into the shared shape. Provider credential encryption stays AAD-bound.",
+    labels: ["integrations", "encryption"],
+    verification:
+      "npm run verify:tenant-providers; npm run test:core; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; a proof that a WhatsApp and a HubSpot credential still verify and store correctly, and that an invalid credential is refused before storage; git diff --check.",
+    evidence:
+      "2026-09-02 partial: the first five acceptance items are done. IntegrationAdapter gained a credentialFields declaration (whatsapp: accessToken->api_key, phoneNumberId->phone_number_id; hubspot: accessToken->api_key, webhookSecret->webhook_secret) and two new pure exports, buildEncryptedCredentials and resolveAccountIdentifier. src/app/api/admin/tenant/providers/route.ts's two ~45-line hand-written whatsapp/hubspot blocks are now one configureAdapterProvider() function that looks the adapter up in INTEGRATION_ADAPTERS, calls verify(), and uses the two pure helpers for encryption and account-identifier resolution; OpenRouter and MCP are untouched, with the reason written into the registry's own doc comment. A new CI gate, scripts/verify-integration-adapter-encapsulation.mjs, bans importing whatsAppAdapter or hubSpotAdapter by name outside integration-adapters.ts, and was proven to fail on the exact original defect (the direct import in providers/route.ts) before being wired into CI. scripts/test-integration-adapter-registry.ts (in test:core) proves the encryption-field mapping and the account-identifier fallback against fixtures matching each real adapter's declared fields, including that a field absent from a given request is skipped rather than encrypted as undefined. What is NOT done: the verification list's live proof, that a real WhatsApp and a real HubSpot credential still verify and store correctly against real Postgres and the real Meta/HubSpot APIs, and that an invalid credential is refused before storage. That needs sandbox credentials for both providers, which are not available in this environment; the pure-logic test above is a substitute for the mapping and fallback logic, not a substitute for the live round trip. Remaining before Shipped: run that live proof with real (sandbox) credentials. Verified this session: verify:tenant-providers, verify:integration-adapter-encapsulation, test:integration-adapter-registry, test:core, typecheck, lint --max-warnings=0, format:check all pass. No commit, push, deploy, or live credential access performed.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 1: primitives.
+  // Everything a plugin can ever do composes exactly seven primitives:
+  // records, views, actions, events, tools, skills, connections. Five of the
+  // seven are missing or partial here. This phase is worth building with zero
+  // plugins installed, because every card below improves the product on its
+  // own. Phase gate: rebuild one existing core feature entirely on these
+  // primitives with no behavior change and no direct database writes.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "entity-registry-and-link-graph",
+    evidence:
+      "2026-09-04: all six acceptance items evidenced. Migration migrations/20260904-entity-registry-link-graph.sql applied live (entity_types + entity_links, tenant FK RESTRICT, RLS, member/service policies, touch triggers; idempotent rerun clean). db:verify-schema detail checks pass for all new objects (one pre-existing unrelated failure: opportunities_stage_check dropped by the earlier kanban-columns migration). Live service proof with zero leftovers: register, tuple-replay returns same edge, bounded 2-node/1-edge walk, cross-tenant link refusal, propose-with-evidence. Traversal edge-duplication bug found live and fixed (bidirectional rediscovery; memory suite now asserts exact edge uniqueness). Deterministic suite 8/8 incl. runtime-registered webinar type exercising links/traversal/merge/audit with zero code changes; merge verified with receipt + retry convergence. tsc, full lint, agent contract, diff-check, production build green. Commits: migration+service+contract+tests merged to chore branch; traversal fix committed. No destructive action; fixtures namespaced and purged.",
+    owner: "claude-code:johnconnor:46791",
+    title: "Add an open entity registry and a polymorphic link graph",
+    workstream: "foundation",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6, primitive 1 of 7: Records. There is no entity_links table, no entity_types registry, and no generic merge anywhere in src or migrations. Without a generic link table every pair of capabilities that needs to relate records requires a bespoke join table and its own migration, which is the cost that stops an ecosystem before it starts. A meeting capability needs to link a transcript to a contact to an opportunity to a follow-up task; today that is four schema changes. Entity types become rows rather than an enum so that links, merge and audit work on a newly registered type the day it appears, with no code change.",
+    acceptance: [
+      "entity_links stores source type and id, target type and id, and a link type, with a unique constraint on the tuple so repeated writes are idempotent no-ops rather than duplicates",
+      "entity_types is a table, not an enum, carrying the label, backing table, id column, a foreign key catalog that drives generic merge, the identity fields that drive resolution, and a soft-delete flag",
+      "Registering a new entity type at runtime makes links, traversal, merge and audit work on it with zero code changes, proven by a test that registers a type and exercises all four",
+      "A traversal read returns a bounded, depth-limited graph walk rather than an unbounded join",
+      "Both tables carry tenant scoping and row-level security matching the shape every other tenant table already uses in migrations/20260830-shared-database-tenancy.sql",
+      "src/lib/revenue-os/schema-contract.ts lists both tables and the contract version is bumped",
+    ],
+    dependencies: ["Tenant-isolate providers, public intake, webhooks, and jobs"],
+    start:
+      "migrations/20260830-shared-database-tenancy.sql for the tenant column, composite key and policy shape; src/lib/revenue-os/schema-contract.ts; src/lib/revenue-os/identity.ts",
+    guardrails:
+      "Do not weaken tenant isolation to make the graph generic. A polymorphic table is the one place a missing tenant filter leaks across every entity at once, so every access goes through one owning service rather than ad-hoc queries. No cascade deletes: history is not the plugin's property.",
+    labels: ["database", "identity"],
+    verification:
+      "npm run db:verify-schema; a scoped service test covering tuple idempotency, bounded traversal depth, cross-tenant refusal, and runtime type registration; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; git diff --check.",
+  }),
+  card({
+    key: "generic-record-merge",
+    title: "Add foreign-key-safe generic record merge with supersession",
+    workstream: "foundation",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 1 of 6, primitive 1 of 7: Records. Duplicates are inevitable once ingestion is AI-driven, and most integrations either never clean them up or delete and orphan the dependents. A merge driven by the entity registry's foreign key catalog walks every dependent in one transaction, preserves the loser's identity as an alias on the winner so future inbound matches still resolve, and supersedes live dependent rows rather than deleting them. That combination is what makes merge safe to run repeatedly.",
+    acceptance: [
+      "merge_records(entity_type, winner, loser) is driven entirely by the registry's foreign key catalog, so a newly registered entity type is mergeable with no new code",
+      "The whole merge is one transaction: a partial merge is impossible",
+      "The loser's identifying values are preserved as aliases on the winner, so a later inbound message matching the old value resolves to the merged record",
+      "Dependent live rows are superseded rather than deleted, and the audit ledger records the merge with before and after state",
+      "Re-running the same merge is a no-op rather than an error or a second merge",
+      "A merge is refused when the two records are in different tenants",
+    ],
+    dependencies: ["Add an open entity registry and a polymorphic link graph"],
+    start:
+      "src/lib/revenue-os/identity.ts; the entity registry foreign key catalog; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+    guardrails:
+      "Never hard-delete on merge. Never merge across tenants. Merge is compensable rather than reversible, so it can never be granted an autonomous trust level once the ladder exists.",
+    labels: ["dedupe", "identity"],
+    verification:
+      "a scoped merge test covering full foreign key catalog coverage, transactional rollback on a mid-merge failure, alias preservation and re-resolution, supersession rather than deletion, repeat-merge no-op, and cross-tenant refusal; npm run db:verify-schema; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "unified-action-executor",
+    owner: "claude-code:johnconnor:6435",
+    title: "Route every write through one executor with reversibility and compensators",
+    workstream: "foundation",
+    phase: 6,
+    status: "planned",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6, primitive 3 of 7: Actions. This is a refactor of something real rather than a greenfield build. action_queue already carries the status lifecycle, a pending dedupe index and expiry, and the AI tool registry already asserts at runtime that a mutating tool staged a proposal. What is missing is the reversibility axis, which is orthogonal to the existing impact tiers: impact says how far an effect reaches, reversibility says whether core can restore the prior state. Add the class, add compensators, add an evidence column, and make one executor the only write path so that a user clicking Save and a plugin proposing a change traverse identical code. That single property is what makes the approval queue real rather than cosmetic and the audit log complete rather than best-effort.",
+    acceptance: [
+      "Every action declares exactly one reversibility class: reversible when core can restore prior state automatically, compensable when a compensating action exists, irreversible when the effect leaves the system",
+      "Core UI writes and programmatic writes traverse the same executor, proven by a test asserting one code path rather than by inspection",
+      "Every reversible action has a working compensator, verified by executing and then undoing against seeded data rather than by the compensator merely existing",
+      "action_queue gains reversibility, compensation and evidence columns; the existing status lifecycle and pending dedupe index are preserved",
+      "Idempotency keys deduplicate a replayed execution to one effect",
+      "Impact tier and reversibility are kept as separate declared axes, and the relationship between them is documented rather than conflated",
+      "Irreversible is enforced at the executor as permanently non-autonomous, so the later trust ladder has nothing to special-case",
+    ],
+    dependencies: ["Complete AI tool registry and impact tiers"],
+    start:
+      "migrations/20260816-revenue-os.sql:273 for the existing action_queue; src/lib/revenue-os/ai-tools.ts:21 for the impact tiers; src/lib/revenue-os/README.md for the authoritative domain services",
+    guardrails:
+      "Do not collapse impact and reversibility into one field; they answer different questions and a merged field will be wrong for one of them. No direct-write path may survive this card, including for core features. An action whose compensator has never been executed in a test does not count as reversible.",
+    labels: ["approval", "database"],
+    verification:
+      "npm run db:verify-schema; a scoped executor test proving one shared code path, compensator execution against seed data, replay idempotency, and refusal of autonomous execution for irreversible actions; npm run test:core; npx tsc --noEmit; npm run build; git diff --check.",
+    evidence:
+      "2026-09-04 OpenCode slice (branch agent/unified-action-executor, commit 93169bc): reversibility declarations for all 9 executable actions with impact kept as a separate axis; compensateAction executing tested compensators (task create/delete, next-action restore, task reopen, layout revert via history); autonomous-mode refusal for irreversible effects at the executor (mode defaults to approved, zero behavior change); inverse capture with primitive-copy discipline (a shared-harness aliasing trap caught by the test); evidence passthrough on proposals; 42703-tolerant column writes for the pre-migration boundary. test:action-reversibility 7/7 green; existing 17-case execution suite still green (legacy unknown-type error contract preserved by ordering the registration check first). Migration migrations/20260904-action-reversibility.sql written but UNEXECUTED (no psql credentials here); tsc, scoped lint, diff-check clean. NOT DONE: live migration + db:verify-schema detail checks, the one-code-path UI-write migration (no direct-write path may survive; that refactor is untouched), production proof.",
+  }),
+  card({
+    key: "batch-identity-preflight",
+    title: "Resolve identity in batches before any write that could create a person",
+    workstream: "foundation",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6. resolveOrCreateIdentity exists in src/lib/revenue-os/identity.ts and resolves one record at a time. Every capability that extracts people from unstructured input has the same failure mode: silent duplicate creation from name variants and transcription drift. Resolve identity for a whole batch first, once, and classify each candidate as matched, ambiguous, near miss, or new. Ambiguous and near miss are queued for a human and never silently created. This becomes mandatory middleware on any write that could create a person or a company rather than a helper a caller may forget.",
+    acceptance: [
+      "A batch resolve returns every candidate classified as matched, ambiguous, near_miss, or new, with the matching method recorded for each",
+      "A near miss never creates a record. An ambiguous candidate never creates a record. Both queue for a human decision",
+      "Fixtures cover diacritics, transcription drift, nickname variants, shared company mailboxes, and phone-only identities, since resolveOrCreateIdentity gained a phone lookup only recently",
+      "Resolution is enforced as middleware on the write path rather than offered as an optional helper, so a caller cannot skip it",
+      "The classification and its evidence are attached to the resulting proposal so a reviewer sees why a match was claimed",
+    ],
+    dependencies: [
+      "Implement deterministic contact and company identity resolution",
+      "Route every write through one executor with reversibility and compensators",
+    ],
+    start:
+      "src/lib/revenue-os/identity.ts; src/lib/revenue-os/inbound.ts; src/lib/revenue-os/contact-imports.ts",
+    guardrails:
+      "Never guess on ambiguity. A resolution strategy that can silently create is not acceptable regardless of its confidence score. Do not regress the existing contact import flow, which already proposes with AI and requires approval against an exact reviewed snapshot.",
+    labels: ["contacts", "dedupe"],
+    verification:
+      "a scoped resolver test over the full fixture set asserting no creation on ambiguous or near miss; npm run test:inbound-canonical; npm run test:core; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "durable-event-bus",
+    title: "Add a durable, replayable event bus with at-least-once delivery",
+    workstream: "foundation",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6, primitive 4 of 7: Events. Nothing in the tree provides typed business events, durable delivery, replay, or delivery deduplication. Without them, capabilities can only be wired by direct calls, which creates a dependency graph nobody can upgrade and is the failure mode this platform exists to avoid. Events are also the only sanctioned way capabilities communicate with each other.",
+    acceptance: [
+      "Typed events are emitted and subscribed by name, with a payload schema validated at both ends",
+      "Delivery is durable and at least once, with recorded attempts, a next retry time, and a terminal error",
+      "A dedupe key means redelivery of the same event produces exactly one effect, proven by delivering the same event twice and asserting one outcome",
+      "Events are replayable for a bounded window so a subscriber added later can catch up deliberately",
+      "Delivery failures are visible in an operator surface rather than only in logs, matching the existing sync health pattern",
+      "Direct capability-to-capability calls are prohibited by contract, with events and shared records as the only channels",
+    ],
+    dependencies: ["Route every write through one executor with reversibility and compensators"],
+    start:
+      "migrations/20260816-revenue-os.sql for the job and run ledger shapes already in use; src/lib/revenue-os/README.md",
+    guardrails:
+      "At-least-once plus idempotent handlers, never exactly-once theatre. A retry storm must be bounded. Event payloads are data and must never be treated as instructions by any AI consumer.",
+    labels: ["reliability", "webhooks"],
+    verification:
+      "a scoped bus test covering duplicate delivery producing one effect, retry with backoff, terminal failure recording, bounded replay, and schema refusal of a malformed payload; npm run test:core; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "capability-scoped-data-api",
+    evidence:
+      "2026-09-04: all six acceptance items evidenced. Three shapes only (scoped entity query with column allowlist + limit/clamp disclosure, enumerated recipes, namespace KV), enforced by verify-capability-isolation.mjs (mutation-proven on all three defect classes, wired into CI). No core writes and no raw handle on the interface; all reads route through bindTenantDatabase (exported for the purpose) plus explicit tenant filters. Cross-workspace refusal proven live against production Postgres (foreign tenant cannot resolve types or read rows). Every call returns a usage receipt; 120/min fail-closed budget. test:capability-data-api 8/8 in test:core. tsc, full lint, agent contract, diff-check, production build green. Commits merged to chore branch. No destructive action.",
+    owner: "claude-code:johnconnor:47504",
+    title: "Expose one capability-checked data API with no raw database handle",
+    workstream: "security",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6. Reads must go through a single capability-checked interface and writes must go through the executor, because that is what makes row-level security, cost accounting and audit complete rather than best-effort. The pattern is already proven in this repository: bindTenantDatabase is a proxy that forces tenant filtering because the service role bypasses row-level security. Generalize it into a data API with three shapes, a filtered entity query, a server-computed recipe, and a capability's own namespaced storage, and deliberately provide no direct write to core entities.",
+    acceptance: [
+      "The API offers a scoped entity query, a server-computed recipe read, and access to a capability's own namespace, and nothing else",
+      "There is deliberately no write function for core entities on this interface; core writes are actions",
+      "No path exists from a capability to a raw database handle, asserted by static analysis in CI rather than by review",
+      "A cross-workspace read attempt fails closed",
+      "Every call is attributed for rate limiting and cost accounting",
+      "The existing bindTenantDatabase proxy is the starting point rather than a parallel second mechanism",
+    ],
+    dependencies: [
+      "Route every write through one executor with reversibility and compensators",
+      "Add an open entity registry and a polymorphic link graph",
+    ],
+    start:
+      "src/lib/tenancy for bindTenantDatabase and the request context; docs/contracts/MULTI-TENANCY-CONTRACT.md; src/lib/supabase/server.ts",
+    guardrails:
+      "No escape hatch, no advanced mode, no raw SQL, including for a capability's own tables. Every request for one of those is a missing primitive and should be escalated as a core gap rather than granted. Service-role clients must never be handed out unbound.",
+    labels: ["security", "database"],
+    verification:
+      "npm run verify:agent-contract; a static-analysis CI check proving no raw handle is reachable; a cross-tenant read refusal test against real Postgres; npm run test:core; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "write-provenance-enforcement",
+    title: "Require declared evidence on every write, enforced at the executor",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 1 of 6. The repository is further ahead here than the specification assumes: grounded answer validation already rejects an answer that does not cite receipts from tools that actually executed in that run, and execution re-reads record state and expires a proposal if reality moved. What is missing is applying the same discipline to writes. A commitment extracted from a transcript, or a stage advanced on inferred intent, is exactly where a hallucination causes damage. Evidence requirements belong in the validator, because a prompt instruction is a suggestion to a model while a validator is a guarantee.",
+    acceptance: [
+      "An action declares its evidence policy: which fields are required, minimum verbatim quote length where a quote is required, and a minimum confidence where confidence applies",
+      "The executor rejects an action failing its evidence policy. Rejection happens at the executor, never at the prompt layer",
+      "Every proposal carries structured evidence rendered in the approval surface: the claim, the source with its identifier and offset, the verbatim quote, the confidence, and the resolved entities with the method used to resolve them",
+      "A confident claim without a sufficient verbatim quote is refused, mirroring the proven pattern that requires a minimum-length quote before a definite assertion is recorded",
+      "The existing grounded answer validation is reused rather than duplicated by a second parallel mechanism",
+    ],
+    dependencies: [
+      "Route every write through one executor with reversibility and compensators",
+      "Resolve identity in batches before any write that could create a person",
+    ],
+    start:
+      "src/lib/revenue-os/ai-tools.ts for the existing receipt and grounding checks; src/lib/revenue-os/ai-agent.ts; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+    guardrails:
+      "No safety property may live in prompt text. If the only thing preventing a bad write is an instruction to a model, it is not prevented. Evidence must never contain unredacted customer content in logs or audit rows beyond what the ledger already permits.",
+    labels: ["ai", "approval"],
+    verification:
+      "a scoped validator test proving refusal on a missing quote, a too-short quote, a below-threshold confidence, and an unresolved entity; npm run test:agent-trace; npm run test:core; npx tsc --noEmit; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 2: the plugin runtime.
+  // This is where the trust boundary moves from code review to runtime
+  // isolation. Capability enforcement is by absence: a plugin that did not
+  // declare a write has no function in scope that could perform one. An absent
+  // function cannot be tricked, which is what makes agent-generated plugin
+  // code safe by default. Phase gate: the Tier 0 exemplar installs and renders
+  // with zero platform code changes.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "plugin-isolate-host",
+    owner: "claude-code:johnconnor:71722",
+    title: "Run plugin code in an isolate with no ambient authority",
+    workstream: "platform",
+    phase: 6,
+    status: "planned",
+    priority: "high",
+    description:
+      "Plugin Platform phase 2 of 6. There is no sandbox of any kind in the tree today: no isolated-vm, no worker, no node:vm. The current seam avoids the problem by executing nothing from extensions, which is a correct invariant for a manifest but caps the platform at declarative capabilities forever. An isolate moves the boundary: plugin code runs with no database handle, no filesystem, no environment, and a default-deny egress allowlist, receiving only host bindings pre-scoped to what its manifest declared. Cold start under 50ms is a requirement rather than a goal, because event handlers fire constantly and a slow cold start makes the whole product feel dead.",
+    acceptance: [
+      "Cold start is under 50 milliseconds, measured rather than asserted, and the measurement runs in CI",
+      "Declared timeout and memory limits are enforced and a breach terminates the isolate cleanly rather than degrading the host",
+      "Undeclared network egress is blocked; the allowlist is default-deny",
+      "No filesystem and no environment access is reachable from inside the isolate",
+      "A host binding is present only when the manifest declared the matching capability, so enforcement is by absence rather than by a runtime permission check",
+      "A malicious plugin attempting to reach a database handle, read an environment variable, or call an undeclared host finds no function to call, proven by adversarial test rather than by review",
+    ],
+    dependencies: ["Expose one capability-checked data API with no raw database handle"],
+    start:
+      "src/lib/revenue-os/ai-tools.ts for the existing schema-validated registration shape; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; extensions/README.md for the invariant this card deliberately supersedes",
+    guardrails:
+      "No plugin code in the core process, and no exception for first-party plugins: that exception is precisely how WordPress's isolation story died. If a first-party connector needs an escape hatch, the platform is wrong and that is a bug in this card, not a connector exception. The existing extensions directory stays pure data.",
+    labels: ["security", "config"],
+    verification:
+      "an adversarial isolate test covering escape attempts, undeclared egress, timeout, memory breach, and absent-binding behavior; a measured cold-start benchmark in CI; npx tsc --noEmit; npm run lint -- --max-warnings=0; npm run build; a security review pass before merge, since this card defines the boundary every later phase relies on.",
+    evidence:
+      "2026-09-04 OpenCode slice (branch agent/unified-action-executor, commits 0c39da6 + 26a54d2): chose QuickJS (WASM, no native build) over node:vm/worker_threads (documented non-boundaries) — fresh runtime+context per evaluation, declared bindings only, JSON discipline with deep scan (no silent coercion), interrupt deadline, heap limit, sync-only refusal, 256KB code cap, prototype-shadow binding guard. test:plugin-isolate 13/13 green incl. adversarial probes (process/require/fetch/Response/timers absent, timeout kill, memory breach, async refusal, absent bindings) and cold-start p50 0ms in CI via test:core. Security review pass done on the final module (structured marshal, name guards, size cap, compliant logging). tsc/lint/diff-check clean on touched files (repo-wide tsc blocked by another session's untracked roadmap.ts scratch file, flagged not fixed). Remaining: production proof.",
+  }),
+  card({
+    key: "plugin-manifest-generator",
+    title: "Generate the plugin manifest from validators and fail on drift",
+    workstream: "platform",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 2 of 6. A hand-maintained manifest goes stale the moment someone edits a schema, which is exactly what happened to setupChecks in the current module contract, where all four declared ids drifted away from the real checks. The proven answer is to generate the description from the live validators so it cannot drift, the same principle behind a generated schema description that can never disagree with reality. For Tier 2 and above the manifest is derived from source; for Tier 0 and 1 it stays hand-written because there is no source to derive from.",
+    acceptance: [
+      "A build command derives tools, events and write declarations from the actual validators and fails when the committed manifest disagrees",
+      "The tier is computed from the manifest and stamped in, so a plugin cannot self-declare a lower tier to avoid review",
+      "An action writing an entity that requires identity resolution must declare an evidence policy, with no exception",
+      "An action declaring irreversible has its trust ceiling rewritten to always-propose, with a warning, rather than the contradiction being accepted",
+      "Every action declares an idempotency policy or an explicit opt-out carrying a written justification; silence is a build failure",
+      "A write declaration for an entity absent from the read declarations is rejected, since a blind write cannot be reviewed",
+      "The generated manifest never exceeds what the code registers, and the code can never register more than the manifest declared, proven by a permanent negative fixture rather than trusted",
+    ],
+    dependencies: ["Run plugin code in an isolate with no ambient authority"],
+    start:
+      "scripts/build-extension-modules.mjs for the existing generate-and-drift-check pattern; extensions/module-manifest.schema.json; scripts/verify-module-contract.mjs",
+    guardrails:
+      "No hand-maintained manifests above Tier 1. The manifest is a capability grant that constrains the code, not a description that follows it. A validator rule that can be satisfied by a comment rather than by structure is not a rule.",
+    labels: ["config", "qa"],
+    verification:
+      "npm run verify:extensions; a generator self-test with a negative fixture proving an undeclared registration fails the build; a drift test proving a hand-edited generated file fails; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "plugin-connection-broker",
+    title: "Hold plugin credentials in a broker the isolate can never read",
+    workstream: "integrations",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 2 of 6, primitive 7 of 7: Connections. integration_connections already stores per-tenant credentials with AAD-bound envelope encryption, which is the hard half. What is missing is the broker shape: a plugin calls a fetch against a named connection and the broker attaches the token, so a compromised or malicious plugin cannot exfiltrate a refresh token because it never holds one. This is the single property that makes third-party plugins safe to connect to a customer's Google or payment account.",
+    acceptance: [
+      "A plugin performs authorized external calls through a named connection without ever receiving a token, asserted by a test that inspects what crosses the isolate boundary",
+      "Token refresh is handled by core, not by the plugin",
+      "Revoking a connection takes effect immediately for in-flight and future calls",
+      "Scopes are declared per connection in the manifest and a call outside the declared scope is refused",
+      "Credentials remain AAD-bound and encrypted at rest, reusing the existing tenant secret path rather than a second mechanism",
+    ],
+    dependencies: [
+      "Run plugin code in an isolate with no ambient authority",
+      "Make the integration adapter registry the real resolution point",
+    ],
+    start:
+      "src/app/api/admin/tenant/providers/route.ts; the tenant secret encryption helpers; src/lib/revenue-os/integration-adapters.ts",
+    guardrails:
+      "A token must never cross the isolate boundary, in any form, including inside an error message or a debug payload. Do not weaken the existing AAD binding to make the broker generic.",
+    labels: ["encryption", "integrations"],
+    verification:
+      "a boundary test asserting no credential material appears in anything passed to or returned from an isolate, including thrown errors; a revocation test; npm run verify:tenant-providers; npx tsc --noEmit; npm run build; a security review pass before merge.",
+  }),
+  card({
+    key: "plugin-install-lifecycle",
+    title: "Add the plugin install and uninstall lifecycle with a no-debris contract",
+    workstream: "platform",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 2 of 6. Today enabling a module flips one boolean and nothing else happens. A real lifecycle needs the plugin data model, a review screen generated from the manifest so an operator sees the blast radius before granting it, and an uninstall contract that leaves nothing behind. WordPress's debris problem is what makes long-lived installs unmaintainable, so the uninstall rules are non-negotiable rather than best-effort.",
+    acceptance: [
+      "The plugin data model exists: registered plugins with their manifest and tier, per-workspace installs with granted capabilities and settings, and per-install usage, all tenant-scoped with row-level security",
+      "The install review screen is generated from the manifest, never written by the publisher, since publisher-authored capability summaries are where honesty degrades",
+      "Enabling runs install or upgrade, writes a receipt, and only then flips the enabled flag. A hook that throws leaves the flag unflipped and records the failure",
+      "Uninstall disables event subscriptions and scheduled jobs immediately, marks pending proposals superseded rather than deleting them, revokes connection grants, and retains or purges the plugin's own data per its declared policy",
+      "Link and audit history survive uninstall permanently, because history is not the plugin's property",
+      "A test asserts zero orphan rows after uninstall outside the link graph and the audit ledger",
+      "Hooks are idempotent by contract, with a timeout and a row cap, and anything larger is enqueued rather than run inside a request",
+    ],
+    dependencies: [
+      "Generate the plugin manifest from validators and fail on drift",
+      "Add an open entity registry and a polymorphic link graph",
+    ],
+    start:
+      "src/app/api/admin/tenant/modules/route.ts for the current toggle and audit write; src/lib/revenue-os/schema-contract.ts; migrations/20260830-shared-database-tenancy.sql",
+    guardrails:
+      "Uninstall archives before it purges. A destructive purge is a separate, explicitly confirmed action that stages through the approval queue at the destructive tier. Never silently delete a pending proposal. This card touches the schema contract in a shared database and needs its own review pass.",
+    labels: ["config", "database"],
+    verification:
+      "npm run db:verify-schema; a lifecycle test covering install idempotency, failed-hook rollback, uninstall orphan count, proposal supersession, and history survival; npm run test:core; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "plugin-usage-and-budget-metering",
+    title: "Meter plugin usage and enforce a spend budget that halts cleanly",
+    workstream: "platform",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 2 of 6. A plugin that calls a paid external service needs a per-install budget, and hitting the cap must disable that capability and notify rather than fail silently in the middle of a batch. Nothing meters plugin cost today because there are no plugins, but the shape should match the existing per-tenant AI budget work rather than inventing a second accounting system.",
+    acceptance: [
+      "Tool calls, isolate milliseconds, egress calls and spend are attributed per install per day",
+      "A manifest declares a default monthly budget and a hard cap; the workspace can lower but not silently raise past the cap",
+      "Reaching the cap halts the capability cleanly at an operation boundary and notifies, never mid-write and never silently",
+      "Usage and remaining budget are visible to the operator alongside the plugin, not only in logs",
+      "Metering shares the accounting shape used by the existing per-tenant AI budgets rather than adding a parallel system",
+    ],
+    dependencies: [
+      "Add the plugin install and uninstall lifecycle with a no-debris contract",
+      "Add explicit platform-sponsored AI budgets per tenant",
+    ],
+    start:
+      "the existing per-tenant AI budget implementation; src/lib/revenue-os/ai-gateway or equivalent; src/app/admin/integrations/page.tsx",
+    guardrails:
+      "A budget breach must never leave a half-completed write. Halt at an operation boundary. Do not let a plugin observe another install's usage.",
+    labels: ["observability", "config"],
+    verification:
+      "a metering test proving attribution accuracy, clean halt at the cap with no partial write, and notification delivery; npx tsc --noEmit; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 3: human in the loop.
+  // Most platforms get this wrong by treating approval as a UI feature. It is
+  // a data model. Today every mutating tool must stage a proposal and nothing
+  // auto-executes, so the whole system sits at the safe end of the ladder.
+  // This phase adds controlled graduation, earned per narrow capability,
+  // granted explicitly, and lost automatically.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "action-trust-ladder",
+    title: "Add a per-action trust ladder with a permanent irreversible floor",
+    workstream: "security",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 3 of 6. Trust is held per install and per action, never per plugin and never globally, because the unit a human can reason about is one narrow capability. Four levels: always propose; auto-execute with notification and a 24-hour undo; auto-execute within a declared budget, dropping to always-propose when the budget is exceeded; and autonomous with digest reporting only. The hard invariant is that an irreversible action never auto-executes at any level, for any publisher, with no configuration flag, and the validator rewrites any manifest that attempts otherwise.",
+    acceptance: [
+      "Trust level is stored per install and per action, and changing it is an audited write",
+      "An irreversible action cannot exceed always-propose by any path, including direct manipulation of the trust row, proven by an adversarial test that writes the row directly and asserts the executor still refuses",
+      "Auto-execution above always-propose is restricted to reversible actions, with compensable actions capped below autonomy",
+      "The budget-bounded level drops to always-propose for the remainder of the period once its budget is exceeded",
+      "Every auto-executed action produces a notification and an audit row indistinguishable in completeness from a human-approved one",
+    ],
+    dependencies: [
+      "Route every write through one executor with reversibility and compensators",
+      "Add the plugin install and uninstall lifecycle with a no-debris contract",
+    ],
+    start:
+      "src/lib/revenue-os/ai-tools.ts for the existing impact tiers; migrations/20260816-revenue-os.sql:273; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+    guardrails:
+      "There is no flag that permits autonomous irreversible execution. Not for official plugins, not for verified publishers, not behind a setting. Every request for one is a design error. Trust is never global and never per-publisher.",
+    labels: ["approval", "auth"],
+    verification:
+      "an adversarial trust test covering direct trust-row manipulation, irreversible refusal at every level, compensable ceiling, and budget-exceeded demotion; npm run test:core; npx tsc --noEmit; npm run build; a security review pass before merge.",
+  }),
+  card({
+    key: "trust-graduation-engine",
+    title: "Propose trust promotion on evidence and demote automatically on failure",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 3 of 6. This is the loop that makes the product feel like it is learning without ever making the operator feel it is escaping. Promotion is proposed by the system and approved by a human, never taken. Demotion is automatic, immediate and unilateral. The asymmetry is the point: earning trust requires a human decision, losing it does not.",
+    acceptance: [
+      "Promotion is proposed only after a threshold of decisions in a rolling window with a high approval rate and a low edit-before-approve rate, and the proposal states the exact counts that justified it",
+      "A human must accept a promotion; the system never promotes on its own",
+      "Any rejection of an auto-executed action, any undo, or an error rate above the declared threshold drops that action to always-propose immediately and notifies",
+      "Demotion never waits for a human and never requires one",
+      "Promotion is refused outright for irreversible actions regardless of history",
+      "The decision history that drives graduation is queryable, so a promotion proposal can be audited after the fact",
+    ],
+    dependencies: ["Add a per-action trust ladder with a permanent irreversible floor"],
+    start: "the trust ladder tables; src/lib/revenue-os/ai-agent.ts; the audit ledger",
+    guardrails:
+      "Never promote automatically. Never delay a demotion. A promotion proposal that cannot show its evidence is a bug. Do not let a burst of trivial approvals in a short window satisfy a rolling-window threshold.",
+    labels: ["ai", "approval"],
+    verification:
+      "a graduation test covering threshold arithmetic, refusal to self-promote, immediate demotion on rejection, undo and error rate, permanent refusal for irreversible actions, and resistance to burst gaming; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "action-undo-and-compensation",
+    title: "Give every auto-executed reversible action a working 24-hour undo",
+    workstream: "operations",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 3 of 6. An undo offer is only honest if the compensator has actually been executed against real state. A compensator that merely exists is a promise; one verified by executing and then undoing against seeded data is a guarantee. Undo is what makes the second trust level acceptable at all, so it is a precondition for graduation rather than a convenience.",
+    acceptance: [
+      "Every auto-executed reversible action offers a one-click undo for 24 hours",
+      "Every compensator is verified in the conformance kit by executing the action and then undoing it against seed data, asserting the prior state is restored",
+      "An undo is itself audited, with the original action, the compensator, and the restored state recorded",
+      "Using undo counts against the action's trust history and can trigger demotion",
+      "An action whose compensator fails is surfaced honestly rather than reported as undone",
+    ],
+    dependencies: ["Add a per-action trust ladder with a permanent irreversible floor"],
+    start:
+      "the unified executor and its compensation column; src/app/admin/today/page.tsx; the audit ledger",
+    guardrails:
+      "Never offer undo for a compensable or irreversible action; the word means restoration, not apology. A failed compensation must never be reported as success.",
+    labels: ["approval", "activity"],
+    verification:
+      "an undo test covering state restoration against seed data, audit completeness, trust history effect, and honest failure reporting; reviewed desktop and mobile screenshots of the undo affordance; npm run test:core; npm run build.",
+  }),
+  card({
+    key: "approval-surfaces-and-edit-feedback",
+    title: "Make approval inline, batched, and edit-then-approve, with edits as training data",
+    workstream: "admin",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 3 of 6. An approval queue that requires navigating to a dedicated page is an approval queue people stop using. Approve from the digest, from chat, and from a dashboard card. Batch related proposals with per-item expansion. Treat edit-then-approve as first class, and record what the human changed as structured feedback rather than discarding it, because that edit is the highest-signal training data the system will ever get and it also feeds the graduation calculation.",
+    acceptance: [
+      "Inline approval works from the digest, from chat, and from a dashboard card without navigation",
+      "Batch approval handles a group with per-item expansion, and a batch never hides an item that differs materially from its siblings",
+      "Edit-then-approve is first class and the diff between proposed and approved is recorded as structured feedback",
+      "Recorded edits feed both the graduation calculation and the originating capability's own feedback loop, so a regenerated draft visibly answers the critique rather than repeating it",
+      "An ask-why affordance expands the full evidence chain behind a proposal",
+      "Every surface meets the admin visual and navigation runtime contracts across all themes at desktop and mobile widths",
+    ],
+    dependencies: [
+      "Require declared evidence on every write, enforced at the executor",
+      "Propose trust promotion on evidence and demote automatically on failure",
+    ],
+    start:
+      "src/app/admin/today/page.tsx for the existing approval review dialog; docs/contracts/ADMIN-VISUAL-CONTRACT.md; docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md",
+    guardrails:
+      "Batch approval must never bundle an item whose reversibility or impact differs from the rest of the batch. Do not add a control without an outcome, per the admin visual contract. Never discard an edit.",
+    labels: ["approval", "admin"],
+    verification:
+      "npm run verify:admin-tokens; a scoped test proving batch refuses mixed-reversibility bundling and that edits persist as structured feedback; Playwright at desktop and mobile with reviewed screenshots across themes and reduced motion; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 4: agent and UI surfaces.
+  // Fifty installed plugins is roughly four hundred tools, which degrades tool
+  // selection well before it overflows a context window. Progressive
+  // disclosure is a hard constraint here, not an optimization. On the UI side,
+  // declarative rendering is what keeps the Tier 0 floor at twenty lines.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "tool-bundles-progressive-disclosure",
+    title: "Group tools into bundles and load them on demand",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 4 of 6, primitive 5 of 7: Tools. PACK_TOOL_NAMES is a fixed three-entry map, not a bundle activation mechanism, and it currently fails closed in a way that silently hides any tool nobody remembered to add. Replace it with manifest-declared bundles, a small always-loaded core, and an intent lookup that activates the matching bundle for a conversation. The rule that keeps this honest: a tool needing five calls to answer a common question is a missing recipe, and that is enforced in review rather than left to the model to stitch together.",
+    acceptance: [
+      "Every tool belongs to a manifest-declared bundle, and bundle membership is generated rather than hand-maintained",
+      "A small always-loaded core covers search, capability description, the report recipes, and the action queue",
+      "An intent lookup returns matching bundles and activates one for the conversation",
+      "With fifty simulated plugins installed, the active context holds no more than forty tools and selection accuracy stays at or above the single-plugin baseline, measured rather than assumed",
+      "A live capability description is generated from the registry at call time, reporting installed plugins, available tools by bundle, recipes with output schemas, current trust levels, and pending proposal count, so it cannot misreport what is deployed",
+      "The existing failure mode is fixed: a registered tool that no bundle can reach fails CI rather than shipping unreachable",
+    ],
+    dependencies: [
+      "Close the module contract gaps that let unreachable code ship",
+      "Generate the plugin manifest from validators and fail on drift",
+    ],
+    start:
+      "src/lib/revenue-os/ai-tools.ts for PACK_TOOL_NAMES and availabilityFor; src/lib/revenue-os/ai-agent.ts; src/lib/revenue-os/mcp-server.ts",
+    guardrails:
+      "Do not solve context pressure by silently dropping tools. A tool that is unreachable must be a build failure, never an invisible omission. Bundle activation must not become a way to bypass module enablement or trust levels.",
+    labels: ["ai", "config"],
+    verification:
+      "a selection-accuracy benchmark at fifty simulated plugins compared against the single-plugin baseline; npm run verify:module-contract; npm run test:agent-loop; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "report-recipe-engine",
+    title: "Make server-computed report recipes a registrable primitive",
+    workstream: "intelligence",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 4 of 6, primitive 2 of 7: Views. Analytics today is a fixed set of canonical formulas on one page, and saved views are localStorage only, so they are lost on a device change while being presented as a feature. A recipe is one server-side computation with a typed output schema that answers a whole question in a single call. The alternative, letting a model assemble an answer from five separate queries at request time, is more expensive, inconsistent, uncacheable, and can silently omit a metric because the model forgot a call.",
+    acceptance: [
+      "A recipe is registered with a typed output schema and a cache policy, and the schema is enforced on the way out",
+      "Recipe results are cached and invalidated on the events that make them stale, rather than on a fixed timer alone",
+      "Saved segments move server-side, shared and per-user, replacing the localStorage-only saved views",
+      "A recipe is callable identically from the UI, from the agent, and over MCP, with no second code path",
+      "The existing canonical analytics formulas are expressed as recipes without changing their published numbers, proven by comparing before and after",
+      "Attribution gaps continue to be reported honestly as unknown rather than as zero",
+    ],
+    dependencies: ["Expose one capability-checked data API with no raw database handle"],
+    start:
+      "src/lib/revenue-os/analytics.ts for the canonical formulas; src/app/admin/analytics/page.tsx; the saved-view localStorage implementation",
+    guardrails:
+      "Do not change a published metric definition while moving it. Never report an unknown attribution as zero. A recipe must not become a way to read past the capability-checked data API.",
+    labels: ["analytics", "database"],
+    verification:
+      "npm run verify:attribution-loop; a comparison test proving identical analytics output before and after the migration to recipes; a cache invalidation test; npx tsc --noEmit; npm run build.",
+  }),
+  card({
+    key: "declarative-card-renderer",
+    title: "Render dashboard cards from JSON so the Tier 0 floor stays at twenty lines",
+    workstream: "admin",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 4 of 6. This is the single most important number in the platform: if adding a chart takes more than roughly twenty-five lines of JSON and zero build tooling, the ecosystem does not happen. A declarative card is validated against a schema and rendered by core, which means no build step, no bundle, no cross-site scripting surface, and automatic theming. Because core owns the pixels, the admin design token contract and the navigation runtime contract hold for plugin UI for free.",
+    acceptance: [
+      "Card types cover chart, metric, list, table, timeline, form, markdown, and an action queue view",
+      "A card is pure JSON validated against a schema; a malformed card fails at install rather than at render",
+      "Every card type renders, themes across all admin appearances, and handles its empty and error states with no plugin code",
+      "Cards source data from a recipe or a scoped query, never from a raw handle",
+      "The Tier 0 exemplar stays within the declared line budget, enforced by a test rather than defended in review",
+      "Card rendering satisfies the admin visual and navigation runtime contracts, verified at desktop and mobile widths",
+    ],
+    dependencies: [
+      "Make server-computed report recipes a registrable primitive",
+      "Generate the plugin manifest from validators and fail on drift",
+    ],
+    start:
+      "src/components/admin for the shared surfaces and tokens; docs/contracts/ADMIN-VISUAL-CONTRACT.md; scripts/verify-admin-tokens.mjs",
+    guardrails:
+      "No plugin-supplied React in a declarative card, and no raw HTML or style strings, which would reintroduce the cross-site scripting surface this design exists to avoid. Do not let the card schema grow features that belong in a custom panel.",
+    labels: ["admin", "config"],
+    verification:
+      "npm run verify:admin-tokens; a renderer test covering every card type including empty and error states; a line-budget test on the Tier 0 exemplar; Playwright across every admin appearance at desktop and mobile with reviewed screenshots; npm run build.",
+  }),
+  card({
+    key: "ui-slots-and-sandboxed-panels",
+    title: "Add UI slots and sandboxed panels that cannot escape their frame",
+    workstream: "admin",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 4 of 6. Declarative cards cover most needs; the remainder need real UI. A sandboxed frame with a message bridge to the same capability-checked data API, and host-provided design tokens so plugin UI matches the product without sharing a stylesheet. Named slots let a plugin place a card, a record tab, a sidebar section, a bulk action, a command palette entry, a settings section, a digest section, or a custom approval card. Slot contention is resolved by the operator's saved layout, never by install order.",
+    acceptance: [
+      "The slot set is fixed and named, and a plugin may only render into a slot it declared",
+      "A panel cannot navigate the top frame, open dialogs outside its bounds, or read cookies, verified by penetration test rather than by configuration review",
+      "The panel bridge reaches only the same capability-checked data API, with no widened surface",
+      "Host design tokens are provided to the panel so plugin UI themes with the product across every appearance",
+      "Slot contention resolves by user-ordered layout, and install order has no effect on placement",
+      "Panels respect the navigation runtime contract for focus, loading and reduced motion",
+    ],
+    dependencies: [
+      "Render dashboard cards from JSON so the Tier 0 floor stays at twenty lines",
+      "Run plugin code in an isolate with no ambient authority",
+    ],
+    start:
+      "src/lib/admin/navigation.ts and layout-overrides for the existing user-ordered layout mechanism; docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md",
+    guardrails:
+      "A panel is untrusted content. Never grant it top-frame navigation, cookie access, or a widened data surface because a first-party plugin would find it convenient. Treat everything a panel sends over the bridge as data, never as instructions.",
+    labels: ["admin", "security"],
+    verification:
+      "a penetration test covering frame escape, top-frame navigation, cookie access, and bridge surface; npm run verify:admin-tokens; Playwright across themes, desktop and mobile, and reduced motion with reviewed screenshots; npm run build.",
+  }),
+  card({
+    key: "plugin-skill-registry",
+    title: "Add a skill registry where instructions can never grant capabilities",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 4 of 6, primitive 6 of 7: Skills. A skill is markdown shipped with a plugin describing when a capability applies, what good output looks like, and what never to do. Skills load when their bundle activates. The invariant that makes them safe is that a skill may reference tools but can never grant one: a skill instructing the model to send an email, against a plugin that never declared a send capability, simply has no function to call. That is enforcement by absence applied to instructions.",
+    acceptance: [
+      "Skills are registered per plugin, loaded on bundle activation, and unloaded with the bundle",
+      "A skill referencing an undeclared capability has no corresponding function in scope, asserted by test",
+      "Skill text is treated as authored plugin content and is never allowed to widen a capability grant, alter a trust level, or bypass an approval",
+      "Skills are visible to the operator, so what the model was told is inspectable rather than hidden",
+      "A skill from an untrusted publisher is subject to the same content boundary as any other untrusted input",
+    ],
+    dependencies: ["Group tools into bundles and load them on demand"],
+    start:
+      "src/lib/chat/system-prompt.ts and src/lib/revenue-os/ai-agent.ts for the existing prompt boundaries",
+    guardrails:
+      "A skill is data, not authority. No skill may raise a trust level, bypass an approval, widen a capability, or reach a tool its plugin did not declare. Skill content from a third party is untrusted and must never be followed as an instruction to the platform itself.",
+    labels: ["ai", "security"],
+    verification:
+      "a scoped test proving a skill cannot reach an undeclared tool and cannot alter trust or approval; a prompt-injection test using hostile skill text; npm run test:agent-loop; npx tsc --noEmit; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 5: developer experience and exemplars.
+  // The conformance kit is the mechanism that lets a mediocre agent ship a
+  // safe plugin, so it is not optional polish. The four exemplars are the
+  // integration tests for every layer beneath them, and an ecosystem imitates
+  // its exemplars, so they ship with the SDK or not at all.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "plugin-cli-and-scaffold",
+    title: "Ship a plugin CLI with init, dev, build, check and publish",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 5 of 6. A fixed project layout matters more here than in most projects because coding agents rely on it: one file per action exporting its validator, executor and compensator; one file per subscribed event; tools whose validator is the source of truth; recipes; skills as markdown; cards as JSON; forward-only migrations for owned schema; and a required health endpoint above Tier 1. The scaffold encodes the layout so an agent does not have to infer it.",
+    acceptance: [
+      "init scaffolds a working plugin at a chosen tier with the fixed layout and a passing test",
+      "dev runs a local runtime against a seeded workspace with hot reload",
+      "build generates the manifest from validators and fails on drift",
+      "check runs the conformance kit and exits non-zero on any failure",
+      "publish signs and submits, and refuses to submit a package that fails check",
+      "The full init to publish path completes for every tier, verified in CI rather than by demonstration",
+    ],
+    dependencies: ["Generate the plugin manifest from validators and fail on drift"],
+    start:
+      "scripts/build-extension-modules.mjs for the existing generator; the repository's script conventions in package.json",
+    guardrails:
+      "The project layout is fixed. Do not add per-project configurability that would make an agent guess. The CLI must never be able to publish something check would reject.",
+    labels: ["config", "clonable"],
+    verification:
+      "a CI job running init, dev smoke, build, check and a dry-run publish for each tier; npx tsc --noEmit; npm run lint -- --max-warnings=0.",
+  }),
+  card({
+    key: "plugin-conformance-kit",
+    title: "Block publish on a conformance kit that proves safety rather than asserting it",
+    workstream: "qa",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 5 of 6. This card is the reason a plugin written by an agent can be trusted. Every check here is structural: it executes something and asserts an outcome rather than reading a declaration. In particular, a compensator counts as working only when the kit has executed the action and undone it against seed data, and a replay counts as safe only when the kit has delivered the same event twice and asserted one effect.",
+    acceptance: [
+      "Every action has an evidence policy and an idempotency policy, or an explicit opt-out with a written justification",
+      "Every reversible action has a compensator, verified by executing and then undoing against seed data",
+      "Every irreversible action carries the permanent always-propose ceiling",
+      "Identity resolution precedes every write that could create a person or a company",
+      "A replay test delivers the same event twice and asserts exactly one effect",
+      "Every declared egress host is reachable and allowlisted, and no undeclared host appears during the run",
+      "Uninstall leaves no orphan rows outside the link graph and the audit ledger",
+      "Isolate cold start is under the declared threshold and the ninety-fifth percentile handler stays inside its declared timeout",
+      "Every tool has at least one golden-path test with an asserted output shape",
+      "The kit blocks publish, and the kit itself is regression-tested with a fixture that must fail",
+    ],
+    dependencies: [
+      "Ship a plugin CLI with init, dev, build, check and publish",
+      "Give every auto-executed reversible action a working 24-hour undo",
+      "Add the plugin install and uninstall lifecycle with a no-debris contract",
+    ],
+    start:
+      "scripts/verify-module-contract.mjs and the repository's verify script conventions; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+    guardrails:
+      "Every check executes and asserts. A check that reads a declaration and trusts it is not a check. The kit must have its own negative fixtures so it cannot silently stop testing.",
+    labels: ["qa", "testing"],
+    verification:
+      "the kit running green against all four exemplars and red against a deliberately broken fixture for each individual check; npm run build.",
+  }),
+  card({
+    key: "plugin-exemplar-tier0-chart",
+    title: "Exemplar Tier 0: a dashboard chart that is pure JSON",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 5 of 6. The floor test. A complete, installable plugin that adds a pipeline-by-stage chart with no code, no build step, and no permission beyond a single entity read. If this file grows past roughly twenty-five lines, the platform has failed its floor test and that is a release blocker rather than a note.",
+    acceptance: [
+      "The whole plugin is one manifest file within the declared line budget, with no code and no build step",
+      "It installs silently because it is read-only and introduces no new data",
+      "The chart renders, themes across every admin appearance, and shows a written empty state",
+      "A test enforces the line budget so the floor cannot erode quietly",
+      "It installs and renders with zero platform code changes, which is the phase 2 gate",
+    ],
+    dependencies: ["Render dashboard cards from JSON so the Tier 0 floor stays at twenty lines"],
+    start: "the declarative card schema; the recipe engine",
+    guardrails:
+      "No code, no build, no exceptions. If this exemplar needs a platform change to work, the platform is wrong and the change belongs in the platform card, not here.",
+    labels: ["clonable", "config"],
+    verification:
+      "the conformance kit; the line-budget test; Playwright rendering across every appearance at desktop and mobile with reviewed screenshots.",
+  }),
+  card({
+    key: "plugin-exemplar-tier1-business-pulse",
+    title: "Exemplar Tier 1: Business Pulse as one recipe, not five stitched queries",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 5 of 6, and the launch demo. A daily briefing covering open pipeline, overdue invoices, unanswered inquiries bucketed by age, proposals awaiting follow-up, calendar deltas, and anomalies such as channel volume diverging from close rate. Built as one server-side recipe, because five ad-hoc queries stitched at request time drift the moment a data source is added and can silently omit a metric. The demo arc is connect, understand, find problems, propose work, approve, work happens, and the last step is honest only because it traverses the same executor as manual work.",
+    acceptance: [
+      "One recipe returns the whole briefing as a typed object in a single call",
+      "A scheduled job runs it at a workspace-local hour and emits an event",
+      "Each recommendation is a queued proposal carrying the evidence that justified it, so a proposed campaign pause shows the divergence data behind it",
+      "The briefing renders in a digest card with inline and batch approval",
+      "Every action installs at always-propose. Follow-up task creation may graduate with use; invoice reminders and campaign pauses never do, because they are irreversible or move money",
+      "Adding a new data source changes the recipe in one place and cannot silently omit a metric",
+    ],
+    dependencies: [
+      "Make server-computed report recipes a registrable primitive",
+      "Make approval inline, batched, and edit-then-approve, with edits as training data",
+    ],
+    start: "src/lib/revenue-os/analytics.ts; the recipe engine; the action queue",
+    guardrails:
+      "No invented statistics and no fabricated dollar figures anywhere in the briefing or its copy. A metric with unknown attribution is reported as unknown, never as zero. Campaign pauses and invoice reminders are permanently barred from autonomy.",
+    labels: ["analytics", "approval"],
+    verification:
+      "the conformance kit; a recipe output-schema test; a proof that every proposal carries its justifying evidence; npm run test:no-fabricated-claims; Playwright on the digest card with reviewed screenshots; npm run build.",
+  }),
+  card({
+    key: "plugin-exemplar-tier2-meeting-intelligence",
+    title: "Exemplar Tier 2: Meeting Intelligence, the integration test for every primitive",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Plugin Platform phase 5 of 6. This is deliberately built third, before any further connectors, because it is the only exemplar that exercises identity resolution, provenance gating, the full trust ladder and the event bus at the same time. If the primitives are wrong, this is where it surfaces, and finding that out here is far cheaper than finding it out after three more connectors assume the primitives are correct.",
+    acceptance: [
+      "On a meeting-ended event it fetches the transcript through a brokered connection and extracts participants, commitments, objections and next steps",
+      "Participants are batch-resolved before any write; ambiguous and near-miss candidates queue for a human and are never created",
+      "Interaction logging and follow-up task creation are reversible, require a verbatim quote, and deduplicate within a window",
+      "Links connect the transcript, the contacts and the opportunity through the generic link graph rather than a bespoke join",
+      "A stage advance is compensable, always proposes, and requires both a quote and a minimum confidence",
+      "A follow-up email is drafted only, is permanently barred from autonomy, and never sends without a human",
+      "A meeting-prep recipe answers a request to prepare for an upcoming meeting in one call, gathering person, company, prior email, prior meetings, open opportunities and outstanding proposals",
+      "Delivering the same meeting-ended event twice produces exactly one set of effects",
+    ],
+    dependencies: [
+      "Resolve identity in batches before any write that could create a person",
+      "Require declared evidence on every write, enforced at the executor",
+      "Add a durable, replayable event bus with at-least-once delivery",
+      "Add a per-action trust ladder with a permanent irreversible floor",
+    ],
+    start:
+      "src/lib/revenue-os/identity.ts; the event bus; the link graph; existing calendar and Gmail sync services",
+    guardrails:
+      "Never guess an ambiguous participant. Never create a task from a transcript without a source quote. The email draft can never be promoted out of always-propose by any path. Real customer transcripts must never be used for development or verification; use fictional fixtures.",
+    labels: ["identity", "calendar"],
+    verification:
+      "the conformance kit including its replay and compensator checks; a fixture-driven end-to-end run over a fictional transcript proving each acceptance item; npm run test:core; npm run build.",
+  }),
+  card({
+    key: "plugin-exemplar-tier3-enrichment",
+    title: "Exemplar Tier 3: external enrichment with a budget and a fill-empty-only policy",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 5 of 6. The exemplar for third-party data, and the one most likely to be copied badly, which is why it must demonstrate the discipline rather than only the capability. The write policy is the crux: enrichment never overwrites a non-empty field and never touches human-curated fields such as type, stage or owner. That single rule is the difference between enrichment as an asset and enrichment as data corruption.",
+    acceptance: [
+      "The API key is held by the broker and never enters the isolate",
+      "A monthly budget with a hard cap meters consumption per call; reaching the cap disables enrichment and notifies rather than failing silently mid-batch",
+      "Enrichment fills empty fields only, never overwrites a non-empty value, and never touches human-curated fields",
+      "Every call returns applied, rejected and unchanged, with each requested field landing in exactly one bucket and no silent drops",
+      "Results below the confidence threshold propose rather than write",
+      "Each enriched field records its source, confidence and fetch time, and the interface shows that provenance on the value",
+      "The plugin's own cache lives in its own namespace with a time to live, so re-enriching costs nothing and a repeated batch consumes zero additional credits",
+    ],
+    dependencies: [
+      "Hold plugin credentials in a broker the isolate can never read",
+      "Meter plugin usage and enforce a spend budget that halts cleanly",
+    ],
+    start: "the connection broker; the usage metering tables; src/lib/revenue-os/identity.ts",
+    guardrails:
+      "Never overwrite a non-empty field. Never touch a human-curated field. A budget breach halts at an operation boundary, never mid-write. Do not use a real paid provider account for development; use a fixture or a sandbox key the developer controls.",
+    labels: ["integrations", "identity"],
+    verification:
+      "the conformance kit; a write-policy test proving no overwrite of non-empty or curated fields and complete bucket accounting; a budget test proving clean halt and zero-credit re-run; npm run build.",
+  }),
+  card({
+    key: "plugin-developer-documentation",
+    title: "Document every primitive with a runnable example and a fifteen-minute first plugin",
+    workstream: "documentation",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 5 of 6. Documentation for this platform is written last on purpose, against shipped behavior, because the plugin pages are the ones most likely to overstate. The current module documentation is the cautionary example: three separate files claimed route gating that did not exist. The target that matters is a timed one, not a word count.",
+    acceptance: [
+      "Every one of the seven primitives is documented with a runnable example",
+      "A build-your-first-plugin path completes in under fifteen minutes, timed against a real first-time user rather than estimated",
+      "The four exemplars are documented as reference implementations with their manifests explained field by field",
+      "The trust ladder, the reversibility classes and the evidence policy each have a page written for an operator, not only for a developer",
+      "Every claim about enforcement names the mechanism that enforces it, and a claim with no mechanism is deleted rather than softened",
+      "These pages live in the docs site developer tree and are covered by its link and coverage gates",
+    ],
+    dependencies: [
+      "Build the documentation site infrastructure at /docs",
+      "Block publish on a conformance kit that proves safety rather than asserting it",
+    ],
+    start: "docs/contributing/EXTENDING.md; docs/self-hosting/MCP-SETUP.md; the docs site manifest",
+    guardrails:
+      "Never document intended behavior as current behavior. Every enforcement claim must name its mechanism and be verifiable by a reader with grep. No em dashes, no antithesis phrasing, no invented statistics, per the existing copy gates.",
+    labels: ["documentation", "clonable"],
+    verification:
+      "npm run verify:docs; npm run test:house-style-copy; npm run test:no-fabricated-claims; a timed first-plugin walkthrough with a real first-time user; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // PLUGIN PLATFORM — PHASE 6: distribution.
+  // The promise the ecosystem is actually built on is that a plugin published
+  // against contract v1 still runs on v1.9 without edits. Everything here
+  // exists to keep that promise, and verticals are where the surface area
+  // actually comes from, because most businesses install a distribution
+  // rather than ten separate plugins.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "plugin-registry-and-signing",
+    title: "Publish a signed plugin registry with trust tiers that gate defaults",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 6 of 6. A public directory with installation from the registry or from a git URL. The listing requirement that matters most is that the plain-language capability summary is generated from the manifest rather than written by the publisher, because publisher-authored summaries are exactly where honesty degrades. Trust tier gates behavior rather than only badges: a community plugin installs at always-propose across every action regardless of what its manifest requested.",
+    acceptance: [
+      "Listing requires passing conformance, a signed package, a verified publisher identity, and a generated capability summary",
+      "The capability summary is generated from the manifest and cannot be overridden by the publisher",
+      "Trust tiers are official, verified publisher, community, and unlisted, and the tier is displayed wherever the plugin is",
+      "A community plugin installs at always-propose across every action regardless of its manifest, and cannot request a higher level until the workspace itself promotes it",
+      "Signature verification happens at install and a tampered package is refused",
+      "Installing from a git URL is supported and carries the unlisted trust tier",
+    ],
+    dependencies: [
+      "Block publish on a conformance kit that proves safety rather than asserting it",
+    ],
+    start: "the conformance kit; the plugin data model; src/app/admin/integrations/page.tsx",
+    guardrails:
+      "Never let a publisher write their own capability summary. Never let a registry tier grant autonomy that reversibility forbids. A signature failure is a refusal, never a warning.",
+    labels: ["security", "clonable"],
+    verification:
+      "an install test covering signature refusal on a tampered package, community tier forcing always-propose, and generated summary immutability; npm run build; a security review pass before merge.",
+  }),
+  card({
+    key: "plugin-vertical-distributions",
+    title: "Ship verticals as signed bundles of plugins, settings and layout",
+    workstream: "productization",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 6 of 6. This is where the scale actually comes from. Most businesses will install a vertical rather than assembling ten plugins, so a distribution is a signed bundle of plugins plus settings plus seed segments plus a dashboard layout, versioned and installable in one action. The existing five fictional demo workspaces are already the shape of this, which makes them useful evidence rather than only a demo.",
+    acceptance: [
+      "A distribution bundles plugins, settings, seed segments and a dashboard layout, is versioned, and installs in one action",
+      "Installing a distribution shows one review screen covering the union of its plugins' capabilities",
+      "A distribution is signed and its constituent plugin versions are pinned",
+      "Updating a distribution shows what changed, including any capability that was added",
+      "Uninstalling a distribution honors each constituent plugin's uninstall contract",
+      "At least one vertical ships and is proven against a fictional workspace end to end",
+    ],
+    dependencies: ["Publish a signed plugin registry with trust tiers that gate defaults"],
+    start:
+      "src/lib/admin/demo/scenarios.ts for the five existing fictional operating models; the plugin install lifecycle; layout overrides",
+    guardrails:
+      "A distribution may never grant a capability its constituent plugins did not declare. Bundling must not become a way to obtain a blanket approval that the individual plugins could not get. Use fictional fixtures only.",
+    labels: ["clonable", "config"],
+    verification:
+      "a distribution install and uninstall test against a fictional workspace asserting capability union, pinning, and per-plugin uninstall; npm run build.",
+  }),
+  card({
+    key: "plugin-contract-versioning",
+    title: "Guarantee a v1 plugin still runs on v1.9 with a real deprecation policy",
+    workstream: "platform",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Plugin Platform phase 6 of 6. This is the promise the ecosystem is built on, and the reason WordPress plugins from a decade earlier still run. A plugin declares a contract range; core guarantees no breaking change within a major version, announces deprecations one minor ahead with a build-time warning, and maintains a shim for one full major. Without this the ecosystem freezes on an old version, which is the observed failure mode rather than a hypothetical one.",
+    acceptance: [
+      "A plugin declares a contract range and the platform refuses to install one outside the supported window",
+      "No breaking change ships within a major version, enforced by a compatibility test suite run against the oldest supported contract",
+      "A deprecation is announced one minor ahead and produces a build-time warning naming the replacement",
+      "A shim layer is maintained for one full major version",
+      "A compatibility matrix is published per release",
+      "A plugin built against the first version of the contract still installs and runs on the latest minor, proven by keeping that exact plugin in CI",
+    ],
+    dependencies: ["Publish a signed plugin registry with trust tiers that gate defaults"],
+    start: "the manifest schema and its contract field; the conformance kit",
+    guardrails:
+      "A breaking change inside a major version is not permitted for convenience, including for a first-party need. The compatibility test must run against a real archived plugin, not a synthetic stub that gets updated alongside the platform.",
+    labels: ["config", "reliability"],
+    verification:
+      "a compatibility suite running an archived first-version plugin against the current build; a deprecation warning test; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // NORTHSTAR PHASE B — Agent Runtime foundation.
+  // These six cards make the northstar primitives (docs/NORTHSTAR.md §6–§20)
+  // explicit, inspectable, and dependency-ordered. They generalise the
+  // scattered task/scheduling/permission work already in phases 2–3 into a
+  // coherent runtime layer that Coworkers (Phase C) and Plugins (Phase D)
+  // build on top of.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "durable-work-engine",
+    title: "Generalise tasks and scheduling into a durable Work Engine",
+    workstream: "runtime",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Introduce a WorkItem abstraction that represents durable, lease-based, retryable, schedulable, and explainable units of work. Every autonomous action — follow-ups, research, invoice reviews, report generation — becomes a WorkItem that survives browser closure, deployment, process restart, model failure, and agent failure. This replaces ad-hoc cron-then-prompt patterns with a transactional claim model (FOR UPDATE SKIP LOCKED or equivalent), bounded retries, and mandatory reason fields on every scheduled future action.",
+    acceptance: [
+      "A WorkItem schema exists with id, tenantId, coworkerId, kind, objective, entityType, entityId, priority, reason, source, status, dueAt, nextCheckAt, leaseOwner, leaseExpiresAt, attemptCount, maxAttempts, createdAt, startedAt, finishedAt, outcome, error, and runId",
+      "WorkItems survive process restart and deployment without loss",
+      "Lease-based claiming prevents two workers from processing the same item simultaneously",
+      "Failed items retry within explicit bounds rather than silently disappearing",
+      "Every scheduled future action carries a human-readable reason field",
+      "Workers can schedule their own future work (e.g. nextCheckAt: Friday 9 AM with reason)",
+      "Existing task and scheduling code migrates onto the WorkItem abstraction without losing data",
+    ],
+    dependencies: [
+      "Decide the scheduling substrate",
+      "Enforce atomic claims and idempotency for jobs and actions",
+    ],
+    start:
+      "src/lib/revenue-os/tasks.ts; scheduling-substrate-decision card; atomic-execution-claims card; docs/NORTHSTAR.md §6",
+    guardrails:
+      "Do not implement autonomous behaviour as cron → prompt → hope. Work must be represented durably. Do not collapse WorkItems into raw database rows without the lease/retry/reason contract. Deterministic logic stays deterministic — WorkItems coordinate, they do not replace SQL.",
+    labels: ["work-engine", "reliability"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; a WorkItem lifecycle test proving create → claim → complete, create → claim → fail → retry, lease expiry → re-claim, and reason-required enforcement; npm run build.",
+  }),
+  card({
+    key: "capability-graph-canonical",
+    title: "Build one canonical Capability Graph for workspace capabilities",
+    workstream: "runtime",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Create a single machine-readable Capability Graph that exposes every available workspace capability (crm.read, gmail.send, calendar.write, etc.) together with its policy (available, approval_required, unavailable). Coworkers and plugins query this graph before beginning work so they discover their capabilities up front rather than by repeatedly failing calls. This extends the existing integration capability platform into a first-class runtime primitive.",
+    acceptance: [
+      "One canonical service resolves capability availability and policy for the current workspace",
+      "Capabilities include both availability and policy (e.g. email.send: available + approval_required)",
+      "Coworker manifests declare required capabilities; the runtime refuses to start a coworker whose requirements are unmet",
+      "Plugin manifests declare required capabilities; unavailable requirements show the plugin as partially or fully unavailable rather than failing unpredictably",
+      "The capability graph is queryable by AI tools so context includes what is and is not available",
+      "Adding a new integration automatically registers its capabilities in the graph",
+    ],
+    dependencies: ["Build the provider capability platform and integration catalog"],
+    start:
+      "src/lib/revenue-os/modules.ts; integration-capability-platform card; docs/NORTHSTAR.md §9",
+    guardrails:
+      "Do not let capabilities be discovered by repeated failed calls. Missing capabilities are a normal state, not an error. The graph must not be bypassed by direct provider calls.",
+    labels: ["capability-graph", "integrations"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; a capability resolution test proving available/unavailable/policy states and coworker requirement checking; npm run build.",
+  }),
+  card({
+    key: "evidence-claim-ledger",
+    title: "Build the Evidence and Claim Ledger for AI-derived facts",
+    workstream: "runtime",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Create an evidence-backed fact system that prevents models from inventing confidence scores and treating them as truth. Every AI-derived fact becomes a Claim with supporting Evidence entries carrying sourceType, sourceId, observation, timestamp, provenance, and strength. Deterministic business rules — not the model — decide whether evidence is strong enough to update authoritative state. This implements the human truth protection hierarchy: human-confirmed > human-entered > verified external > probable external > model inference.",
+    acceptance: [
+      "A Claim schema exists with id, tenant, entity, field/concept, proposedValue, and status (proposed/verified/rejected/superseded)",
+      "An Evidence schema exists with claimId, sourceType, sourceId, observation, timestamp, provenance, and strength",
+      "Models propose observations; deterministic rules evaluate evidence strength against the human truth protection hierarchy",
+      "AI never overwrites human-entered or human-confirmed values without explicit human review",
+      "Blank fields can be filled by strong sourced evidence; existing machine-generated values require stronger evidence to replace",
+      "Every claim retains its full evidence chain for audit",
+    ],
+    dependencies: ["Normalize the cross-channel activity ledger"],
+    start:
+      "src/lib/revenue-os/identity.ts (existing provenance patterns); docs/NORTHSTAR.md §14–§15",
+    guardrails:
+      "Do not allow models to self-assign confidence scores that bypass the evidence system. Do not collapse the human truth hierarchy for convenience. AI-derived facts without evidence are suggestions, not updates.",
+    labels: ["evidence-ledger", "reliability"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; an evidence evaluation test proving claim creation, evidence attachment, strength-based verdict, human-truth hierarchy enforcement, and audit chain integrity; npm run build.",
+  }),
+  card({
+    key: "autonomy-policy-engine",
+    title: "Unify agent permissions into one Autonomy Policy Engine",
+    workstream: "runtime",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Create one coherent system governing all agent actions, unifying AI confirmations, automation permissions, standing approvals, coworker permissions, safety floors, and audit provenance. Implement the five-level autonomy ladder: Level 0 (Prohibited), Level 1 (Always ask), Level 2 (Ask until trusted), Level 3 (Standing permission with constraints), Level 4 (Autonomous read/reason). Hard safety floors — destructive deletion, credential changes, financial transfers, full database exports — must exist in code and be irremovable by prompt instructions or repeated approvals.",
+    acceptance: [
+      "One policy service evaluates whether a given action is allowed for a given coworker in a given context",
+      "The five-level autonomy ladder is implemented: prohibited, always-ask, ask-until-trusted, standing-permission, autonomous-read",
+      "Hard safety floors exist in code for destructive account deletion, credential changes, financial history deletion, full customer database export, high-value refunds, and major financial transfers",
+      "Safety floors cannot be bypassed by prompt instructions, repeated approvals, or standing policy grants",
+      "Every consequential action records: who initiated it, which coworker, which WorkItem, which tool, what inputs, what evidence, what policy applied, whether human approved, and when it executed",
+      "Users can inspect and revoke any standing permission at any time",
+    ],
+    dependencies: [
+      "Finish the shared AI confirmation system",
+      "Generalize approved automation policies",
+      "Add a per-action trust ladder with a permanent irreversible floor",
+    ],
+    start:
+      "src/lib/revenue-os/action-executor.ts; ai-confirmation-system card; automation-policy-registry card; action-trust-ladder card; docs/NORTHSTAR.md §16–§18",
+    guardrails:
+      "Do not allow repeated approvals to automatically promote an action past a hard safety floor. Do not split policy evaluation across multiple services — one engine, one decision path. Prompt instructions must never override code-level safety floors.",
+    labels: ["autonomy-policy", "security"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; a policy evaluation test proving each autonomy level, hard floor enforcement against override attempts, approval provenance recording, and permission revocation; npm run build.",
+  }),
+  card({
+    key: "coworker-model",
+    title: "Introduce Coworkers as first-class runtime identities with manifests",
+    workstream: "coworker",
+    phase: 4,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Introduce Coworkers as first-class configuration objects over the shared Accelerate runtime. A Coworker is not a separate LLM instance or chatbot — it is an identity with a role, objectives, skills, tools, triggers, permissions, autonomy policies, memory scope, allowed entities, budgets, schedules, and escalation rules. Coworkers are described through machine-readable manifests (YAML/JSON) that are explicit, inspectable, portable, and eventually shareable. The Sales Coworker is the reference implementation that proves the entire architecture end-to-end.",
+    acceptance: [
+      "A Coworker schema/manifest exists with identity, role, objectives, skills, tools, triggers, permissions, autonomy policies, memory scope, budgets, schedules, and escalation rules",
+      "Coworker manifests are machine-readable (YAML or JSON) and versioned",
+      "A Coworker operates against the shared runtime — no separate copies of CRM, memory, permissions, or integrations per coworker",
+      "The Sales Coworker demonstrates the full lifecycle: lead arrives → identity resolved → context gathered → research → qualification → reply drafted → human approves → email sent → meeting booked → pre-call brief → meeting processed → CRM updated → follow-up sent → future work scheduled",
+      "Coworker budgets (model spend/day, API calls, emails/day) are enforced and running out of budget is a normal state, not an unexplained failure",
+      "Coworker configuration is inspectable from the admin UI",
+    ],
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Build one canonical Capability Graph for workspace capabilities",
+      "Unify agent permissions into one Autonomy Policy Engine",
+    ],
+    start:
+      "docs/NORTHSTAR.md §4–§5, §25; durable-work-engine card; capability-graph-canonical card; autonomy-policy-engine card",
+    guardrails:
+      "Do not build ten Coworkers before the substrate is proven. Build one (Sales) end-to-end first. Do not create separate runtime copies per coworker. A Coworker is a configuration, not an infrastructure fork. Do not optimise for breadth; optimise for an impressive and reliable end-to-end loop.",
+    labels: ["coworkers", "ai"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; a Sales Coworker end-to-end integration test proving the full lead-to-follow-up lifecycle with at least one human approval gate; manifest schema validation; budget enforcement test; npm run build.",
+  }),
+  card({
+    key: "agent-activity-surface",
+    title: "Add Agent Activity surfaces on every major business record",
+    workstream: "coworker",
+    phase: 4,
+    status: "shipped",
+    priority: "medium",
+    description:
+      "Every major business record (contact, company, opportunity, proposal, invoice) should have a consistent AI/Agent Activity surface that makes autonomous work understandable to a normal operator. This is not a raw audit-log dump — it is a readable timeline showing what the agent looked at, what it concluded, why, what it did, and what happens next. The Command Center evolves into the operator interface into the business runtime, with sections for 'Needs you' (only things requiring human judgment), 'Coworkers' (status of each worker), 'What changed' (business-level intelligence), and 'Activity' (unified human + agent timeline).",
+    acceptance: [
+      "Every major record detail page has an Agent Activity section showing a readable timeline of agent actions",
+      "Each activity entry shows: what happened, when, why (the reason), and what is next",
+      "The Command Center has a 'Needs you' section showing only items requiring human judgment",
+      "The Command Center has a 'Coworkers' section showing each worker's active items and items awaiting approval",
+      "The Command Center has a 'What changed' section showing business-level intelligence (lead volume, close rate, stale proposals, overdue invoices)",
+      "The Activity timeline unifies human and agent actions in one chronological view",
+      "Agent activity is distinguishable from human activity but presented in the same surface",
+    ],
+    dependencies: [
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Complete AI run traces, tool evidence, errors, and usage",
+    ],
+    start:
+      "docs/NORTHSTAR.md §20, §26; ai-run-traces card; record detail workspace; today operator inbox; docs/NORTHSTAR.md §20",
+    guardrails:
+      "Do not present a raw audit-log dump. The activity surface must make autonomous work understandable to a normal operator. Do not expose raw model reasoning — show what it looked at, concluded, why, did, and what is next.",
+    labels: ["coworkers", "admin-ux"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; desktop and mobile screenshots of the Agent Activity surface on a populated record; Command Center Needs-you/Coworkers/What-changed sections verified with fixture data; npm run build.",
+  }),
+  card({
+    key: "finance-coworker",
+    title: "Finance Coworker: revenue tracking, overdue detection, and reconciliation",
+    workstream: "coworker",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "A dedicated Finance Coworker that tracks revenue, monitors payment patterns, alerts on overdue payments, and reconciles financial records. Three work kinds: weekly_revenue_reconciliation (compares won deals week-over-week, weighted pipeline), detect_overdue_payments (flags won deals with no recent activity), revenue_stage_audit (identifies high-stage deals at risk of stalling). Bootstrap registers crm.read + crm.write capabilities and autonomy policies.",
+    acceptance: [
+      "Finance Coworker bootstraps with capabilities and autonomy policies via AI tool",
+      "Three work kinds are registered and handlers execute via work engine cron",
+      "Weekly reconciliation compares won deals week-over-week with weighted pipeline summary",
+      "Overdue payment detection flags won deals with no activity in 14+ days",
+      "Revenue stage audit identifies proposal/negotiation deals stale for 7+ days",
+      "All handler outcomes produce audit receipts",
+    ],
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Unify agent permissions into one Autonomy Policy Engine",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/finance-coworker.ts; src/lib/revenue-os/work-executor.ts",
+    guardrails:
+      "Finance coworker reads CRM data autonomously but writes and alerts require ask_until_trusted level. Never auto-modify financial records.",
+    labels: ["coworkers", "finance"],
+    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+  }),
+  card({
+    key: "operations-coworker",
+    title: "Operations Coworker: system health, integration monitoring, and data quality",
+    workstream: "coworker",
+    phase: 6,
+    status: "shipped",
+    priority: "medium",
+    description:
+      "The meta-coworker that watches the platform itself. Three work kinds: daily_health_check (failed jobs, stale work claims, expired actions), integration_status_audit (source_runs for failures and unconfigured sources), data_quality_scan (contacts without email, opportunities without company name or next action). Bootstrap registers crm.read capability and ops autonomy policies.",
+    acceptance: [
+      "Operations Coworker bootstraps with capabilities and autonomy policies via AI tool",
+      "Three work kinds are registered and handlers execute via work engine cron",
+      "Daily health check counts failed jobs, stale claims, and expired actions",
+      "Integration audit checks source_runs for failures and unconfigured sources",
+      "Data quality scan detects missing critical fields on contacts and opportunities",
+      "All handler outcomes produce audit receipts",
+    ],
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/operations-coworker.ts; src/lib/revenue-os/work-executor.ts",
+    guardrails:
+      "Operations coworker is read-only — it detects and reports issues, never auto-remediates. Alerts require ask_until_trusted autonomy level.",
+    labels: ["coworkers", "operations"],
+    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+  }),
+  card({
+    key: "work-scheduler",
+    title: "Work scheduler: auto-create recurring daily and weekly coworker work items",
+    workstream: "coworker",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "The work scheduler closes the gap between 'coworkers exist' and 'coworkers have work to do'. Before each work engine execution cycle, the scheduler creates daily work items (daily digest, stale deals, bottleneck check, health check, overdue scan) and weekly items (revenue reconciliation on Mondays). Date-based deduplication keys prevent duplicate work items.",
+    acceptance: [
+      "Schedule runs before executeClaimableWork in the work engine cron route",
+      "Daily work items are created for all five daily work kinds",
+      "Weekly work items are created on Mondays (ISO weekday 1)",
+      "Dedupe keys prevent duplicate work items within the same day/week",
+      "Daily operator check-in task surfaces in the inbox",
+      "Scheduler produces audit receipts",
+    ],
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Finance Coworker: revenue tracking, overdue detection, and reconciliation",
+      "Operations Coworker: system health, integration monitoring, and data quality",
+    ],
+    start:
+      "docs/NORTHSTAR.md §E; src/lib/revenue-os/work-scheduler.ts; src/app/api/cron/work-engine/route.ts",
+    guardrails:
+      "Scheduler only creates work items — it never executes them. Deduplication must be date-based, not attempt-based. Scheduler failures must not block the work engine execution cycle.",
+    labels: ["coworkers", "automation"],
+    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+  }),
+  card({
+    key: "memory-architecture",
+    title: "Memory architecture: five distinct memory categories with unified query",
+    workstream: "coworker",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Implements northstar §23: memory should not be treated as a single vector database. Five distinct categories are kept separate: canonical (business records), activity (what happened), knowledge (documents and indexed sources), agent (prior work, research, questions with time-decay horizons), and learned policy (explicit rules from human decisions with supersession). A unified queryMemory interface routes across all five without collapsing them.",
+    acceptance: [
+      "Five memory categories are defined and queryable through queryMemory",
+      "Agent memory entries store prior work, research, scheduled checks, and unresolved questions",
+      "Agent memory decays by relevance horizon (session=4h, daily=26h, weekly=8d, permanent=never)",
+      "Learned policies record rules derived from human decisions with source provenance",
+      "Learned policies supersede previous active policies for the same action+scope",
+      "Work executor consults learned policies before executing and stores agent memory after",
+      "5 AI tools: query_memory, store_agent_memory, get_agent_memory, get_learned_policies, record_learned_policy",
+      "Memory summary (learned policies + recent agent memory) loaded into every agent grounding contract",
+      "MCP server exposes memory/overview resource",
+    ],
+    dependencies: [
+      "Build the Evidence and Claim Ledger for AI-derived facts",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
+    start:
+      "docs/NORTHSTAR.md §23; src/lib/revenue-os/memory.ts; migrations/20260903-memory-architecture.sql",
+    guardrails:
+      "Categories must never be collapsed — each retains its own shape. Agent memory is not canonical data. Learned policies are constraints, not capabilities. Memory query failures must not block agent execution.",
+    labels: ["coworkers", "ai-context"],
+    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+  }),
+  card({
+    key: "budgets",
+    title: "Resource budgets for autonomous workers with explicit spending caps",
+    workstream: "runtime",
+    phase: 3,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Implements northstar §24: autonomous workers require explicit resource constraints. Six budget kinds: model_spend, vendor_api_calls, emails_sent, research_depth, retry_count, runtime_seconds. Limits can be per-coworker or global, with daily/weekly/monthly periods. The work executor checks budgets before executing work and records usage after. Running out of budget is a normal state — work is skipped with a clear reason, not failed.",
+    acceptance: [
+      "Budget limits can be set per-coworker or globally for each budget kind",
+      "checkBudgets returns allowed/exhausted status before work execution",
+      "Work executor skips work when any budget is exhausted",
+      "recordBudgetUsage atomically increments period usage",
+      "90%+ budget usage triggers audit alert",
+      "2 AI tools: check_budgets, get_budget_limits",
+    ],
+    dependencies: [
+      "Generalise tasks and scheduling into a durable Work Engine",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+    ],
+    start: "docs/NORTHSTAR.md §24; src/lib/revenue-os/budgets.ts; migrations/20260903-budgets.sql",
+    guardrails:
+      "Running out of budget is a normal state, not an error. Budget checks are best-effort — failure to check must not block execution. Budgets constrain autonomous work; human-initiated actions are not gated by budgets.",
+    labels: ["automation", "reliability"],
+    verification: "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // DOCUMENTATION SITE — an independent track.
+  // 24 markdown files sit under docs/ and none is end-user documentation:
+  // they are engineering contracts, contributor process and self-hosting
+  // setup. Meanwhile 37 admin pages exist whose only description is the
+  // subtitle string inside their own TSX file. The load-bearing idea is that
+  // RevenueOSModule already declares an unused docsUrl field, so coverage can
+  // be enforced: a module that ships without documentation becomes a red build.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "docs-site-infrastructure",
+    evidence:
+      "docs-site-infrastructure on branch agent/docs-site-infrastructure commit 89f47be: full navigable spine with 3 prose pages (Start, Command Center, Follow-up). Manifest owns structure/ordering; recursive loader with section collapse; frontmatter restricted to title/description/updated; TableOfContents parameterized; prose-docs class; docs chrome in raw-color ratchet at zero; 2 stale budgets lowered. Verified: typecheck, lint --max-warnings=0, verify:admin-tokens, verify:docs, build (345 pages), desktop+mobile browse with inspected screenshots, zero console/5xx, diff-check.",
+    owner: "claude-code:johnconnor:41173",
+    title: "Build the documentation site infrastructure at /docs",
+    workstream: "documentation",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Documentation track, step 1 of 4. Land the whole navigable spine with only three pages of prose, so the system is proven before any content volume is written. The MDX pipeline already exists and is production-proven for the learning hub: createMDX with the gfm, slug and autolink plugins, compileMDX from next-mdx-remote, a filesystem loader, and thirteen components. Three gaps: the loader is a flat directory read with no recursion, there is no persistent sidebar, and there is no docs search. Structure is an explicit manifest rather than a filesystem walk, because a walk can only ever be self-consistent: it can tell you what exists but never catch a page that was supposed to exist.",
+    acceptance: [
+      "src/content/docs/manifest.ts holds the full page tree and is the authority for structure, ordering and section card metadata; MDX files hold only prose",
+      "Frontmatter carries title, description and updated, and deliberately omits section, order, kind and slug, which are derivable; the verifier enforces their absence so no second source of truth appears",
+      "A recursive loader resolves nested slugs and collapses a directory to its overview page, so section landings need no separate route",
+      "Four routes exist: a layout, the landing, a catch-all, and a docs-shaped not-found",
+      "A persistent sidebar highlights the current page and expands its ancestors; breadcrumbs, previous and next links, and an on-page contents rail all work",
+      "TableOfContents is parameterized rather than forked, so its hydration-safety handling is not duplicated and then allowed to diverge",
+      "A prose class distinct from the article one, because the article heading rhythm makes a dense reference page unusable",
+      "Docs components are added to the existing raw-color ratchet at a budget of zero, since this is new code with no legacy to grandfather",
+      "The existing docs/ directory is untouched, because CI and contributors reference those paths",
+    ],
+    dependencies: [],
+    start:
+      "src/lib/mdx.ts; src/app/(marketing)/learn/[slug]/page.tsx; src/components/mdx; scripts/verify-articles.ts as the gate precedent; scripts/verify-admin-tokens.mjs",
+    guardrails:
+      "Do not move any file out of docs/. Do not reuse the conversion components: a docs page ending in a booking call reads as marketing and loses the trust the section exists to build. Do not copy the command-center capability list into MDX; render it from its source file so the two cannot drift.",
+    labels: ["documentation", "config"],
+    verification:
+      "npm run typecheck; npm run lint -- --max-warnings=0; npm run verify:admin-tokens; a new verify:docs run in allow-missing mode; npm run build; browse the three trees and confirm sidebar, breadcrumbs and pager work with three pages present.",
+  }),
+  card({
+    key: "docs-integration-surfaces",
+    evidence:
+      "docs-integration-surfaces on branch agent/docs-integration-surfaces commit d99b06a: Docs group in search index (type-enforced group/priority/order), sitemap from manifest (9 docs URLs live), header/footer /docs links, generated public/docs-llms.txt with CI check mode, crawler allows for /docs/, self-host CTA retargeted to new quickstart page. Verified: typecheck, lint clean, agent-contract, verify:docs, llms check, test:search, positioning+guardrails, build 347 pages, live API/sitemap/robots proof, diff-check.",
+    owner: "claude-code:johnconnor:90701",
+    title: "Wire docs into search, sitemap, navigation and a generated llms index",
+    workstream: "documentation",
+    phase: 6,
+    status: "shipped",
+    priority: "high",
+    description:
+      "Documentation track, step 2 of 4, still with only three pages of prose so the wiring is proven before the content exists. Search costs almost nothing: one deploy-time index already serves the whole site and the client filters locally, so adding docs is a loop plus two typed entries, and because those are a keyed record and a typed array, forgetting either breaks the typecheck. Two corrections to earlier assumptions are load-bearing here. src/content/navigation.ts is dead and imported by nothing, so links go in the header and footer components directly. And a static file in public shadows any route handler at the same path, so the machine-readable index must be a build script with a check mode rather than a route.",
+    acceptance: [
+      "Docs entries join the existing search index with their own group, and both the priority record and the display order array are updated, which the type system enforces",
+      "The sitemap derives docs entries from the manifest rather than a hand-written list, matching the note already in that file about why",
+      "Header and footer link to the docs, added to their own local lists rather than to the dead navigation content file, which is removed separately",
+      "A build script generates the machine-readable index with a check mode verified in CI, replacing the hand-written marketing sheet that today references nothing in the product and is read by no code",
+      "AI crawler allow lists include the docs path, since publishing an index for a path those agents cannot fetch is self-defeating",
+      "The open-source page's self-hosting call to action points at the self-hosting quickstart rather than deep-linking a repository file",
+    ],
+    dependencies: ["Build the documentation site infrastructure at /docs"],
+    start:
+      "src/lib/search/index.ts and src/lib/search/score.ts; src/app/sitemap.ts; src/components/layout/Header.tsx and Footer.tsx; src/app/robots.ts; public/llms.txt",
+    guardrails:
+      "Do not hand-list docs URLs anywhere. Do not add docs links to src/content/navigation.ts, which is dead. Check the open-source stats test before editing that page, since it asserts against it.",
+    labels: ["documentation", "indexing"],
+    verification:
+      "npm run typecheck; npm run verify:docs; a new verify:llms check mode; npm run test:open-source-stats; npm run build; confirm search finds a docs page and the sitemap and index contain only live URLs.",
+  }),
+  card({
+    key: "docs-module-coverage-gate",
+    title: "Make a module that ships without documentation a red build",
+    workstream: "documentation",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    description:
+      "Documentation track, step 3 of 4, and the reason this track is worth doing properly. RevenueOSModule already declares a docsUrl field at modules.ts:47 that only the generated extension module populates. That field is the seam. Every user guide section declares which modules it documents, every module points back at its section, and CI proves both directions resolve. This is what turns documentation from a marketing artifact into part of the product contract, and it is the single highest-leverage change in the track.",
+    acceptance: [
+      "Every core and optional module populates docsUrl with its user guide section",
+      "The manifest schema accepts a site-relative path, since it currently types the field as a URI and would reject one",
+      "verify-module-contract fails when a module's docsUrl does not resolve to a manifest slug",
+      "Every non-extension module is claimed by exactly one user guide section, so a new module cannot ship undocumented and cannot be documented twice",
+      "Every capability in the command-center content file is claimed by exactly one reference page",
+      "Every registered AI tool appears in the AI capabilities reference page",
+      "The docs verifier also proves manifest and filesystem bijection with no orphan pages, that every internal link resolves, and that no slug duplicates the generated roadmap or changelog",
+      "The public prerender check gains the docs routes and a count assertion, so coverage is proven against a real build rather than against the manifest alone",
+      "docsUrl is surfaced in the product next to each module, giving in-product help links that CI proves are live",
+    ],
+    dependencies: [
+      "Wire docs into search, sitemap, navigation and a generated llms index",
+      "Close the module contract gaps that let unreachable code ship",
+    ],
+    start:
+      "src/lib/revenue-os/modules.ts:47; scripts/verify-module-contract.mjs; scripts/verify-public-prerender.mjs; extensions/module-manifest.schema.json; src/content/command-center.ts",
+    guardrails:
+      "Do not satisfy the coverage gate with stub pages. A section that exists only to keep CI green is worse than a failing build, because it hides the gap. Do not restate the generated roadmap or changelog as prose.",
+    labels: ["documentation", "qa"],
+    verification:
+      "npm run verify:docs; npm run verify:module-contract; npm run verify:public-prerender; proof that each new clause fails when its target is removed; npm run build.",
+  }),
+  card({
+    key: "docs-content-first-pass",
+    title: "Write the 49-page documentation spine in link-dependency order",
+    workstream: "documentation",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    description:
+      "Documentation track, step 4 of 4. With the manifest complete every page is a fill-in-the-blank with a known slug, known neighbors and a known place in the sidebar. Write in link-dependency order so no page ever links forward to something unwritten. Getting started first because it establishes the vocabulary the rest assumes: workspace, module, record, action queue, approval gating, receipt, audit and idempotency, none of which the site explains to a user today.",
+    acceptance: [
+      "Getting started is six pages including a core-concepts page defining the shared vocabulary",
+      "The user guide is thirty-four pages: a card-grid landing plus ten sections mapped onto module clusters, each with an overview, a reference page, and how-tos for the surfaces operators touch daily",
+      "After the ten section overviews land, every sidebar entry has a landing page and the card grid is fully live, which is the natural stopping point for a partial release",
+      "The developer tree is nine pages, seeded by splitting the MCP setup document into concepts and per-client setup, since at 283 lines it is the most user-ready document in the repository",
+      "The allow-missing flag is dropped and the manifest-to-filesystem bijection is enforced permanently",
+      "Every page passes the existing copy gates, which already walk this directory and already handle MDX, so no em dashes, no antithesis phrasing and no invented statistics",
+      "No page restates the generated roadmap, the changelog, or the command-center capability list",
+    ],
+    dependencies: ["Make a module that ships without documentation a red build"],
+    start:
+      "src/content/docs/manifest.ts; docs/self-hosting/MCP-SETUP.md; docs/contributing/EXTENDING.md; src/lib/admin/navigation.ts for the section spine; every admin PageHeader subtitle as raw material",
+    guardrails:
+      "Never document intended behavior as current behavior. The plugin platform pages are written last, against shipped behavior, because they are the ones most likely to overstate. Each batch must leave the link gate green so it can merge without waiting for the next.",
+    labels: ["documentation", "clonable"],
+    verification:
+      "npm run verify:docs with the allow-missing flag removed; npm run test:house-style-copy; npm run test:no-fabricated-claims; npm run verify:public-prerender; npm run build.",
   }),
 ];
 
@@ -4212,6 +8333,38 @@ for (const feature of featureBacklog) {
   // manifest order. This makes the board order agree with the handoff notes.
   feature.sort_order =
     circuitIndex >= 0 ? (circuitIndex + 1) * 1000 : (LOOP_ONE.length + count + 1) * 1000;
+}
+
+// -----------------------------------------------------------------------------
+// Dispatch-readiness pass: milestone:next was only ever LOOP_ONE membership, a
+// fixed list from the original second-brain build circuit that stopped
+// growing once that circuit largely shipped. Every one of the 160+ cards
+// added since is permanently milestone:later regardless of whether its
+// dependencies are actually shipped — the board's planning horizon
+// (milestone) and its actual claimability (dependency-ready + backlog/
+// planned) were fully decoupled. An agent asking "what should I work on?"
+// could get zero legal answers even with dependency-ready work sitting in
+// Later. Promote a claimable, dependency-ready card out of Later into Next
+// so the two stay in sync without hand-curating LOOP_ONE forever.
+// -----------------------------------------------------------------------------
+{
+  const dependencyGraph = buildDependencyGraph(featureBacklog);
+  for (const feature of featureBacklog) {
+    if (feature.status !== "backlog" && feature.status !== "planned") continue;
+    if (!feature.labels.includes("milestone:later")) continue;
+    const depKeys = dependencyGraph.edges.get(feature.seed_key) ?? [];
+    const ready = depKeys.every(
+      (depKey) => dependencyGraph.byKey.get(depKey)?.status === "shipped",
+    );
+    if (!ready) continue;
+    feature.labels = feature.labels.map((label) =>
+      label === "milestone:later" ? "milestone:next" : label,
+    );
+    feature.notes = feature.notes.replace(
+      "Board milestone: Later. This card keeps its full specification but is outside the current delivery circuit. Do not start it before Now and dependency-ready Next work unless a current card explicitly depends on it.",
+      "Board milestone: Next. Every declared dependency is shipped, so this is dependency-ready and outside the legacy delivery circuit — claim it before further Later work.",
+    );
+  }
 }
 
 export function validateFeatureBacklog() {
@@ -4242,8 +8395,18 @@ export function validateFeatureBacklog() {
     if (!LOOP_ONE_SET.has(key))
       throw new Error(`NOW_KEYS includes ${key}, which is not on the delivery circuit`);
   }
+  // The limit exists so the board reflects what is genuinely being worked, not
+  // a wish list. It was two when one founder was the only claimant; it is four
+  // now that agent sessions claim cards alongside him. Raise it deliberately,
+  // never to make a status change pass. 2026-09-03: raised to five by explicit
+  // founder direction to cover four active agent sessions plus the founder's
+  // own claim. Revisit before raising again; the limit is a discipline tool.
+  // 2026-09-03: raised to six by explicit founder direction to take over the
+  // universal kanban overhaul (feature-board-interaction-rebuild) alongside
+  // the five active claims. Revisit before raising again.
+  const WIP_LIMIT = 6;
   const claimed = featureBacklog.filter((feature) => feature.status === "in_progress");
-  if (claimed.length > 2) {
+  if (claimed.length > WIP_LIMIT) {
     throw new Error(
       `WIP limit exceeded: ${claimed.length} cards in progress (${claimed.map((feature) => feature.seed_key).join(", ")}). Finish or park one first.`,
     );

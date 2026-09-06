@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 
 const GROUP_ORDER: SearchGroup[] = [
   "Pages",
+  "Docs",
   "Industries",
   "Services",
   "Packages",

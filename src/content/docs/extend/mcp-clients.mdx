@@ -1,0 +1,43 @@
+---
+title: "Connect an MCP client"
+description: "Connect an external assistant to the intended workspace and verify a read first."
+updated: "2026-09-05"
+---
+
+The recommended workspace connection is the tenant HTTP endpoint. It authenticates with the MCP key issued for that workspace. The local stdio runner is a separate self-hosting path with different credentials and scope.
+
+## Connect over HTTP
+
+1. In the intended workspace, open **Integrations** and generate an MCP key. Copy it when it is shown; keep it private.
+2. In an MCP client that supports Streamable HTTP and Bearer authentication, add the endpoint below using your actual domain and tenant slug.
+3. Configure the workspace key as the Bearer credential using the client's supported authentication controls. Do not put the key in the URL.
+4. Enable the connection and ask for a bounded read, such as the current Today queue. Verify that the result belongs to the intended workspace.
+
+```text
+https://<your-domain>/api/public/<tenantSlug>/mcp
+```
+
+Client configuration screens differ. Use your client's current MCP instructions for its connection fields. The endpoint and workspace credential above are the Command Center settings it needs.
+
+## Understand what the connection permits
+
+Available tools depend on module and connection requirements. Read tools return bounded workspace context. Mutating tools stage proposals for [approval](/docs/command-center/approvals); the client cannot approve its own proposal through MCP.
+
+A confirmation shown by the external assistant does not replace the Command Center's approval decision.
+
+## Local stdio: installation administrators
+
+The repository also includes `scripts/revenue-os-mcp.ts`. This launches a local process using a Supabase service-role credential and the application's system workspace context. It does **not** consume the tenant MCP Bearer key above and should not be treated as a general workspace-switching connection.
+
+Use it only when you administer the installation and have verified which database and system workspace the runner resolves. Follow the version-matched [MCP setup guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/MCP-SETUP.md). Prefer the tenant HTTP path for ordinary workspace access.
+
+## Troubleshoot the connection
+
+| Symptom                       | Check                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| No tools appear               | The connection is enabled and the client supports this transport         |
+| Invalid or missing tenant key | The credential is sent as Bearer auth and belongs to the URL's workspace |
+| A tool is unavailable         | Its module and required provider connection are enabled and ready        |
+| The host cannot be reached    | The domain resolves and the deployment is reachable from the client      |
+
+An endpoint responding to a health request does not prove an authenticated tool call will work. Verify a read before trying to stage a change.

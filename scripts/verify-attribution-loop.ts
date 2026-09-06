@@ -18,6 +18,7 @@ import { loadRevenueAnalytics } from "../src/lib/revenue-os/analytics";
 import { ingestInboundLead } from "../src/lib/revenue-os/inbound";
 import { transitionOpportunity } from "../src/lib/revenue-os/pipeline";
 import { createServiceRoleClient } from "../src/lib/supabase/server";
+import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/constants";
 
 const TEST_EMAIL_PREFIX = "revenue-os-verify";
 const WINDOW_DAYS = 30;
@@ -81,7 +82,7 @@ async function main() {
       `Found ${preexisting.length} leftover verification contact(s). Run with --cleanup first.`,
     );
 
-  const baseline = await loadRevenueAnalytics(supabase, WINDOW_DAYS);
+  const baseline = await loadRevenueAnalytics(supabase, ACCELERATE_TENANT_ID, WINDOW_DAYS);
 
   // --- Capture, then drive the full canonical path to won -------------------
   const captured = await ingestInboundLead(supabase, {
@@ -149,7 +150,7 @@ async function main() {
   });
 
   // --- The funnel must count it at every step ------------------------------
-  const after = await loadRevenueAnalytics(supabase, WINDOW_DAYS);
+  const after = await loadRevenueAnalytics(supabase, ACCELERATE_TENANT_ID, WINDOW_DAYS);
   const delta = (key: keyof typeof after.funnel) =>
     Number(after.funnel[key]) - Number(baseline.funnel[key]);
   check(
@@ -187,7 +188,7 @@ async function main() {
 
   // --- Removing it must return the funnel to baseline ----------------------
   await purge(supabase);
-  const restored = await loadRevenueAnalytics(supabase, WINDOW_DAYS);
+  const restored = await loadRevenueAnalytics(supabase, ACCELERATE_TENANT_ID, WINDOW_DAYS);
   check(
     "the funnel returns to baseline once the record is removed",
     restored.funnel.opportunities === baseline.funnel.opportunities &&

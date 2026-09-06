@@ -7,6 +7,7 @@ import {
   BookmarkPlus,
   Check,
   Columns3,
+  GripVertical,
   List,
   Loader2,
   Plus,
@@ -23,8 +24,12 @@ import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
+import { KanbanBoard, type KanbanCardRenderOpts } from "@/components/kanban/KanbanBoard";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
+import { useKanbanColumns } from "@/lib/kanban/useKanbanColumns";
+import type { KanbanColumnRecord } from "@/lib/kanban/types";
+import type { KanbanReorderUpdate } from "@/lib/kanban/useKanbanDnd";
 import {
   DEFAULT_PIPELINE_VIEW,
   PIPELINE_VISIBLE_FIELDS,
@@ -41,7 +46,6 @@ import {
   type PipelineVisibleField,
   type SavedPipelineView,
 } from "@/lib/admin/pipelineViews";
-import { REVENUE_STAGE_META, REVENUE_STAGES, type RevenueStage } from "@/lib/revenue-os/types";
 import { cn } from "@/lib/utils";
 
 interface Opportunity {
@@ -49,7 +53,8 @@ interface Opportunity {
   name: string | null;
   email: string | null;
   stage: string;
-  canonical_stage: RevenueStage | null;
+  sort_order: number;
+  canonical_stage: string | null;
   estimated_value: number;
   won_value: number;
   next_action: string | null;
@@ -65,17 +70,18 @@ interface Opportunity {
   company?: { name: string; domain: string | null; industry: string | null } | null;
 }
 
-const tones: Record<RevenueStage, string> = {
-  new: "bg-black/[0.05] text-[var(--admin-muted)] dark:bg-white/[0.07]",
-  contacted: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
-  qualified: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-300",
-  meeting: "bg-amber-500/12 text-amber-800 dark:text-amber-300",
-  proposal: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
-  negotiation: "bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300",
+/** Role-driven tone for the stage badge/dropdown — replaces the old
+ * hardcoded per-canonical-stage-name lookup so a custom admin-created stage
+ * still gets a sensible color instead of falling through undefined. */
+const ROLE_TONE: Record<"open" | "won" | "lost", string> = {
+  open: "bg-black/[0.05] text-[var(--admin-muted)] dark:bg-white/[0.07]",
   won: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   lost: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
-  nurture: "bg-slate-500/10 text-slate-700 dark:text-slate-300",
 };
+function toneForColumn(column: KanbanColumnRecord | undefined): string {
+  const role = column?.metadata?.role;
+  return ROLE_TONE[role === "won" || role === "lost" ? role : "open"];
+}
 const money = (value: number) =>
   new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -96,7 +102,10 @@ export default function PipelinePage() {
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState("");
-  const [dialog, setDialog] = useState<"create" | "customize" | "save" | null>(null);
+  const [dialog, setDialog] = useState<"create" | "customize" | "save" | "add-stage" | null>(null);
+  const [stageLabel, setStageLabel] = useState("");
+  const [stageRole, setStageRole] = useState<"open" | "won" | "lost">("open");
+  const [stageProbability, setStageProbability] = useState(20);
   const [viewName, setViewName] = useState("");
   const patchState = (patch: Partial<PipelineViewState>) => {
     setActiveSaved(null);
@@ -153,50 +162,94 @@ export default function PipelinePage() {
     () => [...new Set(items.map((item) => item.owner_email || "unassigned"))].sort(),
     [items],
   );
+  const {
+    columns: pipelineColumns,
+    createColumn,
+    renameColumn,
+    deleteColumn,
+  } = useKanbanColumns("pipeline");
+  const shownColumns = useMemo(
+    () =>
+      state.stage === "all"
+        ? pipelineColumns
+        : pipelineColumns.filter((column) => column.column_key === state.stage),
+    [pipelineColumns, state.stage],
+  );
+  const columnByKey = useMemo(
+    () => new Map(pipelineColumns.map((column) => [column.column_key, column])),
+    [pipelineColumns],
+  );
+  const roleOf = useCallback(
+    (canonicalOrRaw: string | null) => {
+      if (!canonicalOrRaw) return "open" as const;
+      const role = columnByKey.get(canonicalOrRaw)?.metadata?.role;
+      return role === "won" || role === "lost" ? role : ("open" as const);
+    },
+    [columnByKey],
+  );
   const metrics = useMemo(() => {
-    const open = items.filter(
-      (item) => !["won", "lost"].includes(item.canonical_stage ?? item.stage),
-    );
+    const open = items.filter((item) => roleOf(item.canonical_stage ?? item.stage) === "open");
     return {
       open: open.length,
       value: open.reduce((sum, item) => sum + Number(item.estimated_value || 0), 0),
+      // "At proposal" stays tied to the two default sales-path stage names —
+      // there's no generic "position in funnel" concept for a custom stage
+      // (same accepted trim as src/lib/revenue-os/analytics.ts's funnel
+      // buckets), so a renamed/removed proposal/negotiation stage won't be
+      // reflected here.
       proposals: items.filter((item) =>
         ["proposal", "negotiation"].includes(item.canonical_stage ?? item.stage),
       ).length,
       won: items.reduce((sum, item) => sum + Number(item.won_value || 0), 0),
     };
-  }, [items]);
-  const groups = useMemo(
-    () =>
-      REVENUE_STAGES.map((stage) => {
-        const opportunities = shown.filter((item) => (item.canonical_stage ?? "new") === stage);
-        return {
-          stage,
-          opportunities,
-          total: opportunities.reduce((sum, item) => sum + Number(item.estimated_value || 0), 0),
-        };
-      }).filter((group) => state.stage === "all" || group.stage === state.stage),
-    [shown, state.stage],
-  );
+  }, [items, roleOf]);
 
-  const updateStage = async (item: Opportunity, stage: RevenueStage) => {
-    const lossReason =
-      stage === "lost" ? window.prompt("Why was this opportunity lost?")?.trim() : undefined;
-    if (stage === "lost" && !lossReason) return;
-    setSaving(true);
-    try {
+  const moveToStage = useCallback(
+    async (item: Opportunity, columnKey: string, sortOrder?: number): Promise<boolean> => {
+      const role = roleOf(columnKey);
+      const lossReason =
+        role === "lost" ? window.prompt("Why was this opportunity lost?")?.trim() : undefined;
+      if (role === "lost" && !lossReason) return false;
+      setSaving(true);
+      try {
+        await fetchJson("/api/admin/revenue-os/pipeline", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: item.id,
+            stage: columnKey,
+            lossReason,
+            sortOrder,
+            reason: "Founder pipeline update",
+          }),
+        });
+        await load();
+        return true;
+      } catch (reason) {
+        setActionError(reason instanceof Error ? reason.message : "Could not move opportunity.");
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [load, roleOf],
+  );
+  // Kept for the plain <select> dropdown (Card/ListView/StageSelect), which
+  // doesn't need a drag position — always appends to the end of the target
+  // column server-side by omitting sortOrder.
+  const updateStage = (item: Opportunity, stage: string) => moveToStage(item, stage);
+
+  const commitReorder = useCallback(
+    async (updates: KanbanReorderUpdate[]) => {
       await fetchJson("/api/admin/revenue-os/pipeline", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: item.id, stage, lossReason, reason: "Founder pipeline update" }),
+        body: JSON.stringify({ reorder: updates }),
       });
       await load();
-    } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Could not move opportunity.");
-    } finally {
-      setSaving(false);
-    }
-  };
+    },
+    [load],
+  );
   const create = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
@@ -383,9 +436,9 @@ export default function PipelinePage() {
                       }
                     >
                       <option value="all">All stages</option>
-                      {REVENUE_STAGES.map((stage) => (
-                        <option key={stage} value={stage}>
-                          {REVENUE_STAGE_META[stage].label}
+                      {pipelineColumns.map((column) => (
+                        <option key={column.column_key} value={column.column_key}>
+                          {column.label}
                         </option>
                       ))}
                     </Select>
@@ -411,6 +464,16 @@ export default function PipelinePage() {
                       icon={BookmarkPlus}
                       onClick={() => setDialog("save")}
                     />
+                    <ToolButton
+                      label="Add stage"
+                      icon={Plus}
+                      onClick={() => {
+                        setStageLabel("");
+                        setStageRole("open");
+                        setStageProbability(20);
+                        setDialog("add-stage");
+                      }}
+                    />
                     <div
                       className="flex rounded-xl p-1 shadow-[var(--admin-shadow-border)]"
                       role="group"
@@ -432,9 +495,49 @@ export default function PipelinePage() {
                   </div>
                 </div>
                 {state.layout === "board" ? (
-                  <Board groups={groups} state={state} saving={saving} updateStage={updateStage} />
+                  shownColumns.length > 0 ? (
+                    <div className="w-full min-w-0 border-t border-[var(--admin-border)] bg-black/[0.012] p-4 dark:bg-white/[0.012] sm:p-5">
+                      <KanbanBoard<Opportunity>
+                        columns={shownColumns}
+                        items={shown}
+                        getItemId={(item) => item.id}
+                        getItemColumnKey={(item) => item.canonical_stage ?? item.stage}
+                        getItemSortOrder={(item) => Number(item.sort_order)}
+                        getItemLabel={(item) => item.name || item.company?.name || "Opportunity"}
+                        setItemPosition={(item, columnKey, sortOrder) => ({
+                          ...item,
+                          stage: columnKey,
+                          canonical_stage: columnKey,
+                          sort_order: sortOrder,
+                        })}
+                        renderCard={(item, opts) => (
+                          <PipelineKanbanCard
+                            item={item}
+                            opts={opts}
+                            state={state}
+                            columns={pipelineColumns}
+                            saving={saving}
+                            updateStage={updateStage}
+                          />
+                        )}
+                        onReorder={commitReorder}
+                        onCrossColumnMove={(item, _from, to) => moveToStage(item, to)}
+                        emptyColumnHint="No opportunities in this stage."
+                        onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
+                        onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
+                      />
+                    </div>
+                  ) : (
+                    <LoadingSkeleton variant="board" />
+                  )
                 ) : (
-                  <ListView items={shown} state={state} saving={saving} updateStage={updateStage} />
+                  <ListView
+                    items={shown}
+                    state={state}
+                    saving={saving}
+                    updateStage={updateStage}
+                    columns={pipelineColumns}
+                  />
                 )}
               </AdminSurface>
             </>
@@ -576,6 +679,98 @@ export default function PipelinePage() {
               className="min-h-11 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] active:scale-[0.96]"
             >
               Save view
+            </button>
+          </div>
+        </form>
+      </AdminDialog>
+      <AdminDialog
+        open={dialog === "add-stage"}
+        onClose={() => setDialog(null)}
+        title="Add pipeline stage"
+        labelledBy="add-stage-title"
+        maxWidth="sm"
+      >
+        <form
+          onSubmit={async (event) => {
+            event.preventDefault();
+            const label = stageLabel.trim();
+            if (!label) return;
+            setSaving(true);
+            try {
+              await createColumn({
+                label,
+                metadata: { role: stageRole, probability: stageProbability },
+              });
+              setDialog(null);
+            } catch {
+              // useKanbanColumns already toasts the failure.
+            } finally {
+              setSaving(false);
+            }
+          }}
+          className="admin-dialog-surface w-full rounded-[24px] bg-[var(--admin-surface)] p-6"
+        >
+          <DialogHead
+            id="add-stage-title"
+            eyebrow="Pipeline"
+            title="Add a stage"
+            description="New stages appear as a column on the board and an option everywhere a stage is picked."
+            close={() => setDialog(null)}
+          />
+          <label className="mt-6 block text-xs font-semibold">
+            Stage name
+            <input
+              autoFocus
+              required
+              maxLength={60}
+              value={stageLabel}
+              onChange={(event) => setStageLabel(event.target.value)}
+              placeholder="Trial scheduled"
+              className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none"
+            />
+          </label>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <SelectBlock
+              label="Role"
+              value={stageRole}
+              onChange={(value) => setStageRole(value as "open" | "won" | "lost")}
+            >
+              <option value="open">Open, still in play</option>
+              <option value="won">Won, a closed win</option>
+              <option value="lost">Lost, a closed loss</option>
+            </SelectBlock>
+            <label className="text-xs font-semibold">
+              Win probability ({stageProbability}%)
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={stageProbability}
+                onChange={(event) => setStageProbability(Number(event.target.value))}
+                className="mt-3.5 w-full"
+              />
+            </label>
+          </div>
+          <p className="admin-copy mt-3 text-xs">
+            Won/lost stages close the opportunity and stop counting it as open pipeline. A won stage
+            always records the deal value; a lost stage always requires a reason when an opportunity
+            moves into it.
+          </p>
+          <div className="mt-6 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setDialog(null)}
+              className="min-h-11 px-4 text-xs font-semibold text-[var(--admin-muted)]"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving || !stageLabel.trim()}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] disabled:opacity-50"
+            >
+              {saving && <Loader2 className="size-4 animate-spin" />} Add stage
             </button>
           </div>
         </form>
@@ -777,28 +972,32 @@ function DialogHead({
 
 function StageSelect({
   item,
+  columns,
   saving,
   updateStage,
 }: {
   item: Opportunity;
+  columns: KanbanColumnRecord[];
   saving: boolean;
-  updateStage: (item: Opportunity, stage: RevenueStage) => Promise<void>;
+  updateStage: (item: Opportunity, stage: string) => Promise<boolean>;
 }) {
-  const stage = item.canonical_stage ?? "new";
+  const stage = item.canonical_stage ?? item.stage;
+  const current = columns.find((column) => column.column_key === stage);
   return (
     <select
       aria-label={`Stage for ${item.name || item.company?.name || "opportunity"}`}
       value={stage}
       disabled={saving}
-      onChange={(event) => void updateStage(item, event.target.value as RevenueStage)}
+      onChange={(event) => void updateStage(item, event.target.value)}
       className={cn(
         "min-h-10 max-w-[150px] rounded-xl border-0 px-3 text-xs font-semibold outline-none ring-1 ring-inset ring-black/5 focus:ring-2 disabled:opacity-50 dark:ring-white/10",
-        tones[stage],
+        toneForColumn(current),
       )}
     >
-      {REVENUE_STAGES.map((value) => (
-        <option key={value} value={value}>
-          {REVENUE_STAGE_META[value].label}
+      {!current && <option value={stage}>{stage}</option>}
+      {columns.map((column) => (
+        <option key={column.column_key} value={column.column_key}>
+          {column.label}
         </option>
       ))}
     </select>
@@ -807,13 +1006,15 @@ function StageSelect({
 function Card({
   item,
   state,
+  columns,
   saving,
   updateStage,
 }: {
   item: Opportunity;
   state: PipelineViewState;
+  columns: KanbanColumnRecord[];
   saving: boolean;
-  updateStage: (item: Opportunity, stage: RevenueStage) => Promise<void>;
+  updateStage: (item: Opportunity, stage: string) => Promise<boolean>;
 }) {
   return (
     <article
@@ -871,67 +1072,53 @@ function Card({
             </p>
           )}
         </div>
-        <StageSelect item={item} saving={saving} updateStage={updateStage} />
+        <StageSelect item={item} columns={columns} saving={saving} updateStage={updateStage} />
       </div>
     </article>
   );
 }
-function Board({
-  groups,
+/** Card render for the drag-and-drop board — Card's content plus a grip
+ * handle wired to KanbanBoard's dragHandleProps. Only the grip starts a
+ * drag (never the whole card), so touch scrolling that begins on the card
+ * body keeps working on phones; the inline stage select remains the
+ * tap-first way to move a deal. Matches the Feature Board pattern. */
+function PipelineKanbanCard({
+  item,
+  opts,
   state,
+  columns,
   saving,
   updateStage,
 }: {
-  groups: { stage: RevenueStage; opportunities: Opportunity[]; total: number }[];
+  item: Opportunity;
+  opts: KanbanCardRenderOpts;
   state: PipelineViewState;
+  columns: KanbanColumnRecord[];
   saving: boolean;
-  updateStage: (item: Opportunity, stage: RevenueStage) => Promise<void>;
+  updateStage: (item: Opportunity, stage: string) => Promise<boolean>;
 }) {
+  const label = item.name || item.company?.name || "Untitled opportunity";
   return (
-    <div
-      aria-label="Canonical opportunity stage board"
-      className="w-full min-w-0 snap-x snap-mandatory overflow-x-auto border-t border-[var(--admin-border)] bg-black/[0.012] p-4 dark:bg-white/[0.012] sm:p-5"
-    >
-      <div className="flex min-w-max items-start gap-3">
-        {groups.map((group) => (
-          <section
-            key={group.stage}
-            aria-labelledby={`pipeline-stage-${group.stage}`}
-            className="w-[286px] shrink-0 snap-start"
-          >
-            <div className="mb-3 flex min-h-11 items-center justify-between gap-3 px-1">
-              <div className="flex items-center gap-2">
-                <h2 id={`pipeline-stage-${group.stage}`} className="text-xs font-semibold">
-                  {REVENUE_STAGE_META[group.stage].label}
-                </h2>
-                <span className="font-mono text-[9px] tabular-nums text-[var(--admin-muted)]">
-                  {group.opportunities.length}
-                </span>
-              </div>
-              {has(state, "value") && (
-                <span className="font-mono text-[10px] tabular-nums text-[var(--admin-muted)]">
-                  {money(group.total)}
-                </span>
-              )}
-            </div>
-            <div className="space-y-2.5">
-              {group.opportunities.map((item) => (
-                <Card
-                  key={item.id}
-                  item={item}
-                  state={state}
-                  saving={saving}
-                  updateStage={updateStage}
-                />
-              ))}
-              {!group.opportunities.length && (
-                <div className="grid min-h-28 place-items-center rounded-2xl border border-dashed border-[var(--admin-border)] px-4 text-center">
-                  <p className="admin-copy text-xs">No opportunities in this stage.</p>
-                </div>
-              )}
-            </div>
-          </section>
-        ))}
+    <div className={cn("group flex items-start gap-1.5", opts.isDragging && "opacity-60")}>
+      {!opts.isOverlay && (
+        <button
+          type="button"
+          aria-label={opts.disabled ? "Reordering is unavailable" : `Drag ${label}`}
+          disabled={opts.disabled}
+          {...opts.dragHandleProps}
+          className="grid size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30 dark:hover:bg-white/[0.05]"
+        >
+          <GripVertical className="size-4" />
+        </button>
+      )}
+      <div className="min-w-0 flex-1">
+        <Card
+          item={item}
+          state={state}
+          columns={columns}
+          saving={saving}
+          updateStage={updateStage}
+        />
       </div>
     </div>
   );
@@ -939,13 +1126,15 @@ function Board({
 function ListView({
   items,
   state,
+  columns,
   saving,
   updateStage,
 }: {
   items: Opportunity[];
   state: PipelineViewState;
+  columns: KanbanColumnRecord[];
   saving: boolean;
-  updateStage: (item: Opportunity, stage: RevenueStage) => Promise<void>;
+  updateStage: (item: Opportunity, stage: string) => Promise<boolean>;
 }) {
   return (
     <div className="border-t border-[var(--admin-border)]">
@@ -953,13 +1142,21 @@ function ListView({
         <table className="w-full min-w-[820px] text-left text-sm">
           <thead className="bg-black/[0.018] font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
             <tr>
-              <th className="px-5 py-3.5">Opportunity</th>
-              {has(state, "contact") && <th>Contact</th>}
-              {has(state, "source") && <th>Source</th>}
-              {has(state, "value") && <th className="text-right">Value</th>}
-              {has(state, "next_action") && <th>Next action</th>}
-              {has(state, "owner") && <th>Owner</th>}
-              <th className="px-5">Stage</th>
+              <th scope="col" className="px-5 py-3.5">
+                Opportunity
+              </th>
+              {has(state, "contact") && <th scope="col">Contact</th>}
+              {has(state, "source") && <th scope="col">Source</th>}
+              {has(state, "value") && (
+                <th scope="col" className="text-right">
+                  Value
+                </th>
+              )}
+              {has(state, "next_action") && <th scope="col">Next action</th>}
+              {has(state, "owner") && <th scope="col">Owner</th>}
+              <th scope="col" className="px-5">
+                Stage
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--admin-border)]">
@@ -1002,7 +1199,12 @@ function ListView({
                   </td>
                 )}
                 <td className="px-5">
-                  <StageSelect item={item} saving={saving} updateStage={updateStage} />
+                  <StageSelect
+                    item={item}
+                    columns={columns}
+                    saving={saving}
+                    updateStage={updateStage}
+                  />
                 </td>
               </tr>
             ))}
@@ -1018,7 +1220,14 @@ function ListView({
       </div>
       <div className="grid gap-3 p-4 md:hidden">
         {items.map((item) => (
-          <Card key={item.id} item={item} state={state} saving={saving} updateStage={updateStage} />
+          <Card
+            key={item.id}
+            item={item}
+            state={state}
+            columns={columns}
+            saving={saving}
+            updateStage={updateStage}
+          />
         ))}
         {!items.length && <Empty />}
       </div>

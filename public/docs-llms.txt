@@ -1,0 +1,115 @@
+# Accelerate Documentation
+> Practical guides for working with Accelerate and running the Command Center.
+
+## Start
+Learn the essentials and try your first complete workflow.
+
+- [Start using Command Center](https://www.acceleratewith.us/docs/start/overview) (updated 2026-09-05): Choose a task, follow its steps and check the result.
+- [For business owners](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-09-05): Choose a useful first workflow, assign ownership, and measure whether it helps.
+- [For agencies](https://www.acceleratewith.us/docs/start/agencies) (updated 2026-09-05): Onboard client workspaces, verify access, and agree an operational handoff.
+- [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-05): Try the daily queue and review a proposed action using fictional data.
+- [Core concepts](https://www.acceleratewith.us/docs/start/core-concepts) (updated 2026-09-05): The people, records, work, and decisions you will see in the workspace.
+- [Your workspace](https://www.acceleratewith.us/docs/start/workspace) (updated 2026-09-05): Check your business context, membership, and available features.
+- [Modules](https://www.acceleratewith.us/docs/start/modules) (updated 2026-09-04): Optional capabilities a workspace turns on and off without forking the app.
+- [Check an action result](https://www.acceleratewith.us/docs/start/receipts) (updated 2026-09-05): Tell a prepared draft, an approved request, and a completed action apart.
+- [Troubleshooting](https://www.acceleratewith.us/docs/start/troubleshooting) (updated 2026-09-05): Recover from common setup, access, search, and action failures without guessing.
+
+## Command Center
+One shared operating layer for the businesses that need it, and how to run the daily workspace.
+
+- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-05): Customer context, daily priorities, and reviewed actions in one workspace.
+- [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-05): Explore capabilities and check their availability in your workspace.
+- [Work the Today queue](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-05): Review urgent work, take the next action and confirm the result.
+- [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-04): Triage leads, messages, tasks, and staged actions that still need a person.
+- [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-05): Understand what waits for review, what approval does, and how to check the result.
+- [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-05): Find a recorded change and trace it to the affected record.
+- [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-05): Ask a specific question, inspect the evidence, and review any proposed action.
+
+## Pipeline
+Opportunities, stages, value, and closed revenue in one operating view.
+
+- [Pipeline](https://www.acceleratewith.us/docs/pipeline/overview) (updated 2026-09-04): Move work that produces revenue, then review every opportunity from one board.
+- [Understand revenue figures](https://www.acceleratewith.us/docs/pipeline/revenue) (updated 2026-09-05): Read client and proposal totals and investigate differences from pipeline or payment records.
+- [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-05): Move an opportunity forward and keep its next action clear.
+
+## Conversations
+The reply-ready inbox for Gmail, forms, chat, and transcripts.
+
+- [Conversations](https://www.acceleratewith.us/docs/conversations/overview) (updated 2026-09-04): One thread per person, with the record it belongs to and a next action attached.
+- [Reply to a conversation](https://www.acceleratewith.us/docs/conversations/reply) (updated 2026-09-05): Find the right thread, review the recipient, and check the send result.
+
+## Contacts
+Identity resolution, intake, and reviewed list imports.
+
+- [Contacts](https://www.acceleratewith.us/docs/contacts/overview) (updated 2026-09-04): Canonical people and companies, with duplicates proposed rather than guessed.
+- [Import contacts](https://www.acceleratewith.us/docs/contacts/import) (updated 2026-09-05): Prepare a small list, review the proposed records, and confirm the import.
+
+## Outreach
+Campaigns, email templates, and reactivation of past demand.
+
+- [Outreach](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-09-04): Controlled outbound that stops on reply and refuses contacts who asked to be left alone.
+- [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-09-04): Approve a version once, then automation runs inside sender, audience, cadence, limit, and stop rules.
+- [Email Studio](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-09-04): Edit live copy, inspect what was sent, and compose a direct follow-up.
+- [Review recovery outreach](https://www.acceleratewith.us/docs/outreach/recovery) (updated 2026-09-05): Check eligibility and the proposed playbook before contacting a past lead.
+
+## Proposals
+Drafts, pricing validation, decisions, and follow-up.
+
+- [Proposals](https://www.acceleratewith.us/docs/proposals/overview) (updated 2026-09-04): Estimates and scopes that share a ledger with the rest of the workspace.
+- [Drafting and sending](https://www.acceleratewith.us/docs/proposals/send) (updated 2026-09-04): Catalog pricing, unguessable public links, and decisions that write an audit row.
+
+## Delivery
+Clients, bookings, content, and resources after the sale.
+
+- [Delivery](https://www.acceleratewith.us/docs/delivery/overview) (updated 2026-09-04): The workspace past the won stage: retainers, meetings, publishing, and downloads.
+- [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-09-05): Find an account, check its status and monthly value, and open its delivery record.
+- [Review bookings](https://www.acceleratewith.us/docs/delivery/bookings) (updated 2026-09-05): Check qualification, call status and the next step for a booked conversation.
+- [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-05): Create a content item, track its status and confirm changes were saved.
+- [Review resource downloads](https://www.acceleratewith.us/docs/delivery/resources) (updated 2026-09-05): Find who requested a resource and check the recorded download time.
+
+## Intelligence
+The assistant, run traces, knowledge, and source-to-revenue analytics.
+
+- [Intelligence](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-04): Ask with bounded context, inspect what ran, and read funnel numbers from the same records.
+- [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-05): Registered tools, connection requirements, and input schemas.
+- [Use the AI Workspace](https://www.acceleratewith.us/docs/intelligence/workspace) (updated 2026-09-05): Ask a specific question, check its sources and inspect the result of an action.
+
+## Sources
+Inbound leads, chat, subscribers, partners, and website grades.
+
+- [Sources](https://www.acceleratewith.us/docs/sources/overview) (updated 2026-09-04): Where new people enter, before they become contacts, conversations, or deals.
+- [Review leads and chat handoffs](https://www.acceleratewith.us/docs/sources/leads) (updated 2026-09-05): Qualify an inquiry, check for an existing person and record the next action.
+
+## Workspace
+Tenants, setup, settings, integrations, and the Feature Board.
+
+- [Workspace](https://www.acceleratewith.us/docs/workspace/overview) (updated 2026-09-04): How a tenant is provisioned, connected, and kept ready.
+- [Integrations and modules](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-04): Providers, module switches, and the MCP key, from the operator console.
+- [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-05): Verify access and the connections needed for your first real workflow.
+- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-05): Update notifications and configuration, then confirm the saved result.
+
+## Build on it
+For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.
+
+- [Extend the runtime](https://www.acceleratewith.us/docs/extend/overview) (updated 2026-09-04): What every extension inherits: approval, audit, module gating, and MCP.
+- [Your first developer change](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-09-05): Run the demo, find the important files, and make a small extension change.
+- [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-09-04): Register a JSON manifest and pages. Nothing in extensions/ is executed.
+- [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-04): Verify credentials, encrypt them, and turn inbound events into canonical records.
+- [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-04): Register a plugin manifest with tools and triggers that still go through governance.
+- [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-04): Register a schema, an impact tier, and a service boundary. Mutating tools propose.
+- [MCP concepts](https://www.acceleratewith.us/docs/extend/mcp) (updated 2026-09-04): Bounded reads, staged writes, tenant isolation. The same registry the UI uses.
+- [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-05): Connect an external assistant to the intended workspace and verify a read first.
+- [Inbound webhooks](https://www.acceleratewith.us/docs/extend/webhooks) (updated 2026-09-04): Tenant-scoped public routes, signature checks, replay windows, and canonical ingest.
+
+## Follow-up
+The discipline that decides most inquiries: respond first, follow through, and let nothing wait.
+
+- [Follow up on an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-05): Assign the response, record a due date and close the loop.
+
+## Self-hosting
+Run the Command Center yourself: what you need, how to start, and when to bring us in.
+
+- [Self-hosting quickstart](https://www.acceleratewith.us/docs/self-hosting/overview) (updated 2026-09-05): Explore without credentials, then connect a workspace you control.
+- [Connect your installation](https://www.acceleratewith.us/docs/self-hosting/installation) (updated 2026-09-05): Create the owner account, configure a fresh database, and verify a connected workspace.
+
+- [Documentation landing](https://www.acceleratewith.us/docs): all guides.
