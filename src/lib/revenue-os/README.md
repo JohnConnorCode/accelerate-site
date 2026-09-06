@@ -95,6 +95,17 @@ Phase B and C land (see `docs/NORTHSTAR.md` §6–§20 and the Feature Board car
 | `schema-contract.ts`                          | Declarative minimum deployed database shape every service may depend on                                                            | `supabase/server.ts`, admin setup route, schema verification CLI                      | Versioned contract; tenant-scoped table allowlist; CLI validates metadata, app validates runtime usability                                                                                                                                                                                                                                                 |
 | `db.ts` / `types.ts`                          | Shared normalization, schema errors, contracts                                                                                     | All domain modules                                                                    | No route-local stage or normalization variants                                                                                                                                                                                                                                                                                                             |
 
+## Workflow plugin contracts
+
+`plugin-workflow-contract.ts` owns the trusted workflow input-contract registry.
+It reuses the invoice and task domain validators to derive the bounded AI/build
+schema and the allowed action. `build-extension-modules.mjs` regenerates those
+manifest fields; `workflow-plugins.ts` parses and normalizes input with the same
+contract before guest evaluation. The domain service still owns identity checks,
+approval, idempotency and effects. Plugins cannot supply an import path or host
+implementation. See `docs/contributing/EXTENDING.md` for the current scope and
+remaining manifest-policy work.
+
 ## Choosing a module
 
 - New person/business matching extends `identity.ts`.
