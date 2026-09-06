@@ -233,6 +233,7 @@ jobs:
           node scripts/qa-work-portfolio.mjs
           node scripts/qa-demo-business-workflows.mjs
           node scripts/qa-collections-workspace.mjs
+          node scripts/qa-radar-workspace.mjs
           node scripts/qa-universal-work-board.mjs
       - name: Retain first-run browser evidence
         if: ${{ always() }}
@@ -246,6 +247,7 @@ jobs:
             /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-work-portfolio-qa/
             /tmp/accelerate-collections-workspace/
+            /tmp/accelerate-radar-workspace/
             /tmp/accelerate-work-board-qa/
             /tmp/accelerate-first-run-server.log
           if-no-files-found: ignore

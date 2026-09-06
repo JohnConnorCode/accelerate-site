@@ -8,11 +8,12 @@ const expectedScenarios = [
   "ledgerstone-advisory",
   "hearthline-realty",
   "common-table-network",
+  "superdebate",
 ];
 assert.deepEqual(
   DEMO_SCENARIO_SUMMARIES.map((scenario) => scenario.id),
   expectedScenarios,
-  "The launcher must offer the five targeted businesses in sales order",
+  "The launcher must offer the targeted businesses and the flagship plugin exemplar",
 );
 
 for (const [scenarioId, pack] of Object.entries(DEMO_SCENARIOS)) {

@@ -9,8 +9,9 @@ import { isModuleEnabled } from "./modules";
 import { RADAR_PROFILE_DEFAULTS } from "./radar-profile-contract";
 import {
   RADAR_FACTORS,
+  radarCandidateFromEvidence,
+  radarSourceSnapshotsSchema,
   hasPublicAffairsSignals,
-  radarAssessmentSchema,
   radarAssessmentPreviewSchema,
   radarAssessmentProposalSchema,
   radarSelectionSchema,
@@ -32,18 +33,7 @@ function digest(v: unknown) {
     .update(JSON.stringify(canonical(v)))
     .digest("hex");
 }
-const snapshotsSchema = z
-  .array(
-    z
-      .object({
-        id: z.uuid(),
-        revision: z.number().int().positive(),
-        verification: z.enum(["supplied", "verified", "retracted"]),
-      })
-      .strict(),
-  )
-  .min(1)
-  .max(10);
+const snapshotsSchema = radarSourceSnapshotsSchema;
 const factsSchema = radarAssessmentPreviewSchema
   .extend({
     version: z.literal(1),
@@ -268,42 +258,14 @@ export async function getRadarSelection(db: SupabaseClient, raw: unknown, now = 
   if (sourceResults.some((r) => r.status === "rejected" || r.value.error))
     throw new Error("Radar source review status unavailable");
   const sources = sourceResults.flatMap((r) => (r.status === "fulfilled" ? r.value.data! : []));
-  const candidates: RadarSelectionCandidate[] = opportunities.map((opp) => {
-    const row = assessments.find((a) => a.opportunity_id === opp.id);
-    let deferral: string | null = null;
-    let assessment = null;
-    if (["completed", "dismissed", "declined", "no_response"].includes(opp.state))
-      deferral = "Terminal opportunity";
-    if (row) {
-      const parsed = radarAssessmentSchema.safeParse(row.assessment),
-        snaps = snapshotsSchema.safeParse(row.source_snapshots);
-      if (!parsed.success || !snaps.success)
-        deferral = "Assessment contract unavailable; review again";
-      else {
-        assessment = parsed.data;
-        if (row.opportunity_revision !== opp.revision)
-          deferral = "Opportunity changed since assessment";
-        const linked = currentLinks
-          .filter((l) => l.opportunity_id === opp.id)
-          .map((l) => l.source_version_id)
-          .sort();
-        if (
-          digest(linked) !== digest(snaps.data.map((s) => s.id).sort()) ||
-          snaps.data.some((s) => {
-            const v = sources.find((v) => v.id === s.id);
-            return (
-              !v ||
-              v.revision !== s.revision ||
-              v.verification !== s.verification ||
-              (assessment!.classification === "business" && v.verification !== "verified")
-            );
-          })
-        )
-          deferral = "Evidence changed or is unavailable; review again";
-      }
-    }
-    return { id: opp.id, assessment, reviewedAt: row?.created_at ?? null, deferral };
-  });
+  const candidates: RadarSelectionCandidate[] = opportunities.map((opp) =>
+    radarCandidateFromEvidence(
+      opp,
+      assessments.find((a) => a.opportunity_id === opp.id),
+      currentLinks.filter((l) => l.opportunity_id === opp.id).map((l) => l.source_version_id),
+      sources,
+    ),
+  );
   return {
     ...selectRadarCandidates(candidates, input, limit, now),
     candidates: opportunities.map((o) => ({ id: o.id, title: o.title })),

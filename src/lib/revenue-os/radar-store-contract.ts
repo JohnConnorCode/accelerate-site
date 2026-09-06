@@ -156,3 +156,69 @@ export const radarStoreReadSchema = z
         .length <= 1,
     "Choose one record selector",
   );
+
+/** Shared live/demo preconditions. Adapters still own tenant-scoped identity reads. */
+export function assertRadarStoreContext(
+  change: RadarStoreChange,
+  opp: { revision: number; state: string } | null,
+  currentSourceIds: string[],
+  versions: Array<{ id: string; revision: number; verification: string }>,
+) {
+  if ("opportunityId" in change) {
+    if (!opp) throw new Error("Radar opportunity unavailable");
+    if (opp.revision !== change.expectedRevision)
+      throw new Error("Stale opportunity revision; read current state first");
+    if (
+      change.operation === "transition_opportunity" &&
+      !RADAR_TRANSITIONS[opp.state as keyof typeof RADAR_TRANSITIONS]?.includes(change.state)
+    )
+      throw new Error("Invalid Radar lifecycle transition");
+    if (
+      ["update_opportunity", "replace_citations"].includes(change.operation) &&
+      ["completed", "dismissed", "declined"].includes(opp.state)
+    )
+      throw new Error("Terminal opportunity is retained as history");
+    if (
+      change.operation === "add_asset" &&
+      change.sourceVersionIds.some((id) => !currentSourceIds.includes(id))
+    )
+      throw new Error("Asset must cite current opportunity evidence");
+  }
+  const required = [
+    ...currentSourceIds,
+    ...("citations" in change ? change.citations.map((c) => c.sourceVersionId) : []),
+    ...("sourceVersionId" in change ? [change.sourceVersionId] : []),
+  ];
+  if (required.some((id) => !versions.some((v) => v.id === id)))
+    throw new Error("A source version is missing or belongs to another workspace");
+  if (change.operation === "review_source") {
+    if (versions.find((v) => v.id === change.sourceVersionId)?.revision !== change.expectedRevision)
+      throw new Error("Stale source revision; read current state first");
+  } else if (versions.some((v) => v.verification === "retracted")) {
+    const replacementIds =
+      "citations" in change ? change.citations.map((c) => c.sourceVersionId) : [];
+    if (
+      (change.operation !== "replace_citations" &&
+        !(
+          change.operation === "transition_opportunity" &&
+          ["draft", "needs_review", "dismissed", "declined", "no_response"].includes(change.state)
+        )) ||
+      versions.some((v) => replacementIds.includes(v.id) && v.verification === "retracted")
+    )
+      throw new Error("Retracted sources require a reviewed citation replacement");
+  }
+  if (
+    change.operation === "transition_opportunity" &&
+    ["approved", "in_progress", "completed"].includes(change.state) &&
+    versions.some((v) => v.verification !== "verified")
+  )
+    throw new Error("Review every source before advancing this opportunity");
+}
+
+export function normalizeRadarStoreChange(change: RadarStoreChange): RadarStoreChange {
+  if (change.operation !== "ingest_source") return change;
+  const url = new URL(change.url);
+  url.hash = "";
+  // Preserve query identity and order; campaign stripping could merge different documents.
+  return { ...change, url: url.toString(), publishedAt: change.publishedAt ?? null };
+}

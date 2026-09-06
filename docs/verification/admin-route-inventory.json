@@ -41,6 +41,10 @@
     "src/app/admin/pipeline/page.tsx": "37c6879c112b4590300afbb553fba18fcf1fc892b7fa68354e59d6088718ff6d",
     "src/app/admin/plugins/page.tsx": "3a2930873277920cafaeccb6e3ca33ab54f5930769dc8c12e775427834b980ec",
     "src/app/admin/proposals/page.tsx": "cbc9815cc91246f5f34c3da924a606595965a164108d360bb21f22833503a741",
+    "src/app/admin/radar/history/page.tsx": "623933fc9c5c073ae71be3f4b1811dc7be3b1da2b708d71b1e2a1f7fbc22329f",
+    "src/app/admin/radar/opportunities/[id]/page.tsx": "d07e3a8bcfc257339da4b4fa6ff5f3abe7dc693186e0a217f8fe6ab9a0f396f5",
+    "src/app/admin/radar/page.tsx": "952f463a826f122874794dd91cded3498578f4bc73d222e2cc871ddd005bc246",
+    "src/app/admin/radar/today/page.tsx": "9c2bf2c18ffc537d0cdac03e7a831185d5cce208d625d9c69726547ec23bb7ec",
     "src/app/admin/recovery/page.tsx": "be94972ce30c9e32128cea43ce9855942af789621b709dbd02ac01715da06b0c",
     "src/app/admin/resources/page.tsx": "215576e5521d818d92265ef4db2ba5d8753f4de6b4de5236098266a260b5abec",
     "src/app/admin/revenue/page.tsx": "0b227716c45115f532179e652c05e967dacc1c50286e7edbccbdc11c089a3a44",
@@ -82,6 +86,8 @@
     "src/app/api/admin/plugins/workflow/route.ts": "9b2c2929f67e0980c347aa00ae475dd79c9dc111d2ffedf617e24e7c7c702dd6",
     "src/app/api/admin/proposals/generate/route.ts": "71e8c5971e94d4630d408ed8e6a3320ff7e4620f4ab15dbb5cec48733230f0c2",
     "src/app/api/admin/proposals/route.ts": "6f7bceeaba387dcb09b084c68499c4d7c86bc304a7832e368aceb0aafce758bb",
+    "src/app/api/admin/radar/commands/route.ts": "0fdf546a31f30bb8c23ef6f9709cc8b17ad557b0b8e3a8b6609a8986971f806b",
+    "src/app/api/admin/radar/workspace/route.ts": "2dd44773ded01b396cefe982db2bf2d327fb96b6c4e29b09c1080b30330eff00",
     "src/app/api/admin/resources/route.ts": "d78eadde6bce745c27b8853065f36b42d8947b467fd52952c4c6a0e7277102aa",
     "src/app/api/admin/revenue-os/actions/route.ts": "d00621269c6885c8e78ad906024f635b602b39ece01a9e9ff2ec7bef9d4e11e6",
     "src/app/api/admin/revenue-os/ai/capabilities/route.ts": "60fda6c693b3d8564bb12d20b207b890aacb54230b74a3e0ffb5ab9a5de5c7f9",
@@ -130,7 +136,7 @@
     "src/components/admin/AdminAsyncRegion.tsx": "3349a8b006d3e7451fdc1e8feb52d5b2522f18f8a1e71631d5898cc8232a2c53",
     "src/components/admin/AdminAuthLayout.tsx": "919c168dcb2e0122b971c8bb0158d745647a40c399e8e0cfdcdb918dabab2ee0",
     "src/components/admin/AdminCreateTaskModal.tsx": "ab5f9e4bf4e9842a8a65be9d2bea92e2d36aa62d61b9d134176da969cda2f516",
-    "src/components/admin/AdminDemoBoundary.tsx": "cc230c594a5670c02869a3bd3628abf52d4ae969777abeadddf532e3efab7df2",
+    "src/components/admin/AdminDemoBoundary.tsx": "30d7ec9a1acebcb63f29cf41f2de4e2b08a42e44f386d6c7206094adb61c6fd4",
     "src/components/admin/AdminDialog.tsx": "0b5ec0123e4889e679f7595f9280c27f1192209fbd2337f60b28164dfbea1443",
     "src/components/admin/AdminErrorBoundary.tsx": "31e7a1f74e8366ddf2faac0f56415595f36cf89510534e33cd7372f50910d49a",
     "src/components/admin/AdminFounderNoteModal.tsx": "a63a080f3e0a4d4cd9ec4def5edbae0d1e3f3a97226a8e98d5067e8bafdbb9b2",
@@ -157,7 +163,7 @@
     "src/components/admin/DashboardMetrics.tsx": "41b7286f8677f4d928fbc8c191ea21479b1c4854e9cd42da8f42ac46e1e1a399",
     "src/components/admin/DateRangeFilter.tsx": "db9eed48a2b66b3fdca755c75ec39876ed412f6ba3b267e23560961280bc5dd4",
     "src/components/admin/DemoBusinessNotice.tsx": "006392b9131053d3272373cd2b8d96043fb42eeefccf7ebe5d88ef0611b5a3dd",
-    "src/components/admin/DemoScenarioMark.tsx": "a1df24f99743ae2f080b8502e8e4d7a3e7201820b15d19b795518efca39f2450",
+    "src/components/admin/DemoScenarioMark.tsx": "a15549b733fcfdefa670fe2114feca52f06692e20a76f2d4120130804bad377b",
     "src/components/admin/DemoWorkspacePreview.tsx": "a302d384d3f891ae512091af2ed958395d9f49e32ef6ae62cabb60b13d3b788d",
     "src/components/admin/EmailBlockComposer.tsx": "a998e2a4688c975023f4c86393d45910b286b3a6196e6b73483823e865a3edb7",
     "src/components/admin/EmailComposeModal.tsx": "54858657e71c3bca0090b5b4892ed1558cba76fbd02effaefe8afd19a1fa7810",
@@ -171,7 +177,7 @@
     "src/components/admin/LeadsTable.tsx": "7c4919632932907868657d12e898b06cd09526f89733ad43972feae0d672ba33",
     "src/components/admin/LoadingSkeleton.tsx": "746a3a9ad9aac0346a23c0144f7a2ae1b1eb07e7818b7a9cd5a3121a9bf14652",
     "src/components/admin/MRRChart.tsx": "c053302eec2b71ba8eb02ab2a7f84d7fb89c3b106543faf9acaf6d56a0c86447",
-    "src/components/admin/ModuleDisabledNotice.tsx": "5923f7600ecc9607ac4ca35d16033397aab2047f8f446fe62424fd955dfd1490",
+    "src/components/admin/ModuleDisabledNotice.tsx": "4f584cccf0f294945129a7a6e7ada45c8a15f041be6b0d355779b29ab4fc4fd5",
     "src/components/admin/ModuleSettingsForm.tsx": "07ba6bb965cf8bacb40be797e3b4d967c6db19bd7f4b03a134c9f3b8d02b2077",
     "src/components/admin/NotificationBell.tsx": "52308b7a48ebb9672e24d560bd3002792fea10280c9bb7550c3efc5c5aa5a4b6",
     "src/components/admin/PageHeader.tsx": "0bfdf474812145a99d0bb75bf0c1ab2cdf807a17f1e962c2d650d947bd581bdd",
@@ -179,6 +185,12 @@
     "src/components/admin/PlausibleWidget.tsx": "250f81a9de33b8432d902c626757002def6ea084e88c26dfa0c933f6e54ebeed",
     "src/components/admin/ProposalEditor.tsx": "a39e2fae836275917a132e787043749d2e333e15be2929527286cb3c31579323",
     "src/components/admin/QuickActions.tsx": "56f5b4b70153e6b787b4f1ab9547b580de0ab0e6af9cda76a06a9440117719ff",
+    "src/components/admin/RadarEditorDialog.tsx": "bfe2abdcd52d940e69ad0d9bad4b78767ae8f310a96b24cbcf6b25faff64014f",
+    "src/components/admin/RadarOpportunityDetail.tsx": "faae2cb124411d1eb1bb1702ba43c042fcf575350862eac5615e99523bb04d20",
+    "src/components/admin/RadarOverview.tsx": "c013654b75a5dd6d14b853c4a134f7c752fe84adc82d0bf504e613ffb6c54ad3",
+    "src/components/admin/RadarReviewDialog.tsx": "2c18c3088dbf32f3cab188550c67d740e1038ad9aefa21a7a6592cd52b8f0322",
+    "src/components/admin/RadarUI.tsx": "29b179e97aff296aefee83fdca522ae9989977d19a9c26ba3a85ac57f918d237",
+    "src/components/admin/RadarWorkspace.tsx": "1dd34537c6418ed1494a3b5d571a2fe2242a7e475581a64a551ac27cf0a57bcc",
     "src/components/admin/RevenueAICommand.tsx": "c2c7399460b097bc9db2705196a1f1854a89a6217bf6cf91e7c75ef4c3c16762",
     "src/components/admin/RevenueSetupGate.tsx": "f237886bcf66240eb49385896fb78437cdfa6cab80ae841e2b7258ea15583e93",
     "src/components/admin/RevenueSnapshot.tsx": "b15023b5855d1c79d4628d17ebe9e7fb63c7d9be3733650e3ab568beb39b31a0",
@@ -213,7 +225,7 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "2183bcb12ab45d484ec3c6a21e6d67ab84bc0b5f0e9cde1500a4d1c1ad2d6a5f",
     "src/lib/revenue-os/ai-operations.ts": "ae39bc1112700f7af976bdf68a1308d7c720747ed82191d589817ba78b4aa945",
     "src/lib/revenue-os/ai-stream-contract.ts": "813ce466f99ba479b50cfee912921003a8e21bf812dba9e16494a4df3b5d00c7",
-    "src/lib/revenue-os/ai-tools.ts": "7438aa80ad7ab9dfad014b4441ff1defef2cf8d0bc04107b9eebe2bddfa18fe9",
+    "src/lib/revenue-os/ai-tools.ts": "04c2b2f821dcf43056182c30866d8bc7b4b62096bf5e6b48d844a9d50593d5d7",
     "src/lib/revenue-os/analytics.ts": "d57c3a867c3926e1fed1a64c110f0f28c8569e96a3c177b033e4eb11967764fb",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
     "src/lib/revenue-os/branding-contract.ts": "6d4fdd9837bacc633ddd78bbaa1c5d77a497d7d5ecd7842fc9e18fdfbb3ae914",
@@ -242,10 +254,11 @@
     "src/lib/revenue-os/mcp-server.ts": "e49f945e3a3c54846e6b9a0128a1f79c2961baf479885fccc55e5e00f59002e1",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
     "src/lib/revenue-os/module-configuration.ts": "49dc143f9117ac8dcb9554f077ccd7cd108ca4f5c4f81196104ba536cd91004b",
-    "src/lib/revenue-os/modules.ts": "6b7138d2828db4efe5b1c30b4834587c81e3591f0a0c3cc6097c2106964f5bad",
+    "src/lib/revenue-os/modules.ts": "fbe3c2bef6b39255b5ab48f0124b02ed06cbf447a6936f96e8708aaf588fd0a1",
     "src/lib/revenue-os/pipeline-stage-resolver.ts": "3581116b6b179a7955feba43e7b535fdfd7febc5f5823eebf804113665486f94",
     "src/lib/revenue-os/pipeline.ts": "837c1f87899a2c5a2d1ef467687a02eb5d88e8b8cbe53f6e8f9199d0ffd57c29",
     "src/lib/revenue-os/queue.ts": "1978dc389d16b247dee407705ecc7f45a8d2dc57317560d035f15be4f44e7bef",
+    "src/lib/revenue-os/radar-workspace.ts": "ac86986ef198ea9f797a0aa7c5f97f8316b088b5b1aeb78675188ca1947ba045",
     "src/lib/revenue-os/records.ts": "cb289e89aa2fcfeb09e5bee6dd2f842fb73d72b4d9950782a716822c2c8fe62c",
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
@@ -1403,6 +1416,130 @@
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
       },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/radar/today",
+      "page": "src/app/admin/radar/today/page.tsx",
+      "primaryAction": "Review sourced business opportunities and prepare approved changes",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/radar/workspace/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/radar/commands/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/db",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": ["action_queue"]
+        }
+      ],
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/radar/opportunities/[id]",
+      "page": "src/app/admin/radar/opportunities/[id]/page.tsx",
+      "primaryAction": "Read evidence, canonical contact restrictions and review opportunity changes",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/radar/workspace/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/radar/commands/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/db",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": ["action_queue"]
+        }
+      ],
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/radar/history",
+      "page": "src/app/admin/radar/history/page.tsx",
+      "primaryAction": "Read retained Radar records while the plugin is disabled",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/radar/workspace/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/radar/commands/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/db",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": ["action_queue"]
+        }
+      ],
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/radar",
+      "page": "src/app/admin/radar/page.tsx",
+      "primaryAction": "Review sourced business opportunities and prepare approved changes",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/radar/workspace/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/radar/commands/route.ts",
+          "domainImports": ["@/lib/revenue-os/radar-workspace"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/collection-reminders",
+            "@/lib/revenue-os/db",
+            "@/lib/tenancy/context"
+          ],
+          "directTables": ["action_queue"]
+        }
+      ],
+      "boundary": "Authenticated workspace reads retain history. Commands validate through radar-workspace into the canonical evidence, assessment and bounded-model services. Writes require an enabled plugin and exact approved action; the demo uses the same screens and pure validation with fictional session data.",
+      "followUp": null,
       "specialBoundary": null
     }
   ],

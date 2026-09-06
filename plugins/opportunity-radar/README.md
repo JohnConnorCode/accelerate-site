@@ -3,7 +3,7 @@
 Configure a reusable business profile for evidence-backed earned-growth work.
 **Available now: validated profile, two presets, CLI setup and governed AI
 configuration, bounded source briefing, model charge receipts and a versioned
-evidence store and reviewed business selection operated through AI approvals.** Automated discovery, relationship intelligence, outreach,
+evidence store, reviewed business selection and shared admin/demo workspace.** Automated discovery, relationship intelligence, outreach,
 publication and outcome measurement remain unfinished. Enabling this foundation
 does not start a background worker.
 
@@ -271,3 +271,24 @@ selection rules in `npm run test:radar-ranking`. The native PostgreSQL proof is
 part of the existing migration suite. The dedicated Radar dashboard, discovery,
 relationship intelligence and execution journeys are still separate unfinished
 work; this selection tool does not send outreach or publish content.
+
+## Daily workspace
+
+Open **Opportunity Radar** in the Intelligence navigation, or `/admin/radar/today`.
+Read the cited source text, develop an opportunity, review estimates and prepare a
+manual or bounded AI draft. Every saved change previews its exact fields and enters
+the shared approval executor. Saving a draft never sends it or publishes it.
+
+`/admin/radar/history` remains readable after disablement; writes and AI briefing
+remain blocked. Disabled history is an exact manifest route, not an authorization
+exception for APIs or child pages.
+
+The public demo includes a fictional SuperDebate learning platform and five unrelated
+businesses. These are the real admin components with session-owned transport. Demo
+briefing uses fictional source text in the browser and makes no model request.
+Reset restores fixtures; no demo booking, coverage or reported outcome is real.
+
+AI and MCP adapters expose `get_radar_workspace` and
+`prepare_radar_opportunity_brief` alongside the existing evidence and assessment tools.
+The latter binds source IDs and opportunity revision before using the shared model
+budget. New interfaces should call these services rather than write Radar tables.

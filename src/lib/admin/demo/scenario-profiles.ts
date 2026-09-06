@@ -1992,3 +1992,392 @@ export const COMMON_TABLE_PROFILE: DemoScenarioContentProfile = {
     "Partner pickup exception",
   ],
 };
+
+/** SuperDebate-inspired fictional operating data; no real bookings or recognition claims. */
+export const SUPERDEBATE_PROFILE: DemoScenarioContentProfile = {
+  supportingPeople: [
+    {
+      name: "Imogen Vale",
+      company: "Clear Argument Studio",
+      role: "Workshop coordinator",
+    },
+    {
+      name: "Dorian Finch",
+      company: "Reasoning Lab",
+      role: "Learning researcher",
+    },
+    {
+      name: "Selene Marsh",
+      company: "Exchange Learning Guild",
+      role: "Program director",
+    },
+    {
+      name: "Tobias Quill",
+      company: "Better Questions Podcast",
+      role: "Interview producer",
+    },
+    {
+      name: "Nadia Wren",
+      company: "Skill Circle Newsletter",
+      role: "Newsletter editor",
+    },
+    {
+      name: "Felix Rowan",
+      company: "Practice Forum",
+      role: "Community facilitator",
+    },
+    {
+      name: "Leona Pike",
+      company: "Clear Argument Studio",
+      role: "Workshop coordinator",
+    },
+    {
+      name: "Cassian Reed",
+      company: "Reasoning Lab",
+      role: "Learning researcher",
+    },
+    {
+      name: "Priya Solace",
+      company: "Exchange Learning Guild",
+      role: "Program director",
+    },
+    {
+      name: "Milo Ashford",
+      company: "Better Questions Podcast",
+      role: "Interview producer",
+    },
+    {
+      name: "Ada Whitcombe",
+      company: "Skill Circle Newsletter",
+      role: "Newsletter editor",
+    },
+    {
+      name: "Rafael Arden",
+      company: "Practice Forum",
+      role: "Community facilitator",
+    },
+    {
+      name: "Tessa Calder",
+      company: "Clear Argument Studio",
+      role: "Workshop coordinator",
+    },
+    {
+      name: "Hugo Fenwick",
+      company: "Reasoning Lab",
+      role: "Learning researcher",
+    },
+    {
+      name: "Anika Greer",
+      company: "Exchange Learning Guild",
+      role: "Program director",
+    },
+    {
+      name: "Julian Moss",
+      company: "Better Questions Podcast",
+      role: "Interview producer",
+    },
+    {
+      name: "Esme Larkin",
+      company: "Skill Circle Newsletter",
+      role: "Newsletter editor",
+    },
+    {
+      name: "Soren Brook",
+      company: "Practice Forum",
+      role: "Community facilitator",
+    },
+    {
+      name: "Vivian March",
+      company: "Clear Argument Studio",
+      role: "Workshop coordinator",
+    },
+    {
+      name: "Otis Bellamy",
+      company: "Reasoning Lab",
+      role: "Learning researcher",
+    },
+    {
+      name: "Cora Ellery",
+      company: "Exchange Learning Guild",
+      role: "Program director",
+    },
+    {
+      name: "Luca Hawthorne",
+      company: "Better Questions Podcast",
+      role: "Interview producer",
+    },
+    {
+      name: "Mina Westbrook",
+      company: "Skill Circle Newsletter",
+      role: "Newsletter editor",
+    },
+    {
+      name: "Ambrose Field",
+      company: "Practice Forum",
+      role: "Community facilitator",
+    },
+  ],
+  opportunities: [
+    {
+      name: "Corporate listening workshop",
+      value: 250,
+      source: "Partner inquiry",
+      nextAction: "Confirm the workshop learning outcomes",
+    },
+    {
+      name: "Reasoning practice clinic",
+      value: 375,
+      source: "Event conversation",
+      nextAction: "Ask for the clinic participant count",
+    },
+    {
+      name: "Facilitator training cohort",
+      value: 500,
+      source: "Member referral",
+      nextAction: "Review the facilitator curriculum",
+    },
+    {
+      name: "Podcast on better questions",
+      value: 625,
+      source: "Partner inquiry",
+      nextAction: "Send three grounded interview angles",
+    },
+    {
+      name: "Newsletter argument map",
+      value: 750,
+      source: "Event conversation",
+      nextAction: "Submit a sourced draft for editorial review",
+    },
+    {
+      name: "Learning research exchange",
+      value: 875,
+      source: "Member referral",
+      nextAction: "Agree on research questions and consent",
+    },
+    {
+      name: "University skills evening",
+      value: 1000,
+      source: "Partner inquiry",
+      nextAction: "Confirm the venue and accessibility needs",
+    },
+    {
+      name: "Community practice series",
+      value: 1125,
+      source: "Event conversation",
+      nextAction: "Propose the first three practice dates",
+    },
+    {
+      name: "Manager feedback workshop",
+      value: 1250,
+      source: "Member referral",
+      nextAction: "Review the manager exercise outline",
+    },
+    {
+      name: "Student speaking clinic",
+      value: 1375,
+      source: "Partner inquiry",
+      nextAction: "Confirm the student safeguarding contact",
+    },
+    {
+      name: "Host training session",
+      value: 1500,
+      source: "Event conversation",
+      nextAction: "Prepare host feedback examples",
+    },
+    {
+      name: "Debate format pilot",
+      value: 1625,
+      source: "Member referral",
+      nextAction: "Document the format and timing constraints",
+    },
+    {
+      name: "Alumni practice group",
+      value: 1750,
+      source: "Partner inquiry",
+      nextAction: "Invite the organizer to review the schedule",
+    },
+    {
+      name: "Event transcript package",
+      value: 1875,
+      source: "Event conversation",
+      nextAction: "Confirm transcript permissions and delivery",
+    },
+    {
+      name: "Professional association session",
+      value: 2000,
+      source: "Member referral",
+      nextAction: "Share a practical session outline",
+    },
+    {
+      name: "Research methods roundtable",
+      value: 2125,
+      source: "Partner inquiry",
+      nextAction: "Review the proposed methodology",
+    },
+    {
+      name: "Partner referral exchange",
+      value: 2250,
+      source: "Event conversation",
+      nextAction: "Ask permission before making an introduction",
+    },
+    {
+      name: "Sponsor demonstration",
+      value: 2375,
+      source: "Member referral",
+      nextAction: "Confirm what the demonstration includes",
+    },
+  ],
+  conversations: [
+    {
+      subject: "Corporate listening workshop",
+      intent: "partnership",
+      inbound:
+        "We are exploring a corporate listening workshop. Could you explain the format and what preparation is needed?",
+      outbound:
+        "For the corporate listening workshop, we can share an example exercise and a proposed session outline. We will confirm scope before making commitments.",
+      followUp: "Thanks. Please confirm the workshop learning outcomes before we choose a date.",
+    },
+    {
+      subject: "Reasoning practice clinic",
+      intent: "appearance",
+      inbound:
+        "We are exploring a reasoning practice clinic. Could you explain the format and what preparation is needed?",
+      outbound:
+        "For the reasoning practice clinic, we can share an example exercise and a proposed session outline. We will confirm scope before making commitments.",
+      followUp: "Thanks. Please ask for the clinic participant count before we choose a date.",
+    },
+    {
+      subject: "Facilitator training cohort",
+      intent: "education",
+      inbound:
+        "We are exploring a facilitator training cohort. Could you explain the format and what preparation is needed?",
+      outbound:
+        "For the facilitator training cohort, we can share an example exercise and a proposed session outline. We will confirm scope before making commitments.",
+      followUp: "Thanks. Please review the facilitator curriculum before we choose a date.",
+    },
+    {
+      subject: "Podcast on better questions",
+      intent: "partnership",
+      inbound:
+        "We are exploring a podcast on better questions. Could you explain the format and what preparation is needed?",
+      outbound:
+        "For the podcast on better questions, we can share an example exercise and a proposed session outline. We will confirm scope before making commitments.",
+      followUp: "Thanks. Please send three grounded interview angles before we choose a date.",
+    },
+    {
+      subject: "Newsletter argument map",
+      intent: "appearance",
+      inbound:
+        "We are exploring a newsletter argument map. Could you explain the format and what preparation is needed?",
+      outbound:
+        "For the newsletter argument map, we can share an example exercise and a proposed session outline. We will confirm scope before making commitments.",
+      followUp:
+        "Thanks. Please submit a sourced draft for editorial review before we choose a date.",
+    },
+    {
+      subject: "Learning research exchange",
+      intent: "education",
+      inbound:
+        "We are exploring a learning research exchange. Could you explain the format and what preparation is needed?",
+      outbound:
+        "For the learning research exchange, we can share an example exercise and a proposed session outline. We will confirm scope before making commitments.",
+      followUp: "Thanks. Please agree on research questions and consent before we choose a date.",
+    },
+    {
+      subject: "University skills evening",
+      intent: "partnership",
+      inbound:
+        "We are exploring a university skills evening. Could you explain the format and what preparation is needed?",
+      outbound:
+        "For the university skills evening, we can share an example exercise and a proposed session outline. We will confirm scope before making commitments.",
+      followUp: "Thanks. Please confirm the venue and accessibility needs before we choose a date.",
+    },
+    {
+      subject: "Community practice series",
+      intent: "appearance",
+      inbound:
+        "We are exploring a community practice series. Could you explain the format and what preparation is needed?",
+      outbound:
+        "For the community practice series, we can share an example exercise and a proposed session outline. We will confirm scope before making commitments.",
+      followUp: "Thanks. Please propose the first three practice dates before we choose a date.",
+    },
+    {
+      subject: "Manager feedback workshop",
+      intent: "education",
+      inbound:
+        "We are exploring a manager feedback workshop. Could you explain the format and what preparation is needed?",
+      outbound:
+        "For the manager feedback workshop, we can share an example exercise and a proposed session outline. We will confirm scope before making commitments.",
+      followUp: "Thanks. Please review the manager exercise outline before we choose a date.",
+    },
+    {
+      subject: "Student speaking clinic",
+      intent: "partnership",
+      inbound:
+        "We are exploring a student speaking clinic. Could you explain the format and what preparation is needed?",
+      outbound:
+        "For the student speaking clinic, we can share an example exercise and a proposed session outline. We will confirm scope before making commitments.",
+      followUp: "Thanks. Please confirm the student safeguarding contact before we choose a date.",
+    },
+  ],
+  tasks: [
+    "Confirm the workshop learning outcomes",
+    "Ask for the clinic participant count",
+    "Review the facilitator curriculum",
+    "Send three grounded interview angles",
+    "Submit a sourced draft for editorial review",
+    "Agree on research questions and consent",
+    "Confirm the venue and accessibility needs",
+    "Propose the first three practice dates",
+    "Review the manager exercise outline",
+    "Confirm the student safeguarding contact",
+    "Prepare host feedback examples",
+    "Document the format and timing constraints",
+    "Invite the organizer to review the schedule",
+    "Confirm transcript permissions and delivery",
+    "Share a practical session outline",
+    "Review the proposed methodology",
+    "Ask permission before making an introduction",
+    "Confirm what the demonstration includes",
+  ],
+  actionReasons: [
+    "The organizer requested a concrete next step for the corporate listening workshop; review the scope and relationship before replying.",
+    "The organizer requested a concrete next step for the reasoning practice clinic; review the scope and relationship before replying.",
+    "The organizer requested a concrete next step for the facilitator training cohort; review the scope and relationship before replying.",
+    "The organizer requested a concrete next step for the podcast on better questions; review the scope and relationship before replying.",
+    "The organizer requested a concrete next step for the newsletter argument map; review the scope and relationship before replying.",
+    "The organizer requested a concrete next step for the learning research exchange; review the scope and relationship before replying.",
+  ],
+  replyBodies: [
+    "Here is a draft workshop outline: a listening exercise, a short structured exchange and a reflection. Please confirm participant needs before we agree on dates.",
+    "We can discuss what makes a question useful in a live debate. These proposed interview angles are based on practice examples, with no claims of measured research results.",
+    "The attached argument map is a draft for your editorial review. We will verify citations and permissions before publication.",
+  ],
+  campaignNames: [
+    "Practice night invitations",
+    "Facilitator cohort follow-up",
+    "Partner workshop introductions",
+  ],
+  contentTitles: [
+    "How to ask a clarifying question",
+    "A practical listening exercise",
+    "A facilitator checklist for a balanced exchange",
+    "What an argument map can and cannot establish",
+    "Preparing participants for their first session",
+  ],
+  resourceTitles: [
+    "Workshop preparation guide",
+    "Session consent and recording checklist",
+    "Host timing card",
+    "Transcript review checklist",
+    "Source verification worksheet",
+  ],
+  roadmapTitles: [
+    "Add accessible session materials",
+    "Review workshop onboarding",
+    "Document source review decisions",
+    "Prepare facilitator feedback forms",
+    "Measure partner referral outcomes",
+    "Improve transcript consent tracking",
+  ],
+};

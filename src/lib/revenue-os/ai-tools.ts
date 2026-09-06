@@ -1,3 +1,5 @@
+import { readRadarWorkspace, prepareRadarOpportunityBrief } from "./radar-workspace";
+import { radarWorkspaceReadSchema, radarOpportunityBriefSchema } from "./radar-workspace-contract";
 import "server-only";
 import { getRadarSelection, previewRadarAssessment, proposeRadarAssessment } from "./radar-ranking";
 import {
@@ -561,6 +563,33 @@ const registry: AiToolRegistration[] = [
     });
   }),
 
+  {
+    name: "get_radar_workspace",
+    description:
+      "Read the bounded Radar workspace or evidence packet, including capabilities, source review, canonical contact restrictions, and retained disabled-plugin history.",
+    inputSchema: z.toJSONSchema(radarWorkspaceReadSchema),
+    parseInput: (input) => radarWorkspaceReadSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-workspace",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => readRadarWorkspace(supabase, input),
+  },
+  {
+    name: "prepare_radar_opportunity_brief",
+    description:
+      "Prepare a neutral draft from current opportunity evidence through the configured Radar model and budget. Reuse operationId on retry. Does not save, send, publish or score public affairs.",
+    inputSchema: z.toJSONSchema(radarOpportunityBriefSchema),
+    parseInput: (input) => radarOpportunityBriefSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-workspace",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase, workItemId }, input) =>
+      prepareRadarOpportunityBrief(supabase, input, workItemId),
+  },
   {
     name: "get_radar_selection",
     description:
@@ -2065,6 +2094,8 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "get_radar_workspace",
+    "prepare_radar_opportunity_brief",
     "get_radar_selection",
     "preview_radar_assessment",
     "propose_radar_assessment",

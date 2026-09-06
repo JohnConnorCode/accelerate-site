@@ -1,6 +1,7 @@
 import { DEMO_BUSINESS_PROFILES, type DemoBusinessProfile } from "./business-profiles";
 import type { TenantConfig } from "@/config/tenant";
 import {
+  SUPERDEBATE_PROFILE,
   ALDER_RIDGE_PROFILE,
   COMMON_TABLE_PROFILE,
   HEARTHLINE_PROFILE,
@@ -14,7 +15,8 @@ export type DemoScenarioId =
   | "alder-ridge-law"
   | "ledgerstone-advisory"
   | "hearthline-realty"
-  | "common-table-network";
+  | "common-table-network"
+  | "superdebate";
 export type DemoAppearance = "light" | "dark" | "signal" | "studio" | "frost";
 
 export interface DemoScenarioSummary {
@@ -127,6 +129,7 @@ function tenant(
 }
 
 const CONTENT_PROFILES: Record<DemoScenarioId, DemoScenarioContentProfile> = {
+  superdebate: SUPERDEBATE_PROFILE,
   "northline-roofing": NORTHLINE_PROFILE,
   "alder-ridge-law": ALDER_RIDGE_PROFILE,
   "ledgerstone-advisory": LEDGERSTONE_PROFILE,
@@ -444,6 +447,44 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenarioPack> = {
       ["Caleb Chen", "caleb.chen", "Chen Household", "Monthly donor"],
     ],
   }),
+  superdebate: makePack({
+    id: "superdebate",
+    name: "SuperDebate Demo",
+    category: "Learning platforms",
+    description:
+      "Fictional workshops, participant relationships, sourced opportunities and approved drafts.",
+    accent: "#7c3aed",
+    appearance: "light",
+    founder: "Demo Operator",
+    domain: "superdebate.example",
+    industry: "debate skills and professional learning platform",
+    story: [
+      "Review sourced partner opportunities",
+      "Prepare a workshop brief",
+      "Check participant relationship history",
+      "Approve a draft contribution",
+      "Track reported outcomes separately from recognition",
+    ],
+    stages: {
+      new: "New inquiry",
+      contacted: "In conversation",
+      qualified: "Scope confirmed",
+      meeting: "Planning session",
+      proposal: "Outline shared",
+      negotiation: "Details under review",
+      won: "Session booked",
+      lost: "Declined",
+      nurture: "Future collaboration",
+    },
+    corePeople: [
+      ["Elodie Crane", "elodie.crane", "Practical Exchange Academy", "Workshop organizer"],
+      ["Bastian Wells", "bastian.wells", "Question Craft Audio", "Podcast host"],
+      ["Zara Pembroke", "zara.pembroke", "Reasoned Practice Digest", "Editor"],
+      ["Idris Kestrel", "idris.kestrel", "Learning Methods Collective", "Research coordinator"],
+      ["Freya Lockwood", "freya.lockwood", "Professional Dialogue Society", "Program chair"],
+      ["Nico Fairchild", "nico.fairchild", "Open Practice Studio", "Training coordinator"],
+    ],
+  }),
 };
 
 export const DEMO_SCENARIO_SUMMARIES: DemoScenarioSummary[] = Object.values(DEMO_SCENARIOS).map(
@@ -458,6 +499,7 @@ export const DEMO_SCENARIO_SUMMARIES: DemoScenarioSummary[] = Object.values(DEMO
   }),
 );
 export const DEMO_SCENARIO_SHELL_NAMES: Record<DemoScenarioId, string> = {
+  superdebate: "SuperDebate Demo",
   "northline-roofing": "Northline Roofing",
   "alder-ridge-law": "Alder Ridge Law",
   "ledgerstone-advisory": "Ledgerstone Advisory",

@@ -23,6 +23,7 @@ import {
 import { readDemoModuleConfig, installAdminDemoRuntime } from "@/lib/admin/demo/runtime";
 import { readDemoAppearance } from "@/lib/admin/demo/appearance-state";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
+import { DEMO_BUSINESS_MODULES } from "@/lib/admin/demo/business-runtime";
 import { cn } from "@/lib/utils";
 import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime";
 
@@ -41,7 +42,7 @@ export function AdminDemoBoundary({
   children: React.ReactNode;
 }) {
   const [moduleConfig, setModuleConfig] = useState<{ modules: Partial<Record<string, boolean>> }>({
-    modules: { "stripe-invoicing": true, "client-onboarding": true, "meeting-commitments": true },
+    modules: { ...DEMO_BUSINESS_MODULES },
   });
   const resetRef = useRef<null | (() => void)>(null);
   const { setTheme } = useTheme();

@@ -84,6 +84,7 @@ const ALLOWED_ICONS = [
   "MessageCircleMore",
   "MessageSquareText",
   "PlugZap",
+  "Radar",
   "RotateCcw",
   "Settings",
   "Target",
@@ -123,6 +124,24 @@ function fail(file, message) {
 }
 
 function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
+  if (manifest.historyRoute !== undefined) {
+    if (
+      typeof manifest.historyRoute !== "string" ||
+      !/^\/admin\/[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(manifest.historyRoute)
+    )
+      fail(file, "History route must be an exact static admin path");
+    else if (
+      !Array.isArray(manifest.routes) ||
+      !manifest.routes.some(
+        (route) =>
+          typeof route === "string" &&
+          (manifest.historyRoute === route || manifest.historyRoute.startsWith(`${route}/`)),
+      )
+    )
+      fail(file, "History route must belong to the module declared routes");
+    else if (!existsSync(join(repoRoot, "src/app", manifest.historyRoute, "page.tsx")))
+      fail(file, "History route must have a real shared admin page");
+  }
   for (const message of pluginDocumentationFailures(repoRoot, manifest)) fail(file, message);
   const req = ["id", "name", "description", "category", "defaultEnabled", "navLinks"];
   for (const key of req) {
@@ -407,6 +426,7 @@ const modules = manifests.map((manifest) => ({
   navLinkIds: (manifest.navLinks ?? []).map((link) => link.id),
   aiToolNames: manifest.aiToolNames ?? [],
   routes: manifest.routes ?? [],
+  ...(manifest.historyRoute ? { historyRoute: manifest.historyRoute } : {}),
   setupChecks: manifest.setupChecks ?? [],
   ...(manifest.docsUrl ? { docsUrl: manifest.docsUrl } : {}),
   ...(manifest.settings?.length ? { settings: manifest.settings } : {}),

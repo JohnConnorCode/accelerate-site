@@ -594,8 +594,10 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     category: "intelligence",
     isCore: false,
     defaultEnabled: false,
-    navLinkIds: [],
+    navLinkIds: ["opportunity-radar"],
     aiToolNames: [
+      "get_radar_workspace",
+      "prepare_radar_opportunity_brief",
       "prepare_radar_brief",
       "get_radar_model_status",
       "reconcile_radar_model_call",
@@ -606,7 +608,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       "preview_radar_assessment",
       "propose_radar_assessment",
     ],
-    routes: [],
+    routes: ["/admin/radar"],
+    historyRoute: "/admin/radar/history",
     setupChecks: [],
     docsUrl:
       "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md",
@@ -1270,6 +1273,15 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     description:
       "Turn reviewed meeting commitments into assigned follow-ups linked to the meeting.",
     moreGroup: "Delivery",
+  },
+  {
+    moduleId: "opportunity-radar",
+    id: "opportunity-radar",
+    label: "Opportunity Radar",
+    href: "/admin/radar/today",
+    icon: "Radar",
+    description: "Sourced business opportunities, research and reviewed actions.",
+    moreGroup: "Intelligence",
   },
   {
     moduleId: "receivables-collections",
