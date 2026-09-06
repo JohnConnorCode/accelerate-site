@@ -134,7 +134,140 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "420ba78cbb3dc4bbf59b96ccbef884ffa1ae7fc5063348d17b655e16dd9d1faa",
+      contractHash: "ee6f23189d109520014715ec6c7030e8758b9c19066b79e3d8c2008bfaa27adc",
+      tools: [
+        {
+          operation: "prepare-workflow",
+          name: "prepare_client_onboarding",
+          description:
+            "Prepare Client onboarding: Turn a won deal into an assigned, dated delivery checklist with durable task receipts.. Returns a reviewable plan, never executes it.",
+          serviceTarget: "revenue-os.workflow-plugins",
+          connectionRequirement: "none",
+          impact: "read",
+          confirmationRequired: false,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              opportunityId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+              tasks: {
+                minItems: 1,
+                maxItems: 10,
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    title: {
+                      type: "string",
+                      minLength: 1,
+                      maxLength: 200,
+                    },
+                    description: {
+                      type: "string",
+                      maxLength: 2000,
+                    },
+                    dueDate: {
+                      type: "string",
+                      format: "date",
+                      pattern:
+                        "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                    },
+                    assigneeUserId: {
+                      type: "string",
+                      format: "uuid",
+                      pattern:
+                        "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    },
+                  },
+                  required: ["title", "description", "dueDate", "assigneeUserId"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["opportunityId", "tasks"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "propose-workflow",
+          name: "propose_client_onboarding",
+          description:
+            "Stage the exact previewed Client onboarding for human approval. Use its digest and a stable UUID requestId. Never executes the action.",
+          serviceTarget: "revenue-os.workflow-plugins",
+          connectionRequirement: "none",
+          impact: "internal_write",
+          confirmationRequired: true,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              input: {
+                type: "object",
+                properties: {
+                  opportunityId: {
+                    type: "string",
+                    format: "uuid",
+                    pattern:
+                      "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  },
+                  tasks: {
+                    minItems: 1,
+                    maxItems: 10,
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: {
+                          type: "string",
+                          minLength: 1,
+                          maxLength: 200,
+                        },
+                        description: {
+                          type: "string",
+                          maxLength: 2000,
+                        },
+                        dueDate: {
+                          type: "string",
+                          format: "date",
+                          pattern:
+                            "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                        },
+                        assigneeUserId: {
+                          type: "string",
+                          format: "uuid",
+                          pattern:
+                            "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        },
+                      },
+                      required: ["title", "description", "dueDate", "assigneeUserId"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["opportunityId", "tasks"],
+                additionalProperties: false,
+              },
+              digest: {
+                type: "string",
+                pattern: "^[a-f0-9]{64}$",
+              },
+              requestId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+            },
+            required: ["input", "digest", "requestId"],
+            additionalProperties: false,
+          },
+        },
+      ],
     },
   },
   {
@@ -285,7 +418,140 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "d715c6f495c0fd8a4b1362db95a429147203eb35a91920b1528117443eb57182",
+      contractHash: "3e651675adeee73344e5df418356f69c7370a47dce0e02a4789fd1932560ebf3",
+      tools: [
+        {
+          operation: "prepare-workflow",
+          name: "prepare_meeting_commitments",
+          description:
+            "Prepare Meeting commitments: Turn reviewed meeting commitments into assigned follow-ups linked to the meeting.. Returns a reviewable plan, never executes it.",
+          serviceTarget: "revenue-os.workflow-plugins",
+          connectionRequirement: "none",
+          impact: "read",
+          confirmationRequired: false,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              meetingId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+              tasks: {
+                minItems: 1,
+                maxItems: 10,
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    title: {
+                      type: "string",
+                      minLength: 1,
+                      maxLength: 200,
+                    },
+                    description: {
+                      type: "string",
+                      maxLength: 2000,
+                    },
+                    dueDate: {
+                      type: "string",
+                      format: "date",
+                      pattern:
+                        "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                    },
+                    assigneeUserId: {
+                      type: "string",
+                      format: "uuid",
+                      pattern:
+                        "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    },
+                  },
+                  required: ["title", "description", "dueDate", "assigneeUserId"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["meetingId", "tasks"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "propose-workflow",
+          name: "propose_meeting_commitments",
+          description:
+            "Stage the exact previewed Meeting commitments for human approval. Use its digest and a stable UUID requestId. Never executes the action.",
+          serviceTarget: "revenue-os.workflow-plugins",
+          connectionRequirement: "none",
+          impact: "internal_write",
+          confirmationRequired: true,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              input: {
+                type: "object",
+                properties: {
+                  meetingId: {
+                    type: "string",
+                    format: "uuid",
+                    pattern:
+                      "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  },
+                  tasks: {
+                    minItems: 1,
+                    maxItems: 10,
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: {
+                          type: "string",
+                          minLength: 1,
+                          maxLength: 200,
+                        },
+                        description: {
+                          type: "string",
+                          maxLength: 2000,
+                        },
+                        dueDate: {
+                          type: "string",
+                          format: "date",
+                          pattern:
+                            "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                        },
+                        assigneeUserId: {
+                          type: "string",
+                          format: "uuid",
+                          pattern:
+                            "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        },
+                      },
+                      required: ["title", "description", "dueDate", "assigneeUserId"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["meetingId", "tasks"],
+                additionalProperties: false,
+              },
+              digest: {
+                type: "string",
+                pattern: "^[a-f0-9]{64}$",
+              },
+              requestId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+            },
+            required: ["input", "digest", "requestId"],
+            additionalProperties: false,
+          },
+        },
+      ],
     },
   },
   {
@@ -464,7 +730,296 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "7afe4530693681c920c43ba2f46b6903039a533d760649fee4a149a547b2aa0d",
+      contractHash: "4b55e5f61e5fbe871d213bda1220dd7047e89f3666cf3892392b121d6d752a8c",
+      tools: [
+        {
+          operation: "prepare-workflow",
+          name: "prepare_stripe_invoicing",
+          description:
+            "Prepare Stripe invoicing: Create reviewed invoices for CRM customers, approve sending, and track Stripe payment status.. Returns a reviewable plan, never executes it.",
+          serviceTarget: "revenue-os.workflow-plugins",
+          connectionRequirement: "none",
+          impact: "read",
+          confirmationRequired: false,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              contactId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+              customerId: {
+                type: "string",
+                minLength: 5,
+                maxLength: 84,
+                pattern: "^cus_[A-Za-z0-9]{1,80}$",
+              },
+              currency: {
+                type: "string",
+                enum: ["usd", "eur", "gbp", "cad", "aud"],
+              },
+              daysUntilDue: {
+                type: "integer",
+                minimum: 1,
+                maximum: 90,
+              },
+              memo: {
+                type: "string",
+                maxLength: 500,
+              },
+              lines: {
+                minItems: 1,
+                maxItems: 10,
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    description: {
+                      type: "string",
+                      minLength: 1,
+                      maxLength: 200,
+                    },
+                    quantity: {
+                      type: "integer",
+                      minimum: 1,
+                      maximum: 10000,
+                    },
+                    unitAmount: {
+                      type: "integer",
+                      minimum: 1,
+                      maximum: 100000000,
+                    },
+                  },
+                  required: ["description", "quantity", "unitAmount"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "propose-workflow",
+          name: "propose_stripe_invoicing",
+          description:
+            "Stage the exact previewed Stripe invoicing for human approval. Use its digest and a stable UUID requestId. Never executes the action.",
+          serviceTarget: "revenue-os.workflow-plugins",
+          connectionRequirement: "none",
+          impact: "internal_write",
+          confirmationRequired: true,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              input: {
+                type: "object",
+                properties: {
+                  contactId: {
+                    type: "string",
+                    format: "uuid",
+                    pattern:
+                      "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  },
+                  customerId: {
+                    type: "string",
+                    minLength: 5,
+                    maxLength: 84,
+                    pattern: "^cus_[A-Za-z0-9]{1,80}$",
+                  },
+                  currency: {
+                    type: "string",
+                    enum: ["usd", "eur", "gbp", "cad", "aud"],
+                  },
+                  daysUntilDue: {
+                    type: "integer",
+                    minimum: 1,
+                    maximum: 90,
+                  },
+                  memo: {
+                    type: "string",
+                    maxLength: 500,
+                  },
+                  lines: {
+                    minItems: 1,
+                    maxItems: 10,
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        description: {
+                          type: "string",
+                          minLength: 1,
+                          maxLength: 200,
+                        },
+                        quantity: {
+                          type: "integer",
+                          minimum: 1,
+                          maximum: 10000,
+                        },
+                        unitAmount: {
+                          type: "integer",
+                          minimum: 1,
+                          maximum: 100000000,
+                        },
+                      },
+                      required: ["description", "quantity", "unitAmount"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
+                additionalProperties: false,
+              },
+              digest: {
+                type: "string",
+                pattern: "^[a-f0-9]{64}$",
+              },
+              requestId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+            },
+            required: ["input", "digest", "requestId"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "propose-invoice-send",
+          name: "propose_stripe_invoice_send",
+          description:
+            "Stage sending an existing completed Stripe invoice for explicit human approval. Does not send it.",
+          serviceTarget: "revenue-os.stripe-invoicing",
+          connectionRequirement: "none",
+          impact: "internal_write",
+          confirmationRequired: true,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              creationActionId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+            },
+            required: ["creationActionId"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "preview-invoice-page",
+          name: "preview_invoice_page",
+          description:
+            "Preview a bounded customer invoice design using workspace branding and authoritative Stripe billing facts. Returns the publication digest; does not publish.",
+          serviceTarget: "revenue-os.invoice-pages",
+          connectionRequirement: "none",
+          impact: "read",
+          confirmationRequired: false,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              creationActionId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+              design: {
+                type: "object",
+                properties: {
+                  layout: {
+                    type: "string",
+                    enum: ["classic", "editorial"],
+                  },
+                  heading: {
+                    type: "string",
+                    minLength: 1,
+                    maxLength: 80,
+                  },
+                  introduction: {
+                    type: "string",
+                    maxLength: 500,
+                  },
+                  closing: {
+                    type: "string",
+                    maxLength: 300,
+                  },
+                },
+                required: ["layout", "heading", "introduction", "closing"],
+                additionalProperties: false,
+              },
+            },
+            required: ["creationActionId", "design"],
+            additionalProperties: false,
+          },
+        },
+        {
+          operation: "propose-invoice-page",
+          name: "propose_invoice_page",
+          description:
+            "Stage the exact previewed invoice page for human publication approval. Does not publish or email the customer.",
+          serviceTarget: "revenue-os.invoice-pages",
+          connectionRequirement: "none",
+          impact: "internal_write",
+          confirmationRequired: true,
+          inputSchema: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {
+              creationActionId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+              design: {
+                type: "object",
+                properties: {
+                  layout: {
+                    type: "string",
+                    enum: ["classic", "editorial"],
+                  },
+                  heading: {
+                    type: "string",
+                    minLength: 1,
+                    maxLength: 80,
+                  },
+                  introduction: {
+                    type: "string",
+                    maxLength: 500,
+                  },
+                  closing: {
+                    type: "string",
+                    maxLength: 300,
+                  },
+                },
+                required: ["layout", "heading", "introduction", "closing"],
+                additionalProperties: false,
+              },
+              digest: {
+                type: "string",
+                pattern: "^[a-f0-9]{64}$",
+              },
+              requestId: {
+                type: "string",
+                format: "uuid",
+                pattern:
+                  "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              },
+            },
+            required: ["creationActionId", "design", "digest", "requestId"],
+            additionalProperties: false,
+          },
+        },
+      ],
     },
   },
 ] as const;

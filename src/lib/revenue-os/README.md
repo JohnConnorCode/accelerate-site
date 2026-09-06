@@ -97,6 +97,10 @@ Phase B and C land (see `docs/NORTHSTAR.md` §6–§20 and the Feature Board car
 
 ## Workflow plugin contracts
 
+`plugin-tool-contract.ts` owns the nine bundled workflow/Stripe tool registrations
+and their full input parsers. Generation stamps tool grants from this registry;
+`ai-tools.ts` maps the same operation keys to reviewed domain adapters and applies
+the parser at dispatch. Module/pack/approval gates remain shared.
 `plugin-workflow-contract.ts` owns the trusted workflow input/policy registry.
 `plugin-workflow-policy.ts` validates canonical evidence and replay policies and
 owns the retry-key builders used by task/invoice services. Generated contract

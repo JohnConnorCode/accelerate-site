@@ -67,6 +67,113 @@
       "impact": "internal_write",
       "reversibility": "compensable"
     },
-    "contractHash": "420ba78cbb3dc4bbf59b96ccbef884ffa1ae7fc5063348d17b655e16dd9d1faa"
+    "contractHash": "ee6f23189d109520014715ec6c7030e8758b9c19066b79e3d8c2008bfaa27adc",
+    "tools": [
+      {
+        "operation": "prepare-workflow",
+        "name": "prepare_client_onboarding",
+        "description": "Prepare Client onboarding: Turn a won deal into an assigned, dated delivery checklist with durable task receipts.. Returns a reviewable plan, never executes it.",
+        "serviceTarget": "revenue-os.workflow-plugins",
+        "connectionRequirement": "none",
+        "impact": "read",
+        "confirmationRequired": false,
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "opportunityId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "tasks": {
+              "minItems": 1,
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "description": { "type": "string", "maxLength": 2000 },
+                  "dueDate": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "assigneeUserId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": ["title", "description", "dueDate", "assigneeUserId"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["opportunityId", "tasks"],
+          "additionalProperties": false
+        }
+      },
+      {
+        "operation": "propose-workflow",
+        "name": "propose_client_onboarding",
+        "description": "Stage the exact previewed Client onboarding for human approval. Use its digest and a stable UUID requestId. Never executes the action.",
+        "serviceTarget": "revenue-os.workflow-plugins",
+        "connectionRequirement": "none",
+        "impact": "internal_write",
+        "confirmationRequired": true,
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "object",
+              "properties": {
+                "opportunityId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "tasks": {
+                  "minItems": 1,
+                  "maxItems": 10,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+                      "description": { "type": "string", "maxLength": 2000 },
+                      "dueDate": {
+                        "type": "string",
+                        "format": "date",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      "assigneeUserId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      }
+                    },
+                    "required": ["title", "description", "dueDate", "assigneeUserId"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": ["opportunityId", "tasks"],
+              "additionalProperties": false
+            },
+            "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "requestId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": ["input", "digest", "requestId"],
+          "additionalProperties": false
+        }
+      }
+    ]
   }
 }

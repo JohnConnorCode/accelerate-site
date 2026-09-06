@@ -1,3 +1,4 @@
+import type { PluginToolDeclaration } from "./plugin-tool-contract";
 import type { WorkflowPolicy } from "./plugin-workflow-policy";
 /**
  * Pluggable Module Contract for Revenue OS
@@ -90,6 +91,7 @@ export interface RevenueOSModule {
     version: 1;
     inputContract: string;
     policy: WorkflowPolicy;
+    tools: PluginToolDeclaration[];
     contractHash: string;
     inputSchema: Record<string, unknown>;
     actions: string[];

@@ -47,7 +47,12 @@ import {
   previewCollectionAgentReminder,
   proposeCollectionAgentReminder,
 } from "./collection-agent";
-import { invoiceDesignSchema } from "./invoice-page-contract";
+import {
+  pluginToolRegistrations,
+  pluginToolDeclaration,
+  assertPluginToolGrants,
+  type PluginToolOperation,
+} from "./plugin-tool-contract";
 import { z } from "zod";
 import { prepareWorkflowPlugin, proposeWorkflowPlugin } from "./workflow-plugins";
 import { runReportPlugin } from "./report-plugins";
@@ -92,6 +97,8 @@ type AiToolRegistration = {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
+  /** Full registered parser when discovery metadata is only a projection. */
+  parseInput?: (input: Record<string, unknown>) => Record<string, unknown>;
   outputSchema: Record<string, unknown>;
   /** The reviewed service boundary a tool is permitted to call. */
   serviceTarget: string;
@@ -357,6 +364,43 @@ const discoveryInput = z
   })
   .strict();
 const activationInput = z.object({ bundleId: z.string().min(1).max(160) }).strict();
+// Every registered operation has exactly one reviewed adapter. Type checking
+// rejects missing/extra handlers; declarations choose operations, never imports.
+const PLUGIN_TOOL_EXECUTORS = {
+  "prepare-workflow": ({ supabase, pluginId }, input) =>
+    prepareWorkflowPlugin(supabase, pluginId, input),
+  "propose-workflow": ({ supabase, pluginId, actorEmail }, input) =>
+    proposeWorkflowPlugin(
+      supabase,
+      pluginId,
+      input.input,
+      value(input, "digest")!,
+      value(input, "requestId")!,
+      actorEmail,
+    ),
+  "propose-invoice-send": ({ supabase, actorEmail }, input) =>
+    proposeStripeInvoiceSend(supabase, value(input, "creationActionId")!, actorEmail),
+  "preview-invoice-page": ({ supabase }, input) =>
+    previewInvoicePage(supabase, value(input, "creationActionId")!, input.design),
+  "propose-invoice-page": ({ supabase, actorEmail }, input) =>
+    proposeInvoicePage(
+      supabase,
+      {
+        creationActionId: value(input, "creationActionId")!,
+        design: input.design,
+        digest: value(input, "digest")!,
+        requestId: value(input, "requestId")!,
+      },
+      actorEmail,
+    ),
+} satisfies Record<
+  PluginToolOperation,
+  (
+    context: AiToolContext & { pluginId: string },
+    input: Record<string, unknown>,
+  ) => Promise<unknown>
+>;
+
 const registry: AiToolRegistration[] = [
   {
     ...TOOL_DISCOVERY_METADATA[0],
@@ -481,111 +525,22 @@ const registry: AiToolRegistration[] = [
     execute: ({ supabase, actorEmail }, input) =>
       proposeCollectionAgentReminder(supabase, input, actorEmail),
   },
-  ...REVENUE_OS_MODULES.filter((module) => module.workflow).map((module): AiToolRegistration => ({
-    name: `prepare_${module.id.replaceAll("-", "_")}`,
-    description: `Prepare ${module.name}: ${module.description}. Returns a reviewable plan, never executes it.`,
-    inputSchema: module.workflow!.inputSchema,
-    outputSchema: { type: "object" },
-    serviceTarget: "revenue-os.workflow-plugins",
-    connectionRequirement: "none",
-    impact: "read",
-    confirmationRequired: false,
-    execute: async ({ supabase }, input) => prepareWorkflowPlugin(supabase, module.id, input),
-  })),
-  ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).map(
-    (moduleDef): AiToolRegistration => ({
-      name: `propose_${moduleDef.id.replaceAll("-", "_")}`,
-      description: `Stage the exact previewed ${moduleDef.name} for human approval. Use its digest and a stable UUID requestId. Never executes the action.`,
-      inputSchema: {
-        type: "object",
-        additionalProperties: false,
-        required: ["input", "digest", "requestId"],
-        properties: {
-          input: moduleDef.workflow!.inputSchema,
-          digest: { type: "string" },
-          requestId: { type: "string" },
+  ...REVENUE_OS_MODULES.filter((module) => module.workflow).flatMap((module) => {
+    const registeredModule = { ...module, workflow: module.workflow! };
+    assertPluginToolGrants(registeredModule);
+    return pluginToolRegistrations(registeredModule).map((registration): AiToolRegistration => {
+      const { operation, ...declaration } = pluginToolDeclaration(registration);
+      return {
+        ...declaration,
+        parseInput: (input) => registration.schema.parse(input) as Record<string, unknown>,
+        outputSchema: declaration.impact === "read" ? { type: "object" } : ACTION_OUTPUT_SCHEMA,
+        execute: async (context, input) => {
+          assertPluginToolGrants({ ...module, workflow: module.workflow! });
+          return PLUGIN_TOOL_EXECUTORS[operation]({ ...context, pluginId: module.id }, input);
         },
-      },
-      outputSchema: ACTION_OUTPUT_SCHEMA,
-      serviceTarget: "revenue-os.workflow-plugins",
-      connectionRequirement: "none",
-      impact: "internal_write",
-      confirmationRequired: true,
-      execute: async ({ supabase, actorEmail }, input) =>
-        proposeWorkflowPlugin(
-          supabase,
-          moduleDef.id,
-          input.input,
-          value(input, "digest") || "",
-          value(input, "requestId") || "",
-          actorEmail,
-        ),
-    }),
-  ),
-  {
-    name: "propose_stripe_invoice_send",
-    description:
-      "Stage sending an existing completed Stripe invoice for explicit human approval. Does not send it.",
-    inputSchema: {
-      type: "object",
-      additionalProperties: false,
-      required: ["creationActionId"],
-      properties: { creationActionId: { type: "string" } },
-    },
-    outputSchema: ACTION_OUTPUT_SCHEMA,
-    serviceTarget: "revenue-os.stripe-invoicing",
-    connectionRequirement: "none",
-    impact: "internal_write",
-    confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) =>
-      proposeStripeInvoiceSend(supabase, value(input, "creationActionId") || "", actorEmail),
-  },
-  {
-    name: "preview_invoice_page",
-    description:
-      "Preview a bounded customer invoice design using workspace branding and authoritative Stripe billing facts. Returns the publication digest; does not publish.",
-    inputSchema: z.toJSONSchema(
-      z.object({ creationActionId: z.uuid(), design: invoiceDesignSchema }).strict(),
-    ),
-    outputSchema: { type: "object" },
-    serviceTarget: "revenue-os.invoice-pages",
-    connectionRequirement: "none",
-    impact: "read",
-    confirmationRequired: false,
-    execute: async ({ supabase }, input) =>
-      previewInvoicePage(supabase, value(input, "creationActionId") || "", input.design),
-  },
-  {
-    name: "propose_invoice_page",
-    description:
-      "Stage the exact previewed invoice page for human publication approval. Does not publish or email the customer.",
-    inputSchema: z.toJSONSchema(
-      z
-        .object({
-          creationActionId: z.uuid(),
-          design: invoiceDesignSchema,
-          digest: z.string().length(64),
-          requestId: z.uuid(),
-        })
-        .strict(),
-    ),
-    outputSchema: ACTION_OUTPUT_SCHEMA,
-    serviceTarget: "revenue-os.invoice-pages",
-    connectionRequirement: "none",
-    impact: "internal_write",
-    confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) =>
-      proposeInvoicePage(
-        supabase,
-        {
-          creationActionId: value(input, "creationActionId") || "",
-          design: input.design,
-          digest: value(input, "digest") || "",
-          requestId: value(input, "requestId") || "",
-        },
-        actorEmail,
-      ),
-  },
+      };
+    });
+  }),
 
   ...REVENUE_OS_MODULES.filter((module) => module.report).map(
     ({ id: pluginId }): AiToolRegistration => ({
@@ -2130,9 +2085,11 @@ export async function executeRegisteredRevenueTool(
   const availability = availabilityFor(tool, context);
   if (!availability.available)
     throw new Error(`${tool.name} is unavailable: ${availability.reason}`);
-  validateToolInput(tool.name, tool.inputSchema, input);
+  let parsedInput = input;
+  if (tool.parseInput) parsedInput = tool.parseInput(input);
+  else validateToolInput(tool.name, tool.inputSchema, input);
   const output = await withProposalWorkContext(context.workItemId, () =>
-    tool.execute(context, input),
+    tool.execute(context, parsedInput),
   );
   validateToolOutput(tool.name, tool.outputSchema, output);
   assertImpactHonoured(tool, output);

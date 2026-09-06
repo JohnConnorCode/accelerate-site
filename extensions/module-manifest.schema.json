@@ -198,7 +198,8 @@
         "sources",
         "inputContract",
         "policy",
-        "contractHash"
+        "contractHash",
+        "tools"
       ],
       "properties": {
         "version": {
@@ -253,6 +254,15 @@
         "contractHash": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "tools": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 5,
+          "items": {
+            "type": "object"
+          },
+          "description": "Generated tool grants; exact host registration equality enforced by build:extensions --check."
         }
       }
     }

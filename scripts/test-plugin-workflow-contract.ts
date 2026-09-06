@@ -59,7 +59,9 @@ assert.throws(
 );
 
 type FixtureManifest = {
+  aiToolNames: string[];
   workflow: {
+    tools: { inputSchema: { properties: Record<string, unknown> } }[];
     policy: { tier: number };
     contractHash: string;
     sources: unknown[];
@@ -149,6 +151,8 @@ try {
     "scripts/lib/bounded-workflow-schema.mjs",
     "src/lib/revenue-os/modules.ts",
     "src/lib/revenue-os/plugin-workflow-contract.ts",
+    "src/lib/revenue-os/plugin-tool-contract.ts",
+    "src/lib/revenue-os/invoice-page-contract.ts",
     "src/lib/revenue-os/plugin-workflow-policy.ts",
     "src/lib/revenue-os/action-reversibility-contract.ts",
     "src/lib/revenue-os/workflow-task-contract.ts",
@@ -172,6 +176,21 @@ try {
   const path = join(fixture, "extensions/client-onboarding.module.json");
   const original = readFileSync(path, "utf8");
   for (const mutate of [
+    (m: FixtureManifest) => {
+      m.aiToolNames = [];
+    },
+    (m: FixtureManifest) => {
+      m.aiToolNames.push("send_email");
+    },
+    (m: FixtureManifest) => {
+      m.workflow.tools.pop();
+    },
+    (m: FixtureManifest) => {
+      m.workflow.tools.push(m.workflow.tools[0]!);
+    },
+    (m: FixtureManifest) => {
+      m.workflow.tools[0]!.inputSchema.properties = {};
+    },
     (m: FixtureManifest) => {
       m.workflow.policy.tier = 0;
     },
