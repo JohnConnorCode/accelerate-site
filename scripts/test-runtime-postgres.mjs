@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { proveModelBudgets } from "./lib/model-budget-postgres-proof.mjs";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -72,6 +73,7 @@ try {
  CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS $$ SELECT current_setting('request.jwt.claim.role',true) $$;
  CREATE FUNCTION public.accelerate_default_tenant_id() RETURNS uuid LANGUAGE sql IMMUTABLE AS $$ SELECT '${a}'::uuid $$;
  CREATE TABLE tenants(id uuid PRIMARY KEY,status text); INSERT INTO tenants VALUES('${a}','active'),('${b}','active');
+ ALTER TABLE tenants ADD COLUMN config jsonb NOT NULL DEFAULT '{}';
  CREATE TABLE tenant_memberships(tenant_id uuid,user_id uuid,status text);
  INSERT INTO tenant_memberships VALUES('${a}','${a}','active');
  CREATE TABLE action_queue(id uuid PRIMARY KEY,tenant_id uuid NOT NULL);
@@ -101,6 +103,7 @@ try {
       "20260904-runtime-budget-claims.sql",
       "20260904-runtime-work-approval-links.sql",
       "20260904-runtime-work-claims.sql",
+      "20260908-model-call-reservations.sql",
     ])
       sql(readFileSync(`migrations/${file}`, "utf8"));
   sql(`GRANT USAGE ON SCHEMA public,auth,private TO authenticated,service_role;
@@ -258,10 +261,12 @@ try {
       ),
     /unavailable/,
   );
+  const modelChecks = await proveModelBudgets({ sql, asyncSql, context, a, b });
   console.log(
     JSON.stringify({
       result: "passed",
       checks: [
+        ...modelChecks,
         "idempotent-migrations",
         "tenant-composite-coworkers",
         "foreign-link-refusal",

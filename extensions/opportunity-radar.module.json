@@ -2,12 +2,12 @@
   "$schema": "./module-manifest.schema.json",
   "id": "opportunity-radar",
   "name": "Opportunity Radar",
-  "description": "Configure a reusable business profile for evidence-backed opportunity workflows. Profile and AI setup foundation only; automated discovery and outreach are not yet available.",
+  "description": "Configure a reusable business profile and prepare bounded source-linked AI briefs. Automated discovery and outreach are not yet available.",
   "category": "intelligence",
   "defaultEnabled": false,
   "navLinks": [],
   "routes": [],
-  "aiToolNames": [],
+  "aiToolNames": ["prepare_radar_brief", "get_radar_model_status", "reconcile_radar_model_call"],
   "setupChecks": [],
   "settingsContract": "opportunity-radar-profile-v1",
   "settings": [
@@ -102,7 +102,7 @@
     {
       "key": "dailyModelBudgetUsd",
       "label": "Daily model budget (USD)",
-      "description": "Zero disables automatic model spending. Future workers must reserve the budget before calls.",
+      "description": "Zero disables automatic model spending. Model jobs must reserve the budget before calls.",
       "type": "number",
       "min": 0,
       "max": 100,
@@ -114,14 +114,14 @@
       "type": "enum",
       "options": ["off", "free-only", "budgeted-low-cost"],
       "default": "off",
-      "description": "Preference for future workers. Off makes no model calls; free-only must never fall back to paid models."
+      "description": "Applies to source briefing jobs. Off makes no model calls; free-only must never fall back to paid models."
     },
     {
       "key": "preferredModel",
       "label": "Preferred registered model",
       "type": "string",
       "default": "",
-      "description": "Optional model ID from the shared evaluated model registry. OpenRouter is the current transport; no premium default or invented model IDs."
+      "description": "Explicit model ID from the shared evaluated model registry. OpenRouter is the current transport; no premium default or invented model IDs."
     },
     {
       "key": "maxModelCallsPerDay",
@@ -139,7 +139,7 @@
       "min": 1024,
       "max": 16000,
       "default": 8000,
-      "description": "Bound retrieved evidence before a future model request."
+      "description": "Bound retrieved evidence before a model request."
     },
     {
       "key": "maxOutputTokensPerCall",
@@ -157,7 +157,7 @@
       "min": 0,
       "max": 1,
       "default": 0,
-      "description": "Future workers reserve worst-case cost before requests; zero allows no paid request."
+      "description": "Model jobs reserve worst-case cost before requests; zero allows no paid request."
     },
     {
       "key": "sourceMode",

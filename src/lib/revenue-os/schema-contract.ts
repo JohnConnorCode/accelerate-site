@@ -28,6 +28,8 @@ export const TENANT_SCOPED_TABLES = [
   "budget_limits",
   "budget_usage",
   "budget_receipts",
+  "model_call_receipts",
+  "model_call_events",
   "plugins",
   "plugin_tools",
   "plugin_triggers",

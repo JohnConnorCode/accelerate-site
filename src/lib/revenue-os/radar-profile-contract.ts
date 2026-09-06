@@ -139,7 +139,7 @@ export const RADAR_PROFILE_FIELDS: ModuleSettingField[] = [
     key: "dailyModelBudgetUsd",
     label: "Daily model budget (USD)",
     description:
-      "Zero disables automatic model spending. Future workers must reserve the budget before calls.",
+      "Zero disables automatic model spending. Model jobs must reserve the budget before calls.",
     type: "number",
     min: 0,
     max: 100,
@@ -152,7 +152,7 @@ export const RADAR_PROFILE_FIELDS: ModuleSettingField[] = [
     options: ["off", "free-only", "budgeted-low-cost"],
     default: "off",
     description:
-      "Preference for future workers. Off makes no model calls; free-only must never fall back to paid models.",
+      "Applies to source briefing jobs. Off makes no model calls; free-only must never fall back to paid models.",
   },
   {
     key: "preferredModel",
@@ -160,7 +160,7 @@ export const RADAR_PROFILE_FIELDS: ModuleSettingField[] = [
     type: "string",
     default: "",
     description:
-      "Optional model ID from the shared evaluated model registry. OpenRouter is the current transport; no premium default or invented model IDs.",
+      "Explicit model ID from the shared evaluated model registry. OpenRouter is the current transport; no premium default or invented model IDs.",
   },
   {
     key: "maxModelCallsPerDay",
@@ -179,7 +179,7 @@ export const RADAR_PROFILE_FIELDS: ModuleSettingField[] = [
     min: 1024,
     max: 16000,
     default: 8000,
-    description: "Bound retrieved evidence before a future model request.",
+    description: "Bound retrieved evidence before a model request.",
   },
   {
     key: "maxOutputTokensPerCall",
@@ -197,8 +197,7 @@ export const RADAR_PROFILE_FIELDS: ModuleSettingField[] = [
     min: 0,
     max: 1,
     default: 0,
-    description:
-      "Future workers reserve worst-case cost before requests; zero allows no paid request.",
+    description: "Model jobs reserve worst-case cost before requests; zero allows no paid request.",
   },
   {
     key: "sourceMode",

@@ -226,6 +226,28 @@ export async function getModelRegistration(
   return toRegistration(id, stored);
 }
 
+/** Bounded tenant catalog. Unreviewed or incompatible rows remain visible, never auto-selected. */
+export async function listModelRegistrations(supabase: SupabaseClient, tenantId: string) {
+  const { data, error } = await supabase
+    .from("admin_settings")
+    .select("key,value")
+    .eq("tenant_id", requireTenant(tenantId))
+    .ilike("key", "ai-model:%")
+    .order("key")
+    .limit(101);
+  if (error) throw new Error("Model registry is unavailable");
+  const models = (data ?? []).slice(0, 100).map((row) => {
+    const id = String(row.key).slice("ai-model:".length);
+    const stored: unknown = JSON.parse(String(row.value));
+    if (!stored || typeof stored !== "object" || Array.isArray(stored))
+      throw new Error("Stored model registration is corrupt");
+    return toRegistration(id, stored as Record<string, unknown>);
+  });
+  if (!models.some((model) => model.id === BUILT_IN_MODEL_ID))
+    models.push(toRegistration(BUILT_IN_MODEL_ID, null));
+  return { models, truncated: (data ?? []).length > 100 };
+}
+
 /**
  * Record an eval outcome. Passing unlocks free/low-cost models for
  * consequential jobs; the who/when travels with the verdict.

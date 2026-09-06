@@ -10,7 +10,8 @@ bulk content, unsolicited message volume, manufactured credentials or impression
 
 The profile foundation supplies a disabled module, generated settings fields,
 validated public configuration, two presets, a local setup packet generator and
-the existing governed AI configuration flow. There is no Radar feed, database,
+the existing governed AI configuration flow. Bounded source briefing uses shared
+model reservations, charge receipts and provider-usage reconciliation. There is no Radar feed, discovery store,
 worker, ranking engine, sender, publisher, graph collector or measurement service
 yet. Enabling this foundation does not start any of those activities.
 
@@ -93,10 +94,11 @@ the future ingestion adapter.
 The verified transport currently uses OpenRouter through the shared gateway and
 operator model registry. Radar must not hardcode a premium model or create a
 second provider client. The profile offers **off**, **free-only** and
-**budgeted-low-cost** preferences, an optional registered model ID, independent
+**budgeted-low-cost** preferences, an explicit registered model ID, independent
 call/token caps and per-run/daily USD limits. Defaults are off, zero calls and
-zero permitted model spending. These are configuration preferences for future
-workers, not a claim that model execution exists in this foundation.
+zero permitted model spending. Source briefing enforces these settings through the shared budgeted gateway.
+The [operator guide](../../plugins/opportunity-radar/README.md) covers a worked
+example, model registration limitations, conservative accounting and recovery.
 
 Free-only permits only a currently verified zero-cost compatible model. A model
 ID suffix alone is not pricing evidence. No available free model means defer,
@@ -107,8 +109,7 @@ unknown. Never silently use the gateway's default or upgrade to a premium model.
 Keep the maximum configured run cost within the daily budget.
 
 Use deterministic filtering/deduplication/caching first and model calls only for
-a small worthwhile shortlist. Avoid paid news/search/PR databases. Public feeds
-and manual imports remain useful with model mode off. Explain source/model usage
+a small worthwhile shortlist. Avoid paid news/search/PR databases. Future public-feed and manual-import adapters must remain useful with model mode off. Explain source/model usage
 and defer reason in each receipt. Local open-weight inference is a planned
 **shared provider adapter**, not currently supported by this plugin; its token,
 latency and resource limits still matter even without a per-token bill.

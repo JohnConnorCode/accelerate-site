@@ -152,8 +152,14 @@ export class MemorySupabase {
       return self;
     };
     self.ilike = (column: string, value: string) => {
-      const lower = value.toLowerCase();
-      filters.push((row) => row[column] != null && String(row[column]).toLowerCase() === lower);
+      const pattern = value
+        .split("")
+        .map((char) =>
+          char === "%" ? ".*" : char === "_" ? "." : char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        )
+        .join("");
+      const matches = new RegExp(`^${pattern}$`, "i");
+      filters.push((row) => row[column] != null && matches.test(String(row[column])));
       return self;
     };
     self.gt = (column: string, value: string) => {

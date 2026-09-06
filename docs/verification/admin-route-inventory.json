@@ -196,13 +196,13 @@
     "src/lib/admin/navigation.ts": "95bba5539a8be5f91f8d5db70479ee9b611fc3ba0d7fc6fc3d990dbfa0eaa897",
     "src/lib/ai/approved-pricing.ts": "de3c37eddce5b73b90acc8e38f72d01865e9a1b207ea3a27972de4bfbd34dc42",
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
-    "src/lib/ai/openrouter.ts": "46c0819df4c0b710c1dcf11a96daad158fc10106bc2b94c4767936115c68bc38",
+    "src/lib/ai/openrouter.ts": "e19b7a0096c33852ec7ed41474f4b45aeb27778d1bb02cac3a9d5625a3e3e3c6",
     "src/lib/email/blocks.ts": "694fecaa691755074a7eafa07f2cb8170af100bb2b2c0614e70f5a344eec2e0b",
     "src/lib/email/booking.ts": "b6559df14564fd4d7a208c11c246f711f1f410023301494655a9c7b4856b034a",
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "10170d7b2945853eae86a0853baba228410bcefea173a3ddf9870521369a19d9",
+    "src/lib/revenue-os/README.md": "33c39992be6f9372ffa9bd7bcad22937317718b97fe1f341e7d7ad793928a4ba",
     "src/lib/revenue-os/action-executor.ts": "d69600c8858c96d3716a6e55b671ab20fd0f68beeb1b97a4cbacefa4e7f3eae0",
     "src/lib/revenue-os/actions.ts": "e3ab076c45a1e52631888859369477140cfd61e6fdf6ac5d8d1661781497e6d2",
     "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
@@ -213,7 +213,7 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "2183bcb12ab45d484ec3c6a21e6d67ab84bc0b5f0e9cde1500a4d1c1ad2d6a5f",
     "src/lib/revenue-os/ai-operations.ts": "ae39bc1112700f7af976bdf68a1308d7c720747ed82191d589817ba78b4aa945",
     "src/lib/revenue-os/ai-stream-contract.ts": "813ce466f99ba479b50cfee912921003a8e21bf812dba9e16494a4df3b5d00c7",
-    "src/lib/revenue-os/ai-tools.ts": "5f8174b3cb069cf2f0b2181580e5d6c27b485e83ab983eefee05828d0c5297f1",
+    "src/lib/revenue-os/ai-tools.ts": "ab511a53bf3d25f65019740e2de683f8eb01d8c238b51043d956de72056d538a",
     "src/lib/revenue-os/analytics.ts": "d57c3a867c3926e1fed1a64c110f0f28c8569e96a3c177b033e4eb11967764fb",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
     "src/lib/revenue-os/branding-contract.ts": "6d4fdd9837bacc633ddd78bbaa1c5d77a497d7d5ecd7842fc9e18fdfbb3ae914",
@@ -250,7 +250,7 @@
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/runs.ts": "a24b266141dc5dfcc49ec0df8c9c9f89fece1f155019cfb264da25661ceabea3",
-    "src/lib/revenue-os/schema-contract.ts": "aa5acbff11ce0daecfa80901e6f4bd1440b3a9225f29b332c88a2113895664f0",
+    "src/lib/revenue-os/schema-contract.ts": "20e24ddcf53e35f4a3c30a942df883ad4d16b58a21d5f5a82b5b11e52a70cb63",
     "src/lib/revenue-os/setup-status.ts": "644ca96abc605836b956c70b7a0e93111f993b22bf58df5345f2bccaf2c680e3",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/tasks.ts": "e3aaecd09ac8d07d40dc09a9f898efc0fe3ab344b26b17dae42cdad6b33e1b4b",
@@ -335,7 +335,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared AI workspace; writes require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates. Radar setup uses existing read/preview/propose module tools and exact human approval. Preview and execution check public profile readiness; reads explicitly report discovery, sending and publication unavailable.",
+      "boundary": "Shared AI workspace; writes require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates. Radar setup uses existing read/preview/propose module tools and exact human approval. Preview and execution check public profile readiness; reads explicitly report discovery, sending and publication unavailable. Radar briefing calls the tenant-bound shared budget gateway; status and usage reconciliation expose bounded receipts. These tools cannot send, publish, edit business records or bypass module gates.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -913,7 +913,7 @@
           "directTables": ["integration_connections"]
         }
       ],
-      "boundary": "Integration, module and tenant provider services have separate ownership. Registered plugin settings reuse a reviewed schema and reject credentials in public configuration. Radar requires complete public profile fields before enablement; saved model preferences do not enable workers or enforce spend. Module documentation links are manifest data.",
+      "boundary": "Integration, module and tenant provider services have separate ownership. Registered plugin settings reuse a reviewed schema and reject credentials in public configuration. Radar requires complete public profile fields before enablement; saved model preferences do not enable workers. Radar source briefs enforce them through shared atomic budget reservations and a pinned single-attempt model gateway. Module documentation links are manifest data.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -962,7 +962,7 @@
           "directTables": ["integration_connections"]
         }
       ],
-      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode.",
+      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1158,7 +1158,7 @@
           "directTables": ["proposals"]
         }
       ],
-      "boundary": "Proposal records and adapter actions remain; audit import alone does not make a domain writer.",
+      "boundary": "Proposal records and adapter actions remain; audit import alone does not make a domain writer. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
@@ -1236,7 +1236,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Admin settings adapter owns preference persistence; service tests can have external effects.",
+      "boundary": "Admin settings adapter owns preference persistence; service tests can have external effects. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1283,7 +1283,7 @@
           ]
         }
       ],
-      "boundary": "Health and schema checks are operational evidence, not business record parity.",
+      "boundary": "Health and schema checks are operational evidence, not business record parity. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming.",
       "followUp": null,
       "specialBoundary": null
     },
