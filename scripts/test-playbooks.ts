@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 import assert from "node:assert/strict";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolvePlaybook, tenant } from "../src/config/tenant";
 import {
   ingestPlaybookQualification,
   ingestRoofingQualification,
@@ -8,8 +9,33 @@ import {
 
 type Row = Record<string, unknown>;
 
+const DEFAULT_PIPELINE_COLUMNS = [
+  "new",
+  "contacted",
+  "qualified",
+  "meeting",
+  "proposal",
+  "negotiation",
+  "won",
+  "lost",
+  "nurture",
+].map((key, index) => ({
+  column_key: key,
+  board_key: "pipeline",
+  label: key,
+  is_default: key === "new",
+  sort_order: index * 1000,
+  metadata: {
+    role: key === "won" ? "won" : key === "lost" ? "lost" : "open",
+    probability: 10,
+  },
+}));
+
 function stubSupabase(initialTables: Record<string, Row[]> = {}) {
-  const tables: Record<string, Row[]> = { ...initialTables };
+  const tables: Record<string, Row[]> = {
+    kanban_columns: DEFAULT_PIPELINE_COLUMNS,
+    ...initialTables,
+  };
   const inserted: Array<{ table: string; payload: Row }> = [];
   const updated: Array<{ table: string; payload: Row; match: Row }> = [];
 
@@ -139,6 +165,16 @@ function stubSupabase(initialTables: Record<string, Row[]> = {}) {
 
 async function runTests() {
   console.log("Starting Pluggable Playbook Inbound tests...");
+
+  {
+    const roofing = resolvePlaybook("roofing");
+    assert.equal(roofing.sourceTag, "roofing_qualifier");
+    assert.equal(roofing.path, tenant.playbooks[0]?.path);
+    assert.equal(resolvePlaybook().key, "roofing");
+    const legal = resolvePlaybook("legal");
+    assert.equal(legal.sourceTag, "legal_qualifier");
+    assert.equal(legal.industry, "legal");
+  }
 
   // 1. Roofing qualification produces identical canonical tags and tasks
   {

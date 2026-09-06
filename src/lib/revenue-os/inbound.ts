@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { tenant } from "@/config/tenant";
+import { resolvePlaybook, tenant } from "@/config/tenant";
 import { safeAttribution } from "@/lib/opportunities";
 import type { UTMData } from "@/lib/utm";
 import { recordAudit } from "./audit";
@@ -270,15 +270,7 @@ export async function ingestPlaybookQualification(
   supabase: SupabaseClient,
   input: PlaybookInboundInput,
 ) {
-  const playbookKey = input.playbookKey || "roofing";
-  const matchedPlaybook = tenant.playbooks.find((p) => p.key === playbookKey) || {
-    key: playbookKey,
-    label: playbookKey.charAt(0).toUpperCase() + playbookKey.slice(1),
-    industry: playbookKey,
-    sourceTag: `${playbookKey}_qualifier`,
-    path: `/${playbookKey}`,
-    nextAction: `Respond to qualified ${playbookKey} audit request`,
-  };
+  const matchedPlaybook = resolvePlaybook(input.playbookKey);
 
   const { data: matches, error: matchError } = await supabase
     .from("opportunities")
@@ -467,5 +459,8 @@ export async function ingestRoofingQualification(
   supabase: SupabaseClient,
   input: RoofingInboundInput,
 ) {
-  return ingestPlaybookQualification(supabase, { ...input, playbookKey: "roofing" });
+  return ingestPlaybookQualification(supabase, {
+    ...input,
+    playbookKey: resolvePlaybook("roofing").key,
+  });
 }

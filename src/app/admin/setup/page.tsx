@@ -623,11 +623,12 @@ export default function AdminSetupPage() {
               Integration map <PlugZap className="size-3.5" aria-hidden="true" />
             </Link>
             <Link
-              href="/roofing"
+              href={tenant.playbooks[0]?.path || "/"}
               target="_blank"
               className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-sm transition-[transform,background-color] duration-150 hover:bg-[var(--admin-surface-subtle)] active:scale-[0.96]"
             >
-              View funnel <ArrowRight className="size-3.5" aria-hidden="true" />
+              View {tenant.playbooks[0]?.label || "public"} funnel{" "}
+              <ArrowRight className="size-3.5" aria-hidden="true" />
             </Link>
             <button
               type="button"

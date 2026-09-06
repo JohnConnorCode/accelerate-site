@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
 import { sendNoShowRebookEmail } from "@/lib/email/booking";
+import { resolvePlaybook, tenant } from "@/config/tenant";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdminForModule("bookings");
@@ -68,7 +69,7 @@ export async function PATCH(request: NextRequest) {
   const supabase = auth.database;
   const { data: current } = await supabase
     .from("opportunities")
-    .select("stage, email, qualifier_token")
+    .select("stage, email, qualifier_token, source")
     .eq("id", body.id)
     .maybeSingle();
   if (!current) return NextResponse.json({ error: "Opportunity not found" }, { status: 404 });
@@ -127,7 +128,10 @@ export async function PATCH(request: NextRequest) {
     const due = new Date();
     due.setDate(due.getDate() + 2);
     await supabase.from("tasks").insert({
-      title: `Follow up on roofing proposal: ${current.email}`,
+      title: `Follow up on ${
+        tenant.playbooks.find((playbook) => playbook.sourceTag === current.source)?.label ||
+        resolvePlaybook().label
+      } proposal: ${current.email}`,
       description:
         "Confirm the prospect received the written plan and proposal; address the primary objection.",
       due_date: due.toISOString().split("T")[0],
