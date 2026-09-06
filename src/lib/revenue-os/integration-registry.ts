@@ -1,4 +1,4 @@
-export const INTEGRATION_REGISTRY_VERSION = "revenue-os-integrations.v2";
+export const INTEGRATION_REGISTRY_VERSION = "revenue-os-integrations.v3";
 
 export type IntegrationMaturity = "native" | "next" | "planned" | "edge";
 export type IntegrationCostTier = "free" | "usage_included" | "usage_based" | "paid";
@@ -289,7 +289,7 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
     maturity: "native",
     priority: 5,
     description:
-      "Forms, qualifier, chat, bookings, and privacy-minimized analytics enter the canonical revenue loop directly.",
+      "Forms, qualifier, chat, optional tenant-owned booking, and privacy-minimized analytics enter the canonical revenue loop directly.",
     strategicRole: "Native demand capture",
     cost: {
       tier: "free",
@@ -322,6 +322,47 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
         direction: "read",
         impact: "read",
         evidenceKey: "runtime:first-party",
+      },
+    ],
+  },
+  {
+    id: "calendly",
+    name: "Calendly",
+    category: "revenue",
+    maturity: "native",
+    priority: 6,
+    description:
+      "Optional public scheduler embed is tenant-owned. Signed booking and cancellation webhooks are a separate attribution path.",
+    strategicRole: "Optional scheduling attribution",
+    cost: {
+      tier: "free",
+      label: "Provider free tier",
+      detail:
+        "The public embed does not require an API token. Attribution uses a signed webhook secret.",
+    },
+    auth: "Signed webhook secret. Personal access tokens are not booking health.",
+    transports: ["webhook"],
+    dataClasses: ["Booking events", "Cancellation events"],
+    configurationKey: "calendly",
+    setupHref: "/admin/setup#calendly",
+    docsHref: "/admin/setup",
+    limits: [
+      "Public embed is not verified attribution",
+      "Ready requires a fresh signed invitee.created or invitee.canceled receipt",
+    ],
+    guardrail:
+      "Do not treat an embed, environment flag, or API token as Ready. Manual scheduling remains usable.",
+    capabilities: [
+      {
+        id: "booking-attribution",
+        label: "Booking and cancellation attribution",
+        description:
+          "Advance canonical opportunities from signed Calendly booking and cancellation events.",
+        direction: "read",
+        impact: "internal_write",
+        configurationKey: "calendly",
+        evidenceKey: "webhook:calendly",
+        freshnessHours: 720,
       },
     ],
   },

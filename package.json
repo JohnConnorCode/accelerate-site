@@ -263,7 +263,8 @@
     "test:radar-ranking": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-ranking.ts",
     "test:radar-workspace": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-workspace-host.ts && NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-workspace-demo.ts",
     "test:radar-relationships": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-relationships.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-relationship-evidence.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-relationship-service.ts",
-    "test:docs-coverage": "npx tsx --test scripts/test-docs-coverage.ts"
+    "test:docs-coverage": "npx tsx --test scripts/test-docs-coverage.ts",
+    "test:booking-mode": "npx tsx scripts/test-booking-mode-contract.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

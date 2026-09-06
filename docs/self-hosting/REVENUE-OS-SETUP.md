@@ -86,7 +86,7 @@ If the Email Studio tables are unavailable, runtime email continues with built-i
 
 ## Money-first operating mode
 
-The contact form, roofing qualifier, and chat capture now feed the canonical identity, opportunity, activity, attribution, and same-day follow-up services. The public contact experience embeds the configured free Calendly event; Calendly API/webhook attribution remains an optional separate capability and must not be represented as connected until its credentials and booking/cancellation receipts pass production checks. Resend confirmation failures never discard an already stored inquiry.
+The contact form, roofing qualifier, and chat capture now feed the canonical identity, opportunity, activity, attribution, and same-day follow-up services. Public booking is tenant-owned (`tenant.capabilities.publicBooking` plus `tenant.booking.schedulerUrl`); `CALENDLY_ENABLED=false` is only an emergency pause. The public embed is not Calendly API/webhook attribution. Attribution remains optional and must not read as Ready until a fresh signed booking or cancellation receipt exists. Resend confirmation failures never discard an already stored inquiry.
 
 ### Additional tools compatibility
 
@@ -247,7 +247,13 @@ Create a separate OpenRouter key per tenant and set a provider-side monthly limi
 
 ## Booking mode
 
-The public Calendly embed is the active booking path when `CALENDLY_ENABLED` is not `false`; it does not require a Calendly API token. Manual scheduling remains available as a fallback. Set `CALENDLY_PERSONAL_ACCESS_TOKEN` and `CALENDLY_WEBHOOK_SECRET` only when enabling automatic booking/cancellation attribution, and keep that capability marked degraded/action until its signed production receipts pass.
+`src/lib/booking.ts` owns public booking mode for every embed and admin instruction:
+
+- **embed** — `tenant.capabilities.publicBooking` and a scheduler URL
+- **manual** — public booking off or no scheduler URL; founder replies with times
+- **disabled** — `CALENDLY_ENABLED=false` emergency pause; founder still replies with times
+
+The public embed does not require a Calendly API token and is not verified attribution. Set `CALENDLY_WEBHOOK_SECRET` only when enabling automatic booking/cancellation attribution. Ready requires a fresh signed `invitee.created` or `invitee.canceled` receipt inside the freshness window. Tokens, environment flags, and the embed itself stay action/optional/disabled until that evidence exists. `CALENDLY_ENABLED=true` is not an activation switch.
 
 ## Verification
 

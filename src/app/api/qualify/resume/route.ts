@@ -18,6 +18,6 @@ export async function GET(request: NextRequest) {
     email: data.email,
     qualified: true,
     stage: data.stage,
-    bookingMode: bookingMode() === "embed" ? "calendly" : "manual",
+    bookingMode: bookingMode(),
   });
 }

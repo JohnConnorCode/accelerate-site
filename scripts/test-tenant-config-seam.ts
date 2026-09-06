@@ -101,6 +101,7 @@ assert.doesNotMatch(chat, /session with John/);
 
 const booking = readFileSync("src/lib/booking.ts", "utf8");
 assert.match(booking, /tenant\.capabilities\.publicBooking/);
+assert.match(booking, /export function resolveBookingMode/);
 assert.match(booking, /export function bookingMode/);
 assert.equal(typeof hasScheduler(), "boolean");
 

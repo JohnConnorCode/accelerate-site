@@ -72,7 +72,8 @@ export async function POST(request: NextRequest) {
   const qualification = qualifyRoofingOpportunity(body.role, body.revenueBand);
   // Public self-booking is tenant-owned. CALENDLY_ENABLED=false is an emergency
   // pause. Embed availability is not Calendly API health.
-  const calendlyEnabled = bookingMode() === "embed";
+  const publicBookingMode = bookingMode();
+  const calendlyEnabled = publicBookingMode === "embed";
   const supabase = createBootstrapServiceRoleClient("legacy-public-qualifier");
   let ingestion;
   try {
@@ -155,6 +156,6 @@ export async function POST(request: NextRequest) {
     qualified: qualification.qualified,
     token: opportunity.qualifier_token,
     email,
-    bookingMode: calendlyEnabled ? "calendly" : "manual",
+    bookingMode: publicBookingMode,
   });
 }

@@ -6,6 +6,7 @@ import { ArrowRight, Check, Loader2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { getUTMParams } from "@/lib/utm";
 import { trackConversion } from "@/lib/analytics";
+import { showsPublicEmbed } from "@/lib/booking";
 import { RoofingBookingEmbed } from "./RoofingBookingEmbed";
 
 type FormState = {
@@ -34,7 +35,7 @@ export function RoofingQualifier() {
   const [status, setStatus] = useState<"form" | "submitting" | "qualified" | "nurture">("form");
   const [error, setError] = useState("");
   const [token, setToken] = useState("");
-  const [bookingMode, setBookingMode] = useState<"manual" | "calendly">("manual");
+  const [bookingMode, setBookingMode] = useState("manual");
   const started = useRef(false);
 
   useEffect(() => {
@@ -42,10 +43,10 @@ export function RoofingQualifier() {
     if (!resume) return;
     fetch(`/api/qualify/resume?token=${encodeURIComponent(resume)}`)
       .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((data: { email: string; bookingMode?: "manual" | "calendly" }) => {
+      .then((data: { email: string; bookingMode?: string }) => {
         setForm((current) => ({ ...current, email: data.email }));
         setToken(resume);
-        setBookingMode(data.bookingMode === "calendly" ? "calendly" : "manual");
+        setBookingMode(data.bookingMode ?? "manual");
         setStatus("qualified");
         requestAnimationFrame(() =>
           document.querySelector("#book")?.scrollIntoView({ behavior: "smooth", block: "start" }),
@@ -77,12 +78,12 @@ export function RoofingQualifier() {
         qualified?: boolean;
         token?: string;
         email?: string;
-        bookingMode?: "manual" | "calendly";
+        bookingMode?: string;
       };
       if (!response.ok) throw new Error(data.error || "Something went wrong.");
       if (!data.token) throw new Error("We couldn't finish that request. Please try again.");
       setToken(data.token);
-      setBookingMode(data.bookingMode === "calendly" ? "calendly" : "manual");
+      setBookingMode(data.bookingMode ?? "manual");
       setStatus(data.qualified ? "qualified" : "nurture");
       trackConversion("qualifier_completed", {
         funnel: "roofing",
@@ -249,13 +250,13 @@ export function RoofingQualifier() {
               <div>
                 <p className="font-medium text-[#11120f]">You’re a fit for the strategy session.</p>
                 <p className="mt-1 text-sm text-[#11120f]/62">
-                  {bookingMode === "calendly"
+                  {showsPublicEmbed(bookingMode)
                     ? "Choose a time below. The session is directly with John."
                     : "John will review the company and reply personally within one business day."}
                 </p>
               </div>
             </div>
-            {bookingMode === "calendly" ? (
+            {showsPublicEmbed(bookingMode) ? (
               <RoofingBookingEmbed email={form.email} token={token} />
             ) : (
               <div className="rounded-[28px] bg-[#11120f] p-7 shadow-[0_0_0_1px_rgba(255,255,255,0.09),0_28px_90px_rgba(0,0,0,0.3)] sm:p-10">

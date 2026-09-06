@@ -78,10 +78,30 @@ export function setupNextRun(
   }
 }
 
+export const CALENDLY_ATTRIBUTION_EVENT_TYPES = ["invitee.created", "invitee.canceled"] as const;
+export const CALENDLY_ATTRIBUTION_FRESHNESS_HOURS = 720;
+
+export function isCalendlyAttributionEvent(eventType: string | null | undefined): boolean {
+  return (
+    eventType === "invitee.created" || eventType === "invitee.canceled"
+  );
+}
+
+export function isFreshEvidence(
+  timestamp: string | null | undefined,
+  hours: number,
+  now = new Date(),
+): boolean {
+  if (!timestamp) return false;
+  const parsed = Date.parse(timestamp);
+  return Number.isFinite(parsed) && now.getTime() - parsed <= hours * 3_600_000;
+}
+
 export function calendlyAttributionReadiness(input: {
   bookingMode: "embed" | "manual" | "disabled";
   webhookConfigured: boolean;
   lastSignedReceipt?: { event_type: string; processed_at: string | null } | null;
+  now?: Date;
 }): { status: SetupStatus; description: string; lastSuccessAt: string | null } {
   if (input.bookingMode === "disabled") {
     return {
@@ -107,7 +127,10 @@ export function calendlyAttributionReadiness(input: {
       lastSuccessAt: null,
     };
   }
-  if (!input.lastSignedReceipt) {
+  const receipt = isCalendlyAttributionEvent(input.lastSignedReceipt?.event_type)
+    ? input.lastSignedReceipt
+    : null;
+  if (!receipt) {
     return {
       status: "action",
       description:
@@ -115,10 +138,24 @@ export function calendlyAttributionReadiness(input: {
       lastSuccessAt: null,
     };
   }
+  if (
+    !isFreshEvidence(
+      receipt.processed_at,
+      CALENDLY_ATTRIBUTION_FRESHNESS_HOURS,
+      input.now ?? new Date(),
+    )
+  ) {
+    return {
+      status: "degraded",
+      description:
+        "The latest signed booking or cancellation receipt is older than the freshness window. An embed or token is not recovered health.",
+      lastSuccessAt: receipt.processed_at,
+    };
+  }
   return {
     status: "ready",
-    description: "A signed Calendly booking or cancellation receipt is on the ledger.",
-    lastSuccessAt: input.lastSignedReceipt.processed_at,
+    description: "A fresh signed Calendly booking or cancellation receipt is on the ledger.",
+    lastSuccessAt: receipt.processed_at,
   };
 }
 

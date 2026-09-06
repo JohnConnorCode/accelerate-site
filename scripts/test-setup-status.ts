@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
+  calendlyAttributionReadiness,
   campaignEngineReadiness,
   resendDeliveryReadiness,
   setupNextRun,
@@ -53,6 +54,42 @@ assert.equal(
   "2026-08-30T00:00:00.000Z",
 );
 
+const calendlyNow = new Date("2026-09-04T12:00:00.000Z");
+assert.equal(
+  calendlyAttributionReadiness({
+    bookingMode: "embed",
+    webhookConfigured: true,
+    lastSignedReceipt: null,
+    now: calendlyNow,
+  }).status,
+  "action",
+  "Calendly tokens without a signed receipt must not read as ready",
+);
+assert.equal(
+  calendlyAttributionReadiness({
+    bookingMode: "embed",
+    webhookConfigured: true,
+    lastSignedReceipt: {
+      event_type: "invitee.created",
+      processed_at: "2026-09-04T11:00:00.000Z",
+    },
+    now: calendlyNow,
+  }).status,
+  "ready",
+);
+assert.equal(
+  calendlyAttributionReadiness({
+    bookingMode: "embed",
+    webhookConfigured: true,
+    lastSignedReceipt: {
+      event_type: "invitee.created",
+      processed_at: "2026-07-01T00:00:00.000Z",
+    },
+    now: calendlyNow,
+  }).status,
+  "degraded",
+);
+
 assert.match(setupNextRun("config"), /No scheduled run/);
 assert.match(setupNextRun("health-snapshot"), /15 minutes/);
 
@@ -75,6 +112,7 @@ console.log(
         "email-config-not-health",
         "email-receipt-ready",
         "email-failed-degraded",
+        "calendly-receipt-not-token",
         "campaign-failed-degraded",
         "next-run-copy",
         "secrets-not-interpolated",
