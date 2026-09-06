@@ -291,7 +291,7 @@ export function RadarEditorDialog({
                   >
                     <option value="unknown">Unknown / needs review</option>
                     <option value="business">Ordinary business</option>
-                    <option value="public_affairs">Public affairs — unranked</option>
+                    <option value="public_affairs">Public affairs: unranked</option>
                   </select>
                 </label>
                 <Text
@@ -470,7 +470,7 @@ export function RadarEditorDialog({
             </>
           )}
           {error && (
-            <p role="alert" className="text-sm text-red-600 dark:text-red-300">
+            <p role="alert" className="text-sm text-[var(--admin-danger)]">
               {error}
             </p>
           )}

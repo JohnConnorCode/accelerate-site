@@ -109,6 +109,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run lint -- --max-warnings=0
 
+      - name: Typecheck all application and test sources
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npx tsc --noEmit
+
       - name: Check formatting
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run format:check

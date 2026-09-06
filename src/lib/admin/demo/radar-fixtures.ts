@@ -9,6 +9,7 @@ import type {
 export type DemoRadarSource = RadarSourceView & {
   body_text: string;
   contentKey: string;
+  author?: string;
   unavailable?: boolean;
 };
 export type DemoRadarOpportunity = RadarOpportunityView & { updated_at: string };
@@ -186,7 +187,7 @@ export function seedRadar(pack: DemoScenarioPack): DemoRadarState {
         id: id(9500, 0),
         opportunityId: opportunities[0]!.id,
         kind: "brief",
-        title: "Workshop outline — fictional draft",
+        title: "Workshop outline: fictional draft",
         body_text: `Draft for ${pack.name}: explain the practical skill, propose a short interactive exercise and ask the partner to review the format. This is not a sent invitation.`,
         state: "draft",
         sourceVersionIds: [sources[0]!.id],

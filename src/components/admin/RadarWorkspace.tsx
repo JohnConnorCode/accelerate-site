@@ -38,6 +38,7 @@ type Reader = {
   id: string;
   kind: "sourceVersionId" | "assetId";
   nextOffset: number | null;
+  sourceUrls: string[];
 };
 export function RadarWorkspace({
   opportunityId,
@@ -258,7 +259,8 @@ export function RadarWorkspace({
   }
   async function readRecord(id: string, kind: Reader["kind"], offset = 0) {
     const result = await command<{
-      record: { title: string };
+      record: { title: string; canonicalUrl?: string };
+      sources?: Array<{ canonical_url: string }>;
       text: string;
       nextOffset: number | null;
     }>("read_record", { [kind]: id, offset });
@@ -266,6 +268,9 @@ export function RadarWorkspace({
       id,
       kind,
       title: result.record.title,
+      sourceUrls:
+        result.sources?.map((s) => s.canonical_url) ??
+        (result.record.canonicalUrl ? [result.record.canonicalUrl] : []),
       text: offset && previous?.id === id ? previous.text + result.text : result.text,
       nextOffset: result.nextOffset,
     }));
@@ -500,8 +505,19 @@ export function RadarWorkspace({
               <X size={16} />
             </button>
           </div>
+          {reader?.sourceUrls.map((url) => (
+            <a
+              key={url}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 block break-all text-xs text-[var(--admin-accent)] underline"
+            >
+              {url}
+            </a>
+          ))}
           {error && (
-            <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-300">
+            <p role="alert" className="mt-4 text-sm text-[var(--admin-danger)]">
               {error}
             </p>
           )}

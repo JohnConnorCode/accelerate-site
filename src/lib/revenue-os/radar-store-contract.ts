@@ -22,7 +22,7 @@ export const RADAR_OPPORTUNITY_STATES = [
 ] as const;
 export const RADAR_TRANSITIONS: Record<
   (typeof RADAR_OPPORTUNITY_STATES)[number],
-  readonly string[]
+  readonly (typeof RADAR_OPPORTUNITY_STATES)[number][]
 > = {
   draft: ["researched", "needs_review", "dismissed"],
   researched: ["needs_review", "dismissed"],

@@ -42,8 +42,12 @@ async function digest(value: unknown) {
     .map((x) => x.toString(16).padStart(2, "0"))
     .join("");
 }
-const sourceKey = (v: { title: string; body_text: string; published_at: string | null }) =>
-  key([v.title, v.body_text, v.published_at]);
+const sourceKey = (v: {
+  title: string;
+  body_text: string;
+  published_at: string | null;
+  author?: string;
+}) => key([v.title, v.body_text, v.published_at, v.author ?? null]);
 const linksFor = (s: DemoRadarState, id: string) => s.citations[id]?.at(-1)?.links ?? [];
 const sourcesFor = (s: DemoRadarState, id: string) => {
   const ids = linksFor(s, id).map((v) => v.source_version_id);
@@ -529,6 +533,7 @@ function applyStore(
       opportunityId: o.id,
       kind: c.kind,
       title: c.title,
+      author: c.author,
       body_text: c.bodyText,
       state: "draft",
       sourceVersionIds: c.sourceVersionIds,

@@ -261,7 +261,7 @@
     "test:radar-model": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-model.ts",
     "test:radar-store": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-store.ts",
     "test:radar-ranking": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-ranking.ts",
-    "test:radar-workspace": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-workspace-demo.ts"
+    "test:radar-workspace": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-workspace-host.ts && NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-workspace-demo.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

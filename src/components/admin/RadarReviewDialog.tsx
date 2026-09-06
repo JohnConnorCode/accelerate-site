@@ -122,7 +122,7 @@ export function RadarReviewDialog({
               ))}
         </dl>
         {error && (
-          <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-300">
+          <p role="alert" className="mt-4 text-sm text-[var(--admin-danger)]">
             {error}
           </p>
         )}
