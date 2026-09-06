@@ -209,11 +209,12 @@ function boundedModule(bytes: number) {
   // Only four bounded module variants may be retained. Evaluation after await
   // is synchronous, so no active guest yields its context to another evaluation.
   if (modules.size >= 4) modules.delete(modules.keys().next().value!);
-  modules.set(bytes, pending);
-  void pending.catch(() => {
-    if (modules.get(bytes) === pending) modules.delete(bytes);
+  const retained = pending.catch((error) => {
+    if (modules.get(bytes) === retained) modules.delete(bytes);
+    throw error;
   });
-  return pending;
+  modules.set(bytes, retained);
+  return retained;
 }
 
 export class PluginIsolateError extends Error {
@@ -233,7 +234,8 @@ export async function evaluateInIsolate(
   const pluginId = options.pluginId ?? null;
   const started = performance.now();
   let timedOut = false,
-    memoryExceeded = false;
+    memoryExceeded = false,
+    memoryUnavailable = false;
   let wasmMemoryLimitBytes = 0;
   const receipt = (): PluginIsolateReceipt => ({
     pluginId,
@@ -280,8 +282,13 @@ export async function evaluateInIsolate(
     const deadline = performance.now() + timeoutMs;
     const context = runtime.newContext();
     let inspectingMemory = false;
+    const memoryFailure = () =>
+      memoryUnavailable
+        ? "memory accounting unavailable"
+        : `memory limit exceeded (${memoryLimitBytes} bytes)`;
     const overMemory = () => {
-      if (inspectingMemory) return memoryExceeded;
+      if (inspectingMemory || memoryUnavailable || memoryExceeded)
+        return memoryUnavailable || memoryExceeded;
       inspectingMemory = true;
       let usage: QuickJSHandle | undefined;
       let size: QuickJSHandle | undefined;
@@ -289,16 +296,18 @@ export async function evaluateInIsolate(
         usage = runtime.computeMemoryUsage();
         size = context.getProp(usage, "memory_used_size");
         const bytes = context.getNumber(size);
-        memoryExceeded ||= !Number.isFinite(bytes) || bytes > memoryLimitBytes;
+        memoryUnavailable ||= !Number.isFinite(bytes);
+        memoryExceeded ||= Number.isFinite(bytes) && bytes > memoryLimitBytes;
       } catch {
         // A failed accounting read cannot authorize continued guest execution.
-        memoryExceeded = true;
+        memoryUnavailable = true;
+        console.error("[plugin-isolate] memory accounting unavailable; evaluation stopped");
       } finally {
         size?.dispose();
         usage?.dispose();
         inspectingMemory = false;
       }
-      return memoryExceeded;
+      return memoryUnavailable || memoryExceeded;
     };
     runtime.setInterruptHandler(() => {
       if (performance.now() >= deadline) timedOut = true;
@@ -319,7 +328,7 @@ export async function evaluateInIsolate(
       const describe = context.getProp(codecHandle, "describe");
       owned.push(encoder, parser, describe);
       const errorMessage = (handle: QuickJSHandle): string => {
-        if (memoryExceeded) return `memory limit exceeded (${memoryLimitBytes} bytes)`;
+        if (memoryExceeded || memoryUnavailable) return memoryFailure();
         if (timedOut) return `timed out after ${timeoutMs}ms`;
         const result = context.callFunction(describe, context.undefined, handle);
         if (result.error) {
@@ -360,7 +369,7 @@ export async function evaluateInIsolate(
               timedOut = true;
               throw new Error(`timed out after ${timeoutMs}ms`);
             }
-            if (overMemory()) throw new Error(`memory limit exceeded (${memoryLimitBytes} bytes)`);
+            if (overMemory()) throw new Error(memoryFailure());
             const values = args.map(readJson);
             const json = encodeHostJson(fn(...values));
             const jsonHandle = context.newString(json);
@@ -393,7 +402,7 @@ export async function evaluateInIsolate(
       }
       if (!("value" in result)) return fail("evaluation returned no usable value");
       try {
-        if (overMemory()) return fail(`memory limit exceeded (${memoryLimitBytes} bytes)`);
+        if (overMemory()) return fail(memoryFailure());
         const value = readJson(result.value);
         if (performance.now() >= deadline) {
           timedOut = true;
