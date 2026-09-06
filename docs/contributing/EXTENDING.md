@@ -680,3 +680,14 @@ module import costs are reported separately. OS filesystem cache and shared
 runner scheduling are uncontrolled, so this is a measured regression budget,
 not a universal latency guarantee. The original 50.375514 ms failure remains
 linked from the `plugin-isolate-cold-start-headroom` work card.
+
+## Validated settings contracts
+
+A module may select a reviewed `settingsContract`. The builder derives its
+`settings` fields from `plugin-settings-contract.ts`, and runtime configuration
+uses the same full validator before saving or proposing changes. Unknown
+contracts and unregenerated field drift fail the build. Readiness checks run at
+both enablement preview and execution. The first exemplar is the
+[Opportunity Radar profile](../plugins/OPPORTUNITY-RADAR.md), which supports
+generic business data, two opt-in presets and existing AI module approvals.
+This is profile setup, not automatic opportunity discovery or outreach.

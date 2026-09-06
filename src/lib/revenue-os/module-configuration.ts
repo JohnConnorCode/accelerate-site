@@ -1,4 +1,5 @@
 import "server-only";
+import { pluginSettingsContract } from "./plugin-settings-contract";
 import { assertCurrentTenantAdmin } from "./tenant-admin-authority";
 import { projectModuleConfiguration } from "./module-configuration-read";
 import { moduleChangeSchema } from "./module-actions-contract";
@@ -12,6 +13,7 @@ import {
   MODULE_MAP,
   getActiveModules,
   validateModuleSettingsInput,
+  getModuleSettings,
   type ModuleSettingsConfig,
 } from "./modules";
 import { ensureBundledPluginSources } from "./bundled-plugin-sources";
@@ -51,8 +53,18 @@ export async function updateModuleConfiguration(
       projectModuleConfiguration(change.moduleId, current).revision !== expectedRevision
     )
       throw new Error("Module configuration changed. Preview and approve again.");
-    if ("enabled" in change && change.enabled)
+    if ("enabled" in change && change.enabled) {
+      if (moduleDef.settingsContract) {
+        const readiness = pluginSettingsContract(moduleDef.settingsContract).readiness(
+          getModuleSettings(change.moduleId, current.moduleSettings as ModuleSettingsConfig),
+        );
+        if (!readiness.ready)
+          throw new Error(
+            `Configure required plugin fields before enabling: ${readiness.missing.join(", ")}`,
+          );
+      }
       await ensureBundledPluginSources(db, change.moduleId);
+    }
     const modules = (current.modules ?? {}) as Record<string, boolean>;
     const settings = (current.moduleSettings ?? {}) as ModuleSettingsConfig;
     const before =

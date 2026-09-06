@@ -202,3 +202,13 @@ and current module enablement at dispatch. Legacy explicit MCP pack restrictions
 remain authoritative. No bundle can approve a business change. See
 `test:ai-tool-discovery`, `test:agent-loop` and the admin/AI parity contract for
 coverage and the remaining durable conversation-activation work.
+
+## Opportunity Radar profile foundation
+
+`radar-profile-contract.ts` owns public business profile validation and generated
+settings fields. `plugin-settings-contract.ts` resolves reviewed settings
+contracts for generation and shared manual/AI mutation validation.
+`module-configuration-read.ts` exposes readiness and truthful capability limits;
+`module-actions.ts` and `module-configuration.ts` reject incomplete enablement.
+No Radar workers, discovery tables, senders or separate CRM exist yet. The live
+program and architecture are in [Opportunity Radar](../../../docs/plugins/OPPORTUNITY-RADAR.md).

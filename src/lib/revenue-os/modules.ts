@@ -1,3 +1,4 @@
+import { pluginSettingsContract } from "./plugin-settings-contract";
 import type { PluginToolDeclaration } from "./plugin-tool-contract";
 import type { WorkflowPolicy } from "./plugin-workflow-policy";
 /**
@@ -86,6 +87,7 @@ export interface RevenueOSModule {
   docsUrl?: string;
   /** Configurable values rendered by ModuleSettingsForm. Never secrets. */
   settings?: ModuleSettingField[];
+  settingsContract?: string;
   /** Isolated workflow prepares host-validated actions for approval. */
   workflow?: {
     version: 1;
@@ -492,6 +494,19 @@ export function validateModuleSettingsInput(
   | { valid: true; value: Record<string, string | number | boolean> }
   | { valid: false; error: string } {
   const moduleDef = MODULE_MAP.get(moduleId);
+  if (moduleDef?.settingsContract) {
+    const parsed = pluginSettingsContract(moduleDef.settingsContract)
+      .schema.partial()
+      .safeParse(input);
+    if (!parsed.success)
+      return {
+        valid: false,
+        error: parsed.error.issues
+          .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+          .join("; "),
+      };
+    input = parsed.data;
+  }
   const fields = moduleDef?.settings ?? [];
   const byKey = new Map(fields.map((field) => [field.key, field]));
   const value: Record<string, string | number | boolean> = {};

@@ -1,4 +1,5 @@
 import "server-only";
+import { pluginSettingsContract } from "./plugin-settings-contract";
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
@@ -44,6 +45,16 @@ export function projectModuleConfiguration(moduleId: string, config: Record<stri
     fields: definition.settings ?? [],
     revision: configurationDigest(facts),
     installation: definition.workflow?.sources ?? definition.report?.sources ?? [],
+    ...(definition.settingsContract
+      ? {
+          configurationReadiness: (() => {
+            const { ready, missing, capabilities } = pluginSettingsContract(
+              definition.settingsContract,
+            ).readiness(valid.value);
+            return { ready, missing, capabilities };
+          })(),
+        }
+      : {}),
   };
 }
 export async function readModuleConfiguration(db: SupabaseClient, raw: unknown) {

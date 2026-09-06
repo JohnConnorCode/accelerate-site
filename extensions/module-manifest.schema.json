@@ -255,6 +255,10 @@
           "description": "Generated tool grants; exact host registration equality enforced by build:extensions --check."
         }
       }
+    },
+    "settingsContract": {
+      "type": "string",
+      "description": "Trusted settings validator and generated field registration."
     }
   }
 }
