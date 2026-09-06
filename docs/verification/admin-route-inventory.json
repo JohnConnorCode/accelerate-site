@@ -202,8 +202,8 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "afd724d502393e1517932e0b7a92de92bd5de3a19a6ed1fb5015917195cdc48a",
-    "src/lib/revenue-os/action-executor.ts": "b460d0dadd74b86e8b2fc0e44a7ff85af654f9af9765ec2246df7f1fe95fa5cf",
+    "src/lib/revenue-os/README.md": "34bcd73501f807d0d2b6316bd85961529d19916c3a54dc56ce9759aec3569ce3",
+    "src/lib/revenue-os/action-executor.ts": "d69600c8858c96d3716a6e55b671ab20fd0f68beeb1b97a4cbacefa4e7f3eae0",
     "src/lib/revenue-os/actions.ts": "e3ab076c45a1e52631888859369477140cfd61e6fdf6ac5d8d1661781497e6d2",
     "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
@@ -213,7 +213,7 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "2183bcb12ab45d484ec3c6a21e6d67ab84bc0b5f0e9cde1500a4d1c1ad2d6a5f",
     "src/lib/revenue-os/ai-operations.ts": "ae39bc1112700f7af976bdf68a1308d7c720747ed82191d589817ba78b4aa945",
     "src/lib/revenue-os/ai-stream-contract.ts": "813ce466f99ba479b50cfee912921003a8e21bf812dba9e16494a4df3b5d00c7",
-    "src/lib/revenue-os/ai-tools.ts": "e2b6bf87074459937e311164265e84aee4c205ee473df6d35d5a198a8ba07687",
+    "src/lib/revenue-os/ai-tools.ts": "5f8174b3cb069cf2f0b2181580e5d6c27b485e83ab983eefee05828d0c5297f1",
     "src/lib/revenue-os/analytics.ts": "d57c3a867c3926e1fed1a64c110f0f28c8569e96a3c177b033e4eb11967764fb",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
     "src/lib/revenue-os/branding-contract.ts": "6d4fdd9837bacc633ddd78bbaa1c5d77a497d7d5ecd7842fc9e18fdfbb3ae914",
@@ -242,7 +242,7 @@
     "src/lib/revenue-os/mcp-server.ts": "e49f945e3a3c54846e6b9a0128a1f79c2961baf479885fccc55e5e00f59002e1",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
     "src/lib/revenue-os/module-configuration.ts": "c1da2ae2a475b19af0812a9c37f56aad028c09956dc012bed1576912ce7687c9",
-    "src/lib/revenue-os/modules.ts": "1559a9a341b103a05a031c68864ccb99748a85891891736185cc4044793cb613",
+    "src/lib/revenue-os/modules.ts": "8336123c52933eac8125cdaea81b28a73a1bf0f855a45b457bd2b1cf98c061f9",
     "src/lib/revenue-os/pipeline-stage-resolver.ts": "3581116b6b179a7955feba43e7b535fdfd7febc5f5823eebf804113665486f94",
     "src/lib/revenue-os/pipeline.ts": "837c1f87899a2c5a2d1ef467687a02eb5d88e8b8cbe53f6e8f9199d0ffd57c29",
     "src/lib/revenue-os/queue.ts": "1978dc389d16b247dee407705ecc7f45a8d2dc57317560d035f15be4f44e7bef",
@@ -252,12 +252,12 @@
     "src/lib/revenue-os/runs.ts": "a24b266141dc5dfcc49ec0df8c9c9f89fece1f155019cfb264da25661ceabea3",
     "src/lib/revenue-os/schema-contract.ts": "aa5acbff11ce0daecfa80901e6f4bd1440b3a9225f29b332c88a2113895664f0",
     "src/lib/revenue-os/setup-status.ts": "644ca96abc605836b956c70b7a0e93111f993b22bf58df5345f2bccaf2c680e3",
-    "src/lib/revenue-os/stripe-invoicing.ts": "5467c3165bc24329a3d5fc1ea053f63a9d5f11feb9c2898506ed8b32cbd898dd",
+    "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/tasks.ts": "e3aaecd09ac8d07d40dc09a9f898efc0fe3ab344b26b17dae42cdad6b33e1b4b",
     "src/lib/revenue-os/types.ts": "752cdc55521476a1dc6c491656ac12c4191000cfe956c09ca8c32f3d041dfd66",
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
     "src/lib/revenue-os/work-board.ts": "3c59b5bf3a403b554b05675beeb44c3d985f9fea67a29f63e3a56428000e5e0e",
-    "src/lib/revenue-os/workflow-plugins.ts": "2042344471a482696cba9b3ba310efb8f4230679f877f0ee0511085aba8a4674",
+    "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
     "src/lib/tenancy/context.ts": "980fc542bbc744ffa66bc58cd463ef0c7508ac1d847c560f0de7a9cfefd38c7d",
     "src/lib/tenancy/lifecycle.ts": "2b2ca947757d4ff3595062f918734b1b765f89352a834e440ae28ae140de8b53",
     "src/lib/tenancy/system.ts": "28e241c788fba9c5793536d0bcf6db076c0d56f6513976f9ae387acc4b222911"
@@ -335,7 +335,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared AI workspace; writes require the existing action approval path.",
+      "boundary": "Shared AI workspace; writes require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -485,7 +485,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared task workflow services own proposals and task execution; task adapter reads canonical tasks, opportunities and memberships.",
+      "boundary": "Shared task workflow services own proposals and task execution; task adapter reads canonical tasks, opportunities and memberships. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -962,7 +962,7 @@
           "directTables": ["integration_connections"]
         }
       ],
-      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval.",
+      "boundary": "Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1047,7 +1047,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared task workflow services own proposals and task execution; source meeting IDs must remain linked to created work.",
+      "boundary": "Shared task workflow services own proposals and task execution; source meeting IDs must remain linked to created work. Generated host policies and contract fingerprints require fresh approval after policy changes; the shared executor enforces approved execution mode.",
       "followUp": null,
       "specialBoundary": null
     },
