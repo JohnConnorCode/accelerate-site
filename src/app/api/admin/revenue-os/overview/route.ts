@@ -115,6 +115,8 @@ export async function GET() {
         integrations: [],
         sourceRuns: [],
         jobRuns: [],
+        webhookFailures: [],
+        queueBacklog: { pending: 0, expired: 0 },
       },
       setupHref: "/admin/setup",
     });

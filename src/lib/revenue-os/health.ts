@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { EXPECTED_CADENCE_LABELS } from "./health-expectation";
+import { EXPECTED_CADENCE_LABELS, isCheckOverdue, nextExpectedFromAnchor } from "./health-expectation";
 
 /**
  * One operational health computation, shared by the admin overview, Setup
@@ -45,10 +45,12 @@ export interface HealthRunView {
   stalled?: boolean;
   /** Last time this key produced a successful result (ms since epoch). */
   lastSuccessAt?: number;
-  /** Expected next execution window end (ms since epoch). */
+  /** Expected next execution from last receipt + cadence (ms since epoch). */
   nextExpectedAt?: number;
   /** Operator cadence wording for this run's subsystem ("hourly", …). */
   cadenceLabel?: string;
+  /** Admin surface that shows the underlying receipt. */
+  receiptHref?: string;
 }
 
 export interface HealthConcern {
@@ -65,6 +67,7 @@ export interface IntegrationHealth {
   lastError: string | null;
   /** When the integration connection was last updated (ms since epoch). */
   updatedAt?: number;
+  receiptHref?: string;
 }
 
 export interface OperationalHealth {
@@ -81,29 +84,27 @@ export interface OperationalHealth {
     receivedAt: string | null;
     /** Expected next check window end (ms since epoch). */
     nextExpectedAt?: number;
+    receiptHref?: string;
   }>;
+  queueBacklog: { pending: number; expired: number };
   /** Everything wrong, in a form an alert can be built from. */
   concerns: HealthConcern[];
 }
 
-/** Milliseconds from now until the next expected check for the given cadence key. */
-export function msUntilNextExpected(cadenceMs?: number): number | undefined {
-  if (cadenceMs == null || cadenceMs <= 0) return undefined;
-  const now = Date.now();
-  return Math.max(0, cadenceMs - (now % cadenceMs));
+const SETUP_OPERATIONS_HREF = "/admin/setup#operations";
+const INTEGRATIONS_HREF = "/admin/integrations";
+const HEALTH_SNAPSHOT_CADENCE_MINUTES = 15;
+const INTEGRATION_FRESHNESS_HOURS = 24;
+
+function cadenceMsForJob(jobKey: string): number {
+  if (jobKey === "system-health-snapshot") return HEALTH_SNAPSHOT_CADENCE_MINUTES * 60_000;
+  return STALLED_JOB_MINUTES * 60_000;
 }
 
-/**
- * Absolute epoch ms of the next expected check — what every `nextExpectedAt`
- * field actually needs, since it's later compared against `Date.now()`
- * directly (`run.nextExpectedAt - Date.now()`). `msUntilNextExpected` alone
- * returns a duration, not a timestamp; assigning it straight into
- * `nextExpectedAt` made every concern read as overdue by ~55 years the
- * instant it was computed.
- */
-function nextExpectedAt(cadenceMs?: number): number | undefined {
-  const until = msUntilNextExpected(cadenceMs);
-  return until === undefined ? undefined : Date.now() + until;
+function anchorMs(iso: string | null | undefined): number | undefined {
+  if (!iso) return undefined;
+  const parsed = Date.parse(iso);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function latestByKey<T extends Record<string, unknown>>(rows: T[], key: keyof T): T[] {
@@ -126,33 +127,38 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
   const webhookSince = new Date(
     Date.now() - WEBHOOK_FAILURE_LOOKBACK_HOURS * 3_600_000,
   ).toISOString();
-  const [integrationResult, sourceRunsResult, jobRunsResult, webhookResult] = await Promise.all([
-    supabase
-      .from("integration_connections")
-      .select("provider,status,last_success_at,last_error,updated_at"),
-    supabase
-      .from("source_runs")
-      .select("source_key,status,started_at,finished_at,error")
-      .order("started_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("job_runs")
-      .select("job_key,status,claimed_at,finished_at,error")
-      .order("claimed_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("webhook_receipts")
-      .select("id,provider,event_type,error,received_at")
-      .eq("status", "failed")
-      .gte("received_at", webhookSince)
-      .order("received_at", { ascending: false })
-      .limit(20),
-  ]);
+  const [integrationResult, sourceRunsResult, jobRunsResult, webhookResult, pendingQueue, expiredQueue] =
+    await Promise.all([
+      supabase
+        .from("integration_connections")
+        .select("provider,status,last_success_at,last_error,updated_at"),
+      supabase
+        .from("source_runs")
+        .select("source_key,status,started_at,finished_at,error")
+        .order("started_at", { ascending: false })
+        .limit(30),
+      supabase
+        .from("job_runs")
+        .select("job_key,status,claimed_at,finished_at,error")
+        .order("claimed_at", { ascending: false })
+        .limit(30),
+      supabase
+        .from("webhook_receipts")
+        .select("id,provider,event_type,error,received_at")
+        .eq("status", "failed")
+        .gte("received_at", webhookSince)
+        .order("received_at", { ascending: false })
+        .limit(20),
+      supabase.from("action_queue").select("id", { count: "exact", head: true }).eq("status", "pending"),
+      supabase.from("action_queue").select("id", { count: "exact", head: true }).eq("status", "expired"),
+    ]);
   const firstError = [
     integrationResult.error,
     sourceRunsResult.error,
     jobRunsResult.error,
     webhookResult.error,
+    pendingQueue.error,
+    expiredQueue.error,
   ].find(Boolean);
   if (firstError) throw new Error(firstError.message);
 
@@ -166,44 +172,64 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     lastSuccessAt: item.last_success_at ?? null,
     lastError: item.last_error ?? null,
     updatedAt: item.updated_at ? Date.parse(item.updated_at) : undefined,
+    receiptHref: INTEGRATIONS_HREF,
   }));
 
   const sourceCadenceMs = (EXPECTED_CADENCES.source ?? 0) * 60_000;
-  const sourceRuns: HealthRunView[] = sourceRows.map((row) => ({
-    key: String(row.source_key),
-    status: String(row.status),
-    startedAt: row.started_at ?? null,
-    finishedAt: row.finished_at ?? null,
-    error: row.error ?? null,
-    lastSuccessAt: row.finished_at ? Date.parse(row.finished_at) : undefined,
-    nextExpectedAt: nextExpectedAt(sourceCadenceMs),
-    cadenceLabel: EXPECTED_CADENCE_LABELS.source,
-  }));
+  const sourceRuns: HealthRunView[] = sourceRows.map((row) => {
+    const lastSuccessAt =
+      String(row.status) === "success" ? anchorMs(row.finished_at) : undefined;
+    const anchor = lastSuccessAt ?? anchorMs(row.finished_at ?? row.started_at);
+    return {
+      key: String(row.source_key),
+      status: String(row.status),
+      startedAt: row.started_at ?? null,
+      finishedAt: row.finished_at ?? null,
+      error: row.error ?? null,
+      lastSuccessAt,
+      nextExpectedAt: nextExpectedFromAnchor(anchor, sourceCadenceMs),
+      cadenceLabel: EXPECTED_CADENCE_LABELS.source,
+      receiptHref: SETUP_OPERATIONS_HREF,
+    };
+  });
 
-  const jobCadenceMs = (EXPECTED_CADENCES.job ?? 0) * 60_000;
-  const jobRuns: HealthRunView[] = jobRows.map((row) => ({
-    key: String(row.job_key),
-    status: String(row.status),
-    startedAt: row.claimed_at ?? null,
-    finishedAt: row.finished_at ?? null,
-    error: row.error ?? null,
-    stalled: isStalled(String(row.status), row.claimed_at ?? null),
-    lastSuccessAt: row.finished_at ? Date.parse(row.finished_at) : undefined,
-    nextExpectedAt: nextExpectedAt(jobCadenceMs),
-    cadenceLabel: EXPECTED_CADENCE_LABELS.job,
-  }));
+  const jobRuns: HealthRunView[] = jobRows.map((row) => {
+    const lastSuccessAt =
+      String(row.status) === "success" ? anchorMs(row.finished_at) : undefined;
+    const anchor = lastSuccessAt ?? anchorMs(row.finished_at ?? row.claimed_at);
+    const cadenceMs = cadenceMsForJob(String(row.job_key));
+    return {
+      key: String(row.job_key),
+      status: String(row.status),
+      startedAt: row.claimed_at ?? null,
+      finishedAt: row.finished_at ?? null,
+      error: row.error ?? null,
+      stalled: isStalled(String(row.status), row.claimed_at ?? null),
+      lastSuccessAt,
+      nextExpectedAt: nextExpectedFromAnchor(anchor, cadenceMs),
+      cadenceLabel:
+        String(row.job_key) === "system-health-snapshot"
+          ? "every 15 minutes"
+          : EXPECTED_CADENCE_LABELS.job,
+      receiptHref: SETUP_OPERATIONS_HREF,
+    };
+  });
 
-  const webhookCadenceMs = (EXPECTED_CADENCES.webhook ?? 0) * 60_000;
   const webhookFailures = (webhookResult.data ?? []).map((row) => ({
     id: String(row.id),
     provider: String(row.provider ?? "unknown"),
     eventType: row.event_type ?? null,
     error: row.error ?? null,
     receivedAt: row.received_at ?? null,
-    nextExpectedAt: nextExpectedAt(webhookCadenceMs),
+    receiptHref: SETUP_OPERATIONS_HREF,
   }));
+  const queueBacklog = {
+    pending: pendingQueue.count ?? 0,
+    expired: expiredQueue.count ?? 0,
+  };
 
   const concerns: HealthConcern[] = [];
+  const integrationFreshnessMs = INTEGRATION_FRESHNESS_HOURS * 3_600_000;
   for (const integration of integrationHealths) {
     if (
       integration.status === "degraded" ||
@@ -218,6 +244,26 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
           integration.lastSuccessAt ??
           (integration.updatedAt ? new Date(integration.updatedAt).toISOString() : null),
       });
+      continue;
+    }
+    if (integration.status === "connected" && !integration.lastSuccessAt) {
+      concerns.push({
+        kind: "integration",
+        key: integration.provider,
+        detail: "Connected, but no successful sync receipt exists. Configuration is not health.",
+        observedAt: integration.updatedAt ? new Date(integration.updatedAt).toISOString() : null,
+      });
+      continue;
+    }
+    const lastSuccess = anchorMs(integration.lastSuccessAt);
+    const nextExpected = nextExpectedFromAnchor(lastSuccess, integrationFreshnessMs);
+    if (isCheckOverdue(nextExpected)) {
+      concerns.push({
+        kind: "integration",
+        key: integration.provider,
+        detail: `Last successful receipt is older than the ${INTEGRATION_FRESHNESS_HOURS}h freshness window.`,
+        observedAt: integration.lastSuccessAt,
+      });
     }
   }
   for (const run of sourceRuns) {
@@ -228,17 +274,13 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
         detail: run.error || `Last sync reported ${run.status}`,
         observedAt: run.finishedAt || run.startedAt,
       });
-    }
-    if (run.nextExpectedAt !== undefined) {
-      const secondsUntil = Math.ceil((run.nextExpectedAt - Date.now()) / 1000);
-      if (secondsUntil < 0) {
-        concerns.push({
-          kind: "source",
-          key: run.key,
-          detail: `Expected sync check is overdue by ${Math.abs(secondsUntil)}s`,
-          observedAt: run.finishedAt || run.startedAt,
-        });
-      }
+    } else if (isCheckOverdue(run.nextExpectedAt)) {
+      concerns.push({
+        kind: "source",
+        key: run.key,
+        detail: `Expected hourly sync is overdue. Last receipt: ${run.finishedAt || run.startedAt || "none"}.`,
+        observedAt: run.finishedAt || run.startedAt,
+      });
     }
   }
   for (const run of jobRuns) {
@@ -256,17 +298,13 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
         detail: run.error || `Last run reported ${run.status}`,
         observedAt: run.finishedAt || run.startedAt,
       });
-    }
-    if (run.nextExpectedAt !== undefined) {
-      const secondsUntil = Math.ceil((run.nextExpectedAt - Date.now()) / 1000);
-      if (secondsUntil < 0) {
-        concerns.push({
-          kind: "job",
-          key: run.key,
-          detail: `Expected job check is overdue by ${Math.abs(secondsUntil)}s`,
-          observedAt: run.finishedAt || run.startedAt,
-        });
-      }
+    } else if (isCheckOverdue(run.nextExpectedAt)) {
+      concerns.push({
+        kind: "job",
+        key: run.key,
+        detail: `Expected ${run.cadenceLabel ?? "scheduled"} run is overdue. Last receipt: ${run.finishedAt || run.startedAt || "none"}.`,
+        observedAt: run.finishedAt || run.startedAt,
+      });
     }
   }
   for (const failure of webhookFailures) {
@@ -276,21 +314,18 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
       detail: failure.error || "Webhook was received but could not be processed",
       observedAt: failure.receivedAt,
     });
-    if (failure.nextExpectedAt !== undefined) {
-      const secondsUntil = Math.ceil((failure.nextExpectedAt - Date.now()) / 1000);
-      if (secondsUntil < 0) {
-        concerns.push({
-          kind: "webhook",
-          key: `${failure.provider}:${failure.eventType ?? "event"}`,
-          detail: `Expected webhook check is overdue by ${Math.abs(secondsUntil)}s`,
-          observedAt: failure.receivedAt,
-        });
-      }
-    }
+  }
+  if (queueBacklog.expired > 0) {
+    concerns.push({
+      kind: "job",
+      key: "action_queue",
+      detail: `${queueBacklog.expired} expired action${queueBacklog.expired === 1 ? "" : "s"} still on the queue. Open Today to recover or drop them.`,
+      observedAt: null,
+    });
   }
 
   const everWorked =
-    integrationHealths.some((item) => item.status === "connected") ||
+    integrationHealths.some((item) => item.status === "connected" && item.lastSuccessAt) ||
     sourceRuns.some((item) => item.status === "success") ||
     jobRuns.some((item) => item.status === "success");
 
@@ -301,6 +336,7 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     sourceRuns,
     jobRuns,
     webhookFailures,
+    queueBacklog,
     concerns,
   };
 }

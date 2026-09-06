@@ -55,6 +55,7 @@ interface HealthRun {
   lastSuccessAt?: number;
   stalled?: boolean;
   cadenceLabel?: string;
+  receiptHref?: string;
 }
 interface HealthWebhookFailure {
   id: string;
@@ -62,6 +63,7 @@ interface HealthWebhookFailure {
   eventType: string | null;
   error: string | null;
   receivedAt: string | null;
+  receiptHref?: string;
 }
 interface Overview {
   schemaReady: boolean;
@@ -90,10 +92,12 @@ interface Overview {
       status: string;
       lastSuccessAt: string | null;
       lastError: string | null;
+      receiptHref?: string;
     }>;
     sourceRuns: HealthRun[];
     jobRuns: HealthRun[];
     webhookFailures: HealthWebhookFailure[];
+    queueBacklog?: { pending: number; expired: number };
   };
 }
 interface ActionRow {
@@ -656,13 +660,18 @@ export default function TodayPage() {
         ? "Stalled: the next run takes the claim over"
         : describeExpectedCheck(item.nextExpectedAt, item.cadenceLabel);
     const webhookFailures = overview.health.webhookFailures ?? [];
-    return [
+    const queueBacklog = overview.health.queueBacklog;
+    const attention = (status: string, error: string | null) =>
+      Boolean(error) ||
+      ["failed", "partial", "degraded", "revoked", "expired"].includes(status);
+    const items = [
       ...overview.health.integrations.map((item) => ({
         label: item.provider,
         status: item.status,
         at: item.lastSuccessAt,
         error: item.lastError,
         expectation: null as string | null,
+        href: item.receiptHref ?? "/admin/integrations",
       })),
       ...overview.health.sourceRuns.map((item) => ({
         label: item.key,
@@ -670,6 +679,7 @@ export default function TodayPage() {
         at: item.finishedAt || item.startedAt,
         error: item.error,
         expectation: runExpectation(item),
+        href: item.receiptHref ?? "/admin/setup#operations",
       })),
       ...overview.health.jobRuns.map((item) => ({
         label: item.key,
@@ -677,6 +687,7 @@ export default function TodayPage() {
         at: item.finishedAt || item.startedAt,
         error: item.error,
         expectation: runExpectation(item),
+        href: item.receiptHref ?? "/admin/setup#operations",
       })),
       ...webhookFailures.slice(0, 1).map((item) => ({
         label: `Webhook failure: ${item.provider}`,
@@ -687,8 +698,26 @@ export default function TodayPage() {
           webhookFailures.length > 1
             ? `+${webhookFailures.length - 1} more unprocessed in the last 48h`
             : "Unprocessed in the last 48h. See Setup Center",
+        href: item.receiptHref ?? "/admin/setup#operations",
       })),
-    ].slice(0, 6);
+      ...(queueBacklog && (queueBacklog.pending || queueBacklog.expired)
+        ? [
+            {
+              label: "Action queue",
+              status: queueBacklog.expired ? "expired" : "pending",
+              at: null as string | null,
+              error: queueBacklog.expired
+                ? `${queueBacklog.expired} expired`
+                : null,
+              expectation: `${queueBacklog.pending} pending · ${queueBacklog.expired} expired`,
+              href: "/admin/today",
+            },
+          ]
+        : []),
+    ];
+    return items
+      .sort((a, b) => Number(attention(b.status, b.error)) - Number(attention(a.status, a.error)))
+      .slice(0, 8);
   }, [overview]);
 
   if (!overview && error)
@@ -749,7 +778,11 @@ export default function TodayPage() {
         </div>
         <div className="grid divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-6">
           {healthItems.map((item) => (
-            <div key={`${item.label}-${item.status}`} className="min-h-[96px] px-5 py-4">
+            <Link
+              key={`${item.label}-${item.status}`}
+              href={item.href}
+              className="min-h-[96px] px-5 py-4 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+            >
               <div className="flex items-center gap-2">
                 <span
                   className={cn(
@@ -759,7 +792,8 @@ export default function TodayPage() {
                       : item.status === "failed" ||
                           item.status === "partial" ||
                           item.status === "degraded" ||
-                          item.status === "revoked"
+                          item.status === "revoked" ||
+                          item.status === "expired"
                         ? "bg-amber-500"
                         : "bg-[var(--admin-muted)]",
                   )}
@@ -780,7 +814,7 @@ export default function TodayPage() {
                   {item.expectation}
                 </p>
               )}
-            </div>
+            </Link>
           ))}
           {!healthItems.length && (
             <div className="px-6 py-8 text-sm text-[var(--admin-muted)] sm:col-span-2 lg:col-span-6">

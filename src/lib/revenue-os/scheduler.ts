@@ -15,5 +15,7 @@ export function summarizeOperationalHealth(health: OperationalHealth): Record<st
     sourceCount: health.sourceRuns.length,
     jobCount: health.jobRuns.length,
     webhookFailureCount: health.webhookFailures.length,
+    queuePending: health.queueBacklog.pending,
+    queueExpired: health.queueBacklog.expired,
   };
 }
