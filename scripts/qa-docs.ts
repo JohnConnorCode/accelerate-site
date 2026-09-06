@@ -409,7 +409,17 @@ async function main() {
         try {
           const page = await context.newPage();
           page.on("pageerror", (error) => failures.push(error.message));
+          page.on("console", (message) => {
+            if (message.type() === "error") failures.push(message.text());
+          });
           await page.goto(`${base}/command-center`, { waitUntil: "domcontentloaded" });
+          if (reducedMotion === "reduce") {
+            if (width < 1280)
+              await page.getByRole("button", { name: "Open navigation menu" }).click();
+            await page.getByRole("button", { name: "Switch to dark mode" }).click();
+            if (width < 1280)
+              await page.getByRole("button", { name: "Close navigation menu" }).click();
+          }
           const gallery = page.getByRole("region", { name: "Command Center screens", exact: true });
           await gallery.scrollIntoViewIfNeeded();
           await gallery.getByRole("button", { name: "Next screen", exact: true }).click();
