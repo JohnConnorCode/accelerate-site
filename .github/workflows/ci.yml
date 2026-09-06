@@ -179,9 +179,11 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Verify credential-free first-run journey
         env:
-          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3018
+          # NextURL canonicalizes loopback IPs to localhost. Keep the server's
+          # initURL on that same origin so demo rewrites never become self-proxies.
+          PLAYWRIGHT_BASE_URL: http://localhost:3018
         run: |
-          setsid npm run start -- --hostname 127.0.0.1 --port 3018 > /tmp/accelerate-first-run-server.log 2>&1 &
+          setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-first-run-server.log 2>&1 &
           server_pid=$!
           trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
           ready=false
@@ -194,6 +196,7 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-first-run-server.log; exit 1; fi
+          node scripts/check-internal-demo-rewrites.mjs
           node scripts/qa-turnkey.mjs
           npm run test:work-completion -- --browser-fixtures
           node scripts/qa-work-completion.mjs
