@@ -1,4 +1,10 @@
 import "server-only";
+import { readRadarStore, previewRadarStoreChange, proposeRadarStoreChange } from "./radar-store";
+import {
+  radarStoreReadSchema,
+  radarStorePreviewSchema,
+  radarStoreProposalSchema,
+} from "./radar-store-contract";
 import {
   prepareRadarBrief,
   readRadarModelReceipts,
@@ -549,6 +555,46 @@ const registry: AiToolRegistration[] = [
     });
   }),
 
+  {
+    name: "get_radar_store",
+    description:
+      "Read bounded Radar source metadata, growth opportunities, current citations, draft summaries, reported outcomes and operation receipts. Supplied sources and reported outcomes are not verified recognition. No fetching, ranking, model call or external effect.",
+    inputSchema: z.toJSONSchema(radarStoreReadSchema),
+    parseInput: (input) => radarStoreReadSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-store",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => readRadarStore(supabase, input),
+  },
+  {
+    name: "preview_radar_store_change",
+    description:
+      "Preview an exact supplied-source ingestion/review, growth opportunity revision, citation correction, draft asset or reported outcome. Use a stable operationId. Returns source/config revisions and a digest; saves nothing and never approves outreach or publication.",
+    inputSchema: z.toJSONSchema(radarStorePreviewSchema),
+    parseInput: (input) => radarStorePreviewSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-store",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => previewRadarStoreChange(supabase, input),
+  },
+  {
+    name: "propose_radar_store_change",
+    description:
+      "Queue the exact Radar preview for human approval using its operationId, change and digest. Does not execute the change. Source versions and historical citations are retained; outcomes remain reported, not independently verified.",
+    inputSchema: z.toJSONSchema(radarStoreProposalSchema),
+    parseInput: (input) => radarStoreProposalSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.radar-store",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeRadarStoreChange(supabase, input, actorEmail),
+  },
   {
     name: "prepare_radar_brief",
     description:
@@ -1973,6 +2019,9 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "get_radar_store",
+    "preview_radar_store_change",
+    "propose_radar_store_change",
     "prepare_radar_brief",
     "get_radar_model_status",
     "reconcile_radar_model_call",

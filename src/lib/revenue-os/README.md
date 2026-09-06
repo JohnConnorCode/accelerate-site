@@ -228,3 +228,14 @@ in `supabase/server.ts`. Neither bridge exposes a privileged client to an actor.
 `ai/model-pricing.ts` reads bounded public metadata; `ai/openrouter.ts` alone sends
 prompts and checks final generation usage with tenant credentials. Unknown cost
 retains its hold. No Radar operation sends outreach or publishes content.
+
+`radar-store-contract.ts` owns source/opportunity lifecycle inputs and preview
+shapes. `radar-store.ts` owns tenant-scoped reads, exact previews, proposals and
+approved execution through `execute_radar_store_command`; adapters never call raw
+storage writes. The command commits business changes, immutable receipts and the
+shared audit log atomically. Source text and citation sets retain their original
+versions; a correction creates a new citation snapshot and requires review.
+Canonical `evidence` and CRM IDs are linked, not copied or reclassified as truth.
+First approved execution registers bounded entity metadata through `entity-registry.ts`;
+no autonomous grants or source fetching are added. `readRadarStore` returns bounded
+metadata or paginated source/asset text. Today/AI keep the existing approval path.

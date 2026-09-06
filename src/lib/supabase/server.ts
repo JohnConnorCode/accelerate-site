@@ -178,6 +178,11 @@ export async function callModelBudgetRpc(
   return callVerifiedHostRpc(database, operation, args);
 }
 
+/** Exact approved Radar store command; never exposes the host database to callers. */
+export async function callRadarStoreRpc(database: SupabaseClient, args: Record<string, unknown>) {
+  return callVerifiedHostRpc(database, "execute_radar_store_command", args);
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

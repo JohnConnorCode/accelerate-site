@@ -11,9 +11,11 @@ bulk content, unsolicited message volume, manufactured credentials or impression
 The profile foundation supplies a disabled module, generated settings fields,
 validated public configuration, two presets, a local setup packet generator and
 the existing governed AI configuration flow. Bounded source briefing uses shared
-model reservations, charge receipts and provider-usage reconciliation. There is no Radar feed, discovery store,
-worker, ranking engine, sender, publisher, graph collector or measurement service
-yet. Enabling this foundation does not start any of those activities.
+model reservations, charge receipts and provider-usage reconciliation. The evidence
+store adds versioned supplied sources, discoveries, growth opportunities, canonical
+evidence/CRM references, draft assets and reported outcomes through approved AI
+commands. There is no daily Radar feed, source worker, ranking engine, sender,
+publisher, graph collector or measurement service yet. Enabling this foundation does not start any of those activities.
 
 The complete program is on the live Feature Board under
 `opportunity-radar-program` (`ec0f7890-1b26-4fce-bd99-0c7772e9a728`). The board owns

@@ -2,12 +2,19 @@
   "$schema": "./module-manifest.schema.json",
   "id": "opportunity-radar",
   "name": "Opportunity Radar",
-  "description": "Configure a reusable business profile and prepare bounded source-linked AI briefs. Automated discovery and outreach are not yet available.",
+  "description": "Keep versioned sources, reviewed growth opportunities and drafts, with bounded AI source briefing. Automated discovery, outreach and publication are not yet available.",
   "category": "intelligence",
   "defaultEnabled": false,
   "navLinks": [],
   "routes": [],
-  "aiToolNames": ["prepare_radar_brief", "get_radar_model_status", "reconcile_radar_model_call"],
+  "aiToolNames": [
+    "prepare_radar_brief",
+    "get_radar_model_status",
+    "reconcile_radar_model_call",
+    "get_radar_store",
+    "preview_radar_store_change",
+    "propose_radar_store_change"
+  ],
   "setupChecks": [],
   "settingsContract": "opportunity-radar-profile-v1",
   "settings": [

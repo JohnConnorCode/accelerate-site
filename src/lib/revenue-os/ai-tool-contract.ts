@@ -1,3 +1,3 @@
 /** Browser-safe discovery version shared by live and fictional workspaces. */
-export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v11";
+export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v12";
 export type AiToolConnectionRequirement = "none" | "host_verified";

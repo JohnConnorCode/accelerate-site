@@ -138,7 +138,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "ee6f23189d109520014715ec6c7030e8758b9c19066b79e3d8c2008bfaa27adc",
+      contractHash: "67e4f24442e2f373629b9e509a8aceedba2917573049b0d08350d77b432325bd",
       tools: [
         {
           operation: "prepare-workflow",
@@ -426,7 +426,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "3e651675adeee73344e5df418356f69c7370a47dce0e02a4789fd1932560ebf3",
+      contractHash: "f6f56c5b47b77ede341336c21dde13c6561af6478d034b2210aae220941b9960",
       tools: [
         {
           operation: "prepare-workflow",
@@ -590,12 +590,19 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     id: "opportunity-radar",
     name: "Opportunity Radar",
     description:
-      "Configure a reusable business profile and prepare bounded source-linked AI briefs. Automated discovery and outreach are not yet available.",
+      "Keep versioned sources, reviewed growth opportunities and drafts, with bounded AI source briefing. Automated discovery, outreach and publication are not yet available.",
     category: "intelligence",
     isCore: false,
     defaultEnabled: false,
     navLinkIds: [],
-    aiToolNames: ["prepare_radar_brief", "get_radar_model_status", "reconcile_radar_model_call"],
+    aiToolNames: [
+      "prepare_radar_brief",
+      "get_radar_model_status",
+      "reconcile_radar_model_call",
+      "get_radar_store",
+      "preview_radar_store_change",
+      "propose_radar_store_change",
+    ],
     routes: [],
     setupChecks: [],
     docsUrl:
@@ -937,7 +944,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "4b55e5f61e5fbe871d213bda1220dd7047e89f3666cf3892392b121d6d752a8c",
+      contractHash: "32c714955ea9a575575a83841c2145d0333dc4d709bef8d440e28abfeea86ed9",
       tools: [
         {
           operation: "prepare-workflow",
