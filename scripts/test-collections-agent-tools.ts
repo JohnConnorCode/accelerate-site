@@ -404,7 +404,7 @@ async function main() {
     }
     assert.equal(escaped, 0);
     console.log(
-      "PASS: all five demo runtime capability responses share live tool metadata/version and respect plugin disablement without escaped requests.",
+      "PASS: all demo runtime capability responses share live tool metadata/version and respect plugin disablement without escaped requests.",
     );
   } finally {
     if (oldWindow) Object.defineProperty(globalThis, "window", oldWindow);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import * as Dialog from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,7 @@ export function AdminDialog({
   // command palette opt into their own deliberate layouts below; ordinary
   // confirmations do not pretend to be draggable bottom sheets on phones.
   const mobileDialog = align === "center";
+  const returnFocus = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (!open) return;
     openDialogCount += 1;
@@ -87,7 +88,23 @@ export function AdminDialog({
                     : "items-center justify-center",
               )}
             >
-              <Dialog.Content asChild forceMount aria-describedby={undefined}>
+              <Dialog.Content
+                asChild
+                forceMount
+                aria-describedby={undefined}
+                onOpenAutoFocus={() => {
+                  returnFocus.current =
+                    document.activeElement instanceof HTMLElement ? document.activeElement : null;
+                }}
+                onCloseAutoFocus={(event) => {
+                  // This shared controlled dialog has no Radix Trigger. Restore the
+                  // actual opener, including the previous dialog in a review stack.
+                  if (returnFocus.current?.isConnected) {
+                    event.preventDefault();
+                    returnFocus.current.focus({ preventScroll: true });
+                  }
+                }}
+              >
                 <motion.div
                   aria-labelledby={labelledBy}
                   aria-label={ariaLabel}

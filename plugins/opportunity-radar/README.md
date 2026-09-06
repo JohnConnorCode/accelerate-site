@@ -292,3 +292,7 @@ AI and MCP adapters expose `get_radar_workspace` and
 `prepare_radar_opportunity_brief` alongside the existing evidence and assessment tools.
 The latter binds source IDs and opportunity revision before using the shared model
 budget. New interfaces should call these services rather than write Radar tables.
+
+While disabled, use the authenticated history page for retained records. AI/MCP
+plugin tools remain hidden by the shared module availability gate until Radar is
+re-enabled; the history-page exception does not grant an agent additional tools.

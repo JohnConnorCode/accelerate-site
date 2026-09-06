@@ -47,6 +47,19 @@ async function main() {
     assert.equal(r.packet?.contact?.communicationStatus, "suppressed");
     assert.equal(r.model.available, false);
     assert.equal(r.packet?.assessmentCurrent, true);
+    const offBrief = await prepareRadarOpportunityBrief(db, {
+      operationId: randomUUID(),
+      opportunityId: first.id,
+      expectedRevision: first.revision,
+      sourceVersionIds: [seed.sources[0]!.id],
+    });
+    assert.equal(offBrief.status, "deferred");
+    assert.equal(offBrief.bodyText, null);
+    assert.equal(
+      mem.tables.model_call_receipts!.length,
+      0,
+      "Disabled model must not reserve spending",
+    );
     mem.tables.radar_source_versions![0]!.revision = 99;
     r = await readRadarWorkspace(db, { opportunityId: first.id });
     assert.equal(r.packet?.assessmentCurrent, false);

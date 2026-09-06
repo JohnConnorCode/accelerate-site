@@ -140,6 +140,38 @@ export function RadarOpportunityDetail({
                     {packet.assessmentReason ?? "This subject remains in neutral review."}
                   </p>
                 )}
+                {packet.assessmentCurrent && packet.assessment.classification === "business" && (
+                  <details className="mt-4 text-xs">
+                    <summary className="min-h-11 cursor-pointer py-3 font-semibold">
+                      Estimate rationale and evidence
+                    </summary>
+                    <dl className="space-y-4">
+                      {RADAR_FACTORS.map((key) => {
+                        const estimate = packet.assessment!.estimates[key];
+                        return (
+                          <div key={key}>
+                            <dt className="font-semibold capitalize">
+                              {key} · {estimate.confidence} confidence
+                            </dt>
+                            <dd className="mt-1 leading-6 text-[var(--admin-muted)]">
+                              {estimate.rationale}
+                              <p className="mt-1">
+                                Sources:{" "}
+                                {estimate.sourceVersionIds
+                                  .map(
+                                    (id) =>
+                                      packet.sources.find((s) => s.id === id)?.title ??
+                                      "Unavailable source",
+                                  )
+                                  .join("; ") || "None cited"}
+                              </p>
+                            </dd>
+                          </div>
+                        );
+                      })}
+                    </dl>
+                  </details>
+                )}
                 <p className="mt-4 text-xs text-[var(--admin-muted)]">
                   Expires {new Date(packet.assessment.expiresAt).toLocaleDateString()}. Changes to
                   the opportunity or evidence require review.
