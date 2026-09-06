@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
-import { expect } from "@playwright/test";
+import { expect } from "playwright/test";
 import { navItems, footerLinks } from "../src/content/navigation";
 
 const base = process.env.DOCS_QA_URL ?? "http://localhost:3025";
