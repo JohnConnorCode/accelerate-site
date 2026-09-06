@@ -3,9 +3,11 @@
 Configure a reusable business profile for evidence-backed earned-growth work.
 **Available now: validated profile, two presets, CLI setup and governed AI
 configuration, bounded source briefing, model charge receipts and a versioned
-evidence store, reviewed business selection and shared admin/demo workspace.** Automated discovery, relationship intelligence, outreach,
+evidence store, reviewed business selection, shared admin/demo workspace and source-backed relationship reviews.** Automated discovery, outreach,
 publication and outcome measurement remain unfinished. Enabling this foundation
 does not start a background worker.
+
+Read the [public operator guide](https://www.acceleratewith.us/docs/intelligence/opportunity-radar) for a complete first review in the shared workspace.
 
 ## Set up your business
 
@@ -132,7 +134,7 @@ keeps tenant receipts, append-only settlement history and shared budget accounti
 ## Keep evidence and reviewed opportunities
 
 Apply the normal migration catalog for your own installation before using the
-store. There is no source worker or dedicated Radar page yet. In Command Center
+store. Open **Opportunity Radar** for the daily workspace, detail packets and retained history. Automatic source discovery remains unfinished. In Command Center
 AI, use `get_radar_store`, `preview_radar_store_change` and
 `propose_radar_store_change`. The existing **Today** approval queue shows the exact
 saved preview; only its approved executor applies a business change.
@@ -207,7 +209,7 @@ Run `npm run test:radar-store` for governed service fixtures. The normal
 `npm run test:migration-ledger` native PostgreSQL proof includes source versioning,
 concurrent replay, stale/foreign references, lifecycle gates and forced audit
 failure rollback. Both business presets use these same services. These tests do
-not certify the unfinished daily Radar UI, discovery or outreach journey.
+not certify automatic discovery or outreach. The shared workspace has separate desktop/mobile browser evidence.
 
 ## Choose business opportunities with reviewed estimates
 
@@ -268,9 +270,7 @@ and the shared approval/read service in
 [`radar-ranking.ts`](../../src/lib/revenue-os/radar-ranking.ts). Keep estimates
 separate from claims, retain source/configuration freshness and prove new
 selection rules in `npm run test:radar-ranking`. The native PostgreSQL proof is
-part of the existing migration suite. The dedicated Radar dashboard, discovery,
-relationship intelligence and execution journeys are still separate unfinished
-work; this selection tool does not send outreach or publish content.
+part of the existing migration suite. The daily workspace and source-backed relationship reviews are implemented below. Automatic discovery, outreach execution and publication remain unfinished.
 
 ## Daily workspace
 

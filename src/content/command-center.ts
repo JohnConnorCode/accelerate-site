@@ -154,7 +154,7 @@ export const capabilities: Capability[] = [
     category: "organize",
     title: "A relationship graph",
     detail:
-      "People to companies, companies to deals, deals to documents. Ask who can introduce you to a target and get a real path, not a guess.",
+      "Connect people, companies, deals, and documents through canonical records. Radar adds cited, human-reviewed relationship assertions and current contact paths; an introduction offer does not establish consent to send.",
   },
   {
     id: "timeline",
@@ -171,7 +171,24 @@ export const capabilities: Capability[] = [
       "It spots two records that look like one person and proposes the merge. It will not merge them on its own, because sometimes they really are two people.",
   },
 
+  {
+    id: "opportunity-radar",
+    category: "organize",
+    title: "Opportunity Radar: evidence, reviewed priorities, and drafts",
+    detail:
+      "Keep supplied sources, reviewed opportunity estimates, CRM context, and saved drafts in one workspace. Review exact changes before saving and retain the evidence history. Optional source briefing has explicit model budgets; discovery, outreach sending, and publication remain unfinished.",
+    gated: true,
+  },
+
   // Act
+  {
+    id: "collections",
+    category: "act",
+    title: "Collections with verified balances and reviewed reminders",
+    detail:
+      "Group verified invoices by account and currency, record promises or disputes, and approve an exact reminder when sending is configured. Fresh payment and contact checks stop stale sends; receipts distinguish confirmed dispatch from an uncertain result that needs reconciliation.",
+    gated: true,
+  },
   {
     id: "draft-email",
     category: "act",
@@ -450,36 +467,48 @@ export const WHO_ITS_FOR = [
 export const CURRENT_SURFACES = [
   {
     n: "01",
+    label: "Review opportunities",
+    title: "Opportunity Radar, from evidence to a saved draft",
+    body: "Bring supplied sources, reviewed estimates, relationship context, and drafts into one daily workspace. Changes require an exact review, model spending starts off, and outreach sending remains unfinished.",
+  },
+  {
+    n: "02",
+    label: "Follow up on receivables",
+    title: "Collections with payment context and delivery receipts",
+    body: "Review verified invoice balances, payment promises, and disputes. Configured reminders use human approval, fresh eligibility checks, and durable receipts so uncertain delivery cannot trigger a blind retry.",
+  },
+  {
+    n: "03",
     label: "Prioritize",
     title: "Today and the approval queue",
     body: "Overdue work, replies, meetings, proposals, campaign exceptions, and AI actions arrive in one ranked queue with a clear reason for every item.",
   },
   {
-    n: "02",
+    n: "04",
     label: "Work revenue",
     title: "Pipeline, saved views, and record workspaces",
     body: "Move canonical opportunities through validated stages, save the views you use every week, and open the full contact, company, activity, and next-action context in one place.",
   },
   {
-    n: "03",
+    n: "05",
     label: "Keep context",
     title: "Contacts, companies, conversations, and notes",
     body: "The operating history stays connected: identity, messages, meetings, proposals, tasks, and human or AI activity all resolve back to the same records.",
   },
   {
-    n: "04",
+    n: "06",
     label: "Measure",
     title: "Analytics that separate facts from forecasts",
     body: "Source-to-revenue performance, reply coverage, forecast method, attribution gaps, stale data, and impossible stage events are visible without turning estimates into facts.",
   },
   {
-    n: "05",
+    n: "07",
     label: "Automate safely",
     title: "Campaigns, proposals, and recovery",
     body: "Drafts, sends, campaign stops, proposal versions, task generation, and failed work all use confirmation, idempotency, receipts, and recovery paths.",
   },
   {
-    n: "06",
+    n: "08",
     label: "Run per tenant",
     title: "Shared infrastructure, isolated workspaces",
     body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget.",

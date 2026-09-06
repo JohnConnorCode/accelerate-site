@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "What can Opportunity Radar do today?",
+    answer:
+      "It keeps supplied sources, reviewed business opportunities, relationship evidence, and drafts together. You review exact changes before saving. Source briefing can use an explicitly configured model budget, with spending off by default. Automated discovery, outreach sending, publication, and verified outcome measurement are still being built. The fictional demo lets you try the review workflow without provider calls.",
+  },
+  {
     question: "What stops it doing something stupid on my behalf?",
     answer:
       "Nothing it writes leaves the building until you approve it. That is how it ships on day one and it stays that way until you change it, one category of work at a time. You can also turn any single part of it off in a click.",

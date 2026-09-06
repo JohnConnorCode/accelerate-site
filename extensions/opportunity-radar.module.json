@@ -2,7 +2,7 @@
   "$schema": "./module-manifest.schema.json",
   "id": "opportunity-radar",
   "name": "Opportunity Radar",
-  "description": "Keep versioned sources, reviewed growth opportunities and drafts, with bounded AI source briefing. Automated discovery, outreach and publication are not yet available.",
+  "description": "Review supplied sources, business opportunities, relationship evidence and drafts in a shared workspace, with optional budgeted source briefing. Automated discovery, outreach sending and publication remain unfinished.",
   "category": "intelligence",
   "defaultEnabled": false,
   "navLinks": [
@@ -200,6 +200,6 @@
       "description": "No sending or publication is enabled by setup."
     }
   ],
-  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md",
+  "docsUrl": "/docs/intelligence/opportunity-radar",
   "historyRoute": "/admin/radar/history"
 }

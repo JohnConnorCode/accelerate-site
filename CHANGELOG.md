@@ -15,6 +15,10 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Added
 
+- Opportunity Radar foundations: versioned sources, reviewed assessments, shared Today/detail/history pages, saved drafts, source-backed relationship reviews, and explicit model budgets. Automated discovery, sending, publication, and verified outcome measurement remain unfinished.
+- A public Radar operator guide in the organized `/docs` library, with navigation, search, and AI-readable index coverage.
+- Strict documentation coverage against built pages, internal anchors, and registered tool/capability references.
+
 - Prettier formatting, enforced in CI.
 - Product changelog page gained category filtering and full-text search.
 - `propose_task_update`: an MCP tool and admin AI capability to complete, snooze, or edit an existing task, staged through the same approval queue as every other mutation.

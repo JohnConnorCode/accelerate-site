@@ -16,7 +16,7 @@ store adds versioned supplied sources, discoveries, growth opportunities, canoni
 evidence/CRM references, draft assets and reported outcomes through approved AI
 commands. Reviewed business assessments and bounded selection now use the same
 approval executor. The shared admin/demo Radar workspace now presents Today,
-evidence packets, draft editing and retained history. There is no automated
+evidence packets, draft editing and retained history. Source-backed relationship reviews retain cited assertions, explicit offers and revocations over canonical CRM links. The [public operator guide](https://www.acceleratewith.us/docs/intelligence/opportunity-radar) covers the current workflow. There is no automated
 source worker, sender, publisher, graph collector or measurement service yet.
 Enabling this foundation does not start any of those activities.
 
@@ -320,9 +320,7 @@ documents the implemented assessment and shortlist tools, a worked workshop
 example, configurable request weights, profile result limit, effort budget,
 source freshness and recovery. Estimates are reviewed judgments rather than
 probabilities or verified facts. The tool scans a bounded candidate window;
-public-affairs and unknown subjects remain unranked. The dedicated Radar Today
-workspace and the remaining discovery/execution pipeline are not implemented by
-this service.
+public-affairs and unknown subjects remain unranked. The shared Radar Today workspace consumes this service; automated discovery and outreach execution remain unfinished.
 
 ## Operator workspace and demo
 

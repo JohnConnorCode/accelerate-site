@@ -1,7 +1,7 @@
 ---
 title: "Plugins"
 description: "Register a plugin manifest with tools and triggers that still go through governance."
-updated: "2026-09-04"
+updated: "2026-09-06"
 ---
 
 A plugin is a tenant-scoped registration: tools, triggers, required capabilities, and optional MCP server URL. `registerPlugin` in `src/lib/revenue-os/plugins.ts` upserts the manifest, registers capabilities, and registers autonomy policies. Status starts at `pending_review` until a human approves it. Enabled and revoked are explicit later states.
@@ -34,7 +34,7 @@ the current runtime registry does not enforce a documentation field.
 Follow the [plugin documentation contract](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contracts/PLUGIN-DOCUMENTATION.md).
 A reviewer must follow the task against the current implementation; structural
 checks cannot establish that the guide is accurate. See the
-[Collections guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/receivables-collections/README.md)
+[Collections guide](/docs/outreach/collections)
 for a business workspace and the
-[Radar guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md)
-for bounded source briefing, cost controls and explicit unfinished capabilities.
+[Radar guide](/docs/intelligence/opportunity-radar)
+for its daily review workspace, source-backed relationship context, model budgets and current release limits.

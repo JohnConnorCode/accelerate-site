@@ -203,6 +203,12 @@ export const docsManifest: DocsSection[] = [
           "Controlled outbound that stops on reply and refuses contacts who asked to be left alone.",
       },
       {
+        slug: ["outreach", "collections"],
+        title: "Review collection reminders",
+        description:
+          "Track verified invoice balances, payment promises, and disputes before approving a reminder.",
+      },
+      {
         slug: ["outreach", "campaigns"],
         title: "Campaigns",
         description:
@@ -286,6 +292,12 @@ export const docsManifest: DocsSection[] = [
         title: "Intelligence",
         description:
           "Ask with bounded context, inspect what ran, and read funnel numbers from the same records.",
+      },
+      {
+        slug: ["intelligence", "opportunity-radar"],
+        title: "Review opportunities with Radar",
+        description:
+          "Review sources, relationship context, estimates, and drafts with explicit approvals and model budgets.",
       },
       {
         slug: ["intelligence", "tools"],

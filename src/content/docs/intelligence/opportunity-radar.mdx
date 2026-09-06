@@ -1,0 +1,51 @@
+---
+title: "Review opportunities with Radar"
+description: "Review sources, relationship context, estimates, and drafts with explicit approvals and model budgets."
+updated: "2026-09-06"
+---
+
+Open **Opportunity Radar** in the Intelligence navigation to review supplied evidence, choose a useful business opportunity, and save a draft. The current release includes Today, opportunity details, retained history, source-backed relationship reviews, and optional bounded source briefing.
+
+Automatic discovery, outreach sending, publication, and independently verified outcome measurement remain unfinished. Saving a draft or reviewing a relationship does not send a message.
+
+## Start with a workspace
+
+You need access to an active workspace with Opportunity Radar enabled. In **Integrations**, review the module settings and supply your organization, website, mission, expertise, and audiences. Keep private contacts and conversations in their normal workspace records. Install the application's ordered migrations before using a connected workspace; see [installation](/docs/self-hosting/installation).
+
+You can first try the [SuperDebate demo](/demo/command-center/superdebate/radar/today) or the [Northline Roofing demo](/demo/command-center/northline-roofing/radar/today). Both use the same admin pages with fictional records and complete sample profiles. Demo approvals and saved changes stay in the browser session; they make no provider or model requests.
+
+## Review an opportunity and save a draft
+
+1. On Radar's Today page, open **Partner workshop invitation** in either demo. Read the source evidence, relationship context, and existing recommendation before deciding what to do.
+2. Choose **Edit opportunity**, enter a specific title or next action, and select **Preview exact change**. Inspect the current record version and each proposed field. Select **Approve this change** to save, or **Queue for later review** to leave it pending.
+3. Confirm the saved change on the opportunity. A change to the evidence or opportunity can make an older assessment stale; review its sources again before relying on its estimate.
+4. Choose **Prepare a draft** and write a useful contribution and a specific ask. Preview the exact text, approve the internal save, then open the retained draft. This is a saved business record, not delivered outreach.
+5. Open **History** to inspect earlier work. Reloading the demo retains your changes. **Reset this demo** in the demo controls restores the fictional starting records.
+
+In a connected workspace, **Add source** lets you bring supplied evidence into Radar, and **Develop opportunity** starts a linked opportunity. **Review estimates** records your judgment with source references and a reason. Estimates are not probabilities or independently verified facts; unknown and public-affairs material stays in neutral review.
+
+## Read relationships before making an ask
+
+Ask the AI to read Radar relationship context for an exact CRM contact. It can return canonical links, prior conversation excerpts, reviewed assertions, and current contact paths. A cited introduction offer, an existing conversation, and a reviewed public business contact page have different meanings.
+
+Relationship changes use an exact preview and human approval. Expired offers, changed sources, unresolved identities, and suppressed contacts cannot establish an eligible path. Read incomplete histories carefully: a bounded excerpt does not prove that an earlier ask or commitment never happened. A reviewed path never grants permission to contact someone or establishes both parties' consent to an introduction.
+
+The [AI tool reference](/docs/intelligence/tools) lists the current Radar read, preview, and proposal tools. They use the same governed services and cannot approve their own changes.
+
+## Control briefing costs
+
+Model spending starts **off**. You can write and review drafts without an AI provider. Optional source briefing needs an explicitly selected registered model and working workspace provider configuration.
+
+**Free-only** refuses a paid fallback. **Budgeted-low-cost** uses the configured call, token, per-run, and daily cost limits. Jobs reserve cost before requesting a model result and retain charge receipts; an unavailable model or exhausted limit produces a deferred result. A free model can still be unavailable or rate-limited. Hosting and local compute are separate from model charges.
+
+If provider acceptance or usage is uncertain, inspect the model receipt and use its reconciliation path before another attempt. Do not assume a timeout means no charge occurred. The [plugin reference](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md) explains the settings and developer extension points.
+
+## Recover and disable
+
+- **Missing or unavailable evidence:** reopen the source, correct its citation through the review flow, and review affected estimates again. Earlier evidence remains in history.
+- **Changed record or stale approval:** refresh the opportunity and create a new exact preview. Do not approve an obsolete version.
+- **No useful recommendations:** inspect neutral review and deferred items. Missing evidence is a reason to investigate, not to invent a score or contact address.
+- **Missing access or schema:** verify workspace membership, module enablement, and installation readiness. The app does not create missing production tables from a request.
+- **Disable Radar:** new Radar writes and briefing stop. Authorized users can still open `/admin/radar/history` for retained records. Plugin AI tools follow the module availability gate.
+
+Desktop and mobile demo checks cover approvals, saved drafts, reload persistence, reset, session isolation, keyboard focus, reduced motion, and overflow. Controlled database checks cover replay, tenant separation, stale evidence, revocation, and audit rollback. These checks establish the review workflow; they do not establish a live outreach send or a verified business outcome.

@@ -200,7 +200,7 @@ function CurrentSurface() {
             <Reveal rv as="h2" className="h2" delay={0.06}>
               One operating surface.
               <br />
-              <span className="it">Six ways to use it.</span>
+              <span className="it">Ways to move work forward.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
               The Command Center is not a promise to buy a pile of tools. It is the shared context,
