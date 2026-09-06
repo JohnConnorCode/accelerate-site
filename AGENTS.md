@@ -10,6 +10,35 @@ For a connected installation, follow
 [the self-hosting guide](docs/self-hosting/SELF-HOSTING.md). Shared ticket pickup
 also requires the scoped access described below.
 
+## Operating guidance and accumulated lessons
+
+- Read the northstar first, then this contract and the task's relevant references.
+  `CLAUDE.md` is an entrypoint, not a second engineering policy. For this repository,
+  the explicit resource and verification rules below replace generic every-commit
+  build guidance. Keep other projects' global defaults unchanged.
+- Establish facts before acting: checkout/root, origin, account, exact candidate,
+  environment and work ownership. A directory name, old branch, cached remote ref,
+  historical receipt or HTTP 200 is not current readiness evidence.
+- Resolve routine problems inside the authorized scope. If access is missing,
+  provide the actual connection step and continue independent work. Separate an
+  account mismatch from a provider restriction, a missing dependency from a code
+  defect, and incomplete verification from a failed product. Do not report an
+  error as an unexplained dead end or invent proof to move past it.
+- Repeated feedback is evidence of a shared-system defect. Fix the owning primitive
+  or workflow, inspect its other consumers, and verify the user-visible outcome.
+  Do not keep adding route-specific patches for shared motion or navigation.
+- Preserve another agent's work even when it looks old. Completed, accepted,
+  integrated and deployed are separate states. Pin handoffs, retain exclusions,
+  and use the live board for claims rather than inferring ownership from files.
+- Capture reusable lessons where they belong: broad operating invariants here,
+  domain behavior in its linked contract, commands in the existing doctor/verifier,
+  and transient SHAs or failures in dated receipts. Add a focused regression when
+  a meaningful failure can be checked automatically; do not add duplicate guides,
+  new approval gates or broad tests just to memorialize an incident.
+- Close the loop with a concrete result: what changed, exact evidence, remaining
+  limitation and the next responsible action. A written plan or green branch alone
+  is not a completed integration or production release.
+
 ## Maintainer integration
 
 Published `main` is the control baseline. Before integrating or merging agent work,
