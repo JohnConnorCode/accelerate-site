@@ -34,8 +34,8 @@ export const docsManifest: DocsSection[] = [
     pages: [
       {
         slug: ["start", "overview"],
-        title: "Start here",
-        description: "Understand Command Center, try a workflow, and choose your next guide.",
+        title: "Start using Command Center",
+        description: "Choose a task, follow its steps and check the result.",
       },
       {
         slug: ["start", "business-owners"],
@@ -100,9 +100,8 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["command-center", "today"],
-        title: "Today",
-        description:
-          "Work the founder queue: replies, commitments, meetings, proposals, and approvals.",
+        title: "Work the Today queue",
+        description: "Review urgent work, take the next action and confirm the result.",
       },
       {
         slug: ["command-center", "inbox"],
@@ -117,8 +116,8 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["command-center", "activity"],
-        title: "Activity",
-        description: "The audit ledger: who changed what, when, and from which origin.",
+        title: "Inspect activity",
+        description: "Find a recorded change and trace it to the affected record.",
       },
       {
         slug: ["command-center", "ask"],
@@ -142,8 +141,9 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["pipeline", "revenue"],
-        title: "Revenue",
-        description: "Closed value from the same opportunity rows the board uses.",
+        title: "Understand revenue figures",
+        description:
+          "Read client and proposal totals and investigate differences from pipeline or payment records.",
       },
       {
         slug: ["pipeline", "board"],
@@ -215,9 +215,8 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["outreach", "recovery"],
-        title: "Revenue Recovery",
-        description:
-          "Reviewed past relationships become governed opportunities. Mail waits on an approved playbook.",
+        title: "Review recovery outreach",
+        description: "Check eligibility and the proposed playbook before contacting a past lead.",
       },
     ],
   },
@@ -254,23 +253,25 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["delivery", "clients"],
-        title: "Clients",
-        description: "Active accounts, retainer scope, and delivery status after the deal is won.",
+        title: "Review client accounts",
+        description:
+          "Find an account, check its status and monthly value, and open its delivery record.",
       },
       {
         slug: ["delivery", "bookings"],
-        title: "Bookings",
-        description: "Qualification, scheduled calls, attendance, and attributed revenue.",
+        title: "Review bookings",
+        description:
+          "Check qualification, call status and the next step for a booked conversation.",
       },
       {
         slug: ["delivery", "content"],
-        title: "Content",
-        description: "Editorial briefs and publishing status on a shared calendar.",
+        title: "Manage editorial work",
+        description: "Create a content item, track its status and confirm changes were saved.",
       },
       {
         slug: ["delivery", "resources"],
-        title: "Resources",
-        description: "Gated downloads that attach to contacts instead of becoming orphan files.",
+        title: "Review resource downloads",
+        description: "Find who requested a resource and check the recorded download time.",
       },
     ],
   },
@@ -293,8 +294,9 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["intelligence", "workspace"],
-        title: "AI Workspace",
-        description: "Ask, inspect runs, and review evidence before anything executes.",
+        title: "Use the AI Workspace",
+        description:
+          "Ask a specific question, check its sources and inspect the result of an action.",
       },
     ],
   },
@@ -312,8 +314,8 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["sources", "leads"],
-        title: "Leads and chat",
-        description: "Form submissions and public-assistant handoffs before they become contacts.",
+        title: "Review leads and chat handoffs",
+        description: "Qualify an inquiry, check for an existing person and record the next action.",
       },
     ],
   },
@@ -340,9 +342,8 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["workspace", "settings"],
-        title: "Settings",
-        description:
-          "Notification preferences and the configuration that powers the operating system.",
+        title: "Change workspace settings",
+        description: "Update notifications and configuration, then confirm the saved result.",
       },
     ],
   },
@@ -413,8 +414,8 @@ export const docsManifest: DocsSection[] = [
     pages: [
       {
         slug: ["follow-up", "overview"],
-        title: "Follow through on every inquiry",
-        description: "Response time, steady follow-up, and a clear next step on every page.",
+        title: "Follow up on an inquiry",
+        description: "Assign the response, record a due date and close the loop.",
       },
     ],
   },

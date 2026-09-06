@@ -1,9 +1,24 @@
 ---
-title: "Bookings"
-description: "Qualification, scheduled calls, attendance, and attributed revenue."
-updated: "2026-09-04"
+title: "Review bookings"
+description: "Check qualification, call status and the next step for a booked conversation."
+updated: "2026-09-05"
 ---
 
-Open `/admin/bookings`. Rows are qualification, scheduled calls, attendance, and attributed revenue from those meetings.
+Open `/admin/bookings` to review qualified inquiries and scheduled calls. Use the company, fit, source, call and stage columns to prepare for the conversation and record its outcome.
 
-Calendar sync is on only when the Google or Calendly connection is ready in [Setup](/docs/workspace/setup). Calendly stays optional and off until a workspace turns it on. A booking without an attributed contact is intake work for [Contacts](/docs/contacts), not a finished meeting record.
+## Review a call
+
+1. Find the company and check the source and qualification details. Open its website if you need to confirm what the business does.
+2. Read the call information and current stage. A scheduled call and a completed call are different states; confirm what happened before changing the stage.
+3. Use the stage control to record the supported next state. Reload the page to confirm the update persisted.
+4. Open the related [contact](/docs/contacts) or [opportunity](/docs/pipeline/board) to record who will follow up and when.
+
+The summary shows qualified inquiries, bookings, calls held and attributed won revenue. Use those figures to inspect the booking workflow; a scheduled meeting alone does not establish a sale.
+
+## When a booking is missing or wrong
+
+Check the company and contact before creating another record. A different email address or an unlinked inquiry can explain why the expected relationship is missing.
+
+For an expected calendar update, check the connection in [Setup Center](/docs/workspace/setup). A saved connection is not proof that the latest sync succeeded. Calendly is optional; this guide does not require enabling it.
+
+After correcting a stage or connection, reload the booking list and confirm the specific row. If the save did not persist, retain the error and use [Troubleshooting](/docs/start/troubleshooting).

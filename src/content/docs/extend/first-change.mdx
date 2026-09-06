@@ -8,18 +8,20 @@ This guide is for a developer new to this repository. You will run the fictional
 
 ## Start the app
 
-You need Git, Node.js 22 or later, npm, a terminal, and an editor. A terminal is where you run the commands below; leave it open while the development server runs.
+You need Git, Node.js 22 or later, npm and an editor. For team work, get the reviewed branch and exact commit from the maintainer before cloning; the public default branch may not contain the assigned feature.
 
 ```bash
 node --version
 npm --version
-git clone https://github.com/JohnConnorCode/accelerate-site.git
+git clone --branch <reviewed-branch> https://github.com/JohnConnorCode/accelerate-site.git
 cd accelerate-site
 npm ci
 npm run dev
 ```
 
-Run these commands from the cloned repository, where `package.json` lives. `npm ci` installs the versions recorded in the lockfile. `npm run dev` starts the local development server; it does not publish the application.
+Replace `<reviewed-branch>` with the supplied branch. After cloning, compare `git rev-parse HEAD` with the supplied commit. Resolve a mismatch before installing or editing.
+
+Run the remaining commands from the cloned repository, where `package.json` lives. `npm ci` installs the versions recorded in the lockfile. `npm run dev` starts the local development server; it does not publish the application.
 
 Open the URL printed by the terminal, then visit `/demo/command-center`. You should see a fictional business workspace. Follow [your first workflow](/docs/start/daily-path) to learn the behavior before changing code. Stop your own server with Control-C when finished.
 
