@@ -294,12 +294,12 @@ assert.match(
 );
 assert.match(
   styles,
-  /\.hero-intelligent-static \{ display: none; \}/,
+  /\.hero-intelligent-static\s*\{\s*display:\s*none;\s*\}/,
   "Mobile must preserve the signature intelligent-automation scramble rather than replacing it with static copy",
 );
 assert.match(
   styles,
-  /\.hero-intelligent-scramble \{ display: inline; \}/,
+  /\.hero-intelligent-scramble\s*\{\s*display:\s*inline;\s*\}/,
   "Mobile must render the same scramble treatment as desktop",
 );
 assert.doesNotMatch(
@@ -414,7 +414,7 @@ assert.match(
 );
 assert.match(
   styles,
-  /nth-child\(n \+ 5\).*72ms/,
+  /nth-child\(n \+ 5\)\s*\{[^}]*72ms/,
   "Committed admin sections must cap their semantic stagger",
 );
 const adminRouteMotion = styles.slice(
@@ -468,9 +468,9 @@ assert.match(
   "Prebuilt production upload must use the verified release runner",
 );
 assert.match(
-  packageJson,
-  /"build":\s*"node scripts\/next-release\.mjs build"/,
-  "Local production builds must embed the release identity used by start",
+  JSON.parse(packageJson).scripts.build,
+  /^node scripts\/resource-run\.mjs node scripts\/next-release\.mjs build$/,
+  "Local production builds must retain both the resource gate and release identity used by start",
 );
 assert.match(
   packageJson,
@@ -631,11 +631,21 @@ for (const file of adminFiles.filter(
     /from ["']next\/link["']/,
     `${file}: shared admin links must resolve through AdminLink`,
   );
-  assert.doesNotMatch(
-    source,
-    /useRouter/,
-    `${file}: programmatic admin navigation must resolve through useAdminNavigation`,
-  );
+  if (file === join("src/app/admin", "branding/page.tsx")) {
+    // Refreshing server-rendered branding does not navigate to another route.
+    assert.match(source, /router\.refresh\(\)/, "Branding must refresh the persistent shell");
+    assert.doesNotMatch(
+      source,
+      /router\s*(?:\[|\.(?!refresh\b))/,
+      "Branding's raw router is refresh-only; navigation belongs to useAdminNavigation",
+    );
+  } else {
+    assert.doesNotMatch(
+      source,
+      /useRouter/,
+      `${file}: programmatic admin navigation must resolve through useAdminNavigation`,
+    );
+  }
 }
 
 console.log(JSON.stringify({ result: "passed", contract: "navigation-runtime.v1" }, null, 2));

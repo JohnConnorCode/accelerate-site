@@ -108,6 +108,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:search
 
+      - name: Verify shared navigation contracts
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npx tsx scripts/test-navigation-runtime.ts
+
       - name: Run core contract suite
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:core
