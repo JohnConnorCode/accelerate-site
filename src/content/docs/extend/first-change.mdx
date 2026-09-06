@@ -15,11 +15,17 @@ node --version
 npm --version
 git clone --branch <reviewed-branch> https://github.com/JohnConnorCode/accelerate-site.git
 cd accelerate-site
+git rev-parse HEAD
+```
+
+Replace `<reviewed-branch>` with the supplied branch. Compare the printed commit with the commit supplied by the maintainer. Resolve a mismatch before continuing.
+
+Then install and start the app:
+
+```bash
 npm ci
 npm run dev
 ```
-
-Replace `<reviewed-branch>` with the supplied branch. After cloning, compare `git rev-parse HEAD` with the supplied commit. Resolve a mismatch before installing or editing.
 
 Run the remaining commands from the cloned repository, where `package.json` lives. `npm ci` installs the versions recorded in the lockfile. `npm run dev` starts the local development server; it does not publish the application.
 
