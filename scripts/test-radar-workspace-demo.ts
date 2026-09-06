@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { demoRadarProfile } from "../src/lib/admin/demo/radar-fixtures";
+import { radarProfileSchema } from "../src/lib/revenue-os/radar-profile-contract";
 import { DEMO_SCENARIOS } from "../src/lib/admin/demo/scenarios";
 import {
   createDemoBusinessState,
@@ -14,6 +16,9 @@ async function main() {
   };
   try {
     for (const pack of Object.values(DEMO_SCENARIOS)) {
+      const profile = radarProfileSchema.parse(demoRadarProfile(pack));
+      assert.equal(profile.organization, pack.name);
+      assert.equal(profile.modelMode, "off");
       const state = createDemoBusinessState(pack),
         modules: Record<string, boolean> = { ...DEMO_BUSINESS_MODULES };
       let saves = 0;

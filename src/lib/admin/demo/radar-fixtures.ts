@@ -1,3 +1,4 @@
+import { RADAR_PROFILE_DEFAULTS, type RadarProfile } from "@/lib/revenue-os/radar-profile-contract";
 import type { DemoScenarioPack } from "./scenarios";
 import type { RadarAssessment } from "@/lib/revenue-os/radar-ranking-contract";
 import { RADAR_FACTORS } from "@/lib/revenue-os/radar-ranking-contract";
@@ -206,5 +207,21 @@ export function seedRadar(pack: DemoScenarioPack): DemoRadarState {
     })),
     briefs: {},
     restrictedContactIds: [pack.people[9]!.id],
+  };
+}
+
+/** Public fictional setup, using the same schema as an operator-configured workspace. */
+export function demoRadarProfile(pack: DemoScenarioPack): RadarProfile {
+  return {
+    ...RADAR_PROFILE_DEFAULTS,
+    organization: pack.name,
+    website: `https://${pack.tenant.brand.domain}`,
+    mission: pack.description,
+    expertise: `Fictional practice examples for ${pack.category.toLowerCase()}; verify real credentials before replacing this data.`,
+    audiences: `Professional partners and customers of ${pack.name}`,
+    topics: pack.content.resourceTitles.join("; "),
+    ownedAssets: "Fictional demonstration records only; no independent recognition is claimed.",
+    region: "Fictional demo workspace",
+    timeZone: "America/Chicago",
   };
 }

@@ -6,15 +6,19 @@ const output = "/tmp/accelerate-radar-workspace";
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 const results = [];
+let activePage;
 try {
   for (const width of [1440, 390]) {
     const context = await browser.newContext({
       viewport: { width, height: 1000 },
       reducedMotion: "reduce",
     });
+    context.setDefaultTimeout(15000);
+    context.setDefaultNavigationTimeout(30000);
     const page = await context.newPage(),
       errors = [],
       escaped = [];
+    activePage = page;
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("console", (m) => {
       if (m.type() === "error" && !m.text().includes("favicon")) errors.push(m.text());
@@ -29,6 +33,7 @@ try {
     });
     for (const scenario of ["superdebate", "northline-roofing"]) {
       const root = `${base}/demo/command-center/${scenario}`;
+      console.log(`Radar browser: ${scenario} at ${width}px`);
       await page.goto(root + "/radar/today");
       await page.getByRole("heading", { name: "Worth reviewing today", exact: true }).waitFor();
       assert.equal(await page.getByText("Estimate", { exact: true }).count(), 5);
@@ -121,6 +126,26 @@ try {
     `${output}/results.json`,
     JSON.stringify({ results, protectedRequests: 0, providerRequests: 0 }, null, 2),
   );
+} catch (error) {
+  if (activePage && !activePage.isClosed()) {
+    await activePage.screenshot({ path: `${output}/failure.png`, fullPage: true }).catch(() => {});
+    await writeFile(
+      `${output}/failure.json`,
+      JSON.stringify(
+        {
+          message: String(error),
+          url: activePage.url(),
+          body: await activePage
+            .locator("body")
+            .innerText()
+            .catch(() => "unavailable"),
+        },
+        null,
+        2,
+      ),
+    );
+  }
+  throw error;
 } finally {
   await browser.close();
 }
