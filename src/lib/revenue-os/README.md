@@ -239,3 +239,11 @@ Canonical `evidence` and CRM IDs are linked, not copied or reclassified as truth
 First approved execution registers bounded entity metadata through `entity-registry.ts`;
 no autonomous grants or source fetching are added. `readRadarStore` returns bounded
 metadata or paginated source/asset text. Today/AI keep the existing approval path.
+
+`radar-ranking-contract.ts` owns strict reviewed-estimate inputs, weight validation
+and deterministic bounded selection. `radar-ranking.ts` owns assessment previews,
+queued approval and current-evidence eligibility; it reuses Radar storage and the
+shared action executor. `review_radar_assessment` commits an immutable judgment
+and audit entry with source/configuration/previous-assessment checks. Current
+views use invoker security and explicit tenant filters. No model, sender, queue
+or claims ledger is created by selection.

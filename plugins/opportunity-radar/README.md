@@ -3,7 +3,7 @@
 Configure a reusable business profile for evidence-backed earned-growth work.
 **Available now: validated profile, two presets, CLI setup and governed AI
 configuration, bounded source briefing, model charge receipts and a versioned
-evidence store operated through AI approvals.** Automated discovery, relationship intelligence, ranking, outreach,
+evidence store and reviewed business selection operated through AI approvals.** Automated discovery, relationship intelligence, outreach,
 publication and outcome measurement remain unfinished. Enabling this foundation
 does not start a background worker.
 
@@ -208,3 +208,66 @@ Run `npm run test:radar-store` for governed service fixtures. The normal
 concurrent replay, stale/foreign references, lifecycle gates and forced audit
 failure rollback. Both business presets use these same services. These tests do
 not certify the unfinished daily Radar UI, discovery or outreach journey.
+
+## Choose business opportunities with reviewed estimates
+
+After saving an opportunity and reviewing its sources, ask the admin AI to prepare
+an assessment with `preview_radar_assessment`. Supply the opportunity ID and
+current revision, a stable operation ID, an expiry within 30 days, a topic key,
+effort from 1–5, time-to-value, one next action and up to three alternatives.
+Classify the subject explicitly as ordinary business, public affairs or unknown.
+AI suggestions cannot approve that classification.
+
+Give each of the seven factors a 0–100 estimate or `null` for unknown, a short
+rationale, low/medium/high confidence and the source-version IDs supporting it.
+The factors are relevance, authority, timeliness, reachability, recognition,
+differentiation and compounding value. They describe your judgment; an 80 is
+neither an 80% chance of success nor verified recognition. A missing estimate
+produces no score. Zero is a known estimate, not a substitute for missing evidence.
+
+For example, a fictional equipment supplier's workshop could receive seven
+operator estimates of 80, medium confidence and citations to its reviewed workshop
+announcement. Its weighted score is 80. Give it effort 2, a one-week time-to-value,
+a topic key such as `equipment-training`, and an action to discuss the workshop
+format. Review the full preview, then use `propose_radar_assessment` with the same
+inputs and digest. Approve the exact judgment packet in **Today**. Nothing is
+saved to the assessment history before that approval.
+
+`get_radar_selection` reads up to 50 recently updated, nonterminal opportunities.
+It returns a business shortlist, a separate unranked review list and explicit
+reasons for deferring items. A truncation flag means this is a bounded candidate
+window, not a claim to have compared every historical opportunity. The profile's
+**Daily shortlist limit** controls the result count. The request can also set
+`maxTotalEffort` from 1–50 (default 10) and seven weights totaling 100. Defaults are
+20/15/15/15/15/10/10 in the factor order above; the response repeats the weights.
+These request overrides are not saved profile settings.
+
+Selection priority applies a time-to-value multiplier, a seven-day half-life and
+an effort adjustment to the weighted score. The response exposes the formula,
+contributions and decay. It selects at most one item per topic key and stays
+inside the effort allowance. Effort units are an operator scale, not minutes.
+The algorithm makes no model or provider calls.
+
+Public-affairs and unknown subjects remain unranked. A conservative text check
+also refuses recognizable public-affairs signals in a proposed business
+assessment; it is not a comprehensive language classifier or permission to skip
+human review. Business classification requires verified source versions. An
+opportunity edit, changed source review, missing citation or expired assessment
+requires reassessment before ranked selection. A newer approved assessment
+supersedes the current judgment while preserving every previous assessment.
+Concurrent or stale proposals cannot silently overwrite the latest judgment.
+
+Disable the plugin to stop new assessments and selection; retained operation
+replay can still return the original receipt without another write. Apply the
+normal migration catalog to add assessment storage and tenant-filtered current
+views. No migration runs from a tool or request.
+
+Developers can extend the pure selection contract in
+[`radar-ranking-contract.ts`](../../src/lib/revenue-os/radar-ranking-contract.ts)
+and the shared approval/read service in
+[`radar-ranking.ts`](../../src/lib/revenue-os/radar-ranking.ts). Keep estimates
+separate from claims, retain source/configuration freshness and prove new
+selection rules in `npm run test:radar-ranking`. The native PostgreSQL proof is
+part of the existing migration suite. The dedicated Radar dashboard, discovery,
+relationship intelligence and execution journeys are still separate unfinished
+work; this selection tool does not send outreach or publish content.

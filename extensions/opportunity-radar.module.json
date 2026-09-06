@@ -13,7 +13,10 @@
     "reconcile_radar_model_call",
     "get_radar_store",
     "preview_radar_store_change",
-    "propose_radar_store_change"
+    "propose_radar_store_change",
+    "get_radar_selection",
+    "preview_radar_assessment",
+    "propose_radar_assessment"
   ],
   "setupChecks": [],
   "settingsContract": "opportunity-radar-profile-v1",
@@ -91,7 +94,7 @@
     {
       "key": "dailyShortlist",
       "label": "Daily shortlist limit",
-      "description": "Maximum recommendations for future daily selection.",
+      "description": "Maximum reviewed business recommendations returned by daily selection.",
       "type": "number",
       "min": 1,
       "max": 10,

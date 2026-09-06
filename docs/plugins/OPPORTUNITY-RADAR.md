@@ -14,8 +14,10 @@ the existing governed AI configuration flow. Bounded source briefing uses shared
 model reservations, charge receipts and provider-usage reconciliation. The evidence
 store adds versioned supplied sources, discoveries, growth opportunities, canonical
 evidence/CRM references, draft assets and reported outcomes through approved AI
-commands. There is no daily Radar feed, source worker, ranking engine, sender,
-publisher, graph collector or measurement service yet. Enabling this foundation does not start any of those activities.
+commands. Reviewed business assessments and bounded selection now use the same
+AI proposal and Today approval path. There is no dedicated daily Radar feed,
+source worker, sender, publisher, graph collector or measurement service yet.
+Enabling this foundation does not start any of those activities.
 
 The complete program is on the live Feature Board under
 `opportunity-radar-program` (`ec0f7890-1b26-4fce-bd99-0c7772e9a728`). The board owns
@@ -309,3 +311,14 @@ Live implementation cards, recorded 2026-09-06:
 | `radar-content-distribution`      | Evidence-based assets and reviewed destinations                          |
 | `radar-recognition-outcomes`      | Verified recognition, methodology and reviewed learning                  |
 | `radar-release-conformance`       | Repeatable fork/install and two-business end-to-end acceptance           |
+
+## Reviewed selection implementation
+
+The [operator guide](../../plugins/opportunity-radar/README.md#choose-business-opportunities-with-reviewed-estimates)
+documents the implemented assessment and shortlist tools, a worked workshop
+example, configurable request weights, profile result limit, effort budget,
+source freshness and recovery. Estimates are reviewed judgments rather than
+probabilities or verified facts. The tool scans a bounded candidate window;
+public-affairs and unknown subjects remain unranked. The dedicated Radar Today
+workspace and the remaining discovery/execution pipeline are not implemented by
+this service.
