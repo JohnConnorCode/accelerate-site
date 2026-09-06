@@ -197,8 +197,7 @@ export const RADAR_PROFILE_FIELDS: ModuleSettingField[] = [
     min: 0,
     max: 1,
     default: 0,
-    description:
-      "Model jobs reserve worst-case cost before requests; zero allows no paid request.",
+    description: "Model jobs reserve worst-case cost before requests; zero allows no paid request.",
   },
   {
     key: "sourceMode",

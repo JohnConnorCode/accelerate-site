@@ -161,18 +161,18 @@ async function main() {
       const f = fixture();
       const result = await prepareRadarBrief(f.db, f.input);
       assert.equal(result.status, "completed");
-      assert.deepEqual(result.result?.observations[0].sourceIds, ["source-1"]);
+      assert.deepEqual(result.result?.observations[0]?.sourceIds, ["source-1"]);
       assert.equal(result.publication, false);
       assert.equal(network.length, 2);
-      assert.equal(network[1].body?.model, f.model);
-      assert.equal(network[1].body?.models, undefined);
-      assert.deepEqual((network[1].body?.provider as { max_price: unknown }).max_price, {
+      assert.equal(network[1]!.body?.model, f.model);
+      assert.equal(network[1]!.body?.models, undefined);
+      assert.deepEqual((network[1]!.body?.provider as { max_price: unknown }).max_price, {
         prompt: 0,
         completion: 0,
         request: 0,
       });
-      assert.equal(f.mem.rpcCalls[0].args.p_reserved_usd, 0);
-      assert.ok(Number(f.mem.rpcCalls[0].args.p_input_tokens) > 1024);
+      assert.equal(f.mem.rpcCalls[0]!.args.p_reserved_usd, 0);
+      assert.ok(Number(f.mem.rpcCalls[0]!.args.p_input_tokens) > 1024);
     },
   );
   await check("low-cost mode reserves the full bounded token cost before inference", async () => {
@@ -183,14 +183,14 @@ async function main() {
     });
     fee = "0.000001";
     assert.equal((await prepareRadarBrief(f.db, f.input)).status, "completed");
-    const args = f.mem.rpcCalls[0].args;
+    const args = f.mem.rpcCalls[0]!.args;
     const expected =
       Math.ceil((Number(args.p_input_tokens) + Number(args.p_output_tokens)) * 0.000001 * 1e9) /
       1e9;
     assert.equal(args.p_reserved_usd, expected);
     assert.ok(Number(args.p_reserved_usd) > 0);
     assert.equal(
-      (network[1].body?.provider as { max_price: { prompt: number } }).max_price.prompt,
+      (network[1]!.body?.provider as { max_price: { prompt: number } }).max_price.prompt,
       1,
     );
   });
@@ -230,7 +230,7 @@ async function main() {
     async () => {
       const f = fixture();
       await prepareRadarBrief(f.db, f.input);
-      const first = f.mem.rpcCalls[0].args.p_cache_key;
+      const first = f.mem.rpcCalls[0]!.args.p_cache_key;
       f.mem.rpc("reserve_model_call", () => ({
         status: "cached",
         receipt: {
@@ -245,7 +245,7 @@ async function main() {
       assert.equal(network.length, 0);
       await prepareRadarBrief(f.db, {
         ...f.input,
-        sources: [{ ...f.input.sources[0], text: "Different evidence" }],
+        sources: [{ ...f.input.sources[0]!, text: "Different evidence" }],
       });
       assert.notEqual(f.mem.rpcCalls.at(-1)?.args.p_cache_key, first);
     },
@@ -285,7 +285,7 @@ async function main() {
   await check("disable during inference discards output but records known usage", async () => {
     const f = fixture();
     onInference = () => {
-      f.mem.tables.tenants[0].config = { modules: {} };
+      f.mem.tables.tenants![0]!.config = { modules: {} };
     };
     assert.equal((await prepareRadarBrief(f.db, f.input)).status, "failed");
     assert.equal(f.mem.rpcCalls.at(-1)?.args.p_result, null);
@@ -331,7 +331,7 @@ async function main() {
       assert.equal(status.localAdapterAvailable, false);
       assert.equal(status.models.find((model) => model.id === f.model)?.availableForRadar, true);
       assert.equal(network.length, 0);
-      f.mem.tables.model_call_receipts.push({
+      f.mem.tables.model_call_receipts!.push({
         id: f.receiptId,
         tenant_id: tenant,
         module_key: "opportunity-radar",
@@ -345,12 +345,12 @@ async function main() {
         "failed",
       );
       assert.equal(network.length, 1);
-      assert.match(network[0].url, /generation\?id=gen-fixture/);
+      assert.match(network[0]!.url, /generation\?id=gen-fixture/);
       await assert.rejects(
         () => reconcileRadarModelCall(f.db, { receiptId: randomUUID() }),
         /unavailable/,
       );
-      f.mem.tables.model_call_receipts[0].provider_request_id = null;
+      f.mem.tables.model_call_receipts![0]!.provider_request_id = null;
       network = [];
       assert.equal(
         (await reconcileRadarModelCall(f.db, { receiptId: f.receiptId })).status,

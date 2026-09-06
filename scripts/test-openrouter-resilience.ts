@@ -209,10 +209,10 @@ async function main() {
       stubFetch([{ status: 429 }, { status: 200, body: okBody }]);
       await assert.rejects(() => openRouterChat({ ...ask, model: "fixture/free", strictPricing }));
       assert.equal(calls.length, 1);
-      assert.equal(calls[0].body.models, undefined);
-      assert.equal(calls[0].body.route, undefined);
-      assert.equal(calls[0].body.model, "fixture/free");
-      assert.deepEqual(calls[0].body.provider, {
+      assert.equal(calls[0]!.body.models, undefined);
+      assert.equal(calls[0]!.body.route, undefined);
+      assert.equal(calls[0]!.body.model, "fixture/free");
+      assert.deepEqual(calls[0]!.body.provider, {
         require_parameters: true,
         allow_fallbacks: false,
         data_collection: "deny",
