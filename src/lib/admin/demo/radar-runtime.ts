@@ -533,7 +533,6 @@ function applyStore(
       opportunityId: o.id,
       kind: c.kind,
       title: c.title,
-      author: c.author,
       body_text: c.bodyText,
       state: "draft",
       sourceVersionIds: c.sourceVersionIds,

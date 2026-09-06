@@ -189,7 +189,7 @@
     "src/components/admin/RadarOpportunityDetail.tsx": "faae2cb124411d1eb1bb1702ba43c042fcf575350862eac5615e99523bb04d20",
     "src/components/admin/RadarOverview.tsx": "c013654b75a5dd6d14b853c4a134f7c752fe84adc82d0bf504e613ffb6c54ad3",
     "src/components/admin/RadarReviewDialog.tsx": "2582c441be214b28baf9198e5c9efbc060dd2de13e38fc23662ad6d8abf6de90",
-    "src/components/admin/RadarUI.tsx": "29b179e97aff296aefee83fdca522ae9989977d19a9c26ba3a85ac57f918d237",
+    "src/components/admin/RadarUI.tsx": "38aa210b2d5058dd5d4e34a2399747a88464b6c2146da42622921fa8c81082c4",
     "src/components/admin/RadarWorkspace.tsx": "d975797e0f2e858ce14945d3b5edf99fbec27f3c2eb6e1da88f9e9e249b53fc8",
     "src/components/admin/RevenueAICommand.tsx": "c2c7399460b097bc9db2705196a1f1854a89a6217bf6cf91e7c75ef4c3c16762",
     "src/components/admin/RevenueSetupGate.tsx": "f237886bcf66240eb49385896fb78437cdfa6cab80ae841e2b7258ea15583e93",

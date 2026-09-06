@@ -5,6 +5,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   realpathSync,
   rmSync,
   symlinkSync,
@@ -150,6 +151,7 @@ try {
     "scripts/build-extension-modules.mjs",
     "scripts/lib/bounded-workflow-schema.mjs",
     "scripts/lib/plugin-documentation.mjs",
+    "scripts/lib/plugin-history.mjs",
     "src/lib/revenue-os/modules.ts",
     "src/lib/revenue-os/module-settings-policy.ts",
     "src/lib/revenue-os/plugin-settings-contract.ts",
@@ -163,6 +165,16 @@ try {
     "src/lib/revenue-os/stripe-contract.ts",
   ])
     cpSync(join(root, path), join(fixture, path));
+  for (const file of readdirSync(join(root, "extensions")).filter((file) =>
+    file.endsWith(".module.json"),
+  )) {
+    const manifest = JSON.parse(readFileSync(join(root, "extensions", file), "utf8"));
+    if (manifest.historyRoute) {
+      const page = join("src/app", manifest.historyRoute, "page.tsx");
+      mkdirSync(dirname(join(fixture, page)), { recursive: true });
+      cpSync(join(root, page), join(fixture, page));
+    }
+  }
   symlinkSync(realpathSync(join(root, "node_modules")), join(fixture, "node_modules"));
   const build = () =>
     execFileSync(process.execPath, ["scripts/build-extension-modules.mjs"], {

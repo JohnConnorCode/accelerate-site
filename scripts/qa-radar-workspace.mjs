@@ -85,6 +85,16 @@ try {
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
         true,
       );
+      if (width === 390) await page.getByRole("button", { name: "Open More", exact: true }).click();
+      await page.getByRole("button", { name: "Open demo controls", exact: true }).click();
+      await page.getByRole("button", { name: "Reset this demo", exact: true }).click();
+      await page.goto(root + "/radar/today");
+      await page.getByRole("heading", { name: "Worth reviewing today", exact: true }).waitFor();
+      assert.equal(
+        await page.getByText("Workshop scope reviewed in demo", { exact: true }).count(),
+        0,
+      );
+      assert.equal(await page.getByText("Estimate", { exact: true }).count(), 5);
       results.push({
         scenario,
         width,
@@ -95,6 +105,7 @@ try {
           "keyboard approval",
           "draft creation",
           "reload persistence",
+          "session reset and scenario isolation",
           "dialog escape/focus",
           "retained history",
           "no overflow",

@@ -18,6 +18,7 @@ import { fileURLToPath } from "node:url";
 import prettier from "prettier";
 import { createHash } from "node:crypto";
 import Ajv from "ajv";
+import { pluginHistoryFailures } from "./lib/plugin-history.mjs";
 import { require as requireTypeScript } from "tsx/cjs/api";
 const { pluginWorkflowDeclaration } = requireTypeScript(
   "../src/lib/revenue-os/plugin-workflow-contract.ts",
@@ -124,24 +125,7 @@ function fail(file, message) {
 }
 
 function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
-  if (manifest.historyRoute !== undefined) {
-    if (
-      typeof manifest.historyRoute !== "string" ||
-      !/^\/admin\/[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(manifest.historyRoute)
-    )
-      fail(file, "History route must be an exact static admin path");
-    else if (
-      !Array.isArray(manifest.routes) ||
-      !manifest.routes.some(
-        (route) =>
-          typeof route === "string" &&
-          (manifest.historyRoute === route || manifest.historyRoute.startsWith(`${route}/`)),
-      )
-    )
-      fail(file, "History route must belong to the module declared routes");
-    else if (!existsSync(join(repoRoot, "src/app", manifest.historyRoute, "page.tsx")))
-      fail(file, "History route must have a real shared admin page");
-  }
+  for (const message of pluginHistoryFailures(repoRoot, manifest)) fail(file, message);
   for (const message of pluginDocumentationFailures(repoRoot, manifest)) fail(file, message);
   const req = ["id", "name", "description", "category", "defaultEnabled", "navLinks"];
   for (const key of req) {

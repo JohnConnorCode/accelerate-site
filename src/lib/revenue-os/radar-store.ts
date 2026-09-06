@@ -13,7 +13,6 @@ import {
   radarStorePreviewSchema,
   radarStoreProposalSchema,
   radarStoreReadSchema,
-  type RadarStoreChange,
 } from "./radar-store-contract";
 
 const radarEntityTypes = [

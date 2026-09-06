@@ -15,7 +15,8 @@ model reservations, charge receipts and provider-usage reconciliation. The evide
 store adds versioned supplied sources, discoveries, growth opportunities, canonical
 evidence/CRM references, draft assets and reported outcomes through approved AI
 commands. Reviewed business assessments and bounded selection now use the same
-AI proposal and Today approval path. There is no dedicated daily Radar feed,
+approval executor. The shared admin/demo Radar workspace now presents Today,
+evidence packets, draft editing and retained history. There is no automated
 source worker, sender, publisher, graph collector or measurement service yet.
 Enabling this foundation does not start any of those activities.
 
@@ -322,7 +323,6 @@ probabilities or verified facts. The tool scans a bounded candidate window;
 public-affairs and unknown subjects remain unranked. The dedicated Radar Today
 workspace and the remaining discovery/execution pipeline are not implemented by
 this service.
-
 
 ## Operator workspace and demo
 
