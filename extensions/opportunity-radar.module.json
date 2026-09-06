@@ -109,6 +109,57 @@
       "default": 0
     },
     {
+      "key": "modelMode",
+      "label": "Model spending mode",
+      "type": "enum",
+      "options": ["off", "free-only", "budgeted-low-cost"],
+      "default": "off",
+      "description": "Preference for future workers. Off makes no model calls; free-only must never fall back to paid models."
+    },
+    {
+      "key": "preferredModel",
+      "label": "Preferred registered model",
+      "type": "string",
+      "default": "",
+      "description": "Optional model ID from the shared evaluated model registry. OpenRouter is the current transport; no premium default or invented model IDs."
+    },
+    {
+      "key": "maxModelCallsPerDay",
+      "label": "Daily model call limit",
+      "type": "number",
+      "min": 0,
+      "max": 20,
+      "default": 0,
+      "description": "Independent call cap, including free models and retries. Zero disables automatic model calls."
+    },
+    {
+      "key": "maxInputTokensPerCall",
+      "label": "Input token limit per call",
+      "type": "number",
+      "min": 1024,
+      "max": 16000,
+      "default": 8000,
+      "description": "Bound retrieved evidence before a future model request."
+    },
+    {
+      "key": "maxOutputTokensPerCall",
+      "label": "Output token limit per call",
+      "type": "number",
+      "min": 256,
+      "max": 4000,
+      "default": 1000,
+      "description": "Short structured results; no unbounded drafting loops."
+    },
+    {
+      "key": "maxCostPerRunUsd",
+      "label": "Maximum cost per run (USD)",
+      "type": "number",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "description": "Future workers reserve worst-case cost before requests; zero allows no paid request."
+    },
+    {
       "key": "sourceMode",
       "label": "Source mode",
       "type": "enum",

@@ -12,7 +12,7 @@
 import { REVENUE_OS_MODULES } from "../src/lib/revenue-os/modules";
 
 const SETTING_TYPES = ["string", "number", "boolean", "enum", "url"];
-const SECRET_LOOKING = /secret|token|password|api[_-]?key|credential/i;
+import { isCredentialSetting } from "../src/lib/revenue-os/module-settings-policy";
 
 const failures = [];
 let checkedFields = 0;
@@ -28,7 +28,7 @@ for (const mod of REVENUE_OS_MODULES) {
     }
     if (seen.has(field.key)) failures.push(`${mod.id}: settings key "${field.key}" is duplicated`);
     seen.add(field.key);
-    if (SECRET_LOOKING.test(field.key) || SECRET_LOOKING.test(field.label ?? ""))
+    if (isCredentialSetting(field))
       failures.push(
         `${mod.id}: settings key "${field.key}" looks like a secret. Credentials go through integration-adapters.ts, never tenants.config.`,
       );

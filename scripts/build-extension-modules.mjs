@@ -103,7 +103,10 @@ const SETTING_TYPES = ["string", "number", "boolean", "enum", "url"];
  * tenants.config, where every setting value is stored, reaches client
  * components, so this check exists specifically to catch that.
  */
-const SECRET_LOOKING = /secret|token|password|api[_-]?key|credential/i;
+const { isCredentialSetting } = requireTypeScript(
+  "../src/lib/revenue-os/module-settings-policy.ts",
+  import.meta.url,
+);
 
 /** Core module ids, read from the source of truth so this cannot drift. */
 function coreModuleIds() {
@@ -172,7 +175,7 @@ function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
     }
     if (seenSettingKeys.has(key)) fail(file, `settings key "${key}" is declared twice`);
     seenSettingKeys.add(key);
-    if (SECRET_LOOKING.test(key) || SECRET_LOOKING.test(setting.label ?? ""))
+    if (isCredentialSetting(setting))
       fail(
         file,
         `settings key "${key}" looks like a secret. Credentials go through integration-adapters.ts, never tenants.config.`,

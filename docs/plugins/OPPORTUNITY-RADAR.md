@@ -88,6 +88,38 @@ fractional item limits, excessive limits and unsupported sending/source modes fa
 A website setting is data, not permission to fetch a URL; fetch safety belongs to
 the future ingestion adapter.
 
+## Cost and model options
+
+The verified transport currently uses OpenRouter through the shared gateway and
+operator model registry. Radar must not hardcode a premium model or create a
+second provider client. The profile offers **off**, **free-only** and
+**budgeted-low-cost** preferences, an optional registered model ID, independent
+call/token caps and per-run/daily USD limits. Defaults are off, zero calls and
+zero permitted model spending. These are configuration preferences for future
+workers, not a claim that model execution exists in this foundation.
+
+Free-only permits only a currently verified zero-cost compatible model. A model
+ID suffix alone is not pricing evidence. No available free model means defer,
+not fallback to a paid model. Budgeted mode permits evaluated free/low-cost models
+only after explicit model/budget selection. Reserve worst-case cost before each
+call, account for retries, reconcile actual usage and pause if price/usage is
+unknown. Never silently use the gateway's default or upgrade to a premium model.
+Keep the maximum configured run cost within the daily budget.
+
+Use deterministic filtering/deduplication/caching first and model calls only for
+a small worthwhile shortlist. Avoid paid news/search/PR databases. Public feeds
+and manual imports remain useful with model mode off. Explain source/model usage
+and defer reason in each receipt. Local open-weight inference is a planned
+**shared provider adapter**, not currently supported by this plugin; its token,
+latency and resource limits still matter even without a per-token bill.
+
+OpenRouter documents free variants and a free router, but availability and rate
+limits vary; do not promise unrestricted production capacity. Refer to its
+[free-model documentation](https://openrouter.ai/docs/guides/routing/model-variants/free)
+and [free-router documentation](https://openrouter.ai/docs/guides/routing/routers/free-router)
+when validating a model. A random free router is not a replacement for this
+platform's capability/evaluation checks or resolved-model receipts.
+
 ## General-purpose product and optional domain extensions
 
 Core opportunity types are media contribution, appearance, participant/expert,
@@ -261,15 +293,16 @@ separate evidence/authorization; fixtures are not live provider proof.
 
 Live implementation cards, recorded 2026-09-06:
 
-| Key                               | Deliverable                                                         |
-| --------------------------------- | ------------------------------------------------------------------- |
-| `radar-profile-foundation`        | Public profile, presets, generated validation and governed AI setup |
-| `radar-evidence-store`            | Durable discoveries, provenance, opportunities and outcomes         |
-| `radar-discovery-workers`         | Bounded source adapters, WorkItems and source health                |
-| `radar-opportunity-ranking`       | Explained business selection and unranked public-affairs review     |
-| `radar-relationship-intelligence` | Canonical identities, history and verified introduction paths       |
-| `radar-today-workspace`           | Daily actions, intelligence packets and shared admin/demo UI        |
-| `radar-reviewed-outreach`         | Useful drafts, approval, current relationship checks and receipts   |
-| `radar-content-distribution`      | Evidence-based assets and reviewed destinations                     |
-| `radar-recognition-outcomes`      | Verified recognition, methodology and reviewed learning             |
-| `radar-release-conformance`       | Repeatable fork/install and two-business end-to-end acceptance      |
+| Key                               | Deliverable                                                              |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| `radar-profile-foundation`        | Public profile, presets, generated validation and governed AI setup      |
+| `radar-model-cost-controls`       | Enforced zero/free/low-cost routing, budgets and shared provider options |
+| `radar-evidence-store`            | Durable discoveries, provenance, opportunities and outcomes              |
+| `radar-discovery-workers`         | Bounded source adapters, WorkItems and source health                     |
+| `radar-opportunity-ranking`       | Explained business selection and unranked public-affairs review          |
+| `radar-relationship-intelligence` | Canonical identities, history and verified introduction paths            |
+| `radar-today-workspace`           | Daily actions, intelligence packets and shared admin/demo UI             |
+| `radar-reviewed-outreach`         | Useful drafts, approval, current relationship checks and receipts        |
+| `radar-content-distribution`      | Evidence-based assets and reviewed destinations                          |
+| `radar-recognition-outcomes`      | Verified recognition, methodology and reviewed learning                  |
+| `radar-release-conformance`       | Repeatable fork/install and two-business end-to-end acceptance           |

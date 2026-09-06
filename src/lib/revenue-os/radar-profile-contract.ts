@@ -27,17 +27,19 @@ export const radarProfileSchema = z
     timeZone: z
       .string()
       .max(100)
-      .refine((value) => {
-        try {
-          new Intl.DateTimeFormat("en", { timeZone: value });
-          return true;
-        } catch {
-          return false;
-        }
-      }, "Use an IANA time zone"),
+      .refine(
+        (value) => value === "UTC" || Intl.supportedValuesOf("timeZone").includes(value),
+        "Use a supported IANA time zone",
+      ),
     dailyShortlist: z.number().int().min(1).max(10),
     maxDiscoveries: z.number().int().min(1).max(500),
     dailyModelBudgetUsd: z.number().min(0).max(100),
+    modelMode: z.enum(["off", "free-only", "budgeted-low-cost"]),
+    preferredModel: text,
+    maxModelCallsPerDay: z.number().int().min(0).max(20),
+    maxInputTokensPerCall: z.number().int().min(1024).max(16000),
+    maxOutputTokensPerCall: z.number().int().min(256).max(4000),
+    maxCostPerRunUsd: z.number().min(0).max(1),
     sourceMode: z.literal("free-first"),
     outreachMode: z.literal("draft-only"),
   })
@@ -57,6 +59,12 @@ export const RADAR_PROFILE_DEFAULTS: RadarProfile = {
   dailyShortlist: 5,
   maxDiscoveries: 50,
   dailyModelBudgetUsd: 0,
+  modelMode: "off",
+  preferredModel: "",
+  maxModelCallsPerDay: 0,
+  maxInputTokensPerCall: 8000,
+  maxOutputTokensPerCall: 1000,
+  maxCostPerRunUsd: 0,
   sourceMode: "free-first",
   outreachMode: "draft-only",
 };
@@ -136,6 +144,61 @@ export const RADAR_PROFILE_FIELDS: ModuleSettingField[] = [
     min: 0,
     max: 100,
     default: 0,
+  },
+  {
+    key: "modelMode",
+    label: "Model spending mode",
+    type: "enum",
+    options: ["off", "free-only", "budgeted-low-cost"],
+    default: "off",
+    description:
+      "Preference for future workers. Off makes no model calls; free-only must never fall back to paid models.",
+  },
+  {
+    key: "preferredModel",
+    label: "Preferred registered model",
+    type: "string",
+    default: "",
+    description:
+      "Optional model ID from the shared evaluated model registry. OpenRouter is the current transport; no premium default or invented model IDs.",
+  },
+  {
+    key: "maxModelCallsPerDay",
+    label: "Daily model call limit",
+    type: "number",
+    min: 0,
+    max: 20,
+    default: 0,
+    description:
+      "Independent call cap, including free models and retries. Zero disables automatic model calls.",
+  },
+  {
+    key: "maxInputTokensPerCall",
+    label: "Input token limit per call",
+    type: "number",
+    min: 1024,
+    max: 16000,
+    default: 8000,
+    description: "Bound retrieved evidence before a future model request.",
+  },
+  {
+    key: "maxOutputTokensPerCall",
+    label: "Output token limit per call",
+    type: "number",
+    min: 256,
+    max: 4000,
+    default: 1000,
+    description: "Short structured results; no unbounded drafting loops.",
+  },
+  {
+    key: "maxCostPerRunUsd",
+    label: "Maximum cost per run (USD)",
+    type: "number",
+    min: 0,
+    max: 1,
+    default: 0,
+    description:
+      "Future workers reserve worst-case cost before requests; zero allows no paid request.",
   },
   {
     key: "sourceMode",
