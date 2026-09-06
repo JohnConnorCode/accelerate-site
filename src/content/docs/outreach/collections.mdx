@@ -1,0 +1,39 @@
+---
+title: "Review collection reminders"
+description: "Track verified invoice balances, payment promises, and disputes before approving a reminder."
+updated: "2026-09-06"
+---
+
+Collections keeps overdue invoices, payment promises, disputes, and reminder receipts together. It uses verified invoice balances rather than opportunity estimates. Each send requires human approval.
+
+## Open Collections
+
+Enable **Collections** and Stripe invoicing in **Plugins**, then open **Collections** in the Command Center. Live invoice refreshes need a configured Stripe connection; sending also needs the workspace email connection. Self-hosted installations must apply the [required migrations](/docs/self-hosting/installation).
+
+Try the [fictional SuperDebate workspace](/demo/command-center/superdebate/collections) first. Demo actions stay in the current session, and reset restores the original cases.
+
+## Review an overdue account
+
+1. Enter an invoice and choose **Refresh and track invoice**. The workspace records verified invoice facts and groups the case by account and currency.
+2. Open the case. Check the remaining balance, observation time, and invoice provenance. Choose **Refresh invoice facts** when you need current information; opening the page does not refresh the provider automatically.
+3. Record ownership, a payment promise, dispute, or pause as appropriate, then choose **Save case policy**. Review the resulting case before preparing a reminder.
+4. Choose **Preview reminder**. Read the recipient, subject, exact message, balance, and payment links. A preview does not send email.
+5. Choose **Queue reviewed reminder** to submit it to the approval queue. Choose **Approve and send** only after checking the proposed message. The executor checks the current invoice and case again before dispatch.
+
+A changed balance, recipient, dispute, pause, contact restriction, or disabled plugin can prevent the queued reminder from sending. Refresh the case and prepare a new preview when the facts change.
+
+## Read the receipt before retrying
+
+A confirmed send records a receipt and starts the reminder cooldown. The default cooldown is 72 hours; an operator can configure it from 1 to 720 hours. An uncertain provider response holds further reminders for that case. Choose **Reconcile receipt** on the existing failed action before attempting another reminder; uncertainty is not a confirmed non-send.
+
+A payment that occurs after the final provider read can still cross with an email already accepted for delivery. Verified paid invoices show settlement, but do not establish that a reminder caused the payment.
+
+## Costs and disabling
+
+Collections uses deterministic reminder decisions and does not require a separate model call. Live invoice refreshes and approved sends use the existing Stripe and email connections, whose usage may incur charges. AI chat around the workflow uses the workspace model configuration.
+
+Disable Collections in **Plugins** to stop new plugin operations. Cases, invoices, sent reminders, and receipts remain. Disabling does not reverse a payment or email already accepted by a provider.
+
+## If the workflow is unavailable
+
+Check plugin activation, invoicing and email connections, workspace access, and installation migrations. If a case is held or a reminder is skipped, read its reason and refresh the relevant invoice or case policy before preparing another approval. Controlled demos and database tests do not establish that your live provider connections are configured correctly.

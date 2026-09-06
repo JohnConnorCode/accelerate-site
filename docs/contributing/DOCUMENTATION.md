@@ -46,3 +46,32 @@ check is `qa:docs`, against `DOCS_QA_URL`; it covers desktop/mobile rendering,
 search, empty and failure states, retry, navigation, and tool schemas. Inspect its
 screenshots as well as its assertions. Run heavy checks through the resource gate
 or in CI. Do not launch overlapping local servers or builds.
+
+## Keep release information synchronized
+
+Every feature or capability change includes a review of these public surfaces in
+its implementation PR. Update each affected surface before calling the change
+complete:
+
+- **Organized platform docs:** task guides in `src/content/docs/`, with matching
+  titles and descriptions in `manifest.ts`. Explain the current controls,
+  prerequisites, saved result, costs, permissions, recovery, and limitations.
+  Include the relevant section overview so readers can find the guide.
+- **Product changelog:** a dated, concise entry in `src/content/changelog.ts`.
+  This feeds the public changelog, RSS and site search. `CHANGELOG.md` is the
+  separate repository/tooling record and cannot substitute for that entry.
+- **Command Center feature descriptions:** current surfaces and searchable
+  capabilities in `src/content/command-center.ts`, plus relevant answers in
+  `src/content/command-center-faq.ts`. Keep shipped behavior distinct from planned
+  work and avoid promises that the implementation cannot fulfill.
+- **Plugin references:** update the plugin README and its public guide link when
+  its workflow changes; remove earlier status statements that contradict the
+  completed implementation.
+
+Regenerate `public/docs-llms.txt` with `npm run docs:llms`. Verify source coverage,
+search, links and built pages, then inspect the changed public pages on desktop
+and mobile. Record the reviewed paths and proof in the PR. For a surface whose
+user-visible behavior did not change, record that review and a specific reason
+why its existing text remains accurate; an unchecked box or a generic "docs not
+needed" is not a completed review. Never claim a source merge is a production
+deployment or describe an unaccepted feature as available.

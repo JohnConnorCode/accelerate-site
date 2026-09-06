@@ -47,7 +47,8 @@ Identity resolution, intake, and reviewed list imports.
 ## Outreach
 Campaigns, email templates, and reactivation of past demand.
 
-- [Outreach](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-09-04): Controlled outbound that stops on reply and refuses contacts who asked to be left alone.
+- [Outreach](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-09-06): Controlled outbound that stops on reply and refuses contacts who asked to be left alone.
+- [Review collection reminders](https://www.acceleratewith.us/docs/outreach/collections) (updated 2026-09-06): Track verified invoice balances, payment promises, and disputes before approving a reminder.
 - [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-09-04): Approve a version once, then automation runs inside sender, audience, cadence, limit, and stop rules.
 - [Email Studio](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-09-04): Edit live copy, inspect what was sent, and compose a direct follow-up.
 - [Review recovery outreach](https://www.acceleratewith.us/docs/outreach/recovery) (updated 2026-09-05): Check eligibility and the proposed playbook before contacting a past lead.
@@ -70,7 +71,8 @@ Clients, bookings, content, and resources after the sale.
 ## Intelligence
 The assistant, run traces, knowledge, and source-to-revenue analytics.
 
-- [Intelligence](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-04): Ask with bounded context, inspect what ran, and read funnel numbers from the same records.
+- [Intelligence](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-06): Ask with bounded context, inspect what ran, and read funnel numbers from the same records.
+- [Review opportunities with Radar](https://www.acceleratewith.us/docs/intelligence/opportunity-radar) (updated 2026-09-06): Review sources, relationship context, estimates, and drafts with explicit approvals and model budgets.
 - [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-05): Registered tools, connection requirements, and input schemas.
 - [Use the AI Workspace](https://www.acceleratewith.us/docs/intelligence/workspace) (updated 2026-09-05): Ask a specific question, check its sources and inspect the result of an action.
 
@@ -95,7 +97,7 @@ For coding agents and humans: add a module, an integration adapter, a plugin, or
 - [Your first developer change](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-09-05): Run the demo, find the important files, and make a small extension change.
 - [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-09-04): Register a JSON manifest and pages. Nothing in extensions/ is executed.
 - [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-04): Verify credentials, encrypt them, and turn inbound events into canonical records.
-- [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-04): Register a plugin manifest with tools and triggers that still go through governance.
+- [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-06): Register a plugin manifest with tools and triggers that still go through governance.
 - [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-04): Register a schema, an impact tier, and a service boundary. Mutating tools propose.
 - [MCP concepts](https://www.acceleratewith.us/docs/extend/mcp) (updated 2026-09-04): Bounded reads, staged writes, tenant isolation. The same registry the UI uses.
 - [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-05): Connect an external assistant to the intended workspace and verify a read first.

@@ -2,6 +2,42 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "radar-reviewed-workspace",
+    slug: "radar-reviewed-workspace",
+    title: "Opportunity Radar brings sources, reviewed opportunities, and drafts together",
+    description:
+      "Review supplied sources, compare business opportunities using human-reviewed estimates, and save drafts through exact approval previews. Today, opportunity details, and retained history share the same admin pages across live workspaces and fictional demos. Model spending starts off; optional source briefing uses explicit model settings, call limits, cost reservations, and charge receipts. Automated discovery, outreach sending, publication, and independently verified outcome measurement remain unfinished.",
+    category: "feature",
+    publishedAt: "2026-09-06",
+  },
+  {
+    id: "radar-source-backed-relationships",
+    slug: "radar-source-backed-relationships",
+    title: "Relationship reviews retain the evidence behind a contact path",
+    description:
+      "Radar can read canonical CRM relationships and conversation history, then propose a cited relationship assertion or revocation for human review. Current introduction offers, existing conversations, and reviewed public business contact pages remain distinct. Expired evidence, ambiguous identities, and suppressed contacts cannot produce an eligible path. A contact path never grants permission to send a message.",
+    category: "feature",
+    publishedAt: "2026-09-06",
+  },
+  {
+    id: "collections-reviewed-reminders",
+    slug: "collections-reviewed-reminders",
+    title: "Collections connects verified balances to reviewed reminders and receipts",
+    description:
+      "Work from verified invoice facts, group receivables by account and currency, and record payment promises or disputes. Configured reminder sends require an exact approval and fresh checks for payment, suppression, holds, and recipient changes. Durable dispatch receipts prevent duplicate sends and keep uncertain provider results on hold until reconciliation. The shared workspace also supports fictional business demos without sending email.",
+    category: "feature",
+    publishedAt: "2026-09-06",
+  },
+  {
+    id: "public-platform-docs-coverage",
+    slug: "public-platform-docs-coverage",
+    title: "Platform guides are organized, searchable, and checked against the build",
+    description:
+      "The public documentation library organizes operator tasks and developer references by platform area. Guides participate in navigation, full-text search, and the generated AI-readable index. Release checks now verify that every documented page, internal anchor, and registered tool or capability reference appears in the actual build. The Radar guide walks through a reviewed opportunity and explains setup, model costs, recovery, and the current release limits.",
+    category: "improvement",
+    publishedAt: "2026-09-06",
+  },
+  {
     id: "admin-settings-control-polish",
     slug: "admin-settings-control-polish",
     title: "Settings controls now look and behave like production controls",

@@ -7,6 +7,8 @@ facts, persists cases and schedules WorkItems. The operator workspace and demo
 use the same admin route and components. Generalized SDK installation and
 third-party conformance remain separate backlog work.
 
+For the operator workflow, read the [public Collections guide](https://www.acceleratewith.us/docs/outreach/collections).
+
 ## Business outcome
 
 An operator should recover overdue balances with fewer missed follow-ups and

@@ -590,7 +590,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     id: "opportunity-radar",
     name: "Opportunity Radar",
     description:
-      "Keep versioned sources, reviewed growth opportunities and drafts, with bounded AI source briefing. Automated discovery, outreach and publication are not yet available.",
+      "Review supplied sources, business opportunities, relationship evidence and drafts in a shared workspace, with optional budgeted source briefing. Automated discovery, outreach sending and publication remain unfinished.",
     category: "intelligence",
     isCore: false,
     defaultEnabled: false,
@@ -614,8 +614,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     routes: ["/admin/radar"],
     historyRoute: "/admin/radar/history",
     setupChecks: [],
-    docsUrl:
-      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md",
+    docsUrl: "/docs/intelligence/opportunity-radar",
     settings: [
       {
         key: "organization",
@@ -833,8 +832,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     ],
     routes: ["/admin/collections"],
     setupChecks: [],
-    docsUrl:
-      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/receivables-collections/README.md",
+    docsUrl: "/docs/outreach/collections",
     settings: [
       {
         key: "cooldownHours",

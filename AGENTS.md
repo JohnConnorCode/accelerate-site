@@ -169,6 +169,16 @@ Read [the documentation writing guide](docs/contributing/DOCUMENTATION-STYLE.md)
 before changing product guides. Verify screen names and data-source claims against
 the current code; explain the steps, saved result and recovery in plain language.
 
+### Keep public release information synchronized
+
+For every feature or capability change, review and update the organized public
+platform guides in `src/content/docs/`, the product changelog in
+`src/content/changelog.ts`, and the Command Center descriptions in
+`src/content/command-center.ts` and `src/content/command-center-faq.ts` in the same
+PR. Updating a repository README or an internal design document alone does not
+satisfy the public documentation requirement. Use `docs/contributing/DOCUMENTATION.md`
+for the required release-content review, metadata, generated index and proof.
+
 ## Safe change rules
 
 - Preserve unrelated worktree changes. Inspect `git status --short` before edits.
