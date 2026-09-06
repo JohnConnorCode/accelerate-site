@@ -31,6 +31,10 @@ const { pluginToolDeclarations } = requireTypeScript(
   "../src/lib/revenue-os/plugin-tool-contract.ts",
   import.meta.url,
 );
+const { pluginSettingsContract } = requireTypeScript(
+  "../src/lib/revenue-os/plugin-settings-contract.ts",
+  import.meta.url,
+);
 import { validateBoundedWorkflowSchema } from "./lib/bounded-workflow-schema.mjs";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -353,6 +357,16 @@ if (existsSync(extensionsDir)) {
       fail(name, `is not valid JSON: ${error instanceof Error ? error.message : error}`);
       continue;
     }
+    if (manifest.settingsContract) {
+      try {
+        const { fields } = pluginSettingsContract(manifest.settingsContract);
+        if (checkOnly && JSON.stringify(manifest.settings) !== JSON.stringify(fields))
+          fail(name, "Generated settings declaration drift; run npm run build:extensions");
+        manifest.settings = fields;
+      } catch (error) {
+        fail(name, error.message);
+      }
+    }
     validateManifest(name, manifest, seenIds, seenNavIds, coreIds);
     validateReport(name, manifest);
     validateWorkflow(name, manifest);
@@ -366,7 +380,7 @@ if (failures.length) {
 }
 
 if (!checkOnly) {
-  for (const manifest of manifests.filter((item) => item.workflow)) {
+  for (const manifest of manifests.filter((item) => item.workflow || item.settingsContract)) {
     const path = join(extensionsDir, `${manifest.id}.module.json`);
     writeFileSync(
       path,
@@ -391,6 +405,7 @@ const modules = manifests.map((manifest) => ({
   setupChecks: manifest.setupChecks ?? [],
   ...(manifest.docsUrl ? { docsUrl: manifest.docsUrl } : {}),
   ...(manifest.settings?.length ? { settings: manifest.settings } : {}),
+  ...(manifest.settingsContract ? { settingsContract: manifest.settingsContract } : {}),
   ...(manifest.report ? { report: manifest.report } : {}),
   ...(manifest.workflow ? { workflow: manifest.workflow } : {}),
 }));
