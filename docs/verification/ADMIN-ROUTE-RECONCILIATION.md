@@ -143,7 +143,7 @@ source_id)` as well as counts. Compare every displayed field. Record each field
    retry. Use mocked providers for sends and setup tests. Retain exact commands,
    commit, fixture IDs, expected/actual rows and opened screenshot evidence.
 6. Attach the results to the claimed follow-up card. Production row parity remains
-   a separate acceptance on the parent card. This ticket performed no database
+   a separate acceptance on the parent card. This ticket performed no business-record
    mutation, provider send or runtime parity test.
 
 ## Keep the inventory useful

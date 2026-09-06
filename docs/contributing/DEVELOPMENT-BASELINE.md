@@ -30,6 +30,14 @@ the newest branch: older in-progress implementations and dependency receipts may
 require an earlier base. Run board controls from this control checkout and make
 the code change in the ticket's isolated worktree.
 
+Before assigning unclaimed work, check that its exact base has a passing CI
+receipt and contains the routes and services required by the scope. A resolvable
+commit alone is insufficient. If the base is stale, record the reason on the live
+card and approve a verified replacement before claim. For an active ticket,
+preserve its work, release the claim, record the approved change and reclaim it.
+See the [real route-inventory handoff](../verification/ADMIN-ROUTE-RECONCILIATION.md#base-correction-discovered-during-real-pickup)
+for the failure this procedure caught.
+
 Provide the worker's board URL and individual scoped access, an isolated test
 workspace and a named reviewer before expecting shared pickup. The developer
 checks these with `npm run dev:doctor -- --board`. Keep missing prerequisites on
