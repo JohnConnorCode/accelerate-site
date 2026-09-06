@@ -172,7 +172,7 @@ export async function proposeRadarRelationship(
         ? "Revoke Radar relationship review"
         : "Review sourced Radar relationship",
     description:
-      "Records the exact cited assertion or revocation over canonical CRM links. It does not send outreach or create consent.",
+      "Records the exact cited assertion or revocation over canonical CRM links. Missing core type declarations are installed with ID-only read fields; existing policies are preserved. It does not send outreach or create consent.",
     payload: payloadSchema.strip().parse(preview),
     entityType: "entity_link",
     entityId: input.change.operation === "revoke" ? input.change.relationshipId : undefined,
