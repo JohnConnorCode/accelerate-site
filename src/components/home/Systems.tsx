@@ -88,7 +88,7 @@ export function Systems() {
           ))}
         </ol>
         <p className="engagement-note">
-          Start where you need us. These are ways to work together, not a required package.
+          Choose the support your team needs. We agree the scope together.
         </p>
       </div>
     </section>
