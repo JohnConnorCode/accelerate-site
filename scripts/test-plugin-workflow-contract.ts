@@ -150,6 +150,7 @@ try {
     "scripts/build-extension-modules.mjs",
     "scripts/lib/bounded-workflow-schema.mjs",
     "src/lib/revenue-os/modules.ts",
+    "src/lib/revenue-os/module-settings-policy.ts",
     "src/lib/revenue-os/plugin-settings-contract.ts",
     "src/lib/revenue-os/radar-profile-contract.ts",
     "src/lib/revenue-os/plugin-workflow-contract.ts",

@@ -1,3 +1,4 @@
+import { isCredentialSetting } from "./module-settings-policy";
 import { pluginSettingsContract } from "./plugin-settings-contract";
 import type { PluginToolDeclaration } from "./plugin-tool-contract";
 import type { WorkflowPolicy } from "./plugin-workflow-policy";
@@ -533,6 +534,11 @@ export function validateModuleSettingsInput(
   const value: Record<string, string | number | boolean> = {};
   for (const [key, raw] of Object.entries(input)) {
     const field = byKey.get(key);
+    if (field && isCredentialSetting(field))
+      return {
+        valid: false,
+        error: "Credentials must use the encrypted connection broker, not public module settings.",
+      };
     if (!field) return { valid: false, error: `"${key}" is not a setting ${moduleId} declares.` };
     if (raw === null || raw === undefined) continue;
     if (field.type === "boolean") {

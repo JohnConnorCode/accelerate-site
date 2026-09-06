@@ -1,3 +1,4 @@
+import { isCredentialSetting } from "../src/lib/revenue-os/module-settings-policy";
 import { z } from "zod";
 import { runWithTenantRequestContext } from "../src/lib/tenancy/context";
 import assert from "node:assert/strict";
@@ -22,6 +23,24 @@ import {
 } from "../src/lib/revenue-os/module-actions";
 async function main() {
   const moduleId = "opportunity-radar";
+  assert.equal(
+    isCredentialSetting({
+      key: "maxInputTokensPerCall",
+      label: "Input token limit",
+      type: "number",
+      min: 1,
+      max: 16000,
+    }),
+    false,
+  );
+  for (const field of [
+    { key: "token", type: "number", min: 0, max: 100 },
+    { key: "api_key", type: "string" },
+    { key: "maxInputTokensPerCall", type: "string" },
+    { key: "maxInputTokensPerCall", label: "Secret key", type: "number", min: 1, max: 16000 },
+    { key: "maxInputTokensPerCall", type: "number" },
+  ])
+    assert.equal(isCredentialSetting(field), true);
   assert.equal(MODULE_MAP.get(moduleId)!.defaultEnabled, false);
   assert.deepEqual(MODULE_MAP.get(moduleId)!.settings, RADAR_PROFILE_FIELDS);
   assert.deepEqual(
@@ -44,6 +63,10 @@ async function main() {
     { dailyShortlist: 11 },
     { maxDiscoveries: 0 },
     { dailyModelBudgetUsd: -1 },
+    { modelMode: "premium" },
+    { maxCostPerRunUsd: 5 },
+    { maxModelCallsPerDay: 21 },
+    { maxInputTokensPerCall: 100000 },
     { sourceMode: "paid" },
     { outreachMode: "send" },
     { unknown: "x" },
