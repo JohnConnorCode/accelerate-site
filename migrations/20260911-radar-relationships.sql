@@ -27,7 +27,7 @@ DROP TRIGGER IF EXISTS radar_immutable ON public.radar_relationship_reviews;
 CREATE TRIGGER radar_immutable BEFORE UPDATE OR DELETE ON public.radar_relationship_reviews
  FOR EACH ROW EXECUTE FUNCTION private.radar_immutable();
 CREATE OR REPLACE VIEW public.radar_current_relationships WITH (security_invoker=true) AS
- SELECT DISTINCT ON(tenant_id,link_id) * FROM public.radar_relationship_reviews ORDER BY tenant_id,link_id,revision DESC;
+ SELECT DISTINCT ON(tenant_id,link_id) *, edge_snapshot->>'sourceId' AS source_id, edge_snapshot->>'targetId' AS target_id FROM public.radar_relationship_reviews ORDER BY tenant_id,link_id,revision DESC;
 CREATE OR REPLACE VIEW public.message_evidence_context WITH (security_invoker=true) AS
  SELECT id,tenant_id,conversation_id,direction,sender_email,status,
  left(coalesce(body_text,''),20000) AS body_excerpt,
@@ -64,7 +64,7 @@ BEGIN
  IF cfg IS NULL OR cfg IS DISTINCT FROM p_expected_config OR cfg->'modules'->>'opportunity-radar' IS DISTINCT FROM 'true'
  THEN RAISE EXCEPTION 'Radar configuration changed or disabled'; END IF;
  IF op='revoke' THEN
-  SELECT * INTO latest FROM radar_current_relationships WHERE tenant_id=t AND link_id=(p_change->>'relationshipId')::uuid;
+  SELECT * INTO latest FROM radar_relationship_reviews WHERE tenant_id=t AND link_id=(p_change->>'relationshipId')::uuid ORDER BY revision DESC LIMIT 1;
   IF NOT FOUND OR latest.id IS DISTINCT FROM (p_change->>'expectedReviewId')::uuid OR latest.state='revoked'
   THEN RAISE EXCEPTION 'Relationship review changed or unavailable'; END IF;
   -- Retraction remains possible even if original evidence or canonical links vanished.
@@ -122,7 +122,7 @@ BEGIN
   IF starts IS NULL OR ends IS NULL OR ends<=starts OR ends<=now() OR ends>now()+CASE WHEN r->>'kind'='introduction_offer' THEN interval '30 days' ELSE interval '365 days' END THEN RAISE EXCEPTION 'Relationship validity is invalid or expired'; END IF;
   SELECT * INTO edge FROM entity_links WHERE tenant_id=t AND source_type=actual_edge->>'sourceType' AND source_id=actual_edge->>'sourceId' AND target_type=actual_edge->>'targetType' AND target_id=actual_edge->>'targetId' AND link_type=actual_edge->>'linkType' FOR UPDATE;
   IF FOUND THEN
-   SELECT * INTO latest FROM radar_current_relationships WHERE tenant_id=t AND link_id=edge.id;
+   SELECT * INTO latest FROM radar_relationship_reviews WHERE tenant_id=t AND link_id=edge.id ORDER BY revision DESC LIMIT 1;
   END IF;
   IF latest.id IS DISTINCT FROM (p_change->>'expectedReviewId')::uuid THEN RAISE EXCEPTION 'Relationship review changed; preview again'; END IF;
   IF edge.id IS NULL THEN

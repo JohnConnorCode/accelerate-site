@@ -1,3 +1,10 @@
+import { getRadarRelationshipContext } from "./radar-relationship-context";
+import { previewRadarRelationship, proposeRadarRelationship } from "./radar-relationships";
+import {
+  radarRelationshipReadSchema,
+  radarRelationshipChangeSchema,
+  radarRelationshipProposalSchema,
+} from "./radar-relationship-contract";
 import { readRadarWorkspace, prepareRadarOpportunityBrief } from "./radar-workspace";
 import { radarWorkspaceReadSchema, radarOpportunityBriefSchema } from "./radar-workspace-contract";
 import "server-only";
@@ -589,6 +596,46 @@ const registry: AiToolRegistration[] = [
     confirmationRequired: false,
     execute: ({ supabase, workItemId }, input) =>
       prepareRadarOpportunityBrief(supabase, input, workItemId),
+  },
+  {
+    name: "get_radar_relationship_context",
+    description:
+      "Read bounded canonical conversation history, earlier asks, restrictions and current cited relationship assertions. Returns neutral explicit introduction/public business paths, never ranked people, inferred KNOWS or permission to send.",
+    inputSchema: z.toJSONSchema(radarRelationshipReadSchema),
+    parseInput: (input) => radarRelationshipReadSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-relationships",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => getRadarRelationshipContext(supabase, input),
+  },
+  {
+    name: "preview_radar_relationship",
+    description:
+      "Preview an exact cited relationship review or revocation over canonical IDs. Confirm the quotation supports this specific claim; matching text is not semantic verification. Nothing is saved or sent.",
+    inputSchema: z.toJSONSchema(radarRelationshipChangeSchema),
+    parseInput: (input) => radarRelationshipChangeSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-relationships",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => previewRadarRelationship(supabase, input),
+  },
+  {
+    name: "propose_radar_relationship",
+    description:
+      "Queue the exact sourced relationship preview for human approval. Review canonical identities, quotation and expiry. Does not create contact permission or send messages.",
+    inputSchema: z.toJSONSchema(radarRelationshipProposalSchema),
+    parseInput: (input) => radarRelationshipProposalSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.radar-relationships",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeRadarRelationship(supabase, input, actorEmail),
   },
   {
     name: "get_radar_selection",
@@ -2096,6 +2143,9 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
     "get_radar_workspace",
     "prepare_radar_opportunity_brief",
+    "get_radar_relationship_context",
+    "preview_radar_relationship",
+    "propose_radar_relationship",
     "get_radar_selection",
     "preview_radar_assessment",
     "propose_radar_assessment",

@@ -27,7 +27,10 @@
     "propose_radar_store_change",
     "get_radar_selection",
     "preview_radar_assessment",
-    "propose_radar_assessment"
+    "propose_radar_assessment",
+    "get_radar_relationship_context",
+    "preview_radar_relationship",
+    "propose_radar_relationship"
   ],
   "setupChecks": [],
   "settingsContract": "opportunity-radar-profile-v1",

@@ -40,7 +40,7 @@ export async function getRadarRelationshipContext(
         "id,link_id,state,assertion,edge_snapshot,evidence_snapshot,valid_from,valid_until,reason,created_at",
       )
       .eq("tenant_id", tenantId)
-      .contains("edge_snapshot", { sourceId: input.contactId })
+      .eq("source_id", input.contactId)
       .order("created_at", { ascending: false })
       .order("id")
       .limit(input.limit + 1),
@@ -50,7 +50,7 @@ export async function getRadarRelationshipContext(
         "id,link_id,state,assertion,edge_snapshot,evidence_snapshot,valid_from,valid_until,reason,created_at",
       )
       .eq("tenant_id", tenantId)
-      .contains("edge_snapshot", { targetId: input.contactId })
+      .eq("target_id", input.contactId)
       .order("created_at", { ascending: false })
       .order("id")
       .limit(input.limit + 1),
@@ -134,6 +134,7 @@ export async function getRadarRelationshipContext(
           ? "Current cited evidence; assertion remains human-reviewed"
           : "Evidence or author identity changed since review";
       } catch {
+        console.warn("Radar relationship evidence unavailable; current path withheld");
         evidenceReason = "Evidence is unavailable, retracted or its author identity is unresolved";
       }
     }
