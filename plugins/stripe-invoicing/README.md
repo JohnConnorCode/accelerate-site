@@ -10,9 +10,11 @@ receiving payment.
 1. Enable **Stripe invoicing** in **Plugins**. Configure the workspace's Stripe
    connection through **Integrations**, using the platform's server-only secret
    storage. Verify test/live mode before any provider action.
-2. Open `/admin/invoicing`. Select an existing contact and enter currency, line
-   descriptions, quantities and unit amounts. Amounts use currency minor units;
-   USD 125.00 is 12500. Confirm the due-date and recipient details in the preview.
+2. Open `/admin/invoicing`. Select an existing contact and its matching Stripe
+   billing customer. Enter currency, line descriptions, quantities and unit prices
+   in normal currency units: enter `125.00` for USD 125.00. Set payment terms
+   (1–90 days) and confirm recipient details in the preview. The API/AI input
+   represents that same unit price as `unitAmount: 12500` in minor units.
 3. Submit the exact invoice draft for approval. After approval, inspect the
    provider result and local execution receipt. A pending approval has not
    created a Stripe invoice.
@@ -24,7 +26,7 @@ receiving payment.
    public invoice presentation content.
 
 For a fictional example, select a demo contact and prepare one consulting line,
-quantity 1, unit amount 12500 in USD. Expect a USD 125.00 draft after simulated
+quantity 1, unit price `125.00` in USD. Expect a USD 125.00 draft after simulated
 approval. All five full command-center demos use the actual admin components
 with fictional records and a simulated provider. Demo customer previews remain
 inside that browser scenario; they are not live public links.
@@ -51,6 +53,8 @@ undone. Revoke public pages using their explicit controls; do not assume a toggl
 removes something already published.
 
 If the connection or contact is unavailable, correct it and preview again.
+If no Stripe customer matches the contact’s billing email, correct or add the
+customer in Stripe and refresh the choices; do not select an unrelated customer.
 Changed input, source or code requires a fresh preview and approval. After a
 provider timeout or uncertain result, reconcile the existing action and provider
 invoice with its stable idempotency identity before retrying. Never create a new
