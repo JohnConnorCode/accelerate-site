@@ -244,13 +244,15 @@
     "test:ai-module-controls": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-module-controls.ts",
     "test:ai-tool-discovery": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-tool-discovery.ts",
     "setup": "node scripts/workspace-setup.mjs",
-    "test:plugin-workflow-contract": "npx tsx scripts/test-plugin-workflow-contract.ts"
+    "test:plugin-workflow-contract": "npx tsx scripts/test-plugin-workflow-contract.ts",
+    "test:plugin-cold-start": "node scripts/test-plugin-cold-start.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@gsap/react": "^2.1.2",
+    "@jitl/quickjs-wasmfile-release-sync": "0.32.0",
     "@maily-to/render": "^0.2.3",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",

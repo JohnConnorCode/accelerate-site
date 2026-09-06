@@ -594,3 +594,27 @@ This currently covers input schemas and workflow action selection. Generated
 impact tiers, evidence/idempotency policies, event registration and complete
 read/write grants remain tracked by `plugin-manifest-generator`; this change is
 not a complete third-party registration or installation SDK.
+
+## Cold-start verification
+
+The Node host lazily loads QuickJS's public CommonJS Emscripten entrypoint.
+It uses the same pinned release engine and fixed WASM memory ceiling as before;
+loading, compiling and initializing the engine all remain inside the first
+`evaluateInIsolate` call. Next externalizes this native package and traces the
+WASM asset. CI reconstructs the engine from each representative route's deployment
+trace and executes it without falling back to workspace package files.
+
+`npm run test:plugin-cold-start` records five independently cold Node processes,
+including module import time, full process wall time, the first evaluation and
+five subsequent fresh-context evaluations. It retains every sample and requires
+the slowest first evaluation to remain below the existing 50 ms budget. There is
+no retry or warmup. CI alternates candidate and baseline processes, records CPU,
+OS, architecture and Node version, and retains the JSON even when the gate fails.
+The baseline source is the pinned pre-optimization commit `318b11d`.
+
+The evaluator metric includes WASM initialization, runtime/context creation,
+transport initialization, guest execution and disposal. Process startup and
+module import costs are reported separately. OS filesystem cache and shared
+runner scheduling are uncontrolled, so this is a measured regression budget,
+not a universal latency guarantee. The original 50.375514 ms failure remains
+linked from the `plugin-isolate-cold-start-headroom` work card.

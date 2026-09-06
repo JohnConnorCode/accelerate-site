@@ -202,9 +202,25 @@ function boundedModule(bytes: number) {
   if (existing) return existing;
   const pages = bytes / WASM_PAGE_BYTES;
   const pending = newQuickJSWASMModuleFromVariant(
-    newVariant(RELEASE_SYNC, {
-      wasmMemory: new WebAssembly.Memory({ initial: pages, maximum: pages }),
-    }),
+    newVariant(
+      {
+        ...RELEASE_SYNC,
+        async importModuleLoader() {
+          // The Node host loads the same release engine lazily through its public
+          // CommonJS export. Avoid the ESM loader bridge on every cold process;
+          // no engine import, WASM compilation or initialization is prewarmed.
+          /* eslint-disable @typescript-eslint/no-require-imports -- Intentional lazy Node entrypoint; measured inside first evaluation. */
+          const loader: Awaited<
+            ReturnType<typeof RELEASE_SYNC.importModuleLoader>
+          > = require("@jitl/quickjs-wasmfile-release-sync/emscripten-module");
+          /* eslint-enable @typescript-eslint/no-require-imports */
+          return loader;
+        },
+      },
+      {
+        wasmMemory: new WebAssembly.Memory({ initial: pages, maximum: pages }),
+      },
+    ),
   );
   // Only four bounded module variants may be retained. Evaluation after await
   // is synchronous, so no active guest yields its context to another evaluation.

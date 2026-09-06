@@ -114,6 +114,21 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:core
 
+      - name: Measure independent cold plugin evaluations
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          git fetch --no-tags --depth=1 origin 318b11dd00e91043a1218d34766442e778ac0dfc
+          npm run test:plugin-cold-start -- --baseline-ref 318b11dd00e91043a1218d34766442e778ac0dfc --output /tmp/plugin-cold-start.json
+
+      - name: Retain all cold-start samples
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: plugin-cold-start-measurements
+          path: /tmp/plugin-cold-start.json
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Verify guided installation contracts
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:setup-status
@@ -169,6 +184,9 @@ jobs:
       # next build includes TypeScript validation. Never ignore build errors.
       - name: Build and typecheck
         run: npm run build
+
+      - name: Verify deployable plugin engine package
+        run: node scripts/check-plugin-host-package.mjs
 
       - name: Install browser for first-run verification
         run: npx playwright install --with-deps chromium
