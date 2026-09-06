@@ -353,3 +353,31 @@ Verification: `npm run test:radar-relationships` covers contract, bounded source
 reading and service behavior. `scripts/test-radar-relationships-postgres.mjs`
 runs in the controlled native PostgreSQL migration suite. Production activation
 and end-to-end outreach remain separate release work.
+
+### Outreach implementation status
+
+The host now has a bounded draft-preparation service in
+`src/lib/revenue-os/radar-outreach-drafting.ts`. It reads the canonical opportunity,
+reviewed source excerpts, contact and conversation history before preparing text.
+The default uses the operator's contribution and specific ask without a provider
+call. Optional generation uses the existing evaluated-model budget gateway; a
+refused or disabled model retains the operator-supplied draft. Results are unsaved
+and use the existing `add_asset` approval path to become retained drafts.
+
+Quality policy catches specific unsupported audience figures, unreviewed links,
+financial commitments and introduction claims. Human-confirmed claim references
+come from the shared ledger; profile prose is not an approved fact. The checks do
+not establish semantic truth. Introduction evidence requires exact received
+quotations from both canonical parties, a current expiry and human interpretation.
+
+**Outreach sending and the outreach-specific admin/demo and AI controls are still
+in implementation.** Selecting `approval-required` does not enable a working
+Radar sender. Keep `draft-only` until the complete reviewed workflow is available.
+The new daily limit, cooldown and quality-policy settings are reserved for that
+workflow; they do not currently enforce sending limits in another mail workflow.
+
+Controlled tests cover provider-free preparation for SuperDebate and an unrelated
+business, suppressed recipients, missing or stale facts, quoted consent, exact
+email replay, final-guard refusal and uncertain provider acceptance. Run
+`npm run test:radar-outreach`. No real outreach or paid-model call is part of those
+tests. Full release acceptance remains on the live Feature Board.

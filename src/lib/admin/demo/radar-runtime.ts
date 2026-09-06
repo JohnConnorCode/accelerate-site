@@ -287,6 +287,8 @@ export async function handleDemoRadar(
           simulated: true,
         });
       }
+      if (command.kind === "prepare_outreach")
+        throw new Error("The outreach preparation demo is not available yet");
       if (command.kind === "prepare_brief") {
         enabled();
         const i = command.input,

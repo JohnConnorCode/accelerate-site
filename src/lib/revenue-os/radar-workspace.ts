@@ -1,4 +1,5 @@
 import "server-only";
+import { prepareRadarOutreachDraft } from "./radar-outreach-drafting";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { getModuleSettings, isModuleEnabled } from "./modules";
@@ -176,6 +177,8 @@ export async function dispatchRadarWorkspaceCommand(
 ) {
   const command = radarWorkspaceCommandSchema.parse(raw);
   switch (command.kind) {
+    case "prepare_outreach":
+      return prepareRadarOutreachDraft(db, command.input);
     case "prepare_brief":
       return prepareRadarOpportunityBrief(db, command.input);
     case "read_record":

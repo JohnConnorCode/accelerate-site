@@ -194,12 +194,26 @@ export class MemorySupabase {
       filters.push(orPredicate(expression));
       return self;
     };
-    // Array containment, as used for `recipient_emails`.
-    self.contains = (column: string, values: unknown[]) => {
-      filters.push((row) => {
-        const actual = Array.isArray(row[column]) ? (row[column] as unknown[]) : [];
-        return values.every((value) => actual.includes(value));
-      });
+    // PostgREST containment subset for JSON objects and arrays (including participant objects).
+    self.contains = (column: string, expected: unknown) => {
+      const contains = (actual: unknown, value: unknown): boolean => {
+        if (Array.isArray(value))
+          return (
+            Array.isArray(actual) &&
+            value.every((item) => actual.some((candidate) => contains(candidate, item)))
+          );
+        if (value && typeof value === "object")
+          return (
+            !!actual &&
+            typeof actual === "object" &&
+            !Array.isArray(actual) &&
+            Object.entries(value).every(([key, item]) =>
+              contains((actual as Record<string, unknown>)[key], item),
+            )
+          );
+        return actual === value;
+      };
+      filters.push((row) => contains(row[column], expected));
       return self;
     };
 
