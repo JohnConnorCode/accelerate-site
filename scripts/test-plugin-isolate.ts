@@ -287,6 +287,23 @@ async function main() {
   await assert.rejects(
     () =>
       evaluateInIsolate(`
+    Object.prototype.value = 'forged';
+    ({ get value() { return 'original'; } });
+  `),
+    /boundary/,
+  );
+  assert.deepEqual(
+    (
+      await evaluateInIsolate(`
+    Object.defineProperty(Object.prototype, 'get', { get() { throw new Error('prototype getter ran'); } });
+    ({ preserved: true });
+  `)
+    ).value,
+    { preserved: true },
+  );
+  await assert.rejects(
+    () =>
+      evaluateInIsolate(`
     JSON.stringify = () => '{}'; Reflect.ownKeys = () => [];
     ({ lost: () => 1 });
   `),

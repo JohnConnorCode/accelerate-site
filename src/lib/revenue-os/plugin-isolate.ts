@@ -84,6 +84,7 @@ const JSON_CODEC = `(() => {
   const objectPrototype = Object.prototype, arrayPrototype = Array.prototype;
   const stringify = JSON.stringify, parse = JSON.parse, ErrorType = Error;
   const WeakSetType = WeakSet;
+  const owns = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
   const has = Function.prototype.call.bind(WeakSet.prototype.has);
   const add = Function.prototype.call.bind(WeakSet.prototype.add);
   const remove = Function.prototype.call.bind(WeakSet.prototype.delete);
@@ -94,7 +95,7 @@ const JSON_CODEC = `(() => {
       if (typeof error === 'string') return error;
       if (error !== null && typeof error === 'object') {
         const item = descriptor(error, 'message');
-        if (item && typeof item.value === 'string') return item.value;
+        if (item && owns(item, 'value') && typeof item.value === 'string') return item.value;
       }
       return 'plugin evaluation failed';
     },
@@ -126,8 +127,10 @@ const JSON_CODEC = `(() => {
           if (characters > 262144) reject();
           if (array && (!integer(+key) || key !== '' + (+key) || +key < 0 || +key >= length)) reject();
           const item = descriptor(value, key);
-          if (!item || !item.enumerable || !('value' in item)) reject();
-          define(result, key, { value: clone(item.value, depth + 1), enumerable: true });
+          if (!item || !item.enumerable || !owns(item, 'value')) reject();
+          const property = create(null);
+          property.value = clone(item.value, depth + 1); property.enumerable = true;
+          define(result, key, property);
         }
         remove(ancestors, value);
         return result;
@@ -171,7 +174,7 @@ function encodeHostJson(value: unknown): string {
     for (const key of keys) {
       if (array && key === "length") continue;
       const item = Object.getOwnPropertyDescriptor(node, key);
-      if (typeof key !== "string" || !item?.enumerable || !("value" in item))
+      if (typeof key !== "string" || !item?.enumerable || !Object.hasOwn(item, "value"))
         throw new Error("Unsupported property at isolate boundary");
       if (array && (!Number.isInteger(+key) || key !== String(+key) || +key < 0 || +key >= length))
         throw new Error("Unsupported array property at isolate boundary");
