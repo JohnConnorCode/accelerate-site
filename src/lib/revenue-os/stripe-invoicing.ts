@@ -6,6 +6,8 @@ import { tenantStripeClient } from "./stripe-adapter";
 import { stripeInvoiceInputSchema, type StripeInvoiceReceipt } from "./stripe-contract";
 import { checkpointActionResult, proposeAction } from "./actions";
 
+import { stripeWorkflowEffectKey } from "./plugin-workflow-policy";
+
 type ProviderObject = Record<string, unknown>;
 const idSchema = z.string().regex(/^in_[A-Za-z0-9]{1,80}$/);
 const invoicePayloadSchema = z.object({
@@ -199,7 +201,7 @@ export async function executeStripeInvoiceAction(
     raw.testMode !== (client.mode === "test")
   )
     throw new Error("Stripe account or credentials changed; fresh approval is required");
-  const key = `accelerate:${client.tenantId}:${actionId}`;
+  const key = stripeWorkflowEffectKey(client.tenantId, actionId);
   if (action.action_type === "create_stripe_invoice_draft") {
     const { pluginOrigin: _origin, ...withoutOrigin } = raw;
     void _origin;

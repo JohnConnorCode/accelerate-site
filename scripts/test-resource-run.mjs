@@ -1,10 +1,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
-import { acquireLock, checkCapacity, groupRss, runHeavyJob } from "./resource-run.mjs";
+import {
+  acquireLock,
+  checkCapacity,
+  groupRss,
+  processGroupExists,
+  runHeavyJob,
+} from "./resource-run.mjs";
 
 const GiB = 1024 ** 3;
 test("refuses disk exhaustion and memory pressure, with lower running disk threshold", () => {
@@ -78,6 +84,59 @@ test("capacity loss stops a running child and returns failure", { timeout: 5000 
       await runHeavyJob(process.execPath, ["-e", "setInterval(() => {}, 1000)"], options),
       1,
     );
+    acquireLock(options.directory)();
+  } finally {
+    rmSync(parent, { recursive: true, force: true });
+  }
+});
+
+test("cleanup distinguishes an absent group from surviving descendants", () => {
+  assert.equal(processGroupExists("", 123), false);
+  assert.equal(processGroupExists(" 999\n 456\n", 123), false);
+  assert.equal(processGroupExists(" 999\n 123\n 123\n", 123), true);
+});
+
+test("cleanup inspection failure stays failed and always releases the lock", async () => {
+  if (process.platform === "win32") return;
+  const parent = mkdtempSync(join(tmpdir(), "accelerate-resource-cleanup-"));
+  const options = {
+    directory: join(parent, "lock"),
+    readCapacity: () => ({ availableBytes: 6 * GiB, freePercent: 50 }),
+    readGroups: () => {
+      throw new Error("Process-group inspection refused");
+    },
+  };
+  try {
+    await assert.rejects(
+      runHeavyJob(process.execPath, ["-e", "process.exit(0)"], options),
+      /inspection refused/,
+    );
+    acquireLock(options.directory)();
+  } finally {
+    rmSync(parent, { recursive: true, force: true });
+  }
+});
+
+test("successful leader exit still stops its surviving child", { timeout: 5000 }, async () => {
+  if (process.platform === "win32") return;
+  const parent = mkdtempSync(join(tmpdir(), "accelerate-resource-descendant-"));
+  const receipt = join(parent, "child-pid");
+  const code = `const child = require("node:child_process").spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], {stdio: "ignore"}); require("node:fs").writeFileSync(${JSON.stringify(receipt)}, String(child.pid)); child.unref();`;
+  const options = {
+    directory: join(parent, "lock"),
+    readCapacity: () => ({ availableBytes: 6 * GiB, freePercent: 50 }),
+  };
+  try {
+    assert.equal(await runHeavyJob(process.execPath, ["-e", code], options), 0);
+    const pid = readFileSync(receipt, "utf8");
+    let active = true;
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const result = spawnSync("ps", ["-p", pid, "-o", "stat="], { encoding: "utf8" });
+      active = result.status === 0 && !result.stdout.trim().startsWith("Z");
+      if (!active) break;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    assert.equal(active, false, "Owned descendant must not remain running after leader completion");
     acquireLock(options.directory)();
   } finally {
     rmSync(parent, { recursive: true, force: true });

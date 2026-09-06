@@ -1,6 +1,13 @@
 import "server-only";
+import { assertCurrentTenantAdmin } from "./tenant-admin-authority";
+import { projectModuleConfiguration } from "./module-configuration-read";
+import { moduleChangeSchema } from "./module-actions-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { tenantIdForDatabase } from "@/lib/supabase/server";
+import {
+  bindTenantDatabase,
+  createPlatformServiceRoleClient,
+  tenantIdForDatabase,
+} from "@/lib/supabase/server";
 import {
   MODULE_MAP,
   getActiveModules,
@@ -17,7 +24,9 @@ export async function updateModuleConfiguration(
   db: SupabaseClient,
   change: ModuleConfigurationChange,
   actorEmail: string,
+  expectedRevision?: string,
 ) {
+  change = moduleChangeSchema.parse(change);
   const tenantId = tenantIdForDatabase(db);
   if (!tenantId) throw new Error("Tenant-bound module administration required");
   const moduleDef = MODULE_MAP.get(change.moduleId);
@@ -27,7 +36,6 @@ export async function updateModuleConfiguration(
   const validated =
     "settings" in change ? validateModuleSettingsInput(change.moduleId, change.settings) : null;
   if (validated && !validated.valid) throw new Error(validated.error);
-  if ("enabled" in change && change.enabled) await ensureBundledPluginSources(db, change.moduleId);
   for (let attempt = 0; attempt < 3; attempt++) {
     const { data, error } = await db
       .from("tenants")
@@ -38,6 +46,13 @@ export async function updateModuleConfiguration(
       throw new Error("Active workspace could not be read");
     const expected = data.config === null ? null : JSON.stringify(data.config);
     const current = (expected ? JSON.parse(expected) : {}) as Record<string, unknown>;
+    if (
+      expectedRevision &&
+      projectModuleConfiguration(change.moduleId, current).revision !== expectedRevision
+    )
+      throw new Error("Module configuration changed. Preview and approve again.");
+    if ("enabled" in change && change.enabled)
+      await ensureBundledPluginSources(db, change.moduleId);
     const modules = (current.modules ?? {}) as Record<string, boolean>;
     const settings = (current.moduleSettings ?? {}) as ModuleSettingsConfig;
     const before =
@@ -85,4 +100,20 @@ export async function updateModuleConfiguration(
       : { moduleId: change.moduleId, settings: after };
   }
   throw new Error("Workspace configuration changed concurrently. Refresh and retry.");
+}
+
+export async function updateModuleConfigurationAsAdmin(
+  db: SupabaseClient,
+  raw: unknown,
+  actorEmail: string,
+  expectedRevision?: string,
+) {
+  const change = moduleChangeSchema.parse(raw);
+  const tenantId = await assertCurrentTenantAdmin(db, actorEmail);
+  const writer = bindTenantDatabase(
+    createPlatformServiceRoleClient("approved-module-configuration"),
+    tenantId,
+    true,
+  );
+  return updateModuleConfiguration(writer, change, actorEmail, expectedRevision);
 }

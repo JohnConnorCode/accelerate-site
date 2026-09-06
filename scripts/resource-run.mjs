@@ -73,10 +73,26 @@ export function groupRss(output, group) {
     }, 0);
 }
 
+export function processGroupExists(output, group) {
+  return output
+    .trim()
+    .split(/\s+/)
+    .some((value) => Number(value) === group);
+}
+
+function readProcessGroups() {
+  return execFileSync("ps", ["-axo", "pgid="], { encoding: "utf8", timeout: 5000 });
+}
+
 export async function runHeavyJob(
   command,
   args,
-  { directory = lockPath, readCapacity = capacity, monitorInterval = 10000 } = {},
+  {
+    directory = lockPath,
+    readCapacity = capacity,
+    monitorInterval = 10000,
+    readGroups = readProcessGroups,
+  } = {},
 ) {
   if (!command) throw new Error("Usage: npm run resources:run -- <command> [args...]");
   const release = acquireLock(directory);
@@ -140,11 +156,20 @@ export async function runHeavyJob(
   } finally {
     clearInterval(timer);
     clearTimeout(killTimer);
-    // Descendants belong to this invocation, including an abandoned QA browser.
-    signal("SIGKILL");
-    process.removeListener("SIGINT", stop);
-    process.removeListener("SIGTERM", stop);
-    release();
+    try {
+      // The leader has exited. Signal only a group that still has descendants;
+      // Avoid signalling an already-retired process group.
+      if (
+        child?.pid &&
+        (process.platform === "win32" || processGroupExists(readGroups(), child.pid))
+      )
+        signal("SIGKILL");
+    } finally {
+      // Failed cleanup remains a failed job, but cannot strand its global lock.
+      process.removeListener("SIGINT", stop);
+      process.removeListener("SIGTERM", stop);
+      release();
+    }
   }
 }
 

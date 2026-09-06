@@ -1,8 +1,9 @@
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
+import { readBoundedJson } from "@/lib/http/bounded-json";
+import { moduleChangeSchema } from "@/lib/revenue-os/module-actions-contract";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createPlatformServiceRoleClient, bindTenantDatabase } from "@/lib/supabase/server";
-import { updateModuleConfiguration } from "@/lib/revenue-os/module-configuration";
+import { updateModuleConfigurationAsAdmin } from "@/lib/revenue-os/module-configuration";
 import { MODULE_MAP, getActiveModules, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 
 /**
@@ -23,14 +24,6 @@ import { MODULE_MAP, getActiveModules, type ModuleSettingsConfig } from "@/lib/r
  * from the authenticated session, never from request input.
  */
 
-const patchSchema = z.union([
-  z.object({ moduleId: z.string().trim().min(1).max(80), enabled: z.boolean() }),
-  z.object({
-    moduleId: z.string().trim().min(1).max(80),
-    settings: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])),
-  }),
-]);
-
 export async function GET() {
   const authorization = await requireAdmin();
   if (authorization instanceof NextResponse) return authorization;
@@ -50,7 +43,7 @@ export async function PATCH(request: NextRequest) {
   const authorization = await requireAdmin();
   if (authorization instanceof NextResponse) return authorization;
 
-  const parsed = patchSchema.safeParse(await request.json().catch(() => null));
+  const parsed = moduleChangeSchema.safeParse(await readBoundedJson(request).catch(() => null));
   if (!parsed.success)
     return NextResponse.json({ error: "Invalid module request" }, { status: 400 });
 
@@ -58,16 +51,13 @@ export async function PATCH(request: NextRequest) {
   if (!moduleDef) return NextResponse.json({ error: "Unknown module" }, { status: 404 });
 
   try {
-    const database = bindTenantDatabase(
-      createPlatformServiceRoleClient("tenant-module-toggle"),
-      authorization.tenant.id,
-      true,
-    );
     return NextResponse.json(
-      await updateModuleConfiguration(
-        database,
-        parsed.data,
-        authorization.user.email || "workspace-member",
+      await runWithTenantRequestContext(authorization, () =>
+        updateModuleConfigurationAsAdmin(
+          authorization.database,
+          parsed.data,
+          authorization.user.email || "workspace-member",
+        ),
       ),
     );
   } catch (error) {

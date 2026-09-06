@@ -18,9 +18,32 @@ import { fileURLToPath } from "node:url";
 import prettier from "prettier";
 import { createHash } from "node:crypto";
 import Ajv from "ajv";
+import { require as requireTypeScript } from "tsx/cjs/api";
+const { pluginWorkflowDeclaration } = requireTypeScript(
+  "../src/lib/revenue-os/plugin-workflow-contract.ts",
+  import.meta.url,
+);
+const { assertWorkflowEvidenceSource } = requireTypeScript(
+  "../src/lib/revenue-os/plugin-workflow-policy.ts",
+  import.meta.url,
+);
 import { validateBoundedWorkflowSchema } from "./lib/bounded-workflow-schema.mjs";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+const hostContractHash = createHash("sha256");
+for (const file of [
+  "plugin-workflow-contract.ts",
+  "plugin-workflow-policy.ts",
+  "workflow-task-contract.ts",
+  "stripe-contract.ts",
+  "action-reversibility-contract.ts",
+])
+  hostContractHash
+    .update(file)
+    .update("\0")
+    .update(readFileSync(join(repoRoot, "src/lib/revenue-os", file)))
+    .update("\0");
+const hostContractFingerprint = hostContractHash.digest("hex");
 const extensionsDir = join(repoRoot, "extensions");
 const generatedPath = join(repoRoot, "src/lib/revenue-os/extension-modules.generated.ts");
 const checkOnly = process.argv.includes("--check");
@@ -55,6 +78,7 @@ const ALLOWED_ICONS = [
   "Target",
   "UserPlus",
   "UserRound",
+  "Wallet",
   "UsersRound",
 ];
 
@@ -158,20 +182,60 @@ const ajv = new Ajv({ strict: true, allErrors: false });
 function validateWorkflow(file, manifest) {
   const workflow = manifest.workflow;
   if (!workflow) return;
+  try {
+    const declaration = pluginWorkflowDeclaration(workflow.inputContract);
+    assertWorkflowEvidenceSource(declaration.policy, workflow.sources);
+    const generated = {
+      actions: declaration.actions,
+      inputSchema: declaration.inputSchema,
+      policy: declaration.policy,
+      contractHash: createHash("sha256")
+        .update(
+          JSON.stringify({
+            hostContractFingerprint,
+            inputContract: workflow.inputContract,
+            ...declaration,
+            sources: workflow.sources,
+          }),
+        )
+        .digest("hex"),
+    };
+    if (
+      checkOnly &&
+      Object.entries(generated).some(
+        ([key, value]) => JSON.stringify(workflow[key]) !== JSON.stringify(value),
+      )
+    )
+      fail(
+        file,
+        "Generated workflow validator/action declaration drift; run npm run build:extensions",
+      );
+    Object.assign(workflow, generated);
+    for (const warning of declaration.warnings) console.warn(`${file}: ${warning}`);
+  } catch (error) {
+    fail(file, error instanceof Error ? error.message : "Invalid workflow contract");
+    return;
+  }
   if (
     manifest.report ||
     workflow.version !== 1 ||
     !Array.isArray(workflow.actions) ||
     !workflow.actions.length ||
     workflow.actions.length > 3 ||
-    workflow.actions.some(
-      (action) => !["create_stripe_invoice_draft", "create_task_batch"].includes(action),
-    ) ||
     !Array.isArray(workflow.sources) ||
     workflow.sources.length > 3 ||
     !workflow.inputSchema ||
     Object.keys(workflow).some(
-      (key) => !["version", "actions", "sources", "inputSchema"].includes(key),
+      (key) =>
+        ![
+          "version",
+          "actions",
+          "sources",
+          "inputSchema",
+          "inputContract",
+          "policy",
+          "contractHash",
+        ].includes(key),
     )
   ) {
     fail(file, "Invalid workflow v1 declaration");
@@ -294,6 +358,19 @@ if (existsSync(extensionsDir)) {
 if (failures.length) {
   console.error(`Extension manifest validation failed:\n- ${failures.join("\n- ")}`);
   process.exit(1);
+}
+
+if (!checkOnly) {
+  for (const manifest of manifests.filter((item) => item.workflow)) {
+    const path = join(extensionsDir, `${manifest.id}.module.json`);
+    writeFileSync(
+      path,
+      await prettier.format(JSON.stringify(manifest), {
+        ...(await prettier.resolveConfig(path)),
+        filepath: path,
+      }),
+    );
+  }
 }
 
 const modules = manifests.map((manifest) => ({

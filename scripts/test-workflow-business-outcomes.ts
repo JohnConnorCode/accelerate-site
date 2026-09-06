@@ -1,3 +1,4 @@
+import { MODULE_MAP } from "../src/lib/revenue-os/modules";
 import { EXTENSION_WORKFLOWS } from "../src/lib/revenue-os/extension-workflows.generated";
 import { readBoundedJson } from "../src/lib/http/bounded-json";
 import assert from "node:assert/strict";
@@ -5,6 +6,7 @@ import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 import { updateModuleConfiguration } from "../src/lib/revenue-os/module-configuration";
 import {
+  assertPluginActionAllowed,
   prepareWorkflowPlugin,
   proposeWorkflowPlugin,
 } from "../src/lib/revenue-os/workflow-plugins";
@@ -157,6 +159,39 @@ async function main() {
     const input = { [sourceKey]: sourceId, tasks };
     const compiled = EXTENSION_WORKFLOWS[pluginId]!;
     const originalCode = compiled.code;
+    const declaration = MODULE_MAP.get(pluginId)!.workflow!;
+    const originalActions = declaration.actions;
+    const originalPolicy = declaration.policy;
+    const originalSources = declaration.sources;
+    try {
+      compiled.code = 'throw new Error("Guest must not run for invalid host grants");';
+      for (const actions of [[], ["send_email"], ["create_task_batch", "send_email"]]) {
+        declaration.actions = actions;
+        await assert.rejects(
+          () => prepareWorkflowPlugin(db, pluginId, input),
+          /action grant disagrees/,
+        );
+      }
+      declaration.actions = originalActions;
+      declaration.policy = { ...originalPolicy, tier: 3 };
+      await assert.rejects(() => prepareWorkflowPlugin(db, pluginId, input), /policy disagrees/);
+      declaration.policy = originalPolicy;
+      declaration.sources = [];
+      await assert.rejects(
+        () => prepareWorkflowPlugin(db, pluginId, input),
+        /canonical evidence source/,
+      );
+      declaration.sources = originalSources;
+      await assert.rejects(
+        () => prepareWorkflowPlugin(db, pluginId, { ...input, [sourceKey]: "x".repeat(36) }),
+        /Invalid UUID/,
+      );
+    } finally {
+      declaration.actions = originalActions;
+      declaration.policy = originalPolicy;
+      declaration.sources = originalSources;
+      compiled.code = originalCode;
+    }
     try {
       compiled.code =
         '({title:"Bad plan",summary:"Missing reviewed identity",action:{type:"create_task_batch",payload:{}}})';
@@ -190,6 +225,30 @@ async function main() {
       requestId,
       "qa@example.example",
     );
+    await assertPluginActionAllowed(db, action.action_type, action.payload);
+    await assert.rejects(
+      () => assertPluginActionAllowed(db, action.action_type, action.payload, "autonomous"),
+      /human approval/,
+    );
+    const originalHash = declaration.contractHash;
+    try {
+      declaration.contractHash = "0".repeat(64);
+      await assert.rejects(
+        () => assertPluginActionAllowed(db, action.action_type, action.payload),
+        /fresh review/,
+      );
+    } finally {
+      declaration.contractHash = originalHash;
+    }
+    await assert.rejects(
+      () =>
+        assertPluginActionAllowed(db, action.action_type, {
+          ...action.payload,
+          pluginOrigin: { id: pluginId, sha256: compiled.sha256 },
+        }),
+      /fresh review/,
+    );
+    assert.equal(mem.rows("tasks").length, pluginId === "client-onboarding" ? 0 : 1);
     const result = (await approveAndExecuteAction(db, action.id, "qa@example.example")) as {
       complete: boolean;
       tasks: { id: string }[];

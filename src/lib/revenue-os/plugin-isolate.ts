@@ -1,5 +1,11 @@
 import "server-only";
-import { getQuickJS, type QuickJSContext, type QuickJSHandle } from "quickjs-emscripten";
+import {
+  newQuickJSWASMModuleFromVariant,
+  newVariant,
+  RELEASE_SYNC,
+  type QuickJSHandle,
+  type QuickJSWASMModule,
+} from "quickjs-emscripten";
 
 /**
  * Plugin isolate host (Plugin Platform phase 2): runs plugin code with no
@@ -49,7 +55,9 @@ export interface PluginIsolateReceipt {
   pluginId: string | null;
   elapsedMs: number;
   timedOut: boolean;
-  memoryLimited: boolean;
+  /** Null when an allocation failure cannot be independently classified. */
+  memoryLimited: boolean | null;
+  wasmMemoryLimitBytes: number;
 }
 
 const DEFAULT_MEMORY_LIMIT_BYTES = 8 * 1024 * 1024;
@@ -66,108 +74,173 @@ const RESERVED_BINDING_NAMES = new Set([
   "hasOwnProperty",
 ]);
 
-function assertJson(value: unknown, what: string): asserts value is PluginJsonValue {
-  // Deep scan, because JSON.stringify silently drops functions nested in
-  // objects ({a: fn} becomes {}) instead of failing. Anything that would
-  // not survive a JSON round trip identically must refuse loudly.
-  const seen = new Set<unknown>();
-  const scan = (node: unknown, path: string): void => {
-    if (node === null) return;
-    switch (typeof node) {
-      case "string":
-      case "boolean":
-        return;
-      case "number":
-        if (!Number.isFinite(node))
-          throw new Error(
-            `${what} carries non-finite number at ${path} across the isolate boundary`,
-          );
-        return;
-      case "undefined":
-      case "function":
-      case "symbol":
-      case "bigint":
-        throw new Error(`${what} carries ${typeof node} at ${path} across the isolate boundary`);
-      case "object": {
-        if (seen.has(node)) throw new Error(`${what} is circular at ${path}`);
-        seen.add(node);
-        if (Array.isArray(node)) node.forEach((item, i) => scan(item, `${path}[${i}]`));
-        else for (const [key, item] of Object.entries(node)) scan(item, `${path}.${key}`);
-        return;
+// Capture pristine intrinsics before any plugin runs. This closure stays private:
+// plugin code cannot replace its parser/encoder by mutating global JSON/Object.
+const JSON_CODEC = `(() => {
+  const keys = Reflect.ownKeys, descriptor = Object.getOwnPropertyDescriptor;
+  const prototype = Object.getPrototypeOf, create = Object.create;
+  const define = Object.defineProperty, setPrototype = Object.setPrototypeOf;
+  const isArray = Array.isArray, finite = Number.isFinite, integer = Number.isInteger;
+  const objectPrototype = Object.prototype, arrayPrototype = Array.prototype;
+  const stringify = JSON.stringify, parse = JSON.parse, ErrorType = Error;
+  const WeakSetType = WeakSet;
+  const owns = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
+  const has = Function.prototype.call.bind(WeakSet.prototype.has);
+  const add = Function.prototype.call.bind(WeakSet.prototype.add);
+  const remove = Function.prototype.call.bind(WeakSet.prototype.delete);
+  const reject = () => { throw new ErrorType('non-JSON value at isolate boundary; sync code only'); };
+  return {
+    parse,
+    describe(error) {
+      if (typeof error === 'string') return error;
+      if (error !== null && typeof error === 'object') {
+        const item = descriptor(error, 'message');
+        if (item && owns(item, 'value') && typeof item.value === 'string') return item.value;
       }
-      default:
-        throw new Error(`${what} is not JSON-serializable across the isolate boundary`);
+      return 'plugin evaluation failed';
+    },
+    encode(value) {
+      const ancestors = new WeakSetType();
+      let nodes = 0, characters = 0;
+      function clone(value, depth) {
+        if (++nodes > 10000 || depth > 64) reject();
+        if (value === null || typeof value === 'boolean') return value;
+        if (typeof value === 'string') {
+          characters += value.length;
+          if (characters > 262144) reject();
+          return value;
+        }
+        if (typeof value === 'number') { if (!finite(value)) reject(); return value; }
+        if (typeof value !== 'object' || has(ancestors, value)) reject();
+        const array = isArray(value), parent = prototype(value);
+        if (parent !== null && parent !== (array ? arrayPrototype : objectPrototype)) reject();
+        add(ancestors, value);
+        const names = keys(value);
+        const length = array ? descriptor(value, 'length').value : 0;
+        if (array && (length > 10000 || names.length !== length + 1)) reject();
+        const result = array ? setPrototype([], null) : create(null);
+        for (let i = 0; i < names.length; i++) {
+          const key = names[i];
+          if (array && key === 'length') continue;
+          if (typeof key !== 'string') reject();
+          characters += key.length;
+          if (characters > 262144) reject();
+          if (array && (!integer(+key) || key !== '' + (+key) || +key < 0 || +key >= length)) reject();
+          const item = descriptor(value, key);
+          if (!item || !item.enumerable || !owns(item, 'value')) reject();
+          const property = create(null);
+          property.value = clone(item.value, depth + 1); property.enumerable = true;
+          define(result, key, property);
+        }
+        remove(ancestors, value);
+        return result;
+      }
+      const encoded = stringify(clone(value, 0));
+      if (encoded.length > 262144) reject();
+      return encoded;
     }
   };
-  scan(value, "$");
+})()`;
+
+const MAX_JSON_BYTES = 256 * 1024;
+const MAX_MEMORY_LIMIT_BYTES = 64 * 1024 * 1024;
+
+/** Trusted host results still must be plain, bounded JSON, without coercion. */
+function encodeHostJson(value: unknown): string {
+  const ancestors = new Set<object>();
+  let nodes = 0,
+    characters = 0;
+  const scan = (node: unknown, depth: number): unknown => {
+    if (++nodes > 10000 || depth > 64) throw new Error("JSON boundary structure exceeds limits");
+    if (node === null || typeof node === "boolean") return node;
+    if (typeof node === "string") {
+      characters += node.length;
+      if (characters > MAX_JSON_BYTES) throw new Error("JSON boundary payload exceeds 256 KiB");
+      return node;
+    }
+    if (typeof node === "number" && Number.isFinite(node)) return node;
+    if (typeof node !== "object" || ancestors.has(node))
+      throw new Error("Non-JSON value at isolate boundary");
+    const array = Array.isArray(node);
+    const parent = Object.getPrototypeOf(node);
+    if (parent !== null && parent !== (array ? Array.prototype : Object.prototype))
+      throw new Error("Non-plain value at isolate boundary");
+    ancestors.add(node);
+    const keys = Reflect.ownKeys(node);
+    const length = array ? node.length : 0;
+    if (array && (length > 10000 || keys.length !== length + 1))
+      throw new Error("Sparse or extended array at isolate boundary");
+    const result = array ? Object.setPrototypeOf([], null) : Object.create(null);
+    for (const key of keys) {
+      if (array && key === "length") continue;
+      const item = Object.getOwnPropertyDescriptor(node, key);
+      if (typeof key !== "string" || !item?.enumerable || !Object.hasOwn(item, "value"))
+        throw new Error("Unsupported property at isolate boundary");
+      if (array && (!Number.isInteger(+key) || key !== String(+key) || +key < 0 || +key >= length))
+        throw new Error("Unsupported array property at isolate boundary");
+      characters += key.length;
+      if (characters > MAX_JSON_BYTES) throw new Error("JSON boundary payload exceeds 256 KiB");
+      Object.defineProperty(result, key, { value: scan(item.value, depth + 1), enumerable: true });
+    }
+    ancestors.delete(node);
+    return result;
+  };
+  const json = JSON.stringify(scan(value, 0));
+  if (Buffer.byteLength(json) > MAX_JSON_BYTES)
+    throw new Error("JSON boundary payload exceeds 256 KiB");
+  return json;
 }
 
-/** Refuse function handles before dump() coerces them into silence. */
-function assertNotFunctionHandle(ctx: QuickJSContext, handle: QuickJSHandle, what: string): void {
-  if (ctx.typeof(handle) === "function")
-    throw new Error(`${what} is a function across the isolate boundary`);
+// Published QuickJS 0.32 aggregate malloc accounting can miss string/buffer
+// allocations (upstream #255). Bound the underlying memory independently, and
+// check actual usage at interrupts and host/return boundaries. This prebuilt
+// module imports at least 16 MiB; the ceiling includes engine overhead.
+const WASM_PAGE_BYTES = 64 * 1024;
+const modules = new Map<number, Promise<QuickJSWASMModule>>();
+function boundedModule(bytes: number) {
+  const existing = modules.get(bytes);
+  if (existing) return existing;
+  const pages = bytes / WASM_PAGE_BYTES;
+  const pending = newQuickJSWASMModuleFromVariant(
+    newVariant(
+      {
+        ...RELEASE_SYNC,
+        async importModuleLoader() {
+          // The Node host loads the same release engine lazily through its public
+          // CommonJS export. Avoid the ESM loader bridge on every cold process;
+          // no engine import, WASM compilation or initialization is prewarmed.
+          /* eslint-disable @typescript-eslint/no-require-imports -- Intentional lazy Node entrypoint; measured inside first evaluation. */
+          const loader: Awaited<
+            ReturnType<typeof RELEASE_SYNC.importModuleLoader>
+          > = require("@jitl/quickjs-wasmfile-release-sync/emscripten-module");
+          /* eslint-enable @typescript-eslint/no-require-imports */
+          return loader;
+        },
+      },
+      {
+        wasmMemory: new WebAssembly.Memory({ initial: pages, maximum: pages }),
+      },
+    ),
+  );
+  // Only four bounded module variants may be retained. Evaluation after await
+  // is synchronous, so no active guest yields its context to another evaluation.
+  if (modules.size >= 4) modules.delete(modules.keys().next().value!);
+  const retained = pending.catch((error) => {
+    if (modules.get(bytes) === retained) modules.delete(bytes);
+    throw error;
+  });
+  modules.set(bytes, retained);
+  return retained;
 }
 
-function toHandle(ctx: QuickJSContext, value: PluginJsonValue): QuickJSHandle {
-  if (value === null) return ctx.null.dup();
-  switch (typeof value) {
-    case "string":
-      return ctx.newString(value);
-    case "number":
-      return ctx.newNumber(value);
-    case "boolean": {
-      // No boolean constructor exists; a literal keeps the type exact
-      // across the boundary instead of coercing true to 1.
-      const handle = ctx.evalCode(value ? "true" : "false");
-      if (handle && typeof handle === "object" && "value" in handle)
-        return (handle as { value: QuickJSHandle }).value;
-      throw new Error("could not marshal a boolean across the isolate boundary");
-    }
-    default: {
-      // Structured values cross as structures, never stringified: a quiet
-      // stringification would change what the plugin observes.
-      if (Array.isArray(value)) {
-        const array = ctx.newArray();
-        value.forEach((item, index) => {
-          const element = toHandle(ctx, item);
-          ctx.setProp(array, index, element);
-          element.dispose();
-        });
-        return array;
-      }
-      const object = ctx.newObject();
-      for (const [key, item] of Object.entries(value)) {
-        const prop = toHandle(ctx, item);
-        ctx.setProp(object, key, prop);
-        prop.dispose();
-      }
-      return object;
-    }
+export class PluginIsolateError extends Error {
+  constructor(
+    message: string,
+    public readonly receipt: PluginIsolateReceipt,
+  ) {
+    super(message);
+    this.name = "PluginIsolateError";
   }
-}
-
-/** True when the handle is a thenable. Callers must still dispose the handle. */
-function isThenable(ctx: QuickJSContext, handle: QuickJSHandle): boolean {
-  let thenProp: QuickJSHandle | null = null;
-  let result = false;
-  try {
-    thenProp = ctx.getProp(handle, "then");
-    result = ctx.typeof(thenProp) === "function";
-  } catch (error) {
-    console.error(
-      `[plugin-isolate] thenable probe failed: ${error instanceof Error ? error.message : "unknown"}`,
-    );
-  }
-  if (thenProp) {
-    try {
-      thenProp.dispose();
-    } catch (error) {
-      console.error(
-        `[plugin-isolate] thenable-probe disposal failed: ${error instanceof Error ? error.message : "unknown"}`,
-      );
-    }
-  }
-  return result;
 }
 
 export async function evaluateInIsolate(
@@ -175,101 +248,191 @@ export async function evaluateInIsolate(
   options: PluginIsolateOptions = {},
 ): Promise<{ value: PluginJsonValue; receipt: PluginIsolateReceipt }> {
   const pluginId = options.pluginId ?? null;
-  const started = Date.now();
+  const started = performance.now();
+  let timedOut = false,
+    memoryExceeded = false,
+    memoryUnavailable = false;
+  let wasmMemoryLimitBytes = 0;
+  const receipt = (): PluginIsolateReceipt => ({
+    pluginId,
+    elapsedMs: performance.now() - started,
+    timedOut,
+    memoryLimited: memoryExceeded,
+    wasmMemoryLimitBytes,
+  });
   const fail = (message: string): never => {
-    throw new Error(`Plugin${pluginId ? ` ${pluginId}` : ""} isolate refused: ${message}`);
+    throw new PluginIsolateError(
+      `Plugin${pluginId ? ` ${pluginId}` : ""} isolate refused: ${message}`,
+      { ...receipt(), memoryLimited: memoryExceeded ? true : null },
+    );
   };
   if (typeof code !== "string" || !code.trim()) fail("no code to evaluate");
-  // The code string itself lives in host memory, outside the isolate heap
-  // the memory limit guards — cap it so a giant payload cannot DoS the host.
   if (Buffer.byteLength(code, "utf8") > MAX_CODE_BYTES)
     fail(`code exceeds the ${MAX_CODE_BYTES}-byte limit`);
-  const timeoutMs = Math.max(
-    1,
-    Math.min(MAX_TIMEOUT_MS, Math.floor(options.timeoutMs ?? DEFAULT_TIMEOUT_MS)),
-  );
-  const memoryLimitBytes = Math.max(
-    256 * 1024,
-    Math.floor(options.memoryLimitBytes ?? DEFAULT_MEMORY_LIMIT_BYTES),
-  );
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const memoryLimitBytes = options.memoryLimitBytes ?? DEFAULT_MEMORY_LIMIT_BYTES;
+  if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > MAX_TIMEOUT_MS)
+    fail("timeoutMs must be an integer between 1 and 30000");
+  if (
+    !Number.isInteger(memoryLimitBytes) ||
+    memoryLimitBytes < 256 * 1024 ||
+    memoryLimitBytes > MAX_MEMORY_LIMIT_BYTES
+  )
+    fail("memoryLimitBytes must be an integer between 256 KiB and 64 MiB");
   const bindings = options.bindings ?? {};
   for (const name of Object.keys(bindings)) {
     if (typeof bindings[name] !== "function")
       fail(`binding ${JSON.stringify(name)} is not a function`);
-    // A binding installs onto the isolate global: names that shadow
-    // prototype machinery would corrupt the isolate itself.
     if (!BINDING_NAME_PATTERN.test(name) || RESERVED_BINDING_NAMES.has(name))
       fail(`binding ${JSON.stringify(name)} is not a safe global name`);
   }
-
-  const quickjs = await getQuickJS();
+  wasmMemoryLimitBytes = Math.max(
+    16 * 1024 * 1024,
+    Math.ceil((memoryLimitBytes + 2 * 1024 * 1024) / WASM_PAGE_BYTES) * WASM_PAGE_BYTES,
+  );
+  const quickjs = await boundedModule(wasmMemoryLimitBytes);
   const runtime = quickjs.newRuntime();
   try {
     runtime.setMemoryLimit(memoryLimitBytes);
-    const deadline = Date.now() + timeoutMs;
-    runtime.setInterruptHandler(() => Date.now() > deadline);
+    runtime.setMaxStackSize(256 * 1024);
+    const deadline = performance.now() + timeoutMs;
     const context = runtime.newContext();
+    let inspectingMemory = false;
+    const memoryFailure = () =>
+      memoryUnavailable
+        ? "memory accounting unavailable"
+        : `memory limit exceeded (${memoryLimitBytes} bytes)`;
+    const overMemory = () => {
+      if (inspectingMemory || memoryUnavailable || memoryExceeded)
+        return memoryUnavailable || memoryExceeded;
+      inspectingMemory = true;
+      let usage: QuickJSHandle | undefined;
+      let size: QuickJSHandle | undefined;
+      try {
+        usage = runtime.computeMemoryUsage();
+        size = context.getProp(usage, "memory_used_size");
+        const bytes = context.getNumber(size);
+        memoryUnavailable ||= !Number.isFinite(bytes);
+        memoryExceeded ||= Number.isFinite(bytes) && bytes > memoryLimitBytes;
+      } catch {
+        // A failed accounting read cannot authorize continued guest execution.
+        memoryUnavailable = true;
+        console.error("[plugin-isolate] memory accounting unavailable; evaluation stopped");
+      } finally {
+        size?.dispose();
+        usage?.dispose();
+        inspectingMemory = false;
+      }
+      return memoryUnavailable || memoryExceeded;
+    };
+    runtime.setInterruptHandler(() => {
+      if (performance.now() >= deadline) timedOut = true;
+      return timedOut || overMemory();
+    });
+    const owned: QuickJSHandle[] = [];
     try {
-      for (const [name, fn] of Object.entries(bindings)) {
-        const handle = context.newFunction(name, function (...args) {
-          for (const arg of args) assertNotFunctionHandle(context, arg, `binding ${name} argument`);
-          const dumped = args.map((arg) => context.dump(arg));
-          assertJson(dumped, `binding ${name} arguments`);
-          let result: unknown;
+      const codec = context.evalCode(JSON_CODEC, "host-json-codec.js");
+      if (codec.error) {
+        codec.error.dispose();
+        fail("JSON boundary initialization failed");
+      }
+      if (!("value" in codec)) return fail("JSON boundary initialization failed");
+      const codecHandle = codec.value;
+      owned.push(codecHandle);
+      const encoder = context.getProp(codecHandle, "encode");
+      const parser = context.getProp(codecHandle, "parse");
+      const describe = context.getProp(codecHandle, "describe");
+      owned.push(encoder, parser, describe);
+      const errorMessage = (handle: QuickJSHandle): string => {
+        if (memoryExceeded || memoryUnavailable) return memoryFailure();
+        if (timedOut) return `timed out after ${timeoutMs}ms`;
+        const result = context.callFunction(describe, context.undefined, handle);
+        if (result.error) {
+          result.error.dispose();
+          return "plugin evaluation failed";
+        }
+        try {
+          return context.getString(result.value).slice(0, 1000);
+        } finally {
+          result.value.dispose();
+        }
+      };
+      const readJson = (handle: QuickJSHandle): PluginJsonValue => {
+        const result = context.callFunction(encoder, context.undefined, handle);
+        if (result.error) {
           try {
-            result = fn(...(dumped as PluginJsonValue[]));
-          } catch (error) {
-            throw context.newString(error instanceof Error ? error.message : String(error));
+            throw new Error(errorMessage(result.error));
+          } finally {
+            result.error.dispose();
           }
-          assertJson(result, `binding ${name} result`);
-          return toHandle(context, result as PluginJsonValue);
+        }
+        try {
+          const json = context.getString(result.value);
+          if (Buffer.byteLength(json) > MAX_JSON_BYTES)
+            throw new Error("JSON boundary payload exceeds 256 KiB");
+          return JSON.parse(json) as PluginJsonValue;
+        } finally {
+          result.value.dispose();
+        }
+      };
+      let bindingCalls = 0;
+      for (const [name, fn] of Object.entries(bindings)) {
+        const handle = context.newFunction(name, (...args) => {
+          try {
+            if (++bindingCalls > 10000 || args.length > 32)
+              throw new Error("Host binding call limit exceeded");
+            if (performance.now() >= deadline) {
+              timedOut = true;
+              throw new Error(`timed out after ${timeoutMs}ms`);
+            }
+            if (overMemory()) throw new Error(memoryFailure());
+            const values = args.map(readJson);
+            const json = encodeHostJson(fn(...values));
+            const jsonHandle = context.newString(json);
+            try {
+              return context.callFunction(parser, context.undefined, jsonHandle);
+            } finally {
+              jsonHandle.dispose();
+            }
+          } catch (error) {
+            return {
+              error: context.newString(
+                error instanceof Error ? error.message : "Host binding refused",
+              ),
+            };
+          }
         });
-        context.setProp(context.global, name, handle);
-        handle.dispose();
+        try {
+          context.setProp(context.global, name, handle);
+        } finally {
+          handle.dispose();
+        }
       }
       const result = context.evalCode(code, "plugin.js");
-      const elapsedMs = Date.now() - started;
-      const receipt: PluginIsolateReceipt = {
-        pluginId,
-        elapsedMs,
-        timedOut: false,
-        memoryLimited: false,
-      };
-      if (result && typeof result === "object" && "error" in result) {
-        const errorHandle = (result as { error?: QuickJSHandle }).error;
-        if (errorHandle) {
-          const dumped = context.dump(errorHandle);
-          errorHandle.dispose();
-          const message =
-            typeof dumped === "object" && dumped !== null
-              ? String((dumped as Record<string, unknown>).message ?? JSON.stringify(dumped))
-              : String(dumped);
-          if (/interrupted/i.test(message)) {
-            receipt.timedOut = true;
-            fail(`timed out after ${timeoutMs}ms`);
-          }
-          if (/memory|alloc/i.test(message)) receipt.memoryLimited = true;
-          fail(message);
+      if (result.error) {
+        try {
+          fail(errorMessage(result.error));
+        } finally {
+          result.error.dispose();
         }
-        fail("evaluation failed without a usable error");
       }
-      if (!result || typeof result !== "object" || !("value" in result))
-        fail("evaluation returned no usable value");
-      const valueHandle = (result as { value: QuickJSHandle }).value;
+      if (!("value" in result)) return fail("evaluation returned no usable value");
       try {
-        if (isThenable(context, valueHandle))
-          fail("async plugin results are refused: sync code only in this primitive");
-        assertNotFunctionHandle(context, valueHandle, "plugin return value");
-        const value = context.dump(valueHandle);
-        assertJson(value, "plugin return value");
-        return {
-          value: value as PluginJsonValue,
-          receipt: { ...receipt, elapsedMs: Date.now() - started },
-        };
+        if (overMemory()) return fail(memoryFailure());
+        const value = readJson(result.value);
+        if (performance.now() >= deadline) {
+          timedOut = true;
+          fail(`timed out after ${timeoutMs}ms`);
+        }
+        return { value, receipt: receipt() };
+      } catch (error) {
+        if (error instanceof PluginIsolateError) throw error;
+        return fail(error instanceof Error ? error.message : "JSON boundary refused");
       } finally {
-        valueHandle.dispose();
+        result.value.dispose();
       }
     } finally {
+      for (const handle of owned.reverse()) handle.dispose();
       context.dispose();
     }
   } finally {

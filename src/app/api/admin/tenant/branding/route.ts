@@ -1,9 +1,9 @@
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
-import { bindTenantDatabase, createPlatformServiceRoleClient } from "@/lib/supabase/server";
-import { readWorkspaceBrand, saveWorkspaceBrand } from "@/lib/revenue-os/branding";
+import { readWorkspaceBrand, saveWorkspaceBrandAsAdmin } from "@/lib/revenue-os/branding";
 import { workspaceBrandSchema } from "@/lib/revenue-os/branding-contract";
 export async function GET() {
   const auth = await requireAdmin();
@@ -23,17 +23,14 @@ export async function PUT(request: Request) {
       .object({ brand: workspaceBrandSchema, revision: z.string().regex(/^[a-f0-9]{64}$/) })
       .strict()
       .parse(await readBoundedJson(request));
-    const db = bindTenantDatabase(
-      createPlatformServiceRoleClient("tenant-branding-update"),
-      auth.tenant.id,
-      true,
-    );
     return NextResponse.json(
-      await saveWorkspaceBrand(
-        db,
-        parsed.brand,
-        parsed.revision,
-        auth.user.email || "workspace-member",
+      await runWithTenantRequestContext(auth, () =>
+        saveWorkspaceBrandAsAdmin(
+          auth.database,
+          parsed.brand,
+          parsed.revision,
+          auth.user.email || "workspace-member",
+        ),
       ),
     );
   } catch (error) {

@@ -95,6 +95,22 @@ Phase B and C land (see `docs/NORTHSTAR.md` §6–§20 and the Feature Board car
 | `schema-contract.ts`                          | Declarative minimum deployed database shape every service may depend on                                                            | `supabase/server.ts`, admin setup route, schema verification CLI                      | Versioned contract; tenant-scoped table allowlist; CLI validates metadata, app validates runtime usability                                                                                                                                                                                                                                                 |
 | `db.ts` / `types.ts`                          | Shared normalization, schema errors, contracts                                                                                     | All domain modules                                                                    | No route-local stage or normalization variants                                                                                                                                                                                                                                                                                                             |
 
+## Workflow plugin contracts
+
+`plugin-workflow-contract.ts` owns the trusted workflow input/policy registry.
+`plugin-workflow-policy.ts` validates canonical evidence and replay policies and
+owns the retry-key builders used by task/invoice services. Generated contract
+fingerprints invalidate stale queued workflow approvals. The pure
+`action-reversibility-contract.ts` is the shared classification authority for
+runtime execution and generation; `action-reversibility.ts` owns compensation.
+It reuses the invoice and task domain validators to derive the bounded AI/build
+schema and the allowed action. `build-extension-modules.mjs` regenerates those
+manifest fields; `workflow-plugins.ts` parses and normalizes input with the same
+contract before guest evaluation. The domain service still owns identity checks,
+approval, idempotency and effects. Plugins cannot supply an import path or host
+implementation. See `docs/contributing/EXTENDING.md` for the current scope and
+remaining manifest-policy work.
+
 ## Choosing a module
 
 - New person/business matching extends `identity.ts`.
@@ -132,3 +148,53 @@ source of truth for those gaps. Do not describe planned coverage as passing.
 - `invoice-pages.ts` owns AI design traces, reviewed publication, immutable branding snapshots, encrypted/hash-indexed share tokens and revocation. `InvoiceDocument` is the shared renderer for the brand preview, editor and customer page.
 
 See [Extending Accelerate](../../../docs/contributing/EXTENDING.md#actionable-business-workflow-exemplars) for contracts, limits, setup and controlled verification. Provider integration tests are fixtures, not real Stripe sandbox receipts.
+
+### Collections Action Desk
+
+`collections.ts` owns bounded refresh of platform-created Stripe invoices and
+revision-checked case policy edits. It uses the existing tenant-bound Stripe
+reader; request inputs contain canonical action IDs, never billing facts.
+`sync_collection_observations` and `update_collection_case` atomically write case
+state, immutable observation/command/event history, canonical activities/audit
+and WorkItems. The optional `receivables-collections` module and Stripe invoicing
+must be enabled. Disabling retains evidence and denies further writes.
+
+`collection-reminders.ts` owns branded previews, digest-bound proposals and
+approved dispatch through `action-executor.ts` and `communications.ts`. The
+reminder RPCs reserve one dispatch per case and reconcile only canonical message
+receipts. Uncertainty blocks additional sending; confirmed send time owns cooldown.
+
+`collection-workspace.ts` joins bounded case, current-observation, contact,
+WorkItem, event and reminder receipt reads. `collection-contract.ts` and
+`collection-reminder-template.ts` are pure shared admin/demo contracts.
+`callCollectionHostRpc` in the Supabase server boundary bridges only named,
+verified Collections writes from a current authorized actor; SQL remains host-only.
+
+`collection-agent.ts` provides bounded AI/MCP result projections over the same
+Collections read/preview/proposal services. `collection-agent-contract.ts` shares
+the three typed tool descriptors with demo discovery. `ai-tool-contract.ts` owns
+the browser-safe registry version. Module activation is checked at discovery and
+again in the host; agent proposals preserve pending human approval and server-owned
+WorkItem provenance. These adapters never send or expose raw action payloads.
+
+Branding AI reads/previews/proposals are adapters in `branding-actions.ts` with
+browser-safe schemas and metadata in `branding-actions-contract.ts`. Approved
+writes and the normal admin form use `saveWorkspaceBrandAsAdmin` in `branding.ts`.
+`tenant-admin-authority.ts` checks fresh human membership and exact actor/database
+scope before that host obtains a privileged writer. Do not expose this writer to
+plugins or turn the branding action into a generic tenant-config mutation.
+
+`module-actions.ts` adds governed read/preview/proposal adapters for existing
+module controls, with public schemas in `module-actions-contract.ts` and bounded
+projections in `module-configuration-read.ts`. Approval and direct admin writes
+reuse `updateModuleConfigurationAsAdmin`; its existing CAS service checks an AI
+proposal's target revision before bundled-source registration or config updates.
+Module management stays core-owned even when the target plugin is disabled.
+
+`ai-tool-bundles.ts` derives bounded, run-scoped tool bundles from canonical module
+ownership. `ai-tools.ts` exposes read-only discovery/activation in AI and MCP;
+`ai-agent.ts` loads one bundle plus the small core and verifies advertised tools
+and current module enablement at dispatch. Legacy explicit MCP pack restrictions
+remain authoritative. No bundle can approve a business change. See
+`test:ai-tool-discovery`, `test:agent-loop` and the admin/AI parity contract for
+coverage and the remaining durable conversation-activation work.

@@ -223,6 +223,22 @@ npm run build
 module registered entirely from a manifest. It ships disabled, so it stays out
 of a real workspace until someone turns it on.
 
+## Command-agent tool discovery
+
+Declare every registered tool in exactly one module's `aiToolNames`. The command
+agent derives bundles from those declarations; plugin authors do not maintain
+another discovery map. `discover_tool_bundles` searches module metadata and tool
+names, and `activate_tool_bundle` loads one bundle alongside eight common tools.
+Large modules are split automatically, keeping each model turn at 40 tools or fewer.
+Run `npm run test:ai-tool-discovery` to verify ownership, reachability and bounds.
+
+Activation applies to the current command run and takes effect on its next turn.
+It grants no permission or approval. The host checks the advertised tool set and
+refreshes active tenant/module state before dispatch. Existing explicit MCP tool
+pack restrictions remain in force. Cross-run activation restoration is not yet
+implemented; the next run can discover the same tools again. Business changes
+still require their existing typed proposal, human approval and canonical executor.
+
 ## Capability data boundary
 
 `capability-data-api.ts` is a host-only adapter, not a tool whose grant fields an agent may fill in. The host must resolve the authenticated tenant database and approved capability declaration. All four data operations refuse unbound clients or a different tenant in the grant. No grant, tenant ID, table, or readable-field declaration may be taken from plugin arguments.
@@ -295,6 +311,53 @@ This lane does not implement arbitrary uploads, remote installation, asynchronou
 isolate bindings, persistent event subscriptions, distributed metering, or the
 separate third-party plugin review lifecycle. Those retain their Feature Board
 acceptance rather than inheriting a claim of completion from bundled examples.
+
+### Isolate transport and resource contract
+
+The report and workflow hosts use the same `plugin-isolate.ts` boundary. Plugin
+JavaScript executes in a fresh QuickJS context, with only the synchronous bindings
+selected by the trusted host from its declared sources. Those bindings receive JSON
+values, never a database client, environment object or provider credential. Core
+host callbacks must remain bounded: a guest interrupt cannot preempt synchronous
+JavaScript running in the Node host.
+
+Only plain JSON crosses the boundary. Nested functions, `undefined`, non-finite
+numbers, bigint, symbols, accessors, sparse/extended arrays, cycles, custom objects
+such as dates/maps, and asynchronous results are refused. Convert dates explicitly
+to strings before returning them. Shared references are allowed as repeated JSON
+values. A private codec captures pristine intrinsics before plugin execution, so
+replacing guest `JSON` or `Object` methods cannot change transport validation.
+Property accessors are not evaluated during transport; proxy traps execute only
+inside the interruptible guest context.
+
+Each transported value is limited to 256 KiB of UTF-8 JSON, 10,000 visited values
+and 64 nested levels. The existing 64 KiB source-snapshot and business input/output
+limits remain tighter where applicable. Code is limited to 256 KiB; an evaluation
+allows at most 10,000 host calls and 32 arguments per call. Resource options must
+be finite integers: timeout 1 through 30,000 ms and heap 256 KiB through 64 MiB.
+The normal business hosts retain their 250 ms / 8 MiB budgets. Serialization runs
+inside the same guest deadline and the runtime is disposed after success or failure.
+
+The pinned QuickJS version has an [upstream aggregate-allocation accounting
+issue](https://github.com/justjake/quickjs-emscripten/issues/255). The host therefore
+checks actual aggregate usage at interrupts, before host calls and before returning
+a result. A breach terminates the evaluation. A separate fixed WebAssembly memory
+ceiling bounds allocation between those checks: at least 16 MiB (the prebuilt
+engine's minimum), or the configured heap budget plus 2 MiB, rounded to a 64 KiB
+page. The receipt records that hard ceiling. The 8 MiB budget is a sampled guest
+quota, not a promise that peak host-process memory stays below 8 MiB. At most four
+bounded engine variants are cached; tenant contexts and values are never reused.
+
+`npm run test:plugin-isolate`, required by `test:core` in CI, measures the **first
+evaluation including WASM initialization** against the 50 ms acceptance budget.
+It reports that measurement separately from fresh-context timing with the WASM
+module already cached. Neither measurement includes Node startup, module loading,
+or business data reads. Adversarial tests cover transport, authority probes,
+allocation refusal, invalid resource options, timeouts and subsequent host recovery.
+`PluginIsolateError.receipt.timedOut` comes from the host deadline. `memoryLimited` is true only when the host observes aggregate usage exceeding the
+budget. Other failures use `null`: QuickJS does not expose a trustworthy
+allocation-failure flag, and plugin-supplied error text must not become an
+authoritative diagnosis.
 
 ### Actionable business workflow exemplars
 
@@ -449,3 +512,136 @@ revocation. Run `npm run qa:demo-business-workflows` against a local app (overri
 `PLAYWRIGHT_BASE_URL` when needed) for the actual shared UI, desktop/mobile
 journeys, scenario persistence/reset and appearances. The browser harness refuses
 and reports any protected API or external request that escapes the demo transport.
+
+## Collections: a complete native workspace reference
+
+`extensions/receivables-collections.module.json` declares a default-off business
+workspace. The Plugins page lists manifest extensions with workspaces as well
+as isolated workflows/reports, and uses the same module toggle service. It does
+not claim that native server modules can be downloaded and installed as isolated
+third-party code; the generalized plugin SDK and installer remain backlog work.
+
+Enable Stripe invoicing and Collections, configure the workspace's Stripe and
+Resend connections, then open `/admin/collections`. Track an executed platform
+invoice to load verified balances. Assign an owner, record a promise/dispute/pause,
+preview a branded reminder, queue it and approve through the shared action queue.
+The host rechecks current facts before sending. Test invoices are visibly labeled
+in the reminder subject/content. Receipt-only reconciliation never sends again.
+
+The same `CollectionsWorkspace` component runs in all five full admin demos.
+`collections-runtime.ts` is an adapter within the shared fictional demo engine,
+not a copied page or a provider connection. Case policy validation, summary
+calculations and the email renderer are shared with the live host. Source invoices,
+actions, receipts and case WorkItems remain linked in the same scenario state.
+
+Read `plugins/receivables-collections/README.md` for operational limits and
+`scripts/test-receivables-workspace-demo.ts` / `scripts/qa-collections-workspace.mjs`
+for repeatable host, demo and browser verification. The authenticated host bridge
+in `src/lib/supabase/server.ts` permits only four named Collections RPCs after
+matching the request actor/database and rechecking active membership. It returns
+a receipt, never a service-role database handle; actor reads remain RLS-scoped.
+
+### Collections agent entrypoint reference
+
+`collection-agent-contract.ts` owns browser-safe tool descriptors/input schemas;
+`collection-agent.ts` projects bounded results from the existing Collections
+workspace and reminder services. `ai-tools.ts` registers those services once for
+internal AI and `mcp-server.ts` dispatches the same tools. The module manifest owns
+the three tool names. Internal model requests, MCP discovery and the capability
+surface use workspace configuration, while the domain services recheck current
+activation and tenant identity.
+
+Use `get_collection_cases` → `preview_collection_reminder` →
+`propose_collection_reminder` as a contributor reference for read/proposal
+separation. A returned proposal remains pending for human approval. The
+[Collections guide](../../plugins/receivables-collections/README.md#ai-and-mcp-workflow)
+documents inputs, exact digest handling, result bounds and remaining limitations.
+`test:collections-agent-tools` exercises the real registry and MCP adapter against
+the same controlled provider fixture as the underlying reminder service tests.
+
+## Every admin control has a conversational equivalent
+
+Follow the [universal AI/admin parity contract](../contracts/ADMIN-AI-PARITY.md).
+Plugins and native features expose the same narrowly typed operations to the
+admin, AI and authorized MCP clients. Writes use exact proposals and human
+approval through the shared executor. Document missing coverage on the live board
+and refresh the route inventory after semantic review; a passing inventory check
+is not evidence that an operation has AI support.
+
+## Shared workflow input contracts
+
+Bundled workflows select a trusted host validator with `workflow.inputContract`:
+`task-batch-opportunity-v1`, `task-batch-meeting-v1`, or `stripe-invoice-draft-v1`.
+These contracts live in `src/lib/revenue-os/plugin-workflow-contract.ts` and reuse
+`workflow-task-contract.ts` and `stripe-contract.ts`, the validators used by the
+business services. A plugin cannot name an arbitrary import or action implementation.
+
+Run `npm run build:extensions` after changing the contract. It regenerates the
+workflow's `inputSchema`, `actions`, `policy`, and `contractHash` in `extensions/*.module.json`, then the
+compiled module registry. Those fields are generated output; do not maintain
+a parallel schema there. `npm run verify:extensions` rejects changes to either
+side that have not been regenerated. `npm run test:plugin-workflow-contract`
+exercises both directions of drift in a disposable fixture.
+
+The advertised JSON schema is a bounded discovery projection. UUID/date patterns
+and cross-field refinements are enforced by the original Zod validator before
+plugin evaluation, and again by the business service. Normalized input is passed
+to the isolate. This keeps AI tool descriptions bounded without weakening runtime
+validation. Generation imports only trusted host contracts; plugin JavaScript is
+read and hashed as data and executes only in QuickJS.
+
+Each supported workflow also registers a canonical identity source and explicit
+request/effect idempotency policies in `plugin-workflow-contract.ts`.
+`plugin-workflow-policy.ts` validates that registration against the implemented
+action: opportunity/meeting task batches require their matching source; invoice
+drafts require a contact source. Missing evidence, missing retry policies and
+contradictory registrations fail generation. The host verifies the source before
+running plugin code and prevents the returned plan from changing that identity.
+Domain services still resolve live, tenant-bound records and provider identities.
+
+The authoritative action classification in `action-reversibility-contract.ts`
+determines the generated workflow tier (2 for these internal task writes, 3 for
+external invoice drafts), impact and reversibility. An irreversible action's
+requested autonomous ceiling is rewritten to `always-propose` with a warning.
+All three bundled workflows require approval. This does not enable autonomous
+third-party plugins. The existing request, task-effect and Stripe-effect key
+formats are preserved; their shared builders are used by the actual services.
+
+Generated `contractHash` fingerprints the trusted validator/policy source files,
+the workflow declaration and its sources. Proposals record that hash alongside
+the plugin JavaScript hash. Approved execution checks both against the current
+registration, rechecks enablement and enforces the approval ceiling. A host
+contract change therefore invalidates pending proposals, even when plugin code
+is unchanged. This deliberately includes source changes that may be semantically
+harmless. After upgrading from proposals without this hash, prepare and approve
+a fresh workflow; legacy proposals fail closed. Completed receipts and effect
+retry keys remain intact.
+
+This covers the three isolated workflow registrations. Native adapter operations,
+event registration, general entity read/write grants, and complete registration
+parity remain tracked by `plugin-manifest-generator`. It is not a complete
+third-party registration or installation SDK.
+
+## Cold-start verification
+
+The Node host lazily loads QuickJS's public CommonJS Emscripten entrypoint.
+It uses the same pinned release engine and fixed WASM memory ceiling as before;
+loading, compiling and initializing the engine all remain inside the first
+`evaluateInIsolate` call. Next externalizes this native package and traces the
+WASM asset. CI reconstructs the engine from each representative route's deployment
+trace and executes it without falling back to workspace package files.
+
+`npm run test:plugin-cold-start` records five independently cold Node processes,
+including module import time, full process wall time, the first evaluation and
+five subsequent fresh-context evaluations. It retains every sample and requires
+the slowest first evaluation to remain below the existing 50 ms budget. There is
+no retry or warmup. CI alternates candidate and baseline processes, records CPU,
+OS, architecture and Node version, and retains the JSON even when the gate fails.
+The baseline source is the pinned pre-optimization commit `318b11d`.
+
+The evaluator metric includes WASM initialization, runtime/context creation,
+transport initialization, guest execution and disposal. Process startup and
+module import costs are reported separately. OS filesystem cache and shared
+runner scheduling are uncontrolled, so this is a measured regression budget,
+not a universal latency guarantee. The original 50.375514 ms failure remains
+linked from the `plugin-isolate-cold-start-headroom` work card.

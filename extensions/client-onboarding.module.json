@@ -21,46 +21,27 @@
     "version": 1,
     "inputSchema": {
       "type": "object",
-      "additionalProperties": false,
-      "required": ["opportunityId", "tasks"],
       "properties": {
-        "opportunityId": {
-          "type": "string",
-          "minLength": 36,
-          "maxLength": 36
-        },
+        "opportunityId": { "type": "string", "maxLength": 36, "minLength": 36 },
         "tasks": {
-          "type": "array",
           "minItems": 1,
           "maxItems": 10,
+          "type": "array",
           "items": {
             "type": "object",
-            "additionalProperties": false,
-            "required": ["title", "description", "dueDate", "assigneeUserId"],
             "properties": {
-              "title": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 200
-              },
-              "description": {
-                "type": "string",
-                "maxLength": 2000
-              },
-              "dueDate": {
-                "type": "string",
-                "minLength": 10,
-                "maxLength": 10
-              },
-              "assigneeUserId": {
-                "type": "string",
-                "minLength": 36,
-                "maxLength": 36
-              }
-            }
+              "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "description": { "type": "string", "maxLength": 2000 },
+              "dueDate": { "type": "string", "maxLength": 10, "minLength": 10 },
+              "assigneeUserId": { "type": "string", "maxLength": 36, "minLength": 36 }
+            },
+            "required": ["title", "description", "dueDate", "assigneeUserId"],
+            "additionalProperties": false
           }
         }
-      }
+      },
+      "required": ["opportunityId", "tasks"],
+      "additionalProperties": false
     },
     "actions": ["create_task_batch"],
     "sources": [
@@ -70,6 +51,22 @@
         "columns": ["id", "name", "stage"],
         "inputKey": "opportunityId"
       }
-    ]
+    ],
+    "inputContract": "task-batch-opportunity-v1",
+    "policy": {
+      "version": 1,
+      "action": "create_task_batch",
+      "trustCeiling": "always-propose",
+      "evidence": {
+        "kind": "canonical-record",
+        "inputKey": "opportunityId",
+        "sourceType": "workflow_opportunities"
+      },
+      "idempotency": { "request": "workflow-request-v1", "effect": "task-content-sha256-v1" },
+      "tier": 2,
+      "impact": "internal_write",
+      "reversibility": "compensable"
+    },
+    "contractHash": "420ba78cbb3dc4bbf59b96ccbef884ffa1ae7fc5063348d17b655e16dd9d1faa"
   }
 }

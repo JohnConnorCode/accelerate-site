@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { chromium } from "playwright";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3023";
 const output = "/tmp/accelerate-demo-business";
@@ -12,6 +12,9 @@ const scenarios = [
   "common-table-network",
 ];
 const browser = await chromium.launch();
+let activePage;
+let activeScenario = "starting";
+let activeViewport = "unknown";
 async function stable(page) {
   await page.locator(".admin-main h1").waitFor();
   assert.ok(
@@ -26,6 +29,8 @@ try {
       reducedMotion: "reduce",
     });
     const page = await context.newPage();
+    activePage = page;
+    activeViewport = mobile ? "mobile" : "desktop";
     const errors = [],
       escaped = [];
     page.on("pageerror", (e) => errors.push(e.message));
@@ -41,6 +46,7 @@ try {
       return route.continue();
     });
     for (const scenario of scenarios) {
+      activeScenario = scenario;
       const root = `${base}/demo/command-center/${scenario}`;
       await page.goto(root + "/branding");
       await page.getByRole("button", { name: "Save branding", exact: true }).waitFor();
@@ -145,8 +151,19 @@ try {
       await page.goto(root + "/plugins");
       const plugin = page.locator('[data-plugin="stripe-invoicing"]');
       await plugin.getByRole("button", { name: /^Disable / }).click();
-      await plugin.getByRole("button", { name: /^Enable / }).waitFor();
+      // Visibility can precede completion of the mutation/refetch. Wait for an
+      // actionable control and assert stored state before navigating away.
+      await plugin.getByRole("button", { name: /^Enable / }).click({ trial: true });
+      const storedDisabled = () =>
+        page.evaluate(
+          (id) =>
+            JSON.parse(sessionStorage.getItem(`accelerate:admin-demo:${id}:v3`) || "{}")
+              .moduleOverrides?.["stripe-invoicing"] === false,
+          scenario,
+        );
+      assert.equal(await storedDisabled(), true, "Completed disable must be stored before reload");
       await page.reload();
+      assert.equal(await storedDisabled(), true, "Reload must preserve disabled plugin state");
       await plugin.getByRole("button", { name: /^Enable / }).click();
       await plugin.getByRole("button", { name: /^Disable / }).waitFor();
       // Exercise the shared Appearance control on the actual branded admin screen.
@@ -179,6 +196,26 @@ try {
     assert.deepEqual(errors, [], "Browser errors");
     await context.close();
   }
+} catch (error) {
+  if (activePage && !activePage.isClosed()) {
+    const prefix = `${output}/failure-${activeScenario}-${activeViewport}`;
+    await activePage.screenshot({ path: `${prefix}.png`, timeout: 5000 }).catch(() => {});
+    const details = await activePage
+      .evaluate(
+        (id) => ({
+          path: location.pathname,
+          runtime: window.__accelerateAdminDemoRuntime,
+          moduleOverrides: JSON.parse(
+            sessionStorage.getItem(`accelerate:admin-demo:${id}:v3`) || "{}",
+          ).moduleOverrides,
+          visibleText: document.body.innerText.slice(0, 20000),
+        }),
+        activeScenario,
+      )
+      .catch(() => ({ diagnostic: "Page unavailable" }));
+    await writeFile(`${prefix}.json`, JSON.stringify(details, null, 2));
+  }
+  throw error;
 } finally {
   await browser.close();
 }

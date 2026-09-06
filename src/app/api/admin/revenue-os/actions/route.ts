@@ -1,5 +1,7 @@
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
+import { reconcileCollectionReminder } from "@/lib/revenue-os/collection-reminders";
 import { approveAndExecuteAction } from "@/lib/revenue-os/action-executor";
 import { rejectAction, sweepExpiredActions, retryPluginAction } from "@/lib/revenue-os/actions";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
@@ -30,13 +32,18 @@ export async function PATCH(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
   const body = (await request.json()) as {
     id?: string;
-    decision?: "approve" | "reject" | "retry";
+    decision?: "approve" | "reject" | "retry" | "reconcile";
     reason?: string;
   };
-  if (!body.id || !["approve", "reject", "retry"].includes(body.decision || ""))
+  if (!body.id || !["approve", "reject", "retry", "reconcile"].includes(body.decision || ""))
     return NextResponse.json({ error: "Action id and decision are required" }, { status: 400 });
   const supabase = auth.database;
   try {
+    if (body.decision === "reconcile")
+      return NextResponse.json({
+        success: true,
+        result: await reconcileCollectionReminder(supabase, body.id),
+      });
     if (body.decision === "retry")
       return NextResponse.json({
         success: true,
@@ -46,7 +53,9 @@ export async function PATCH(request: NextRequest) {
       await rejectAction(supabase, body.id, auth.user.email || "founder", body.reason);
       return NextResponse.json({ success: true });
     }
-    const result = await approveAndExecuteAction(supabase, body.id, auth.user.email || "founder");
+    const result = await runWithTenantRequestContext(auth, () =>
+      approveAndExecuteAction(supabase, body.id!, auth.user.email || "founder"),
+    );
     return NextResponse.json({ success: true, result });
   } catch (error) {
     return NextResponse.json(

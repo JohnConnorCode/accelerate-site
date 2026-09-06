@@ -66,22 +66,18 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       version: 1,
       inputSchema: {
         type: "object",
-        additionalProperties: false,
-        required: ["opportunityId", "tasks"],
         properties: {
           opportunityId: {
             type: "string",
-            minLength: 36,
             maxLength: 36,
+            minLength: 36,
           },
           tasks: {
-            type: "array",
             minItems: 1,
             maxItems: 10,
+            type: "array",
             items: {
               type: "object",
-              additionalProperties: false,
-              required: ["title", "description", "dueDate", "assigneeUserId"],
               properties: {
                 title: {
                   type: "string",
@@ -94,18 +90,22 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                 },
                 dueDate: {
                   type: "string",
-                  minLength: 10,
                   maxLength: 10,
+                  minLength: 10,
                 },
                 assigneeUserId: {
                   type: "string",
-                  minLength: 36,
                   maxLength: 36,
+                  minLength: 36,
                 },
               },
+              required: ["title", "description", "dueDate", "assigneeUserId"],
+              additionalProperties: false,
             },
           },
         },
+        required: ["opportunityId", "tasks"],
+        additionalProperties: false,
       },
       actions: ["create_task_batch"],
       sources: [
@@ -116,6 +116,25 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
           inputKey: "opportunityId",
         },
       ],
+      inputContract: "task-batch-opportunity-v1",
+      policy: {
+        version: 1,
+        action: "create_task_batch",
+        trustCeiling: "always-propose",
+        evidence: {
+          kind: "canonical-record",
+          inputKey: "opportunityId",
+          sourceType: "workflow_opportunities",
+        },
+        idempotency: {
+          request: "workflow-request-v1",
+          effect: "task-content-sha256-v1",
+        },
+        tier: 2,
+        impact: "internal_write",
+        reversibility: "compensable",
+      },
+      contractHash: "420ba78cbb3dc4bbf59b96ccbef884ffa1ae7fc5063348d17b655e16dd9d1faa",
     },
   },
   {
@@ -198,22 +217,18 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       version: 1,
       inputSchema: {
         type: "object",
-        additionalProperties: false,
-        required: ["meetingId", "tasks"],
         properties: {
           meetingId: {
             type: "string",
-            minLength: 36,
             maxLength: 36,
+            minLength: 36,
           },
           tasks: {
-            type: "array",
             minItems: 1,
             maxItems: 10,
+            type: "array",
             items: {
               type: "object",
-              additionalProperties: false,
-              required: ["title", "description", "dueDate", "assigneeUserId"],
               properties: {
                 title: {
                   type: "string",
@@ -226,18 +241,22 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                 },
                 dueDate: {
                   type: "string",
-                  minLength: 10,
                   maxLength: 10,
+                  minLength: 10,
                 },
                 assigneeUserId: {
                   type: "string",
-                  minLength: 36,
                   maxLength: 36,
+                  minLength: 36,
                 },
               },
+              required: ["title", "description", "dueDate", "assigneeUserId"],
+              additionalProperties: false,
             },
           },
         },
+        required: ["meetingId", "tasks"],
+        additionalProperties: false,
       },
       actions: ["create_task_batch"],
       sources: [
@@ -248,6 +267,25 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
           inputKey: "meetingId",
         },
       ],
+      inputContract: "task-batch-meeting-v1",
+      policy: {
+        version: 1,
+        action: "create_task_batch",
+        trustCeiling: "always-propose",
+        evidence: {
+          kind: "canonical-record",
+          inputKey: "meetingId",
+          sourceType: "workflow_meetings",
+        },
+        idempotency: {
+          request: "workflow-request-v1",
+          effect: "task-content-sha256-v1",
+        },
+        tier: 2,
+        impact: "internal_write",
+        reversibility: "compensable",
+      },
+      contractHash: "d715c6f495c0fd8a4b1362db95a429147203eb35a91920b1528117443eb57182",
     },
   },
   {
@@ -295,6 +333,34 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     },
   },
   {
+    id: "receivables-collections",
+    name: "Collections Action Desk",
+    description:
+      "Track verified overdue invoices, disputes, payment promises and collection follow-up for CRM billing contacts.",
+    category: "revenue",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["receivables-collections"],
+    aiToolNames: [
+      "get_collection_cases",
+      "preview_collection_reminder",
+      "propose_collection_reminder",
+    ],
+    routes: ["/admin/collections"],
+    setupChecks: [],
+    settings: [
+      {
+        key: "cooldownHours",
+        label: "Reminder cooldown (hours)",
+        description: "Minimum time between confirmed reminder sends for an account and currency.",
+        type: "number",
+        default: 72,
+        min: 1,
+        max: 720,
+      },
+    ],
+  },
+  {
     id: "stripe-invoicing",
     name: "Stripe invoicing",
     description:
@@ -316,13 +382,11 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       version: 1,
       inputSchema: {
         type: "object",
-        additionalProperties: false,
-        required: ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
         properties: {
           contactId: {
             type: "string",
-            minLength: 36,
             maxLength: 36,
+            minLength: 36,
           },
           customerId: {
             type: "string",
@@ -330,6 +394,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
             maxLength: 84,
           },
           currency: {
+            type: "string",
             enum: ["usd", "eur", "gbp", "cad", "aud"],
           },
           daysUntilDue: {
@@ -342,13 +407,11 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
             maxLength: 500,
           },
           lines: {
-            type: "array",
             minItems: 1,
             maxItems: 10,
+            type: "array",
             items: {
               type: "object",
-              additionalProperties: false,
-              required: ["description", "quantity", "unitAmount"],
               properties: {
                 description: {
                   type: "string",
@@ -366,9 +429,13 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                   maximum: 100000000,
                 },
               },
+              required: ["description", "quantity", "unitAmount"],
+              additionalProperties: false,
             },
           },
         },
+        required: ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
+        additionalProperties: false,
       },
       actions: ["create_stripe_invoice_draft"],
       sources: [
@@ -379,6 +446,25 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
           inputKey: "contactId",
         },
       ],
+      inputContract: "stripe-invoice-draft-v1",
+      policy: {
+        version: 1,
+        action: "create_stripe_invoice_draft",
+        trustCeiling: "always-propose",
+        evidence: {
+          kind: "canonical-record",
+          inputKey: "contactId",
+          sourceType: "workflow_contacts",
+        },
+        idempotency: {
+          request: "workflow-request-v1",
+          effect: "stripe-action-v1",
+        },
+        tier: 3,
+        impact: "external_action",
+        reversibility: "irreversible",
+      },
+      contractHash: "7afe4530693681c920c43ba2f46b6903039a533d760649fee4a149a547b2aa0d",
     },
   },
 ] as const;
@@ -412,6 +498,15 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     description:
       "Turn reviewed meeting commitments into assigned follow-ups linked to the meeting.",
     moreGroup: "Delivery",
+  },
+  {
+    moduleId: "receivables-collections",
+    id: "receivables-collections",
+    label: "Collections",
+    href: "/admin/collections",
+    icon: "Wallet",
+    description: "Resolve overdue balances and review reminders",
+    moreGroup: "Revenue",
   },
   {
     moduleId: "stripe-invoicing",

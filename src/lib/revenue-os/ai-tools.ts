@@ -1,4 +1,29 @@
 import "server-only";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
+import {
+  ALWAYS_LOADED_AI_TOOLS,
+  TOOL_DISCOVERY_METADATA,
+  buildToolBundles,
+  rankToolBundles,
+} from "./ai-tool-bundles";
+import {
+  MODULE_CONTROL_TOOLS,
+  MODULE_CONTROL_TOOL_NAMES,
+  moduleReadSchema,
+  modulePreviewSchema,
+  moduleProposalSchema,
+} from "./module-actions-contract";
+import { readModuleConfiguration } from "./module-configuration-read";
+import { previewModuleConfiguration, proposeModuleConfiguration } from "./module-actions";
+import { readWorkspaceBrand } from "./branding";
+import { previewWorkspaceBrandUpdate, proposeWorkspaceBrandUpdate } from "./branding-actions";
+import {
+  BRANDING_TOOLS,
+  BRANDING_TOOL_NAMES,
+  brandPreviewInputSchema,
+  brandProposalInputSchema,
+} from "./branding-actions-contract";
+import type { AiToolConnectionRequirement } from "./ai-tool-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction, withProposalWorkContext } from "./actions";
@@ -10,6 +35,18 @@ import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 import { retrieveKnowledge } from "./knowledge";
 import { proposeStripeInvoiceSend } from "./stripe-invoicing";
 import { previewInvoicePage, proposeInvoicePage } from "./invoice-pages";
+import {
+  COLLECTION_AGENT_TOOLS,
+  COLLECTION_AGENT_TOOL_NAMES,
+  collectionContextInputSchema,
+  collectionPreviewInputSchema,
+  collectionProposalInputSchema,
+} from "./collection-agent-contract";
+import {
+  readCollectionAgentContext,
+  previewCollectionAgentReminder,
+  proposeCollectionAgentReminder,
+} from "./collection-agent";
 import { invoiceDesignSchema } from "./invoice-page-contract";
 import { z } from "zod";
 import { prepareWorkflowPlugin, proposeWorkflowPlugin } from "./workflow-plugins";
@@ -33,7 +70,7 @@ import {
 } from "./memory";
 import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
 
-export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v5";
+export { AI_TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
 export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
 
@@ -58,8 +95,8 @@ type AiToolRegistration = {
   outputSchema: Record<string, unknown>;
   /** The reviewed service boundary a tool is permitted to call. */
   serviceTarget: string;
-  /** Current tools stage through Revenue OS; none calls a provider directly. */
-  connectionRequirement: "none";
+  /** Provider requirements are enforced inside the canonical host, never by raw tool access. */
+  connectionRequirement: AiToolConnectionRequirement;
   impact: AiToolImpact;
   confirmationRequired: boolean;
   execute: (context: AiToolContext, input: Record<string, unknown>) => Promise<unknown>;
@@ -72,7 +109,7 @@ export interface RevenueAiCapabilityDescriptor {
   confirmationRequired: boolean;
   packs: RevenueToolPackId[];
   serviceTarget: string;
-  connectionRequirement: "none";
+  connectionRequirement: AiToolConnectionRequirement;
   available: boolean;
   availabilityReason: string;
 }
@@ -279,7 +316,9 @@ function availabilityFor(
   return {
     available: true,
     reason:
-      "Available through the bounded Revenue OS service; no provider connection is called directly.",
+      tool.connectionRequirement === "host_verified"
+        ? "Available through the canonical host; a verified provider connection and current billing facts are required when called."
+        : "Available through the bounded Revenue OS service; no provider connection is called directly.",
   };
 }
 
@@ -311,7 +350,137 @@ export function assertImpactHonoured(tool: AiToolRegistration, output: unknown):
   }
 }
 
+const discoveryInput = z
+  .object({
+    query: z.string().trim().max(200).default(""),
+    offset: z.number().int().min(0).max(10000).default(0),
+  })
+  .strict();
+const activationInput = z.object({ bundleId: z.string().min(1).max(160) }).strict();
 const registry: AiToolRegistration[] = [
+  {
+    ...TOOL_DISCOVERY_METADATA[0],
+    inputSchema: z.toJSONSchema(discoveryInput, { io: "input" }),
+    outputSchema: {
+      type: "object",
+      required: ["bundles", "total"],
+      properties: { bundles: { type: "array" }, total: { type: "number" } },
+    },
+    execute: async (context, raw) => {
+      const input = discoveryInput.parse(raw);
+      const fresh = await refreshRevenueToolContext(context);
+      const ranked = rankToolBundles(availableRevenueToolBundles(fresh), input.query);
+      const bundles = ranked.slice(input.offset, input.offset + 8);
+      return {
+        bundles,
+        total: ranked.length,
+        nextOffset:
+          input.offset + bundles.length < ranked.length ? input.offset + bundles.length : null,
+        activationScope: "current_command_run",
+        grantsApproval: false,
+      };
+    },
+  },
+  {
+    ...TOOL_DISCOVERY_METADATA[1],
+    inputSchema: z.toJSONSchema(activationInput),
+    outputSchema: {
+      type: "object",
+      required: ["activeBundleId", "toolNames"],
+      properties: { activeBundleId: { type: "string" }, toolNames: { type: "array" } },
+    },
+    execute: async (context, raw) => {
+      const { bundleId } = activationInput.parse(raw);
+      const fresh = await refreshRevenueToolContext(context);
+      const bundle = availableRevenueToolBundles(fresh).find((b) => b.bundleId === bundleId);
+      if (!bundle) throw new Error("Unknown or unavailable tool bundle");
+      return {
+        activeBundleId: bundle.bundleId,
+        toolNames: bundle.toolNames,
+        activationScope: "current_command_run",
+        grantsApproval: false,
+      };
+    },
+  },
+  {
+    ...MODULE_CONTROL_TOOLS[0],
+    inputSchema: z.toJSONSchema(moduleReadSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => readModuleConfiguration(supabase, input),
+  },
+  {
+    ...MODULE_CONTROL_TOOLS[1],
+    inputSchema: z.toJSONSchema(modulePreviewSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => previewModuleConfiguration(supabase, input),
+  },
+  {
+    ...MODULE_CONTROL_TOOLS[2],
+    inputSchema: z.toJSONSchema(moduleProposalSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeModuleConfiguration(supabase, input, actorEmail),
+  },
+  {
+    ...BRANDING_TOOLS[0],
+    inputSchema: z.toJSONSchema(z.object({}).strict()),
+    outputSchema: { type: "object" },
+    execute: async ({ supabase }, input) => {
+      z.object({}).strict().parse(input);
+      return readWorkspaceBrand(supabase);
+    },
+  },
+  {
+    ...BRANDING_TOOLS[1],
+    inputSchema: z.toJSONSchema(brandPreviewInputSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => previewWorkspaceBrandUpdate(supabase, input),
+  },
+  {
+    ...BRANDING_TOOLS[2],
+    inputSchema: z.toJSONSchema(brandProposalInputSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeWorkspaceBrandUpdate(supabase, input, actorEmail),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.list,
+    inputSchema: z.toJSONSchema(collectionContextInputSchema),
+    outputSchema: {
+      type: "object",
+      required: ["contract", "cases", "summary", "truncated"],
+      properties: {
+        contract: { type: "string" },
+        cases: { type: "array" },
+        summary: { type: "object" },
+        truncated: { type: "boolean" },
+      },
+    },
+    execute: ({ supabase }, input) => readCollectionAgentContext(supabase, input),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.preview,
+    inputSchema: z.toJSONSchema(collectionPreviewInputSchema),
+    outputSchema: {
+      type: "object",
+      required: ["caseId", "digest", "text", "invoices", "requiresHumanApproval"],
+      properties: {
+        caseId: { type: "string" },
+        digest: { type: "string" },
+        text: { type: "string" },
+        invoices: { type: "array" },
+        requiresHumanApproval: { type: "boolean" },
+      },
+    },
+    execute: ({ supabase }, input) => previewCollectionAgentReminder(supabase, input),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.propose,
+    inputSchema: z.toJSONSchema(collectionProposalInputSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeCollectionAgentReminder(supabase, input, actorEmail),
+  },
   ...REVENUE_OS_MODULES.filter((module) => module.workflow).map((module): AiToolRegistration => ({
     name: `prepare_${module.id.replaceAll("-", "_")}`,
     description: `Prepare ${module.name}: ${module.description}. Returns a reviewable plan, never executes it.`,
@@ -1803,6 +1972,10 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
+    ...BRANDING_TOOL_NAMES,
+    ...MODULE_CONTROL_TOOL_NAMES,
+    ...COLLECTION_AGENT_TOOL_NAMES,
     ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
       (moduleDef) => moduleDef.aiToolNames || [],
     ),
@@ -1840,6 +2013,9 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_founder_note",
   ],
   pipeline: [
+    ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
+    ...BRANDING_TOOL_NAMES,
+    ...MODULE_CONTROL_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",
     "search_contacts",
@@ -1863,6 +2039,10 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_stage_change",
   ],
   outreach: [
+    ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
+    ...BRANDING_TOOL_NAMES,
+    ...MODULE_CONTROL_TOOL_NAMES,
+    ...COLLECTION_AGENT_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",
     "search_contacts",
@@ -1905,7 +2085,7 @@ export function getRevenueAiTools(pack?: RevenueToolPackId): AiToolRegistration[
   return registry.filter((tool) => names.has(tool.name));
 }
 export function listRevenueAiCapabilities(
-  context?: Pick<AiToolContext, "toolPack">,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
 ): RevenueAiCapabilityDescriptor[] {
   return registry.map((tool) => {
     const availability = availabilityFor(tool, context);
@@ -1922,11 +2102,16 @@ export function listRevenueAiCapabilities(
     };
   });
 }
-export function toOpenRouterTools(pack?: RevenueToolPackId): OpenRouterTool[] {
-  return getRevenueAiTools(pack).map(({ name, description, inputSchema }) => ({
-    type: "function",
-    function: { name, description, parameters: inputSchema },
-  }));
+export function toOpenRouterTools(
+  pack?: RevenueToolPackId,
+  tenantConfig?: AiToolContext["tenantConfig"],
+): OpenRouterTool[] {
+  return getRevenueAiTools(pack)
+    .filter((tool) => availabilityFor(tool, { toolPack: pack, tenantConfig }).available)
+    .map(({ name, description, inputSchema }) => ({
+      type: "function",
+      function: { name, description, parameters: inputSchema },
+    }));
 }
 export async function executeRegisteredRevenueTool(
   context: AiToolContext,
@@ -1952,4 +2137,50 @@ export async function executeRegisteredRevenueTool(
   validateToolOutput(tool.name, tool.outputSchema, output);
   assertImpactHonoured(tool, output);
   return { output, tool };
+}
+
+/** Refresh live module state without broadening an explicit caller restriction. */
+export async function refreshRevenueToolContext(context: AiToolContext): Promise<AiToolContext> {
+  const tenantId = tenantIdForDatabase(context.supabase);
+  if (!tenantId) throw new Error("Tenant-bound tool context required");
+  const { data, error } = await context.supabase
+    .from("tenants")
+    .select("config,status")
+    .eq("id", tenantId)
+    .maybeSingle();
+  if (error || data?.status !== "active") throw new Error("Active tool workspace unavailable");
+  const modules = { ...(data.config?.modules ?? {}) };
+  for (const [id, enabled] of Object.entries(context.tenantConfig?.modules ?? {})) {
+    if (enabled === false) modules[id] = false;
+  }
+  return { ...context, tenantConfig: { modules } };
+}
+export function availableRevenueToolBundles(
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
+) {
+  const available = new Set(
+    listRevenueAiCapabilities(context)
+      .filter((t) => t.available)
+      .map((t) => t.name),
+  );
+  return buildToolBundles(REVENUE_OS_MODULES, registry)
+    .map((bundle) => ({
+      ...bundle,
+      toolNames: bundle.toolNames.filter((name) => available.has(name)),
+    }))
+    .filter((bundle) => bundle.toolNames.length > 0);
+}
+/** One small core plus one bounded bundle. Recomputed each turn; no permission cache. */
+export function toActivatedOpenRouterTools(
+  bundleId: string | null,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
+): OpenRouterTool[] {
+  const bundle = availableRevenueToolBundles(context).find((b) => b.bundleId === bundleId);
+  const names = new Set<string>([...ALWAYS_LOADED_AI_TOOLS, ...(bundle?.toolNames ?? [])]);
+  return registry
+    .filter((tool) => names.has(tool.name) && availabilityFor(tool, context).available)
+    .map(({ name, description, inputSchema }) => ({
+      type: "function",
+      function: { name, description, parameters: inputSchema },
+    }));
 }

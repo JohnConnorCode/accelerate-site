@@ -232,10 +232,9 @@ async function main() {
       tool.outputSchema && typeof tool.outputSchema === "object",
       `${tool.name} must declare an explicit output schema`,
     );
-    assert.equal(
-      tool.connectionRequirement,
-      "none",
-      `${tool.name} must truthfully declare whether it calls a provider connection`,
+    assert.ok(
+      ["none", "host_verified"].includes(tool.connectionRequirement),
+      `${tool.name} must declare whether a verified host connection is required`,
     );
     assert.ok(
       tool.impact === "read"
@@ -372,7 +371,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v5");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v9");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.

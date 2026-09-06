@@ -27,59 +27,30 @@
     "version": 1,
     "inputSchema": {
       "type": "object",
-      "additionalProperties": false,
-      "required": ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
       "properties": {
-        "contactId": {
-          "type": "string",
-          "minLength": 36,
-          "maxLength": 36
-        },
-        "customerId": {
-          "type": "string",
-          "minLength": 5,
-          "maxLength": 84
-        },
-        "currency": {
-          "enum": ["usd", "eur", "gbp", "cad", "aud"]
-        },
-        "daysUntilDue": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 90
-        },
-        "memo": {
-          "type": "string",
-          "maxLength": 500
-        },
+        "contactId": { "type": "string", "maxLength": 36, "minLength": 36 },
+        "customerId": { "type": "string", "minLength": 5, "maxLength": 84 },
+        "currency": { "type": "string", "enum": ["usd", "eur", "gbp", "cad", "aud"] },
+        "daysUntilDue": { "type": "integer", "minimum": 1, "maximum": 90 },
+        "memo": { "type": "string", "maxLength": 500 },
         "lines": {
-          "type": "array",
           "minItems": 1,
           "maxItems": 10,
+          "type": "array",
           "items": {
             "type": "object",
-            "additionalProperties": false,
-            "required": ["description", "quantity", "unitAmount"],
             "properties": {
-              "description": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 200
-              },
-              "quantity": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 10000
-              },
-              "unitAmount": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 100000000
-              }
-            }
+              "description": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "quantity": { "type": "integer", "minimum": 1, "maximum": 10000 },
+              "unitAmount": { "type": "integer", "minimum": 1, "maximum": 100000000 }
+            },
+            "required": ["description", "quantity", "unitAmount"],
+            "additionalProperties": false
           }
         }
-      }
+      },
+      "required": ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
+      "additionalProperties": false
     },
     "actions": ["create_stripe_invoice_draft"],
     "sources": [
@@ -89,6 +60,22 @@
         "columns": ["id", "full_name", "primary_email"],
         "inputKey": "contactId"
       }
-    ]
+    ],
+    "inputContract": "stripe-invoice-draft-v1",
+    "policy": {
+      "version": 1,
+      "action": "create_stripe_invoice_draft",
+      "trustCeiling": "always-propose",
+      "evidence": {
+        "kind": "canonical-record",
+        "inputKey": "contactId",
+        "sourceType": "workflow_contacts"
+      },
+      "idempotency": { "request": "workflow-request-v1", "effect": "stripe-action-v1" },
+      "tier": 3,
+      "impact": "external_action",
+      "reversibility": "irreversible"
+    },
+    "contractHash": "7afe4530693681c920c43ba2f46b6903039a533d760649fee4a149a547b2aa0d"
   }
 }

@@ -79,6 +79,15 @@ Every capability follows this sequence:
 - Provider facts and audit history are immutable. Human notes and configuration
   are editable through explicit services.
 
+## AI and admin operation parity
+
+Read [the universal AI/admin contract](docs/contracts/ADMIN-AI-PARITY.md) before
+adding or changing admin business controls, mutation routes or plugin operations.
+Every authorized admin operation must have a governed conversational equivalent:
+shared service, exact proposal, human approval, freshness/permission recheck and
+truthful receipt. Missing parity belongs on the live board, not in an implicit
+exception. Update the source inventory after reviewing changed route operations.
+
 ## The live board owns work truth
 
 - `/admin/features` and the shared work service own card definitions, UUID

@@ -1,3 +1,8 @@
+import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
+import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
+import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
+import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
+import { COLLECTION_AGENT_TOOLS } from "@/lib/revenue-os/collection-agent-contract";
 import { KANBAN_DEFAULT_COLUMNS } from "@/lib/kanban/defaults";
 import { isKanbanBoardKey } from "@/lib/kanban/types";
 import type { FeatureRequest } from "@/lib/feature-board";
@@ -12,6 +17,7 @@ import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./sc
 import { clearDemoAppearance } from "./appearance-state";
 import {
   REVENUE_OS_MODULES,
+  isAiToolModuleEnabled,
   getActiveModules,
   validateModuleSettingsInput,
 } from "@/lib/revenue-os/modules";
@@ -1257,7 +1263,7 @@ function capabilityLabel(name: string): string {
  *  src/lib/revenue-os/ai-tools.ts (AI_TOOL_REGISTRY_VERSION,
  *  registry, PACK_TOOL_NAMES) since the demo has no server context to read
  *  it from live. Every real tool is available in the fictional workspace. */
-function aiCapabilities() {
+function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>> }) {
   const rows: Array<
     [
       name: string,
@@ -1389,6 +1395,32 @@ function aiCapabilities() {
       "revenue-os.action-queue",
     ],
   ];
+  rows.push(
+    ...[...BRANDING_TOOLS, ...MODULE_CONTROL_TOOLS, ...TOOL_DISCOVERY_METADATA].map(
+      (t) =>
+        [
+          t.name,
+          t.description,
+          t.impact,
+          t.confirmationRequired,
+          ["core", "pipeline", "outreach"],
+          t.serviceTarget,
+        ] as (typeof rows)[number],
+    ),
+  );
+  rows.push(
+    ...Object.values(COLLECTION_AGENT_TOOLS).map(
+      (t) =>
+        [
+          t.name,
+          t.description,
+          t.impact,
+          t.confirmationRequired,
+          ["core", "outreach"],
+          t.serviceTarget,
+        ] as (typeof rows)[number],
+    ),
+  );
   const capabilities = rows.map(
     ([name, description, impact, confirmationRequired, packs, serviceTarget]) => ({
       name,
@@ -1398,15 +1430,22 @@ function aiCapabilities() {
       confirmationRequired,
       packs,
       serviceTarget,
-      connectionRequirement: "none" as const,
-      state: "available" as const,
-      operationalReadiness: "ready" as const,
+      connectionRequirement:
+        Object.values(COLLECTION_AGENT_TOOLS).find((t) => t.name === name)?.connectionRequirement ??
+        ("none" as const),
+      state: isAiToolModuleEnabled(name, tenantConfig).enabled
+        ? ("available" as const)
+        : ("unavailable" as const),
+      operationalReadiness: isAiToolModuleEnabled(name, tenantConfig).enabled
+        ? ("ready" as const)
+        : ("unavailable" as const),
       availabilityReason:
-        "Available through the bounded Revenue OS service; no provider connection is called directly.",
+        isAiToolModuleEnabled(name, tenantConfig).reason ??
+        "Available in this fictional workspace; outcomes are simulated.",
     }),
   );
   return {
-    registryVersion: "revenue-os-tools.v4",
+    registryVersion: AI_TOOL_REGISTRY_VERSION,
     scope: "runtime_registry",
     readinessEvaluated: true,
     capabilities,
@@ -2082,6 +2121,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         saveState(scenarioId, state);
         window.dispatchEvent(new Event("admin:demo-state"));
       },
+      state.moduleSettings,
     );
     if (businessResponse) return businessResponse;
     const emailTemplateIds = [
@@ -2259,7 +2299,9 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         aiRunDetail(pack, state, decodeURIComponent(path.split("/").at(-1) || "")),
       );
     if (method === "GET" && path === "/api/admin/revenue-os/ai/capabilities")
-      return jsonResponse(aiCapabilities());
+      return jsonResponse(
+        aiCapabilities({ modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } }),
+      );
     if (method === "GET" && path === "/api/admin/tenant/providers")
       return jsonResponse({
         providers: [

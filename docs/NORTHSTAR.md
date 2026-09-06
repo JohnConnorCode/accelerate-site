@@ -732,6 +732,21 @@ This is required for governance, observability, and safety.
 
 ---
 
+## Universal admin interface
+
+AI must be able to interact with every business operation a user is authorized
+to perform in the admin, including configuration and plugin workflows. Writes
+are prepared as exact, durable proposals and applied after human approval through
+the same domain services. The user can inspect and revise changes in conversation;
+revisions require renewed approval. Scope and permissions remain those of the
+user, including the separate founder boundary for platform administration.
+
+The [AI/admin parity contract](contracts/ADMIN-AI-PARITY.md) defines operation
+coverage, approval and plugin requirements. Universal coverage is a product
+requirement; current tools only implement part of it.
+
+---
+
 # 13. Entity graph
 
 Business records must be traversable by agents without requiring human intervention.

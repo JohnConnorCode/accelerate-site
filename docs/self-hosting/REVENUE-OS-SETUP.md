@@ -124,35 +124,27 @@ The initial seed includes production migration, admin QA, unsubscribe handling, 
 
 ### Master backlog and agent handoff
 
-The complete execution backlog is source-controlled in `scripts/feature-backlog-data.mjs`. Its current managed count and status totals come from `npm run verify:agent-contract`; do not copy those mutable totals into documentation. The cards cover foundation, admin, Google, Gmail, Calendar, Drive, campaigns, proposals, AI, setup, security, operations, QA, release, documentation, and client productization.
+The live Feature Board owns card definitions, UUID dependencies, revisions, claims,
+review decisions and execution evidence. `scripts/feature-backlog-data.mjs` contains
+bootstrap templates; an older checkout must never overwrite newer live work or
+archive cards absent from its templates.
 
-The universal implementation framework is `docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md`; the exact pickup/evidence/recovery procedure is `docs/contributing/AGENT-TICKET-RUNBOOK.md`; and `src/lib/revenue-os/README.md` maps every core service to its callers and invariants. Run `npm run verify:agent-contract` before claiming work. Managed card definitions are durable in the manifest and projected into `/admin/features`; changes that must survive reconciliation belong in the manifest first.
+Follow [the universal work protocol](../contracts/UNIVERSAL-WORK-BOARD.md) and
+[the agent ticket runbook](../contributing/AGENT-TICKET-RUNBOOK.md). Configure a
+project-scoped work token and use `npm run agent:next` to claim ready work
+atomically. Renew the lease with `agent:heartbeat`; an Owner label is not a claim.
 
-After applying the Feature Board migration, validate the manifest without writing:
+For an intentional template import, create and review a bounded plan first:
 
-`npm run seed:features`
+```sh
+npm run seed:features -- --plan /tmp/work-plan.json --cards card-key
+npm run seed:features -- --apply --plan /tmp/work-plan.json
+```
 
-Reconcile the live board to the authoritative manifest:
-
-`npm run seed:features -- --apply`
-
-Verify live count, content, ordering, and outside-manifest drift without writing:
-
-`npm run seed:features -- --verify`
-
-The apply command upserts every managed card by stable `seed_key`, restores managed cards if they were archived, and recoverably archives active cards outside the manifest. It never hard-deletes backlog history.
-
-Every managed card includes:
-
-- A phase and workstream taxonomy.
-- A concrete outcome-oriented description.
-- Explicit dependency titles.
-- Likely code and documentation starting points.
-- Guardrails and stated non-goals.
-- Testable acceptance criteria.
-- A standard agent handoff protocol.
-
-Agents must claim a card by setting **Owner** before implementation. They should keep the card in **Planned** until work actually begins, move it to **In progress** while actively changing it, record test evidence and material decisions in **Internal notes**, and move it to **Shipped** only after every acceptance item is verified. A partially built foundation may be marked In progress when the remaining scope is explicitly described; this is not permission to call it shipped.
+Apply only the reviewed plan against its expected revisions. Use the live board
+for ongoing definition edits. Submit the exact code commit and acceptance-linked
+check evidence with `agent:complete`. Review acceptance, merge and production
+deployment are separate facts; local acceptance does not mean deployed.
 
 ## AI operating architecture
 

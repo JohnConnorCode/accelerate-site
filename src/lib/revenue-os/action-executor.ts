@@ -1,5 +1,8 @@
 import "server-only";
+import { executeModuleConfiguration } from "./module-actions";
+import { executeWorkspaceBrandUpdate } from "./branding-actions";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { executeCollectionReminder } from "./collection-reminders";
 import { executeInvoicePagePublication } from "./invoice-pages";
 import { executeWorkflowTaskBatch } from "./workflow-tasks";
 import { executeStripeInvoiceAction } from "./stripe-invoicing";
@@ -33,6 +36,8 @@ function stringValue(
 }
 
 export const APPROVABLE_ACTIONS = [
+  "update_module_configuration",
+  "update_workspace_brand",
   "create_stripe_invoice_draft",
   "send_stripe_invoice",
   "create_task_batch",
@@ -40,6 +45,7 @@ export const APPROVABLE_ACTIONS = [
   "bootstrap_coworker",
   "store_agent_memory",
   "record_learned_policy",
+  "send_collection_reminder",
   "send_email",
   "send_gmail_reply",
   "transition_opportunity",
@@ -92,7 +98,7 @@ export async function approveAndExecuteAction(
   const compensation: Record<string, unknown> = {};
   try {
     if (action.source_context === "plugin" || payload.pluginOrigin)
-      await assertPluginActionAllowed(supabase, String(action.action_type), payload);
+      await assertPluginActionAllowed(supabase, String(action.action_type), payload, mode);
     const coworkerId =
       typeof action.proposed_by === "string" && action.proposed_by.startsWith("coworker:")
         ? action.proposed_by.slice("coworker:".length)
@@ -120,6 +126,17 @@ export async function approveAndExecuteAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "update_module_configuration": {
+        if (mode !== "approved")
+          throw new Error("Module configuration changes require human approval");
+        result = await executeModuleConfiguration(supabase, payload, actorEmail);
+        break;
+      }
+      case "update_workspace_brand": {
+        if (mode !== "approved") throw new Error("Branding changes require human approval");
+        result = await executeWorkspaceBrandUpdate(supabase, payload, actorEmail);
+        break;
+      }
       case "publish_invoice_page": {
         if (mode !== "approved")
           throw new Error("Invoice page publication requires human approval");
@@ -143,6 +160,11 @@ export async function approveAndExecuteAction(
         if (mode !== "approved")
           throw new Error("Runtime configuration and memory changes require human approval");
         result = await executeRuntimeAction(supabase, action.action_type, payload, actorEmail);
+        break;
+      }
+      case "send_collection_reminder": {
+        if (mode !== "approved") throw new Error("Collection reminders require human approval");
+        result = await executeCollectionReminder(supabase, id, actorEmail);
         break;
       }
       case "send_email": {

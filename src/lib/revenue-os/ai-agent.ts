@@ -17,7 +17,8 @@ import {
   AI_TOOL_REGISTRY_VERSION,
   executeRegisteredRevenueTool,
   selectRevenueToolPack,
-  toOpenRouterTools,
+  toActivatedOpenRouterTools,
+  refreshRevenueToolContext,
   type RevenueToolPackId,
 } from "./ai-tools";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
@@ -154,6 +155,8 @@ export async function runRevenueCommandAgent(
     content: message.content,
   }));
   const toolNames: string[] = [];
+  const stagedToolNames = new Set<string>();
+  let activeBundleId: string | null = null;
   let inputTokens = 0;
   let outputTokens = 0;
   try {
@@ -211,18 +214,28 @@ export async function runRevenueCommandAgent(
         claimsSummary,
         memorySummary,
         pageContext: context,
-        toolPack: selectedPack,
+        toolPack: activeBundleId ?? "bounded core with cross-domain discovery",
       });
+      const liveContext = await refreshRevenueToolContext({
+        supabase,
+        actorEmail,
+        tenantConfig: options.tenantConfig,
+      });
+      const activeTools = toActivatedOpenRouterTools(activeBundleId, liveContext);
+      const advertisedNames = new Set(activeTools.map((tool) => tool.function.name));
       const request = {
         database: supabase,
         model,
         maxTokens: 1200,
         signal: options.signal,
         messages: [
-          { role: "system" as const, content: `${SYSTEM_CONTRACT}\n\n${grounding}` },
+          {
+            role: "system" as const,
+            content: `${SYSTEM_CONTRACT}\n\n${grounding}\nThe initial pack is navigation context only. Use discover_tool_bundles for any admin capability missing from the current tools, then activate_tool_bundle. Activation replaces the previous bundle for subsequent turns of this run; it does not approve actions. Only call tools advertised on this turn. Active bundle: ${activeBundleId ?? "core only"}.`,
+          },
           ...transcript,
         ],
-        tools: toOpenRouterTools(selectedPack),
+        tools: activeTools,
       };
       let bufferedAnswer = "";
       const response = options.onAssistantDelta
@@ -265,7 +278,7 @@ export async function runRevenueCommandAgent(
           return {
             text: safeAnswer,
             runId: run.id,
-            proposedActions: toolNames.filter((name) => name.startsWith("propose_")),
+            proposedActions: [...stagedToolNames],
           };
         }
         if (options.onAssistantDelta) options.onAssistantDelta(bufferedAnswer || text);
@@ -278,7 +291,7 @@ export async function runRevenueCommandAgent(
         return {
           text,
           runId: run.id,
-          proposedActions: toolNames.filter((name) => name.startsWith("propose_")),
+          proposedActions: [...stagedToolNames],
         };
       }
       for (const use of uses) {
@@ -293,11 +306,23 @@ export async function runRevenueCommandAgent(
           toolInput = {};
         }
         try {
+          if (!advertisedNames.has(name))
+            throw new Error(
+              `Tool ${name} is not loaded on this turn. Discover and activate its bundle first.`,
+            );
+          const dispatchContext = await refreshRevenueToolContext({
+            supabase,
+            actorEmail,
+            tenantConfig: options.tenantConfig,
+          });
           const { output, tool } = await executeRegisteredRevenueTool(
-            { supabase, actorEmail, toolPack: selectedPack, tenantConfig: options.tenantConfig },
+            dispatchContext,
             name,
             toolInput,
           );
+          if (name === "activate_tool_bundle") {
+            activeBundleId = (output as { activeBundleId: string }).activeBundleId;
+          }
           await recordAgentRunEvent(supabase, run, {
             eventType: "tool_result",
             toolName: name,
@@ -323,7 +348,10 @@ export async function runRevenueCommandAgent(
             failed: false,
           });
           const proposal = proposalSummary(output, tool.impact);
-          if (proposal) options.onProposalStaged?.(proposal);
+          if (proposal) {
+            stagedToolNames.add(name);
+            options.onProposalStaged?.(proposal);
+          }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Tool failed";
           await recordAgentRunEvent(supabase, run, {
@@ -350,7 +378,7 @@ export async function runRevenueCommandAgent(
     // was marked failed, and any propose_* actions staged on earlier turns
     // stayed in the queue as orphans with no conversation explaining them.
     // Return what was gathered and name the proposals instead.
-    const staged = toolNames.filter((name) => name.startsWith("propose_"));
+    const staged = [...stagedToolNames];
     const partial = [
       transcript
         .filter((entry) => entry.role === "assistant")

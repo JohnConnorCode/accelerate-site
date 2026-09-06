@@ -17,22 +17,69 @@ The public site and fictional Command Center demo can be explored without provid
 
 For a hosted installation, use a **new empty project** you control. Copy `.env.example` to `.env.local` and configure its Supabase URL, public anonymous key, server-only service-role key, database connection, `ADMIN_EMAIL`, and your `BOOTSTRAP_*` identity. Set `BOOTSTRAP_FOUNDER_EMAIL` to the same email as `ADMIN_EMAIL`. Set `BOOTSTRAP_SCHEDULER_URL` only when you intend to activate an external scheduler; it defaults to disabled.
 
-Before migrating, enable Supabase email authentication and create the owner user in your project's Authentication dashboard. Configure the app origin and `/auth/callback` redirect URL. The tenant migration binds that existing user's active admin membership. Creating the user after migrations does not retroactively create a membership. Create a password for the owner when creating the user. Password recovery through the app requires configured Resend delivery.
+Enable Supabase email/password authentication and configure the application origin
+and `/auth/callback` redirect URL in Auth settings. These are project settings;
+a database key cannot configure them. They remain a documented dashboard step.
 
-## 3. Apply and verify the schema
+## 3. Plan and apply workspace setup
+
+Set `BOOTSTRAP_BRAND_NAME`, `ADMIN_EMAIL` and `NEXT_PUBLIC_SITE_URL` alongside
+the database/API credentials. Then inspect the read-only plan:
 
 ```bash
-npm run verify:migrations
-npm run db:migrate:all
-npm run db:verify-schema
-npm run verify:bootstrap-identity
+npm run setup
 ```
 
-[`scripts/lib/migration-manifest.mjs`](../../scripts/lib/migration-manifest.mjs) is the single source of migration order and explicit historical exclusions. The runner verifies that every SQL file is classified, rejects competing migration runners, and records each successful file and source checksum in `accelerate_schema_migrations` in the same transaction as its changes. A failed file rolls back; rerun to resume. Already-recorded files are verified and skipped, so rerunning does not reset saved settings. Never edit a recorded migration; add a new ordered file instead.
+Missing or placeholder configuration returns named fixes without making changes.
+A configured plan checks the database target and migration ledger and looks up the
+owner. It never prints passwords or service keys. To create a new owner, set
+`SETUP_OWNER_PASSWORD` in your private local environment (12–1024 characters).
+Do not put the password in command arguments, Git or a shared transcript.
 
-`npm run db:migrate -- <path>` applies all pending prerequisites through that manifest entry. It does not execute arbitrary files out of order. An existing database without this ledger is refused: historical replay can overwrite business configuration. Such installations need a reviewed baseline adoption before using this runner; do not delete tables or invent ledger receipts to bypass the check. Back up and test upgrades on a restored copy before using real data.
+Apply to the exact project reference displayed by the plan:
 
-Changing `BOOTSTRAP_*` after installation does not rewrite an existing workspace. Use Branding and the canonical tenant configuration service. Replace protected assets following [`ASSETS.md`](../../ASSETS.md).
+```bash
+npm run setup -- --apply --project your-project-reference
+```
+
+The command reuses an existing confirmed, active owner or creates the explicitly
+configured owner with a confirmed email and password. It sends no invitation email.
+Existing passwords are never reset. It verifies that the Auth owner also exists in
+the configured database, applies the existing migration ledger, then verifies the
+matching bootstrap workspace and active admin membership. If the owner was created
+after migrations, a missing membership is established through the existing audited
+lifecycle RPC. Revoked/invited memberships, suspended accounts and mismatched
+workspace identities require explicit platform review; setup will not overwrite them.
+
+First installation derives all bootstrap identity fields from your business name,
+owner and site URL, with neutral defaults and optional explicit `BOOTSTRAP_*`
+overrides. Existing workspace configuration is preserved. This configures the admin
+workspace; replacing the original public agency site and protected assets remains a
+separate step described in [ASSETS.md](../../ASSETS.md).
+
+Auth account creation and database migration are separate operations. If a later
+step fails, rerun the same command: the owner is reused and completed migration
+transactions are skipped. Setup does not delete partial installations. Remove
+`SETUP_OWNER_PASSWORD` after completion. Sign in at `/admin/login`, open Setup
+Center, and verify the workspace in the browser. A `workspace_configured` receipt
+proves configuration/membership checks, not browser login, provider readiness or
+a successful production deployment.
+
+[`scripts/lib/migration-manifest.mjs`](../../scripts/lib/migration-manifest.mjs)
+is the single migration order. Each source checksum and successful file is recorded
+in `accelerate_schema_migrations` in the same transaction as its changes. A failed
+file rolls back. Never edit a recorded migration; add a new ordered migration.
+
+Existing databases without a ledger require reviewed baseline adoption. Setup
+refuses historical replay over such databases. Back up and test upgrades on a
+restored copy before using real data. For migration-only operations, the existing
+`db:migrate:all`, `db:migrate -- <path>`, `db:verify-schema` and
+`verify:bootstrap-identity` commands remain available; the guided command supplies
+neutral first-install defaults that a direct migration command does not derive.
+
+The installer has controlled Auth/REST and native PostgreSQL regression coverage.
+A fresh hosted Auth/browser preview installation is a separate release acceptance;
+do not confuse a local fixture pass with that connected proof.
 
 ## 4. Add providers incrementally
 

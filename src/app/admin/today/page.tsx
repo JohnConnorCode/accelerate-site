@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { LayoutCustomizeDialog } from "@/components/admin/LayoutCustomizeDialog";
+import { CollectionCaseLinks } from "@/components/admin/CollectionsWorkspace";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminAsyncRegion } from "@/components/admin/AdminAsyncRegion";
@@ -830,6 +831,7 @@ export default function TodayPage() {
           </>
         }
       />
+      <CollectionCaseLinks />
       {error && overview && (
         <AdminSurface
           tone="attention"

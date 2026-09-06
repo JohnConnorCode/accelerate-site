@@ -14,7 +14,7 @@ function label(name: string): string {
 export async function GET() {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const capabilities = listRevenueAiCapabilities();
+  const capabilities = listRevenueAiCapabilities({ tenantConfig: auth.tenant.config });
   const payload: AiCapabilitiesPayload = {
     registryVersion: AI_TOOL_REGISTRY_VERSION,
     scope: "runtime_registry",

@@ -1,3 +1,4 @@
+import type { WorkflowPolicy } from "./plugin-workflow-policy";
 /**
  * Pluggable Module Contract for Revenue OS
  *
@@ -87,6 +88,9 @@ export interface RevenueOSModule {
   /** Isolated workflow prepares host-validated actions for approval. */
   workflow?: {
     version: 1;
+    inputContract: string;
+    policy: WorkflowPolicy;
+    contractHash: string;
     inputSchema: Record<string, unknown>;
     actions: string[];
     sources: { name: string; type: string; columns: string[]; inputKey: string }[];
@@ -196,6 +200,14 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "/admin/branding",
     ],
     aiToolNames: [
+      "discover_tool_bundles",
+      "activate_tool_bundle",
+      "get_module_configuration",
+      "preview_module_configuration",
+      "propose_module_configuration",
+      "get_workspace_brand",
+      "preview_workspace_brand_update",
+      "propose_workspace_brand_update",
       "get_claimable_work",
       "get_workspace_capabilities",
       "get_autonomy_policies",
