@@ -1,4 +1,5 @@
 import "server-only";
+import { executeRadarStoreChange } from "./radar-store";
 import { executeModuleConfiguration } from "./module-actions";
 import { executeWorkspaceBrandUpdate } from "./branding-actions";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -36,6 +37,7 @@ function stringValue(
 }
 
 export const APPROVABLE_ACTIONS = [
+  "update_radar_store",
   "update_module_configuration",
   "update_workspace_brand",
   "create_stripe_invoice_draft",
@@ -126,6 +128,12 @@ export async function approveAndExecuteAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "update_radar_store": {
+        if (mode !== "approved")
+          throw new Error("Radar source and opportunity changes require human approval");
+        result = await executeRadarStoreChange(supabase, payload, actorEmail);
+        break;
+      }
       case "update_module_configuration": {
         if (mode !== "approved")
           throw new Error("Module configuration changes require human approval");

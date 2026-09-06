@@ -11,6 +11,13 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "update_radar_store",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Correct source reviews or draft records through a new approved revision. Source versions, citation snapshots, receipts and reported outcomes remain historical; no automatic deletion or inverse is promised.",
+  },
+  {
     actionType: "update_module_configuration",
     impact: "internal_write",
     reversibility: "compensable",

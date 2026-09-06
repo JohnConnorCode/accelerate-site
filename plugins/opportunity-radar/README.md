@@ -2,7 +2,8 @@
 
 Configure a reusable business profile for evidence-backed earned-growth work.
 **Available now: validated profile, two presets, CLI setup and governed AI
-configuration, bounded source briefing and model charge receipts.** Discovery, relationship intelligence, ranking, outreach,
+configuration, bounded source briefing, model charge receipts and a versioned
+evidence store operated through AI approvals.** Automated discovery, relationship intelligence, ranking, outreach,
 publication and outcome measurement remain unfinished. Enabling this foundation
 does not start a background worker.
 
@@ -127,3 +128,83 @@ New provider transports must implement equivalent admission and usage guarantees
 in the shared adapter before becoming selectable. The
 [reservation migration](../../migrations/20260908-model-call-reservations.sql)
 keeps tenant receipts, append-only settlement history and shared budget accounting.
+
+## Keep evidence and reviewed opportunities
+
+Apply the normal migration catalog for your own installation before using the
+store. There is no source worker or dedicated Radar page yet. In Command Center
+AI, use `get_radar_store`, `preview_radar_store_change` and
+`propose_radar_store_change`. The existing **Today** approval queue shows the exact
+saved preview; only its approved executor applies a business change.
+
+For a fictional maintenance business, ask AI:
+
+> Preview importing this supplied source into Radar. Use a new operation ID,
+> URL `https://example.test/workshop`, title “Fictional maintenance workshop”,
+> and text “Fictional Field Service Studio announced a maintenance workshop.”
+> Show the preview, then propose it for my approval. Do not fetch the URL.
+
+Approve the proposed import. Its receipt returns the source-version ID and
+`discovery_id`. The source starts **supplied**, which means its external contents
+have not been verified. Read the receipt using its original `operationId`, or
+read the saved text using `sourceVersionId`. Text reads return 2,000 Unicode
+characters and `nextOffset`; request the next offset for the rest.
+
+Ask AI to create a `partnership` opportunity with that source-version citation,
+an observation, a title, summary and recommended action. Optional person/company
+references must be actual IDs in your workspace. If you already have evidence in
+the shared claim ledger, a citation can reference its existing `evidenceId`.
+Importing a source does not manufacture a verified claim or a new CRM person.
+Custom business kinds are supported as lowercase identifiers.
+
+An opportunity begins `draft` in the neutral review lane. Move it to
+`needs_review`, compare each supplied source with the real original, and propose
+a source verification with your reason and its current revision. Only after every
+current citation is verified can the opportunity advance to `approved`, then
+`in_progress`. This approves work on the opportunity; it never approves sending,
+publication, commitments or independent recognition. The current store does no
+ranking, including for business material.
+
+You can propose a source-linked draft asset or record a reported outcome on the
+opportunity. Drafts remain `draft`; outcomes remain `reported`. Read an asset by
+`assetId` with the same bounded text pagination. Outcome verification and metrics
+belong to the unfinished outcome-measurement stage.
+
+Every mutation needs a stable operation ID. Reusing it returns its committed
+receipt; changing its input is a conflict. New content at the same normalized URL
+creates a new source version, while identical content and metadata reuse the
+existing version. URL fragments are dropped; query identity and order are kept.
+No imported URL is fetched. An import cannot overwrite prior source contents.
+
+If a source is wrong, propose retracting it with a reason. Replace the opportunity's
+entire citation set through `replace_citations` using the latest opportunity
+revision. Old citation sets and draft references remain readable history; the
+opportunity returns to `needs_review`. Terminal completed/dismissed/declined
+opportunities retain their core fields. A new follow-up opportunity is preferable
+to rewriting that history. `no_response` can return to review.
+
+Stale revisions, changed source reviews/configuration, foreign IDs and incomplete
+citations require a fresh read and preview. A failed database transaction leaves
+no partial source, opportunity, receipt or audit entry. A committed operation can
+be found by operation ID even if the caller lost its response. Disablement blocks
+new execution; records remain. To use module-owned AI reads after disablement,
+keep model mode off and re-enable the module. No provider request is needed for
+these storage operations.
+
+The first approved store operation installs four missing bounded entity-type
+declarations using the shared registry. Existing disabled/conflicting declarations
+refuse execution. These setup declarations may remain when a later store operation
+fails; they contain no source content or business result. No automatic read-policy
+grant, merge/delete capability or parallel CRM is installed.
+
+Developer ownership: [store contract](../../src/lib/revenue-os/radar-store-contract.ts),
+[shared service](../../src/lib/revenue-os/radar-store.ts) and
+[transaction migration](../../migrations/20260909-radar-evidence-store.sql).
+Source/CRM/evidence links are tenant-composite. Content, citation versions, assets,
+reported outcomes and receipts retain history. New operations extend the strict
+contract and the existing action executor; do not add a second approval engine.
+Run `npm run test:radar-store` for governed service fixtures. The normal
+`npm run test:migration-ledger` native PostgreSQL proof includes source versioning,
+concurrent replay, stale/foreign references, lifecycle gates and forced audit
+failure rollback. Both business presets use these same services. These tests do
+not certify the unfinished daily Radar UI, discovery or outreach journey.

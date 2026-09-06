@@ -5,6 +5,7 @@ import {
   bindTenantDatabase,
   callCollectionHostRpc,
   callModelBudgetRpc,
+  callRadarStoreRpc,
 } from "../src/lib/supabase/server";
 import { runWithTenantRequestContext, type TenantActorContext } from "../src/lib/tenancy/context";
 async function main() {
@@ -35,7 +36,7 @@ async function main() {
     assert.equal(url.hostname, "collections-fixture.supabase.co");
     assert.match(
       url.pathname,
-      /^\/rest\/v1\/rpc\/(sync_collection_observations|update_collection_case|reserve_collection_reminder|reconcile_collection_reminder|reserve_model_call|complete_model_call)$/,
+      /^\/rest\/v1\/rpc\/(sync_collection_observations|update_collection_case|reserve_collection_reminder|reconcile_collection_reminder|reserve_model_call|complete_model_call|execute_radar_store_command)$/,
     );
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("x-tenant-id"), tenant);
@@ -60,7 +61,9 @@ async function main() {
       );
       assert.equal(result.data.verified, true);
     }
-    assert.equal(network, 6);
+    const radar = await runWithTenantRequestContext(actor, () => callRadarStoreRpc(db, {}));
+    assert.equal(radar.data.verified, true);
+    assert.equal(network, 7);
     mem.tables.tenant_memberships![0]!.status = "revoked";
     await assert.rejects(
       () =>
@@ -72,6 +75,10 @@ async function main() {
     await assert.rejects(
       () =>
         runWithTenantRequestContext(actor, () => callModelBudgetRpc(db, "reserve_model_call", {})),
+      /membership/,
+    );
+    await assert.rejects(
+      () => runWithTenantRequestContext(actor, () => callRadarStoreRpc(db, {})),
       /membership/,
     );
     mem.tables.tenant_memberships![0]!.status = "active";
@@ -94,7 +101,7 @@ async function main() {
       () => callCollectionHostRpc(db, "delete_tenant" as "update_collection_case", {}),
       /not allowed/,
     );
-    assert.equal(network, 6);
+    assert.equal(network, 7);
     await assert.rejects(
       () => callModelBudgetRpc(db, "delete_tenant" as "reserve_model_call", {}),
       /not allowed/,
@@ -109,7 +116,7 @@ async function main() {
       (await callCollectionHostRpc(db, "reserve_collection_reminder", {})).data.originalDatabase,
       true,
     );
-    assert.equal(network, 6);
+    assert.equal(network, 7);
     console.log(
       "PASS: authenticated actor bridge uses exact tenant RPC scope; revoked/suspended/mismatched actors and unknown operations cannot elevate; background clients remain unchanged.",
     );
