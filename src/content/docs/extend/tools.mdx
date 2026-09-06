@@ -1,0 +1,36 @@
+---
+title: "Add an AI tool"
+description: "Register a schema, an impact tier, and a service boundary. Mutating tools propose."
+updated: "2026-09-04"
+---
+
+Tools are registered in `src/lib/revenue-os/ai-tools.ts`. The live list is the [AI tool reference](/docs/intelligence/tools).
+
+## Shape
+
+```ts
+{
+  name: "propose_reorder",
+  description: "Stage a stock reorder for founder approval.",
+  inputSchema: { /* JSON Schema */ },
+  outputSchema: { /* JSON Schema */ },
+  serviceTarget: "src/lib/revenue-os/inventory.ts",
+  connectionRequirement: "none",
+  impact: "internal_write",
+  confirmationRequired: true,
+  execute: async (context, input) => {
+    /* stage a proposal, return it */
+  },
+}
+```
+
+## Runtime rules
+
+- `impact: "read"` that stages a proposal throws. `internal_write`, `external_action`, or `destructive` that does not stage one also throws.
+- `destructive` fails closed at dispatch. There is no reviewed recovery policy for it yet, so it is unavailable.
+- Input and output are validated against the declared schema. Validation messages are for the model to retry, not only for a log.
+- Claim the tool in exactly one module's `aiToolNames`, and list it in at least one pack in `PACK_TOOL_NAMES`. `npm run verify:module-contract` fails if either is missing, because an unclaimed tool would escape module gating and an unpacked tool can never be selected.
+
+## What execute may call
+
+Call a reviewed service in `src/lib/revenue-os/`. Do not call a provider SDK from the tool, and do not run a SQL string. Reads return bounded windows. Writes go through `proposeAction`.

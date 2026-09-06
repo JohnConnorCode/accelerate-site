@@ -110,6 +110,14 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run format:check
 
+      - name: Verify documentation search
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:search
+
+      - name: Verify shared navigation contracts
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npx tsx scripts/test-navigation-runtime.ts
+
       - name: Run core contract suite
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:core
@@ -200,6 +208,8 @@ jobs:
           node scripts/qa-turnkey.mjs
           npm run test:work-completion -- --browser-fixtures
           node scripts/qa-work-completion.mjs
+          DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
+          node scripts/qa-work-portfolio.mjs
           node scripts/qa-demo-business-workflows.mjs
           node scripts/qa-collections-workspace.mjs
           node scripts/qa-universal-work-board.mjs
@@ -214,6 +224,8 @@ jobs:
             /tmp/accelerate-demo-business/
             /tmp/accelerate-collections-workspace/
             /tmp/accelerate-work-board-qa/
+            /tmp/accelerate-docs-takeover-qa/
+            /tmp/accelerate-work-portfolio-qa/
             /tmp/accelerate-first-run-server.log
           if-no-files-found: ignore
           retention-days: 7

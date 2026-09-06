@@ -10,7 +10,6 @@ import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { Button } from "@/components/ui/Button";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { fadeUp } from "@/lib/animations";
 
 const comparisons = [
   {
@@ -189,7 +188,7 @@ export function ProblemSolution() {
       </div>
 
       <div className="page-shell">
-        <AnimateOnScroll variants={fadeUp} delay={0.2} className="text-center mt-12">
+        <AnimateOnScroll delay={0.2} className="text-center mt-12">
           <MagneticButton>
             <Link href="/contact">
               <Button variant="primary" size="lg" className="group/cta">

@@ -124,6 +124,12 @@ exception. Update the source inventory after reviewing changed route operations.
 - Never delete source tables or compatibility routes until the reconciliation
   card proves field and row-count parity in production.
 
+## Documentation
+
+Read [the documentation writing guide](docs/contributing/DOCUMENTATION-STYLE.md)
+before changing product guides. Verify screen names and data-source claims against
+the current code; explain the steps, saved result and recovery in plain language.
+
 ## Safe change rules
 
 - Preserve unrelated worktree changes. Inspect `git status --short` before edits.

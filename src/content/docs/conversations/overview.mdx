@@ -1,0 +1,21 @@
+---
+title: "Conversations"
+description: "One thread per person, with the record it belongs to and a next action attached."
+updated: "2026-09-04"
+---
+
+Conversations at `/admin/conversations` is the reply-ready inbox. Gmail, inbound forms, chat leads, and transcripts land on the same person and the same deal when identity can be resolved.
+
+## What you do here
+
+Read the thread. Reply. Assign a follow-up. Link the conversation to the contact and opportunity it belongs to. Filters exist for assignment, campaign, and follow-up state so a busy inbox is still searchable.
+
+## Sending
+
+A reply you type yourself goes through the communication sender with an idempotency key and a receipt. A reply the assistant drafts is a staged action until you approve it. Both paths share the same send service. See [Approvals](/docs/command-center/approvals).
+
+How to filter, send, and link is in [Replying](/docs/conversations/reply).
+
+## How it relates
+
+Inbox is intake for items that have not been worked. Today is the ranked subset that should happen now. Conversations is where the actual reply is written.

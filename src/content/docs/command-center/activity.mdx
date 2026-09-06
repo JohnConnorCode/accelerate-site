@@ -1,0 +1,28 @@
+---
+title: "Inspect activity"
+description: "Find a recorded change and trace it to the affected record."
+updated: "2026-09-05"
+---
+
+Open `/admin/activity` when you need to find who changed a record, what action was recorded and when it happened.
+
+## Find a change
+
+1. Narrow the time range to when the event occurred.
+2. Filter by actor, action, source or entity type where available.
+3. Find the matching event and open its linked record.
+4. Compare the recorded action with the record's current state and any related execution or provider receipt.
+
+For example, when a proposal appears to have changed after a customer review, start with that proposal's events and the time of the review. Keep the proposal identifier with your findings so another operator can inspect the same record.
+
+## Interpret the evidence
+
+An activity event records an application action. For an external effect, inspect the associated result as well: an approved request, provider acceptance and final delivery are different facts. [Action results](/docs/start/receipts) explains those states.
+
+Events omit sensitive content. A row may identify a message operation without containing its full body. Open the authorized business record for the content you are allowed to read.
+
+## When you cannot find an event
+
+Check the workspace, date range and filters. Retain the affected record ID and approximate time for the technical owner if the event is still missing. Do not invent a replacement event or treat absence as proof that nothing happened.
+
+[Today](/docs/command-center/today) shows work to act on; Activity helps investigate what was recorded.

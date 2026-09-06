@@ -1,0 +1,29 @@
+---
+title: "Use the AI Workspace"
+description: "Ask a specific question, check its sources and inspect the result of an action."
+updated: "2026-09-05"
+---
+
+Open `/admin/ai` to ask about workspace records and review assistant runs. You can also use [Ask AI](/docs/command-center/ask) while working on Today.
+
+## Ask a question the system can verify
+
+Name the record or time period and say what you need. For example:
+
+> Find open opportunities with no next action. Show the company, owner and last recorded contact. Do not change any records.
+
+Read the returned record links and dates. If the answer lacks a needed source, ask for that source or inspect the record yourself before acting. An incomplete answer should stay incomplete until the missing information is available.
+
+## Request a change
+
+Ask for one bounded action, such as preparing a reply to a named conversation. Review the proposed recipient, content and changes in [Approvals](/docs/command-center/approvals). After approval, inspect the execution result; approval alone does not establish that the operation succeeded.
+
+## Inspect a run
+
+Use run history to find which tools were called, their outcomes and reported usage. This helps distinguish a missing connection, a denied operation and a provider failure.
+
+If a run stops after an external request, inspect its [action result](/docs/start/receipts) before retrying. An uncertain result needs reconciliation to avoid a second send.
+
+## When a tool is unavailable
+
+Check its connection requirement in the [AI tool reference](/docs/intelligence/tools), then inspect [Setup Center](/docs/workspace/setup). Module settings and your permissions can also restrict access. Enabling a connection does not grant additional user authority.

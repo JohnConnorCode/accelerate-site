@@ -48,6 +48,7 @@ function parseModules(source) {
       aiToolNames: pick("aiToolNames"),
       routes: pick("routes"),
       setupChecks: pick("setupChecks"),
+      docsUrl: block.match(/"?docsUrl"?:\s*"([^"]+)"/)?.[1] ?? null,
     });
   }
   return modules;
@@ -207,6 +208,39 @@ for (const mod of modules) {
         `Module "${mod.id}" declares setupChecks "${check}", which is not a real check id in src/app/api/admin/setup/route.ts.`,
       );
     }
+  }
+}
+
+// --- Documentation URLs --------------------------------------------------
+const manifestSource = read("src/content/docs/manifest.ts");
+const docsSectionIds = new Set(
+  [...manifestSource.matchAll(/^\s+id:\s*"([a-z0-9-]+)",/gm)].map((match) => match[1]),
+);
+const docsPageSlugs = new Set(
+  [...manifestSource.matchAll(/slug:\s*\[([^\]]+)\]/g)].map((match) =>
+    [...match[1].matchAll(/"([^"]+)"/g)].map((part) => part[1]).join("/"),
+  ),
+);
+const extensionIds = new Set(parseModules(extensionModulesSection).map((mod) => mod.id));
+for (const mod of modules) {
+  if (extensionIds.has(mod.id)) continue;
+  if (!mod.docsUrl) {
+    failures.push(
+      `Module "${mod.id}" has no docsUrl. A module that ships without documentation is a red build.`,
+    );
+    continue;
+  }
+  if (mod.docsUrl.startsWith("/docs/")) {
+    const slug = mod.docsUrl.replace(/^\/docs\//, "").replace(/\/$/, "");
+    if (!docsSectionIds.has(slug) && !docsPageSlugs.has(slug)) {
+      failures.push(
+        `Module "${mod.id}" docsUrl "${mod.docsUrl}" does not resolve to a docs manifest slug.`,
+      );
+    }
+  } else if (!/^https:\/\//.test(mod.docsUrl)) {
+    failures.push(
+      `Module "${mod.id}" docsUrl "${mod.docsUrl}" must be a /docs/ path or an https URL.`,
+    );
   }
 }
 

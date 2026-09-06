@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import type { HTMLAttributes, ReactNode } from "react";
 import { useRevealLifecycle } from "@/components/motion/useReveal";
 
@@ -16,6 +18,7 @@ export function PublicHeroEntrance({
   className = "",
   ...rest
 }: { children: ReactNode; className?: string } & HTMLAttributes<HTMLElement>) {
+  const pathname = usePathname();
   const ref = useRevealLifecycle<HTMLElement>({
     initialViewport: "animate",
     rootMargin: "0px 0px -12% 0px",
@@ -24,9 +27,11 @@ export function PublicHeroEntrance({
 
   return (
     <section
+      key={pathname}
       ref={ref}
       className={`public-hero-entrance ${className}`}
       data-motion-role="public-hero"
+      data-reveal-state="pending"
       {...rest}
     >
       {children}

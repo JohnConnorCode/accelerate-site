@@ -520,11 +520,11 @@ function ModuleCard({
         {module.docsUrl && (
           <a
             href={module.docsUrl}
-            target="_blank"
-            rel="noreferrer"
+            {...(module.docsUrl.startsWith("/") ? {} : { target: "_blank", rel: "noreferrer" })}
             className="mt-3.5 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--admin-ink)] hover:underline"
           >
-            Documentation <ExternalLink className="size-3" />
+            Documentation
+            {module.docsUrl.startsWith("/") ? null : <ExternalLink className="size-3" />}
           </a>
         )}
 

@@ -114,7 +114,15 @@ export function Heading({
   // tag when children can't be tokenized (e.g. arbitrary nested markup).
   if (size === 1) {
     const tokens = childrenToTokens(children);
-    if (tokens) return <WordMask tokens={tokens} as={Tag} className={cls} />;
+    if (tokens)
+      return (
+        <WordMask
+          key={tokens.map((token) => token.w).join(" ")}
+          tokens={tokens}
+          as={Tag}
+          className={cls}
+        />
+      );
   }
   return <Tag className={cls}>{children}</Tag>;
 }

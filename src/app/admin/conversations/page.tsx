@@ -22,7 +22,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";

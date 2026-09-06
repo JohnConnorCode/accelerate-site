@@ -1,31 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import dynamic from "next/dynamic";
+import { ProductSlider } from "@/components/media/ProductSlider";
+import { PRODUCT_SCREENSHOTS } from "@/content/product-screenshots";
 import { Reveal } from "./reveal";
 import { AmbientField } from "./AmbientField";
 import { marketingPositioning } from "@/content/marketing-positioning";
-
-/* The home page's only piece of real product interface.
-
-   Everything else on this page argues in the abstract: the problem, the
-   payoff, the process, the firm. This section is the artifact. It sits on
-   paper deliberately — the demo frame is dark in both themes, so an ink panel
-   would put black on black — and it breaks up what used to be two consecutive
-   ink sections running into each other.
-
-   The demo is code-split because it is the heaviest component on the site and
-   it lives below the fold. It still server-renders, so there is no hole in the
-   page while the chunk arrives. */
-const CommandCenterDemo = dynamic(
-  () =>
-    import("@/components/command-center/demo/CommandCenterDemo").then((m) => m.CommandCenterDemo),
-  {
-    loading: () => (
-      <div className="min-h-[560px] border border-[var(--rule)] bg-[#0B0B0B]" aria-hidden="true" />
-    ),
-  },
-);
 
 export function CommandCenter() {
   return (
@@ -46,14 +26,14 @@ export function CommandCenter() {
               {marketingPositioning.commandCenter.description}
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.18} style={{ marginTop: 16 }}>
-              The live sandbox shows that integrated option. Clear the approval queue, open a
-              workflow, or search the records.
+              Browse real product screens with fictional business data. Open the demo to explore the
+              same workspace, records, and workflows yourself.
             </Reveal>
           </div>
         </div>
 
         <Reveal rv as="div" delay={0.1} style={{ marginTop: "clamp(32px,4vw,54px)" }}>
-          <CommandCenterDemo />
+          <ProductSlider slides={PRODUCT_SCREENSHOTS} groupLabel="Command Center screens" />
         </Reveal>
 
         <Reveal
@@ -63,11 +43,23 @@ export function CommandCenter() {
           className="flex flex-wrap gap-x-6 gap-y-3"
           style={{ marginTop: "clamp(22px,2.6vw,32px)" }}
         >
-          <Link href="/command-center" className="ink-sweep text-[15.5px] text-[var(--fg)]">
+          <Link
+            href="/command-center"
+            className="ink-sweep inline-flex min-h-11 items-center gap-1 text-[15.5px] text-[var(--fg)]"
+          >
             Explore the Command Center <span aria-hidden="true">&rarr;</span>
           </Link>
-          <Link href="/demo/command-center" className="ink-sweep text-[15.5px] text-[var(--fg)]">
-            Try the full admin demo <span aria-hidden="true">&rarr;</span>
+          <Link
+            href="/demo/command-center"
+            className="ink-sweep inline-flex min-h-11 items-center gap-1 text-[15.5px] text-[var(--fg)]"
+          >
+            Explore the demo <span aria-hidden="true">&rarr;</span>
+          </Link>
+          <Link
+            href="/docs"
+            className="ink-sweep inline-flex min-h-11 items-center gap-1 text-[15.5px] text-[var(--fg)]"
+          >
+            Read the docs <span aria-hidden="true">&rarr;</span>
           </Link>
         </Reveal>
       </div>

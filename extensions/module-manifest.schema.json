@@ -92,7 +92,17 @@
     },
     "docsUrl": {
       "type": "string",
-      "format": "uri"
+      "description": "Public documentation. Site-relative /docs/... paths or absolute http(s) URLs.",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^/docs/[a-z0-9][a-z0-9/-]*$"
+        },
+        {
+          "type": "string",
+          "pattern": "^https://.+"
+        }
+      ]
     },
     "settings": {
       "type": "array",

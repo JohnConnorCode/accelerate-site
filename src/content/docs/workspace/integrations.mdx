@@ -1,0 +1,21 @@
+---
+title: "Integrations and modules"
+description: "Providers, module switches, and the MCP key, from the operator console."
+updated: "2026-09-04"
+---
+
+`/admin/integrations` is one console for providers, module switches, and the workspace MCP key.
+
+## Providers
+
+Each card is evidence-backed: connected, planned, or degraded. Configuration is not health. A planned provider does not appear installed. Google Workspace, Resend, and similar first-party paths are the ones to use before adding another vendor.
+
+Connecting a provider that has an [adapter](/docs/extend/adapters) runs verify, encrypts the declared credential fields, and stores a receipt. Credentials never come back in API responses or logs.
+
+## Modules
+
+Optional modules turn off from this screen. Core modules stay on. Each card links to its [guide](/docs/start/modules). The documentation URL is verified in CI.
+
+## MCP
+
+Generate a tenant MCP key here. It is shown once. Use it as a Bearer token against `/api/public/<tenantSlug>/mcp`. See [Connect an MCP client](/docs/extend/mcp-clients).

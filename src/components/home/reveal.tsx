@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import type { CSSProperties, ElementType, ReactNode } from "react";
 import { useRevealLifecycle } from "@/components/motion/useReveal";
 
@@ -48,16 +50,19 @@ export function Reveal({
   style?: CSSProperties;
   children?: ReactNode;
 } & Record<string, unknown>) {
+  const pathname = usePathname();
   const Tag = (as ?? "div") as ElementType;
   const ref = useRv<HTMLElement>(threshold, rootMargin);
   const cls = [rv ? "rv" : "", className].filter(Boolean).join(" ");
   const mergedStyle = { ...(delay != null ? delayStyle(delay) : null), ...style };
   return (
     <Tag
+      key={pathname}
       ref={ref}
       className={cls}
       style={mergedStyle}
       data-motion-role={rv ? "group" : undefined}
+      data-reveal-state="pending"
       {...rest}
     >
       {children}
