@@ -7,6 +7,7 @@ import {
   proposeRadarRelationship,
   executeRadarRelationship,
 } from "../src/lib/revenue-os/radar-relationships";
+import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
 import { getRadarRelationshipContext } from "../src/lib/revenue-os/radar-relationship-context";
 import { radarRelationshipEdge } from "../src/lib/revenue-os/radar-relationship-contract";
 async function main() {
@@ -107,6 +108,41 @@ async function main() {
   assert.equal(
     (await executeRadarRelationship(db, payload, "owner@example.test")).review.id,
     review,
+  );
+  await approveAndExecuteAction(db, queued.id, "owner@example.test");
+  assert.equal(mem.tables.action_queue![0]!.status, "executed");
+  await assert.rejects(
+    () => approveAndExecuteAction(db, queued.id, "owner@example.test"),
+    /already handled/,
+  );
+  await assert.rejects(
+    () =>
+      proposeRadarRelationship(
+        db,
+        { change: { ...change, operationId: randomUUID() }, digest: p.digest },
+        "owner@example.test",
+      ),
+    /changed/,
+  );
+  mem.rpc("check_autonomy", ({ p_action_key }) => ({
+    action_key: p_action_key,
+    allowed: true,
+    level: "standing_permission",
+    requires_approval: false,
+    policy_id: null,
+    hard_floor: false,
+    reason: "Controlled standing policy",
+  }));
+  const autoChange = { ...change, operationId: randomUUID() };
+  const autoPreview = await previewRadarRelationship(db, autoChange);
+  const autoAction = await proposeRadarRelationship(
+    db,
+    { change: autoChange, digest: autoPreview.digest },
+    "owner@example.test",
+  );
+  await assert.rejects(
+    () => approveAndExecuteAction(db, autoAction.id, "owner@example.test", { mode: "autonomous" }),
+    /human approval/,
   );
   mem.tables.message_evidence_context![0]!.body_hash = "b".repeat(64);
   await assert.rejects(

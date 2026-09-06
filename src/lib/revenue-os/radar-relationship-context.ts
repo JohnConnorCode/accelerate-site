@@ -138,30 +138,46 @@ export async function getRadarRelationshipContext(
   const offers: RadarRelationshipPathInput["offers"] = [];
   const publicContactPaths: NonNullable<RadarRelationshipPathInput["publicContactPaths"]> = [];
   const assertions = [];
-  for (const { row, assertion } of parsed) {
+  const eligible = parsed.filter(({ row, assertion }) => {
     const expected = radarRelationshipEdge(assertion),
       link = linkMap.get(row.link_id);
-    let currentEvidence = false,
-      evidenceReason = "Canonical link was removed or changed; review its current identity";
-    if (
+    return (
       link &&
       usableTypes.has(expected.sourceType) &&
       usableTypes.has(expected.targetType) &&
       Object.entries(expected).every(([key, value]) => link[key as keyof typeof link] === value)
-    ) {
-      try {
-        const cited = await readRadarRelationshipEvidence(db, assertion);
-        const old = row.evidence_snapshot as Record<string, unknown>;
-        currentEvidence =
-          Object.entries(cited.snapshot).every(([key, value]) => old[key] === value) &&
-          cited.text.includes(assertion.evidence.quotation);
-        evidenceReason = currentEvidence
-          ? "Current cited evidence; assertion remains human-reviewed"
-          : "Evidence or author identity changed since review";
-      } catch {
-        console.warn("Radar relationship evidence unavailable; current path withheld");
-        evidenceReason = "Evidence is unavailable, retracted or its author identity is unresolved";
-      }
+    );
+  });
+  // Four bounded evidence reads at once, with no unbounded fan-out or provider calls.
+  const evidenceReads = new Map<
+    string,
+    PromiseSettledResult<Awaited<ReturnType<typeof readRadarRelationshipEvidence>>>
+  >();
+  for (let offset = 0; offset < eligible.length; offset += 4) {
+    const batch = eligible.slice(offset, offset + 4);
+    const results = await Promise.allSettled(
+      batch.map(({ assertion }) => readRadarRelationshipEvidence(db, assertion)),
+    );
+    for (const [index, result] of results.entries())
+      evidenceReads.set(batch[index]!.row.id, result);
+  }
+  for (const { row, assertion } of parsed) {
+    let currentEvidence = false,
+      evidenceReason =
+        "Canonical link or entity type was removed, changed or disabled; review its current identity";
+    const read = evidenceReads.get(row.id);
+    if (read?.status === "fulfilled") {
+      const cited = read.value,
+        old = row.evidence_snapshot as Record<string, unknown>;
+      currentEvidence =
+        Object.entries(cited.snapshot).every(([key, value]) => old[key] === value) &&
+        cited.text.includes(assertion.evidence.quotation);
+      evidenceReason = currentEvidence
+        ? "Current cited evidence; assertion remains human-reviewed"
+        : "Evidence or author identity changed since review";
+    } else if (read?.status === "rejected") {
+      console.warn("Radar relationship evidence unavailable; current path withheld");
+      evidenceReason = "Evidence is unavailable, retracted or its author identity is unresolved";
     }
     assertions.push({ ...row, currentEvidence, evidenceReason });
     if (assertion.kind === "introduction_offer" && assertion.toContactId === input.contactId) {
