@@ -322,7 +322,7 @@ async function main() {
           for (const selector of [".hero-statement", "#systems", "#trades"]) {
             const section = page.locator(selector);
             for (const reveal of await section.locator(".rv").all()) {
-              await reveal.scrollIntoViewIfNeeded();
+              await reveal.evaluate((element) => element.scrollIntoView({ block: "center" }));
               await page.waitForFunction(
                 (element) => element && getComputedStyle(element).opacity === "1",
                 await reveal.elementHandle(),
