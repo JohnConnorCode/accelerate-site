@@ -577,7 +577,7 @@ These contracts live in `src/lib/revenue-os/plugin-workflow-contract.ts` and reu
 business services. A plugin cannot name an arbitrary import or action implementation.
 
 Run `npm run build:extensions` after changing the contract. It regenerates the
-workflow's `inputSchema`, `actions`, `policy`, and `contractHash` in `extensions/*.module.json`, then the
+workflow's `inputSchema`, `actions`, `policy`, `tools`, and `contractHash` in `extensions/*.module.json`, then the
 compiled module registry. Those fields are generated output; do not maintain
 a parallel schema there. `npm run verify:extensions` rejects changes to either
 side that have not been regenerated. `npm run test:plugin-workflow-contract`
@@ -621,6 +621,41 @@ This covers the three isolated workflow registrations. Native adapter operations
 event registration, general entity read/write grants, and complete registration
 parity remain tracked by `plugin-manifest-generator`. It is not a complete
 third-party registration or installation SDK.
+
+## Registered business tools
+
+`src/lib/revenue-os/plugin-tool-contract.ts` is the trusted registration for the
+six prepare/propose workflow tools and three bundled Stripe adapters. It owns
+their operation keys, names, full Zod input validators, discovery schemas,
+service targets, impact and confirmation metadata. `build:extensions` derives
+`workflow.tools` and the module's `aiToolNames` from this registration. Both are
+generated grants; editing either without regeneration fails `verify:extensions`.
+
+The AI registry constructs these same nine tools from that registration. Each
+operation maps to one typed, reviewed adapter in `ai-tools.ts`, which calls the
+existing workflow, invoicing or invoice-page service. New operations require a
+reviewed host adapter; a manifest cannot name an arbitrary function or import.
+Tool grants are checked against the registration at startup and before dispatch.
+Disabled modules remain unavailable through the normal module/tool-pack gates.
+
+These tools use the registered Zod parser at dispatch, including nested fields,
+UUIDs, digest syntax, unknown-field rejection and normalization. The domain
+service remains authoritative for live identity, freshness, amounts, approval
+and effects. For example, a valid empty invoice memo works through AI just as it
+does through the invoice service; malformed invoice designs fail before any
+business service call. The registry contract is now `revenue-os-tools.v10`.
+
+Run `npm run test:plugin-workflow-contract`, `npm run test:ai-tool-gates`, and
+`npm run verify:module-contract` for generation drift, exact runtime/manifest
+parity, invalid-input refusal and pack/enablement coverage. The business-workflow
+and Stripe fixture suites exercise all nine registered adapters through AI
+dispatch and then through the existing approval executor. They verify assigned
+tasks, invoice draft/retry/send and branded page publication with controlled
+provider transport. They do not send to real customers.
+
+This registration covers tools for the three bundled workflows, including their
+existing native Stripe adapters. Native effect policies, general entity
+read/write grants, durable events and the installation SDK remain separate work.
 
 ## Cold-start verification
 

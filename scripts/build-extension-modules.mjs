@@ -27,12 +27,18 @@ const { assertWorkflowEvidenceSource } = requireTypeScript(
   "../src/lib/revenue-os/plugin-workflow-policy.ts",
   import.meta.url,
 );
+const { pluginToolDeclarations } = requireTypeScript(
+  "../src/lib/revenue-os/plugin-tool-contract.ts",
+  import.meta.url,
+);
 import { validateBoundedWorkflowSchema } from "./lib/bounded-workflow-schema.mjs";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const hostContractHash = createHash("sha256");
 for (const file of [
   "plugin-workflow-contract.ts",
+  "plugin-tool-contract.ts",
+  "invoice-page-contract.ts",
   "plugin-workflow-policy.ts",
   "workflow-task-contract.ts",
   "stripe-contract.ts",
@@ -185,7 +191,9 @@ function validateWorkflow(file, manifest) {
   try {
     const declaration = pluginWorkflowDeclaration(workflow.inputContract);
     assertWorkflowEvidenceSource(declaration.policy, workflow.sources);
+    const tools = pluginToolDeclarations(manifest);
     const generated = {
+      tools,
       actions: declaration.actions,
       inputSchema: declaration.inputSchema,
       policy: declaration.policy,
@@ -195,6 +203,7 @@ function validateWorkflow(file, manifest) {
             hostContractFingerprint,
             inputContract: workflow.inputContract,
             ...declaration,
+            tools,
             sources: workflow.sources,
           }),
         )
@@ -210,6 +219,10 @@ function validateWorkflow(file, manifest) {
         file,
         "Generated workflow validator/action declaration drift; run npm run build:extensions",
       );
+    const toolNames = tools.map((tool) => tool.name);
+    if (checkOnly && JSON.stringify(manifest.aiToolNames) !== JSON.stringify(toolNames))
+      fail(file, "Generated plugin tool declaration drift; run npm run build:extensions");
+    manifest.aiToolNames = toolNames;
     Object.assign(workflow, generated);
     for (const warning of declaration.warnings) console.warn(`${file}: ${warning}`);
   } catch (error) {
@@ -235,21 +248,13 @@ function validateWorkflow(file, manifest) {
           "inputContract",
           "policy",
           "contractHash",
+          "tools",
         ].includes(key),
     )
   ) {
     fail(file, "Invalid workflow v1 declaration");
     return;
   }
-  const expectedTools = [
-    `prepare_${manifest.id.replaceAll("-", "_")}`,
-    `propose_${manifest.id.replaceAll("-", "_")}`,
-    ...(manifest.id === "stripe-invoicing"
-      ? ["propose_stripe_invoice_send", "preview_invoice_page", "propose_invoice_page"]
-      : []),
-  ];
-  if (JSON.stringify(manifest.aiToolNames) !== JSON.stringify(expectedTools))
-    fail(file, "Workflow must declare its generated tools and reviewed adapter tools");
   const names = new Set();
   for (const source of workflow.sources) {
     if (

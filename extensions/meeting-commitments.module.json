@@ -67,6 +67,113 @@
       "impact": "internal_write",
       "reversibility": "compensable"
     },
-    "contractHash": "d715c6f495c0fd8a4b1362db95a429147203eb35a91920b1528117443eb57182"
+    "contractHash": "82a62d66059430dbbdd6205329fbc33b9fb5f752b9e596e895f6aea1003d2f50",
+    "tools": [
+      {
+        "operation": "prepare-workflow",
+        "name": "prepare_meeting_commitments",
+        "description": "Prepare Meeting commitments: Turn reviewed meeting commitments into assigned follow-ups linked to the meeting.. Returns a reviewable plan, never executes it.",
+        "serviceTarget": "revenue-os.workflow-plugins",
+        "connectionRequirement": "none",
+        "impact": "read",
+        "confirmationRequired": false,
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "meetingId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "tasks": {
+              "minItems": 1,
+              "maxItems": 10,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "description": { "type": "string", "maxLength": 2000 },
+                  "dueDate": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "assigneeUserId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": ["title", "description", "dueDate", "assigneeUserId"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": ["meetingId", "tasks"],
+          "additionalProperties": false
+        }
+      },
+      {
+        "operation": "propose-workflow",
+        "name": "propose_meeting_commitments",
+        "description": "Stage the exact previewed Meeting commitments for human approval. Use its digest and a stable UUID requestId. Never executes the action.",
+        "serviceTarget": "revenue-os.workflow-plugins",
+        "connectionRequirement": "none",
+        "impact": "internal_write",
+        "confirmationRequired": true,
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "object",
+              "properties": {
+                "meetingId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "tasks": {
+                  "minItems": 1,
+                  "maxItems": 10,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+                      "description": { "type": "string", "maxLength": 2000 },
+                      "dueDate": {
+                        "type": "string",
+                        "format": "date",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      "assigneeUserId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      }
+                    },
+                    "required": ["title", "description", "dueDate", "assigneeUserId"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": ["meetingId", "tasks"],
+              "additionalProperties": false
+            },
+            "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "requestId": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": ["input", "digest", "requestId"],
+          "additionalProperties": false
+        }
+      }
+    ]
   }
 }

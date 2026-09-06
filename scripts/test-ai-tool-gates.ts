@@ -26,6 +26,12 @@ import {
   AI_TOOL_REGISTRY_VERSION,
 } from "../src/lib/revenue-os/ai-tools";
 
+import { REVENUE_OS_MODULES } from "../src/lib/revenue-os/modules";
+import {
+  pluginToolDeclarations,
+  assertPluginToolGrants,
+} from "../src/lib/revenue-os/plugin-tool-contract";
+
 type Row = Record<string, unknown>;
 
 /**
@@ -108,6 +114,114 @@ async function rejects(run: () => Promise<unknown>, includes: string, because: s
 }
 
 async function main() {
+  const runtime = getRevenueAiTools();
+  let pluginTools = 0;
+  for (const module of REVENUE_OS_MODULES.filter((module) => module.workflow)) {
+    const registeredModule = { ...module, workflow: module.workflow! };
+    const declarations = pluginToolDeclarations(registeredModule);
+    assertPluginToolGrants(registeredModule);
+    assert.deepEqual(
+      module.aiToolNames,
+      declarations.map((tool) => tool.name),
+    );
+    assert.deepEqual(module.workflow!.tools, declarations);
+    for (const { operation, ...declaration } of declarations) {
+      assert.ok(operation.length > 0);
+      const tool = runtime.find((tool) => tool.name === declaration.name)!;
+      assert.ok(tool);
+      for (const [key, expected] of Object.entries(declaration))
+        assert.deepEqual(tool[key as keyof typeof tool], expected);
+      pluginTools++;
+      const disabledContext = {
+        ...context(stubSupabase()),
+        tenantConfig: { modules: { [module.id]: false } },
+      };
+      await assert.rejects(
+        () => executeRegisteredRevenueTool(disabledContext, tool.name, {}),
+        /unavailable/,
+      );
+    }
+    const originalNames = module.aiToolNames;
+    try {
+      module.aiToolNames = [];
+      const tool = runtime.find((tool) => tool.name === declarations[0]!.name)!;
+      await assert.rejects(() => tool.execute(context(stubSupabase()), {}), /grants disagree/);
+    } finally {
+      module.aiToolNames = originalNames;
+    }
+  }
+  assert.equal(pluginTools, 9);
+  const invoiceModule = REVENUE_OS_MODULES.find((module) => module.id === "stripe-invoicing")!;
+  assert.throws(
+    () => pluginToolDeclarations({ ...invoiceModule, workflow: { inputContract: "constructor" } }),
+    /Unknown host workflow contract/,
+  );
+  assert.throws(
+    () =>
+      pluginToolDeclarations({
+        ...invoiceModule,
+        workflow: { inputContract: "task-batch-meeting-v1" },
+      }),
+    /require the invoice workflow/,
+  );
+  const noDatabase = {
+    from() {
+      throw new Error("INVALID TOOL INPUT REACHED DATABASE");
+    },
+  };
+  const uuid = "11111111-1111-4111-8111-111111111111";
+  const invalidInputs: Record<string, Record<string, unknown>> = {
+    prepare_client_onboarding: { opportunityId: "x".repeat(36), tasks: [] },
+    propose_client_onboarding: {
+      input: { opportunityId: uuid, tasks: [] },
+      digest: "x".repeat(64),
+      requestId: uuid,
+    },
+    prepare_meeting_commitments: {
+      meetingId: uuid,
+      tasks: [{ title: "Test", description: "", dueDate: "2026-02-30", assigneeUserId: uuid }],
+    },
+    propose_meeting_commitments: {
+      input: { meetingId: uuid, tasks: [] },
+      digest: "0".repeat(64),
+      requestId: "invalid",
+    },
+    prepare_stripe_invoicing: {
+      contactId: uuid,
+      customerId: "bad",
+      currency: "usd",
+      daysUntilDue: 30,
+      memo: "",
+      lines: [],
+    },
+    propose_stripe_invoicing: { input: {}, digest: "0".repeat(64), requestId: uuid },
+    propose_stripe_invoice_send: { creationActionId: "invalid" },
+    preview_invoice_page: {
+      creationActionId: uuid,
+      design: { layout: "classic", heading: "Invoice", introduction: "", closing: "", total: 1 },
+    },
+    propose_invoice_page: {
+      creationActionId: uuid,
+      design: { layout: "classic", heading: "Invoice", introduction: "", closing: "" },
+      digest: "x".repeat(64),
+      requestId: uuid,
+    },
+  };
+  for (const [name, input] of Object.entries(invalidInputs)) {
+    const enabled = Object.fromEntries(
+      REVENUE_OS_MODULES.filter((module) => module.workflow).map((module) => [module.id, true]),
+    );
+    await assert.rejects(
+      () =>
+        executeRegisteredRevenueTool(
+          { ...context(noDatabase), tenantConfig: { modules: enabled } },
+          name,
+          input,
+        ),
+      (error) => error instanceof Error && error.name === "ZodError",
+    );
+  }
+
   // ---- Schema enforcement -------------------------------------------------
 
   await rejects(
@@ -371,7 +485,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v9");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v10");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.
@@ -417,7 +531,7 @@ async function main() {
   );
   assert.match(
     dispatch,
-    /const output = await withProposalWorkContext\([\s\S]{0,180}tool\.execute\(context, input\)[\s\S]{0,120}validateToolOutput\(tool\.name, tool\.outputSchema, output\)/,
+    /const output = await withProposalWorkContext\([\s\S]{0,180}tool\.execute\(context, parsedInput\)[\s\S]{0,120}validateToolOutput\(tool\.name, tool\.outputSchema, output\)/,
     "dispatch must validate every tool output before returning it",
   );
 
@@ -427,6 +541,9 @@ async function main() {
         registeredTools: registry.length,
         registryVersion: AI_TOOL_REGISTRY_VERSION,
         gates: [
+          "plugin-runtime-manifest-parity",
+          "plugin-full-validator-dispatch",
+          "plugin-stale-grant-refusal",
           "required",
           "enum",
           "additionalProperties",

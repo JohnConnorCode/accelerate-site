@@ -1,3 +1,4 @@
+import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
 import assert from "node:assert/strict";
 import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
@@ -181,11 +182,18 @@ async function main() {
       customerId: "cus_fixture",
       currency: "usd",
       daysUntilDue: 14,
-      memo: "Discovery engagement",
+      memo: "", // Valid optional content must match the business validator through AI.
       lines: [{ description: "Discovery workshop", quantity: 2, unitAmount: 25000 }],
     };
     assert.equal((await stripeBillingChoices(db)).customers.length, 1);
-    const preview = await prepareWorkflowPlugin(db, "stripe-invoicing", input);
+    const toolContext = {
+      supabase: db,
+      actorEmail: "qa@example.example",
+      tenantConfig: { modules: { "stripe-invoicing": true } },
+    };
+    const preview = (
+      await executeRegisteredRevenueTool(toolContext, "prepare_stripe_invoicing", input)
+    ).output as Awaited<ReturnType<typeof prepareWorkflowPlugin>>;
     assert.equal(preview.payload.total, 50000);
     assert.equal(creates, 0, "Preparation must not mutate Stripe");
     await assert.rejects(
@@ -203,14 +211,13 @@ async function main() {
       }),
     );
     const requestId = "44444444-4444-4444-8444-444444444444";
-    const proposed = await proposeWorkflowPlugin(
-      db,
-      "stripe-invoicing",
-      input,
-      preview.digest,
-      requestId,
-      "qa@example.example",
-    );
+    const proposed = (
+      await executeRegisteredRevenueTool(toolContext, "propose_stripe_invoicing", {
+        input,
+        digest: preview.digest,
+        requestId,
+      })
+    ).output as Awaited<ReturnType<typeof proposeWorkflowPlugin>>;
     const same = await proposeWorkflowPlugin(
       db,
       "stripe-invoicing",
@@ -244,7 +251,11 @@ async function main() {
       () => approveAndExecuteAction(db, proposed.id, "qa@example.example"),
       /already handled/,
     );
-    const send = await proposeStripeInvoiceSend(db, proposed.id, "qa@example.example");
+    const send = (
+      await executeRegisteredRevenueTool(toolContext, "propose_stripe_invoice_send", {
+        creationActionId: proposed.id,
+      })
+    ).output as Awaited<ReturnType<typeof proposeStripeInvoiceSend>>;
     assert.equal(sends, 0);
     const tenant = mem.rows("tenants")[0]!;
     (tenant.config as { modules: Record<string, boolean> }).modules["stripe-invoicing"] = false;
@@ -292,18 +303,21 @@ async function main() {
     );
     invalidDesign = false;
     assert.equal(mem.rows("agent_runs").at(-1)?.status, "failed");
-    const pagePreview = await previewInvoicePage(db, proposed.id, defaultInvoiceDesign);
+    const pagePreview = (
+      await executeRegisteredRevenueTool(toolContext, "preview_invoice_page", {
+        creationActionId: proposed.id,
+        design: defaultInvoiceDesign,
+      })
+    ).output as Awaited<ReturnType<typeof previewInvoicePage>>;
     assert.equal(pagePreview.document.total, 50000);
-    const publication = await proposeInvoicePage(
-      db,
-      {
+    const publication = (
+      await executeRegisteredRevenueTool(toolContext, "propose_invoice_page", {
         creationActionId: proposed.id,
         design: defaultInvoiceDesign,
         digest: pagePreview.digest,
         requestId: "44444444-4444-4444-8444-444444444444",
-      },
-      "qa@example.example",
-    );
+      })
+    ).output as Awaited<ReturnType<typeof proposeInvoicePage>>;
     assert.equal(mem.rows("invoice_pages").length, 0);
     const published = (await approveAndExecuteAction(db, publication.id, "qa@example.example")) as {
       pageId: string;

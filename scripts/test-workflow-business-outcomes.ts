@@ -1,3 +1,4 @@
+import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
 import { MODULE_MAP } from "../src/lib/revenue-os/modules";
 import { EXTENSION_WORKFLOWS } from "../src/lib/revenue-os/extension-workflows.generated";
 import { readBoundedJson } from "../src/lib/http/bounded-json";
@@ -202,7 +203,18 @@ async function main() {
     } finally {
       compiled.code = originalCode;
     }
-    const preview = await prepareWorkflowPlugin(db, pluginId, input);
+    const toolContext = {
+      supabase: db,
+      actorEmail: "qa@example.example",
+      tenantConfig: { modules: { [pluginId]: true } },
+    };
+    const preview = (
+      await executeRegisteredRevenueTool(
+        toolContext,
+        `prepare_${pluginId.replaceAll("-", "_")}`,
+        input,
+      )
+    ).output as Awaited<ReturnType<typeof prepareWorkflowPlugin>>;
     assert.equal(preview.actionType, "create_task_batch");
     assert.equal(mem.rows("tasks").length, pluginId === "client-onboarding" ? 0 : 1);
     await assert.rejects(
@@ -217,14 +229,13 @@ async function main() {
       pluginId === "client-onboarding"
         ? "66666666-6666-4666-8666-666666666666"
         : "77777777-7777-4777-8777-777777777777";
-    const action = await proposeWorkflowPlugin(
-      db,
-      pluginId,
-      input,
-      preview.digest,
-      requestId,
-      "qa@example.example",
-    );
+    const action = (
+      await executeRegisteredRevenueTool(toolContext, `propose_${pluginId.replaceAll("-", "_")}`, {
+        input,
+        digest: preview.digest,
+        requestId,
+      })
+    ).output as Awaited<ReturnType<typeof proposeWorkflowPlugin>>;
     await assertPluginActionAllowed(db, action.action_type, action.payload);
     await assert.rejects(
       () => assertPluginActionAllowed(db, action.action_type, action.payload, "autonomous"),
