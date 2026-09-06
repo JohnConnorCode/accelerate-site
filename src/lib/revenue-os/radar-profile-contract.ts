@@ -41,7 +41,11 @@ export const radarProfileSchema = z
     maxOutputTokensPerCall: z.number().int().min(256).max(4000),
     maxCostPerRunUsd: z.number().min(0).max(1),
     sourceMode: z.literal("free-first"),
-    outreachMode: z.literal("draft-only"),
+    outreachMode: z.enum(["draft-only", "approval-required"]),
+    outreachDailyLimit: z.number().int().min(1).max(25).default(5),
+    outreachCooldownHours: z.number().int().min(24).max(2160).default(168),
+    outreachForbiddenPhrases: text.default(""),
+    outreachApprovedTerms: z.boolean().default(false),
   })
   .strict();
 export type RadarProfile = z.infer<typeof radarProfileSchema>;
@@ -67,6 +71,10 @@ export const RADAR_PROFILE_DEFAULTS: RadarProfile = {
   maxCostPerRunUsd: 0,
   sourceMode: "free-first",
   outreachMode: "draft-only",
+  outreachDailyLimit: 5,
+  outreachCooldownHours: 168,
+  outreachForbiddenPhrases: "",
+  outreachApprovedTerms: false,
 };
 export const RADAR_PROFILE_FIELDS: ModuleSettingField[] = [
   ...(
@@ -211,9 +219,46 @@ export const RADAR_PROFILE_FIELDS: ModuleSettingField[] = [
     key: "outreachMode",
     label: "Outreach mode",
     type: "enum",
-    options: ["draft-only"],
+    options: ["draft-only", "approval-required"],
     default: "draft-only",
-    description: "No sending or publication is enabled by setup.",
+    description:
+      "Draft-only never sends. Approval-required still needs a verified sender, current checks and exact human approval for every message.",
+  },
+  {
+    key: "outreachDailyLimit",
+    label: "Daily outreach limit",
+    type: "number",
+    min: 1,
+    max: 25,
+    default: 5,
+    description:
+      "Maximum reserved Radar messages per UTC day; uncertain attempts consume the limit.",
+  },
+  {
+    key: "outreachCooldownHours",
+    label: "Recipient cooldown (hours)",
+    type: "number",
+    min: 24,
+    max: 2160,
+    default: 168,
+    description:
+      "Recent outbound messages to any recipient stop another Radar send. Uncertain acceptance must be reconciled first.",
+  },
+  {
+    key: "outreachForbiddenPhrases",
+    label: "Forbidden outreach phrases",
+    type: "string",
+    default: "",
+    description:
+      "One literal phrase per line. Matching phrases block approval; no executable regular expressions.",
+  },
+  {
+    key: "outreachApprovedTerms",
+    label: "Allow existing approved financial terms",
+    type: "boolean",
+    default: false,
+    description:
+      "Allow only terms stated verbatim in current approved facts. Every message still requires human review; this cannot create a new payment commitment.",
   },
 ];
 export function radarProfileReadiness(raw: unknown) {

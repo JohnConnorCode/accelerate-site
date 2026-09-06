@@ -1,5 +1,6 @@
 /** Shared live/demo workspace data. No provider or database dependencies. */
 import { z } from "zod";
+import { radarOutreachPrepareSchema } from "./radar-outreach-contract";
 import {
   radarStorePreviewSchema,
   radarStoreProposalSchema,
@@ -22,6 +23,7 @@ export const radarOpportunityBriefSchema = z
   .strict();
 export const radarWorkspaceReadSchema = z.object({ opportunityId: z.uuid().optional() }).strict();
 export const radarWorkspaceCommandSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("prepare_outreach"), input: radarOutreachPrepareSchema }).strict(),
   z.object({ kind: z.literal("prepare_brief"), input: radarOpportunityBriefSchema }).strict(),
   z.object({ kind: z.literal("store_preview"), input: radarStorePreviewSchema }).strict(),
   z.object({ kind: z.literal("store_propose"), input: radarStoreProposalSchema }).strict(),

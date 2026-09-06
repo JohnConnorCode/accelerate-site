@@ -77,7 +77,7 @@ async function main() {
   assert.equal(evidence.conversationId, conversation);
   await assert.rejects(
     () => readRadarRelationshipEvidence(db, { ...offer, fromContactId: to }),
-    /linked to the introducing contact/,
+    /linked to the canonical contact/,
     "Same names never authorize a different canonical ID",
   );
   await assert.rejects(

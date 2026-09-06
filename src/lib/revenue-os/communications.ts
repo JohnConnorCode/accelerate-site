@@ -1,11 +1,13 @@
 import "server-only";
+import { createHash } from "node:crypto";
+import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getTenantFromEmail, getTenantReplyToEmail, getTenantResend } from "@/lib/email/resend";
 import { siteUrl } from "@/config/tenant";
 import { recordAudit } from "./audit";
 import { recordActivity } from "./activities";
 import { normalizeEmail, safeErrorMessage } from "./db";
-import { tenantScopeForDatabase } from "@/lib/supabase/server";
+import { tenantScopeForDatabase, tenantIdForDatabase } from "@/lib/supabase/server";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -48,6 +50,9 @@ export async function sendRecordedEmail(
   supabase: SupabaseClient,
   input: {
     to: string;
+    cc?: Array<{ contactId: string; email: string }>;
+    /** Trusted domain guard, called immediately before provider dispatch. Never a tool input. */
+    beforeSend?: () => Promise<void>;
     subject: string;
     text: string;
     html?: string;
@@ -70,14 +75,50 @@ export async function sendRecordedEmail(
   if (input.idempotencyKey && input.idempotencyKey.length > 256)
     throw new Error("Email idempotency keys must be 256 characters or fewer");
 
+  const cc = z
+    .array(z.object({ contactId: z.uuid(), email: z.email() }).strict())
+    .max(4)
+    .parse(input.cc ?? [])
+    .map((item) => ({ ...item, email: normalizeEmail(item.email)! }));
+  const recipients = [to, ...cc.map((item) => item.email)];
+  if (
+    new Set(recipients).size !== recipients.length ||
+    new Set(cc.map((item) => item.contactId)).size !== cc.length
+  )
+    throw new Error("Email recipients must be distinct");
+  const requestHash = createHash("sha256")
+    .update(
+      JSON.stringify({
+        to,
+        cc: [...cc].sort((a, b) => a.email.localeCompare(b.email)),
+        subject: input.subject.trim(),
+        text: input.text,
+        html: input.html ?? null,
+        from: input.from?.trim() ?? null,
+        replyTo: input.replyTo?.trim() ?? null,
+        contactId: input.contactId ?? null,
+        opportunityId: input.opportunityId ?? null,
+        conversationId: input.conversationId ?? null,
+        campaignId: input.campaignId ?? null,
+        source: input.source ?? "admin",
+        template: input.template ?? null,
+      }),
+    )
+    .digest("hex");
   if (input.idempotencyKey) {
     const { data: existing, error } = await supabase
       .from("messages")
-      .select("id,provider_id,status,conversation_id")
+      .select("id,provider_id,status,conversation_id,metadata")
       .eq("idempotency_key", input.idempotencyKey)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (existing?.status === "sent")
+    if (
+      existing &&
+      ((existing.metadata?.request_hash && existing.metadata.request_hash !== requestHash) ||
+        (cc.length && !existing.metadata?.request_hash))
+    )
+      throw new Error("Email idempotency key belongs to a different or unverifiable request");
+    if (existing?.status === "sent" && existing.provider_id)
       return {
         providerId: existing.provider_id,
         messageId: existing.id,
@@ -87,6 +128,33 @@ export async function sendRecordedEmail(
       throw new Error(
         `This email already has a ${existing.status || "non-success"} receipt; reconcile it before retrying`,
       );
+  }
+  if (cc.length) {
+    const tenantId = tenantIdForDatabase(supabase);
+    if (!tenantId || !input.contactId)
+      throw new Error("Multi-party email needs canonical contacts and an explicit workspace");
+    const ids = [z.uuid().parse(input.contactId), ...cc.map((item) => item.contactId)];
+    if (new Set(ids).size !== ids.length) throw new Error("Canonical recipients must be distinct");
+    const read = await supabase
+      .from("contacts")
+      .select("id,primary_email,communication_status")
+      .eq("tenant_id", tenantId)
+      .in("id", ids)
+      .limit(5);
+    if (read.error || read.data?.length !== ids.length)
+      throw new Error("Canonical email recipient context unavailable");
+    const expected = new Map([
+      [input.contactId, to],
+      ...cc.map((item) => [item.contactId, item.email] as [string, string]),
+    ]);
+    if (
+      read.data.some(
+        (contact) =>
+          contact.communication_status !== "active" ||
+          normalizeEmail(contact.primary_email) !== expected.get(contact.id),
+      )
+    )
+      throw new Error("A canonical recipient changed or is suppressed");
   }
   const from = input.from?.trim() || (await getTenantFromEmail(supabase));
   if (!replyAddress(from)) throw new Error("A valid sender identity is required");
@@ -98,6 +166,31 @@ export async function sendRecordedEmail(
   if (replyTo && !replyAddress(replyTo)) throw new Error("A valid reply-to inbox is required");
 
   let conversationId = input.conversationId;
+  if (conversationId && cc.length) {
+    const current = await supabase
+      .from("conversations")
+      .select("contact_id,metadata")
+      .eq("id", conversationId)
+      .eq("tenant_id", tenantIdForDatabase(supabase)!)
+      .single();
+    const association = current.data?.metadata?.association;
+    if (
+      current.error ||
+      current.data?.contact_id !== input.contactId ||
+      association?.contract !== "revenue-os-conversation-association.v1" ||
+      !Array.isArray(association.participants) ||
+      cc.some(
+        (person) =>
+          !association.participants.some(
+            (participant: { contact_id?: string; email?: string; outcome?: string }) =>
+              participant.contact_id === person.contactId &&
+              participant.email === person.email &&
+              participant.outcome === "linked",
+          ),
+      )
+    )
+      throw new Error("The existing conversation does not contain these canonical participants");
+  }
   if (!conversationId) {
     // A deterministic external id makes an idempotent retry reuse its local
     // conversation as well as Resend's provider receipt.
@@ -112,6 +205,24 @@ export async function sendRecordedEmail(
           contact_id: input.contactId ?? null,
           opportunity_id: input.opportunityId ?? null,
           campaign_id: input.campaignId ?? null,
+          ...(cc.length
+            ? {
+                metadata: {
+                  association: {
+                    contract: "revenue-os-conversation-association.v1",
+                    status: "linked",
+                    participants: [
+                      { contact_id: input.contactId, email: to, outcome: "linked" },
+                      ...cc.map((item) => ({
+                        contact_id: item.contactId,
+                        email: item.email,
+                        outcome: "linked",
+                      })),
+                    ],
+                  },
+                },
+              }
+            : {}),
           status: "waiting",
           last_message_at: new Date().toISOString(),
         },
@@ -158,7 +269,7 @@ export async function sendRecordedEmail(
     idempotency_key: input.idempotencyKey || null,
     direction: "outbound",
     sender_email: from,
-    recipient_emails: [to],
+    recipient_emails: recipients,
     subject: input.subject.trim(),
     body_text: input.text,
     body_html: input.html ?? null,
@@ -167,6 +278,8 @@ export async function sendRecordedEmail(
       template: input.template ?? null,
       source: input.source ?? "admin",
       campaign_id: input.campaignId ?? null,
+      request_hash: requestHash,
+      dispatch_attempted: false,
     },
   });
   if (claimError)
@@ -182,14 +295,34 @@ export async function sendRecordedEmail(
       ? `${input.html}<p style="margin-top:24px;font-size:12px;color:#777"><a href="${unsubscribeUrl}">Unsubscribe</a></p>`
       : input.html;
   let response: { data: { id: string } | null; error: { message: string } | null };
+  let providerAttempted = false;
   try {
-    response = await (
-      await getTenantResend(supabase)
-    ).emails.send(
+    const sender = await getTenantResend(supabase);
+    const marker = await supabase
+      .from("messages")
+      .update({
+        metadata: {
+          template: input.template ?? null,
+          source: input.source ?? "admin",
+          campaign_id: input.campaignId ?? null,
+          request_hash: requestHash,
+          dispatch_attempted: true,
+        },
+      })
+      .eq("id", claimId)
+      .eq("status", "processing")
+      .select("id")
+      .single();
+    if (marker.error || !marker.data)
+      throw new Error("Email dispatch marker could not be recorded");
+    if (input.beforeSend) await input.beforeSend();
+    providerAttempted = true;
+    response = await sender.emails.send(
       {
         from,
         replyTo,
         to,
+        ...(cc.length ? { cc: cc.map((item) => item.email) } : {}),
         subject: input.subject.trim(),
         text: deliveredText,
         html: deliveredHtml,
@@ -223,6 +356,8 @@ export async function sendRecordedEmail(
           source: input.source ?? "admin",
           campaign_id: input.campaignId ?? null,
           error: failure,
+          request_hash: requestHash,
+          dispatch_attempted: providerAttempted,
         },
       })
       .eq("id", claimId);
@@ -243,7 +378,7 @@ export async function sendRecordedEmail(
       provider_id: providerId,
       direction: "outbound",
       sender_email: from,
-      recipient_emails: [to],
+      recipient_emails: recipients,
       subject: input.subject.trim(),
       body_text: deliveredText,
       body_html: deliveredHtml ?? null,
@@ -254,6 +389,8 @@ export async function sendRecordedEmail(
         source: input.source ?? "admin",
         campaign_id: input.campaignId ?? null,
         unsubscribe_url: unsubscribeUrl,
+        request_hash: requestHash,
+        dispatch_attempted: true,
       },
     })
     .eq("id", claimId)
