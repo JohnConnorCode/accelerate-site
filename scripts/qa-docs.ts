@@ -351,6 +351,12 @@ async function main() {
           assert.equal(await page.locator(".engagement-drawing").count(), 4);
           const service = page.locator(".engagement-link").first();
           await service.focus();
+          await service.press("Tab");
+          await page.keyboard.press("Shift+Tab");
+          assert.equal(
+            await service.evaluate((element) => element === document.activeElement),
+            true,
+          );
           assert.notEqual(
             await service.evaluate((element) => getComputedStyle(element).outlineStyle),
             "none",
