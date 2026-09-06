@@ -1,3 +1,4 @@
+import { DocsEntrance } from "@/components/docs/DocsEntrance";
 import type { ReactNode } from "react";
 import { DocsSidebar } from "@/components/docs/DocsSidebar";
 import { DocsSearch } from "@/components/docs/DocsSearch";
@@ -15,7 +16,7 @@ export default function DocsLayout({ children }: Readonly<{ children: ReactNode 
         <div className="min-w-0 flex-1">
           <DocsSearch />
           <DocsMobileNav />
-          {children}
+          <DocsEntrance>{children}</DocsEntrance>
         </div>
       </div>
     </div>

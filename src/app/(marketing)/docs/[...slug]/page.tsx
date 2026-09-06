@@ -98,7 +98,7 @@ export default async function DocsPage({ params }: { params: Promise<{ slug: str
         <span aria-hidden="true">·</span> {page.readingTime}
       </p>
 
-      <div className="mt-10 flex gap-12">
+      <div data-docs-body className="mt-10 flex gap-12">
         <div className="min-w-0 flex-1">
           <div data-docs-content className="prose-docs">
             {mdxContent}

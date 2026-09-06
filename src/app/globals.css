@@ -7445,3 +7445,59 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
     transform: none;
   }
 }
+
+/* Product photography leads the Command Center page; the only interactive
+   workspace is the canonical demo. */
+.cc-product-title {
+  margin-top: 20px;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 6.5vw, 6.5rem);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+.cc-product-gallery {
+  margin-top: clamp(32px, 5vw, 64px);
+}
+
+/* One declarative, bounded entrance for every committed docs route. Body
+   blocks own their motion rather than inheriting a second moving ancestor. */
+@keyframes docs-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .motion-ready .docs-entrance > :not([data-docs-body]):not(ul),
+  .motion-ready .docs-entrance > ul > li,
+  .motion-ready .docs-entrance [data-docs-content] > *,
+  .motion-ready .docs-entrance [data-docs-body] aside,
+  .motion-ready .docs-entrance [data-docs-body] nav {
+    animation: docs-enter 420ms cubic-bezier(0.2, 0, 0, 1) both;
+    animation-delay: 180ms;
+  }
+  .motion-ready .docs-entrance > :nth-child(1),
+  .motion-ready .docs-entrance > ul > :nth-child(1),
+  .motion-ready .docs-entrance [data-docs-content] > :nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .motion-ready .docs-entrance > :nth-child(2),
+  .motion-ready .docs-entrance > ul > :nth-child(2),
+  .motion-ready .docs-entrance [data-docs-content] > :nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .motion-ready .docs-entrance > :nth-child(3),
+  .motion-ready .docs-entrance > ul > :nth-child(3),
+  .motion-ready .docs-entrance [data-docs-content] > :nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .motion-ready .docs-entrance :focus-visible {
+    animation: none;
+  }
+}

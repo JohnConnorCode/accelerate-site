@@ -400,6 +400,104 @@ async function main() {
     } finally {
       await recovery.close();
     }
+    for (const width of [1440, 390]) {
+      for (const reducedMotion of ["no-preference", "reduce"] as const) {
+        const context = await browser.newContext({
+          viewport: { width, height: 1000 },
+          reducedMotion,
+        });
+        try {
+          const page = await context.newPage();
+          page.on("pageerror", (error) => failures.push(error.message));
+          await page.goto(`${base}/command-center`, { waitUntil: "domcontentloaded" });
+          const gallery = page.getByRole("region", { name: "Command Center screens", exact: true });
+          await gallery.scrollIntoViewIfNeeded();
+          await gallery.getByRole("button", { name: "Next screen", exact: true }).click();
+          await gallery.getByText("Pipeline · Night theme", { exact: true }).waitFor();
+          assert.equal(
+            await gallery.locator('button[aria-label^="Open"][tabindex="0"]').count(),
+            1,
+          );
+          await gallery
+            .getByRole("button", { name: "Open Pipeline · Night theme in full screen" })
+            .click();
+          await page.getByRole("dialog").waitFor();
+          await page.keyboard.press("Escape");
+          await page.getByRole("dialog").waitFor({ state: "hidden" });
+          assert.equal(await page.locator("[data-demo-interactive]").count(), 0);
+          await gallery.getByRole("button", { name: "Show slide 1 of 7" }).click();
+          await gallery
+            .locator("img")
+            .evaluateAll((images) =>
+              Promise.all(images.map((image) => (image as HTMLImageElement).decode())),
+            );
+          await page.screenshot({
+            path: `${output}/${width}-${reducedMotion}-product-gallery.png`,
+          });
+          assert.equal(
+            await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+            false,
+          );
+          await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+          await page.locator(".docs-entrance h1").waitFor();
+          const motion = await page.locator(".docs-entrance h1").evaluate((heading) => {
+            const animation = heading.getAnimations()[0];
+            if (animation) {
+              animation.pause();
+              animation.currentTime = 180;
+            }
+            const style = getComputedStyle(heading);
+            const result = {
+              name: style.animationName,
+              opacity: Number(style.opacity),
+              transform: style.transform,
+            };
+            animation?.finish();
+            return result;
+          });
+          if (reducedMotion === "reduce") {
+            assert.equal(motion.name, "none");
+            assert.equal(motion.opacity, 1);
+          } else {
+            assert.equal(motion.name, "docs-enter");
+            assert.ok(
+              motion.opacity > 0 && motion.opacity < 1,
+              "Docs entrance has a perceptible intermediate frame",
+            );
+            assert.notEqual(motion.transform, "none");
+          }
+          await page.getByRole("link", { name: "Try your first workflow", exact: true }).click();
+          await page.waitForURL("**/docs/start/daily-path");
+          await page.locator("[data-docs-content]").waitFor();
+          assert.equal(
+            await page
+              .locator(".docs-entrance h1")
+              .evaluate((element) => getComputedStyle(element).animationName),
+            reducedMotion === "reduce" ? "none" : "docs-enter",
+          );
+          await page.evaluate(() =>
+            document
+              .getAnimations()
+              .filter(
+                (animation) =>
+                  animation.effect instanceof KeyframeEffect &&
+                  (animation.effect.target as Element | null)?.closest(".docs-entrance"),
+              )
+              .forEach((animation) => animation.finish()),
+          );
+          await page.screenshot({ path: `${output}/${width}-${reducedMotion}-docs-entrance.png` });
+          assert.equal(
+            await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+            false,
+          );
+          checks.push(
+            `${width} ${reducedMotion}: real screenshot gallery, enlargement, one active slide, docs entrance intermediate frame and guide navigation`,
+          );
+        } finally {
+          await context.close();
+        }
+      }
+    }
     assert.deepEqual(failures, [], "Browser runtime errors");
     writeFileSync(`${output}/results.json`, JSON.stringify({ result: "passed", checks }, null, 2));
     console.log(JSON.stringify({ result: "passed", checks: checks.length, output }));

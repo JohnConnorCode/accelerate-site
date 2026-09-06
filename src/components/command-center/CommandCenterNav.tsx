@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const SECTIONS = [
   { id: "built", label: "Built for you" },
-  { id: "demo", label: "Demo" },
+  { id: "top", label: "Product screens" },
   { id: "how", label: "How it works" },
   { id: "autonomy", label: "Autonomy" },
   { id: "capabilities", label: "Capabilities" },
