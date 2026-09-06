@@ -2,6 +2,22 @@
 
 Read `AGENTS.md` before changing this repository. It is the canonical engineering and ticket handoff contract for every coding agent.
 
+## Repository-specific workflow
+
+The resource, verification and authorization rules in `AGENTS.md` govern this
+repository. They intentionally replace generic global instructions to typecheck,
+lint and build before **every commit**. Commits use fast offline staged checks;
+run the appropriate scoped verification and verify the final application tree
+once through the required CI/build path. Never overlap heavy local jobs or bypass
+the resource gate. Follow existing user authorization for commits and pushes;
+production deployment still requires an explicit production instruction.
+
+Use published `main` for the control checkout, preserve active tickets' approved
+bases, and run the existing doctor mode for the operation being attempted.
+See `AGENTS.md` for accumulated operating lessons and the canonical references.
+Do not maintain a competing checklist here or copy transient account failures,
+branch names or verification results into permanent policy.
+
 **Start with the northstar.** Read `docs/NORTHSTAR.md` to understand what
 Accelerate is building: an agent-native business runtime, not a CRM, chatbot,
 dashboard, or fixed SaaS app. The five product layers (See → Remember → Notice

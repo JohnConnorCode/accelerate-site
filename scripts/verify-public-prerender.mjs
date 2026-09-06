@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { hasLiveAppRoute } from "./lib/prerender-routes.mjs";
 
 const manifestPath = join(process.cwd(), ".next", "prerender-manifest.json");
 let manifest;
@@ -12,6 +13,7 @@ try {
   process.exit(1);
 }
 
+// The package command also runs the manifest-derived docs gate against this build.
 const required = [
   "/",
   "/about",
@@ -19,18 +21,6 @@ const required = [
   "/changelog",
   "/command-center",
   "/docs",
-  "/docs/start",
-  "/docs/command-center",
-  "/docs/pipeline",
-  "/docs/conversations",
-  "/docs/contacts",
-  "/docs/outreach",
-  "/docs/proposals",
-  "/docs/delivery",
-  "/docs/intelligence",
-  "/docs/sources",
-  "/docs/workspace",
-  "/docs/extend",
   "/open-source",
   "/command-center/demo",
   "/contact",
@@ -100,7 +90,7 @@ const appPaths = JSON.parse(
   readFileSync(join(process.cwd(), ".next", "server", "app-paths-manifest.json"), "utf8"),
 );
 for (const pattern of livePatterns) {
-  if (prerendered.has(pattern) || !appPaths[`${pattern}/page`]) {
+  if (!hasLiveAppRoute(pattern, appPaths, prerendered)) {
     console.error(`live token route did not remain an on-demand application page: ${pattern}`);
     process.exit(1);
   }
