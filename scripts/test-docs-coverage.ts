@@ -5,6 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test, { type TestContext } from "node:test";
 import { inspectDocs, type DocsInspectionInput } from "./verify-docs";
+import { hasLiveAppRoute } from "./lib/prerender-routes.mjs";
 import type { DocsSection } from "../src/content/docs/manifest";
 
 function fixture(t: TestContext) {
@@ -195,4 +196,11 @@ test("catalog examples and commented components cannot claim ownership", (t) => 
       issue.includes("DocsAiToolCatalog must appear on exactly one page"),
     ),
   );
+});
+
+test("route groups preserve dynamic token pages without accepting prerendered tokens", () => {
+  const routes = { "/(marketing)/plan/[token]/page": "app/(marketing)/plan/[token]/page.js" };
+  assert.equal(hasLiveAppRoute("/plan/[token]", routes, new Set()), true);
+  assert.equal(hasLiveAppRoute("/plan/[token]", routes, new Set(["/plan/[token]"])), false);
+  assert.equal(hasLiveAppRoute("/proposal/[token]", routes, new Set()), false);
 });

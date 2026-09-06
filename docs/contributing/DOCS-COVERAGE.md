@@ -12,7 +12,7 @@ An author still reviews whether the instructions are correct and useful.
 | `npm run verify:docs -- --report` | JSON findings, page/route inventory and separate `sourcePassed`, `buildChecked` and `strictPassed` fields                          | Findings do not cause a nonzero exit; incomplete coverage stays explicitly false |
 | `npm run verify:docs -- --strict` | Source checks plus every docs route, internal anchor and registered capability/tool entry in the actual build                      | Fails on missing build evidence or any coverage issue                            |
 | `npm run verify:public-prerender` | Existing public-route checks followed by the strict docs gate                                                                      | Fails if either contract fails                                                   |
-| `npm run test:docs-coverage`      | Fifteen controlled failure and mode-semantics cases                                                                                | Fails when a regression lets broken coverage pass                                |
+| `npm run test:docs-coverage`      | Sixteen controlled failure and mode-semantics cases                                                                                | Fails when a regression lets broken coverage pass                                |
 
 Use `--prerender <path/to/prerender-manifest.json>` to check an alternate build
 folder. The matching HTML must be in that folder's `server/app/` directory.
