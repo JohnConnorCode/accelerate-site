@@ -112,6 +112,7 @@ function fixture(overrides: Record<string, unknown> = {}) {
           id: "gen-fixture",
           model,
           created_at: new Date().toISOString(),
+          finish_reason: "stop",
           total_cost: 0,
           native_tokens_prompt: 50,
           native_tokens_completion: 50,

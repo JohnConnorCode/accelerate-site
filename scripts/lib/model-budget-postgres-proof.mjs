@@ -105,6 +105,14 @@ export async function proveModelBudgets({ sql, asyncSql, context, a, b }) {
     ),
     "0",
   );
+  const changedConfig = read(reserve(randomUUID(), "d".repeat(64), 0, 0.1, 20), b);
+  assert.equal(changedConfig.status, "reserved");
+  sql(`UPDATE tenants SET config='{}' WHERE id='${b}';`);
+  assert.equal(read(settle(changedConfig.receipt.id), b).state, "failed");
+  assert.equal(
+    sql(`SELECT result IS NULL FROM model_call_receipts WHERE id='${changedConfig.receipt.id}'`),
+    "t",
+  );
   sql(`DELETE FROM budget_limits;`);
   const cooling = read(reserve(randomUUID(), "e".repeat(64), 0, 0.1, 20));
   assert.equal(cooling.status, "reserved");

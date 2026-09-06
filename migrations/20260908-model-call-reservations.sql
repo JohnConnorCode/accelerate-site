@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.model_call_receipts (
   module_key text NOT NULL CHECK(length(module_key) BETWEEN 3 AND 64),
   operation_key uuid NOT NULL,
   cache_key text NOT NULL CHECK(cache_key ~ '^[a-f0-9]{64}$'),
+  config_fingerprint text NOT NULL CHECK(config_fingerprint ~ '^[a-f0-9]{64}$'),
   requested_model text NOT NULL CHECK(length(requested_model) BETWEEN 1 AND 200),
   resolved_model text,
   state text NOT NULL CHECK(state IN ('reserved','completed','failed','uncertain')),
@@ -107,15 +108,15 @@ BEGIN
   IF NOT claim.allowed THEN RAISE EXCEPTION '%',claim.reason; END IF;
   SELECT * INTO claim FROM public.claim_budget_usage(NULL,'vendor_api_calls',1,'model:'||p_module_key||':'||p_operation_key::text,p_work_item_id);
   IF NOT claim.allowed THEN RAISE EXCEPTION '%',claim.reason; END IF;
-  INSERT INTO public.model_call_receipts(tenant_id,module_key,operation_key,cache_key,requested_model,state,reserved_usd,input_token_bound,output_token_bound)
-    VALUES(t,p_module_key,p_operation_key,p_cache_key,p_model,'reserved',p_reserved_usd,p_input_tokens,p_output_tokens) RETURNING * INTO receipt;
+  INSERT INTO public.model_call_receipts(tenant_id,module_key,operation_key,cache_key,config_fingerprint,requested_model,state,reserved_usd,input_token_bound,output_token_bound)
+    VALUES(t,p_module_key,p_operation_key,p_cache_key,encode(sha256(convert_to(cfg::text,'UTF8')),'hex'),p_model,'reserved',p_reserved_usd,p_input_tokens,p_output_tokens) RETURNING * INTO receipt;
   INSERT INTO public.model_call_events(tenant_id,receipt_id,state) VALUES(t,receipt.id,'reserved');
   RETURN jsonb_build_object('status','reserved','receipt',to_jsonb(receipt));
 END $$;
 
 CREATE OR REPLACE FUNCTION public.complete_model_call(p_id uuid,p_state text,p_model text,p_request_id text,p_usage jsonb,p_result jsonb,p_reason text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-DECLARE t uuid; receipt public.model_call_receipts; cost numeric; adjustment numeric;
+DECLARE t uuid; receipt public.model_call_receipts; cost numeric; adjustment numeric; cfg jsonb;
 BEGIN
   t:=private.authorized_request_tenant_id();
   IF p_state IS NULL OR p_state NOT IN ('completed','failed','uncertain') OR length(coalesce(p_reason,''))>500 OR length(coalesce(p_request_id,''))>200
@@ -132,6 +133,12 @@ BEGIN
   IF p_usage IS NOT NULL AND jsonb_typeof(p_usage->'cost')='number' THEN cost:=(p_usage->>'cost')::numeric; END IF;
   IF cost IS NULL OR cost<0 OR cost::text IN ('NaN','Infinity','-Infinity') THEN
     p_state:='uncertain';p_result:=NULL;p_reason:='Provider cost is missing or invalid; reconciliation required';
+  END IF;
+  IF p_state='completed' THEN
+    SELECT config INTO cfg FROM public.tenants WHERE id=t AND status='active' FOR SHARE;
+    IF cfg IS NULL OR encode(sha256(convert_to(cfg::text,'UTF8')),'hex') IS DISTINCT FROM receipt.config_fingerprint THEN
+      p_state:='failed';p_result:=NULL;p_reason:='Workspace configuration changed before settlement; output discarded';
+    END IF;
   END IF;
   IF p_state='completed' AND (p_result IS NULL OR p_model IS DISTINCT FROM receipt.requested_model) THEN
     RAISE EXCEPTION 'A completed model receipt requires validated output from the requested model';

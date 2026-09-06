@@ -654,6 +654,7 @@ export async function getOpenRouterGeneration(database: SupabaseClient, generati
         id: z.string(),
         model: z.string().min(1).max(200),
         created_at: z.iso.datetime({ offset: true }),
+        finish_reason: z.enum(["stop", "length", "tool_calls", "content_filter", "error"]),
         total_cost: z.number().finite().nonnegative(),
         native_tokens_prompt: z.number().int().nonnegative(),
         native_tokens_completion: z.number().int().nonnegative(),
