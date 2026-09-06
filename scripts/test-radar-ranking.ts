@@ -105,7 +105,7 @@ function fixture() {
     action_queue: [],
     audit_log: [],
   });
-  mem.tables.radar_current_evidence_links = mem.tables.radar_evidence_links;
+  mem.tables.radar_current_evidence_links = mem.tables.radar_evidence_links!;
   mem.idFactory = () => randomUUID();
   let calls = 0;
   mem.rpc("review_radar_assessment", () => {

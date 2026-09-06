@@ -688,7 +688,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       {
         key: "dailyShortlist",
         label: "Daily shortlist limit",
-        description: "Maximum recommendations for future daily selection.",
+        description: "Maximum reviewed business recommendations returned by daily selection.",
         type: "number",
         min: 1,
         max: 10,
