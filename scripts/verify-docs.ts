@@ -359,8 +359,8 @@ async function main() {
           return [route, fs.existsSync(file) ? fs.readFileSync(file, "utf8") : ""];
         }),
       );
-      const { listRevenueAiCapabilities } = await import("../src/lib/revenue-os/ai-tools");
-      input.toolIds = listRevenueAiCapabilities().map((tool) => tool.name);
+      const { getRevenueAiTools } = await import("../src/lib/revenue-os/ai-tools");
+      input.toolIds = getRevenueAiTools().map((tool) => tool.name);
     }
   }
   const result = inspectDocs(input);
