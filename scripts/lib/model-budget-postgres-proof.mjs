@@ -108,7 +108,9 @@ export async function proveModelBudgets({ sql, asyncSql, context, a, b }) {
   const changedConfig = read(reserve(randomUUID(), "d".repeat(64), 0, 0.1, 20), b);
   assert.equal(changedConfig.status, "reserved");
   sql(`UPDATE tenants SET config='{}' WHERE id='${b}';`);
-  assert.equal(read(settle(changedConfig.receipt.id), b).state, "failed");
+  const discarded = read(settle(changedConfig.receipt.id, "completed", '{"cost":0}'), b);
+  assert.equal(discarded.state, "failed");
+  assert.match(discarded.reason, /configuration changed/);
   assert.equal(
     sql(`SELECT result IS NULL FROM model_call_receipts WHERE id='${changedConfig.receipt.id}'`),
     "t",
