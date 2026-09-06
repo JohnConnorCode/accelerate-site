@@ -107,7 +107,9 @@ jobs:
 
       - name: Verify runtime tenant and domain boundaries
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run verify:runtime-boundaries
+        run: |
+          npm run verify:runtime-boundaries
+          node --test scripts/test-runtime-error-adoption.mjs
 
       - name: Lint
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
