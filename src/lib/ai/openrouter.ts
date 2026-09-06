@@ -82,6 +82,8 @@ export class OpenRouterError extends Error {
     message: string,
     public readonly status: number,
     public readonly requestId: string | null = null,
+    public readonly inferenceRejected = false,
+    public readonly retryAfterSeconds: number | null = null,
   ) {
     super(message);
     this.name = "OpenRouterError";
@@ -229,13 +231,37 @@ async function attemptChat(
       input.strictPricing ? readBoundedJson(response, 128 * 1024) : response.json()
     ).catch(() => null)) as OpenRouterResponse | null;
     if (!response.ok || !payload) {
-      throw new OpenRouterError(boundedProviderMessage(payload), response.status || 502, requestId);
+      const errorCode = (payload as { error?: { code?: unknown } } | null)?.error?.code;
+      const rejected =
+        !response.ok &&
+        errorCode === response.status &&
+        [400, 401, 402, 403, 404, 429].includes(response.status);
+      const retryHeader = response.headers.get("retry-after");
+      const seconds =
+        retryHeader && /^\d+$/.test(retryHeader)
+          ? Number(retryHeader)
+          : retryHeader
+            ? Math.ceil((Date.parse(retryHeader) - Date.now()) / 1000)
+            : 60;
+      const retryAfter =
+        rejected && response.status === 429
+          ? Math.max(1, Math.min(Number.isFinite(seconds) ? seconds : 60, 86400))
+          : null;
+      throw new OpenRouterError(
+        boundedProviderMessage(payload),
+        response.status || 502,
+        requestId,
+        rejected,
+        retryAfter,
+      );
     }
     if (!Array.isArray(payload.choices) || !payload.choices[0]?.message) {
       throw new OpenRouterError(
         "OpenRouter returned no assistant message",
         502,
-        requestId || payload.id || null,
+        (input.strictPricing && typeof payload.id === "string" ? payload.id : requestId) ||
+          payload.id ||
+          null,
       );
     }
     return payload;

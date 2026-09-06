@@ -275,13 +275,27 @@ async function main() {
       }
     },
   );
-  await check("429 remains a single uncertain attempt with no automatic retry", async () => {
+  await check("429 rejection settles zero cost with cooldown and no automatic retry", async () => {
     const f = fixture();
     httpStatus = 429;
-    reply = { error: { message: "Busy" } };
-    assert.equal((await prepareRadarBrief(f.db, f.input)).status, "uncertain");
+    reply = { error: { code: 429, message: "Busy" } };
+    assert.equal((await prepareRadarBrief(f.db, f.input)).status, "failed");
     assert.equal(network.filter((call) => call.body).length, 1);
+    assert.equal(
+      (f.mem.rpcCalls.at(-1)?.args.p_usage as { retry_after_seconds: number }).retry_after_seconds,
+      60,
+    );
   });
+  await check(
+    "a charged malformed provider response retains its generation for reconciliation",
+    async () => {
+      const f = fixture();
+      reply.choices = [];
+      assert.equal((await prepareRadarBrief(f.db, f.input)).status, "uncertain");
+      assert.equal(f.mem.rpcCalls.at(-1)?.args.p_request_id, "gen-fixture");
+      assert.equal(network.filter((call) => call.body).length, 1);
+    },
+  );
   await check("disable during inference discards output but records known usage", async () => {
     const f = fixture();
     onInference = () => {

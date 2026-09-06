@@ -8,6 +8,7 @@ import { getOpenRouterQuote } from "./model-pricing";
 import {
   getOpenRouterGeneration,
   openRouterChat,
+  OpenRouterError,
   type OpenRouterMessage,
   type OpenRouterResponse,
 } from "./openrouter";
@@ -155,6 +156,8 @@ export async function runBudgetedModel<T>(
   let response: OpenRouterResponse | undefined;
   let result: T | undefined;
   let dispatched = false;
+  let rejection: OpenRouterError | undefined;
+  let failedGenerationId: string | null = null;
   const assertCurrent = async () => {
     if (input.signal?.aborted) throw new Error("Request cancelled");
     const fresh = await database
@@ -206,10 +209,20 @@ export async function runBudgetedModel<T>(
       throw new Error("Model usage is missing or exceeds admitted token bounds");
     result = input.parse(JSON.parse(response.choices[0].message.content ?? ""));
     await assertCurrent();
-  } catch {
+  } catch (error) {
+    if (error instanceof OpenRouterError) {
+      if (error.inferenceRejected) rejection = error;
+      if (error.requestId && /^gen-[a-zA-Z0-9_-]{1,196}$/.test(error.requestId))
+        failedGenerationId = error.requestId;
+    }
     // Error strings can contain provider/user data; only a fixed explanation reaches receipts.
-    state = !dispatched || response?.usage?.cost !== undefined ? "failed" : "uncertain";
-    reason = "Model request failed validation, was cancelled, or has an uncertain provider result";
+    state =
+      !dispatched || rejection || response?.usage?.cost !== undefined ? "failed" : "uncertain";
+    reason = rejection
+      ? rejection.status === 429
+        ? "Provider rejected the request before inference; rate-limit cooldown applies"
+        : "Provider rejected the request before inference; correct its configuration before another admission"
+      : "Model request failed validation, was cancelled, or has an uncertain provider result";
   }
   const settled = await callModelBudgetRpc(database, "complete_model_call", {
     p_id: id,
@@ -219,16 +232,27 @@ export async function runBudgetedModel<T>(
     p_request_id:
       typeof response?.id === "string" && /^gen-[a-zA-Z0-9_-]{1,196}$/.test(response.id)
         ? response.id
-        : null,
-    p_usage: !dispatched
-      ? { cost: 0, prompt_tokens: 0, completion_tokens: 0 }
-      : response?.usage
+        : failedGenerationId,
+    p_usage:
+      !dispatched || rejection
         ? {
-            cost: response.usage.cost,
-            prompt_tokens: response.usage.prompt_tokens,
-            completion_tokens: response.usage.completion_tokens,
+            cost: 0,
+            prompt_tokens: 0,
+            completion_tokens: 0,
+            ...(rejection
+              ? {
+                  rejection_status: rejection.status,
+                  retry_after_seconds: rejection.retryAfterSeconds ?? 0,
+                }
+              : {}),
           }
-        : null,
+        : response?.usage
+          ? {
+              cost: response.usage.cost,
+              prompt_tokens: response.usage.prompt_tokens,
+              completion_tokens: response.usage.completion_tokens,
+            }
+          : null,
     p_result: state === "completed" ? result : null,
     p_reason: reason,
   });

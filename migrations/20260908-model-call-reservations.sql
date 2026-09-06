@@ -89,6 +89,11 @@ BEGIN
   IF EXISTS(SELECT 1 FROM public.model_call_receipts WHERE tenant_id=t AND module_key=p_module_key AND state IN ('reserved','uncertain')) THEN
     RETURN jsonb_build_object('status','deferred','reason','A model request is running or requires cost reconciliation');
   END IF;
+  IF EXISTS(SELECT 1 FROM public.model_call_receipts WHERE tenant_id=t AND module_key=p_module_key
+    AND state='failed' AND usage->>'rejection_status'='429'
+    AND completed_at + make_interval(secs=>least(86400,greatest(0,coalesce((usage->>'retry_after_seconds')::integer,60)))) > now()) THEN
+    RETURN jsonb_build_object('status','deferred','reason','Provider rate-limit cooldown is active');
+  END IF;
   SELECT * INTO existing FROM public.model_call_receipts WHERE tenant_id=t AND module_key=p_module_key AND cache_key=p_cache_key
     AND state='completed' AND created_at > now()-interval '24 hours' ORDER BY created_at DESC LIMIT 1;
   IF FOUND THEN RETURN jsonb_build_object('status','cached','receipt',to_jsonb(existing)); END IF;

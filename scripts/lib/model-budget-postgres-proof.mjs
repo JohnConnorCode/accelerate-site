@@ -105,7 +105,27 @@ export async function proveModelBudgets({ sql, asyncSql, context, a, b }) {
     ),
     "0",
   );
+  sql(`DELETE FROM budget_limits;`);
+  const cooling = read(reserve(randomUUID(), "e".repeat(64), 0, 0.1, 20));
+  assert.equal(cooling.status, "reserved");
+  read(
+    settle(
+      cooling.receipt.id,
+      "failed",
+      '{"cost":0,"rejection_status":429,"retry_after_seconds":60}',
+    ),
+  );
+  const cooldown = read(reserve(randomUUID(), "f".repeat(64), 0, 0.1, 20));
+  assert.equal(cooldown.status, "deferred");
+  assert.match(cooldown.reason, /cooldown/);
+  assert.throws(
+    () =>
+      sql(`UPDATE model_call_events SET reason='edited' WHERE receipt_id='${cooling.receipt.id}'`),
+    /immutable/,
+  );
   return [
+    "model-rejection-cooldown",
+    "model-immutable-history",
     "model-concurrent-admission",
     "model-atomic-dual-quota",
     "model-cache-and-replay",

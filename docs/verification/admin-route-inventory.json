@@ -196,7 +196,7 @@
     "src/lib/admin/navigation.ts": "95bba5539a8be5f91f8d5db70479ee9b611fc3ba0d7fc6fc3d990dbfa0eaa897",
     "src/lib/ai/approved-pricing.ts": "de3c37eddce5b73b90acc8e38f72d01865e9a1b207ea3a27972de4bfbd34dc42",
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
-    "src/lib/ai/openrouter.ts": "7c53d46f614c45b31f824dd6a249c0e331464ff2a8985434baa8100ef2f05ec5",
+    "src/lib/ai/openrouter.ts": "cca608db769dc05bad2be0d983a1f474ad30226ed789efdc18535de710e10e0b",
     "src/lib/email/blocks.ts": "694fecaa691755074a7eafa07f2cb8170af100bb2b2c0614e70f5a344eec2e0b",
     "src/lib/email/booking.ts": "b6559df14564fd4d7a208c11c246f711f1f410023301494655a9c7b4856b034a",
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",

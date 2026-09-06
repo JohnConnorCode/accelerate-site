@@ -73,7 +73,10 @@ changing an admitted operation’s inputs is a conflict, not permission to execu
 Receipts show reserved and actual dollars separately. Reservations are never
 refunded automatically, even for known zero-charge pre-dispatch failures. This
 can leave usable provider credit above the remaining application quota. Unknown
-cost holds further calls. A charge above the admitted ceiling discards output and
+cost holds further calls. Documented pre-inference 4xx rejections record zero
+provider cost. A 429 honors `Retry-After` (bounded to one day; 60 seconds when
+absent) without automatic retry. After cooldown, a new admitted operation still
+consumes quota. Timeouts and mid-generation errors remain uncertain. A charge above the admitted ceiling discards output and
 records the overrun in shared usage; provider misbilling cannot be prevented by
 an application quota. No paid search, PR database or provider call is part of the
 fixture tests.
