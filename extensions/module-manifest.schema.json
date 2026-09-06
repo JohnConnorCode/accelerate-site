@@ -3,7 +3,7 @@
   "title": "Revenue OS extension module manifest",
   "description": "Declarative registration for a pluggable Revenue OS module. Contains no executable code; see extensions/README.md.",
   "type": "object",
-  "required": ["id", "name", "description", "category", "defaultEnabled", "navLinks"],
+  "required": ["id", "name", "description", "category", "defaultEnabled", "navLinks", "docsUrl"],
   "additionalProperties": false,
   "properties": {
     "$schema": {

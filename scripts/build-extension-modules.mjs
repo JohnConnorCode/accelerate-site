@@ -35,6 +35,7 @@ const { pluginSettingsContract } = requireTypeScript(
   "../src/lib/revenue-os/plugin-settings-contract.ts",
   import.meta.url,
 );
+import { pluginDocumentationFailures } from "./lib/plugin-documentation.mjs";
 import { validateBoundedWorkflowSchema } from "./lib/bounded-workflow-schema.mjs";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -122,6 +123,7 @@ function fail(file, message) {
 }
 
 function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
+  for (const message of pluginDocumentationFailures(repoRoot, manifest)) fail(file, message);
   const req = ["id", "name", "description", "category", "defaultEnabled", "navLinks"];
   for (const key of req) {
     if (manifest[key] === undefined) fail(file, `missing required field "${key}"`);

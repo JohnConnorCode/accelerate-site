@@ -29,6 +29,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["run_business_pulse"],
     routes: [],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/business-pulse/README.md",
     report: {
       version: 1,
       sources: [
@@ -62,6 +64,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["prepare_client_onboarding", "propose_client_onboarding"],
     routes: ["/admin/client-onboarding"],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/client-onboarding/README.md",
     workflow: {
       version: 1,
       inputSchema: {
@@ -281,6 +285,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["run_commitment_watch"],
     routes: [],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/commitment-watch/README.md",
     report: {
       version: 1,
       sources: [
@@ -305,7 +311,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     routes: ["/admin/example-inventory"],
     setupChecks: [],
     docsUrl:
-      "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/EXTENDING.md",
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/example-inventory/README.md",
     settings: [
       {
         key: "reorderThreshold",
@@ -346,6 +352,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["prepare_meeting_commitments", "propose_meeting_commitments"],
     routes: ["/admin/meeting-commitments"],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/meeting-commitments/README.md",
     workflow: {
       version: 1,
       inputSchema: {
@@ -565,6 +573,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["run_meeting_prep"],
     routes: [],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/meeting-prep/README.md",
     report: {
       version: 1,
       sources: [
@@ -589,7 +599,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     routes: [],
     setupChecks: [],
     docsUrl:
-      "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/plugins/OPPORTUNITY-RADAR.md",
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md",
     settings: [
       {
         key: "organization",
@@ -778,6 +788,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["run_pipeline_watch"],
     routes: [],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/pipeline-watch/README.md",
     report: {
       version: 1,
       sources: [
@@ -805,6 +817,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     ],
     routes: ["/admin/collections"],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/receivables-collections/README.md",
     settings: [
       {
         key: "cooldownHours",
@@ -835,6 +849,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     ],
     routes: ["/admin/invoicing"],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/stripe-invoicing/README.md",
     workflow: {
       version: 1,
       inputSchema: {

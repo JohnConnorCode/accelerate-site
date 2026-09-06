@@ -27,5 +27,6 @@
         "columns": ["id", "title", "status", "start_at", "end_at"]
       }
     ]
-  }
+  },
+  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/business-pulse/README.md"
 }

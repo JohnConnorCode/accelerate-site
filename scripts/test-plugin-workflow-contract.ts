@@ -149,6 +149,7 @@ try {
   for (const path of [
     "scripts/build-extension-modules.mjs",
     "scripts/lib/bounded-workflow-schema.mjs",
+    "scripts/lib/plugin-documentation.mjs",
     "src/lib/revenue-os/modules.ts",
     "src/lib/revenue-os/module-settings-policy.ts",
     "src/lib/revenue-os/plugin-settings-contract.ts",

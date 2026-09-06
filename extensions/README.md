@@ -46,3 +46,11 @@ extra work:
   migration. Icons are chosen from the allowlist in
   `scripts/build-extension-modules.mjs`; schema changes are ordered migrations
   in `migrations/`, reviewed like any other.
+
+## Plugin documentation requirement
+
+Every plugin change must satisfy the [plugin documentation contract](../docs/contracts/PLUGIN-DOCUMENTATION.md).
+Ship the operator guide, public documentation link, worked example, cost and
+permission boundaries, recovery steps, extension references and task-based review
+evidence with the implementation. `verify:extensions` enforces bundled guide and
+link presence; factual review and end-to-end proof remain required.

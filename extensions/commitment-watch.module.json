@@ -17,5 +17,6 @@
         "columns": ["id", "title", "status", "due_date"]
       }
     ]
-  }
+  },
+  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/commitment-watch/README.md"
 }

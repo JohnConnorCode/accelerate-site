@@ -74,7 +74,7 @@ Then create `src/app/admin/acme-inventory/page.tsx`, run
 | `routes`         | no       | Admin route prefixes the module owns. Each must have a real `page.tsx`; CI checks this.                               |
 | `aiToolNames`    | no       | Tool names registered in `ai-tools.ts`. Each must exist and belong to exactly one module.                             |
 | `setupChecks`    | no       | Setup Center check ids the module depends on.                                                                         |
-| `docsUrl`        | no       | Where an operator reads more.                                                                                         |
+| `docsUrl`        | yes      | Public operator guide; also keep `plugins/<id>/README.md`.                                                            |
 | `settings`       | no       | Up to 12 configurable values, rendered by the shared settings form. See below.                                        |
 
 ### Settings, without shipping UI
@@ -691,3 +691,11 @@ both enablement preview and execution. The first exemplar is the
 [Opportunity Radar profile](../plugins/OPPORTUNITY-RADAR.md), which supports
 generic business data, two opt-in presets and existing AI module approvals.
 This is profile setup, not automatic opportunity discovery or outreach.
+
+## Plugin documentation requirement
+
+Every plugin change must satisfy the [plugin documentation contract](../contracts/PLUGIN-DOCUMENTATION.md).
+Ship the operator guide, public documentation link, worked example, cost and
+permission boundaries, recovery steps, extension references and task-based review
+evidence with the implementation. `verify:extensions` enforces bundled guide and
+link presence; factual review and end-to-end proof remain required.

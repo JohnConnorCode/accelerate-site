@@ -21,3 +21,20 @@ Plugin tools flow through the autonomy policy engine. Mutating tools still stage
 ## What not to do
 
 Do not treat a plugin as a way to skip approval. Do not document a plugin as autonomous if its policy is `always_ask`. Do not load plugin code from the `extensions/` JSON directory; that directory is data.
+
+## Document the plugin before release
+
+Every plugin needs an operator guide covering setup, configuration, permissions,
+costs, a worked example, disabling, recovery and verified limitations. Bundled
+plugins keep `plugins/<id>/README.md` and a public `docsUrl` in their manifest.
+`npm run verify:extensions` rejects missing guides and documentation links.
+Runtime/MCP submissions supply the same documentation in their review packet;
+the current runtime registry does not enforce a documentation field.
+
+Follow the [plugin documentation contract](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contracts/PLUGIN-DOCUMENTATION.md).
+A reviewer must follow the task against the current implementation; structural
+checks cannot establish that the guide is accurate. See the
+[Collections guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/receivables-collections/README.md)
+for a business workspace and the
+[Radar guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md)
+for a configuration foundation with explicit unfinished capabilities.

@@ -176,5 +176,5 @@
       "description": "No sending or publication is enabled by setup."
     }
   ],
-  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/plugins/OPPORTUNITY-RADAR.md"
+  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md"
 }

@@ -17,5 +17,6 @@
         "columns": ["id", "name", "stage", "updated_at", "next_action_at"]
       }
     ]
-  }
+  },
+  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/pipeline-watch/README.md"
 }
