@@ -11,14 +11,18 @@ import {
 } from "./lib/developer-workspace.mjs";
 import { migrationCatalog } from "./lib/migration-ledger.mjs";
 
+import { maintainerPreflight } from "./lib/maintainer-workflow.mjs";
+
 const flags = new Set(process.argv.slice(2));
 const checks = [];
 function check(id, status, detail) {
   checks.push({ id, status, detail });
 }
 try {
-  if ([...flags].some((flag) => !["--board", "--json"].includes(flag)))
-    throw new Error("Usage: npm run dev:doctor -- [--board] [--json]");
+  if ([...flags].some((flag) => !["--board", "--maintainer", "--json"].includes(flag)))
+    throw new Error("Usage: npm run dev:doctor -- [--board | --maintainer] [--json]");
+  if (flags.has("--board") && flags.has("--maintainer"))
+    throw new Error("Check board and maintainer readiness separately.");
   const major = Number(process.versions.node.split(".")[0]);
   check(
     "node",
@@ -60,6 +64,7 @@ try {
     "pass",
     `Use ${pkg.scripts["verify:review"] ? "npm run verify:review" : "the repository verification contract"} and the ticket's scoped checks; local verification is separate from deployment.`,
   );
+  if (flags.has("--maintainer")) checks.push(...maintainerPreflight(root));
   if (flags.has("--board")) {
     if (existsSync(".env.agent.local")) process.loadEnvFile(".env.agent.local");
     const endpoint = boardEndpoint(process.env);
@@ -97,7 +102,11 @@ try {
   check("preflight", "blocked", error instanceof Error ? error.message : "Readiness check failed");
 }
 const result = {
-  mode: flags.has("--board") ? "assigned-work" : "local-demo",
+  mode: flags.has("--maintainer")
+    ? "maintainer-preflight"
+    : flags.has("--board")
+      ? "assigned-work"
+      : "local-demo",
   ready: !checks.some((c) => c.status === "blocked"),
   checks,
 };

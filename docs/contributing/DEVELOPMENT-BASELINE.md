@@ -1,48 +1,54 @@
-# Development baseline
+# Development and integration baseline
 
-Use `agent/developer-baseline` for the control checkout described in
-[Start development](DEVELOPER-START.md). Before assigning work, the maintainer
-records the exact verified commit with the handoff. A branch name alone is not
-an immutable approval.
+Published `main` is the control-checkout baseline. Temporary `agent/*` branches
+are candidates, not competing sources of truth. Before new work, fetch origin
+and record the exact verified base. Existing tickets keep their approved bases;
+never reset an active worktree merely because main advanced.
 
-This branch combines these committed inputs:
+## One integration owner per candidate
 
-| Input                  | Commit                                     | Purpose                                                               |
-| ---------------------- | ------------------------------------------ | --------------------------------------------------------------------- |
-| Developer handoff      | `79f14747e719bca8f8973ab30e3145c637a9abfa` | Work packets, scoped CLI, doctor, backlog quality and execution tests |
-| Documentation          | `626c86cb94946a4d8646a641d4eff3ff28375157` | 55-page docs set, rewritten task guides and browser verification      |
-| Accepted runtime fixes | `8485caa77c2ef5c8b1be8c9c36e95e9a8276758e` | Reviewed plugin isolation, host contracts and cold-start headroom     |
+The integration owner inventories worktrees and PR heads, includes only completed
+handoffs, resolves conflicts, and verifies one pinned combined commit. Other
+agents continue in their own worktrees. A new head does not silently join a run
+already being verified. Publish one integration PR with included commits,
+exclusions, test evidence and remaining release gates.
 
-Newer plugin approval/grant work after the last listed runtime commit was not
-included: it had not completed its acceptance workflow at integration time.
-Existing worktrees and live claims were preserved.
+Use `npm run dev:doctor -- --maintainer --json` before integration or merge.
+It checks the declared GitHub identity, single-owner review policy, required CI
+and freshness of origin/main using read-only requests. It does not change branch
+protection, fetch, claim work, merge or deploy. Connection failures are actionable
+prerequisites, not permission to invent an account or bypass checks.
 
-The combined CI retains all input checks: developer lifecycle, migrations,
-PostgreSQL, plugin security and cold starts, work-board journeys, Collections,
-docs and public navigation. Source statistics are recalculated for the combined
-files and scripts. Verification must pass for this combined tree before the
-maintainer hands its commit to another developer.
+`workflow-policy.json` declares this installation's GitHub account and repository.
+JohnConnorCode is the sole GitHub identity. PRs retain evidence and required
+`verify` CI, strict updates and administrator enforcement; do not require that
+account to approve its own PR. The integration owner reviews the code and results
+before a normal merge. Team installations must explicitly design their review
+policy rather than silently inheriting the single-owner configuration.
 
-## First assignment
+## Complete the handoff
 
-A ticket still starts at its own approved base. Do not rewrite every ticket to
-the newest branch: older in-progress implementations and dependency receipts may
-require an earlier base. Run board controls from this control checkout and make
-the code change in the ticket's isolated worktree.
+1. Verify the exact candidate and recheck its head before merging. Squash merging
+   is supported. A green source branch is not proof of a changed integration tree.
+2. Record the merge receipt and compare the resulting main tree with the verified
+   candidate. Squash merges change ancestry: retain the source-to-main receipt
+   instead of repeatedly reporting the same work as unmerged.
+3. Close superseded PRs only after verifying their heads were included. Retain
+   branches, worktrees, dirty edits and active claims until ownership permits cleanup.
+4. Update new-ticket baseline guidance to main. Live card definitions, acceptance
+   and review remain on the Feature Board; do not rewrite active ticket bases.
+5. Treat production as a separate action. Read deployment-target.json and run
+   deploy:check with the correct account before pulling configuration or building.
+   A failed account lookup is not evidence of a hosting suspension. Obtain explicit
+   release authorization and verify hosted outcomes and recovery after deployment.
 
-Before assigning unclaimed work, check that its exact base has a passing CI
-receipt and contains the routes and services required by the scope. A resolvable
-commit alone is insufficient. If the base is stale, record the reason on the live
-card and approve a verified replacement before claim. For an active ticket,
-preserve its work, release the claim, record the approved change and reclaim it.
-See the [real route-inventory handoff](../verification/ADMIN-ROUTE-RECONCILIATION.md#base-correction-discovered-during-real-pickup)
-for the failure this procedure caught.
+## Assigned work
 
-Provide the worker's board URL and individual scoped access, an isolated test
-workspace and a named reviewer before expecting shared pickup. The developer
-checks these with `npm run dev:doctor -- --board`. Keep missing prerequisites on
-the live card; do not silently substitute production credentials or a local mock.
+The handoff includes the exact base, scoped board access, isolated test context,
+acceptance checks and integration owner. `dev:doctor -- --board` verifies the
+shared protocol without claiming. A missing connection should produce a concrete
+sign-in or access step while independent work continues. Never substitute
+production keys or claim fictional verification is live evidence.
 
-Submission is review work. A maintainer accepts the evidence independently and
-records integration separately. The combined code's passing CI does not mark
-feature cards shipped or prove that team access has been configured.
+Review and baseline history remain in the dated verification receipts. They are
+historical evidence, not instructions to clone an obsolete integration branch.
