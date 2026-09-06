@@ -7,20 +7,21 @@ const taskFields = workflowTaskBatchSchema.shape;
 export const PLUGIN_WORKFLOW_CONTRACTS = {
   "task-batch-opportunity-v1": {
     action: "create_task_batch",
+    domainSchema: workflowTaskBatchSchema,
     schema: z
       .object({ opportunityId: taskFields.opportunityId.unwrap(), tasks: taskFields.tasks })
-      .strict()
-      .pipe(workflowTaskBatchSchema),
+      .strict(),
   },
   "task-batch-meeting-v1": {
     action: "create_task_batch",
+    domainSchema: workflowTaskBatchSchema,
     schema: z
       .object({ meetingId: taskFields.meetingId.unwrap(), tasks: taskFields.tasks })
-      .strict()
-      .pipe(workflowTaskBatchSchema),
+      .strict(),
   },
   "stripe-invoice-draft-v1": {
     action: "create_stripe_invoice_draft",
+    domainSchema: stripeInvoiceInputSchema,
     schema: stripeInvoiceInputSchema,
   },
 } as const;
@@ -62,5 +63,6 @@ export function pluginWorkflowDeclaration(id: string) {
 }
 
 export function parsePluginWorkflowInput(id: string, input: unknown) {
-  return pluginWorkflowContract(id).schema.parse(input) as Record<string, unknown>;
+  const contract = pluginWorkflowContract(id);
+  return contract.domainSchema.parse(contract.schema.parse(input)) as Record<string, unknown>;
 }
