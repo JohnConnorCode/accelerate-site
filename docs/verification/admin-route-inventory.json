@@ -137,7 +137,7 @@
     "src/components/admin/AdminAuthLayout.tsx": "919c168dcb2e0122b971c8bb0158d745647a40c399e8e0cfdcdb918dabab2ee0",
     "src/components/admin/AdminCreateTaskModal.tsx": "ab5f9e4bf4e9842a8a65be9d2bea92e2d36aa62d61b9d134176da969cda2f516",
     "src/components/admin/AdminDemoBoundary.tsx": "30d7ec9a1acebcb63f29cf41f2de4e2b08a42e44f386d6c7206094adb61c6fd4",
-    "src/components/admin/AdminDialog.tsx": "07c527b8a853180850b3652078047ee720f7b058992c671704a5401e7ca77e50",
+    "src/components/admin/AdminDialog.tsx": "3608d9aa703b7772fb47b64937f627a48920936b80a1e0bc2a77a64ac37518c2",
     "src/components/admin/AdminErrorBoundary.tsx": "31e7a1f74e8366ddf2faac0f56415595f36cf89510534e33cd7372f50910d49a",
     "src/components/admin/AdminFounderNoteModal.tsx": "a63a080f3e0a4d4cd9ec4def5edbae0d1e3f3a97226a8e98d5067e8bafdbb9b2",
     "src/components/admin/AdminLink.tsx": "36fe275acea84008ef653d9eb8c0053fd8251e750ab147ab0f0a7a98e83ba08e",

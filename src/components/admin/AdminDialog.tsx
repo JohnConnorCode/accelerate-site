@@ -106,8 +106,8 @@ export function AdminDialog({
                 }}
               >
                 <motion.div
-                  aria-labelledby={labelledBy}
-                  aria-label={ariaLabel}
+                  {...(labelledBy ? { "aria-labelledby": labelledBy } : {})}
+                  {...(ariaLabel ? { "aria-label": ariaLabel } : {})}
                   className={cn(
                     "pointer-events-auto relative w-full",
                     widths[maxWidth],
