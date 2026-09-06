@@ -4,10 +4,13 @@ Read [the north star](../NORTHSTAR.md), then [AGENTS.md](../../AGENTS.md). The l
 
 ## Start with the right checkout
 
-The maintainer supplies the reviewed development branch or tag, its exact commit, and the repository URL. Use that ref when cloning; do not assume public `main` contains unmerged local work. Use the consolidated development branch below. Its source boundaries and verification requirements are recorded in [Development baseline](DEVELOPMENT-BASELINE.md):
+Use published `main` for the control checkout. The integration owner supplies its
+exact verified commit; fetch it before starting. Temporary `agent/*` branches are
+implementation or integration candidates, not a second permanent baseline. Active
+tickets retain their own approved immutable bases. See [Development baseline](DEVELOPMENT-BASELINE.md).
 
 ```bash
-git clone --branch agent/developer-baseline https://github.com/JohnConnorCode/accelerate-site.git
+git clone --branch main https://github.com/JohnConnorCode/accelerate-site.git
 cd accelerate-site
 export ACCELERATE_CONTROL="$PWD"
 npm ci

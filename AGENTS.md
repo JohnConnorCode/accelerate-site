@@ -10,6 +10,16 @@ For a connected installation, follow
 [the self-hosting guide](docs/self-hosting/SELF-HOSTING.md). Shared ticket pickup
 also requires the scoped access described below.
 
+## Maintainer integration
+
+Published `main` is the control baseline. Before integrating or merging agent work,
+run `npm run dev:doctor -- --maintainer` and follow
+[Development baseline](docs/contributing/DEVELOPMENT-BASELINE.md). Use the declared
+GitHub account, retain required CI, and never introduce a self-approval deadlock.
+One integration owner pins the candidate; other agents keep their isolated work.
+After squash merge, record tree parity and close proven superseded PRs without
+removing active worktrees. This does not authorize production deployment.
+
 ## Pick up work
 
 Start with [the developer handoff](docs/contributing/DEVELOPER-START.md). Run
