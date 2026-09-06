@@ -180,3 +180,21 @@ resolvable references are necessary, but they do not prove a usable development
 base. Preserve other workers' bases; make any approved change through the live
 card with a recorded reason. Source-only inventory checks still do not prove
 runtime or production data parity.
+
+## Radar profile reconciliation review
+
+The Radar/profile and documentation change based on `0e9a3e4` adds no admin
+route or business-effect adapter. Reviewed `modules.ts` adds a trusted settings
+contract parser and a shared credential-field policy; numeric model-token limits
+remain bounded public quantities. `module-configuration.ts` rechecks profile
+readiness before enablement, after existing tenant/admin and revision checks.
+The runtime README records these owners. The AI setup path retains exact
+proposal/approval execution and reports actual unavailable capabilities.
+
+The Integrations, Plugins and AI inventory rows now record those boundaries.
+The profile is configured in Integrations; it does not appear as an executable
+Radar workspace. Documentation links resolve from manifest data through the
+existing Integrations control. No tenant/provider data flow or route parity is
+inferred from a documentation link. Scoped profile/AI tests cover these controls;
+CI34041467864 exposed the missing inventory refresh, which is retained as failed
+evidence. The refreshed inventory describes this reviewed source delta only.
