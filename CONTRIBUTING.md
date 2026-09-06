@@ -4,7 +4,7 @@ Thanks for helping improve Accelerate Revenue OS.
 
 ## Before opening a change
 
-1. Check the [roadmap](https://www.acceleratewith.us/roadmap) and search existing issues (issues labeled `help wanted` are a curated, dependency-satisfied subset of the roadmap, safe to pick up without waiting on other work). `scripts/feature-backlog-data.mjs` is the canonical backlog behind both, with acceptance criteria and dependencies already written out for planned and backlog cards.
+1. Start with [the developer handoff](docs/contributing/DEVELOPER-START.md). The live Feature Board owns current scope, readiness and claims. Public roadmap entries and Git templates are orientation; confirm the live ticket before starting assigned work.
 2. Keep the proposed scope narrow.
 3. Read `AGENTS.md` and the contract relevant to your change.
 4. For security-sensitive behavior, open a private report instead of a public issue.
@@ -12,9 +12,7 @@ Thanks for helping improve Accelerate Revenue OS.
 
 ## Local workflow
 
-The commands below assume a running instance with `.env.local` configured
-and migrations applied. If you're starting from a fresh clone with neither,
-follow [docs/self-hosting/SELF-HOSTING.md](docs/self-hosting/SELF-HOSTING.md) first.
+Start the fictional demo without credentials using `npm ci`, `npm run dev:doctor` and `npm run dev`. Assigned work additionally needs the maintainer-provided board endpoint, scoped token and approved test environment described in [the developer handoff](docs/contributing/DEVELOPER-START.md).
 
 ```bash
 npm ci

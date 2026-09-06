@@ -1619,11 +1619,38 @@ First establish the runtime.
 
 ---
 
-# 31. Recommended implementation sequence
+# 31. Outcome-driven implementation sequence
 
-The current Loop One dependency discipline should remain intact.
+Phases describe architecture maturity and proof, not an exclusive work calendar.
+Independent work may advance across phases when its explicit prerequisites are
+verified. Complete useful business journeys first when ready work competes for
+attention: lead to sale, delivery, invoice, collections and accountable follow-up.
+Shared runtime improvements earn priority by enabling those outcomes.
 
-Do not abandon the foundational work already underway.
+Keep Loop One's unfinished requirements visible. Do not rebuild verified primitives
+because a later feature needs them; extend their canonical services. A shipped
+component count is never proof that a phase's business outcome works.
+
+The live Feature Board owns priority, dependencies, scope and evidence. North star
+phase is explicit in the work specification; legacy numeric board labels are not
+an automatic phase mapping. See → Remember → Notice → Act → Learn are orthogonal
+product layers and may all appear in a single journey.
+
+## Phase exit evidence
+
+| Phase | Observable exit outcome                                                                                                                | Proof card                |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| A     | A controlled inquiry produces canonical records, accountable next work, a receipted approved response and retrievable sourced context. | `northstar-phase-a-proof` |
+| B     | Work survives interruption; shared capabilities, provenance, permissions and budgets produce truthful outcomes across interfaces.      | `northstar-phase-b-proof` |
+| C     | Sales completes lead, qualification, approved reply, meeting, reviewed commitments, follow-up and reasoned future scheduling.          | `northstar-phase-c-proof` |
+| D     | A separately authored plugin uses supported contracts and passes installation, isolation, permissions and lifecycle checks.            | `northstar-phase-d-proof` |
+| E     | Additional business plugins complete useful delivery, invoice and collections workflows using the proven runtime.                      | `northstar-phase-e-proof` |
+
+Each proof records exact acceptance, environment, receipts and integration commit.
+Local fixtures, controlled integrations, production behavior and adoption
+observations are different evidence. Unknown proof remains unknown. Accepted
+verification, merge and deployment are separate facts. Generated snapshot reports
+summarize these cards and never establish runtime truth from a percentage.
 
 ## Phase A: Complete Loop One
 
@@ -1661,7 +1688,7 @@ loop.
 
 # 32. Phase B: Agent Runtime foundation
 
-After Loop One:
+Build alongside independent Loop One work when the relevant prerequisites are verified:
 
 ## B1. Durable Work Engine
 
@@ -1733,7 +1760,7 @@ future work scheduled
 
 # 34. Phase D: Plugin SDK + MCP
 
-Once the reference worker proves the primitives:
+Prove the primitives through the reference worker while independently preparing supported extension contracts:
 
 Build:
 
@@ -1752,7 +1779,7 @@ Then begin enabling third-party developers and coding agents.
 
 # 35. Phase E: Additional coworkers/plugins
 
-Only after the substrate proves itself.
+Each additional workflow requires proof of the substrate it uses. Independent workflows may advance in parallel; breadth never bypasses capability, permission or evidence gates.
 
 Priority:
 

@@ -13,18 +13,11 @@ label dimensions only:
 ## Northstar alignment
 
 The platform vision (`docs/NORTHSTAR.md`) defines five product layers and five
-implementation phases. Existing board phases map to northstar phases:
-
-| Board phase | Northstar phase | Description                                        |
-| ----------- | --------------- | -------------------------------------------------- |
-| 0–1         | A               | Complete Loop One — See + Remember foundations     |
-| 2–3         | B               | Agent Runtime foundation — Notice + Act primitives |
-| 4           | C               | Reference coworker — Sales end-to-end loop         |
-| 5           | D               | Plugin SDK + MCP                                   |
-| 6           | E               | Additional coworkers/plugins + documentation       |
-
-The five product layers (See → Remember → Notice → Act → Learn) cut across
-implementation phases. Every card's notes include its northstar phase reference.
+implementation phases. The work specification owns explicit `northstar.phase` (A–E), `northstar.layers`
+(See, Remember, Notice, Act, Learn) and its business contribution. Numeric phase
+labels are retained for legacy filtering; they do not determine architecture
+maturity. Historical classifications in dated exports are audit metadata and do
+not rewrite frozen acceptance or evidence.
 
 ### New categories and capabilities
 
@@ -48,8 +41,9 @@ New capability labels added for northstar primitives:
 ## Rules:
 
 - The board opens on the active horizon (`milestone:now` plus `milestone:next`). Keep Now small enough to scan; Next is the rest of the current circuit. Opening onto Now alone makes the board look empty.
-- The dependency-ordered circuit in `scripts/feature-backlog-data.mjs` owns Next
-  sequencing. A card does not become Now merely because it is important.
+- The live board owns sequencing. Now precedes Next, then urgency and explicit
+  order break ties. Prioritize complete business journeys and their shared blockers.
+  Independent phases can advance together; readiness does not promote Later work.
 - Status describes delivery state. Milestone describes planning horizon. Never
   use one as a substitute for the other.
 - Priority describes urgency inside a milestone. It does not move a Later card
@@ -59,5 +53,7 @@ New capability labels added for northstar primitives:
   step numbers, adjectives, or synonyms as labels.
 - Detailed concepts, dependencies, guardrails, and evidence belong in the card
   fields, not in labels.
-- Change the taxonomy centrally, run the contract verifier, apply the manifest,
-  and verify zero board drift. Never repair managed labels only in the UI.
+- Change definitions through revision-checked work operations. Templates and dated
+  exports are advisory; never overwrite live edits or archive unlisted cards.
+- Initiatives group outcome slices and cannot be claimed. A reviewer may accept an
+  initiative only after every declared child prerequisite has accepted verification.

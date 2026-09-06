@@ -16,11 +16,10 @@ explicit revision-checked changes and never archives unlisted work. When this
 guide disagrees with the board, repair this guide before dispatching work.
 See `docs/contracts/UNIVERSAL-WORK-BOARD.md` for the current protocol.
 
-The program is revenue-core-first. It finishes a truthful revenue loop, gives
-the system connected memory, expands the founder cockpit, and only then widens
-automation, delivery, client success, and optional providers. The intended
-horizon is twelve months, but dependencies and verified outcomes—not dates—move
-work between milestones.
+The program prioritizes useful business journeys and allows independent phases
+to progress together. The live board records the exact next work. Phase gates in
+NORTHSTAR.md require accepted outcome evidence; no elapsed time or card count
+closes them. The generated NORTHSTAR-BUILD-PLAN.md is an explicitly dated report.
 
 ## Program outcomes
 
@@ -105,166 +104,15 @@ path; destructive AI tools stay unavailable.
 
 ## Dependency-ordered program
 
-Only dependency-ready cards are eligible for dispatch. The order inside each
-wave is intentional; two agents may run in parallel only when they do not
-share an unmet dependency or overlapping files.
+Use the live Ready view and `agent:status`; use `agent:show -- --card <key>` to
+inspect a full packet without claiming. Now precedes Next, then priority and board
+order. Later is deliberate even when dependencies are satisfied. Phase and
+initiative filters explain contribution without imposing a global phase lock.
 
-### Gate 0: restore execution truth
-
-1. `card:feature-board-dependency-integrity` makes dependency, milestone, roll-up,
-   and documentation drift machine-checkable.
-2. Complete or explicitly park the currently claimed slices before opening new
-   WIP. Use `card:route-state-resilience`, `card:email-studio-runtime`, and
-   `card:admin-shell-design-system` as their only status authorities.
-3. Reconcile the manifest to the live board only after owners confirm the intended
-   transition and any managed drift has been reviewed.
-
-Exit gate: contract verification and live board verification agree, no active
-card has an unmet dependency, and each in-progress card has one explicit owner.
-
-### Wave 1: execution safety and activation truth
-
-Implement in this order:
-
-1. `card:atomic-execution-claims`
-2. `card:communication-sender-service`
-3. `card:setup-control-plane`
-4. `card:secret-storage-hardening`
-5. `card:booking-mode-contract-reconciliation`
-6. `card:audit-ledger-coverage`
-7. `card:revenue-os-tests`
-8. `card:api-contract-tests`
-
-Close evidence-heavy foundations rather than rebuilding them. Review
-`card:cloneable-command-center-contract`, `card:tenant-config-seam`,
-`card:openrouter-ai-gateway`, and `card:founder-note-capture` against their
-acceptance, then ship, narrow, or record the exact remainder.
-
-Exit gate: material work claims before side effects, retries reuse a logical key,
-receipts terminate truthfully, Setup reports behavior rather than configuration,
-and provider or database failure never looks like success.
-
-### Wave 2: one canonical founder cockpit
-
-1. `card:task-operator-workspace` adds the missing all-commitments workspace and
-   repairs record links without creating another task writer.
-2. `card:legacy-api-adapters` and `card:additional-tools-canonical-parity` make
-   Activity, Inbox, Revenue, and retained source tools projections of canonical
-   services while compatibility remains reversible.
-3. `card:identity-review-workbench` gives ambiguous or unmatched source records
-   explicit link, create, or no-match decisions. Merge and delete are excluded.
-4. `card:data-quality-repair-center` turns warnings into exact records and safe
-   service-owned repair actions.
-5. `card:stage-history-analytics-reconciliation` makes funnel, furthest-stage,
-   time-in-stage, regression, and forecast facts derive from stage events.
-6. `card:command-palette-tools` makes search and commands operate on canonical
-   contacts, companies, opportunities, tasks, proposals, and campaigns.
-7. `card:admin-a11y-keyboard-mobile` verifies equivalent critical work on desktop,
-   mobile, keyboard, and reduced motion.
-
-Exit gate: the same record and metric agree across Today, Tasks, Pipeline,
-Activity, Inbox, Revenue, Analytics, search, and AI reads.
-
-### Wave 3: connected senses and memory
-
-1. `card:google-oauth-first-sync`
-2. `card:gmail-incremental-sync`
-3. `card:gmail-thread-idempotency`
-4. `card:gmail-record-association`
-5. `card:conversations-operator-inbox`
-6. `card:calendar-sync-association`
-7. `card:drive-folder-boundary`
-8. `card:drive-content-indexing`
-9. `card:ai-tool-registry`
-10. `card:ai-bounded-context`
-11. `card:ai-confirmation-system`
-12. `card:drive-provenance-retrieval`
-13. `card:second-brain-see`
-14. `card:second-brain-remember`
-
-Google activation and production receipts require founder-controlled credentials
-and consent. Agents may finish safe local service work while activation is
-unavailable, but must leave production acceptance open and move to another
-dependency-ready card rather than fabricate evidence.
-
-Exit gate: Gmail, meetings, approved Drive material, and founder notes resolve to
-canonical records; retrieval cites source/date/confidence and refuses unsupported
-answers.
-
-### Wave 4: revenue execution and planning
-
-Campaign sequence:
-
-1. `card:campaign-policy-versioning`
-2. `card:campaign-dry-run`
-3. `card:campaign-enrollment-personalization`
-4. `card:campaign-jit-executor`
-5. `card:campaign-stop-conditions`
-6. `card:campaign-unsubscribe`
-7. `card:resend-webhooks`
-8. `card:campaign-performance-exceptions`
-9. `card:campaign-workspace-ui`
-
-Proposal and meeting sequence:
-
-1. `card:proposal-lifecycle-service`
-2. `card:proposal-public-decisions`
-3. `card:proposal-delivery-receipts`
-4. `card:proposal-pdf-expiry-followup`
-5. `card:proposal-workspace-ui`
-6. `card:calendar-confirmation-flow`
-7. `card:precall-briefs`
-8. `card:postmeeting-workflow`
-9. `card:autonomous-inbound-responder`
-
-Planning sequence:
-
-1. `card:operating-goals-scorecards`
-2. `card:forecast-scenario-planner`
-
-Exit gate: campaign and proposal external effects have exact previews, approvals
-or approved policy versions, stop rechecks, provider receipts, uncertain-outcome
-reconciliation, and safe recovery. Targets and forecast scenarios are visibly
-separate from recorded revenue facts.
-
-### Wave 5: operations, delivery, and productization
-
-1. `card:system-health-report`
-2. `card:notification-dispatch-preferences`
-3. `card:operations-alerting`
-4. `card:incident-receipt-recovery-console`
-5. `card:setup-behavioral-tests`
-6. `card:won-to-delivery-handoff`
-7. `card:client-success-lifecycle-workspace`
-8. `card:governed-bulk-operator-actions`
-9. `card:de-vertical-inbound`
-10. `card:install-runbook`
-11. `card:client-instance-portability`
-
-Exit gate: a founder can follow an incident to its receipt and bounded recovery;
-a won opportunity creates one receipted delivery handoff; client commitments and
-renewal risk remain linked to canonical history; and a scratch client instance
-can be installed, exported without secrets, and restored.
-
-### Wave 6: initiative, learning, and trust
-
-1. `card:proactive-operator-intelligence` implements the behavior summarized by
-   `card:second-brain-notice`.
-2. `card:automation-policy-registry` supplies the shared versioned trigger,
-   envelope, guardrails, eval, approval, and kill-switch primitive summarized by
-   `card:second-brain-act`.
-3. `card:agent-learning-feedback-loop` supplies per-tool outcome attribution and
-   governed signals summarized by `card:second-brain-learn`.
-4. `card:ai-model-job-registry` and `card:ai-quality-control-plane` gate model and
-   policy changes with evals, cost, rollback, and curated exemplars.
-5. `card:second-brain-trust` renders a receipt-linked account of actions,
-   declines, failures, corrections, and measured outcomes.
-6. `card:mcp-ai-tool-bridge` is last and derives from the same tool registry; it
-   never bypasses confirmation or the action queue.
-
-Exit gate: adding a policy is configuration plus fixtures rather than a bespoke
-agent; changes are evaluated, outcomes are attributed, and the founder can answer
-"what has the system been doing?" from one accountable surface.
+The generated [build plan](../NORTHSTAR-BUILD-PLAN.md) reports phase proof cards,
+ready work, specification gaps, blockers, review and unrecorded delivery. It owns
+no status. The [backlog audit](../planning/BACKLOG-AUDIT.md) records historical
+dispositions and linked corrective/verification work.
 
 ## Optional provider lane
 

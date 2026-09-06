@@ -261,3 +261,7 @@ The public Calendly embed is the active booking path when `CALENDLY_ENABLED` is 
 8. Confirm the Vercel cron jobs have terminal `job_runs` and `source_runs` receipts.
 
 For local Command Center verification, run `npm run test:admin-recovery`, `npm run test:features`, `npm run test:contact-imports`, and `npm run test:admin-parity`. These authenticated Playwright journeys cover shared dialogs, Email Studio, Contact Import review/approval, collapsed/mobile navigation, Feature Board movement, and document-level overflow across every registered admin route. A source review or in-app browser check is not a substitute for these repository journeys.
+
+## Developer work board
+
+Clean installs include `20260906-universal-work-board.sql` and `20260907-work-packet-quality.sql` in the ordered catalog. The latter supplies packet validation and ordered card reads. Applying schema alone does not activate an older deployment: release compatible adapters, verify canonical writes and then check `npm run dev:doctor -- --board` with an issued worker credential. See [developer start](../contributing/DEVELOPER-START.md).

@@ -15,6 +15,24 @@ export async function GET(request: NextRequest) {
       request.headers.get("authorization")?.replace(/^Bearer /, "") ?? null,
     );
     const p = request.nextUrl.searchParams;
+    if (p.get("connection") === "1") {
+      const board = await listWorkBoard(db, actor, { limit: 1 });
+      const settings = await db
+        .from("work_board_settings")
+        .select("enforce_writes")
+        .eq("singleton", true)
+        .single();
+      if (settings.error) throw new Error("Cannot verify work-board write enforcement");
+      return NextResponse.json({
+        ...board,
+        strictWrites: settings.data.enforce_writes,
+        access: {
+          projects: actor.projects,
+          scopes: actor.scopes,
+          capabilities: actor.capabilities ?? [],
+        },
+      });
+    }
     if (p.get("history"))
       return NextResponse.json({ events: await workHistory(db, actor, p.get("history")!) });
     return NextResponse.json(

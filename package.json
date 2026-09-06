@@ -243,7 +243,14 @@
     "test:ai-branding": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-branding.ts",
     "test:ai-module-controls": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-module-controls.ts",
     "test:ai-tool-discovery": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-tool-discovery.ts",
-    "setup": "node scripts/workspace-setup.mjs"
+    "setup": "node scripts/workspace-setup.mjs",
+    "agent:show": "npx tsx scripts/agent-dispatch.ts show",
+    "backlog:audit": "npx tsx scripts/audit-backlog.ts",
+    "backlog:snapshot": "npx tsx --env-file=.env.local scripts/snapshot-backlog.ts",
+    "test:work-packet": "npx tsx --env-file=.env.local scripts/test-work-packet.ts",
+    "verify:backlog": "node scripts/verify-backlog-snapshot.mjs",
+    "dev:doctor": "node scripts/developer-doctor.mjs",
+    "test:developer-handoff": "node --test scripts/test-developer-handoff.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

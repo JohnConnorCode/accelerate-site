@@ -1,0 +1,285 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { mkdtempSync, writeFileSync, mkdirSync, readFileSync, existsSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { execFileSync, spawn } from "node:child_process";
+import { createServer } from "node:http";
+import { randomUUID } from "node:crypto";
+import {
+  prepareWorkspace,
+  createWorkspace,
+  repositoryContext,
+  boardEndpoint,
+  requestBoard,
+  requireBoardProtocol,
+} from "./lib/developer-workspace.mjs";
+const root = fileURLToPath(new URL("..", import.meta.url));
+const git = (cwd, args) =>
+  execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+function fixture() {
+  const dir = mkdtempSync(join(tmpdir(), "accelerate-developer-test-"));
+  const source = join(dir, "source"),
+    remote = join(dir, "remote.git"),
+    clone = join(dir, "clone");
+  mkdirSync(source);
+  git(source, ["init", "-b", "approved"]);
+  writeFileSync(join(source, "README.md"), "Controlled developer fixture\n");
+  git(source, ["add", "README.md"]);
+  git(source, [
+    "-c",
+    "user.name=Fixture",
+    "-c",
+    "user.email=fixture@example.test",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "commit",
+    "-m",
+    "Fixture",
+  ]);
+  const baseCommit = git(source, ["rev-parse", "HEAD"]);
+  git(dir, ["clone", "--bare", source, remote]);
+  git(dir, ["clone", pathToFileURL(remote).href, clone]);
+  return {
+    dir,
+    source,
+    remote,
+    clone,
+    card: {
+      id: randomUUID(),
+      seed_key: "fixture-ticket",
+      title: "Controlled ticket",
+      status: "planned",
+      revision: 1,
+      labels: ["milestone:now"],
+      readiness: [],
+      dependencies: [],
+      work_spec: {
+        repository: { url: pathToFileURL(remote).href, baseBranch: "approved", baseCommit },
+      },
+    },
+  };
+}
+async function cli(cwd, args, env) {
+  // Use the repository's installed TypeScript runner, independent of the target checkout.
+  const executable = join(root, "node_modules/.bin/tsx");
+  return new Promise((resolveResult, reject) => {
+    const child = spawn(executable, [join(root, "scripts/agent-dispatch.ts"), ...args], {
+      cwd,
+      env: { ...process.env, ...env },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "",
+      stderr = "";
+    child.stdout.on("data", (d) => (stdout += d));
+    child.stderr.on("data", (d) => (stderr += d));
+    child.on("error", reject);
+    child.on("close", (code) => resolveResult({ code, stdout, stderr }));
+  });
+}
+
+test("fresh clone fetches a published base and uses one safe worktree path from every checkout", () => {
+  const f = fixture();
+  try {
+    git(f.source, ["checkout", "-b", "next-base"]);
+    writeFileSync(join(f.source, "next.txt"), "next\n");
+    git(f.source, ["add", "next.txt"]);
+    git(f.source, [
+      "-c",
+      "user.name=Fixture",
+      "-c",
+      "user.email=fixture@example.test",
+      "-c",
+      "core.hooksPath=/dev/null",
+      "commit",
+      "-m",
+      "Next",
+    ]);
+    git(f.source, ["push", f.remote, "next-base"]);
+    f.card.work_spec.repository.baseBranch = "next-base";
+    f.card.work_spec.repository.baseCommit = git(f.source, ["rev-parse", "HEAD"]);
+    assert.throws(() => prepareWorkspace(f.clone, f.card), /unavailable/);
+    const plan = prepareWorkspace(f.clone, f.card, { fetchBase: true });
+    assert.equal(plan.mode, "create");
+    const path = createWorkspace(plan);
+    assert.equal(git(path, ["rev-parse", "HEAD"]), f.card.work_spec.repository.baseCommit);
+    assert.equal(prepareWorkspace(path, f.card).path, path);
+    assert.equal(repositoryContext(path).sessions, repositoryContext(f.clone).sessions);
+    writeFileSync(join(path, "unfinished.txt"), "preserve");
+    assert.throws(() => prepareWorkspace(f.clone, f.card), /uncommitted/);
+    assert.equal(readFileSync(join(path, "unfinished.txt"), "utf8"), "preserve");
+  } finally {
+    rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+test("wrong repository, unpublished base, unsafe key and occupied path fail before preparation", () => {
+  const f = fixture();
+  try {
+    const wrong = structuredClone(f.card);
+    wrong.work_spec.repository.url = "https://example.test/wrong.git";
+    assert.throws(() => prepareWorkspace(f.clone, wrong), /does not match/);
+    const absent = structuredClone(f.card);
+    absent.work_spec.repository.baseCommit = "b".repeat(40);
+    assert.throws(() => prepareWorkspace(f.clone, absent), /unavailable/);
+    assert.throws(
+      () => prepareWorkspace(f.clone, { ...f.card, seed_key: "../../escape" }),
+      /safely/,
+    );
+    const plan = prepareWorkspace(f.clone, f.card);
+    mkdirSync(plan.path, { recursive: true });
+    writeFileSync(join(plan.path, "other"), "owned");
+    assert.throws(() => prepareWorkspace(f.clone, f.card), /occupied/);
+    assert.equal(readFileSync(join(plan.path, "other"), "utf8"), "owned");
+  } finally {
+    rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+test("CLI refuses missing bases before POST, claims with revision, returns pure JSON and replays the original request", async () => {
+  const f = fixture();
+  let posts = 0;
+  const bodies = [];
+  const server = createServer(async (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    if (req.method === "GET")
+      return res.end(
+        JSON.stringify({
+          protocolVersion: 2,
+          schemaReady: true,
+          features: [f.card],
+          nextOffset: null,
+        }),
+      );
+    posts++;
+    let text = "";
+    for await (const chunk of req) text += chunk;
+    bodies.push(JSON.parse(text));
+    res.end(
+      JSON.stringify({
+        card: { ...f.card, status: "in_progress", revision: 2 },
+        replayed: posts > 1,
+      }),
+    );
+  });
+  await new Promise((resolveListening) => server.listen(0, "127.0.0.1", resolveListening));
+  const env = {
+    WORK_BOARD_URL: `http://127.0.0.1:${server.address().port}`,
+    WORK_BOARD_TOKEN: "fixture-private-token",
+  };
+  try {
+    const base = f.card.work_spec.repository.baseCommit;
+    f.card.work_spec.repository.baseCommit = "b".repeat(40);
+    let result = await cli(f.clone, ["next", "--json"], env);
+    assert.equal(result.code, 1);
+    assert.equal(posts, 0);
+    assert.match(result.stderr, /unavailable/);
+    f.card.work_spec.repository.baseCommit = base;
+    const requestKey = randomUUID();
+    result = await cli(f.clone, ["next", "--json", "--request-key", requestKey], env);
+    assert.equal(result.code, 0, result.stderr);
+    const packet = JSON.parse(result.stdout);
+    assert.equal(packet.schemaVersion, 2);
+    assert.equal(packet.id, f.card.id);
+    assert.ok(existsSync(packet.worktree));
+    assert.equal(bodies[0].revision, 1);
+    assert.equal(bodies[0].id, f.card.id);
+    const claimToken = bodies[0].payload.claimToken;
+    assert.ok(!result.stdout.includes(claimToken) && !result.stderr.includes(claimToken));
+    assert.ok(
+      !result.stdout.includes(env.WORK_BOARD_TOKEN) &&
+        !result.stderr.includes(env.WORK_BOARD_TOKEN),
+    );
+    f.card.revision = 99;
+    f.card.status = "in_progress";
+    f.card.readiness = ["already_claimed"];
+    result = await cli(f.clone, ["next", "--json", "--request-key", requestKey], env);
+    assert.equal(result.code, 0, result.stderr);
+    assert.deepEqual(bodies[1], bodies[0]);
+  } finally {
+    await new Promise((resolveClosed) => server.close(resolveClosed));
+    rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+test("protocol, endpoint and error handling refuse legacy, redirects and credential leakage", async () => {
+  assert.throws(() => boardEndpoint({}), /WORK_BOARD_URL/);
+  assert.throws(() => boardEndpoint({ WORK_BOARD_URL: "http://remote.example" }), /HTTPS/);
+  assert.throws(
+    () => boardEndpoint({ WORK_BOARD_URL: "https://user:secret@remote.example" }),
+    /HTTPS/,
+  );
+  assert.throws(() => requireBoardProtocol({ features: [], schemaReady: true }), /protocol v2/);
+  const server = createServer((req, res) => {
+    res.statusCode = 404;
+    res.end("<html>fixture-private-token old app</html>");
+  });
+  await new Promise((resolveListening) => server.listen(0, "127.0.0.1", resolveListening));
+  try {
+    await assert.rejects(
+      requestBoard(new URL(`http://127.0.0.1:${server.address().port}`), "fixture-private-token"),
+      (error) =>
+        !error.message.includes("fixture-private-token") && /old application/.test(error.message),
+    );
+  } finally {
+    await new Promise((resolveClosed) => server.close(resolveClosed));
+  }
+});
+
+test("doctor proves shared protocol, operation scopes and enforcement without making writes", async () => {
+  let strictWrites = false,
+    posts = 0;
+  const server = createServer((req, res) => {
+    if (req.method !== "GET") posts++;
+    res.setHeader("Content-Type", "application/json");
+    res.end(
+      JSON.stringify({
+        protocolVersion: 2,
+        schemaReady: true,
+        features: [],
+        nextOffset: null,
+        strictWrites,
+        access: {
+          scopes: ["read", "claim", "heartbeat", "progress", "release", "block", "submit"],
+        },
+      }),
+    );
+  });
+  await new Promise((resolveListening) => server.listen(0, "127.0.0.1", resolveListening));
+  async function doctor() {
+    return new Promise((resolveResult, reject) => {
+      const child = spawn(process.execPath, ["scripts/developer-doctor.mjs", "--board", "--json"], {
+        cwd: root,
+        env: {
+          ...process.env,
+          WORK_BOARD_URL: `http://127.0.0.1:${server.address().port}`,
+          WORK_BOARD_TOKEN: "doctor-private-token",
+        },
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      let stdout = "",
+        stderr = "";
+      child.stdout.on("data", (d) => (stdout += d));
+      child.stderr.on("data", (d) => (stderr += d));
+      child.on("error", reject);
+      child.on("close", (code) => resolveResult({ code, stdout, stderr }));
+    });
+  }
+  try {
+    let result = await doctor();
+    assert.equal(result.code, 1, result.stderr);
+    assert.equal(
+      JSON.parse(result.stdout).checks.find((c) => c.id === "shared-write-enforcement").status,
+      "blocked",
+    );
+    strictWrites = true;
+    result = await doctor();
+    assert.equal(result.code, 0, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).ready, true);
+    assert.equal(posts, 0);
+    assert.ok(!result.stdout.includes("doctor-private-token"));
+  } finally {
+    await new Promise((resolveClosed) => server.close(resolveClosed));
+  }
+});

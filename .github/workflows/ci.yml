@@ -134,9 +134,14 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: |
           npm run verify:migrations
+          PATH="$(pg_config --bindir):$PATH" npm run test:migration-ledger
           npm run test:public-roadmap
           PATH="$(pg_config --bindir):$PATH" COLLECTIONS_REMINDER_POSTGRES_PROOF=1 npm run test:collections-lifecycle
           npm run test:collections-reminders
+
+      - name: Verify developer handoff and fresh-clone pickup
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:developer-handoff
 
       - name: Verify resource gate behavior
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -194,6 +199,7 @@ jobs:
           node scripts/qa-work-completion.mjs
           node scripts/qa-demo-business-workflows.mjs
           node scripts/qa-collections-workspace.mjs
+          node scripts/qa-universal-work-board.mjs
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -204,6 +210,7 @@ jobs:
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/
             /tmp/accelerate-collections-workspace/
+            /tmp/accelerate-work-board-qa/
             /tmp/accelerate-first-run-server.log
           if-no-files-found: ignore
           retention-days: 7
