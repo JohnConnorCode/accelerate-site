@@ -71,3 +71,13 @@ All advertised stages must work before calling Radar a flagship release. The
 profile, bounded-briefing and evidence-store foundation is only one prerequisite; it has no
 discovery worker, sender or publisher. Cost enforcement does not establish the
 full evidence-to-outcome journey.
+
+## Retained-history routes
+
+A plugin may declare `historyRoute` for an existing exact static admin page under
+its owned routes. Document what remains readable after disabling the plugin and
+which service enforces write refusal. This metadata changes the page-level display
+gate only; it does not authorize reads, enable the plugin or bypass action approval.
+The module builder rejects dynamic, foreign, unsafe and missing history routes.
+Prove disabled reads and refused writes through the shared services, plus exact
+path matching. Use the same page in the admin and demo.

@@ -269,6 +269,11 @@
     "settingsContract": {
       "type": "string",
       "description": "Trusted settings validator and generated field registration."
+    },
+    "historyRoute": {
+      "type": "string",
+      "pattern": "^/admin/[a-z0-9-]+(?:/[a-z0-9-]+)*$",
+      "description": "Optional exact retained-record page allowed to render while disabled. This never grants API or mutation permission."
     }
   }
 }

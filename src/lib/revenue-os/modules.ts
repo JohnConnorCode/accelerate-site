@@ -82,6 +82,8 @@ export interface RevenueOSModule {
   aiToolNames?: string[];
   /** Admin route prefixes owned by this module. */
   routes?: string[];
+  /** Exact read-only retained-record page; API authorization remains mandatory. */
+  historyRoute?: string;
   /** Setup Center check IDs relevant to this module. */
   setupChecks?: string[];
   /** External documentation or guide URL. */

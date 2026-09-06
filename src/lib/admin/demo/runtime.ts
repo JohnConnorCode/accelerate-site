@@ -1,3 +1,4 @@
+import { demoRadarProfile } from "./radar-fixtures";
 import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
 import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
@@ -131,12 +132,26 @@ const dateOffset = (days: number) => {
 const ago = (hours: number) => new Date(Date.now() - hours * 3_600_000).toISOString();
 
 function loadState(id: DemoScenarioId): DemoState {
+  const defaults = { "opportunity-radar": demoRadarProfile(DEMO_SCENARIOS[id]) };
   try {
-    return { ...initialState(), ...JSON.parse(sessionStorage.getItem(keyFor(id)) || "{}") };
+    const saved = JSON.parse(sessionStorage.getItem(keyFor(id)) || "{}");
+    return {
+      ...initialState(),
+      ...saved,
+      moduleSettings: {
+        ...defaults,
+        ...saved.moduleSettings,
+        "opportunity-radar": {
+          ...defaults["opportunity-radar"],
+          ...saved.moduleSettings?.["opportunity-radar"],
+        },
+      },
+    };
   } catch {
-    return initialState();
+    return { ...initialState(), moduleSettings: defaults };
   }
 }
+
 function saveState(id: DemoScenarioId, state: DemoState) {
   sessionStorage.setItem(keyFor(id), JSON.stringify(state));
 }

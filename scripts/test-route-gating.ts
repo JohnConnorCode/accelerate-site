@@ -12,7 +12,10 @@
  * module-aware helper rather than the bare one.
  */
 import assert from "node:assert/strict";
-import { resolveModuleForAdminPath } from "../src/lib/revenue-os/module-routes";
+import {
+  isModuleHistoryPath,
+  resolveModuleForAdminPath,
+} from "../src/lib/revenue-os/module-routes";
 import {
   isModuleEnabled,
   REVENUE_OS_MODULES,
@@ -76,3 +79,19 @@ for (const mod of REVENUE_OS_MODULES) {
 }
 
 console.log(JSON.stringify({ result: "passed", modules: REVENUE_OS_MODULES.length }));
+
+const radarModule = resolveModuleForAdminPath("/admin/radar/history")!;
+assert.equal(radarModule.id, "opportunity-radar");
+assert.equal(isModuleHistoryPath(radarModule, "/admin/radar/history"), true);
+for (const path of [
+  "/admin/radar/history/child",
+  "/admin/radar/history-extra",
+  "/admin/radar/today",
+  "/admin/radar/opportunities/id",
+])
+  assert.equal(isModuleHistoryPath(radarModule, path), false);
+assert.equal(
+  isModuleEnabled(radarModule.id, { modules: { [radarModule.id]: false } }),
+  false,
+  "History display must not enable any module capability",
+);

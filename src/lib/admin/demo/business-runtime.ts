@@ -1,3 +1,5 @@
+import { handleDemoRadar } from "./radar-runtime";
+import type { DemoRadarState } from "./radar-fixtures";
 import { handleDemoCollections } from "./collections-runtime";
 import type { CollectionCaseView } from "@/lib/revenue-os/collection-contract";
 import { workflowTaskSchema as taskSchema } from "@/lib/revenue-os/workflow-task-contract";
@@ -18,6 +20,7 @@ import type { InvoiceDocumentData, InvoiceDesign } from "@/components/business/I
 import { REVENUE_OS_MODULES, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 
 export const DEMO_BUSINESS_MODULES = {
+  "opportunity-radar": true,
   "receivables-collections": true,
   "stripe-invoicing": true,
   "client-onboarding": true,
@@ -58,6 +61,7 @@ type Page = {
   design: InvoiceDesign;
 };
 export type DemoBusinessState = {
+  radar?: DemoRadarState;
   collections?: CollectionCaseView[];
   version: 1;
   brand: WorkspaceBrand;
@@ -220,6 +224,17 @@ export async function handleDemoBusinessRequest(
   save: () => void,
   moduleSettings: ModuleSettingsConfig = {},
 ): Promise<Response | null> {
+  const radarResponse = await handleDemoRadar(
+    pack,
+    state,
+    modules,
+    url,
+    method,
+    body,
+    save,
+    moduleSettings,
+  );
+  if (radarResponse) return radarResponse;
   const collectionResponse = await handleDemoCollections(
     pack,
     state,

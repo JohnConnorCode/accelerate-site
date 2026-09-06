@@ -210,3 +210,64 @@ export function selectRadarCandidates(
     modelCalls: 0,
   };
 }
+
+export const radarSourceSnapshotsSchema = z
+  .array(
+    z
+      .object({
+        id: z.uuid(),
+        revision: z.number().int().positive(),
+        verification: z.enum(["supplied", "verified", "retracted"]),
+      })
+      .strict(),
+  )
+  .min(1)
+  .max(10);
+/** One eligibility check shared by selection and the operator detail view. */
+export function radarCandidateFromEvidence(
+  opp: { id: string; state: string; revision: number },
+  row:
+    | {
+        opportunity_revision: number;
+        assessment: unknown;
+        source_snapshots: unknown;
+        created_at: string;
+      }
+    | null
+    | undefined,
+  currentSourceIds: string[],
+  sources: Array<{ id: string; revision: number; verification: string }>,
+): RadarSelectionCandidate {
+  let deferral: string | null = ["completed", "dismissed", "declined", "no_response"].includes(
+    opp.state,
+  )
+    ? "Terminal opportunity"
+    : null;
+  let assessment: RadarAssessment | null = null;
+  if (row) {
+    const parsed = radarAssessmentSchema.safeParse(row.assessment),
+      snaps = radarSourceSnapshotsSchema.safeParse(row.source_snapshots);
+    if (!parsed.success || !snaps.success)
+      deferral = "Assessment contract unavailable; review again";
+    else {
+      assessment = parsed.data;
+      if (row.opportunity_revision !== opp.revision)
+        deferral = "Opportunity changed since assessment";
+      if (
+        JSON.stringify([...currentSourceIds].sort()) !==
+          JSON.stringify(snaps.data.map((s) => s.id).sort()) ||
+        snaps.data.some((s) => {
+          const v = sources.find((v) => v.id === s.id);
+          return (
+            !v ||
+            v.revision !== s.revision ||
+            v.verification !== s.verification ||
+            (parsed.data.classification === "business" && v.verification !== "verified")
+          );
+        })
+      )
+        deferral = "Evidence changed or is unavailable; review again";
+    }
+  }
+  return { id: opp.id, assessment, reviewedAt: row?.created_at ?? null, deferral };
+}

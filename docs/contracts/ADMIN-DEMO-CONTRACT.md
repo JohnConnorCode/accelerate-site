@@ -32,8 +32,8 @@ The shared demo engine owns reads and simulated writes.
 A scenario pack must not implement its own UI, fetch handlers, pipeline rules,
 analytics formulas, AI runtime, or email sender.
 
-The current sales suite contains five complete packs: home services, law firms,
-professional services, real estate, and nonprofits. Each pack declares an
+The current sales suite contains six complete packs: home services, law firms,
+professional services, real estate, nonprofits, and a fictional SuperDebate learning platform. Each pack declares an
 intentional default appearance, while the shared Appearance control still
 offers Paper, Night, Signal, Studio, and Frost. A browser-session appearance
 choice belongs to that scenario, survives switching away and back, and returns

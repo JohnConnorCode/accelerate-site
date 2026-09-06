@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 86,
-  "mutationHandlerCount": 76,
+  "routeCount": 88,
+  "mutationHandlerCount": 77,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -729,6 +729,35 @@
         "next/server"
       ],
       "sourceSha256": "6f7bceeaba387dcb09b084c68499c4d7c86bc304a7832e368aceb0aafce758bb"
+    },
+    {
+      "source": "src/app/api/admin/radar/commands/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/radar-workspace",
+        "next/server"
+      ],
+      "sourceSha256": "0fdf546a31f30bb8c23ef6f9709cc8b17ad557b0b8e3a8b6609a8986971f806b"
+    },
+    {
+      "source": "src/app/api/admin/radar/workspace/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/radar-workspace",
+        "next/server"
+      ],
+      "sourceSha256": "2dd44773ded01b396cefe982db2bf2d327fb96b6c4e29b09c1080b30330eff00"
     },
     {
       "source": "src/app/api/admin/resources/route.ts",
