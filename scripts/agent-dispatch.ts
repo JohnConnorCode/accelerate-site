@@ -37,15 +37,20 @@ async function main() {
   const boolean = new Set(["json", "no-worktree"]);
   const allowed = new Set([...boolean, "card", "request-key", "message", "evidence-file"]);
   for (let i = 0; i < args.length; i++) {
-    const key = args[i]?.slice(2);
-    if (!args[i]?.startsWith("--") || !allowed.has(key))
+    const arg = args[i];
+    if (!arg || !arg.startsWith("--"))
       throw new Error("Unknown option; force bypasses are not supported.");
+    const key = arg.slice(2);
+    if (!allowed.has(key)) throw new Error("Unknown option; force bypasses are not supported.");
     if (boolean.has(key)) flags[key] = "true";
     else {
-      if (!args[i + 1] || args[i + 1].startsWith("--")) throw new Error(`--${key} needs a value`);
-      flags[key] = args[++i];
+      const value = args[i + 1];
+      if (!value || value.startsWith("--")) throw new Error(`--${key} needs a value`);
+      flags[key] = value;
+      i++;
     }
   }
+
   if (flags["request-key"] && !/^[a-f0-9-]{36}$/i.test(flags["request-key"]))
     throw new Error("--request-key must be a UUID");
   if (existsSync(".env.agent.local")) process.loadEnvFile(".env.agent.local");
