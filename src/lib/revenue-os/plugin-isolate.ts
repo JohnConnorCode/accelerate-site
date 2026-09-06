@@ -1,5 +1,11 @@
 import "server-only";
-import { getQuickJS, type QuickJSHandle } from "quickjs-emscripten";
+import {
+  newQuickJSWASMModuleFromVariant,
+  newVariant,
+  RELEASE_SYNC,
+  type QuickJSHandle,
+  type QuickJSWASMModule,
+} from "quickjs-emscripten";
 
 /**
  * Plugin isolate host (Plugin Platform phase 2): runs plugin code with no
@@ -49,8 +55,9 @@ export interface PluginIsolateReceipt {
   pluginId: string | null;
   elapsedMs: number;
   timedOut: boolean;
-  /** Null on failure: QuickJS exposes no unforgeable allocation-failure flag. */
+  /** Null when an allocation failure cannot be independently classified. */
   memoryLimited: boolean | null;
+  wasmMemoryLimitBytes: number;
 }
 
 const DEFAULT_MEMORY_LIMIT_BYTES = 8 * 1024 * 1024;
@@ -181,6 +188,31 @@ function encodeHostJson(value: unknown): string {
   return json;
 }
 
+// Published QuickJS 0.32 aggregate malloc accounting can miss string/buffer
+// allocations (upstream #255). Bound the underlying memory independently, and
+// check actual usage at interrupts and host/return boundaries. This prebuilt
+// module imports at least 16 MiB; the ceiling includes engine overhead.
+const WASM_PAGE_BYTES = 64 * 1024;
+const modules = new Map<number, Promise<QuickJSWASMModule>>();
+function boundedModule(bytes: number) {
+  const existing = modules.get(bytes);
+  if (existing) return existing;
+  const pages = bytes / WASM_PAGE_BYTES;
+  const pending = newQuickJSWASMModuleFromVariant(
+    newVariant(RELEASE_SYNC, {
+      wasmMemory: new WebAssembly.Memory({ initial: pages, maximum: pages }),
+    }),
+  );
+  // Only four bounded module variants may be retained. Evaluation after await
+  // is synchronous, so no active guest yields its context to another evaluation.
+  if (modules.size >= 4) modules.delete(modules.keys().next().value!);
+  modules.set(bytes, pending);
+  void pending.catch(() => {
+    if (modules.get(bytes) === pending) modules.delete(bytes);
+  });
+  return pending;
+}
+
 export class PluginIsolateError extends Error {
   constructor(
     message: string,
@@ -197,17 +229,20 @@ export async function evaluateInIsolate(
 ): Promise<{ value: PluginJsonValue; receipt: PluginIsolateReceipt }> {
   const pluginId = options.pluginId ?? null;
   const started = performance.now();
-  let timedOut = false;
+  let timedOut = false,
+    memoryExceeded = false;
+  let wasmMemoryLimitBytes = 0;
   const receipt = (): PluginIsolateReceipt => ({
     pluginId,
     elapsedMs: performance.now() - started,
     timedOut,
-    memoryLimited: false,
+    memoryLimited: memoryExceeded,
+    wasmMemoryLimitBytes,
   });
   const fail = (message: string): never => {
     throw new PluginIsolateError(
       `Plugin${pluginId ? ` ${pluginId}` : ""} isolate refused: ${message}`,
-      { ...receipt(), memoryLimited: null },
+      { ...receipt(), memoryLimited: memoryExceeded ? true : null },
     );
   };
   if (typeof code !== "string" || !code.trim()) fail("no code to evaluate");
@@ -230,17 +265,42 @@ export async function evaluateInIsolate(
     if (!BINDING_NAME_PATTERN.test(name) || RESERVED_BINDING_NAMES.has(name))
       fail(`binding ${JSON.stringify(name)} is not a safe global name`);
   }
-  const quickjs = await getQuickJS();
+  wasmMemoryLimitBytes = Math.max(
+    16 * 1024 * 1024,
+    Math.ceil((memoryLimitBytes + 2 * 1024 * 1024) / WASM_PAGE_BYTES) * WASM_PAGE_BYTES,
+  );
+  const quickjs = await boundedModule(wasmMemoryLimitBytes);
   const runtime = quickjs.newRuntime();
   try {
     runtime.setMemoryLimit(memoryLimitBytes);
     runtime.setMaxStackSize(256 * 1024);
     const deadline = performance.now() + timeoutMs;
+    const context = runtime.newContext();
+    let inspectingMemory = false;
+    const overMemory = () => {
+      if (inspectingMemory) return memoryExceeded;
+      inspectingMemory = true;
+      let usage: QuickJSHandle | undefined;
+      let size: QuickJSHandle | undefined;
+      try {
+        usage = runtime.computeMemoryUsage();
+        size = context.getProp(usage, "memory_used_size");
+        const bytes = context.getNumber(size);
+        memoryExceeded ||= !Number.isFinite(bytes) || bytes > memoryLimitBytes;
+      } catch {
+        // A failed accounting read cannot authorize continued guest execution.
+        memoryExceeded = true;
+      } finally {
+        size?.dispose();
+        usage?.dispose();
+        inspectingMemory = false;
+      }
+      return memoryExceeded;
+    };
     runtime.setInterruptHandler(() => {
       if (performance.now() >= deadline) timedOut = true;
-      return timedOut;
+      return timedOut || overMemory();
     });
-    const context = runtime.newContext();
     const owned: QuickJSHandle[] = [];
     try {
       const codec = context.evalCode(JSON_CODEC, "host-json-codec.js");
@@ -248,13 +308,15 @@ export async function evaluateInIsolate(
         codec.error.dispose();
         fail("JSON boundary initialization failed");
       }
-      const codecHandle = codec.value!;
+      if (!("value" in codec)) return fail("JSON boundary initialization failed");
+      const codecHandle = codec.value;
       owned.push(codecHandle);
       const encoder = context.getProp(codecHandle, "encode");
       const parser = context.getProp(codecHandle, "parse");
       const describe = context.getProp(codecHandle, "describe");
       owned.push(encoder, parser, describe);
       const errorMessage = (handle: QuickJSHandle): string => {
+        if (memoryExceeded) return `memory limit exceeded (${memoryLimitBytes} bytes)`;
         if (timedOut) return `timed out after ${timeoutMs}ms`;
         const result = context.callFunction(describe, context.undefined, handle);
         if (result.error) {
@@ -295,6 +357,7 @@ export async function evaluateInIsolate(
               timedOut = true;
               throw new Error(`timed out after ${timeoutMs}ms`);
             }
+            if (overMemory()) throw new Error(`memory limit exceeded (${memoryLimitBytes} bytes)`);
             const values = args.map(readJson);
             const json = encodeHostJson(fn(...values));
             const jsonHandle = context.newString(json);
@@ -325,8 +388,10 @@ export async function evaluateInIsolate(
           result.error.dispose();
         }
       }
+      if (!("value" in result)) return fail("evaluation returned no usable value");
       try {
-        const value = readJson(result.value!);
+        if (overMemory()) return fail(`memory limit exceeded (${memoryLimitBytes} bytes)`);
+        const value = readJson(result.value);
         if (performance.now() >= deadline) {
           timedOut = true;
           fail(`timed out after ${timeoutMs}ms`);
@@ -334,9 +399,9 @@ export async function evaluateInIsolate(
         return { value, receipt: receipt() };
       } catch (error) {
         if (error instanceof PluginIsolateError) throw error;
-        fail(error instanceof Error ? error.message : "JSON boundary refused");
+        return fail(error instanceof Error ? error.message : "JSON boundary refused");
       } finally {
-        result.value!.dispose();
+        result.value.dispose();
       }
     } finally {
       for (const handle of owned.reverse()) handle.dispose();

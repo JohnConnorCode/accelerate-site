@@ -338,15 +338,26 @@ be finite integers: timeout 1 through 30,000 ms and heap 256 KiB through 64 MiB.
 The normal business hosts retain their 250 ms / 8 MiB budgets. Serialization runs
 inside the same guest deadline and the runtime is disposed after success or failure.
 
+The pinned QuickJS version has an [upstream aggregate-allocation accounting
+issue](https://github.com/justjake/quickjs-emscripten/issues/255). The host therefore
+checks actual aggregate usage at interrupts, before host calls and before returning
+a result. A breach terminates the evaluation. A separate fixed WebAssembly memory
+ceiling bounds allocation between those checks: at least 16 MiB (the prebuilt
+engine's minimum), or the configured heap budget plus 2 MiB, rounded to a 64 KiB
+page. The receipt records that hard ceiling. The 8 MiB budget is a sampled guest
+quota, not a promise that peak host-process memory stays below 8 MiB. At most four
+bounded engine variants are cached; tenant contexts and values are never reused.
+
 `npm run test:plugin-isolate`, required by `test:core` in CI, measures the **first
 evaluation including WASM initialization** against the 50 ms acceptance budget.
 It reports that measurement separately from fresh-context timing with the WASM
 module already cached. Neither measurement includes Node startup, module loading,
 or business data reads. Adversarial tests cover transport, authority probes,
 allocation refusal, invalid resource options, timeouts and subsequent host recovery.
-`PluginIsolateError.receipt.timedOut` comes from the host deadline. On failures,
-`memoryLimited` is `null`: QuickJS does not expose a trustworthy allocation-failure
-flag, and plugin-supplied error text must not become an authoritative diagnosis.
+`PluginIsolateError.receipt.timedOut` comes from the host deadline. `memoryLimited` is true only when the host observes aggregate usage exceeding the
+budget. Other failures use `null`: QuickJS does not expose a trustworthy
+allocation-failure flag, and plugin-supplied error text must not become an
+authoritative diagnosis.
 
 ### Actionable business workflow exemplars
 

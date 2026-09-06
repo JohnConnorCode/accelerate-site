@@ -54,6 +54,51 @@ async function main() {
   );
   assert.equal((await evaluateInIsolate("7 * 6")).value, 42);
 
+  // Regression for upstream #255: many individually small buffers/strings
+  // must not bypass the aggregate budget or reach a host capability.
+  for (const allocation of [
+    "[new Uint8Array(600 * 1024), new Uint8Array(600 * 1024)]",
+    "['x'.repeat(600 * 1024), 'y'.repeat(600 * 1024)]",
+  ]) {
+    let invoked = false;
+    for (const ending of ["true", "accept()"])
+      await assert.rejects(
+        () =>
+          evaluateInIsolate(
+            `
+        globalThis.retained = ${allocation}; ${ending};
+      `,
+            {
+              memoryLimitBytes: 1024 * 1024,
+              bindings: {
+                accept: () => {
+                  invoked = true;
+                  return true;
+                },
+              },
+            },
+          ),
+        (error: unknown) => {
+          assert.ok(error instanceof PluginIsolateError);
+          assert.equal(error.receipt.memoryLimited, true);
+          assert.equal(error.receipt.wasmMemoryLimitBytes, 16 * 1024 * 1024);
+          return true;
+        },
+      );
+    assert.equal(invoked, false, "over-budget guest cannot call the host");
+  }
+  await assert.rejects(
+    () =>
+      evaluateInIsolate(
+        `
+    const retained = []; while (true) retained.push(new Uint8Array(128 * 1024));
+  `,
+        { memoryLimitBytes: 1024 * 1024 },
+      ),
+    /memory limit exceeded|out of memory/,
+  );
+  assert.equal((await evaluateInIsolate("42")).value, 42, "host survives aggregate memory breach");
+
   // Guest error text is not authority for resource-failure receipts.
   await assert.rejects(
     () => evaluateInIsolate("throw new Error('out of memory')"),
@@ -188,7 +233,7 @@ async function main() {
     new Date(0),
     new Map(),
     { x: Infinity },
-    { x: 1n },
+    { x: BigInt(1) },
     { [Symbol()]: 1 },
     circular,
     Object.assign(Array(1), { "0.5": 1 }),
@@ -325,6 +370,8 @@ async function main() {
         "serialization-timeout-recovery",
         "timeout-kill",
         "memory-breach",
+        "aggregate-memory-budget",
+        "bounded-wasm-memory",
         "async-refusal",
       ],
     }),
