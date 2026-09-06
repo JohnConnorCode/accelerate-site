@@ -9,6 +9,7 @@ The maintainer supplies the reviewed development branch or tag, its exact commit
 ```bash
 git clone --branch agent/developer-handoff-readiness https://github.com/JohnConnorCode/accelerate-site.git
 cd accelerate-site
+export ACCELERATE_CONTROL="$PWD"
 npm ci
 npm run hooks:install
 npm run dev:doctor
@@ -42,7 +43,7 @@ The board doctor makes only authenticated GET requests. It reports incompatible 
 
 Pickup checks the repository identity and exact approved base before claiming. If needed it fetches the declared branch from the existing matching `origin`; it never invents a branch, adopts a different repository or changes remote configuration. If the base exists only on the maintainer's machine, publish it first. A retained dirty or mismatched worktree needs inspection before reuse. `--no-worktree` is an explicit manual-preparation option, not automatic readiness proof.
 
-The JSON result contains `worktree` and the complete execution packet. Change into that directory and install compatible dependencies if needed. Worktree locations are consistent regardless of which checkout ran the command. The private claim session lives in the repository's common Git directory, so heartbeat and submission work from either checkout.
+The JSON result contains `worktree`, `controlCheckout` and the complete execution packet. Change into that directory and install compatible dependencies if needed. Worktree locations are consistent regardless of which checkout ran the command. Keep the published control checkout for board commands. A ticket may intentionally use an older application base with older scripts; run `npm --prefix "$ACCELERATE_CONTROL" run agent:heartbeat -- --card <ticket-key>` (and the equivalent progress, release or complete command) from any directory to use the current protocol. The private claim session lives in the repository's common Git directory.
 
 ## Execute and hand off
 

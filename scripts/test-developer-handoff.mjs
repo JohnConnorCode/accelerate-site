@@ -1,3 +1,4 @@
+import { realpathSync } from "node:fs";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { mkdtempSync, writeFileSync, mkdirSync, readFileSync, existsSync, rmSync } from "node:fs";
@@ -181,6 +182,7 @@ test("CLI refuses missing bases before POST, claims with revision, returns pure 
     assert.equal(result.code, 0, result.stderr);
     const packet = JSON.parse(result.stdout);
     assert.equal(packet.schemaVersion, 2);
+    assert.equal(packet.controlCheckout, realpathSync(f.clone));
     assert.equal(packet.id, f.card.id);
     assert.ok(existsSync(packet.worktree));
     assert.equal(bodies[0].revision, 1);

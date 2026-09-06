@@ -162,8 +162,17 @@ async function main() {
       );
     }
     if (flags.json)
-      console.log(JSON.stringify({ ...workPacket(card), worktree: path ?? null }, null, 2));
-    else console.log(`${path ? `Worktree: ${path}\n\n` : ""}${formatWorkPacket(card)}`);
+      console.log(
+        JSON.stringify(
+          { ...workPacket(card), worktree: path ?? null, controlCheckout: root },
+          null,
+          2,
+        ),
+      );
+    else
+      console.log(
+        `Control checkout: ${root}\n${path ? `Worktree: ${path}\n\n` : ""}${formatWorkPacket(card)}`,
+      );
   } else {
     if (!card) throw new Error("--card is required");
     const sessionPath = resolve(sessionDir, `${card.id}.json`);
