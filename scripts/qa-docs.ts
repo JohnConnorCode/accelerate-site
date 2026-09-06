@@ -452,7 +452,8 @@ async function main() {
             const animation = heading.getAnimations()[0];
             if (animation) {
               animation.pause();
-              animation.currentTime = 180;
+              const timing = animation.effect!.getTiming();
+              animation.currentTime = Number(timing.delay) + Number(timing.duration) / 2;
             }
             const style = getComputedStyle(heading);
             const result = {
@@ -500,6 +501,107 @@ async function main() {
           );
           checks.push(
             `${width} ${reducedMotion}: real screenshot gallery, enlargement, one active slide, docs entrance intermediate frame and guide navigation`,
+          );
+        } finally {
+          await context.close();
+        }
+      }
+    }
+    // Public header families must actually move, including on direct load.
+    // This catches skip-on-first-viewport and inert initial={false} regressions.
+    for (const width of [1440, 390]) {
+      for (const reducedMotion of ["no-preference", "reduce"] as const) {
+        const context = await browser.newContext({
+          viewport: { width, height: 1000 },
+          reducedMotion,
+        });
+        try {
+          const page = await context.newPage();
+          page.on("pageerror", (error) => failures.push(error.message));
+          for (const route of [
+            "/work",
+            "/work/work-shelter",
+            "/learn",
+            "/resources",
+            "/about",
+            "/contact",
+            "/partners",
+            "/open-source",
+            "/industries",
+            "/services",
+            "/roadmap",
+            "/changelog",
+          ]) {
+            await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
+            await page.locator("main h1").waitFor();
+            await page.waitForFunction(() => {
+              const heading = document.querySelector("main h1");
+              return (
+                heading &&
+                (heading.classList.contains("in") ||
+                  heading.closest(".in") ||
+                  document.querySelector(".public-hero-entrance.in"))
+              );
+            });
+            const sample = await page.locator("main h1").evaluate((heading) => {
+              const word = heading.querySelector(".word-mask-word > span");
+              let owner = word ?? heading;
+              while (owner && !owner.getAnimations().length && owner !== document.body)
+                owner = owner.parentElement!;
+              const animation = owner?.getAnimations()[0];
+              if (!animation) return null;
+              const timing = animation.effect!.getTiming();
+              animation.pause();
+              animation.currentTime = Number(timing.delay) + Number(timing.duration) / 2;
+              const style = getComputedStyle(owner);
+              const result = {
+                opacity: Number(style.opacity),
+                transform: style.transform,
+                name: style.animationName,
+              };
+              animation.finish();
+              return result;
+            });
+            if (reducedMotion === "reduce") assert.equal(sample, null, `${route} reduced motion`);
+            else
+              assert.ok(
+                sample &&
+                  (sample.transform !== "none" || (sample.opacity > 0 && sample.opacity < 1)),
+                `${route}: header has a real intermediate entrance frame`,
+              );
+            if (["/work", "/learn", "/resources"].includes(route)) {
+              await page.evaluate(() =>
+                document.getAnimations().forEach((animation) => {
+                  if (animation.effect?.getComputedTiming().iterations !== Infinity)
+                    animation.finish();
+                }),
+              );
+              await page.screenshot({
+                path: `${output}/${width}-${reducedMotion}-${route.slice(1)}-header.png`,
+              });
+            }
+            assert.equal(
+              await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+              false,
+              `${route} overflow`,
+            );
+          }
+          // The pages remain available but are deliberately absent from main navigation.
+          const header = page.locator("header.site-header");
+          if (width < 1280)
+            await page.getByRole("button", { name: "Open navigation menu" }).click();
+          assert.equal(await header.locator('a[href="/learn"], a[href="/resources"]').count(), 0);
+          await header.getByRole("link", { name: "Work", exact: true }).click();
+          await page.waitForURL("**/work");
+          await page.locator("h1.word-mask-heading.in").waitFor();
+          assert.equal(
+            await page
+              .locator("h1")
+              .evaluate((heading) => heading.classList.contains("reveal-immediate")),
+            reducedMotion === "reduce",
+          );
+          checks.push(
+            `${width} ${reducedMotion}: twelve public header routes, Work menu navigation, hidden Learn/Resources primary links`,
           );
         } finally {
           await context.close();

@@ -7498,3 +7498,58 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
     animation-delay: 120ms;
   }
 }
+
+/* Shared public section/group entrance. Never skip an initially visible
+   group; never animate a heading twice inside its owning group. */
+@keyframes public-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes public-content-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.ui-entrance[data-entrance-kind="stagger"] > * {
+  --entry-index: 5;
+}
+.ui-entrance[data-entrance-kind="stagger"] > :nth-child(1) {
+  --entry-index: 0;
+}
+.ui-entrance[data-entrance-kind="stagger"] > :nth-child(2) {
+  --entry-index: 1;
+}
+.ui-entrance[data-entrance-kind="stagger"] > :nth-child(3) {
+  --entry-index: 2;
+}
+.ui-entrance[data-entrance-kind="stagger"] > :nth-child(4) {
+  --entry-index: 3;
+}
+.ui-entrance[data-entrance-kind="stagger"] > :nth-child(5) {
+  --entry-index: 4;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .motion-ready .ui-entrance[data-reveal-state="pending"]:not([data-entrance-kind="stagger"]),
+  .motion-ready .ui-entrance[data-reveal-state="pending"][data-entrance-kind="stagger"] > * {
+    opacity: 0;
+  }
+  .ui-entrance.in[data-entrance-kind="rise"],
+  .ui-entrance.in[data-entrance-kind="stagger"] > * {
+    animation: public-content-enter 520ms var(--ease) both;
+    animation-delay: calc(
+      var(--entry-delay, 0s) + var(--entry-index, 0) * var(--entry-stagger, 0s)
+    );
+  }
+  .ui-entrance.in[data-entrance-kind="fade"] {
+    animation: public-content-fade 520ms var(--ease) var(--entry-delay, 0s) both;
+  }
+}

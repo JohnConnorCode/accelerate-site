@@ -38,7 +38,6 @@ export const navItems: NavItem[] = [
     }),
   },
   { label: "Work", href: "/work" },
-  { label: "Learn", href: "/learn", children: learningLinks },
   { label: "Company", href: "/about", children: companyLinks },
   { label: "Docs", href: "/docs" },
 ];

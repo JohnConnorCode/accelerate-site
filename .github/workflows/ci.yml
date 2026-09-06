@@ -182,6 +182,7 @@ jobs:
           node scripts/qa-work-completion.mjs
           node scripts/qa-demo-business-workflows.mjs
           DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
+          node scripts/qa-work-portfolio.mjs
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -192,6 +193,7 @@ jobs:
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/
             /tmp/accelerate-docs-takeover-qa/
+            /tmp/accelerate-work-portfolio-qa/
             /tmp/accelerate-first-run-server.log
           if-no-files-found: ignore
           retention-days: 7

@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { createContext, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+
+export const RevealOwnerContext = createContext(false);
 
 export interface RevealLifecycleOptions {
   threshold?: number;
@@ -16,6 +19,7 @@ export function useRevealLifecycle<T extends HTMLElement>({
   triggerRatio = 0.78,
 }: RevealLifecycleOptions = {}) {
   const ref = useRef<T>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const element = ref.current;
@@ -75,7 +79,7 @@ export function useRevealLifecycle<T extends HTMLElement>({
       window.removeEventListener("resize", revealIfEntered);
       window.removeEventListener("pageshow", onPageShow);
     };
-  }, [initialViewport, rootMargin, threshold, triggerRatio]);
+  }, [initialViewport, rootMargin, threshold, triggerRatio, pathname]);
 
   return ref;
 }

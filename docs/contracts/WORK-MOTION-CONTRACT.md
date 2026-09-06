@@ -9,7 +9,11 @@ and own one Work visual recipe in `globals.css`.
 
 - `WorkReveal` owns editorial groups, cards, proof, and CTA entrances.
 - `WorkMediaReveal` owns standalone case-study media entrances.
-- `RevealHeading` owns only the hero word-mask entrance.
+- `RevealHeading` owns only the hero word-mask entrance. Initially visible
+  headings must animate; `initialViewport: "immediate"` is not a valid default
+  for heading entrances. Pending state is present in server markup before paint.
+- Public section/intro wrappers share the observer and CSS recipe. A nested
+  heading or entrance defers to its owning group, rather than animating twice.
 - Framer Motion inside `CaseGallery` owns only interactive lightbox enter and
   exit behavior. It does not own page-scroll entrances.
 
