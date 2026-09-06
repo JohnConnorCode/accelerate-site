@@ -2,8 +2,8 @@
 
 This inventory gives the next developer a starting point for every retained admin
 page: the operator's primary action, its API adapters, imported domain modules,
-and direct table references. It covers 38 pages at approved base
-`50f3aa671751619f44af22bb0736618c362d1b6b`, including detail pages, authentication,
+and direct table references. It covers 44 pages at approved base
+`4c7145da424fad02628a2af3ab415631dd1a900e`, including detail pages, authentication,
 compatibility redirects and the disabled extension example.
 
 The machine-readable evidence is [admin-route-inventory.json](admin-route-inventory.json).
@@ -22,46 +22,52 @@ and adapter paths, service imports, source fingerprints and canonical follow-up
 UUIDs are in the JSON. Shared shell actions, such as opening the global AI panel,
 are outside the page's primary action map.
 
-| Route                      | Primary action                                          | Current boundary                                                                                             |
-| -------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `/admin`                   | Open Today                                              | Existing entry redirect; no record source.                                                                   |
-| `/admin/activity`          | Inspect and filter operator audit events                | Audit events are not the normalized business activity timeline.                                              |
-| `/admin/ai`                | Ask the assistant; inspect runs and capabilities        | Shared AI workspace; writes require the existing action approval path.                                       |
-| `/admin/ai-operations`     | Open AI run history                                     | Compatibility redirect preserves demo scenario context.                                                      |
-| `/admin/analytics`         | Compare funnel and revenue metrics                      | Canonical analytics read model; field parity with Revenue remains unproven.                                  |
-| `/admin/bookings`          | Review bookings and change an opportunity stage         | Stage changes call pipeline.ts; value patches and follow-up task writes remain in the adapter.               |
-| `/admin/campaigns`         | Preview a campaign audience and manage members          | Campaign services own execution; previews are not sends.                                                     |
-| `/admin/chat-leads`        | Search and inspect chat inquiries                       | Retain chat_leads.id and its canonical linkage; bounded display is not a full row reconciliation.            |
-| `/admin/clients`           | Filter clients and open a client record                 | Retain clients.id; source values and canonical linkage have different owners.                                |
-| `/admin/clients/[id]`      | Edit a client and inspect its timeline                  | Client fields remain on clients; email-based timeline lookup needs explicit identity disposition.            |
-| `/admin/contact-imports`   | Preview and apply a contact import                      | Import and identity services own validation and identity decisions.                                          |
-| `/admin/contacts`          | Review submissions, export and delete selected records  | List rows are contact_submissions, not the canonical contacts table; preserve source IDs.                    |
-| `/admin/contacts/[email]`  | Inspect a contact timeline                              | URL identity is email; do not infer canonical uniqueness from the route parameter.                           |
-| `/admin/content`           | Create content items and move their status              | content_calendar and kanban_columns remain source records; status changes do not publish content.            |
-| `/admin/conversations`     | Triage conversations and send a reply                   | Conversation and Google services own triage and threaded replies.                                            |
-| `/admin/email-sequences`   | Filter and inspect email sequence progress              | Legacy email_sequences read; no canonical execution parity established here.                                 |
-| `/admin/emails`            | Edit and preview templates; inspect delivery history    | Email template services own saved versions; history is delivery evidence, preview is not delivery.           |
-| `/admin/example-inventory` | Read the extension example                              | Disabled-by-default example page has no inventory records or primary write.                                  |
-| `/admin/features`          | Claim work, record progress and submit evidence         | Canonical work-board service owns claims and lifecycle; page is its adapter.                                 |
-| `/admin/identity-review`   | Resolve or defer ambiguous identities                   | Use identity-review service; ambiguity is never permission for an automatic merge.                           |
-| `/admin/inbox`             | Triage inquiries, tasks and proposed actions            | Mixed source inbox; reconcile by source type and ID, not just combined row count.                            |
-| `/admin/integrations`      | Configure integrations, providers and module settings   | Integration, module and tenant provider services have separate ownership.                                    |
-| `/admin/leads`             | Add a lead and change its stage                         | Canonical intake and transitions coexist with solution_requests compatibility reads and direct updates.      |
-| `/admin/login`             | Sign in or request a password reset                     | Authentication boundary; no business record reconciliation applies.                                          |
-| `/admin/partners`          | Review applications and update their status             | Preserve partner_applications.id and status; canonical identity linkage does not migrate application fields. |
-| `/admin/pipeline`          | Create an opportunity and change its stage              | Canonical pipeline services own opportunity transitions.                                                     |
-| `/admin/pipeline/[id]`     | Inspect an opportunity and its linked work              | Bounded canonical record read model; inspect referenced services before extending writes.                    |
-| `/admin/proposals`         | Create, edit and send a proposal                        | Proposal records and adapter actions remain; audit import alone does not make a domain writer.               |
-| `/admin/recovery`          | Preview eligible recovery contacts and stage a batch    | Recovery and campaign services own eligibility and staging.                                                  |
-| `/admin/resources`         | Search download records and open a contact              | resource_downloads.id is a download record; search is page-local and does not edit a resource.               |
-| `/admin/revenue`           | Inspect recurring value and accepted proposal totals    | Reads clients and accepted proposals directly; not opportunity revenue or cash receipts.                     |
-| `/admin/settings`          | Save workspace preferences and test configured services | Admin settings adapter owns preference persistence; service tests can have external effects.                 |
-| `/admin/setup`             | Inspect setup health and run available setup actions    | Health and schema checks are operational evidence, not business record parity.                               |
-| `/admin/subscribers`       | Search subscribers and export them                      | Retain subscribers.id; identity links do not prove consent or delivery-history parity.                       |
-| `/admin/tenants`           | Create a tenant and manage membership                   | Tenant lifecycle service and membership adapters own this administrative boundary.                           |
-| `/admin/today`             | Review priorities, complete tasks and decide on actions | Shared overview, task and action services; layout changes are configuration.                                 |
-| `/admin/update-password`   | Set a new password                                      | Supabase auth client owns password update; no business record source.                                        |
-| `/admin/website-grades`    | Inspect website grades and export results               | Retain website_grades.id and report fields; identity links do not replace grade evidence.                    |
+| Route                        | Primary action                                                        | Current boundary                                                                                                                      |
+| ---------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `/admin`                     | Open Today                                                            | Existing entry redirect; no record source.                                                                                            |
+| `/admin/activity`            | Inspect and filter operator audit events                              | Audit events are not the normalized business activity timeline.                                                                       |
+| `/admin/ai`                  | Ask the assistant; inspect runs and capabilities                      | Shared AI workspace; writes require the existing action approval path.                                                                |
+| `/admin/ai-operations`       | Open AI run history                                                   | Compatibility redirect preserves demo scenario context.                                                                               |
+| `/admin/analytics`           | Compare funnel and revenue metrics                                    | Canonical analytics read model; field parity with Revenue remains unproven.                                                           |
+| `/admin/bookings`            | Review bookings and change an opportunity stage                       | Stage changes call pipeline.ts; value patches and follow-up task writes remain in the adapter.                                        |
+| `/admin/branding`            | Edit workspace branding and preview an invoice                        | Branding service owns tenant presentation settings; previews are not issued invoices.                                                 |
+| `/admin/campaigns`           | Preview a campaign audience and manage members                        | Campaign services own execution; previews are not sends.                                                                              |
+| `/admin/chat-leads`          | Search and inspect chat inquiries                                     | Retain chat_leads.id and its canonical linkage; bounded display is not a full row reconciliation.                                     |
+| `/admin/client-onboarding`   | Preview onboarding tasks and approve a proposed workflow              | Shared task workflow services own proposals and task execution; task adapter reads canonical tasks, opportunities and memberships.    |
+| `/admin/clients`             | Filter clients and open a client record                               | Retain clients.id; source values and canonical linkage have different owners.                                                         |
+| `/admin/clients/[id]`        | Edit a client and inspect its timeline                                | Client fields remain on clients; email-based timeline lookup needs explicit identity disposition.                                     |
+| `/admin/collections`         | Review receivables, record payments and approve reminders             | Collection and reminder services own receivable state and proposals. simulate-payment is demo-only; it is not a production API route. |
+| `/admin/contact-imports`     | Preview and apply a contact import                                    | Import and identity services own validation and identity decisions.                                                                   |
+| `/admin/contacts`            | Review submissions, export and delete selected records                | List rows are contact_submissions, not the canonical contacts table; preserve source IDs.                                             |
+| `/admin/contacts/[email]`    | Inspect a contact timeline                                            | URL identity is email; do not infer canonical uniqueness from the route parameter.                                                    |
+| `/admin/content`             | Create content items and move their status                            | content_calendar and kanban_columns remain source records; status changes do not publish content.                                     |
+| `/admin/conversations`       | Assign and triage conversations, link an opportunity and send a reply | Conversation and Google services own triage and threaded replies.                                                                     |
+| `/admin/email-sequences`     | Filter and inspect email sequence progress                            | Legacy email_sequences read; no canonical execution parity established here.                                                          |
+| `/admin/emails`              | Edit and preview templates; inspect delivery history                  | Email template services own saved versions; history is delivery evidence, preview is not delivery.                                    |
+| `/admin/example-inventory`   | Read the extension example                                            | Disabled-by-default example page has no inventory records or primary write.                                                           |
+| `/admin/features`            | Claim work, record progress and submit evidence                       | Canonical work-board service owns claims and lifecycle; page is its adapter.                                                          |
+| `/admin/identity-review`     | Resolve or defer ambiguous identities                                 | Use identity-review service; ambiguity is never permission for an automatic merge.                                                    |
+| `/admin/inbox`               | Triage inquiries, tasks and proposed actions                          | Mixed source inbox; reconcile by source type and ID, not just combined row count.                                                     |
+| `/admin/integrations`        | Configure integrations, providers and module settings                 | Integration, module and tenant provider services have separate ownership.                                                             |
+| `/admin/invoicing`           | Draft invoices, preview pages and request issuance                    | Stripe invoicing, invoice-page and workflow services own separate boundaries; issuing and provider effects use action approval.       |
+| `/admin/leads`               | Add a lead and change its stage                                       | Canonical intake and transitions coexist with solution_requests compatibility reads and direct updates.                               |
+| `/admin/login`               | Sign in or request a password reset                                   | Authentication boundary; no business record reconciliation applies.                                                                   |
+| `/admin/meeting-commitments` | Preview meeting commitments and approve task creation                 | Shared task workflow services own proposals and task execution; source meeting IDs must remain linked to created work.                |
+| `/admin/partners`            | Review applications and update their status                           | Preserve partner_applications.id and status; canonical identity linkage does not migrate application fields.                          |
+| `/admin/pipeline`            | Create an opportunity and change its stage                            | Canonical pipeline services own opportunity transitions.                                                                              |
+| `/admin/pipeline/[id]`       | Inspect an opportunity and its linked work                            | Bounded canonical record read model; inspect referenced services before extending writes.                                             |
+| `/admin/plugins`             | Enable a plugin and run an available report                           | Module settings and report-plugin services own configuration and execution; plugin availability is not proof of record parity.        |
+| `/admin/proposals`           | Create, edit and send a proposal                                      | Proposal records and adapter actions remain; audit import alone does not make a domain writer.                                        |
+| `/admin/recovery`            | Preview eligible recovery contacts and stage a batch                  | Recovery and campaign services own eligibility and staging.                                                                           |
+| `/admin/resources`           | Search download records and open a contact                            | resource_downloads.id is a download record; search is page-local and does not edit a resource.                                        |
+| `/admin/revenue`             | Inspect recurring value and accepted proposal totals                  | Reads clients and accepted proposals directly; not opportunity revenue or cash receipts.                                              |
+| `/admin/settings`            | Save workspace preferences and test configured services               | Admin settings adapter owns preference persistence; service tests can have external effects.                                          |
+| `/admin/setup`               | Inspect setup health and run available setup actions                  | Health and schema checks are operational evidence, not business record parity.                                                        |
+| `/admin/subscribers`         | Search subscribers and export them                                    | Retain subscribers.id; identity links do not prove consent or delivery-history parity.                                                |
+| `/admin/tenants`             | Create a tenant and manage membership                                 | Tenant lifecycle service and membership adapters own this administrative boundary.                                                    |
+| `/admin/today`               | Review priorities, complete tasks and decide on actions               | Shared overview, task and action services; layout changes are configuration.                                                          |
+| `/admin/update-password`     | Set a new password                                                    | Supabase auth client owns password update; no business record source.                                                                 |
+| `/admin/website-grades`      | Inspect website grades and export results                             | Retain website_grades.id and report fields; identity links do not replace grade evidence.                                             |
 
 ## Reconciliation work to pick up
 
@@ -156,3 +162,18 @@ write human boundary notes, discover omitted adapter calls or prove parity.
 Review the diff before committing. Never use refresh to bless an unexplained
 source change. This report is bound to its checked-out tree, not every active
 branch.
+
+## Base correction discovered during real pickup
+
+The initial base `50f3aa671751619f44af22bb0736618c362d1b6b` failed CI on
+pre-existing broken documentation references and omitted six retained pages.
+The maintainer recorded the reason on the live card, released the claim, changed
+only this ticket's approved base to the verified development baseline, and
+reclaimed it. The original implementation commit remains in history.
+
+Before assigning another unclaimed ticket, validate its exact base against a
+passing CI receipt and the sources required by its scope. An existing commit and
+resolvable references are necessary, but they do not prove a usable development
+base. Preserve other workers' bases; make any approved change through the live
+card with a recorded reason. Source-only inventory checks still do not prove
+runtime or production data parity.
