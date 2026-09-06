@@ -18,7 +18,7 @@
   "routes": ["/admin/example-inventory"],
   "aiToolNames": [],
   "setupChecks": [],
-  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/EXTENDING.md",
+  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/example-inventory/README.md",
   "settings": [
     {
       "key": "reorderThreshold",

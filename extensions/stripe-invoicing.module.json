@@ -278,5 +278,6 @@
         }
       }
     ]
-  }
+  },
+  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/stripe-invoicing/README.md"
 }

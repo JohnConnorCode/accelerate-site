@@ -149,7 +149,11 @@ try {
   for (const path of [
     "scripts/build-extension-modules.mjs",
     "scripts/lib/bounded-workflow-schema.mjs",
+    "scripts/lib/plugin-documentation.mjs",
     "src/lib/revenue-os/modules.ts",
+    "src/lib/revenue-os/module-settings-policy.ts",
+    "src/lib/revenue-os/plugin-settings-contract.ts",
+    "src/lib/revenue-os/radar-profile-contract.ts",
     "src/lib/revenue-os/plugin-workflow-contract.ts",
     "src/lib/revenue-os/plugin-tool-contract.ts",
     "src/lib/revenue-os/invoice-page-contract.ts",
@@ -223,6 +227,24 @@ try {
       /declaration drift|Unknown host workflow contract|canonical evidence source/,
     );
     writeFileSync(path, original);
+  }
+  const radarPath = join(fixture, "extensions/opportunity-radar.module.json");
+  const radarOriginal = readFileSync(radarPath, "utf8");
+  for (const mutate of [
+    (manifest: { settings: { label: string }[]; settingsContract: string }) => {
+      manifest.settings[0]!.label = "Drifted field";
+    },
+    (manifest: { settings: { label: string }[]; settingsContract: string }) => {
+      manifest.settingsContract = "constructor";
+    },
+  ]) {
+    const manifest = JSON.parse(radarOriginal);
+    mutate(manifest);
+    writeFileSync(radarPath, JSON.stringify(manifest));
+    const result = check();
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /settings declaration drift|Unknown plugin settings contract/);
+    writeFileSync(radarPath, radarOriginal);
   }
   // Editing the canonical validator must invalidate the committed projection.
   const contractPath = join(fixture, "src/lib/revenue-os/workflow-task-contract.ts");

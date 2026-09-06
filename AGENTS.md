@@ -260,3 +260,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Plugin documentation requirement
+
+Every plugin change must satisfy the [plugin documentation contract](docs/contracts/PLUGIN-DOCUMENTATION.md).
+Ship the operator guide, public documentation link, worked example, cost and
+permission boundaries, recovery steps, extension references and task-based review
+evidence with the implementation. `verify:extensions` enforces bundled guide and
+link presence; factual review and end-to-end proof remain required.

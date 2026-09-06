@@ -31,6 +31,11 @@ const { pluginToolDeclarations } = requireTypeScript(
   "../src/lib/revenue-os/plugin-tool-contract.ts",
   import.meta.url,
 );
+const { pluginSettingsContract } = requireTypeScript(
+  "../src/lib/revenue-os/plugin-settings-contract.ts",
+  import.meta.url,
+);
+import { pluginDocumentationFailures } from "./lib/plugin-documentation.mjs";
 import { validateBoundedWorkflowSchema } from "./lib/bounded-workflow-schema.mjs";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -99,7 +104,10 @@ const SETTING_TYPES = ["string", "number", "boolean", "enum", "url"];
  * tenants.config, where every setting value is stored, reaches client
  * components, so this check exists specifically to catch that.
  */
-const SECRET_LOOKING = /secret|token|password|api[_-]?key|credential/i;
+const { isCredentialSetting } = requireTypeScript(
+  "../src/lib/revenue-os/module-settings-policy.ts",
+  import.meta.url,
+);
 
 /** Core module ids, read from the source of truth so this cannot drift. */
 function coreModuleIds() {
@@ -115,6 +123,7 @@ function fail(file, message) {
 }
 
 function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
+  for (const message of pluginDocumentationFailures(repoRoot, manifest)) fail(file, message);
   const req = ["id", "name", "description", "category", "defaultEnabled", "navLinks"];
   for (const key of req) {
     if (manifest[key] === undefined) fail(file, `missing required field "${key}"`);
@@ -168,7 +177,7 @@ function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
     }
     if (seenSettingKeys.has(key)) fail(file, `settings key "${key}" is declared twice`);
     seenSettingKeys.add(key);
-    if (SECRET_LOOKING.test(key) || SECRET_LOOKING.test(setting.label ?? ""))
+    if (isCredentialSetting(setting))
       fail(
         file,
         `settings key "${key}" looks like a secret. Credentials go through integration-adapters.ts, never tenants.config.`,
@@ -353,6 +362,16 @@ if (existsSync(extensionsDir)) {
       fail(name, `is not valid JSON: ${error instanceof Error ? error.message : error}`);
       continue;
     }
+    if (manifest.settingsContract) {
+      try {
+        const { fields } = pluginSettingsContract(manifest.settingsContract);
+        if (checkOnly && JSON.stringify(manifest.settings) !== JSON.stringify(fields))
+          fail(name, "Generated settings declaration drift; run npm run build:extensions");
+        manifest.settings = fields;
+      } catch (error) {
+        fail(name, error.message);
+      }
+    }
     validateManifest(name, manifest, seenIds, seenNavIds, coreIds);
     validateReport(name, manifest);
     validateWorkflow(name, manifest);
@@ -366,7 +385,7 @@ if (failures.length) {
 }
 
 if (!checkOnly) {
-  for (const manifest of manifests.filter((item) => item.workflow)) {
+  for (const manifest of manifests.filter((item) => item.workflow || item.settingsContract)) {
     const path = join(extensionsDir, `${manifest.id}.module.json`);
     writeFileSync(
       path,
@@ -391,6 +410,7 @@ const modules = manifests.map((manifest) => ({
   setupChecks: manifest.setupChecks ?? [],
   ...(manifest.docsUrl ? { docsUrl: manifest.docsUrl } : {}),
   ...(manifest.settings?.length ? { settings: manifest.settings } : {}),
+  ...(manifest.settingsContract ? { settingsContract: manifest.settingsContract } : {}),
   ...(manifest.report ? { report: manifest.report } : {}),
   ...(manifest.workflow ? { workflow: manifest.workflow } : {}),
 }));

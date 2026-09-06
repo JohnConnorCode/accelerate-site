@@ -29,6 +29,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["run_business_pulse"],
     routes: [],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/business-pulse/README.md",
     report: {
       version: 1,
       sources: [
@@ -62,6 +64,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["prepare_client_onboarding", "propose_client_onboarding"],
     routes: ["/admin/client-onboarding"],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/client-onboarding/README.md",
     workflow: {
       version: 1,
       inputSchema: {
@@ -281,6 +285,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["run_commitment_watch"],
     routes: [],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/commitment-watch/README.md",
     report: {
       version: 1,
       sources: [
@@ -305,7 +311,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     routes: ["/admin/example-inventory"],
     setupChecks: [],
     docsUrl:
-      "https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/EXTENDING.md",
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/example-inventory/README.md",
     settings: [
       {
         key: "reorderThreshold",
@@ -346,6 +352,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["prepare_meeting_commitments", "propose_meeting_commitments"],
     routes: ["/admin/meeting-commitments"],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/meeting-commitments/README.md",
     workflow: {
       version: 1,
       inputSchema: {
@@ -565,6 +573,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["run_meeting_prep"],
     routes: [],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/meeting-prep/README.md",
     report: {
       version: 1,
       sources: [
@@ -577,6 +587,197 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     },
   },
   {
+    id: "opportunity-radar",
+    name: "Opportunity Radar",
+    description:
+      "Configure a reusable business profile for evidence-backed opportunity workflows. Profile and AI setup foundation only; automated discovery and outreach are not yet available.",
+    category: "intelligence",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: [],
+    aiToolNames: [],
+    routes: [],
+    setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md",
+    settings: [
+      {
+        key: "organization",
+        label: "Organization",
+        description: "Your public business or project name.",
+        type: "string",
+        default: "",
+      },
+      {
+        key: "website",
+        label: "Website",
+        description: "Your public HTTPS website. This setting does not authorize fetching URLs.",
+        type: "url",
+        default: "",
+      },
+      {
+        key: "spokesperson",
+        label: "Spokesperson",
+        description: "Optional public representative; leave blank for organization-only work.",
+        type: "string",
+        default: "",
+      },
+      {
+        key: "mission",
+        label: "Mission and offer",
+        description: "What you do and the useful contribution you can make.",
+        type: "string",
+        default: "",
+      },
+      {
+        key: "expertise",
+        label: "Earned expertise",
+        description:
+          "Firsthand experience you can substantiate; do not enter unsupported credentials.",
+        type: "string",
+        default: "",
+      },
+      {
+        key: "audiences",
+        label: "Business audiences",
+        description: "The customers, professional communities or institutions you serve.",
+        type: "string",
+        default: "",
+      },
+      {
+        key: "topics",
+        label: "Topics",
+        description:
+          "Business topics to watch. Public affairs requires separate neutral review, not growth scoring.",
+        type: "string",
+        default: "",
+      },
+      {
+        key: "ownedAssets",
+        label: "Public assets",
+        description:
+          "Public URLs/descriptions, one per line. These are owned resources, not independent coverage.",
+        type: "string",
+        default: "",
+      },
+      {
+        key: "region",
+        label: "Region",
+        description: "Geographic focus, or leave blank for no regional restriction.",
+        type: "string",
+        default: "",
+      },
+      {
+        key: "timeZone",
+        label: "Time zone",
+        description:
+          "IANA time zone, such as America/Chicago. Scheduling is not active in this foundation.",
+        type: "string",
+        default: "UTC",
+      },
+      {
+        key: "dailyShortlist",
+        label: "Daily shortlist limit",
+        description: "Maximum recommendations for future daily selection.",
+        type: "number",
+        min: 1,
+        max: 10,
+        default: 5,
+      },
+      {
+        key: "maxDiscoveries",
+        label: "Daily discovery limit",
+        description: "Future worker cap; this does not start discovery.",
+        type: "number",
+        min: 1,
+        max: 500,
+        default: 50,
+      },
+      {
+        key: "dailyModelBudgetUsd",
+        label: "Daily model budget (USD)",
+        description:
+          "Zero disables automatic model spending. Future workers must reserve the budget before calls.",
+        type: "number",
+        min: 0,
+        max: 100,
+        default: 0,
+      },
+      {
+        key: "modelMode",
+        label: "Model spending mode",
+        type: "enum",
+        options: ["off", "free-only", "budgeted-low-cost"],
+        default: "off",
+        description:
+          "Preference for future workers. Off makes no model calls; free-only must never fall back to paid models.",
+      },
+      {
+        key: "preferredModel",
+        label: "Preferred registered model",
+        type: "string",
+        default: "",
+        description:
+          "Optional model ID from the shared evaluated model registry. OpenRouter is the current transport; no premium default or invented model IDs.",
+      },
+      {
+        key: "maxModelCallsPerDay",
+        label: "Daily model call limit",
+        type: "number",
+        min: 0,
+        max: 20,
+        default: 0,
+        description:
+          "Independent call cap, including free models and retries. Zero disables automatic model calls.",
+      },
+      {
+        key: "maxInputTokensPerCall",
+        label: "Input token limit per call",
+        type: "number",
+        min: 1024,
+        max: 16000,
+        default: 8000,
+        description: "Bound retrieved evidence before a future model request.",
+      },
+      {
+        key: "maxOutputTokensPerCall",
+        label: "Output token limit per call",
+        type: "number",
+        min: 256,
+        max: 4000,
+        default: 1000,
+        description: "Short structured results; no unbounded drafting loops.",
+      },
+      {
+        key: "maxCostPerRunUsd",
+        label: "Maximum cost per run (USD)",
+        type: "number",
+        min: 0,
+        max: 1,
+        default: 0,
+        description:
+          "Future workers reserve worst-case cost before requests; zero allows no paid request.",
+      },
+      {
+        key: "sourceMode",
+        label: "Source mode",
+        type: "enum",
+        options: ["free-first"],
+        default: "free-first",
+        description: "No paid-source activation. Available public sources still have usage limits.",
+      },
+      {
+        key: "outreachMode",
+        label: "Outreach mode",
+        type: "enum",
+        options: ["draft-only"],
+        default: "draft-only",
+        description: "No sending or publication is enabled by setup.",
+      },
+    ],
+    settingsContract: "opportunity-radar-profile-v1",
+  },
+  {
     id: "pipeline-watch",
     name: "Pipeline follow-up",
     description: "Find open opportunities with an overdue next action or no update in seven days.",
@@ -587,6 +788,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     aiToolNames: ["run_pipeline_watch"],
     routes: [],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/pipeline-watch/README.md",
     report: {
       version: 1,
       sources: [
@@ -614,6 +817,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     ],
     routes: ["/admin/collections"],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/receivables-collections/README.md",
     settings: [
       {
         key: "cooldownHours",
@@ -644,6 +849,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     ],
     routes: ["/admin/invoicing"],
     setupChecks: [],
+    docsUrl:
+      "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/stripe-invoicing/README.md",
     workflow: {
       version: 1,
       inputSchema: {

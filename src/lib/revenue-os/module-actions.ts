@@ -1,4 +1,6 @@
 import "server-only";
+import { pluginSettingsContract } from "./plugin-settings-contract";
+import { MODULE_MAP } from "./modules";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
@@ -36,6 +38,16 @@ export async function previewModuleConfiguration(db: SupabaseClient, raw: unknow
   let { change } = modulePreviewSchema.parse(raw);
   const current = (await readModuleConfiguration(db, { moduleId: change.moduleId })).modules[0]!;
   if ("enabled" in change && current.isCore) throw new Error("Core modules cannot be toggled");
+  const definition = MODULE_MAP.get(change.moduleId)!;
+  if ("enabled" in change && change.enabled && definition.settingsContract) {
+    const readiness = pluginSettingsContract(definition.settingsContract).readiness(
+      current.settings,
+    );
+    if (!readiness.ready)
+      throw new Error(
+        `Configure required plugin fields before enabling: ${readiness.missing.join(", ")}`,
+      );
+  }
   const before = { enabled: current.enabled, settings: current.settings };
   let after = before;
   if ("settings" in change) {

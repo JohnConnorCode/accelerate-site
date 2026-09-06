@@ -210,3 +210,13 @@ to find each page's primary action, adapters, source records and remaining parit
 work. Its source inventory records direct imports; it does not certify that every
 route write uses a canonical service. Run `npm run test:admin-route-inventory`
 after a boundary change and review the stated update procedure.
+
+## Opportunity Radar profile foundation
+
+`radar-profile-contract.ts` owns public business profile validation and generated
+settings fields. `plugin-settings-contract.ts` resolves reviewed settings
+contracts for generation and shared manual/AI mutation validation.
+`module-configuration-read.ts` exposes readiness and truthful capability limits;
+`module-actions.ts` and `module-configuration.ts` reject incomplete enablement.
+No Radar workers, discovery tables, senders or separate CRM exist yet. The live
+program and architecture are in [Opportunity Radar](../../../docs/plugins/OPPORTUNITY-RADAR.md).

@@ -202,7 +202,7 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "34bcd73501f807d0d2b6316bd85961529d19916c3a54dc56ce9759aec3569ce3",
+    "src/lib/revenue-os/README.md": "10170d7b2945853eae86a0853baba228410bcefea173a3ddf9870521369a19d9",
     "src/lib/revenue-os/action-executor.ts": "d69600c8858c96d3716a6e55b671ab20fd0f68beeb1b97a4cbacefa4e7f3eae0",
     "src/lib/revenue-os/actions.ts": "e3ab076c45a1e52631888859369477140cfd61e6fdf6ac5d8d1661781497e6d2",
     "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
@@ -241,8 +241,8 @@
     "src/lib/revenue-os/legacy-adapter.ts": "3f370c91fa4557508c6af3b98cc063c5d9ac6e47da41a169f9f2f7e2b4642e89",
     "src/lib/revenue-os/mcp-server.ts": "e49f945e3a3c54846e6b9a0128a1f79c2961baf479885fccc55e5e00f59002e1",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
-    "src/lib/revenue-os/module-configuration.ts": "c1da2ae2a475b19af0812a9c37f56aad028c09956dc012bed1576912ce7687c9",
-    "src/lib/revenue-os/modules.ts": "8336123c52933eac8125cdaea81b28a73a1bf0f855a45b457bd2b1cf98c061f9",
+    "src/lib/revenue-os/module-configuration.ts": "49dc143f9117ac8dcb9554f077ccd7cd108ca4f5c4f81196104ba536cd91004b",
+    "src/lib/revenue-os/modules.ts": "6b7138d2828db4efe5b1c30b4834587c81e3591f0a0c3cc6097c2106964f5bad",
     "src/lib/revenue-os/pipeline-stage-resolver.ts": "3581116b6b179a7955feba43e7b535fdfd7febc5f5823eebf804113665486f94",
     "src/lib/revenue-os/pipeline.ts": "837c1f87899a2c5a2d1ef467687a02eb5d88e8b8cbe53f6e8f9199d0ffd57c29",
     "src/lib/revenue-os/queue.ts": "1978dc389d16b247dee407705ecc7f45a8d2dc57317560d035f15be4f44e7bef",
@@ -335,7 +335,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared AI workspace; writes require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates.",
+      "boundary": "Shared AI workspace; writes require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates. Radar setup uses existing read/preview/propose module tools and exact human approval. Preview and execution check public profile readiness; reads explicitly report discovery, sending and publication unavailable.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -913,7 +913,7 @@
           "directTables": ["integration_connections"]
         }
       ],
-      "boundary": "Integration, module and tenant provider services have separate ownership.",
+      "boundary": "Integration, module and tenant provider services have separate ownership. Registered plugin settings reuse a reviewed schema and reject credentials in public configuration. Radar requires complete public profile fields before enablement; saved model preferences do not enable workers or enforce spend. Module documentation links are manifest data.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1134,7 +1134,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Module settings and report-plugin services own configuration and execution; plugin availability is not proof of record parity.",
+      "boundary": "Module settings and report-plugin services own configuration and execution; plugin availability is not proof of record parity. Shared configuration execution rechecks registered profile readiness before enablement. Radar has no executable workspace/report and is configured through Integrations; no new Radar route or provider effect is introduced.",
       "followUp": null,
       "specialBoundary": null
     },

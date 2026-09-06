@@ -239,3 +239,20 @@ provenance and all-five-demo capability checks. The shared controlled provider
 fixture is also used by `test:collections-reminders`. No Docker or real email is
 required. Scheduled case handlers and model-generated wording remain parent-card
 work; adding these tools does not silently activate an unattended cadence.
+
+## Costs, settings and documentation review
+
+The decision engine is deterministic and makes no model request. Live invoice
+refreshes and approved reminders use the existing Stripe and email connections;
+provider and hosting usage can incur charges. Surrounding AI chat uses the
+workspace model. There is no separate paid-model dependency for Collections.
+Keep provider credentials in the platform's server-only connection storage.
+Business policies such as promises, disputes and pauses belong on the case,
+not in public module settings.
+
+Disable Collections in **Plugins** to prevent new plugin operations. Existing
+cases, invoices, sent reminders and receipts remain; reconcile uncertain effects
+before retrying and use explicit case controls for business changes. Disabling
+does not reverse a Stripe or email effect. Follow the
+[plugin documentation contract](../../docs/contracts/PLUGIN-DOCUMENTATION.md)
+when changing this guide or its shared admin/demo workflow.
