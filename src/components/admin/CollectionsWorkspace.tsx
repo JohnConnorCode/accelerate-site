@@ -365,7 +365,7 @@ export function CollectionsWorkspace() {
                     </label>
                     <label className="flex min-h-11 items-center gap-2 text-sm">
                       <input name="disputed" type="checkbox" defaultChecked={current.disputed} />
-                      Disputed — hold reminders
+                      Disputed: hold reminders
                     </label>
                     <label className="flex min-h-11 items-center gap-2 text-sm">
                       <input name="paused" type="checkbox" defaultChecked={current.paused} />

@@ -59,4 +59,5 @@ console.log(
 
 if (process.env.COLLECTIONS_POSTGRES_PROOF === "1") await import("./test-collections-postgres.mjs");
 
-if (process.env.COLLECTIONS_REMINDER_POSTGRES_PROOF === "1") await import("./test-collections-reminder-postgres.mjs");
+if (process.env.COLLECTIONS_REMINDER_POSTGRES_PROOF === "1")
+  await import("./test-collections-reminder-postgres.mjs");

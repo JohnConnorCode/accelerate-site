@@ -114,11 +114,9 @@ try {
           );
           const heading = page.getByRole("heading", { name: "Read collection cases", exact: true });
           await heading.scrollIntoViewIfNeeded();
-          await heading
-            .locator("..")
-            .screenshot({
-              path: `${output}/capability-${width}-${enabled ? "enabled" : "disabled"}.png`,
-            });
+          await heading.locator("..").screenshot({
+            path: `${output}/capability-${width}-${enabled ? "enabled" : "disabled"}.png`,
+          });
         };
         await verifyCollectionCapabilities(true);
         await page.goto(root + "/plugins");
