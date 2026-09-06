@@ -439,9 +439,17 @@ async function main() {
           await gallery
             .locator('button[tabindex="0"] img')
             .evaluate((image) => (image as HTMLImageElement).decode());
-          await page.screenshot({
+          await gallery.locator('button[tabindex="0"]').scrollIntoViewIfNeeded();
+          await gallery.screenshot({
             path: `${output}/${width}-${reducedMotion}-product-gallery.png`,
           });
+          await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+          await page.waitForFunction(() =>
+            [...document.querySelectorAll(".cc-product-hero .rv")].every(
+              (element) => getComputedStyle(element).opacity === "1",
+            ),
+          );
+          await page.screenshot({ path: `${output}/${width}-${reducedMotion}-product-header.png` });
           assert.equal(
             await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
             false,
