@@ -285,3 +285,137 @@ test("doctor proves shared protocol, operation scopes and enforcement without ma
     await new Promise((resolveClosed) => server.close(resolveClosed));
   }
 });
+
+test("developer completes claim, progress, release, resume and evidence submission from a clean clone", async () => {
+  const f = fixture();
+  const receipt = [];
+  let token, worktree;
+  f.card.work_spec.acceptance = [
+    { id: "AC1", criterion: "Explain the fixture task", environment: "local" },
+  ];
+  const server = createServer(async (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    if (req.headers.authorization !== "Bearer lifecycle-worker") {
+      res.statusCode = 401;
+      res.end(JSON.stringify({ error: "Unauthorized" }));
+      return;
+    }
+    if (req.method === "GET") {
+      res.end(
+        JSON.stringify({
+          protocolVersion: 2,
+          schemaReady: true,
+          features: [f.card],
+          nextOffset: null,
+        }),
+      );
+      return;
+    }
+    let raw = "";
+    for await (const chunk of req) raw += chunk;
+    const body = JSON.parse(raw);
+    if (body.id !== f.card.id || body.revision !== f.card.revision) {
+      res.statusCode = 409;
+      res.end(JSON.stringify({ error: "Stale card" }));
+      return;
+    }
+    if (body.operation === "claim") {
+      if (f.card.status !== "planned") {
+        res.statusCode = 409;
+        res.end("{}");
+        return;
+      }
+      token = body.payload.claimToken;
+      f.card.status = "in_progress";
+    } else {
+      if (body.payload.claimToken !== token || f.card.status !== "in_progress") {
+        res.statusCode = 403;
+        res.end("{}");
+        return;
+      }
+      if (body.operation === "release") f.card.status = "planned";
+      if (body.operation === "submit") {
+        const evidence = body.payload.evidence;
+        if (
+          evidence.commitSha !== git(worktree, ["rev-parse", "HEAD"]) ||
+          evidence.checks[0].acceptanceId !== "AC1" ||
+          evidence.checks[0].environment !== "local"
+        ) {
+          res.statusCode = 400;
+          res.end("{}");
+          return;
+        }
+        f.card.status = "in_review";
+      }
+    }
+    f.card.revision++;
+    receipt.push({ operation: body.operation, revision: f.card.revision });
+    res.end(JSON.stringify({ card: f.card }));
+  });
+  await new Promise((resolveListening) => server.listen(0, "127.0.0.1", resolveListening));
+  const env = {
+    WORK_BOARD_URL: `http://127.0.0.1:${server.address().port}`,
+    WORK_BOARD_TOKEN: "lifecycle-worker",
+  };
+  async function command(args) {
+    const result = await cli(f.clone, args, env);
+    assert.equal(result.code, 0, result.stderr);
+    assert.ok(!result.stdout.includes("lifecycle-worker"));
+    if (token) assert.ok(!result.stdout.includes(token));
+    return JSON.parse(result.stdout);
+  }
+  try {
+    const packet = await command(["next", "--card", f.card.seed_key, "--json"]);
+    worktree = packet.worktree;
+    await command(["heartbeat", "--card", f.card.seed_key]);
+    await command(["progress", "--card", f.card.seed_key, "--message", "Inspecting the fixture"]);
+    await command(["release", "--card", f.card.seed_key]);
+    assert.ok(existsSync(worktree), "release preserves the checkout");
+    const resumed = await command(["next", "--card", f.card.seed_key, "--json"]);
+    assert.equal(resumed.worktree, worktree);
+    writeFileSync(
+      join(worktree, "README.md"),
+      "Open the fixture, inspect the instructions, and record the result.\n",
+    );
+    git(worktree, ["add", "README.md"]);
+    git(worktree, [
+      "-c",
+      "user.name=Fixture",
+      "-c",
+      "user.email=fixture@example.test",
+      "-c",
+      "core.hooksPath=/dev/null",
+      "commit",
+      "-m",
+      "Explain the fixture task",
+    ]);
+    const evidence = join(f.dir, "evidence.json");
+    writeFileSync(
+      evidence,
+      JSON.stringify({
+        summary: "The controlled fixture instructions were updated and checked.",
+        commitSha: git(worktree, ["rev-parse", "HEAD"]),
+        checks: [
+          {
+            acceptanceId: "AC1",
+            environment: "local",
+            name: "Inspect fixture instructions",
+            status: "passed",
+            evidence: "README describes the fixture task.",
+          },
+        ],
+      }),
+    );
+    await command(["complete", "--card", f.card.seed_key, "--evidence-file", evidence]);
+    assert.equal(f.card.status, "in_review", "submission must not mark work shipped");
+    assert.ok(existsSync(worktree), "submission preserves the implementation for review");
+    assert.equal(git(worktree, ["status", "--porcelain"]), "");
+    assert.deepEqual(
+      receipt.map((r) => r.operation),
+      ["claim", "heartbeat", "progress", "release", "claim", "submit"],
+    );
+  } finally {
+    await new Promise((resolveClosed) => server.close(resolveClosed));
+    rmSync(f.dir, { recursive: true, force: true });
+  }
+});

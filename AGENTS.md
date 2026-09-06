@@ -4,10 +4,11 @@ This file is the mandatory starting point for every implementation agent. The
 goal is repeatable delivery by agents with different capability levels, without
 rediscovering architecture or inventing new write paths.
 
-If the repo isn't running yet, none of this is reachable: some of the docs
-below assume a deployed or locally running instance with migrations applied
-and a founder account. Follow
-[docs/self-hosting/SELF-HOSTING.md](docs/self-hosting/SELF-HOSTING.md) first, then come back here.
+For local exploration, follow [Start development](docs/contributing/DEVELOPER-START.md)
+and open the fictional demo. It requires no provider or database credentials.
+For a connected installation, follow
+[the self-hosting guide](docs/self-hosting/SELF-HOSTING.md). Shared ticket pickup
+also requires the scoped access described below.
 
 ## Pick up work
 
