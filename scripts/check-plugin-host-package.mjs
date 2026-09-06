@@ -1,6 +1,6 @@
 /** Prove Next's deployable route traces retain the native loader and WASM. */
 import assert from "node:assert/strict";
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -9,7 +9,7 @@ const packageName = "@jitl/quickjs-wasmfile-release-sync";
 for (const route of ["plugins/workflow", "plugins/run"]) {
   const trace = resolve(`.next/server/app/api/admin/${route}/route.js.nft.json`);
   const files = JSON.parse(readFileSync(trace, "utf8")).files;
-  const fixture = mkdtempSync(join(tmpdir(), "accelerate-engine-package-"));
+  const fixture = realpathSync(mkdtempSync(join(tmpdir(), "accelerate-engine-package-")));
   try {
     const marker = `/node_modules/${packageName}/`;
     let copied = 0;
