@@ -107,11 +107,13 @@ export function pluginToolRegistrations(module: PluginToolModule): ToolRegistrat
   }
   return registrations;
 }
-export function pluginToolDeclaration(registration: ToolRegistration) {
+export type PluginToolDeclaration = Omit<ToolRegistration, "schema"> & {
+  inputSchema: Record<string, unknown>;
+};
+export function pluginToolDeclaration(registration: ToolRegistration): PluginToolDeclaration {
   const { schema, ...metadata } = registration;
   return { ...metadata, inputSchema: z.toJSONSchema(schema, { io: "input", target: "draft-7" }) };
 }
-export type PluginToolDeclaration = ReturnType<typeof pluginToolDeclaration>;
 export function pluginToolDeclarations(module: PluginToolModule) {
   return pluginToolRegistrations(module).map(pluginToolDeclaration);
 }
