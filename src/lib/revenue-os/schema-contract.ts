@@ -241,7 +241,16 @@ const BASE_REVENUE_SCHEMA_TABLES = [
   },
   {
     table: "proposals",
-    columns: ["id", "opportunity_id", "contact_id", "company_id", "status", "version"],
+    columns: [
+      "id",
+      "opportunity_id",
+      "contact_id",
+      "company_id",
+      "status",
+      "version",
+      "supersedes_id",
+      "superseded_by",
+    ],
   },
   { table: "proposal_events", columns: ["id", "proposal_id", "event_type", "source"] },
   {
