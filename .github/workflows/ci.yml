@@ -114,6 +114,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:core
 
+      - name: Verify real command-agent orchestration
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:agent-loop
+
       - name: Verify runtime PostgreSQL concurrency and migrations
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: |
