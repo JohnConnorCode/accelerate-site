@@ -131,7 +131,7 @@ async function main() {
       },
     ])) as typeof fetch;
   const streamed = await openRouterChatStream(
-    { messages: [{ role: "user", content: "What matters?" }], tools: [] },
+    { job: "copilot-answer", messages: [{ role: "user", content: "What matters?" }], tools: [] },
     (delta) => deltas.push(delta),
   );
   assert.equal(

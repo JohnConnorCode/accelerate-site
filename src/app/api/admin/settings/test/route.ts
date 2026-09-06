@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
     try {
       await openRouterChat({
         database: auth.database,
+        job: "connectivity-check",
         maxTokens: 5,
         temperature: 0,
         messages: [{ role: "user", content: "Reply with OK." }],

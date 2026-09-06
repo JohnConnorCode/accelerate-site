@@ -83,6 +83,7 @@ async function main() {
   // 1. Plain completion.
   await probe("chat.plain", async () => {
     const response = await openRouterChat({
+      job: "connectivity-check",
       maxTokens: 5,
       temperature: 0,
       messages: [{ role: "user", content: "Reply with exactly: OK" }],
@@ -99,6 +100,7 @@ async function main() {
       stage: string;
       confident: boolean;
     }>({
+      job: "content-brief",
       maxTokens: 60,
       temperature: 0,
       messages: [
@@ -131,6 +133,7 @@ async function main() {
   //    how good the registry is.
   await probe("chat.tools", async () => {
     const response = await openRouterChat({
+      job: "copilot-answer",
       maxTokens: 80,
       temperature: 0,
       tools: [ECHO_TOOL],
@@ -159,6 +162,7 @@ async function main() {
   // 4. Streaming, the public website chat path.
   await probe("stream.text", async () => {
     const stream = await openRouterTextStream({
+      job: "public-chat",
       maxTokens: 20,
       temperature: 0,
       messages: [{ role: "user", content: "Say hello in five words or fewer." }],

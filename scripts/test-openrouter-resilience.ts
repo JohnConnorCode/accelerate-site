@@ -78,7 +78,7 @@ const okBody = {
   choices: [{ message: { role: "assistant", content: "OK" } }],
   usage: { total_tokens: 7 },
 };
-const ask = { messages: [{ role: "user" as const, content: "hi" }] };
+const ask = { job: "connectivity-check", messages: [{ role: "user" as const, content: "hi" }] };
 const checks: string[] = [];
 
 async function scenario(name: string, run: () => Promise<void>) {
@@ -300,6 +300,7 @@ async function main() {
     return value as { ok: boolean };
   };
   const jsonAsk = {
+    job: "content-brief",
     messages: [{ role: "user" as const, content: "json" }],
     schemaName: "probe",
     schema: jsonSchema,

@@ -151,7 +151,7 @@ async function main() {
     return new Response();
   }) as typeof fetch;
   await assert.rejects(
-    () => openRouterChat({ messages: [{ role: "user", content: "hello" }] }),
+    () => openRouterChat({ job: "connectivity-check", messages: [{ role: "user", content: "hello" }] }),
     (error: unknown) => error instanceof OpenRouterError && /tenant context/i.test(error.message),
   );
   assert.equal(

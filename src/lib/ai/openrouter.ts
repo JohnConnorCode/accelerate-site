@@ -2,11 +2,17 @@ import { z } from "zod";
 import { readBoundedJson } from "./bounded-json";
 import { tenant } from "@/config/tenant";
 import "server-only";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveOpenRouterCredential } from "@/lib/ai/openrouter-credentials";
+import {
+  DEFAULT_OPENROUTER_MODEL,
+  getOpenRouterFallbackModel,
+  getOpenRouterModel,
+} from "@/lib/ai/openrouter-models";
+import { recordModelCall, resolveModelForJob } from "@/lib/ai/model-registry";
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-export const DEFAULT_OPENROUTER_MODEL = "openai/gpt-4.1-mini";
+export { DEFAULT_OPENROUTER_MODEL, getOpenRouterFallbackModel, getOpenRouterModel };
 
 export type OpenRouterRole = "system" | "user" | "assistant" | "tool";
 
@@ -61,6 +67,17 @@ export interface OpenRouterRequest {
   beforeAttempt?: (attempt: number) => Promise<void>;
   /** Tenant-bound database context used only to resolve the encrypted key. */
   database?: SupabaseClient;
+  /**
+   * Registered AI job key (see model-registry AI_JOBS). Required: every AI
+   * call names its job so resolution is validated and receipts attributed.
+   */
+  job: string;
+  /**
+   * Owning tenant for model resolution and usage receipts. Optional: resolves
+   * from the tenant-bound database client (or request context) when omitted;
+   * pass explicitly only for unbound clients such as test doubles.
+   */
+  tenantId?: string;
   messages: OpenRouterMessage[];
   model?: string;
   maxTokens?: number;
@@ -90,18 +107,7 @@ export class OpenRouterError extends Error {
   }
 }
 
-export function getOpenRouterModel(preferred?: string): string {
-  return preferred?.trim() || process.env.OPENROUTER_MODEL?.trim() || DEFAULT_OPENROUTER_MODEL;
-}
-
-/**
- * A second model OpenRouter routes to when the primary is unavailable or
- * rate-limited. Optional: with none configured the behaviour is exactly as
- * before, a single-model request.
- */
-export function getOpenRouterFallbackModel(): string | null {
-  return process.env.OPENROUTER_FALLBACK_MODEL?.trim() || null;
-}
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 /**
  * The 45s timeout must apply even when a caller supplies its own signal.
@@ -281,6 +287,56 @@ async function attemptChat(
   }
 }
 
+/**
+ * Resolve the serving model for a job through the registry and record the
+ * receipt. The registry reads its default model id from the leaf
+ * `openrouter-models` module, so this static import cannot cycle.
+ */
+async function resolveJobModel(
+  input: OpenRouterRequest,
+  explicitTenantId: string,
+): Promise<{ requested: string; resolved: string }> {
+  const jobKey = input.job?.trim();
+  if (!jobKey) throw new OpenRouterError("AI calls must name a registered job", 400);
+  if (!input.database)
+    throw new OpenRouterError("AI calls require a tenant-bound database for model receipts", 400);
+  const resolution = await resolveModelForJob(
+    input.database,
+    explicitTenantId,
+    input.job,
+    getOpenRouterModel(input.model),
+  );
+  const fallback = input.strictPricing ? null : getOpenRouterFallbackModel();
+  if (fallback) await resolveModelForJob(input.database, explicitTenantId, input.job, fallback);
+  return { requested: resolution.requested, resolved: resolution.resolved };
+}
+
+async function recordJobReceipt(
+  input: OpenRouterRequest,
+  tenantId: string,
+  requested: string,
+  resolved: string,
+  startedAt: number,
+): Promise<void> {
+  if (!input.database) throw new Error("Model receipt requires a database");
+  await recordModelCall(input.database, {
+    job: input.job,
+    requested,
+    resolved,
+    tenantId,
+    latencyMs: Date.now() - startedAt,
+  });
+}
+
+function resolveJobTenant(input: OpenRouterRequest): string {
+  const scoped = input.database ? tenantIdForDatabase(input.database) : undefined;
+  if (scoped && input.tenantId && scoped !== input.tenantId)
+    throw new OpenRouterError("Model attribution does not match the workspace", 400);
+  const id = scoped ?? input.tenantId;
+  if (!id) throw new OpenRouterError("AI calls must carry an owning tenant id", 400);
+  return id;
+}
+
 export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRouterResponse> {
   if (
     input.strictPricing &&
@@ -292,13 +348,17 @@ export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRout
       400,
     );
   const apiKey = await requestApiKey(input);
-  const model = getOpenRouterModel(input.model);
+  const tenantId = resolveJobTenant(input);
+  const { requested, resolved: model } = await resolveJobModel(input, tenantId);
+  const startedAt = Date.now();
   let lastError: OpenRouterError | null = null;
   const attempts = input.strictPricing ? 1 : MAX_ATTEMPTS;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       await input.beforeAttempt?.(attempt);
-      return await attemptChat(input, model, apiKey);
+      const payload = await attemptChat(input, model, apiKey);
+      await recordJobReceipt(input, tenantId, requested, payload.model ?? model, startedAt);
+      return payload;
     } catch (error) {
       if (!(error instanceof OpenRouterError)) throw error;
       lastError = error;
@@ -343,9 +403,10 @@ export async function openRouterChatStream(
   const apiKey = await requestApiKey(input);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
-  const model = getOpenRouterModel(input.model);
+  const tenantId = resolveJobTenant(input);
+  const { requested, resolved: model } = await resolveJobModel(input, tenantId);
+  const streamStartedAt = Date.now();
   const fallbackModel = getOpenRouterFallbackModel();
-  const startedAt = Date.now();
   try {
     const response = await fetch(OPENROUTER_URL, {
       method: "POST",
@@ -425,6 +486,7 @@ export async function openRouterChatStream(
     }
     if (buffer.trim()) consume(buffer);
 
+    await recordJobReceipt(input, tenantId, requested, resolvedModel, streamStartedAt);
     return {
       id,
       model: resolvedModel,
@@ -450,7 +512,10 @@ export async function openRouterChatStream(
     if (error instanceof OpenRouterError) throw error;
     if (error instanceof Error && error.name === "AbortError") {
       if (input.signal?.aborted) throw new OpenRouterError("OpenRouter request was cancelled", 499);
-      throw new OpenRouterError(`OpenRouter timed out after ${Date.now() - startedAt}ms`, 504);
+      throw new OpenRouterError(
+        `OpenRouter timed out after ${Date.now() - streamStartedAt}ms`,
+        504,
+      );
     }
     throw new OpenRouterError(
       error instanceof Error ? boundedMessage(error.message) : "OpenRouter stream failed",
@@ -513,7 +578,9 @@ export async function openRouterTextStream(
     throw new OpenRouterError("Strict budgeted calls require non-streaming execution", 400);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
-  const model = getOpenRouterModel(input.model);
+  const tenantId = resolveJobTenant(input);
+  const { requested, resolved: model } = await resolveJobModel(input, tenantId);
+  const streamStartedAt = Date.now();
   const fallbackModel = getOpenRouterFallbackModel();
   const apiKey = await requestApiKey(input);
   let response: Response;
@@ -568,10 +635,11 @@ export async function openRouterTextStream(
     usage: {},
   };
   let metadataDelivered = false;
-  const deliverMetadata = () => {
+  const deliverMetadata = async () => {
     if (metadataDelivered) return;
     metadataDelivered = true;
     onMetadata?.({ ...metadata, usage: { ...metadata.usage } });
+    await recordJobReceipt(input, tenantId, requested, metadata.model ?? model, streamStartedAt);
   };
   return new ReadableStream<Uint8Array>({
     async pull(streamController) {
@@ -580,7 +648,7 @@ export async function openRouterTextStream(
           const { value, done } = await reader.read();
           if (done) {
             if (buffer.trim()) parseSseChunk(buffer, streamController, encoder, metadata);
-            deliverMetadata();
+            await deliverMetadata();
             clearTimeout(timeout);
             streamController.close();
             return;
@@ -592,13 +660,13 @@ export async function openRouterTextStream(
           if (blocks.length) return;
         }
       } catch (error) {
-        deliverMetadata();
+        await deliverMetadata();
         clearTimeout(timeout);
         streamController.error(error);
       }
     },
-    cancel() {
-      deliverMetadata();
+    async cancel() {
+      await deliverMetadata();
       clearTimeout(timeout);
       controller.abort();
       void reader.cancel();

@@ -349,6 +349,7 @@ async function callOpenRouter(
 ): Promise<DigitalGrowthPlan> {
   const response = await openRouterJson({
     database,
+    job: "growth-plan",
     model,
     maxTokens: 4096,
     temperature: 0.7,

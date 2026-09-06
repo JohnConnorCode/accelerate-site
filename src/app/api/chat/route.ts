@@ -120,6 +120,7 @@ export async function POST(request: NextRequest) {
       readableStream = await openRouterTextStream(
         {
           database: supabase,
+          job: "public-chat",
           model: process.env.OPENROUTER_CHAT_MODEL,
           maxTokens: MAX_TOKENS,
           temperature: TEMPERATURE,

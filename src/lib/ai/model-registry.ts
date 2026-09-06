@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { DEFAULT_OPENROUTER_MODEL } from "./openrouter";
+import { DEFAULT_OPENROUTER_MODEL } from "./openrouter-models";
 
 /**
  * Audited model registry (ai-model-job-registry): AI calls name a registered
@@ -59,6 +59,15 @@ const BUILT_IN_REGISTRATION: Omit<ModelRegistration, "evalPassed" | "evaluatedAt
 
 export const AI_JOBS: readonly JobRegistration[] = [
   {
+    key: "budgeted-draft",
+    label: "Budgeted structured draft",
+    consequential: false,
+    requiresTools: false,
+    requiresJson: true,
+    minContextWindow: 32000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
+  {
     key: "copilot-answer",
     label: "Revenue Copilot answer",
     consequential: true,
@@ -103,6 +112,42 @@ export const AI_JOBS: readonly JobRegistration[] = [
     minContextWindow: 64_000,
     defaultModel: BUILT_IN_MODEL_ID,
   },
+  {
+    key: "growth-plan",
+    label: "Public growth plan generation",
+    consequential: false,
+    requiresTools: false,
+    requiresJson: true,
+    minContextWindow: 32_000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
+  {
+    key: "contact-extract",
+    label: "Contact import extraction",
+    consequential: false,
+    requiresTools: false,
+    requiresJson: true,
+    minContextWindow: 32_000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
+  {
+    key: "coworker-task",
+    label: "Coworker headless execution",
+    consequential: true,
+    requiresTools: true,
+    requiresJson: false,
+    minContextWindow: 64_000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
+  {
+    key: "connectivity-check",
+    label: "Provider connectivity check",
+    consequential: false,
+    requiresTools: false,
+    requiresJson: false,
+    minContextWindow: 4_000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
 ];
 
 function settingKey(modelId: string): string {
@@ -129,6 +174,8 @@ function toRegistration(
   if (!stored) {
     return {
       ...BUILT_IN_REGISTRATION,
+      id: modelId,
+      label: modelId,
       evalPassed: false,
       evaluatedAt: null,
       evaluatedBy: null,

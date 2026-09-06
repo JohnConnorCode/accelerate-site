@@ -151,6 +151,7 @@ export async function POST(request: NextRequest) {
 
     const response = await openRouterJson({
       database: supabase,
+      job: "proposal-draft",
       model: process.env.OPENROUTER_PROPOSAL_MODEL,
       maxTokens: 2000,
       temperature: 0.2,

@@ -455,6 +455,7 @@ export async function respondToInbound(
 
     const response = await openRouterChat({
       database: supabase,
+      job: "responder-draft",
       model,
       maxTokens: 400,
       temperature: 0.4,
