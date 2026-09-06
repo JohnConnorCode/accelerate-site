@@ -1,4 +1,5 @@
 import "server-only";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { recordActivity } from "./activities";
@@ -569,4 +570,55 @@ export async function resolveIdentityReview(
     );
     throw error;
   }
+}
+
+/** Conservative bounded unresolved-identity check for canonical relationship reads. */
+export async function readContactIdentityReviewState(
+  supabase: SupabaseClient,
+  contactIds: string[],
+) {
+  const tenantId = tenantIdForDatabase(supabase);
+  const ids = [...new Set(contactIds)];
+  if (!tenantId || ids.length > 50) throw new Error("Bounded tenant contact context required");
+  const read = await supabase
+    .from("action_queue")
+    .select("id,payload")
+    .eq("tenant_id", tenantId)
+    .eq("action_type", IDENTITY_REVIEW_ACTION)
+    .eq("status", "pending")
+    .order("created_at")
+    .order("id")
+    .limit(201);
+  if (read.error) throw new Error("Identity review context unavailable");
+  const records = ids.length
+    ? await supabase
+        .from("contacts")
+        .select("id,primary_email,alternate_emails")
+        .eq("tenant_id", tenantId)
+        .in("id", ids)
+        .limit(50)
+    : { data: [], error: null };
+  if (records.error) throw new Error("Canonical identity context unavailable");
+  const pending = new Set<string>();
+  for (const row of read.data ?? []) {
+    const payload = row.payload as Record<string, unknown> | null;
+    const email = normalizeEmail(
+      typeof payload?.participant_email === "string" ? payload.participant_email : null,
+    );
+    if (email)
+      for (const contact of records.data ?? []) {
+        if (
+          [contact.primary_email, ...(contact.alternate_emails ?? [])].some(
+            (value) => normalizeEmail(value) === email,
+          )
+        )
+          pending.add(contact.id);
+      }
+    const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
+    for (const candidate of candidates) {
+      if (candidate && typeof candidate === "object" && ids.includes(candidate.id))
+        pending.add(candidate.id);
+    }
+  }
+  return { pendingContactIds: [...pending], complete: (read.data?.length ?? 0) <= 200 };
 }

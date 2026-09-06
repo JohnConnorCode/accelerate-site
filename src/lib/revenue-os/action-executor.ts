@@ -1,4 +1,5 @@
 import "server-only";
+import { executeRadarRelationship } from "./radar-relationships";
 import { executeRadarAssessment } from "./radar-ranking";
 import { executeRadarStoreChange } from "./radar-store";
 import { executeModuleConfiguration } from "./module-actions";
@@ -38,6 +39,7 @@ function stringValue(
 }
 
 export const APPROVABLE_ACTIONS = [
+  "review_radar_relationship",
   "review_radar_assessment",
   "update_radar_store",
   "update_module_configuration",
@@ -130,6 +132,12 @@ export async function approveAndExecuteAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "review_radar_relationship": {
+        if (mode !== "approved")
+          throw new Error("Relationship assertions require exact human approval");
+        result = await executeRadarRelationship(supabase, payload, actorEmail);
+        break;
+      }
       case "review_radar_assessment": {
         if (mode !== "approved")
           throw new Error("Radar estimates and classification require human approval");

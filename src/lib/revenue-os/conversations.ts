@@ -1,4 +1,5 @@
 import "server-only";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { recordActivity } from "./activities";
@@ -1096,5 +1097,51 @@ export async function associateConversationParticipants(
     opportunityId,
     participants,
     reviewActionIds,
+  };
+}
+
+/** Bounded canonical history for reviewed relationship work; no provider access.
+ * A truncated window is explicit and cannot establish absence of an earlier ask. */
+export async function readContactConversationContext(supabase: SupabaseClient, contactId: string) {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId || !/^[a-f0-9-]{36}$/i.test(contactId))
+    throw new Error("Canonical contact and tenant required");
+  const read = await supabase
+    .from("conversations")
+    .select("id,contact_id,subject,status,last_message_at")
+    .eq("tenant_id", tenantId)
+    .eq("contact_id", contactId)
+    .order("last_message_at", { ascending: false })
+    .order("id")
+    .limit(11);
+  if (read.error) throw new Error("Conversation history unavailable");
+  const conversations = (read.data ?? []).slice(0, 10);
+  const messages = conversations.length
+    ? await supabase
+        .from("message_evidence_context")
+        .select("id,conversation_id,direction,sender_email,status,body_excerpt,created_at")
+        .eq("tenant_id", tenantId)
+        .in(
+          "conversation_id",
+          conversations.map((c) => c.id),
+        )
+        .order("created_at", { ascending: false })
+        .order("id")
+        .limit(21)
+    : { data: [], error: null };
+  if (messages.error) throw new Error("Conversation message context unavailable");
+  return {
+    conversations,
+    messages: (messages.data ?? []).slice(0, 20).map((m) => ({
+      ...m,
+      body_excerpt: Array.from(String(m.body_excerpt ?? ""))
+        .slice(0, 600)
+        .join(""),
+      textTruncated: Array.from(String(m.body_excerpt ?? "")).length > 600,
+    })),
+    complete: (read.data?.length ?? 0) <= 10 && (messages.data?.length ?? 0) <= 20,
+    limits: { conversations: 10, messages: 20, excerptCharacters: 600 },
+    interpretation:
+      "Read prior inbound and outbound context and earlier asks before drafting. A bounded excerpt does not prove an absent commitment or consent.",
   };
 }
