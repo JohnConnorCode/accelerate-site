@@ -114,6 +114,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:core
 
+      - name: Verify guided installation contracts
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:setup-status
+
       - name: Verify real command-agent orchestration
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:agent-loop
@@ -122,6 +126,7 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: |
           echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+          PATH="$(pg_config --bindir):$PATH" npm run test:tenant-lifecycle:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
 

@@ -166,7 +166,7 @@
     "test:google-oauth": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-google-oauth.ts",
     "test:google-readiness": "node scripts/test-google-oauth-readiness.mjs",
     "verify:google-readiness": "node scripts/verify-google-oauth-readiness.mjs",
-    "test:setup-status": "npx tsx scripts/test-setup-status.ts",
+    "test:setup-status": "npx tsx scripts/test-setup-status.ts && node --test scripts/test-workspace-setup.mjs",
     "test:audit": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-audit.ts",
     "qa:audit-activity": "node scripts/qa-audit-activity.mjs",
     "test:tenant-config": "npx tsx scripts/test-tenant-config-seam.ts",
@@ -242,7 +242,8 @@
     "test:collections-agent-tools": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-collections-agent-tools.ts",
     "test:ai-branding": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-branding.ts",
     "test:ai-module-controls": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-module-controls.ts",
-    "test:ai-tool-discovery": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-tool-discovery.ts"
+    "test:ai-tool-discovery": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-tool-discovery.ts",
+    "setup": "node scripts/workspace-setup.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
