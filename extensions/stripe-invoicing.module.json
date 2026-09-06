@@ -61,6 +61,21 @@
         "inputKey": "contactId"
       }
     ],
-    "inputContract": "stripe-invoice-draft-v1"
+    "inputContract": "stripe-invoice-draft-v1",
+    "policy": {
+      "version": 1,
+      "action": "create_stripe_invoice_draft",
+      "trustCeiling": "always-propose",
+      "evidence": {
+        "kind": "canonical-record",
+        "inputKey": "contactId",
+        "sourceType": "workflow_contacts"
+      },
+      "idempotency": { "request": "workflow-request-v1", "effect": "stripe-action-v1" },
+      "tier": 3,
+      "impact": "external_action",
+      "reversibility": "irreversible"
+    },
+    "contractHash": "7afe4530693681c920c43ba2f46b6903039a533d760649fee4a149a547b2aa0d"
   }
 }

@@ -23,9 +23,27 @@ const { pluginWorkflowDeclaration } = requireTypeScript(
   "../src/lib/revenue-os/plugin-workflow-contract.ts",
   import.meta.url,
 );
+const { assertWorkflowEvidenceSource } = requireTypeScript(
+  "../src/lib/revenue-os/plugin-workflow-policy.ts",
+  import.meta.url,
+);
 import { validateBoundedWorkflowSchema } from "./lib/bounded-workflow-schema.mjs";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+const hostContractHash = createHash("sha256");
+for (const file of [
+  "plugin-workflow-contract.ts",
+  "plugin-workflow-policy.ts",
+  "workflow-task-contract.ts",
+  "stripe-contract.ts",
+  "action-reversibility-contract.ts",
+])
+  hostContractHash
+    .update(file)
+    .update("\0")
+    .update(readFileSync(join(repoRoot, "src/lib/revenue-os", file)))
+    .update("\0");
+const hostContractFingerprint = hostContractHash.digest("hex");
 const extensionsDir = join(repoRoot, "extensions");
 const generatedPath = join(repoRoot, "src/lib/revenue-os/extension-modules.generated.ts");
 const checkOnly = process.argv.includes("--check");
@@ -166,17 +184,34 @@ function validateWorkflow(file, manifest) {
   if (!workflow) return;
   try {
     const declaration = pluginWorkflowDeclaration(workflow.inputContract);
+    assertWorkflowEvidenceSource(declaration.policy, workflow.sources);
+    const generated = {
+      actions: declaration.actions,
+      inputSchema: declaration.inputSchema,
+      policy: declaration.policy,
+      contractHash: createHash("sha256")
+        .update(
+          JSON.stringify({
+            hostContractFingerprint,
+            inputContract: workflow.inputContract,
+            ...declaration,
+            sources: workflow.sources,
+          }),
+        )
+        .digest("hex"),
+    };
     if (
       checkOnly &&
-      (JSON.stringify(workflow.actions) !== JSON.stringify(declaration.actions) ||
-        JSON.stringify(workflow.inputSchema) !== JSON.stringify(declaration.inputSchema))
+      Object.entries(generated).some(
+        ([key, value]) => JSON.stringify(workflow[key]) !== JSON.stringify(value),
+      )
     )
       fail(
         file,
         "Generated workflow validator/action declaration drift; run npm run build:extensions",
       );
-    workflow.actions = declaration.actions;
-    workflow.inputSchema = declaration.inputSchema;
+    Object.assign(workflow, generated);
+    for (const warning of declaration.warnings) console.warn(`${file}: ${warning}`);
   } catch (error) {
     fail(file, error instanceof Error ? error.message : "Invalid workflow contract");
     return;
@@ -191,7 +226,16 @@ function validateWorkflow(file, manifest) {
     workflow.sources.length > 3 ||
     !workflow.inputSchema ||
     Object.keys(workflow).some(
-      (key) => !["version", "actions", "sources", "inputSchema", "inputContract"].includes(key),
+      (key) =>
+        ![
+          "version",
+          "actions",
+          "sources",
+          "inputSchema",
+          "inputContract",
+          "policy",
+          "contractHash",
+        ].includes(key),
     )
   ) {
     fail(file, "Invalid workflow v1 declaration");

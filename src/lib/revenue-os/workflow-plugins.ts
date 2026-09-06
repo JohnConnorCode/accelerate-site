@@ -8,7 +8,22 @@ import { evaluateInIsolate, type PluginJsonValue } from "./plugin-isolate";
 import { proposeAction } from "./actions";
 import { reviewWorkflowTasks } from "./workflow-tasks";
 import { reviewStripeInvoice } from "./stripe-invoicing";
-import { parsePluginWorkflowInput, pluginWorkflowContract } from "./plugin-workflow-contract";
+import {
+  parsePluginWorkflowInput,
+  pluginWorkflowContract,
+  pluginWorkflowDeclaration,
+} from "./plugin-workflow-contract";
+import { assertWorkflowEvidenceSource, workflowRequestKey } from "./plugin-workflow-policy";
+import type { RevenueOSModule } from "./modules";
+function assertWorkflowPolicy(workflow: NonNullable<RevenueOSModule["workflow"]>) {
+  const declaration = pluginWorkflowDeclaration(workflow.inputContract);
+  if (
+    JSON.stringify(workflow.policy) !== JSON.stringify(declaration.policy) ||
+    !/^[a-f0-9]{64}$/.test(workflow.contractHash)
+  )
+    throw new Error("Workflow policy disagrees with its host contract");
+  assertWorkflowEvidenceSource(workflow.policy, workflow.sources);
+}
 const planSchema = z
   .object({
     title: z.string().min(1).max(160),
@@ -44,6 +59,7 @@ export async function prepareWorkflowPlugin(
   const contract = pluginWorkflowContract(moduleDef.workflow.inputContract);
   if (moduleDef.workflow.actions.length !== 1 || moduleDef.workflow.actions[0] !== contract.action)
     throw new Error("Workflow action grant disagrees with its host contract");
+  assertWorkflowPolicy(moduleDef.workflow);
   const input = parsePluginWorkflowInput(moduleDef.workflow.inputContract, JSON.parse(json));
   const { snapshots } = await loadPluginSources(db, pluginId, moduleDef.workflow.sources, input);
   const evaluated = await evaluateInIsolate(compiled.code, {
@@ -72,7 +88,14 @@ export async function prepareWorkflowPlugin(
   else if (plan.action.type === "create_task_batch")
     payload = await reviewWorkflowTasks(db, payload);
   else throw new Error("Workflow action has no host reviewer");
-  payload = { ...payload, pluginOrigin: { id: pluginId, sha256: compiled.sha256 } };
+  payload = {
+    ...payload,
+    pluginOrigin: {
+      id: pluginId,
+      sha256: compiled.sha256,
+      contractHash: moduleDef.workflow.contractHash,
+    },
+  };
   await requireEnabledPlugin(db, pluginId);
   const digest = createHash("sha256")
     .update(
@@ -102,7 +125,9 @@ export async function proposeWorkflowPlugin(
     throw new Error(
       "Business inputs or connection changed since preview. Prepare the workflow again.",
     );
-  const dedupeKey = `workflow:${pluginId}:${requestId}`;
+  const { moduleDef } = await requireEnabledPlugin(db, pluginId);
+  if (!moduleDef.workflow) throw new Error("Unknown workflow plugin");
+  const dedupeKey = workflowRequestKey(moduleDef.workflow.policy, pluginId, requestId);
   const { data: prior, error } = await db
     .from("action_queue")
     .select("*")
@@ -131,8 +156,10 @@ export async function assertPluginActionAllowed(
   db: SupabaseClient,
   actionType: string,
   payload: Record<string, unknown>,
+  mode: "approved" | "autonomous" = "approved",
 ) {
-  const origin = payload.pluginOrigin as { id?: unknown; sha256?: unknown } | undefined;
+  const origin = payload.pluginOrigin as
+    { id?: unknown; sha256?: unknown; contractHash?: unknown } | undefined;
   if (!origin || typeof origin.id !== "string")
     throw new Error("Workflow action has no plugin origin");
   const { moduleDef } = await requireEnabledPlugin(db, origin.id);
@@ -147,7 +174,11 @@ export async function assertPluginActionAllowed(
   if (
     !compiled ||
     compiled.sha256 !== origin.sha256 ||
+    moduleDef.workflow?.contractHash !== origin.contractHash ||
     !moduleDef.workflow?.actions.includes(actionType)
   )
     throw new Error("Plugin implementation or action grant changed; fresh review is required");
+  assertWorkflowPolicy(moduleDef.workflow);
+  if (moduleDef.workflow.policy.trustCeiling === "always-propose" && mode !== "approved")
+    throw new Error("Workflow policy requires human approval");
 }

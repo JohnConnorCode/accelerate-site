@@ -98,7 +98,7 @@ export async function approveAndExecuteAction(
   const compensation: Record<string, unknown> = {};
   try {
     if (action.source_context === "plugin" || payload.pluginOrigin)
-      await assertPluginActionAllowed(supabase, String(action.action_type), payload);
+      await assertPluginActionAllowed(supabase, String(action.action_type), payload, mode);
     const coworkerId =
       typeof action.proposed_by === "string" && action.proposed_by.startsWith("coworker:")
         ? action.proposed_by.slice("coworker:".length)

@@ -117,6 +117,24 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         },
       ],
       inputContract: "task-batch-opportunity-v1",
+      policy: {
+        version: 1,
+        action: "create_task_batch",
+        trustCeiling: "always-propose",
+        evidence: {
+          kind: "canonical-record",
+          inputKey: "opportunityId",
+          sourceType: "workflow_opportunities",
+        },
+        idempotency: {
+          request: "workflow-request-v1",
+          effect: "task-content-sha256-v1",
+        },
+        tier: 2,
+        impact: "internal_write",
+        reversibility: "compensable",
+      },
+      contractHash: "420ba78cbb3dc4bbf59b96ccbef884ffa1ae7fc5063348d17b655e16dd9d1faa",
     },
   },
   {
@@ -250,6 +268,24 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         },
       ],
       inputContract: "task-batch-meeting-v1",
+      policy: {
+        version: 1,
+        action: "create_task_batch",
+        trustCeiling: "always-propose",
+        evidence: {
+          kind: "canonical-record",
+          inputKey: "meetingId",
+          sourceType: "workflow_meetings",
+        },
+        idempotency: {
+          request: "workflow-request-v1",
+          effect: "task-content-sha256-v1",
+        },
+        tier: 2,
+        impact: "internal_write",
+        reversibility: "compensable",
+      },
+      contractHash: "d715c6f495c0fd8a4b1362db95a429147203eb35a91920b1528117443eb57182",
     },
   },
   {
@@ -411,6 +447,24 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         },
       ],
       inputContract: "stripe-invoice-draft-v1",
+      policy: {
+        version: 1,
+        action: "create_stripe_invoice_draft",
+        trustCeiling: "always-propose",
+        evidence: {
+          kind: "canonical-record",
+          inputKey: "contactId",
+          sourceType: "workflow_contacts",
+        },
+        idempotency: {
+          request: "workflow-request-v1",
+          effect: "stripe-action-v1",
+        },
+        tier: 3,
+        impact: "external_action",
+        reversibility: "irreversible",
+      },
+      contractHash: "7afe4530693681c920c43ba2f46b6903039a533d760649fee4a149a547b2aa0d",
     },
   },
 ] as const;

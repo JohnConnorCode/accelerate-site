@@ -3,9 +3,21 @@ import { z } from "zod";
 import { stripeInvoiceInputSchema } from "./stripe-contract";
 import { workflowTaskBatchSchema } from "./workflow-task-contract";
 
+import { compileWorkflowPolicy } from "./plugin-workflow-policy";
+
 const taskFields = workflowTaskBatchSchema.shape;
 export const PLUGIN_WORKFLOW_CONTRACTS = {
   "task-batch-opportunity-v1": {
+    policy: {
+      action: "create_task_batch",
+      trustCeiling: "always-propose",
+      evidence: {
+        kind: "canonical-record",
+        inputKey: "opportunityId",
+        sourceType: "workflow_opportunities",
+      },
+      idempotency: { request: "workflow-request-v1", effect: "task-content-sha256-v1" },
+    },
     action: "create_task_batch",
     domainSchema: workflowTaskBatchSchema,
     schema: z
@@ -13,6 +25,16 @@ export const PLUGIN_WORKFLOW_CONTRACTS = {
       .strict(),
   },
   "task-batch-meeting-v1": {
+    policy: {
+      action: "create_task_batch",
+      trustCeiling: "always-propose",
+      evidence: {
+        kind: "canonical-record",
+        inputKey: "meetingId",
+        sourceType: "workflow_meetings",
+      },
+      idempotency: { request: "workflow-request-v1", effect: "task-content-sha256-v1" },
+    },
     action: "create_task_batch",
     domainSchema: workflowTaskBatchSchema,
     schema: z
@@ -20,6 +42,16 @@ export const PLUGIN_WORKFLOW_CONTRACTS = {
       .strict(),
   },
   "stripe-invoice-draft-v1": {
+    policy: {
+      action: "create_stripe_invoice_draft",
+      trustCeiling: "always-propose",
+      evidence: {
+        kind: "canonical-record",
+        inputKey: "contactId",
+        sourceType: "workflow_contacts",
+      },
+      idempotency: { request: "workflow-request-v1", effect: "stripe-action-v1" },
+    },
     action: "create_stripe_invoice_draft",
     domainSchema: stripeInvoiceInputSchema,
     schema: stripeInvoiceInputSchema,
@@ -59,7 +91,10 @@ export function pluginWorkflowDeclaration(id: string) {
     if (node.format === "date") result.minLength = result.maxLength = 10;
     return result;
   }
-  return { actions: [contract.action], inputSchema: project(schema) };
+  const { policy, warnings } = compileWorkflowPolicy(contract.policy);
+  if (policy.action !== contract.action)
+    throw new Error("Workflow policy action disagrees with its validator registration");
+  return { actions: [contract.action], inputSchema: project(schema), policy, warnings };
 }
 
 export function parsePluginWorkflowInput(id: string, input: unknown) {

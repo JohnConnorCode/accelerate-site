@@ -52,6 +52,21 @@
         "inputKey": "opportunityId"
       }
     ],
-    "inputContract": "task-batch-opportunity-v1"
+    "inputContract": "task-batch-opportunity-v1",
+    "policy": {
+      "version": 1,
+      "action": "create_task_batch",
+      "trustCeiling": "always-propose",
+      "evidence": {
+        "kind": "canonical-record",
+        "inputKey": "opportunityId",
+        "sourceType": "workflow_opportunities"
+      },
+      "idempotency": { "request": "workflow-request-v1", "effect": "task-content-sha256-v1" },
+      "tier": 2,
+      "impact": "internal_write",
+      "reversibility": "compensable"
+    },
+    "contractHash": "420ba78cbb3dc4bbf59b96ccbef884ffa1ae7fc5063348d17b655e16dd9d1faa"
   }
 }

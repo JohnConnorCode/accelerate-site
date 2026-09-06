@@ -20,8 +20,49 @@ import {
 import { workflowTaskBatchSchema } from "../src/lib/revenue-os/workflow-task-contract";
 import { stripeInvoiceInputSchema } from "../src/lib/revenue-os/stripe-contract";
 
+import {
+  compileWorkflowPolicy,
+  assertWorkflowEvidenceSource,
+  workflowRequestKey,
+  workflowTaskEffectKey,
+  stripeWorkflowEffectKey,
+} from "../src/lib/revenue-os/plugin-workflow-policy";
+import { createHash } from "node:crypto";
+const taskPolicy = pluginWorkflowDeclaration("task-batch-opportunity-v1").policy;
+const invoicePolicy = pluginWorkflowDeclaration("stripe-invoice-draft-v1").policy;
+assert.equal(taskPolicy.tier, 2);
+assert.equal(invoicePolicy.tier, 3);
+const registration = {
+  action: invoicePolicy.action,
+  evidence: invoicePolicy.evidence,
+  idempotency: invoicePolicy.idempotency,
+  trustCeiling: "autonomous",
+};
+const rewritten = compileWorkflowPolicy(registration);
+assert.equal(rewritten.policy.trustCeiling, "always-propose");
+assert.equal(rewritten.warnings.length, 1);
+for (const invalid of [
+  { ...registration, evidence: undefined },
+  { ...registration, idempotency: undefined },
+  { ...registration, tier: 0 },
+  { ...registration, evidence: taskPolicy.evidence },
+  { ...registration, idempotency: taskPolicy.idempotency },
+])
+  assert.throws(() => compileWorkflowPolicy(invalid));
+assert.throws(() => assertWorkflowEvidenceSource(taskPolicy, []), /canonical evidence source/);
+assert.throws(
+  () =>
+    assertWorkflowEvidenceSource(taskPolicy, [
+      { inputKey: "opportunityId", type: "workflow_contacts", columns: ["id"] },
+    ]),
+  /canonical evidence source/,
+);
+
 type FixtureManifest = {
   workflow: {
+    policy: { tier: number };
+    contractHash: string;
+    sources: unknown[];
     actions: string[];
     inputContract: string;
     inputSchema: { properties: { tasks: { maxItems: number } } };
@@ -35,6 +76,17 @@ const task = {
   assigneeUserId: id,
 };
 const input = { opportunityId: id, tasks: [task] };
+assert.equal(
+  workflowRequestKey(taskPolicy, "client-onboarding", id),
+  `workflow:client-onboarding:${id}`,
+);
+assert.equal(
+  workflowTaskEffectKey("client-onboarding", id, task),
+  `plugin:${createHash("sha256")
+    .update(JSON.stringify({ pluginId: "client-onboarding", source: id, ...task }))
+    .digest("hex")}`,
+);
+assert.equal(stripeWorkflowEffectKey(id, id), `accelerate:${id}:${id}`);
 assert.deepEqual(
   parsePluginWorkflowInput("task-batch-opportunity-v1", input),
   workflowTaskBatchSchema.parse(input),
@@ -97,6 +149,8 @@ try {
     "scripts/lib/bounded-workflow-schema.mjs",
     "src/lib/revenue-os/modules.ts",
     "src/lib/revenue-os/plugin-workflow-contract.ts",
+    "src/lib/revenue-os/plugin-workflow-policy.ts",
+    "src/lib/revenue-os/action-reversibility-contract.ts",
     "src/lib/revenue-os/workflow-task-contract.ts",
     "src/lib/revenue-os/stripe-contract.ts",
   ])
@@ -119,6 +173,15 @@ try {
   const original = readFileSync(path, "utf8");
   for (const mutate of [
     (m: FixtureManifest) => {
+      m.workflow.policy.tier = 0;
+    },
+    (m: FixtureManifest) => {
+      m.workflow.contractHash = "0".repeat(64);
+    },
+    (m: FixtureManifest) => {
+      m.workflow.sources = [];
+    },
+    (m: FixtureManifest) => {
       m.workflow.actions.push("send_email");
     },
     (m: FixtureManifest) => {
@@ -136,7 +199,10 @@ try {
     writeFileSync(path, JSON.stringify(manifest));
     const result = check();
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /declaration drift|Unknown host workflow contract/);
+    assert.match(
+      result.stderr,
+      /declaration drift|Unknown host workflow contract|canonical evidence source/,
+    );
     writeFileSync(path, original);
   }
   // Editing the canonical validator must invalidate the committed projection.

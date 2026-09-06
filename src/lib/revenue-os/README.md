@@ -97,7 +97,12 @@ Phase B and C land (see `docs/NORTHSTAR.md` §6–§20 and the Feature Board car
 
 ## Workflow plugin contracts
 
-`plugin-workflow-contract.ts` owns the trusted workflow input-contract registry.
+`plugin-workflow-contract.ts` owns the trusted workflow input/policy registry.
+`plugin-workflow-policy.ts` validates canonical evidence and replay policies and
+owns the retry-key builders used by task/invoice services. Generated contract
+fingerprints invalidate stale queued workflow approvals. The pure
+`action-reversibility-contract.ts` is the shared classification authority for
+runtime execution and generation; `action-reversibility.ts` owns compensation.
 It reuses the invoice and task domain validators to derive the bounded AI/build
 schema and the allowed action. `build-extension-modules.mjs` regenerates those
 manifest fields; `workflow-plugins.ts` parses and normalizes input with the same

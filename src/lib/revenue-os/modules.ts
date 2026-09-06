@@ -1,3 +1,4 @@
+import type { WorkflowPolicy } from "./plugin-workflow-policy";
 /**
  * Pluggable Module Contract for Revenue OS
  *
@@ -88,6 +89,8 @@ export interface RevenueOSModule {
   workflow?: {
     version: 1;
     inputContract: string;
+    policy: WorkflowPolicy;
+    contractHash: string;
     inputSchema: Record<string, unknown>;
     actions: string[];
     sources: { name: string; type: string; columns: string[]; inputKey: string }[];

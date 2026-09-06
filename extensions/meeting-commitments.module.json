@@ -52,6 +52,21 @@
         "inputKey": "meetingId"
       }
     ],
-    "inputContract": "task-batch-meeting-v1"
+    "inputContract": "task-batch-meeting-v1",
+    "policy": {
+      "version": 1,
+      "action": "create_task_batch",
+      "trustCeiling": "always-propose",
+      "evidence": {
+        "kind": "canonical-record",
+        "inputKey": "meetingId",
+        "sourceType": "workflow_meetings"
+      },
+      "idempotency": { "request": "workflow-request-v1", "effect": "task-content-sha256-v1" },
+      "tier": 2,
+      "impact": "internal_write",
+      "reversibility": "compensable"
+    },
+    "contractHash": "d715c6f495c0fd8a4b1362db95a429147203eb35a91920b1528117443eb57182"
   }
 }

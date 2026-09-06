@@ -577,8 +577,8 @@ These contracts live in `src/lib/revenue-os/plugin-workflow-contract.ts` and reu
 business services. A plugin cannot name an arbitrary import or action implementation.
 
 Run `npm run build:extensions` after changing the contract. It regenerates the
-workflow's `inputSchema` and `actions` in `extensions/*.module.json`, then the
-compiled module registry. Those two fields are generated output; do not maintain
+workflow's `inputSchema`, `actions`, `policy`, and `contractHash` in `extensions/*.module.json`, then the
+compiled module registry. Those fields are generated output; do not maintain
 a parallel schema there. `npm run verify:extensions` rejects changes to either
 side that have not been regenerated. `npm run test:plugin-workflow-contract`
 exercises both directions of drift in a disposable fixture.
@@ -590,10 +590,37 @@ to the isolate. This keeps AI tool descriptions bounded without weakening runtim
 validation. Generation imports only trusted host contracts; plugin JavaScript is
 read and hashed as data and executes only in QuickJS.
 
-This currently covers input schemas and workflow action selection. Generated
-impact tiers, evidence/idempotency policies, event registration and complete
-read/write grants remain tracked by `plugin-manifest-generator`; this change is
-not a complete third-party registration or installation SDK.
+Each supported workflow also registers a canonical identity source and explicit
+request/effect idempotency policies in `plugin-workflow-contract.ts`.
+`plugin-workflow-policy.ts` validates that registration against the implemented
+action: opportunity/meeting task batches require their matching source; invoice
+drafts require a contact source. Missing evidence, missing retry policies and
+contradictory registrations fail generation. The host verifies the source before
+running plugin code and prevents the returned plan from changing that identity.
+Domain services still resolve live, tenant-bound records and provider identities.
+
+The authoritative action classification in `action-reversibility-contract.ts`
+determines the generated workflow tier (2 for these internal task writes, 3 for
+external invoice drafts), impact and reversibility. An irreversible action's
+requested autonomous ceiling is rewritten to `always-propose` with a warning.
+All three bundled workflows require approval. This does not enable autonomous
+third-party plugins. The existing request, task-effect and Stripe-effect key
+formats are preserved; their shared builders are used by the actual services.
+
+Generated `contractHash` fingerprints the trusted validator/policy source files,
+the workflow declaration and its sources. Proposals record that hash alongside
+the plugin JavaScript hash. Approved execution checks both against the current
+registration, rechecks enablement and enforces the approval ceiling. A host
+contract change therefore invalidates pending proposals, even when plugin code
+is unchanged. This deliberately includes source changes that may be semantically
+harmless. After upgrading from proposals without this hash, prepare and approve
+a fresh workflow; legacy proposals fail closed. Completed receipts and effect
+retry keys remain intact.
+
+This covers the three isolated workflow registrations. Native adapter operations,
+event registration, general entity read/write grants, and complete registration
+parity remain tracked by `plugin-manifest-generator`. It is not a complete
+third-party registration or installation SDK.
 
 ## Cold-start verification
 

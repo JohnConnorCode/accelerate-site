@@ -1,5 +1,5 @@
 import "server-only";
-import { createHash } from "node:crypto";
+import { workflowTaskEffectKey } from "./plugin-workflow-policy";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { workflowTaskBatchSchema as batchSchema } from "./workflow-task-contract";
@@ -82,9 +82,7 @@ export async function executeWorkflowTaskBatch(
     await requireEnabledPlugin(db, pluginId);
     // Exact repeated business effects reuse even completed tasks. A changed
     // commitment is a distinct effect; existing tasks are never overwritten.
-    const dedupeKey = `plugin:${createHash("sha256")
-      .update(JSON.stringify({ pluginId, source: batch.opportunityId ?? batch.meetingId, ...item }))
-      .digest("hex")}`;
+    const dedupeKey = workflowTaskEffectKey(pluginId, batch.opportunityId ?? batch.meetingId, item);
     const { data: existing, error: readError } = await db
       .from("tasks")
       .select("id")
