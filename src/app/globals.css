@@ -7497,7 +7497,4 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   .motion-ready .docs-entrance [data-docs-content] > :nth-child(3) {
     animation-delay: 120ms;
   }
-  .motion-ready .docs-entrance :focus-visible {
-    animation: none;
-  }
 }
