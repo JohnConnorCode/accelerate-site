@@ -98,6 +98,10 @@ assert.equal(
 assert.match(fail(command({ ...change, reason: "Changed input" })), /identity conflict/);
 assert.match(fail(command({ ...change, operationId: randomUUID() })), /review changed/);
 const next = { ...change, operationId: randomUUID(), expectedReviewId: saved.id };
+sql(`UPDATE entity_types SET is_disabled=true WHERE tenant_id='${tenant}' AND type_key='contact'`);
+assert.match(fail(command(next)), /entity type is disabled/);
+sql(`UPDATE entity_types SET is_disabled=false WHERE tenant_id='${tenant}' AND type_key='contact'`);
+
 sql(`UPDATE messages SET body_text='Offer withdrawn' WHERE id='${message}'`);
 assert.match(fail(command(next)), /evidence changed|quotation/);
 sql(`UPDATE messages SET body_text='${body}',direction='outbound' WHERE id='${message}'`);

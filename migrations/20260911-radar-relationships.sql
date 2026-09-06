@@ -44,7 +44,7 @@ DECLARE t uuid; cfg jsonb; h text; prior public.radar_relationship_reviews; late
  r jsonb; e jsonb; actual_edge jsonb; actual_evidence jsonb; edge public.entity_links;
  s public.radar_source_versions; msg public.messages; conv public.conversations;
  source_type text; source_id uuid; target_type text; target_id uuid; link_type text;
- evidence_text text; source_email text; matched_ids uuid[]; contact_id uuid;
+ evidence_text text; source_email text; matched_ids uuid[]; entity_key text; backing text; declaration public.entity_types;
  starts timestamptz; ends timestamptz; reason text; op text; quotation text; cid uuid;
 BEGIN
  t:=private.authorized_request_tenant_id();
@@ -87,6 +87,17 @@ BEGIN
   link_type:='radar_'||(r->>'kind');
   actual_edge:=jsonb_build_object('sourceType',source_type,'sourceId',source_id,'targetType',target_type,'targetId',target_id,'linkType',link_type);
   IF actual_edge IS DISTINCT FROM p_expected_edge THEN RAISE EXCEPTION 'Relationship endpoints changed'; END IF;
+  -- Missing core declarations are installed only inside this approved transaction.
+  -- Existing policies are never overwritten or re-enabled.
+  FOR entity_key IN SELECT DISTINCT value FROM unnest(ARRAY[source_type,target_type]) value ORDER BY value LOOP
+   backing:=CASE entity_key WHEN 'contact' THEN 'contacts' WHEN 'company' THEN 'companies' ELSE 'radar_source_versions' END;
+   INSERT INTO entity_types(tenant_id,type_key,label,backing_table,id_column,metadata)
+   VALUES(t,entity_key,replace(entity_key,'_',' '),backing,'id',jsonb_build_object('readable_columns',jsonb_build_array('id')))
+   ON CONFLICT(tenant_id,type_key) DO NOTHING;
+   SELECT * INTO declaration FROM entity_types WHERE tenant_id=t AND type_key=entity_key FOR SHARE;
+   IF NOT FOUND OR declaration.is_disabled OR declaration.backing_table<>backing OR declaration.id_column<>'id'
+   THEN RAISE EXCEPTION 'Canonical relationship entity type is disabled or conflicting'; END IF;
+  END LOOP;
   -- Stable lock order; record identities are never resolved by a display name.
   FOR cid IN SELECT value FROM unnest(ARRAY[CASE WHEN source_type='contact' THEN source_id END,CASE WHEN target_type='contact' THEN target_id END]) value WHERE value IS NOT NULL ORDER BY value LOOP
    PERFORM 1 FROM contacts WHERE tenant_id=t AND id=cid FOR SHARE;
@@ -119,7 +130,7 @@ BEGIN
   END IF;
   IF actual_evidence IS DISTINCT FROM p_expected_evidence OR position(quotation IN evidence_text)=0 THEN RAISE EXCEPTION 'Relationship evidence changed or quotation is absent'; END IF;
   starts:=(p_change->>'validFrom')::timestamptz;ends:=(p_change->>'validUntil')::timestamptz;
-  IF starts IS NULL OR ends IS NULL OR ends<=starts OR ends<=now() OR ends>now()+CASE WHEN r->>'kind'='introduction_offer' THEN interval '30 days' ELSE interval '365 days' END THEN RAISE EXCEPTION 'Relationship validity is invalid or expired'; END IF;
+  IF starts IS NULL OR ends IS NULL OR ends<=starts OR ends<=now() OR ends>now()+(CASE WHEN r->>'kind'='introduction_offer' THEN interval '30 days' ELSE interval '365 days' END) THEN RAISE EXCEPTION 'Relationship validity is invalid or expired'; END IF;
   SELECT * INTO edge FROM entity_links WHERE tenant_id=t AND source_type=actual_edge->>'sourceType' AND source_id=actual_edge->>'sourceId' AND target_type=actual_edge->>'targetType' AND target_id=actual_edge->>'targetId' AND link_type=actual_edge->>'linkType' FOR UPDATE;
   IF FOUND THEN
    SELECT * INTO latest FROM radar_relationship_reviews WHERE tenant_id=t AND link_id=edge.id ORDER BY revision DESC LIMIT 1;

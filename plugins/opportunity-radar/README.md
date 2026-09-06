@@ -323,6 +323,9 @@ specific assertion; substring matching cannot prove its meaning.
 
 Introduction reviews expire within 30 days; other assertions within 365 days.
 Revocation appends history even when an original message or link has disappeared.
+Missing core type declarations are installed only within the approved transaction,
+with ID-only read fields. Existing declarations and read policies are preserved;
+disabled or conflicting types refuse new reviews and withhold current paths.
 Canonical CRM merges may coalesce links. Historical references deliberately do
 not prevent that operation or cascade-delete reviews: a missing or moved edge is
 withheld from current paths until reviewed again. Changed source revisions,

@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
-import { readEntityLinksById } from "./entity-registry";
+import { readEntityLinksById, getEntityType } from "./entity-registry";
 import { readContactConversationContext } from "./conversations";
 import { readContactIdentityReviewState } from "./identity-review";
 import { readRadarRelationshipEvidence } from "./radar-relationship-evidence";
@@ -83,6 +83,29 @@ export async function getRadarRelationshipContext(
     all.length > input.limit ||
     (a.value.data?.length ?? 0) > input.limit ||
     (b.value.data?.length ?? 0) > input.limit;
+  const declarations = await Promise.allSettled(
+    ["contact", "company", "radar_source_version"].map((type) => getEntityType(db, tenantId, type)),
+  );
+  if (declarations.some((result) => result.status === "rejected"))
+    throw new Error("Canonical relationship registry unavailable");
+  const usableTypes = new Set(
+    ["contact", "company", "radar_source_version"].filter((type, index) => {
+      const result = declarations[index];
+      const table =
+        type === "contact"
+          ? "contacts"
+          : type === "company"
+            ? "companies"
+            : "radar_source_versions";
+      return (
+        result?.status === "fulfilled" &&
+        result.value &&
+        !result.value.isDisabled &&
+        result.value.backingTable === table &&
+        result.value.idColumn === "id"
+      );
+    }),
+  );
   const links = await readEntityLinksById(
     db,
     tenantId,
@@ -122,6 +145,8 @@ export async function getRadarRelationshipContext(
       evidenceReason = "Canonical link was removed or changed; review its current identity";
     if (
       link &&
+      usableTypes.has(expected.sourceType) &&
+      usableTypes.has(expected.targetType) &&
       Object.entries(expected).every(([key, value]) => link[key as keyof typeof link] === value)
     ) {
       try {

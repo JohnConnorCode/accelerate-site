@@ -65,6 +65,14 @@ async function main() {
         created_at: new Date().toISOString(),
       },
     ],
+    entity_types: ["contact", "company"].map((type) => ({
+      id: randomUUID(),
+      tenant_id: tenant,
+      type_key: type,
+      backing_table: type === "contact" ? "contacts" : "companies",
+      id_column: "id",
+      is_disabled: false,
+    })),
     radar_current_relationships: [],
     radar_relationship_reviews: [],
     entity_links: [],
@@ -135,6 +143,14 @@ async function main() {
   let context = await getRadarRelationshipContext(db, { contactId: target });
   assert.equal(context.paths[0]?.kind, "introduction_offer");
   assert.equal(context.outreachPermission, false);
+  mem.tables.entity_types![0]!.is_disabled = true;
+  context = await getRadarRelationshipContext(db, { contactId: target });
+  assert.equal(context.paths.length, 0);
+  await assert.rejects(
+    () => previewRadarRelationship(db, { ...change, expectedReviewId: review }),
+    /disabled or conflicting/,
+  );
+  mem.tables.entity_types![0]!.is_disabled = false;
   mem.tables.contacts![1]!.communication_status = "unsubscribed";
   context = await getRadarRelationshipContext(db, { contactId: target });
   assert.equal(context.paths.length, 0);

@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { callRadarRelationshipRpc, tenantIdForDatabase } from "@/lib/supabase/server";
 import { proposeAction } from "./actions";
-import { findEntityLink } from "./entity-registry";
+import { findEntityLink, getEntityType } from "./entity-registry";
 import { isModuleEnabled } from "./modules";
 import { readRadarRelationshipEvidence } from "./radar-relationship-evidence";
 import {
@@ -91,6 +91,22 @@ export async function previewRadarRelationship(db: SupabaseClient, raw: unknown,
     sourceUrl = null;
   } else {
     edge = edgeSchema.parse(radarRelationshipEdge(change.relationship));
+    for (const type of new Set([edge.sourceType, edge.targetType])) {
+      const declaration = await getEntityType(db, tenantId, type);
+      const table =
+        type === "contact"
+          ? "contacts"
+          : type === "company"
+            ? "companies"
+            : "radar_source_versions";
+      if (
+        declaration &&
+        (declaration.isDisabled ||
+          declaration.backingTable !== table ||
+          declaration.idColumn !== "id")
+      )
+        throw new Error("Canonical relationship entity type is disabled or conflicting");
+    }
     // Both endpoints are exact canonical IDs. A same-name record is never a substitute.
     for (const [type, id] of [
       [edge.sourceType, edge.sourceId],
