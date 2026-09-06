@@ -18,6 +18,11 @@ import { fileURLToPath } from "node:url";
 import prettier from "prettier";
 import { createHash } from "node:crypto";
 import Ajv from "ajv";
+import { require as requireTypeScript } from "tsx/cjs/api";
+const { pluginWorkflowDeclaration } = requireTypeScript(
+  "../src/lib/revenue-os/plugin-workflow-contract.ts",
+  import.meta.url,
+);
 import { validateBoundedWorkflowSchema } from "./lib/bounded-workflow-schema.mjs";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -159,20 +164,34 @@ const ajv = new Ajv({ strict: true, allErrors: false });
 function validateWorkflow(file, manifest) {
   const workflow = manifest.workflow;
   if (!workflow) return;
+  try {
+    const declaration = pluginWorkflowDeclaration(workflow.inputContract);
+    if (
+      checkOnly &&
+      (JSON.stringify(workflow.actions) !== JSON.stringify(declaration.actions) ||
+        JSON.stringify(workflow.inputSchema) !== JSON.stringify(declaration.inputSchema))
+    )
+      fail(
+        file,
+        "Generated workflow validator/action declaration drift; run npm run build:extensions",
+      );
+    workflow.actions = declaration.actions;
+    workflow.inputSchema = declaration.inputSchema;
+  } catch (error) {
+    fail(file, error instanceof Error ? error.message : "Invalid workflow contract");
+    return;
+  }
   if (
     manifest.report ||
     workflow.version !== 1 ||
     !Array.isArray(workflow.actions) ||
     !workflow.actions.length ||
     workflow.actions.length > 3 ||
-    workflow.actions.some(
-      (action) => !["create_stripe_invoice_draft", "create_task_batch"].includes(action),
-    ) ||
     !Array.isArray(workflow.sources) ||
     workflow.sources.length > 3 ||
     !workflow.inputSchema ||
     Object.keys(workflow).some(
-      (key) => !["version", "actions", "sources", "inputSchema"].includes(key),
+      (key) => !["version", "actions", "sources", "inputSchema", "inputContract"].includes(key),
     )
   ) {
     fail(file, "Invalid workflow v1 declaration");
@@ -295,6 +314,19 @@ if (existsSync(extensionsDir)) {
 if (failures.length) {
   console.error(`Extension manifest validation failed:\n- ${failures.join("\n- ")}`);
   process.exit(1);
+}
+
+if (!checkOnly) {
+  for (const manifest of manifests.filter((item) => item.workflow)) {
+    const path = join(extensionsDir, `${manifest.id}.module.json`);
+    writeFileSync(
+      path,
+      await prettier.format(JSON.stringify(manifest), {
+        ...(await prettier.resolveConfig(path)),
+        filepath: path,
+      }),
+    );
+  }
 }
 
 const modules = manifests.map((manifest) => ({

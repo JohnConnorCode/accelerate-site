@@ -9,7 +9,11 @@ export const invoiceLineSchema = z
 export const stripeInvoiceInputSchema = z
   .object({
     contactId: z.uuid(),
-    customerId: z.string().regex(/^cus_[A-Za-z0-9]{1,80}$/),
+    customerId: z
+      .string()
+      .min(5)
+      .max(84)
+      .regex(/^cus_[A-Za-z0-9]{1,80}$/),
     currency: z.enum(["usd", "eur", "gbp", "cad", "aud"]),
     daysUntilDue: z.number().int().min(1).max(90),
     memo: z.string().trim().max(500),

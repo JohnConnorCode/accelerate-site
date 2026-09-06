@@ -87,6 +87,7 @@ export interface RevenueOSModule {
   /** Isolated workflow prepares host-validated actions for approval. */
   workflow?: {
     version: 1;
+    inputContract: string;
     inputSchema: Record<string, unknown>;
     actions: string[];
     sources: { name: string; type: string; columns: string[]; inputKey: string }[];

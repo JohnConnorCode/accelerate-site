@@ -567,3 +567,30 @@ admin, AI and authorized MCP clients. Writes use exact proposals and human
 approval through the shared executor. Document missing coverage on the live board
 and refresh the route inventory after semantic review; a passing inventory check
 is not evidence that an operation has AI support.
+
+## Shared workflow input contracts
+
+Bundled workflows select a trusted host validator with `workflow.inputContract`:
+`task-batch-opportunity-v1`, `task-batch-meeting-v1`, or `stripe-invoice-draft-v1`.
+These contracts live in `src/lib/revenue-os/plugin-workflow-contract.ts` and reuse
+`workflow-task-contract.ts` and `stripe-contract.ts`, the validators used by the
+business services. A plugin cannot name an arbitrary import or action implementation.
+
+Run `npm run build:extensions` after changing the contract. It regenerates the
+workflow's `inputSchema` and `actions` in `extensions/*.module.json`, then the
+compiled module registry. Those two fields are generated output; do not maintain
+a parallel schema there. `npm run verify:extensions` rejects changes to either
+side that have not been regenerated. `npm run test:plugin-workflow-contract`
+exercises both directions of drift in a disposable fixture.
+
+The advertised JSON schema is a bounded discovery projection. UUID/date patterns
+and cross-field refinements are enforced by the original Zod validator before
+plugin evaluation, and again by the business service. Normalized input is passed
+to the isolate. This keeps AI tool descriptions bounded without weakening runtime
+validation. Generation imports only trusted host contracts; plugin JavaScript is
+read and hashed as data and executes only in QuickJS.
+
+This currently covers input schemas and workflow action selection. Generated
+impact tiers, evidence/idempotency policies, event registration and complete
+read/write grants remain tracked by `plugin-manifest-generator`; this change is
+not a complete third-party registration or installation SDK.

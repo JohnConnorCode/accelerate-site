@@ -1,28 +1,21 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import Ajv from "ajv";
 import { z } from "zod";
-import { MODULE_MAP } from "./modules";
 import { EXTENSION_WORKFLOWS } from "./extension-workflows.generated";
 import { requireEnabledPlugin, loadPluginSources } from "./plugin-host";
 import { evaluateInIsolate, type PluginJsonValue } from "./plugin-isolate";
 import { proposeAction } from "./actions";
 import { reviewWorkflowTasks } from "./workflow-tasks";
 import { reviewStripeInvoice } from "./stripe-invoicing";
-const ajv = new Ajv({ strict: true, allErrors: false });
-const validators = new Map(
-  [...MODULE_MAP.values()]
-    .filter((module) => module.workflow)
-    .map((module) => [module.id, ajv.compile(module.workflow!.inputSchema)]),
-);
+import { parsePluginWorkflowInput, pluginWorkflowContract } from "./plugin-workflow-contract";
 const planSchema = z
   .object({
     title: z.string().min(1).max(160),
     summary: z.string().min(1).max(2000),
     action: z
       .object({
-        type: z.enum(["create_stripe_invoice_draft", "create_task_batch"]),
+        type: z.string().min(1).max(100),
         payload: z.record(z.string(), z.json()),
       })
       .strict(),
@@ -48,10 +41,10 @@ export async function prepareWorkflowPlugin(
   if (!moduleDef.workflow || !compiled) throw new Error("Unknown workflow plugin");
   const json = JSON.stringify(z.json().parse(rawInput));
   if (Buffer.byteLength(json) > 32768) throw new Error("Workflow input exceeds 32 KiB");
-  const input = JSON.parse(json) as Record<string, unknown>;
-  const validate = validators.get(pluginId);
-  if (!validate || !validate(input))
-    throw new Error("Workflow inputs do not match the plugin contract");
+  const contract = pluginWorkflowContract(moduleDef.workflow.inputContract);
+  if (moduleDef.workflow.actions.length !== 1 || moduleDef.workflow.actions[0] !== contract.action)
+    throw new Error("Workflow action grant disagrees with its host contract");
+  const input = parsePluginWorkflowInput(moduleDef.workflow.inputContract, JSON.parse(json));
   const { snapshots } = await loadPluginSources(db, pluginId, moduleDef.workflow.sources, input);
   const evaluated = await evaluateInIsolate(compiled.code, {
     pluginId,
@@ -76,7 +69,9 @@ export async function prepareWorkflowPlugin(
   let payload: Record<string, unknown> = plan.action.payload;
   if (plan.action.type === "create_stripe_invoice_draft")
     payload = await reviewStripeInvoice(db, payload);
-  else payload = await reviewWorkflowTasks(db, payload);
+  else if (plan.action.type === "create_task_batch")
+    payload = await reviewWorkflowTasks(db, payload);
+  else throw new Error("Workflow action has no host reviewer");
   payload = { ...payload, pluginOrigin: { id: pluginId, sha256: compiled.sha256 } };
   await requireEnabledPlugin(db, pluginId);
   const digest = createHash("sha256")

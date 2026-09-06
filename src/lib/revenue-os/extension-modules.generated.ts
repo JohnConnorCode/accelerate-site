@@ -66,22 +66,18 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       version: 1,
       inputSchema: {
         type: "object",
-        additionalProperties: false,
-        required: ["opportunityId", "tasks"],
         properties: {
           opportunityId: {
             type: "string",
-            minLength: 36,
             maxLength: 36,
+            minLength: 36,
           },
           tasks: {
-            type: "array",
             minItems: 1,
             maxItems: 10,
+            type: "array",
             items: {
               type: "object",
-              additionalProperties: false,
-              required: ["title", "description", "dueDate", "assigneeUserId"],
               properties: {
                 title: {
                   type: "string",
@@ -94,18 +90,22 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                 },
                 dueDate: {
                   type: "string",
-                  minLength: 10,
                   maxLength: 10,
+                  minLength: 10,
                 },
                 assigneeUserId: {
                   type: "string",
-                  minLength: 36,
                   maxLength: 36,
+                  minLength: 36,
                 },
               },
+              required: ["title", "description", "dueDate", "assigneeUserId"],
+              additionalProperties: false,
             },
           },
         },
+        required: ["opportunityId", "tasks"],
+        additionalProperties: false,
       },
       actions: ["create_task_batch"],
       sources: [
@@ -116,6 +116,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
           inputKey: "opportunityId",
         },
       ],
+      inputContract: "task-batch-opportunity-v1",
     },
   },
   {
@@ -198,22 +199,18 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       version: 1,
       inputSchema: {
         type: "object",
-        additionalProperties: false,
-        required: ["meetingId", "tasks"],
         properties: {
           meetingId: {
             type: "string",
-            minLength: 36,
             maxLength: 36,
+            minLength: 36,
           },
           tasks: {
-            type: "array",
             minItems: 1,
             maxItems: 10,
+            type: "array",
             items: {
               type: "object",
-              additionalProperties: false,
-              required: ["title", "description", "dueDate", "assigneeUserId"],
               properties: {
                 title: {
                   type: "string",
@@ -226,18 +223,22 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                 },
                 dueDate: {
                   type: "string",
-                  minLength: 10,
                   maxLength: 10,
+                  minLength: 10,
                 },
                 assigneeUserId: {
                   type: "string",
-                  minLength: 36,
                   maxLength: 36,
+                  minLength: 36,
                 },
               },
+              required: ["title", "description", "dueDate", "assigneeUserId"],
+              additionalProperties: false,
             },
           },
         },
+        required: ["meetingId", "tasks"],
+        additionalProperties: false,
       },
       actions: ["create_task_batch"],
       sources: [
@@ -248,6 +249,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
           inputKey: "meetingId",
         },
       ],
+      inputContract: "task-batch-meeting-v1",
     },
   },
   {
@@ -344,13 +346,11 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       version: 1,
       inputSchema: {
         type: "object",
-        additionalProperties: false,
-        required: ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
         properties: {
           contactId: {
             type: "string",
-            minLength: 36,
             maxLength: 36,
+            minLength: 36,
           },
           customerId: {
             type: "string",
@@ -358,6 +358,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
             maxLength: 84,
           },
           currency: {
+            type: "string",
             enum: ["usd", "eur", "gbp", "cad", "aud"],
           },
           daysUntilDue: {
@@ -370,13 +371,11 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
             maxLength: 500,
           },
           lines: {
-            type: "array",
             minItems: 1,
             maxItems: 10,
+            type: "array",
             items: {
               type: "object",
-              additionalProperties: false,
-              required: ["description", "quantity", "unitAmount"],
               properties: {
                 description: {
                   type: "string",
@@ -394,9 +393,13 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
                   maximum: 100000000,
                 },
               },
+              required: ["description", "quantity", "unitAmount"],
+              additionalProperties: false,
             },
           },
         },
+        required: ["contactId", "customerId", "currency", "daysUntilDue", "memo", "lines"],
+        additionalProperties: false,
       },
       actions: ["create_stripe_invoice_draft"],
       sources: [
@@ -407,6 +410,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
           inputKey: "contactId",
         },
       ],
+      inputContract: "stripe-invoice-draft-v1",
     },
   },
 ] as const;
