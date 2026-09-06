@@ -253,7 +253,7 @@
     "test:work-packet": "npx tsx --env-file=.env.local scripts/test-work-packet.ts",
     "verify:backlog": "node scripts/verify-backlog-snapshot.mjs",
     "dev:doctor": "node scripts/developer-doctor.mjs",
-    "test:developer-handoff": "node --test scripts/test-developer-handoff.mjs scripts/test-deployment-preflight.mjs scripts/test-backlog-execution-quality.mjs",
+    "test:developer-handoff": "node --test scripts/test-developer-handoff.mjs scripts/test-deployment-preflight.mjs scripts/test-backlog-execution-quality.mjs scripts/test-maintainer-workflow.mjs",
     "test:admin-route-inventory": "node scripts/admin-route-inventory.mjs && node --test scripts/test-admin-route-inventory.mjs",
     "radar:setup": "npx tsx scripts/radar-setup.ts",
     "test:radar-profile": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-radar-profile.ts",
