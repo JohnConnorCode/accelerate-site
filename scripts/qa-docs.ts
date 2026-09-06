@@ -296,6 +296,99 @@ async function main() {
         await context.close();
       }
     }
+    // Homepage design evidence: real content, both themes, both motion preferences.
+    for (const width of [1440, 390]) {
+      for (const theme of ["light", "dark"] as const) {
+        const context = await browser.newContext({
+          viewport: { width, height: width === 390 ? 844 : 1000 },
+          reducedMotion: theme === "dark" ? "reduce" : "no-preference",
+        });
+        try {
+          const page = await context.newPage();
+          page.on("pageerror", (error) => failures.push(error.message));
+          await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
+          if (theme === "dark") {
+            if (width < 1280)
+              await page.getByRole("button", { name: "Open navigation menu" }).click();
+            await page.getByRole("button", { name: "Switch to dark mode" }).click();
+            if (width < 1280)
+              await page.getByRole("button", { name: "Close navigation menu" }).click();
+          }
+          await page.waitForFunction(() => {
+            const cta = document.querySelector(".hero-inline-cta");
+            return cta && getComputedStyle(cta).opacity === "1";
+          });
+          await page.screenshot({ path: `${output}/${width}-${theme}-home-hero.png` });
+          for (const selector of [".hero-statement", "#systems", "#trades"]) {
+            const section = page.locator(selector);
+            for (const reveal of await section.locator(".rv").all()) {
+              await reveal.scrollIntoViewIfNeeded();
+              await page.waitForFunction(
+                (element) => element && getComputedStyle(element).opacity === "1",
+                await reveal.elementHandle(),
+              );
+            }
+            for (const img of await section.locator("img").all()) {
+              await img.scrollIntoViewIfNeeded();
+              await img.evaluate((element) => (element as HTMLImageElement).decode());
+            }
+            await section.scrollIntoViewIfNeeded();
+            if (selector === ".hero-statement")
+              await page.waitForFunction(() => {
+                const copy = document.querySelector(".hero-statement-copy");
+                return copy && getComputedStyle(copy).opacity === "1";
+              });
+            await section.screenshot({
+              path: `${output}/${width}-${theme}-home-${selector.replace(/[.#]/g, "")}.png`,
+            });
+            assert.equal(
+              await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+              false,
+              `${selector}: ${width} ${theme} overflow`,
+            );
+          }
+          assert.equal(await page.locator("#systems h3").count(), 4);
+          assert.equal(await page.locator(".engagement-drawing").count(), 4);
+          const service = page.locator(".engagement-link").first();
+          await service.focus();
+          assert.notEqual(
+            await service.evaluate((element) => getComputedStyle(element).outlineStyle),
+            "none",
+          );
+          await service.press("Enter");
+          await page.waitForURL("**/services#strategy");
+          await page.goBack({ waitUntil: "domcontentloaded" });
+          for (const href of ["#systems", "#selected-work", "#command-center"]) {
+            await page
+              .getByRole("navigation", { name: "Explore the homepage" })
+              .locator(`a[href="${href}"]`)
+              .click();
+            await page.waitForURL(`**/${href}`);
+            assert.ok(await page.locator(href).count());
+          }
+          checks.push(
+            `${width} ${theme}: homepage sections, loaded photography, service keyboard navigation, local anchors, no overflow`,
+          );
+        } finally {
+          await context.close();
+        }
+      }
+    }
+    const withoutJavaScript = await browser.newContext({ javaScriptEnabled: false });
+    try {
+      const page = await withoutJavaScript.newPage();
+      await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
+      const firstService = page.locator(".engagement-link").first();
+      assert.equal(
+        await firstService.evaluate((element) => getComputedStyle(element.parentElement!).opacity),
+        "1",
+      );
+      await firstService.click();
+      await page.waitForURL("**/services#strategy");
+      checks.push("Homepage service content and links work without JavaScript");
+    } finally {
+      await withoutJavaScript.close();
+    }
     const recovery = await browser.newContext();
     try {
       await recovery.route("**/api/search", (route) =>

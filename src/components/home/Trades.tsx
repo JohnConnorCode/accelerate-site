@@ -62,6 +62,12 @@ export function Trades() {
                   />
                 </MediaParallax>
                 <span className="trade-scrim" />
+                <span className="trade-caption-index" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="trade-open" aria-hidden="true">
+                  ↗
+                </span>
                 <span className="trade-copy">
                   <span className="trade-name">{trade.name}</span>
                   <span className="trade-promise">{trade.visual.promise}</span>
