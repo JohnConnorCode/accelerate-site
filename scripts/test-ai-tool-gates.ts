@@ -116,15 +116,15 @@ async function rejects(run: () => Promise<unknown>, includes: string, because: s
 async function main() {
   const runtime = getRevenueAiTools();
   let pluginTools = 0;
-  for (const module of REVENUE_OS_MODULES.filter((module) => module.workflow)) {
-    const registeredModule = { ...module, workflow: module.workflow! };
+  for (const moduleDef of REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow)) {
+    const registeredModule = { ...moduleDef, workflow: moduleDef.workflow! };
     const declarations = pluginToolDeclarations(registeredModule);
     assertPluginToolGrants(registeredModule);
     assert.deepEqual(
-      module.aiToolNames,
+      moduleDef.aiToolNames,
       declarations.map((tool) => tool.name),
     );
-    assert.deepEqual(module.workflow!.tools, declarations);
+    assert.deepEqual(moduleDef.workflow!.tools, declarations);
     for (const { operation, ...declaration } of declarations) {
       assert.ok(operation.length > 0);
       const tool = runtime.find((tool) => tool.name === declaration.name)!;
@@ -134,20 +134,20 @@ async function main() {
       pluginTools++;
       const disabledContext = {
         ...context(stubSupabase()),
-        tenantConfig: { modules: { [module.id]: false } },
+        tenantConfig: { modules: { [moduleDef.id]: false } },
       };
       await assert.rejects(
         () => executeRegisteredRevenueTool(disabledContext, tool.name, {}),
         /unavailable/,
       );
     }
-    const originalNames = module.aiToolNames;
+    const originalNames = moduleDef.aiToolNames;
     try {
-      module.aiToolNames = [];
+      moduleDef.aiToolNames = [];
       const tool = runtime.find((tool) => tool.name === declarations[0]!.name)!;
       await assert.rejects(() => tool.execute(context(stubSupabase()), {}), /grants disagree/);
     } finally {
-      module.aiToolNames = originalNames;
+      moduleDef.aiToolNames = originalNames;
     }
   }
   assert.equal(pluginTools, 9);
