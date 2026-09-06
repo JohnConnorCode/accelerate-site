@@ -191,7 +191,7 @@
     "workflow": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["version", "inputSchema", "actions", "sources"],
+      "required": ["version", "inputSchema", "actions", "sources", "inputContract"],
       "properties": {
         "version": {
           "const": 1
@@ -233,6 +233,10 @@
               }
             }
           }
+        },
+        "inputContract": {
+          "type": "string",
+          "description": "Registered host validator; inputSchema and actions are generated from this contract."
         }
       }
     }

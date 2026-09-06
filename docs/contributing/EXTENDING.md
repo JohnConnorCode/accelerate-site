@@ -312,6 +312,53 @@ isolate bindings, persistent event subscriptions, distributed metering, or the
 separate third-party plugin review lifecycle. Those retain their Feature Board
 acceptance rather than inheriting a claim of completion from bundled examples.
 
+### Isolate transport and resource contract
+
+The report and workflow hosts use the same `plugin-isolate.ts` boundary. Plugin
+JavaScript executes in a fresh QuickJS context, with only the synchronous bindings
+selected by the trusted host from its declared sources. Those bindings receive JSON
+values, never a database client, environment object or provider credential. Core
+host callbacks must remain bounded: a guest interrupt cannot preempt synchronous
+JavaScript running in the Node host.
+
+Only plain JSON crosses the boundary. Nested functions, `undefined`, non-finite
+numbers, bigint, symbols, accessors, sparse/extended arrays, cycles, custom objects
+such as dates/maps, and asynchronous results are refused. Convert dates explicitly
+to strings before returning them. Shared references are allowed as repeated JSON
+values. A private codec captures pristine intrinsics before plugin execution, so
+replacing guest `JSON` or `Object` methods cannot change transport validation.
+Property accessors are not evaluated during transport; proxy traps execute only
+inside the interruptible guest context.
+
+Each transported value is limited to 256 KiB of UTF-8 JSON, 10,000 visited values
+and 64 nested levels. The existing 64 KiB source-snapshot and business input/output
+limits remain tighter where applicable. Code is limited to 256 KiB; an evaluation
+allows at most 10,000 host calls and 32 arguments per call. Resource options must
+be finite integers: timeout 1 through 30,000 ms and heap 256 KiB through 64 MiB.
+The normal business hosts retain their 250 ms / 8 MiB budgets. Serialization runs
+inside the same guest deadline and the runtime is disposed after success or failure.
+
+The pinned QuickJS version has an [upstream aggregate-allocation accounting
+issue](https://github.com/justjake/quickjs-emscripten/issues/255). The host therefore
+checks actual aggregate usage at interrupts, before host calls and before returning
+a result. A breach terminates the evaluation. A separate fixed WebAssembly memory
+ceiling bounds allocation between those checks: at least 16 MiB (the prebuilt
+engine's minimum), or the configured heap budget plus 2 MiB, rounded to a 64 KiB
+page. The receipt records that hard ceiling. The 8 MiB budget is a sampled guest
+quota, not a promise that peak host-process memory stays below 8 MiB. At most four
+bounded engine variants are cached; tenant contexts and values are never reused.
+
+`npm run test:plugin-isolate`, required by `test:core` in CI, measures the **first
+evaluation including WASM initialization** against the 50 ms acceptance budget.
+It reports that measurement separately from fresh-context timing with the WASM
+module already cached. Neither measurement includes Node startup, module loading,
+or business data reads. Adversarial tests cover transport, authority probes,
+allocation refusal, invalid resource options, timeouts and subsequent host recovery.
+`PluginIsolateError.receipt.timedOut` comes from the host deadline. `memoryLimited` is true only when the host observes aggregate usage exceeding the
+budget. Other failures use `null`: QuickJS does not expose a trustworthy
+allocation-failure flag, and plugin-supplied error text must not become an
+authoritative diagnosis.
+
 ### Actionable business workflow exemplars
 
 The primary examples are now **Stripe invoicing**, **Client onboarding**, and
@@ -520,3 +567,54 @@ admin, AI and authorized MCP clients. Writes use exact proposals and human
 approval through the shared executor. Document missing coverage on the live board
 and refresh the route inventory after semantic review; a passing inventory check
 is not evidence that an operation has AI support.
+
+## Shared workflow input contracts
+
+Bundled workflows select a trusted host validator with `workflow.inputContract`:
+`task-batch-opportunity-v1`, `task-batch-meeting-v1`, or `stripe-invoice-draft-v1`.
+These contracts live in `src/lib/revenue-os/plugin-workflow-contract.ts` and reuse
+`workflow-task-contract.ts` and `stripe-contract.ts`, the validators used by the
+business services. A plugin cannot name an arbitrary import or action implementation.
+
+Run `npm run build:extensions` after changing the contract. It regenerates the
+workflow's `inputSchema` and `actions` in `extensions/*.module.json`, then the
+compiled module registry. Those two fields are generated output; do not maintain
+a parallel schema there. `npm run verify:extensions` rejects changes to either
+side that have not been regenerated. `npm run test:plugin-workflow-contract`
+exercises both directions of drift in a disposable fixture.
+
+The advertised JSON schema is a bounded discovery projection. UUID/date patterns
+and cross-field refinements are enforced by the original Zod validator before
+plugin evaluation, and again by the business service. Normalized input is passed
+to the isolate. This keeps AI tool descriptions bounded without weakening runtime
+validation. Generation imports only trusted host contracts; plugin JavaScript is
+read and hashed as data and executes only in QuickJS.
+
+This currently covers input schemas and workflow action selection. Generated
+impact tiers, evidence/idempotency policies, event registration and complete
+read/write grants remain tracked by `plugin-manifest-generator`; this change is
+not a complete third-party registration or installation SDK.
+
+## Cold-start verification
+
+The Node host lazily loads QuickJS's public CommonJS Emscripten entrypoint.
+It uses the same pinned release engine and fixed WASM memory ceiling as before;
+loading, compiling and initializing the engine all remain inside the first
+`evaluateInIsolate` call. Next externalizes this native package and traces the
+WASM asset. CI reconstructs the engine from each representative route's deployment
+trace and executes it without falling back to workspace package files.
+
+`npm run test:plugin-cold-start` records five independently cold Node processes,
+including module import time, full process wall time, the first evaluation and
+five subsequent fresh-context evaluations. It retains every sample and requires
+the slowest first evaluation to remain below the existing 50 ms budget. There is
+no retry or warmup. CI alternates candidate and baseline processes, records CPU,
+OS, architecture and Node version, and retains the JSON even when the gate fails.
+The baseline source is the pinned pre-optimization commit `318b11d`.
+
+The evaluator metric includes WASM initialization, runtime/context creation,
+transport initialization, guest execution and disposal. Process startup and
+module import costs are reported separately. OS filesystem cache and shared
+runner scheduling are uncontrolled, so this is a measured regression budget,
+not a universal latency guarantee. The original 50.375514 ms failure remains
+linked from the `plugin-isolate-cold-start-headroom` work card.

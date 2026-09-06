@@ -1,3 +1,4 @@
+import { MODULE_MAP } from "../src/lib/revenue-os/modules";
 import { EXTENSION_WORKFLOWS } from "../src/lib/revenue-os/extension-workflows.generated";
 import { readBoundedJson } from "../src/lib/http/bounded-json";
 import assert from "node:assert/strict";
@@ -157,6 +158,26 @@ async function main() {
     const input = { [sourceKey]: sourceId, tasks };
     const compiled = EXTENSION_WORKFLOWS[pluginId]!;
     const originalCode = compiled.code;
+    const declaration = MODULE_MAP.get(pluginId)!.workflow!;
+    const originalActions = declaration.actions;
+    try {
+      compiled.code = 'throw new Error("Guest must not run for invalid host grants");';
+      for (const actions of [[], ["send_email"], ["create_task_batch", "send_email"]]) {
+        declaration.actions = actions;
+        await assert.rejects(
+          () => prepareWorkflowPlugin(db, pluginId, input),
+          /action grant disagrees/,
+        );
+      }
+      declaration.actions = originalActions;
+      await assert.rejects(
+        () => prepareWorkflowPlugin(db, pluginId, { ...input, [sourceKey]: "x".repeat(36) }),
+        /Invalid UUID/,
+      );
+    } finally {
+      declaration.actions = originalActions;
+      compiled.code = originalCode;
+    }
     try {
       compiled.code =
         '({title:"Bad plan",summary:"Missing reviewed identity",action:{type:"create_task_batch",payload:{}}})';
