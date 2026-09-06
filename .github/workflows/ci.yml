@@ -46,6 +46,9 @@ jobs:
           node --test scripts/test-admin-ai-inventory.mjs
           node scripts/admin-ai-inventory.mjs --check
 
+      - name: Verify admin route inventory
+        run: npm run test:admin-route-inventory
+
       - name: Verify copy guardrails
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run verify:guardrails

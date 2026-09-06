@@ -202,3 +202,11 @@ and current module enablement at dispatch. Legacy explicit MCP pack restrictions
 remain authoritative. No bundle can approve a business change. See
 `test:ai-tool-discovery`, `test:agent-loop` and the admin/AI parity contract for
 coverage and the remaining durable conversation-activation work.
+
+## Retained admin route inventory
+
+Use [the route reconciliation map](../../../docs/verification/ADMIN-ROUTE-RECONCILIATION.md)
+to find each page's primary action, adapters, source records and remaining parity
+work. Its source inventory records direct imports; it does not certify that every
+route write uses a canonical service. Run `npm run test:admin-route-inventory`
+after a boundary change and review the stated update procedure.
