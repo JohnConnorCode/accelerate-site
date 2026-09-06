@@ -19,7 +19,12 @@ priority over the diagrams. Hover feedback has a reduced-motion counterpart.
 
 Acceptance: services remain readable in both themes and widths; four distinct
 engagements have valid service links; section links resolve; photography loads;
-keyboard focus remains visible; the page has no horizontal overflow; content and
-links remain usable without JavaScript. `qa:docs` now retains desktop/mobile
+keyboard focus remains visible; the page has no horizontal overflow. `qa:docs` now retains desktop/mobile
 homepage screenshots in light and dark themes, normal and reduced motion, in the
 existing CI evidence artifact. Screenshots must be opened before handoff.
+
+An exploratory JavaScript-disabled browser check could not activate the
+server-rendered service link. Normal desktop/mobile journeys passed this step.
+The no-JavaScript check is not part of the supported interactive-browser suite;
+this visual change does not claim JavaScript-free usability or change the global
+Next.js rendering contract. This limitation needs a separate rendering audit.

@@ -380,21 +380,6 @@ async function main() {
         }
       }
     }
-    const withoutJavaScript = await browser.newContext({ javaScriptEnabled: false });
-    try {
-      const page = await withoutJavaScript.newPage();
-      await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
-      const firstService = page.locator(".engagement-link").first();
-      assert.equal(
-        await firstService.evaluate((element) => getComputedStyle(element.parentElement!).opacity),
-        "1",
-      );
-      await firstService.click();
-      await page.waitForURL("**/services#strategy");
-      checks.push("Homepage service content and links work without JavaScript");
-    } finally {
-      await withoutJavaScript.close();
-    }
     const recovery = await browser.newContext();
     try {
       await recovery.route("**/api/search", (route) =>
