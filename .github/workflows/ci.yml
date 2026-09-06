@@ -70,6 +70,9 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run verify:docs
 
+      - name: Verify documentation coverage failure cases
+        run: npm run test:docs-coverage
+
       - name: Verify generated docs llms index is current
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run docs:llms:check
@@ -197,6 +200,9 @@ jobs:
       # next build includes TypeScript validation. Never ignore build errors.
       - name: Build and typecheck
         run: npm run build
+
+      - name: Verify complete built documentation coverage
+        run: npm run verify:public-prerender
 
       - name: Verify deployable plugin engine package
         run: node scripts/check-plugin-host-package.mjs

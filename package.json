@@ -30,7 +30,7 @@
     "test:open-source-stats": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-open-source-stats.ts",
     "test:core": "npm run test:admin-demo-contract && npm run test:admin-breadcrumbs && npm run test:tenant-config && npm run test:tenant-isolation && npm run test:secret-storage && npm run test:admin-layout && npm run test:plugin-modules && npm run test:plugin-workflow-contract && npm run test:plugin-isolate && npm run test:model-registry && npm run test:route-gating && npm run test:integration-adapter-registry && npm run test:entity-registry && npm run test:capability-data-api && npm run test:action-execution && npm run test:action-reversibility && npm run test:delivery-handoff && npm run test:mcp-server && npm run test:demo-business-workflows && npm run test:runtime-consolidation && npm run test:ai-tool-gates && npm run test:report-plugins && npm run test:stripe-workflow && npm run test:business-workflows && npm run test:public-work-intake && npm run test:work-completion && npm run test:collections && npm run test:collections-workspace && npm run test:collections-agent-tools && npm run test:ai-branding && npm run test:ai-module-controls && npm run test:ai-tool-discovery",
     "verify:articles": "npx tsx scripts/verify-articles.ts",
-    "verify:docs": "npx tsx scripts/verify-docs.ts",
+    "verify:docs": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/verify-docs.ts",
     "docs:llms": "npx tsx scripts/generate-docs-llms.ts",
     "docs:llms:check": "npx tsx scripts/generate-docs-llms.ts --check",
     "deploy:check": "node scripts/deployment-preflight.mjs",
@@ -122,7 +122,7 @@
     "qa:home-hero-timing": "node scripts/qa-home-hero-timing.mjs",
     "qa:public-navigation-profile": "node scripts/qa-public-navigation-profile.mjs",
     "test:navigation-runtime": "npx tsx scripts/test-navigation-runtime.ts && node scripts/qa-navigation-runtime.mjs && node scripts/qa-persistent-profile.mjs && node scripts/qa-public-navigation-profile.mjs",
-    "verify:public-prerender": "node scripts/verify-public-prerender.mjs",
+    "verify:public-prerender": "node scripts/verify-public-prerender.mjs && npm run verify:docs -- --strict",
     "test:chat-house-style": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-chat-house-style.ts",
     "test:agent-trace": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-trace.ts",
     "verify:ai-gateway": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.vercel/.env.production.local scripts/verify-ai-gateway.ts",
@@ -253,7 +253,8 @@
     "test:developer-handoff": "node --test scripts/test-developer-handoff.mjs scripts/test-deployment-preflight.mjs scripts/test-backlog-execution-quality.mjs",
     "qa:docs": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/qa-docs.ts",
     "test:plugin-workflow-contract": "npx tsx scripts/test-plugin-workflow-contract.ts",
-    "test:plugin-cold-start": "node scripts/test-plugin-cold-start.mjs"
+    "test:plugin-cold-start": "node scripts/test-plugin-cold-start.mjs",
+    "test:docs-coverage": "npx tsx --test scripts/test-docs-coverage.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
