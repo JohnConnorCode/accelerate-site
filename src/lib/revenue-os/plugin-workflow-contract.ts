@@ -9,13 +9,15 @@ export const PLUGIN_WORKFLOW_CONTRACTS = {
     action: "create_task_batch",
     schema: z
       .object({ opportunityId: taskFields.opportunityId.unwrap(), tasks: taskFields.tasks })
-      .strict(),
+      .strict()
+      .pipe(workflowTaskBatchSchema),
   },
   "task-batch-meeting-v1": {
     action: "create_task_batch",
     schema: z
       .object({ meetingId: taskFields.meetingId.unwrap(), tasks: taskFields.tasks })
-      .strict(),
+      .strict()
+      .pipe(workflowTaskBatchSchema),
   },
   "stripe-invoice-draft-v1": {
     action: "create_stripe_invoice_draft",
