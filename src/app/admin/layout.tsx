@@ -11,7 +11,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { getCurrentLayout } from "@/lib/revenue-os/admin-layout";
 import type { LayoutDoc } from "@/lib/admin/layout-overrides";
 import { isModuleEnabled, SELF_LOCKOUT_EXEMPT_MODULES } from "@/lib/revenue-os/modules";
-import { resolveModuleForAdminPath } from "@/lib/revenue-os/module-routes";
+import { resolveModuleForAdminPath, isModuleHistoryPath } from "@/lib/revenue-os/module-routes";
 
 // Demo URLs are request-time rewrites. Rendering this shared layout dynamically
 // lets the server pass the validated scenario to the exact same admin shell
@@ -66,6 +66,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     !demoScenarioId &&
     moduleConfig &&
     owningModule &&
+    !isModuleHistoryPath(owningModule, adminPath!) &&
     !SELF_LOCKOUT_EXEMPT_MODULES.has(owningModule.id) &&
     !isModuleEnabled(owningModule.id, moduleConfig);
 

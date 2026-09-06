@@ -188,7 +188,7 @@ async function main() {
     assert.ok(state.receipts.every((x) => x.simulated));
   }
   console.log(
-    "All five business demos: coherent records, invoice review/send/publication/revocation, assigned tasks, disabled/replay/stale-input gates, local receipts and serializable isolated state passed.",
+    "All business demos: coherent records, invoice review/send/publication/revocation, assigned tasks, disabled/replay/stale-input gates, local receipts and serializable isolated state passed.",
   );
 }
 main().catch((e) => {

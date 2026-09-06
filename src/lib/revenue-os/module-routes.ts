@@ -26,3 +26,8 @@ export function resolveModuleForAdminPath(pathname: string): RevenueOSModule | n
   }
   return best;
 }
+
+/** Display-only exception for the exact retained-record page. APIs still authorize every read and write. */
+export function isModuleHistoryPath(module: RevenueOSModule, pathname: string) {
+  return Boolean(module.historyRoute && module.historyRoute === pathname);
+}

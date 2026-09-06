@@ -45,3 +45,35 @@ test("bundled documentation refuses omissions and unsafe or mismatched links", (
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("retained history is an exact owned page, never a wildcard capability", async () => {
+  const { pluginHistoryFailures } = await import("./lib/plugin-history.mjs");
+  const root = mkdtempSync(join(tmpdir(), "plugin-history-"));
+  const manifest = { routes: ["/admin/radar"], historyRoute: "/admin/radar/history" };
+  try {
+    assert.match(pluginHistoryFailures(root, manifest).join(), /real shared admin page/);
+    mkdirSync(join(root, "src/app/admin/radar/history"), { recursive: true });
+    writeFileSync(
+      join(root, "src/app/admin/radar/history/page.tsx"),
+      "export default function Page() { return null; }",
+    );
+    assert.deepEqual(pluginHistoryFailures(root, manifest), []);
+    for (const historyRoute of [
+      "/admin/radar/[id]",
+      "/admin/radar/*",
+      "/admin/radar/../settings",
+      "/admin/radar/history?write=true",
+      "https://example.test/admin/radar",
+      "/admin//radar",
+      "/admin/radar/history/",
+    ])
+      assert.ok(pluginHistoryFailures(root, { ...manifest, historyRoute }).length);
+    assert.match(
+      pluginHistoryFailures(root, { ...manifest, routes: ["/admin/radar-other"] }).join(),
+      /declared routes/,
+    );
+    assert.deepEqual(pluginHistoryFailures(root, { routes: [] }), []);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

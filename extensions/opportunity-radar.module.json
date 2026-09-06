@@ -5,9 +5,20 @@
   "description": "Keep versioned sources, reviewed growth opportunities and drafts, with bounded AI source briefing. Automated discovery, outreach and publication are not yet available.",
   "category": "intelligence",
   "defaultEnabled": false,
-  "navLinks": [],
-  "routes": [],
+  "navLinks": [
+    {
+      "id": "opportunity-radar",
+      "label": "Opportunity Radar",
+      "href": "/admin/radar/today",
+      "icon": "Radar",
+      "description": "Sourced business opportunities, research and reviewed actions.",
+      "moreGroup": "Intelligence"
+    }
+  ],
+  "routes": ["/admin/radar"],
   "aiToolNames": [
+    "get_radar_workspace",
+    "prepare_radar_opportunity_brief",
     "prepare_radar_brief",
     "get_radar_model_status",
     "reconcile_radar_model_call",
@@ -186,5 +197,6 @@
       "description": "No sending or publication is enabled by setup."
     }
   ],
-  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md"
+  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md",
+  "historyRoute": "/admin/radar/history"
 }

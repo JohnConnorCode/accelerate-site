@@ -18,6 +18,7 @@ import { fileURLToPath } from "node:url";
 import prettier from "prettier";
 import { createHash } from "node:crypto";
 import Ajv from "ajv";
+import { pluginHistoryFailures } from "./lib/plugin-history.mjs";
 import { require as requireTypeScript } from "tsx/cjs/api";
 const { pluginWorkflowDeclaration } = requireTypeScript(
   "../src/lib/revenue-os/plugin-workflow-contract.ts",
@@ -84,6 +85,7 @@ const ALLOWED_ICONS = [
   "MessageCircleMore",
   "MessageSquareText",
   "PlugZap",
+  "Radar",
   "RotateCcw",
   "Settings",
   "Target",
@@ -123,6 +125,7 @@ function fail(file, message) {
 }
 
 function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
+  for (const message of pluginHistoryFailures(repoRoot, manifest)) fail(file, message);
   for (const message of pluginDocumentationFailures(repoRoot, manifest)) fail(file, message);
   const req = ["id", "name", "description", "category", "defaultEnabled", "navLinks"];
   for (const key of req) {
@@ -407,6 +410,7 @@ const modules = manifests.map((manifest) => ({
   navLinkIds: (manifest.navLinks ?? []).map((link) => link.id),
   aiToolNames: manifest.aiToolNames ?? [],
   routes: manifest.routes ?? [],
+  ...(manifest.historyRoute ? { historyRoute: manifest.historyRoute } : {}),
   setupChecks: manifest.setupChecks ?? [],
   ...(manifest.docsUrl ? { docsUrl: manifest.docsUrl } : {}),
   ...(manifest.settings?.length ? { settings: manifest.settings } : {}),

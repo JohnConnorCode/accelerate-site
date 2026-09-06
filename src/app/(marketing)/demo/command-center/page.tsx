@@ -31,7 +31,7 @@ export default function AdminDemoLauncher() {
               id="demo-launcher-title"
               className="admin-demo-enter admin-demo-d2 mt-4 max-w-[13ch] text-balance font-display text-[clamp(2.35rem,5.2vw,4.35rem)] font-semibold leading-[0.94] tracking-[-0.055em]"
             >
-              Explore the full admin through five real operating models.
+              Explore the full admin through six fictional operating models.
             </h1>
           </div>
           <div className="admin-demo-enter admin-demo-d3 lg:pb-1">

@@ -37,6 +37,14 @@ export function ModuleDisabledNotice({ module: mod }: { module: RevenueOSModule 
         >
           Go to Integrations &amp; Modules
         </Link>
+        {mod.historyRoute && (
+          <Link
+            href={mod.historyRoute}
+            className="mt-3 inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-xs font-semibold underline"
+          >
+            View retained records
+          </Link>
+        )}
       </AdminSurface>
     </div>
   );

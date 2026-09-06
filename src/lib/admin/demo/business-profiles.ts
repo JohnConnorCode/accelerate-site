@@ -8,6 +8,24 @@ export type DemoBusinessProfile = {
 };
 /** Fictional commercial examples. Amounts are minor USD units; these are not tax receipts. */
 export const DEMO_BUSINESS_PROFILES: Record<DemoScenarioId, DemoBusinessProfile> = {
+  superdebate: {
+    invoiceLines: [
+      { description: "Facilitated reasoning workshop", quantity: 1, unitAmount: 45000 },
+      { description: "Participant practice materials", quantity: 12, unitAmount: 1500 },
+    ],
+    invoiceMemo: "Fictional workshop delivery and participant materials.",
+    onboarding: [
+      "Confirm the learning goals and participant needs",
+      "Review recording and transcript permissions",
+      "Agree on the session format and timing",
+      "Share preparation materials with the organizer",
+    ],
+    commitments: [
+      "Send the proposed workshop exercise",
+      "Confirm facilitator availability with the organizer",
+    ],
+    introduction: "Here is the itemized summary for the agreed learning session and materials.",
+  },
   "northline-roofing": {
     invoiceLines: [
       { description: "Roof inspection and scope documentation", quantity: 1, unitAmount: 35000 },

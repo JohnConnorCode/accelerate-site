@@ -147,7 +147,7 @@ async function main() {
     assert.equal(createDemoBusinessState(pack).collections, undefined);
   }
   console.log(
-    "PASS: all five demo packs use canonical source invoices/shared workspace contracts; partial/disputed/promised/paid-after-approval, queued content, duplicate/refusal/cooldown, history, module toggle and reset fixtures.",
+    "PASS: all demo packs use canonical source invoices/shared workspace contracts; partial/disputed/promised/paid-after-approval, queued content, duplicate/refusal/cooldown, history, module toggle and reset fixtures.",
   );
 }
 main().catch((error) => {

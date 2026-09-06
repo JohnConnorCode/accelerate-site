@@ -15,7 +15,8 @@ model reservations, charge receipts and provider-usage reconciliation. The evide
 store adds versioned supplied sources, discoveries, growth opportunities, canonical
 evidence/CRM references, draft assets and reported outcomes through approved AI
 commands. Reviewed business assessments and bounded selection now use the same
-AI proposal and Today approval path. There is no dedicated daily Radar feed,
+approval executor. The shared admin/demo Radar workspace now presents Today,
+evidence packets, draft editing and retained history. There is no automated
 source worker, sender, publisher, graph collector or measurement service yet.
 Enabling this foundation does not start any of those activities.
 
@@ -322,3 +323,37 @@ probabilities or verified facts. The tool scans a bounded candidate window;
 public-affairs and unknown subjects remain unranked. The dedicated Radar Today
 workspace and the remaining discovery/execution pipeline are not implemented by
 this service.
+
+## Operator workspace and demo
+
+The plugin declares `/admin/radar/today`, `/admin/radar/opportunities/[id]` and
+`/admin/radar/history`. Today shows bounded, reviewed business recommendations;
+unknown and public-affairs items stay in neutral review. The detail packet retains
+source versions, canonical contact restrictions, draft assets and reported outcomes.
+An expired assessment or changed evidence displays a review reason instead of a
+current score. Numerical estimates remain operator judgments.
+
+Use **Add source**, read supplied text, **Develop opportunity**, then **Review
+estimates**. Each estimate has its own source references, rationale and confidence;
+unknown is not zero. **Correct citations** retains prior evidence history. **Prepare
+a draft** supports manual writing or the configured bounded model. **Preview exact
+change** shows every saved field; approve immediately or queue it for later review.
+The shared action executor rechecks revision, source review and configuration.
+
+Disabling Radar blocks new changes and model calls. The exact retained-history
+route remains available under normal workspace authentication. Source text reads
+are bounded to 2,000 code points per page. Today reads at most 50 active candidates;
+recent records and sources display at most 20, with a truncation notice.
+
+The six public demo scenarios run these same pages. SuperDebate is a fictional
+learning-platform scenario, including neutral unranked public-affairs material,
+a duplicate topic, a corrected source, unavailable source text and a suppressed
+contact. Browser-session writes and source-based demo briefs make no provider or
+protected API requests. They demonstrate mechanics, not actual business outcomes.
+
+Extension authors can add adapters around `readRadarWorkspace` and
+`prepareRadarOpportunityBrief`. These reuse the evidence, ranking and model owners;
+UI, AI and MCP must not acquire separate write implementations. The optional
+manifest `historyRoute` must be an existing exact static page inside the module's
+owned routes. It changes display gating only; each domain service still enforces
+identity, enabled state and approved writes.

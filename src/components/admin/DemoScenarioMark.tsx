@@ -15,6 +15,12 @@ export function DemoScenarioMark({
       className={cn("demo-scenario-mark", `demo-scenario-mark--${scenarioId}`, className)}
       aria-hidden="true"
     >
+      {scenarioId === "superdebate" && (
+        <g stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round">
+          <path d="M5 8h21v15H14l-6 5v-5H5V8Z" />
+          <path d="M29 14h6v16h-4v5l-6-5H17v-4M11 14h9M11 18h6" />
+        </g>
+      )}
       {scenarioId === "alder-ridge-law" && (
         <>
           <path

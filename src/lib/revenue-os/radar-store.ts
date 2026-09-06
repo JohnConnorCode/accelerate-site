@@ -7,12 +7,12 @@ import { isModuleEnabled } from "./modules";
 import { proposeAction } from "./actions";
 import { getEntityType, registerEntityType } from "./entity-registry";
 import {
-  RADAR_TRANSITIONS,
+  assertRadarStoreContext,
+  normalizeRadarStoreChange,
   radarStoreChangeSchema,
   radarStorePreviewSchema,
   radarStoreProposalSchema,
   radarStoreReadSchema,
-  type RadarStoreChange,
 } from "./radar-store-contract";
 
 const radarEntityTypes = [
@@ -97,13 +97,6 @@ function digest(value: unknown) {
     .update(JSON.stringify(canonical(value)))
     .digest("hex");
 }
-function normalizeChange(change: RadarStoreChange): RadarStoreChange {
-  if (change.operation !== "ingest_source") return change;
-  const url = new URL(change.url);
-  url.hash = "";
-  // Preserve query identity and order; campaign stripping could merge different documents.
-  return { ...change, url: url.toString(), publishedAt: change.publishedAt ?? null };
-}
 async function configuration(db: SupabaseClient, requireEnabled = true) {
   const tenantId = tenantIdForDatabase(db);
   if (!tenantId) throw new Error("Radar store requires a tenant-bound database");
@@ -177,32 +170,19 @@ const payloadSchema = z
 
 export async function previewRadarStoreChange(db: SupabaseClient, raw: unknown) {
   const input = radarStorePreviewSchema.parse(raw);
-  const change = normalizeChange(input.change);
+  const change = normalizeRadarStoreChange(input.change);
   const { tenantId, config } = await configuration(db);
   let before: Record<string, unknown> | null = null;
   const sourceIds: string[] = [];
+  let currentSourceIds: string[] = [];
+  let currentOpportunity: { revision: number; state: string } | null = null;
   if ("opportunityId" in change) {
     const opp = await opportunity(db, change.opportunityId);
-    if (opp.revision !== change.expectedRevision)
-      throw new Error("Stale opportunity revision; read current state first");
     before = opp;
+    currentOpportunity = opp;
     const links = await currentLinks(db, opp);
-    sourceIds.push(...links.map((link) => link.source_version_id));
-    if (
-      change.operation === "transition_opportunity" &&
-      !RADAR_TRANSITIONS[opp.state as keyof typeof RADAR_TRANSITIONS]?.includes(change.state)
-    )
-      throw new Error("Invalid Radar lifecycle transition");
-    if (
-      ["update_opportunity", "replace_citations"].includes(change.operation) &&
-      ["completed", "dismissed", "declined"].includes(opp.state)
-    )
-      throw new Error("Terminal opportunity is retained as history");
-    if (
-      change.operation === "add_asset" &&
-      change.sourceVersionIds.some((id) => !sourceIds.includes(id))
-    )
-      throw new Error("Asset must cite current opportunity evidence");
+    currentSourceIds = links.map((link) => link.source_version_id);
+    sourceIds.push(...currentSourceIds);
   }
   if ("citations" in change) {
     sourceIds.push(...change.citations.map((citation) => citation.sourceVersionId));
@@ -224,32 +204,8 @@ export async function previewRadarStoreChange(db: SupabaseClient, raw: unknown) 
   }
   if ("sourceVersionId" in change) sourceIds.push(change.sourceVersionId);
   const versions = await sourceVersions(db, sourceIds);
-  if (change.operation === "review_source") {
-    before = versions[0]!;
-    if (before.revision !== change.expectedRevision)
-      throw new Error("Stale source revision; read current state first");
-  } else if (versions.some((version) => version.verification === "retracted")) {
-    // Citation replacement must be able to repair an opportunity with old retracted evidence.
-    const replacementIds =
-      "citations" in change ? change.citations.map((citation) => citation.sourceVersionId) : [];
-    if (
-      (change.operation !== "replace_citations" &&
-        !(
-          change.operation === "transition_opportunity" &&
-          ["draft", "needs_review", "dismissed", "declined", "no_response"].includes(change.state)
-        )) ||
-      versions.some(
-        (version) => replacementIds.includes(version.id) && version.verification === "retracted",
-      )
-    )
-      throw new Error("Retracted sources require a reviewed citation replacement");
-  }
-  if (
-    change.operation === "transition_opportunity" &&
-    ["approved", "in_progress", "completed"].includes(change.state) &&
-    versions.some((version) => version.verification !== "verified")
-  )
-    throw new Error("Review every source before advancing this opportunity");
+  if (change.operation === "review_source") before = versions[0]!;
+  assertRadarStoreContext(change, currentOpportunity, currentSourceIds, versions);
   const fields: { contactId?: string | null; companyId?: string | null } =
     change.operation === "create_opportunity"
       ? change
