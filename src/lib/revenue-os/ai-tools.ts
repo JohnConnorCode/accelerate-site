@@ -1,4 +1,11 @@
 import "server-only";
+import {
+  prepareRadarBrief,
+  readRadarModelReceipts,
+  reconcileRadarModelCall,
+  radarBriefInputSchema,
+  radarReconcileInputSchema,
+} from "./radar-model";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import {
   ALWAYS_LOADED_AI_TOOLS,
@@ -541,6 +548,45 @@ const registry: AiToolRegistration[] = [
       };
     });
   }),
+
+  {
+    name: "prepare_radar_brief",
+    description:
+      "Prepare a neutral, source-linked brief from supplied text using Radar's explicitly enabled model and bounded budget. Text remains unverified. Does not discover, send, publish or rank public affairs. Reuse the same operationId for retries.",
+    inputSchema: z.toJSONSchema(radarBriefInputSchema),
+    parseInput: (input) => radarBriefInputSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-model",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase, workItemId }, input) => prepareRadarBrief(supabase, input, workItemId),
+  },
+  {
+    name: "get_radar_model_status",
+    description:
+      "Read Radar's model options, configured limits and ten recent charge receipts. No model or provider request. Unavailable local adapters and unevaluated models are explicit.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-model",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }) => readRadarModelReceipts(supabase),
+  },
+  {
+    name: "reconcile_radar_model_call",
+    description:
+      "Check final provider usage for an existing Radar generation and record its charge. Never repeats inference or restores uncertain output. Requires a stored generation ID; otherwise preserves the hold for investigation.",
+    inputSchema: z.toJSONSchema(radarReconcileInputSchema),
+    parseInput: (input) => radarReconcileInputSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-model",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => reconcileRadarModelCall(supabase, input),
+  },
 
   ...REVENUE_OS_MODULES.filter((module) => module.report).map(
     ({ id: pluginId }): AiToolRegistration => ({
@@ -1927,6 +1973,9 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "prepare_radar_brief",
+    "get_radar_model_status",
+    "reconcile_radar_model_call",
     ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,

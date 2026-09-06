@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { readBoundedJson } from "./bounded-json";
 import { tenant } from "@/config/tenant";
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -31,6 +33,7 @@ export interface OpenRouterTool {
 }
 
 export interface OpenRouterUsage {
+  cost?: number;
   prompt_tokens?: number;
   completion_tokens?: number;
   total_tokens?: number;
@@ -53,6 +56,8 @@ export interface OpenRouterResponse {
 }
 
 export interface OpenRouterRequest {
+  /** Budgeted jobs pin one model and one attempt; no environment fallback. Prices are USD/million tokens. */
+  strictPricing?: { prompt: number; completion: number; request: number };
   beforeAttempt?: (attempt: number) => Promise<void>;
   /** Tenant-bound database context used only to resolve the encrypted key. */
   database?: SupabaseClient;
@@ -184,7 +189,7 @@ async function attemptChat(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
   const startedAt = Date.now();
-  const fallbackModel = getOpenRouterFallbackModel();
+  const fallbackModel = input.strictPricing ? null : getOpenRouterFallbackModel();
   try {
     const response = await fetch(OPENROUTER_URL, {
       method: "POST",
@@ -206,11 +211,23 @@ async function attemptChat(
               provider: { require_parameters: true },
             }
           : {}),
+        ...(input.strictPricing
+          ? {
+              provider: {
+                require_parameters: true,
+                allow_fallbacks: false,
+                data_collection: "deny",
+                max_price: input.strictPricing,
+              },
+            }
+          : {}),
       }),
       signal: combineSignals(controller.signal, input.signal),
     });
     const requestId = response.headers.get("x-request-id");
-    const payload = (await response.json().catch(() => null)) as OpenRouterResponse | null;
+    const payload = (await (
+      input.strictPricing ? readBoundedJson(response, 128 * 1024) : response.json()
+    ).catch(() => null)) as OpenRouterResponse | null;
     if (!response.ok || !payload) {
       throw new OpenRouterError(boundedProviderMessage(payload), response.status || 502, requestId);
     }
@@ -239,10 +256,20 @@ async function attemptChat(
 }
 
 export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRouterResponse> {
+  if (
+    input.strictPricing &&
+    (!input.model?.trim() ||
+      Object.values(input.strictPricing).some((price) => !Number.isFinite(price) || price < 0))
+  )
+    throw new OpenRouterError(
+      "Strict pricing requires an explicit model and finite non-negative prices",
+      400,
+    );
   const apiKey = await requestApiKey(input);
   const model = getOpenRouterModel(input.model);
   let lastError: OpenRouterError | null = null;
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+  const attempts = input.strictPricing ? 1 : MAX_ATTEMPTS;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       await input.beforeAttempt?.(attempt);
       return await attemptChat(input, model, apiKey);
@@ -250,7 +277,7 @@ export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRout
       if (!(error instanceof OpenRouterError)) throw error;
       lastError = error;
       const recoverable =
-        isRetryableStatus(error.status) && attempt < MAX_ATTEMPTS && !input.signal?.aborted;
+        isRetryableStatus(error.status) && attempt < attempts && !input.signal?.aborted;
       if (!recoverable) throw error;
       await backoff(attempt);
     }
@@ -285,6 +312,8 @@ export async function openRouterChatStream(
   input: OpenRouterRequest,
   onTextDelta: (delta: string) => void,
 ): Promise<OpenRouterResponse> {
+  if (input.strictPricing)
+    throw new OpenRouterError("Strict budgeted calls require non-streaming execution", 400);
   const apiKey = await requestApiKey(input);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
@@ -454,6 +483,8 @@ export async function openRouterTextStream(
   input: Omit<OpenRouterRequest, "responseFormat" | "tools">,
   onMetadata?: (metadata: OpenRouterStreamMetadata) => void,
 ): Promise<ReadableStream<Uint8Array>> {
+  if (input.strictPricing)
+    throw new OpenRouterError("Strict budgeted calls require non-streaming execution", 400);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
   const model = getOpenRouterModel(input.model);
@@ -574,4 +605,36 @@ function parseSseChunk(
     const content = parsed.choices?.[0]?.delta?.content;
     if (content) controller.enqueue(encoder.encode(content));
   }
+}
+
+/** Read the provider's final charge for one stored generation; never starts inference. */
+export async function getOpenRouterGeneration(database: SupabaseClient, generationId: string) {
+  if (!/^gen-[a-zA-Z0-9_-]{1,196}$/.test(generationId))
+    throw new Error("Stored generation ID is unavailable");
+  const key = await requestApiKey({ database, messages: [] });
+  const url = new URL("https://openrouter.ai/api/v1/generation");
+  url.searchParams.set("id", generationId);
+  const response = await fetch(url, {
+    headers: headers(key),
+    redirect: "error",
+    cache: "no-store",
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!response.ok)
+    throw new Error("Final provider usage is unavailable; reservation remains held");
+  const parsed = z
+    .object({
+      data: z.object({
+        id: z.string(),
+        model: z.string().min(1).max(200),
+        created_at: z.iso.datetime({ offset: true }),
+        total_cost: z.number().finite().nonnegative(),
+        native_tokens_prompt: z.number().int().nonnegative(),
+        native_tokens_completion: z.number().int().nonnegative(),
+      }),
+    })
+    .parse(await readBoundedJson(response, 32 * 1024));
+  if (parsed.data.id !== generationId)
+    throw new Error("Provider generation identity differs from the stored request");
+  return parsed.data;
 }

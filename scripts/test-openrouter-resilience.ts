@@ -15,6 +15,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   openRouterChat,
+  openRouterChatStream,
   openRouterJson,
   openRouterTextStream,
   OpenRouterError,
@@ -53,7 +54,8 @@ function stubFetch(responses: StubResponse[]) {
     }
     const stream =
       spec.sse === undefined
-        ? null
+        ? new Response(JSON.stringify(spec.body ?? { error: { message: `status ${spec.status}` } }))
+            .body
         : new ReadableStream<Uint8Array>({
             start(controller) {
               controller.enqueue(new TextEncoder().encode(spec.sse));
@@ -198,6 +200,52 @@ async function main() {
     assert.equal(body.models, undefined);
     assert.equal(body.route, undefined);
   });
+
+  const strictPricing = { prompt: 0, completion: 0, request: 0 };
+  await scenario(
+    "budgeted calls pin one model, pricing ceiling and attempt even with a premium fallback",
+    async () => {
+      process.env.OPENROUTER_FALLBACK_MODEL = "expensive/fallback";
+      stubFetch([{ status: 429 }, { status: 200, body: okBody }]);
+      await assert.rejects(() => openRouterChat({ ...ask, model: "fixture/free", strictPricing }));
+      assert.equal(calls.length, 1);
+      assert.equal(calls[0].body.models, undefined);
+      assert.equal(calls[0].body.route, undefined);
+      assert.equal(calls[0].body.model, "fixture/free");
+      assert.deepEqual(calls[0].body.provider, {
+        require_parameters: true,
+        allow_fallbacks: false,
+        data_collection: "deny",
+        max_price: strictPricing,
+      });
+      delete process.env.OPENROUTER_FALLBACK_MODEL;
+    },
+  );
+  await scenario(
+    "strict pricing refuses missing models, invalid prices and both streaming APIs before fetch",
+    async () => {
+      stubFetch([{ status: 200, body: okBody }]);
+      await assert.rejects(() => openRouterChat({ ...ask, strictPricing }));
+      await assert.rejects(() =>
+        openRouterChat({
+          ...ask,
+          model: "fixture/free",
+          strictPricing: { ...strictPricing, request: NaN },
+        }),
+      );
+      await assert.rejects(() => openRouterChatStream({ ...ask, strictPricing }, () => {}));
+      await assert.rejects(() => openRouterTextStream({ ...ask, strictPricing }));
+      assert.equal(calls.length, 0);
+    },
+  );
+  await scenario(
+    "strict response parsing refuses an oversized provider body without retry",
+    async () => {
+      stubFetch([{ status: 200, body: { ...okBody, extra: "x".repeat(150_000) } }]);
+      await assert.rejects(() => openRouterChat({ ...ask, model: okBody.model, strictPricing }));
+      assert.equal(calls.length, 1);
+    },
+  );
 
   await scenario("text streaming retains the provider receipt and resolved model", async () => {
     process.env.OPENROUTER_FALLBACK_MODEL = "anthropic/claude-haiku-4.5";

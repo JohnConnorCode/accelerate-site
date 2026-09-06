@@ -164,6 +164,25 @@ export async function callCollectionHostRpc(
 ) {
   if (!(COLLECTION_HOST_RPCS as readonly string[]).includes(operation))
     throw new Error("Collection host operation is not allowed");
+  return callVerifiedHostRpc(database, operation, args);
+}
+
+const MODEL_BUDGET_RPCS = ["reserve_model_call", "complete_model_call"] as const;
+export async function callModelBudgetRpc(
+  database: SupabaseClient,
+  operation: (typeof MODEL_BUDGET_RPCS)[number],
+  args: Record<string, unknown>,
+) {
+  if (!(MODEL_BUDGET_RPCS as readonly string[]).includes(operation))
+    throw new Error("Model budget operation is not allowed");
+  return callVerifiedHostRpc(database, operation, args);
+}
+
+async function callVerifiedHostRpc(
+  database: SupabaseClient,
+  operation: string,
+  args: Record<string, unknown>,
+) {
   const tenantId = tenantIdForDatabase(database);
   if (!tenantId) throw new Error("Collection host requires a tenant-bound database");
   const context = getTenantRequestContext();

@@ -590,12 +590,12 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     id: "opportunity-radar",
     name: "Opportunity Radar",
     description:
-      "Configure a reusable business profile for evidence-backed opportunity workflows. Profile and AI setup foundation only; automated discovery and outreach are not yet available.",
+      "Configure a reusable business profile and prepare bounded source-linked AI briefs. Automated discovery and outreach are not yet available.",
     category: "intelligence",
     isCore: false,
     defaultEnabled: false,
     navLinkIds: [],
-    aiToolNames: [],
+    aiToolNames: ["prepare_radar_brief", "get_radar_model_status", "reconcile_radar_model_call"],
     routes: [],
     setupChecks: [],
     docsUrl:
@@ -697,7 +697,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         key: "dailyModelBudgetUsd",
         label: "Daily model budget (USD)",
         description:
-          "Zero disables automatic model spending. Future workers must reserve the budget before calls.",
+          "Zero disables automatic model spending. Model jobs must reserve the budget before calls.",
         type: "number",
         min: 0,
         max: 100,
@@ -710,7 +710,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         options: ["off", "free-only", "budgeted-low-cost"],
         default: "off",
         description:
-          "Preference for future workers. Off makes no model calls; free-only must never fall back to paid models.",
+          "Applies to source briefing jobs. Off makes no model calls; free-only must never fall back to paid models.",
       },
       {
         key: "preferredModel",
@@ -718,7 +718,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         type: "string",
         default: "",
         description:
-          "Optional model ID from the shared evaluated model registry. OpenRouter is the current transport; no premium default or invented model IDs.",
+          "Explicit model ID from the shared evaluated model registry. OpenRouter is the current transport; no premium default or invented model IDs.",
       },
       {
         key: "maxModelCallsPerDay",
@@ -737,7 +737,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         min: 1024,
         max: 16000,
         default: 8000,
-        description: "Bound retrieved evidence before a future model request.",
+        description: "Bound retrieved evidence before a model request.",
       },
       {
         key: "maxOutputTokensPerCall",
@@ -756,7 +756,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         max: 1,
         default: 0,
         description:
-          "Future workers reserve worst-case cost before requests; zero allows no paid request.",
+          "Model jobs reserve worst-case cost before requests; zero allows no paid request.",
       },
       {
         key: "sourceMode",

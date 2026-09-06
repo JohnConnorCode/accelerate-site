@@ -220,3 +220,11 @@ contracts for generation and shared manual/AI mutation validation.
 `module-actions.ts` and `module-configuration.ts` reject incomplete enablement.
 No Radar workers, discovery tables, senders or separate CRM exist yet. The live
 program and architecture are in [Opportunity Radar](../../../docs/plugins/OPPORTUNITY-RADAR.md).
+
+`radar-model.ts` owns neutral supplied-source briefing, bounded model receipt reads
+and reconciliation; AI tools call this service. `ai/budgeted-model.ts` owns shared
+cost admission and cache identity through the two allowlisted model-budget RPCs
+in `supabase/server.ts`. Neither bridge exposes a privileged client to an actor.
+`ai/model-pricing.ts` reads bounded public metadata; `ai/openrouter.ts` alone sends
+prompts and checks final generation usage with tenant credentials. Unknown cost
+retains its hold. No Radar operation sends outreach or publishes content.

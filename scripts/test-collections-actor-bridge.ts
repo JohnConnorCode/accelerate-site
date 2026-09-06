@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
-import { bindTenantDatabase, callCollectionHostRpc } from "../src/lib/supabase/server";
+import {
+  bindTenantDatabase,
+  callCollectionHostRpc,
+  callModelBudgetRpc,
+} from "../src/lib/supabase/server";
 import { runWithTenantRequestContext, type TenantActorContext } from "../src/lib/tenancy/context";
 async function main() {
   const tenant = randomUUID(),
@@ -31,7 +35,7 @@ async function main() {
     assert.equal(url.hostname, "collections-fixture.supabase.co");
     assert.match(
       url.pathname,
-      /^\/rest\/v1\/rpc\/(sync_collection_observations|update_collection_case|reserve_collection_reminder|reconcile_collection_reminder)$/,
+      /^\/rest\/v1\/rpc\/(sync_collection_observations|update_collection_case|reserve_collection_reminder|reconcile_collection_reminder|reserve_model_call|complete_model_call)$/,
     );
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("x-tenant-id"), tenant);
@@ -50,13 +54,24 @@ async function main() {
       );
       assert.equal(result.data.verified, true);
     }
-    assert.equal(network, 4);
+    for (const operation of ["reserve_model_call", "complete_model_call"] as const) {
+      const result = await runWithTenantRequestContext(actor, () =>
+        callModelBudgetRpc(db, operation, {}),
+      );
+      assert.equal(result.data.verified, true);
+    }
+    assert.equal(network, 6);
     mem.tables.tenant_memberships![0]!.status = "revoked";
     await assert.rejects(
       () =>
         runWithTenantRequestContext(actor, () =>
           callCollectionHostRpc(db, "reserve_collection_reminder", {}),
         ),
+      /membership/,
+    );
+    await assert.rejects(
+      () =>
+        runWithTenantRequestContext(actor, () => callModelBudgetRpc(db, "reserve_model_call", {})),
       /membership/,
     );
     mem.tables.tenant_memberships![0]!.status = "active";
@@ -79,13 +94,22 @@ async function main() {
       () => callCollectionHostRpc(db, "delete_tenant" as "update_collection_case", {}),
       /not allowed/,
     );
-    assert.equal(network, 4);
+    assert.equal(network, 6);
+    await assert.rejects(
+      () => callModelBudgetRpc(db, "delete_tenant" as "reserve_model_call", {}),
+      /not allowed/,
+    );
+    mem.rpc("reserve_model_call", () => ({ originalDatabase: true }));
+    assert.equal(
+      (await callModelBudgetRpc(db, "reserve_model_call", {})).data.originalDatabase,
+      true,
+    );
     mem.rpc("reserve_collection_reminder", () => ({ originalDatabase: true }));
     assert.equal(
       (await callCollectionHostRpc(db, "reserve_collection_reminder", {})).data.originalDatabase,
       true,
     );
-    assert.equal(network, 4);
+    assert.equal(network, 6);
     console.log(
       "PASS: authenticated actor bridge uses exact tenant RPC scope; revoked/suspended/mismatched actors and unknown operations cannot elevate; background clients remain unchanged.",
     );

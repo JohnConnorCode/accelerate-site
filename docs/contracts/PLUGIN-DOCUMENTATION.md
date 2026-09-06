@@ -68,5 +68,6 @@ stays in a neutral, cited, unranked review lane.
 
 The operator guide must be followed from a clean install and through AI setup.
 All advertised stages must work before calling Radar a flagship release. The
-current profile/configuration foundation is only one prerequisite; it has no
-discovery worker, sender, publisher or enforced model-spend budget.
+profile and bounded-briefing foundation is only one prerequisite; it has no
+discovery worker, sender or publisher. Cost enforcement does not establish the
+full evidence-to-outcome journey.
