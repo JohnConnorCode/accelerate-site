@@ -19,7 +19,7 @@ This candidate integrates committed application `e600bae2a579648e8612c29d599793c
 
 ## Observed shared-service boundary
 
-On 2026-09-06, an authenticated read-only probe of `https://www.acceleratewith.us/api/agent/work-board?connection=1` returned HTTP 404. No packet protocol or strict-write readiness was established. GitHub's Vercel deployment status also reports `Account is blocked.`; the account owner must resolve that hosting restriction before an authorized rollout. The temporary read-only credential was revoked immediately. This task does not deploy or enable production enforcement.
+On 2026-09-06, an authenticated read-only probe of `https://www.acceleratewith.us/api/agent/work-board?connection=1` returned HTTP 404. No packet protocol or strict-write readiness was established. GitHub's Vercel deployment status reports `Account is blocked.`, but the CLI was logged into `website-4827`, whose listed team `theresa-vs-projects` could not access the configured project. The earlier hosting-suspension diagnosis was premature. Correct the CLI account and verify the exact project/team using `DEPLOY.md` before investigating any remaining provider error. The temporary read-only credential was revoked immediately. This task does not deploy or enable production enforcement.
 
 Unattended team dispatch remains blocked until the maintainer releases the compatible adapters, verifies strict canonical writes, publishes every approved ticket base and issues individual scoped access plus an isolated test environment. The developer doctor reports these as actionable blockers; a local-demo pass is deliberately narrower.
 

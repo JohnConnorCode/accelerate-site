@@ -152,6 +152,11 @@ exception. Update the source inventory after reviewing changed route operations.
 
 ## Release authority and repository reconciliation
 
+- Before hosting diagnosis, read `deployment-target.json` and the account preflight in
+  [DEPLOY.md](DEPLOY.md). Verify the exact project/team with `npm run deploy:check`
+  before pulling configuration or building. A wrong CLI login is not evidence of
+  a provider suspension; establish account access before researching hosting errors.
+
 - Production deployment is founder-controlled. Never deploy, alias, promote,
   roll back, or otherwise change the live site unless the founder explicitly
   instructs that production action. Completing, committing, or verifying work is

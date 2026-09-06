@@ -33,12 +33,12 @@
     "verify:docs": "npx tsx scripts/verify-docs.ts",
     "docs:llms": "npx tsx scripts/generate-docs-llms.ts",
     "docs:llms:check": "npx tsx scripts/generate-docs-llms.ts --check",
-    "deploy:check": "vercel whoami && vercel teams ls",
-    "deploy:pull": "vercel pull --yes --environment=production",
+    "deploy:check": "node scripts/deployment-preflight.mjs",
+    "deploy:pull": "npm run deploy:check && vercel pull --yes --environment=production",
     "deploy:build": "node scripts/next-release.mjs vercel-build",
     "deploy:upload": "node scripts/next-release.mjs vercel-deploy",
     "deploy": "npm run deploy:pull && npm run deploy:build && npm run deploy:upload",
-    "deploy:rollback": "vercel rollback",
+    "deploy:rollback": "npm run deploy:check && vercel rollback",
     "verify:guardrails": "npx tsx scripts/verify-guardrails.ts && npm run test:positioning-copy && npm run test:work-portfolio",
     "verify:admin-tokens": "node scripts/verify-admin-tokens.mjs",
     "build:extensions": "node scripts/build-extension-modules.mjs",
@@ -250,7 +250,7 @@
     "test:work-packet": "npx tsx --env-file=.env.local scripts/test-work-packet.ts",
     "verify:backlog": "node scripts/verify-backlog-snapshot.mjs",
     "dev:doctor": "node scripts/developer-doctor.mjs",
-    "test:developer-handoff": "node --test scripts/test-developer-handoff.mjs"
+    "test:developer-handoff": "node --test scripts/test-developer-handoff.mjs scripts/test-deployment-preflight.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
