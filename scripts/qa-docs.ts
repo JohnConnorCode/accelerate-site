@@ -655,21 +655,17 @@ async function main() {
           const frames = await page.evaluate(async () => {
             const samples: { heading: string; skeleton: boolean; opacity: number }[] = [];
             const started = performance.now();
-            await new Promise<void>((resolve) => {
-              const sample = () => {
-                const stage = document.querySelector("[data-route-entry]");
-                samples.push({
-                  heading: (document.querySelector("main h1") as HTMLElement)?.innerText ?? "",
-                  skeleton: /Loading page|Loading documentation/.test(
-                    document.querySelector("main")?.textContent ?? "",
-                  ),
-                  opacity: stage ? Number(getComputedStyle(stage).opacity) : 0,
-                });
-                if (performance.now() - started < 350) requestAnimationFrame(sample);
-                else resolve();
-              };
-              requestAnimationFrame(sample);
-            });
+            while (performance.now() - started < 350) {
+              await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+              const stage = document.querySelector("[data-route-entry]");
+              samples.push({
+                heading: (document.querySelector("main h1") as HTMLElement)?.innerText ?? "",
+                skeleton: /Loading page|Loading documentation/.test(
+                  document.querySelector("main")?.textContent ?? "",
+                ),
+                opacity: stage ? Number(getComputedStyle(stage).opacity) : 0,
+              });
+            }
             return samples;
           });
           assert.ok(intercepted, "Navigation proof must actually delay its route response");
