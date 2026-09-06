@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { z } from "zod";
 import { createCollectionsFixture } from "./lib/collections-fixture";
 import { readContactConversationContext } from "../src/lib/revenue-os/conversations";
 import { sendRecordedEmail } from "../src/lib/revenue-os/communications";
@@ -51,7 +52,11 @@ async function main() {
       /Consent withdrawn/,
     );
     assert.equal(f.state.sends, 0);
-    assert.equal(f.table("messages")[0]!.metadata.dispatch_attempted, false);
+    assert.equal(
+      z.object({ dispatch_attempted: z.boolean() }).parse(f.table("messages")[0]!.metadata)
+        .dispatch_attempted,
+      false,
+    );
     await assert.rejects(sendRecordedEmail(f.db, request), /reconcile/);
   });
   await scenario(async (f) => {
@@ -59,7 +64,11 @@ async function main() {
     const request = input(f);
     await assert.rejects(sendRecordedEmail(f.db, request));
     assert.equal(f.table("messages")[0]!.status, "failed");
-    assert.equal(f.table("messages")[0]!.metadata.dispatch_attempted, true);
+    assert.equal(
+      z.object({ dispatch_attempted: z.boolean() }).parse(f.table("messages")[0]!.metadata)
+        .dispatch_attempted,
+      true,
+    );
     await assert.rejects(sendRecordedEmail(f.db, request), /reconcile/);
     assert.equal(f.state.sends, 1);
   });
@@ -86,7 +95,11 @@ async function main() {
       "partner@example.test",
     ]);
     assert.equal(
-      f.table("conversations")[0]!.metadata.association.participants[1].contact_id,
+      z
+        .object({
+          association: z.object({ participants: z.array(z.object({ contact_id: z.string() })) }),
+        })
+        .parse(f.table("conversations")[0]!.metadata).association.participants[1]!.contact_id,
       other,
     );
     await assert.rejects(sendRecordedEmail(f.db, { ...request, cc: [] }), /different/);

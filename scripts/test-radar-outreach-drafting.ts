@@ -82,9 +82,11 @@ async function main() {
         /approved fact/,
       );
       const people = mem.tables.contacts!;
-      const participants = people
-        .slice(0, 2)
-        .map((p) => ({ contact_id: p.id, email: p.primary_email, outcome: "linked" }));
+      const participants = people.slice(0, 2).map((p) => {
+        assert.equal(typeof p.id, "string");
+        assert.equal(typeof p.primary_email, "string");
+        return { contact_id: p.id as string, email: p.primary_email as string, outcome: "linked" };
+      });
       const conversation = randomUUID();
       mem.tables.conversations!.push(
         owned({
