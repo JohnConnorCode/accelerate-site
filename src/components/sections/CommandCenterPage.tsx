@@ -86,7 +86,10 @@ function Hero() {
                 </span>
               </Link>
               <Link href="/docs" className="ink-sweep inline-flex min-h-11 items-center text-sm">
-                Read the docs →
+                Read the docs{" "}
+                <span aria-hidden="true" className="ml-2">
+                  →
+                </span>
               </Link>
             </Reveal>
           </div>
