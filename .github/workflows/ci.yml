@@ -180,9 +180,9 @@ jobs:
           node scripts/qa-turnkey.mjs
           npm run test:work-completion -- --browser-fixtures
           node scripts/qa-work-completion.mjs
-          node scripts/qa-demo-business-workflows.mjs
           DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
           node scripts/qa-work-portfolio.mjs
+          node scripts/qa-demo-business-workflows.mjs
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

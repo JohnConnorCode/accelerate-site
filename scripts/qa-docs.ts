@@ -595,11 +595,17 @@ async function main() {
             );
           }
           // The pages remain available but are deliberately absent from main navigation.
-          const header = page.locator("header.site-header");
           if (width < 1280)
             await page.getByRole("button", { name: "Open navigation menu" }).click();
-          assert.equal(await header.locator('a[href="/learn"], a[href="/resources"]').count(), 0);
-          await header.getByRole("link", { name: "Work", exact: true }).click();
+          const navigation = page.getByRole("navigation", {
+            name: width < 1280 ? "Mobile" : "Primary",
+            exact: true,
+          });
+          assert.equal(
+            await navigation.locator('a[href="/learn"], a[href="/resources"]').count(),
+            0,
+          );
+          await navigation.getByRole("link", { name: "Work", exact: true }).click();
           await page.waitForURL("**/work");
           await page.locator("h1.word-mask-heading.in").waitFor();
           assert.equal(
@@ -612,6 +618,95 @@ async function main() {
             `${width} ${reducedMotion}: twelve public header routes, Work menu navigation, hidden Learn/Resources primary links`,
           );
         } finally {
+          await context.close();
+        }
+      }
+    }
+    for (const width of [1440, 390]) {
+      for (const destination of ["/work", "/docs/start/daily-path"]) {
+        const context = await browser.newContext({ viewport: { width, height: 1000 } });
+        let release!: () => void;
+        const heldResponse = new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        let intercepted = false;
+        try {
+          const page = await context.newPage();
+          page.on("pageerror", (error) => failures.push(error.message));
+          await page.route(`**${destination}?*`, async (route) => {
+            if (route.request().headers()["rsc"] === "1") {
+              intercepted = true;
+              await heldResponse;
+            }
+            await route.continue();
+          });
+          await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+          const previousHeading = await page.locator("main h1").innerText();
+          if (destination === "/work") {
+            if (width < 1280)
+              await page.getByRole("button", { name: "Open navigation menu" }).click();
+            await page
+              .getByRole("navigation", { name: width < 1280 ? "Mobile" : "Primary", exact: true })
+              .getByRole("link", { name: "Work", exact: true })
+              .click({ noWaitAfter: true });
+          } else
+            await page.getByRole("link", { name: "Try your first workflow", exact: true }).click();
+          await page.locator('[data-navigation-pending="true"]').waitFor();
+          const frames = await page.evaluate(async () => {
+            const samples: { heading: string; skeleton: boolean; opacity: number }[] = [];
+            const started = performance.now();
+            await new Promise<void>((resolve) => {
+              const sample = () => {
+                const stage = document.querySelector("[data-route-entry]");
+                samples.push({
+                  heading: (document.querySelector("main h1") as HTMLElement)?.innerText ?? "",
+                  skeleton: /Loading page|Loading documentation/.test(
+                    document.querySelector("main")?.textContent ?? "",
+                  ),
+                  opacity: stage ? Number(getComputedStyle(stage).opacity) : 0,
+                });
+                if (performance.now() - started < 350) requestAnimationFrame(sample);
+                else resolve();
+              };
+              requestAnimationFrame(sample);
+            });
+            return samples;
+          });
+          assert.ok(intercepted, "Navigation proof must actually delay its route response");
+          assert.ok(
+            frames.length > 2 &&
+              frames.every(
+                (frame) =>
+                  frame.heading === previousHeading && !frame.skeleton && frame.opacity > 0.5,
+              ),
+            "Retain readable content; never flash a full-page skeleton",
+          );
+          release();
+          await page.waitForURL(`**${destination}`);
+          await page.locator("main h1").waitFor();
+          await page.unroute(`**${destination}?*`);
+          await page.goBack();
+          await page.waitForURL("**/docs");
+          await page.waitForFunction(
+            (title) => (document.querySelector("main h1") as HTMLElement)?.innerText === title,
+            previousHeading,
+          );
+          const started = Date.now();
+          if (destination === "/work") {
+            if (width < 1280)
+              await page.getByRole("button", { name: "Open navigation menu" }).click();
+            await page
+              .getByRole("navigation", { name: width < 1280 ? "Mobile" : "Primary", exact: true })
+              .getByRole("link", { name: "Work", exact: true })
+              .click({ noWaitAfter: true });
+          } else
+            await page.getByRole("link", { name: "Try your first workflow", exact: true }).click();
+          await page.waitForURL(`**${destination}`);
+          checks.push(
+            `${width} ${destination}: no skeleton or blank during delayed RSC; repeat navigation ${Date.now() - started}ms`,
+          );
+        } finally {
+          release();
           await context.close();
         }
       }

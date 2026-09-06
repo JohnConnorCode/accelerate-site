@@ -13,7 +13,7 @@ Scope: public Command Center page, homepage product preview, shared product slid
 | Slider uses Framer track motion and transition-all dots                          | Interruptible CSS transform with explicit dot properties and reduced-motion override                                                                   |
 | Docs content arrives without an entrance                                         | Shared pathname-keyed, declarative semantic entrances across landing and every guide, with 60ms stagger capped at 180ms                                |
 | Potential long chained or nested prose animations                                | Independent content blocks, no moving body ancestor, 420ms duration; reduced motion and absent JS keep content visible                                 |
-| Source statistics count removed implementation files                             | Recomputed public statistics: 128K lines across 687 TypeScript files                                                                                   |
+| Source statistics count removed implementation files                             | Recomputed public statistics: 128K lines across 685 TypeScript files                                                                                   |
 
 Verification: scoped lint, formatting, statistics, agent contract, and diff checks locally. Remote CI covers build/type validation and browser journeys; added desktop/phone, normal/reduced-motion checks for slider controls, full-screen viewer, intermediate docs animation frames, guide navigation, and overflow. Final CI evidence is recorded on PR #32. Local preview remains on port 3025 with the resource gate; no additional local build or QA browser is started. No deployment or production data changes.
 
@@ -31,3 +31,14 @@ The founder identified `/work` and `/learn` skipping their heading entrance. The
 | Checks establish markup presence or only settled screenshots | Browser matrix samples actual intermediate frames for twelve public header routes, both widths/motion preferences, plus real Work menu navigation; full Work portfolio QA runs in CI |
 
 The docs timing probe now derives its sample from the animation's actual delay and duration. A fixed 180ms sample could coincide with the capped start delay and incorrectly report no intermediate frame. This changes the probe, not the entrance acceptance requirement.
+
+## Public loading continuity
+
+| Before                                                                      | After                                                                                                                            |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Marketing and docs loading boundaries replace static content with skeletons | Removed both full-page fallbacks; React retains the committed page until the destination is ready                                |
+| Navigation contract requires the marketing skeleton                         | Contract and source assertion now prohibit public/docs full-page skeleton fallbacks                                              |
+| Navigation QA verifies only the destination                                 | Held-RSC browser checks sample readable previous content without skeletons or blank frames; repeat-navigation timing is recorded |
+| Unrelated demo workflow failures prevent public evidence capture            | Public and Work checks run before the demo business matrix; all remain required                                                  |
+
+The development preview compiles routes on first visit. Production navigation timing comes from the built CI server; removal of skeletons is not a claim that uncached development compilation is instantaneous.

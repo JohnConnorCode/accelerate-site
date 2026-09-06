@@ -224,9 +224,10 @@ assert.equal(
   "The root admin layout must not replace committed content with a full-page fallback",
 );
 assert.equal(
-  existsSync("src/app/(marketing)/loading.tsx"),
-  true,
-  "Public navigations need a marketing loading region under the shared chrome",
+  existsSync("src/app/(marketing)/loading.tsx") ||
+    existsSync("src/app/(marketing)/docs/loading.tsx"),
+  false,
+  "Public and docs navigation must retain committed content, without full-page skeleton fallbacks",
 );
 const rootLayout = readFileSync("src/app/layout.tsx", "utf8");
 assert.doesNotMatch(
