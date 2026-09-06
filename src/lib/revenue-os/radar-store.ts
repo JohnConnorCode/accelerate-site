@@ -397,7 +397,10 @@ export async function readRadarStore(db: SupabaseClient, raw: unknown) {
       .eq("id", input.sourceVersionId ?? input.assetId!)
       .single();
     if (result.error || !result.data) throw new Error("Radar source or asset unavailable");
-    const { body_text: body, ...metadata } = result.data;
+    const { body_text: body, ...metadata } = z
+      .object({ id: z.string().uuid(), body_text: z.string() })
+      .passthrough()
+      .parse(result.data);
     const characters = Array.from(String(body));
     const end = Math.min(characters.length, input.offset + 2000);
     const sourceIds = source
