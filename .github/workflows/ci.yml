@@ -37,6 +37,9 @@ jobs:
       - name: Verify architecture contract
         run: npm run verify:agent-contract
 
+      - name: Verify admin route inventory
+        run: npm run test:admin-route-inventory
+
       - name: Verify copy guardrails
         run: npm run verify:guardrails
 

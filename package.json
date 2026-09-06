@@ -205,7 +205,8 @@
     "qa:founder-notes": "node --env-file=.env.local scripts/qa-founder-note.mjs",
     "test:work-board": "npx tsx --env-file=.env.local scripts/test-work-board.ts",
     "agent:progress": "npx tsx scripts/agent-dispatch.ts progress",
-    "agent:block": "npx tsx scripts/agent-dispatch.ts block"
+    "agent:block": "npx tsx scripts/agent-dispatch.ts block",
+    "test:admin-route-inventory": "node scripts/admin-route-inventory.mjs && node --test scripts/test-admin-route-inventory.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

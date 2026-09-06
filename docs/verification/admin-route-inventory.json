@@ -1,0 +1,1126 @@
+{
+  "schemaVersion": 1,
+  "approvedBase": "50f3aa671751619f44af22bb0736618c362d1b6b",
+  "ticket": {
+    "key": "canonical-tools-route-inventory",
+    "id": "80eeeb39-9234-48dc-a152-32286e53e4db"
+  },
+  "evidenceLevel": "local source inventory; no row, field, browser or production parity asserted",
+  "sources": {
+    "src/app/admin/activity/page.tsx": "d1b880d3234b22f096651deba0237b09ee0cef8865aad52868680e707032c971",
+    "src/app/admin/ai-operations/page.tsx": "92aae0344b61a69def1d4fd711c387863b1c9bf18c433f33706271b7c6c4d2aa",
+    "src/app/admin/ai/page.tsx": "ae4d9cbb09dcba05beffdf3d618210e5286273f7c651c4eb0c03aada76c07ed3",
+    "src/app/admin/analytics/page.tsx": "5477dcb3ecd058777efba2d659f59f687ae9fab51c2594a53d59c4fd1ac7a2e3",
+    "src/app/admin/bookings/page.tsx": "814ff157b0442f00cf61d0988ef4c1d66f5a2086848d3736f623a6072883a43f",
+    "src/app/admin/campaigns/page.tsx": "4268815db7976c5b3243b7ed2da8f7cdbb9415e2fed5b02374d96feffbd7f6c4",
+    "src/app/admin/chat-leads/page.tsx": "3cf0e31c1ec6557edf99f4f2307825eaaec6ac15a1460643829824d7ca33e807",
+    "src/app/admin/clients/[id]/page.tsx": "4445d644fcf7eefc31f0f230ba503ebc76711efd31030c308d1ceba8e9f7550a",
+    "src/app/admin/clients/page.tsx": "9dfc33a80f6ea62c0bfa40ee1f14552d93dfec41db18b417a4940926ac0991ba",
+    "src/app/admin/contact-imports/page.tsx": "df1d9e1a459aa88004b46114572b24fa89a105c1e69d2ae5956c9d701435b0bc",
+    "src/app/admin/contacts/[email]/page.tsx": "901f1d352b001d31af1ac030656fc492382890e747d019c51036804ad1090231",
+    "src/app/admin/contacts/page.tsx": "107a79e89f34bf3a3c6aa65fdfb6ed31eb50f6362bcbab8d83c300b3e3c41ec2",
+    "src/app/admin/content/page.tsx": "2daaf2880db51050a14b645b22f21679e34f0d1a5dda9afca3b49f379963dc53",
+    "src/app/admin/conversations/page.tsx": "88f0218379558c86e97afc52417d63be1ff2e04aa65df2c46aca130f7391e879",
+    "src/app/admin/email-sequences/page.tsx": "29004df44c50225d0905e3c99db0b372fb0e1f9e343ee2b941430559f6768cf1",
+    "src/app/admin/emails/page.tsx": "40c057a4feb74468b6ce1b4176a19a6ad763e58b4a452a8959ceb04d1796cddd",
+    "src/app/admin/example-inventory/page.tsx": "18eeaa9e5c5802e02b01a471271db10ab5a7cdfb447af33667c524890fba691b",
+    "src/app/admin/features/page.tsx": "6eeed405bef410c142b51828a4352be87e2431e942460e392184616ed7d0aaea",
+    "src/app/admin/identity-review/page.tsx": "8b6e555ba0bbb7ca3708caff39887a6f27e03e11eaa41560610d22a1ac244f35",
+    "src/app/admin/inbox/page.tsx": "64025ca6beec61c89fd85e12c27dd4733e4b08a55d424b96f02561f8a9c3cb69",
+    "src/app/admin/integrations/page.tsx": "25924a1f256fd60c724714569af5ad9090d042c23b1494d803421ace20abc9c9",
+    "src/app/admin/leads/page.tsx": "7292e3df5e676a3881a2f295d293d27281f982a12bb1a40d56258f995f04ed4a",
+    "src/app/admin/login/page.tsx": "befb611861c075f5541ea88d4c6b792d2cbf4b2250a370000811a83c54a1e2da",
+    "src/app/admin/page.tsx": "b298bd7de29700f58c08d73f4344b8713fc4bae5480324020820d2b183608784",
+    "src/app/admin/partners/page.tsx": "264210ad613e46ba6edb42c804602b03da95075d8808ff5a1b0b67e0b17ecb87",
+    "src/app/admin/pipeline/[id]/page.tsx": "e1ed78ee8770d9bd1b31f29f94b00ad496b2a28b10441bad4a32b20a86b5804e",
+    "src/app/admin/pipeline/page.tsx": "a62bd77c23a769b0076d891804efc84c52afee73f289e63dac8cd753d6357941",
+    "src/app/admin/proposals/page.tsx": "cbc9815cc91246f5f34c3da924a606595965a164108d360bb21f22833503a741",
+    "src/app/admin/recovery/page.tsx": "be94972ce30c9e32128cea43ce9855942af789621b709dbd02ac01715da06b0c",
+    "src/app/admin/resources/page.tsx": "215576e5521d818d92265ef4db2ba5d8753f4de6b4de5236098266a260b5abec",
+    "src/app/admin/revenue/page.tsx": "0b227716c45115f532179e652c05e967dacc1c50286e7edbccbdc11c089a3a44",
+    "src/app/admin/settings/page.tsx": "5e9484e916c950f0a787bdee06c7cfbeb5931934287335650a9b3e1f98869b9c",
+    "src/app/admin/setup/page.tsx": "c52410f8a949f604ea224609824aaba3aeb24a852786881a00531b6a9fad01f5",
+    "src/app/admin/subscribers/page.tsx": "d30c46d9d8ae8d624df5b3cb9d18a91f948933a3fe1003e0b43238bde7c7564e",
+    "src/app/admin/tenants/page.tsx": "bddcfc6144318ff4fa0841de2d37b7b7c3da50852ae160d1ee755b8c50a602e3",
+    "src/app/admin/today/page.tsx": "5b75669d268d54d5a8ee3366f936696f3e23aa95d336e6bae8c219522e2992ee",
+    "src/app/admin/update-password/page.tsx": "a3c4ec821033acc0efe1dbb6929843e49bcd6720c6534def104e5e10072b7109",
+    "src/app/admin/website-grades/page.tsx": "1e0ebe498946c8419e47055f2478ac12fcd5453d50e6ac5e727e05bdbdf04378",
+    "src/app/api/admin/activity/route.ts": "ee9f15fedfb7aa0151bcaeb01414ed6407658cf22e224b7ca4fdef02376a38f8",
+    "src/app/api/admin/bookings/route.ts": "06da3591f09cbdd8b09d0bf6d82c2c292e6df9da81d471cd3efef899df9b2a7b",
+    "src/app/api/admin/chat-leads/route.ts": "039469f3b9026dbcd117bf1256f4e216903f18cc2310df92be3d7f41921e3d6b",
+    "src/app/api/admin/clients/route.ts": "35dcccc545784dfcb0032af4b67d679a5af3a3b5e053b8c0b5d751c74ccc4ca4",
+    "src/app/api/admin/contacts/export/route.ts": "8a25082eec41bafa5cdf74c482b9fe0bedde5d4f3190693394b695ca54df6c21",
+    "src/app/api/admin/contacts/route.ts": "1562bfba6cac09b2f1a19b0770d4c61ca7a0df27f1cc623ef15f3aacb0a9c607",
+    "src/app/api/admin/contacts/timeline/route.ts": "d71e9a37e35f84210888b2cb36bd0fcfc184425450f4557131eb57131624d69a",
+    "src/app/api/admin/content/route.ts": "b06d515300ab33b481fece9744c0c30fbe598aab42167ce04035778ead5dc7d4",
+    "src/app/api/admin/email-sequences/route.ts": "9f3ccd0bff8a241ab65bb0a5cf08c750e7d6f558254ba1cb0b01af26ce6240b1",
+    "src/app/api/admin/emails/history/route.ts": "7e0d48ee096aaa52047b23e748570e89da1a7b46c0729e37fb9e1e0ee5c7a02c",
+    "src/app/api/admin/emails/preview/route.ts": "74e83fb3d54ac25280e13ef4282e852f2e597f639b820c834ec69a42c20dbd65",
+    "src/app/api/admin/features/agents/route.ts": "5e3f84e0ebb5ef161da251d2662334ded0dfaf7a63c8d3e0c26784ea09ce0656",
+    "src/app/api/admin/features/route.ts": "0e864c3544c47c54146f56d1900e3248e11e9be2c63563bd6715f22bb949d88a",
+    "src/app/api/admin/features/views/route.ts": "0f61e13ec15b8df5d1b543366b102ba62bb87d93f1076d9b394b08fddc02a395",
+    "src/app/api/admin/google/sync/route.ts": "548801e5f8990e095cc3cb376f28461f599581daaa9dd929320e501563e4e771",
+    "src/app/api/admin/inbox/route.ts": "39391bebc4c44d2f36075aef7378f60c1fdd5b075d8eea7e6ea2f32cfb656cda",
+    "src/app/api/admin/integrations/route.ts": "a774774dfc90ba9f3f6e02e5b2f7cf4300cd923817fd90937ced7086e9e1bccb",
+    "src/app/api/admin/leads/route.ts": "8546ba58f5254c3081d7f541d7677b6814c09d26e1251fc9012a2617d40d479a",
+    "src/app/api/admin/login/route.ts": "5a52c3e65c60164b8af12a8b36a5eb6b3ca8eba6004247c56fe5891f4f6e0d2b",
+    "src/app/api/admin/partners/route.ts": "efd9d516174bb672fe9c66995c3f0cd2bbc0241e443e7c5245f2c0b3bed85c3f",
+    "src/app/api/admin/password-reset/route.ts": "4bc2cfed97fff1179b09fffc935ffc82b828393cea4514562472cd561adcf892",
+    "src/app/api/admin/proposals/generate/route.ts": "71e8c5971e94d4630d408ed8e6a3320ff7e4620f4ab15dbb5cec48733230f0c2",
+    "src/app/api/admin/proposals/route.ts": "6f7bceeaba387dcb09b084c68499c4d7c86bc304a7832e368aceb0aafce758bb",
+    "src/app/api/admin/resources/route.ts": "538a7f8630458b37e80a0b9bf9ab0baf0ac6bef57acaa205e0729a9dedd911e2",
+    "src/app/api/admin/revenue-os/actions/route.ts": "46daff0c90e4e070b0e172176413aa7fc117af878de7a448993f08752ed1b023",
+    "src/app/api/admin/revenue-os/ai/capabilities/route.ts": "665d14ba8b3501f0d3867be6aa570c75832b2820d2eaf4a774020a57148de483",
+    "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts": "d4f346d8e2454a5306244ab76b2d79e167c0e7146d422161daf27257770198fd",
+    "src/app/api/admin/revenue-os/ai/conversations/route.ts": "f0f9c5e3eaeec896d10c7c19ab3c2264e8d947a498f2e4492eaf08ba93ebd5ed",
+    "src/app/api/admin/revenue-os/ai/feedback/route.ts": "3577fe8fb268c642639e83c4f5e8711c7b91fe54244957db42cee0f69fac1f82",
+    "src/app/api/admin/revenue-os/ai/runs/[id]/route.ts": "c88f9daf9b655445bf240ce856ff5b1fb364afc9dba642513470dbe8fd5e3383",
+    "src/app/api/admin/revenue-os/ai/runs/route.ts": "1611a2f123a5751e7bb2c37955dd1c0b4209d003028aa0a8660e47f1bae80189",
+    "src/app/api/admin/revenue-os/ai/stream/route.ts": "0742738061c3d609d8ee4e7ef6321316b89032e734aecad224a29401293961f7",
+    "src/app/api/admin/revenue-os/analytics/route.ts": "962c2a65c89ea76b6445bf99c94f8f555d4759bd4410f0d961b2028fd0818d1e",
+    "src/app/api/admin/revenue-os/campaigns/members/route.ts": "4c00ab2b57f3a36bbe60928833c37f79018538f1cd9d13437a78dd289f73e86b",
+    "src/app/api/admin/revenue-os/campaigns/preview/route.ts": "63eab34f9292f3f161061a89e7a528725d2dbf896236825716e6acdb3c5af3f9",
+    "src/app/api/admin/revenue-os/campaigns/route.ts": "2dabf6a6b2ec93f2ca9210444f799f7b329f82efdda3334574e850caf168950d",
+    "src/app/api/admin/revenue-os/contact-imports/route.ts": "b9b099c4ac780caba3cfaf0d0360210760ae00dedcd5488af8775ad6f072c5d3",
+    "src/app/api/admin/revenue-os/conversations/action/route.ts": "337ebd5f168a4c83d8eb6a0d227e8892bad03bce4136d5227f73611388dde351",
+    "src/app/api/admin/revenue-os/conversations/reply/route.ts": "e71ad8ae4e543356b264f0cac9729f08d1ddbc9826d92bd5e4a7c37ef81f6e10",
+    "src/app/api/admin/revenue-os/conversations/route.ts": "f30d5de2988b570874182f723a0dd4054c4ea8888bb9e96330ad9b175f52620f",
+    "src/app/api/admin/revenue-os/identity-review/route.ts": "2236f24ce31d1a8ccedc1ef29e7101ede67e992af4d860ef5a67f4df3a9b3952",
+    "src/app/api/admin/revenue-os/layout/route.ts": "5bf242d5b14c5dcbcaf9fbaa22c3f503862fc91f0210394a1021d74dd882c5e4",
+    "src/app/api/admin/revenue-os/overview/route.ts": "e90401f07349efc6fc64914418b771ca91ea41a947c30672343eb5d41e5825b3",
+    "src/app/api/admin/revenue-os/pipeline/route.ts": "6dda6ba64af9a42010d6a0efaacb89565a12500bd6ad34e37ce30e6c7f0e4c30",
+    "src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts": "30c2a10b3b52bb46c688b87ce591329dc89dfa3a60939cdc2ac54a12ff0c9e16",
+    "src/app/api/admin/revenue-os/recovery/route.ts": "618f42369e72b357efd35a846c19cfa21b1e32f06d405a20ccf7cf650fc8f288",
+    "src/app/api/admin/revenue-os/tasks/route.ts": "342c2e36c31e200393d53bb1e7e3ef3da65356162889a14196c09241169bb88a",
+    "src/app/api/admin/revenue/route.ts": "8319d9ab6e26f5f63330b651e20c8a8f4de037136d521365f1f3244b02382967",
+    "src/app/api/admin/settings/route.ts": "7f2356ae469f754ec265ab3f64e759533f39d7b86c462c08b05f6f7794caa62e",
+    "src/app/api/admin/settings/test/route.ts": "6af19b49a18255b47341cc89fc17544196b8e13687cc4787caab1b7d0a434f0b",
+    "src/app/api/admin/setup/route.ts": "0275110e753b02e76653f4344ee7e4ea31f29b838c6e1978d9c34682db3fe9cd",
+    "src/app/api/admin/subscribers/export/route.ts": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63",
+    "src/app/api/admin/subscribers/route.ts": "1429316486a5a73286187e9ef135c414058683a329859d26057da3842f2d8501",
+    "src/app/api/admin/tasks/route.ts": "0871695d68d7b583f5fc3b2666df485bbccc828f0ecf1c01a3176555f717fb71",
+    "src/app/api/admin/tenant/modules/route.ts": "13e2ea3d4f2ba409e380793e8ed29e3ac4271a51bc3290d6f30df2d21b1ccf88",
+    "src/app/api/admin/tenant/providers/route.ts": "b8f74f11a67773cb134d7cdab68f7cf1ac5eda6b188c11c13c09bd9f81e3ecee",
+    "src/app/api/admin/tenants/route.ts": "6012e4113dce8b981fc72d7f59fe96c86c3380924dffebd75d9e9987821c0b4c",
+    "src/app/api/admin/website-grades/export/route.ts": "010d8a442b984a7223fb7003e78a0ae3bafd5d98c090f996f1ed370587a60772",
+    "src/app/api/admin/website-grades/route.ts": "781bbdc52de30ef63421a7f51c9555bc14824e25c6ed749e1c4c28e5c14a805f",
+    "src/components/admin/AICapabilities.tsx": "a002a0ed29cca7fbbb4be4599b317dafbf5be1fad7b8ad17aef54864945c3b2b",
+    "src/components/admin/AIRunHistory.tsx": "7b1435f78af743f431fc3bad46de404ef45e65d2ea2857831d00678ed785cbeb",
+    "src/components/admin/AddLeadModal.tsx": "f7b80a821aac1e10204fb8d2eb2770847ea4a323c12858367c7a69fb609fa0df",
+    "src/components/admin/AdminAIChat.tsx": "b3a0fd35af95322caa7910aabc7d8b65461bd1ace2da2ac18f41a7f7c7c1e800",
+    "src/components/admin/AdminAIPanel.tsx": "b7153809b5422c884a719a0ae3210eace4223838e4be334fc0b8340884ac647a",
+    "src/components/admin/AdminAIProvider.tsx": "202d5be95a9174dcd3023d3daed07ecf7c625ff9fe3a17c6a933071a0110c80a",
+    "src/components/admin/AdminAIWorkspace.tsx": "f574356d862c251a010e4577ccaf59f7432d2a5045ad3b7d388a80360e8d624f",
+    "src/components/admin/AdminAppearancePicker.tsx": "abcfac44158545b6800ff3f234a20724b6de6a44d775292e09444ba8d5d19980",
+    "src/components/admin/AdminAsyncRegion.tsx": "3349a8b006d3e7451fdc1e8feb52d5b2522f18f8a1e71631d5898cc8232a2c53",
+    "src/components/admin/AdminAuthLayout.tsx": "919c168dcb2e0122b971c8bb0158d745647a40c399e8e0cfdcdb918dabab2ee0",
+    "src/components/admin/AdminCreateTaskModal.tsx": "ab5f9e4bf4e9842a8a65be9d2bea92e2d36aa62d61b9d134176da969cda2f516",
+    "src/components/admin/AdminDemoBoundary.tsx": "aeeba52c9f4d2b8decb6b4ccda7ba02f0260eec8e7870c8d8ad12754cafb12e4",
+    "src/components/admin/AdminDialog.tsx": "0b5ec0123e4889e679f7595f9280c27f1192209fbd2337f60b28164dfbea1443",
+    "src/components/admin/AdminErrorBoundary.tsx": "31e7a1f74e8366ddf2faac0f56415595f36cf89510534e33cd7372f50910d49a",
+    "src/components/admin/AdminFounderNoteModal.tsx": "ff973a675dda87336644dae64497aea7dcea9ee559fa695ed7cb66e061f8e735",
+    "src/components/admin/AdminLink.tsx": "36fe275acea84008ef653d9eb8c0053fd8251e750ab147ab0f0a7a98e83ba08e",
+    "src/components/admin/AdminPageLoading.tsx": "599a73d33e924dabc3fa5027ed814799b0d9c638e6298cef8fb610358068832e",
+    "src/components/admin/AdminQueryProvider.tsx": "da2640bd0b65f1149e69741626b5846e84746a1c837c3e6180aa5f99cab136dc",
+    "src/components/admin/AdminReadBody.tsx": "12a8d795ec58a86f701541e8b451f0147cfdaf45206cf4a66636ec081ef01652",
+    "src/components/admin/AdminRouteSkeleton.tsx": "0249268d08d6dc7ec8a69f78185022a89d716ea798a615e87f9c1f4e7e101e03",
+    "src/components/admin/AdminRouteStage.tsx": "7afabd9a999cb42e1494c25d268bbc97510c061a0483d6b26f2ea71d87e4066e",
+    "src/components/admin/AdminShell.tsx": "0137a716bc80a09d8378877992f8d208100974ffca513d5b9fc99b69d8aec9bd",
+    "src/components/admin/AdminShortcuts.tsx": "426068e57edf4cb5e032f1b8429f71405474762be7dafb0ac94d733df011e8ee",
+    "src/components/admin/AdminStatusMessage.tsx": "2a6a04a62b69e69db7100cb7a768ff328d5c2dfea3bb04763863f848141583fe",
+    "src/components/admin/AdminSurface.tsx": "3c50bc9ece668e6513016254c9da34c56ba228eb306cde93b41ee7934713afc3",
+    "src/components/admin/AdminSwitch.tsx": "600e60787b87e80edcbd8c692095921c54b9b98a9d07976d1c873dfd0abc4141",
+    "src/components/admin/AdminTable.tsx": "ad851510d70e104c7f2578ee8affc57d873dee81babfba31036487df98e75e06",
+    "src/components/admin/ChannelBreakdown.tsx": "fb6deda8fab795f0988422f4cbe3f57cbeeb49b7b17c543bef37f54c239d1429",
+    "src/components/admin/ClientDetail.tsx": "2c32d97f811554c37cc29bf2f857818516b2cec39ec7f522e3a36adea193274c",
+    "src/components/admin/ContactIntakeNav.tsx": "22945f5b41c01fc863c5ecb07d0dbdb9c3bed63dc21d8a3769cec1882bca4930",
+    "src/components/admin/ContactTimeline.tsx": "8e251932bd74d4807957749fa7502c8be0bbbbbea616a9ae7417447e39292a0d",
+    "src/components/admin/ContentItemForm.tsx": "b29da4586c79225beac0ef2bdabc3b41492e874b3424afdbad2292d665934dec",
+    "src/components/admin/ContentKanban.tsx": "8c2fe0b2fbe29e4ef47438f4560ffa26b0c35976b7fd1b9ed73c5802b103f518",
+    "src/components/admin/ConversionFunnel.tsx": "27757a15e248ce5478a21f614e53d8ead969d350a301a42573213b0435cee310",
+    "src/components/admin/DashboardMetrics.tsx": "41b7286f8677f4d928fbc8c191ea21479b1c4854e9cd42da8f42ac46e1e1a399",
+    "src/components/admin/DateRangeFilter.tsx": "db9eed48a2b66b3fdca755c75ec39876ed412f6ba3b267e23560961280bc5dd4",
+    "src/components/admin/DemoScenarioMark.tsx": "a1df24f99743ae2f080b8502e8e4d7a3e7201820b15d19b795518efca39f2450",
+    "src/components/admin/DemoWorkspacePreview.tsx": "a302d384d3f891ae512091af2ed958395d9f49e32ef6ae62cabb60b13d3b788d",
+    "src/components/admin/EmailBlockComposer.tsx": "8758ce85a9d5c95ef577be1b24fb774a3afae85018b0e5739e878cffb3fa23cf",
+    "src/components/admin/EmailComposeModal.tsx": "54858657e71c3bca0090b5b4892ed1558cba76fbd02effaefe8afd19a1fa7810",
+    "src/components/admin/EmptyState.tsx": "113019c771faf65e60d8bb04febb08c171218f49b5f0bc578da8fc490e3b175b",
+    "src/components/admin/LayoutCustomizeDialog.tsx": "74c1a0ad4d8196771e0e49185bb8e8b44756ef20e71dd5c6a8e43ceaaa22c1d8",
+    "src/components/admin/LayoutScopeCard.tsx": "2392593a0b7b7b2995dabfba624fbbb72928690eb05e2b92eef12da243928df3",
+    "src/components/admin/LeadDetail.tsx": "d1cf377e3e656d5174cfe566932408dcfc561d3c997c055f5509d14c261c8c76",
+    "src/components/admin/LeadPipeline.tsx": "d6f4f95172aa2f19bc4165b314bde0e91f5fc98e30de66fe15c4b80a25d770c3",
+    "src/components/admin/LeadsChart.tsx": "35471c65770f8be8b5002a777be7f79dd761af2111663a969e2fd06589054900",
+    "src/components/admin/LeadsTable.tsx": "7c4919632932907868657d12e898b06cd09526f89733ad43972feae0d672ba33",
+    "src/components/admin/LoadingSkeleton.tsx": "746a3a9ad9aac0346a23c0144f7a2ae1b1eb07e7818b7a9cd5a3121a9bf14652",
+    "src/components/admin/MRRChart.tsx": "c053302eec2b71ba8eb02ab2a7f84d7fb89c3b106543faf9acaf6d56a0c86447",
+    "src/components/admin/ModuleDisabledNotice.tsx": "5923f7600ecc9607ac4ca35d16033397aab2047f8f446fe62424fd955dfd1490",
+    "src/components/admin/ModuleSettingsForm.tsx": "07ba6bb965cf8bacb40be797e3b4d967c6db19bd7f4b03a134c9f3b8d02b2077",
+    "src/components/admin/NotificationBell.tsx": "52308b7a48ebb9672e24d560bd3002792fea10280c9bb7550c3efc5c5aa5a4b6",
+    "src/components/admin/PageHeader.tsx": "0bfdf474812145a99d0bb75bf0c1ab2cdf807a17f1e962c2d650d947bd581bdd",
+    "src/components/admin/Pagination.tsx": "b3d4081852df3883f4e1ff0dfa7cb3e3a57e7920bcc5d69bebc0fcfd25bb18f3",
+    "src/components/admin/PlausibleWidget.tsx": "250f81a9de33b8432d902c626757002def6ea084e88c26dfa0c933f6e54ebeed",
+    "src/components/admin/ProposalEditor.tsx": "a39e2fae836275917a132e787043749d2e333e15be2929527286cb3c31579323",
+    "src/components/admin/QuickActions.tsx": "56f5b4b70153e6b787b4f1ab9547b580de0ab0e6af9cda76a06a9440117719ff",
+    "src/components/admin/RevenueAICommand.tsx": "c2c7399460b097bc9db2705196a1f1854a89a6217bf6cf91e7c75ef4c3c16762",
+    "src/components/admin/RevenueSetupGate.tsx": "f237886bcf66240eb49385896fb78437cdfa6cab80ae841e2b7258ea15583e93",
+    "src/components/admin/RevenueSnapshot.tsx": "b15023b5855d1c79d4628d17ebe9e7fb63c7d9be3733650e3ab568beb39b31a0",
+    "src/components/admin/StatCard.tsx": "8f50517e29cabd7baa59a4d196495c1a0c6b53eede48240d7461447f47112a7b",
+    "src/components/admin/StatusBadge.tsx": "962c450c0c42b18132b3c567f63ee6830c32ef20738f5a145882c90679b31e6f",
+    "src/components/admin/TaskQuickAdd.tsx": "9b20a45449e993878a4a2fafab3e79b07d00134c7757cd197282e2bc95e4e66d",
+    "src/components/admin/TaskWidget.tsx": "b25b7112ea44c49e02ff48856f6cf7e0ac71f59e80aaefafd7264718af38ca1d",
+    "src/components/admin/TenantProviderControls.tsx": "9084a0d55d00b2fc5a650e57de5b7ce78841dbf40f3b0695071ff5747e6be67a",
+    "src/components/admin/Toaster.tsx": "e05c110e50f2a3eccdd32a99daf5749d2f62d125bf29e7a06bfb551deb7b8672",
+    "src/components/admin/TodaysPriorities.tsx": "7aacbf6802c467c7db99987d3c7c8dd03843118de743c82b24bb5179947a8064",
+    "src/components/admin/work-board/WorkAgents.tsx": "d6e9063de1925887fd00a1de88ffc2d6b17b57de176ec50d429ec13d90d6f716",
+    "src/components/admin/work-board/WorkControls.tsx": "b3e1d0bd659a22d340924e3aa75ee35424430dafa443f28f37a0d1b221426819",
+    "src/components/admin/work-board/WorkViews.tsx": "b3f79e39d720d02cd525f620fba78fd840a148900e9a217536467a0f5acaab6b",
+    "src/lib/admin/navigation.ts": "3b8a36cafa6e704f0ae56e48f2220eeb566c8b01d98a9c0422bccca3268bc7e6",
+    "src/lib/ai/approved-pricing.ts": "de3c37eddce5b73b90acc8e38f72d01865e9a1b207ea3a27972de4bfbd34dc42",
+    "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
+    "src/lib/ai/openrouter.ts": "071c34081f4dcb47b858b16fcb2dd984bd0c1815b0772b12587568d3ad6ee545",
+    "src/lib/email/blocks.ts": "694fecaa691755074a7eafa07f2cb8170af100bb2b2c0614e70f5a344eec2e0b",
+    "src/lib/email/booking.ts": "b6559df14564fd4d7a208c11c246f711f1f410023301494655a9c7b4856b034a",
+    "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
+    "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
+    "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
+    "src/lib/revenue-os/README.md": "7783a0d2ad30a54ea4ec62df5e4a748a0ca40129bea03725f5ca48faf458a945",
+    "src/lib/revenue-os/action-executor.ts": "890e156d0745795d9874f15fc59bea8ccaab2966d420a993db38625e950bf324",
+    "src/lib/revenue-os/actions.ts": "b6d615552cc096f351063842781dade666f4bd46f876caf53909736d73dd1cbd",
+    "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
+    "src/lib/revenue-os/admin-layout.ts": "ff2dc9c00872a997132eee2cfee31f359c6ecee4ac2112c7b17fccd0d91886ad",
+    "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
+    "src/lib/revenue-os/ai-agent.ts": "ec06e5f324b5d3b3ee7cf735e1dd856ce25f238d69bf54933dff9ec82b335182",
+    "src/lib/revenue-os/ai-conversations.ts": "8e4be3df653134b373db518e1dbc4d92532dd9994606610037f679174aee6f22",
+    "src/lib/revenue-os/ai-operations-contract.ts": "4ec6c391c8007e4d34e66c45d7c24def45eedf2df3b96f2735db283df7f45c2e",
+    "src/lib/revenue-os/ai-operations.ts": "ae39bc1112700f7af976bdf68a1308d7c720747ed82191d589817ba78b4aa945",
+    "src/lib/revenue-os/ai-stream-contract.ts": "813ce466f99ba479b50cfee912921003a8e21bf812dba9e16494a4df3b5d00c7",
+    "src/lib/revenue-os/ai-tools.ts": "311df75599e17e28b12b8162b55fbd394e9d78bb1a274ebf560c8120a61e4852",
+    "src/lib/revenue-os/analytics.ts": "d57c3a867c3926e1fed1a64c110f0f28c8569e96a3c177b033e4eb11967764fb",
+    "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
+    "src/lib/revenue-os/campaigns.ts": "e23424b1c4ce12954a142afe5fcc76027847eb14d72f068b1a9d20258261e683",
+    "src/lib/revenue-os/communications.ts": "e26470325dddf8f912f6db731ca34d967f802cc0257bb30d4d725b5b47cb8538",
+    "src/lib/revenue-os/contact-imports.ts": "821064ded426b028180e6b20089bc901e137e8943fd6aa34bca647d2f4aba4e5",
+    "src/lib/revenue-os/conversations.ts": "544843ee34499b7e6fd298ede26719d8c0671d696703b85b63bdf39ae0883218",
+    "src/lib/revenue-os/db.ts": "167cc018fe0d8387547c174be0fc105edb9efbee6608bf93e2d0e9ca05d038cb",
+    "src/lib/revenue-os/encryption.ts": "68748b621a25f182ba20a5b5f362220b4ac59b93103b6a81c202f0e34e09c405",
+    "src/lib/revenue-os/google-oauth.ts": "2d9c5c5464096402cfdd3ceac244835ddbd4da4677bfeda58508051efcfa68bc",
+    "src/lib/revenue-os/google.ts": "506381111251c2473fc5eef5165b65b29fcff5a41c18dd507ed68e72b11bc374",
+    "src/lib/revenue-os/health.ts": "22d625d67c40b89493942a8d0650d436487481c602371986771335723a25927f",
+    "src/lib/revenue-os/identity-review.ts": "f73493619963baf973fe78b771d2fdcb45ac5aa6aeb91c7d9bfb551420223a71",
+    "src/lib/revenue-os/identity.ts": "c8fa3f4da1ab6a24c6258cce7fdb19cbdd3047060b10f30f4204baa48441ea69",
+    "src/lib/revenue-os/inbound.ts": "de54828d2f205e1e477a3d396010229e4662a2488db3006685cfb0766d9fc9ff",
+    "src/lib/revenue-os/integration-adapters.ts": "77541bc8b83991effec8daaf0a9d318024ea54c64a043cf486017e4fec379476",
+    "src/lib/revenue-os/integrations.ts": "ccbce4a2978ba4e53ba3844d86bc3aaa3f4d7f041e160a484fdd2a93f5aa5328",
+    "src/lib/revenue-os/legacy-adapter.ts": "9a2059762594fc261e31bc798f3582c7732999e2538c74ee37a3e992acae1789",
+    "src/lib/revenue-os/mcp-server.ts": "e24e0936255c7929b1475e808503e4d08147d594c3716eabecd31b3a26de1d53",
+    "src/lib/revenue-os/modules.ts": "8dbd68927a91a0af74355a616675b5241fee57ea3f15297fb538f1e4e6cbc1ef",
+    "src/lib/revenue-os/pipeline-stage-resolver.ts": "3581116b6b179a7955feba43e7b535fdfd7febc5f5823eebf804113665486f94",
+    "src/lib/revenue-os/pipeline.ts": "dc74da9e48ce6cb20aa177c3509785205ee5f18d76520ff62d1dfbda642979d4",
+    "src/lib/revenue-os/queue.ts": "1978dc389d16b247dee407705ecc7f45a8d2dc57317560d035f15be4f44e7bef",
+    "src/lib/revenue-os/records.ts": "65000f47cc9d6430e79b897c8765f8c407318bf6e23f12a5409093f24a60ae2b",
+    "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
+    "src/lib/revenue-os/runs.ts": "d9cb3def33e48ba80425237a7534776353e1f591ab56717ccbf9002d59afeb9c",
+    "src/lib/revenue-os/schema-contract.ts": "6972374ea501d00d34221398371ad111469a9a6696b9a40d791a188f9cba9408",
+    "src/lib/revenue-os/setup-status.ts": "644ca96abc605836b956c70b7a0e93111f993b22bf58df5345f2bccaf2c680e3",
+    "src/lib/revenue-os/tasks.ts": "da4f236b29ab289098a97a8303bec8663a1422d5b4770d1939a360cebc5de9af",
+    "src/lib/revenue-os/types.ts": "752cdc55521476a1dc6c491656ac12c4191000cfe956c09ca8c32f3d041dfd66",
+    "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
+    "src/lib/revenue-os/work-board.ts": "0f5f9b7ab84a3692f10f0649d37803e61a12c3ffd52b1d58e24b9eec8167a957",
+    "src/lib/tenancy/lifecycle.ts": "2b2ca947757d4ff3595062f918734b1b765f89352a834e440ae28ae140de8b53",
+    "src/lib/tenancy/system.ts": "28e241c788fba9c5793536d0bcf6db076c0d56f6513976f9ae387acc4b222911"
+  },
+  "routes": [
+    {
+      "route": "/admin",
+      "page": "src/app/admin/page.tsx",
+      "primaryAction": "Open Today",
+      "adapters": [],
+      "boundary": "Existing entry redirect; no record source.",
+      "followUp": null,
+      "specialBoundary": "redirect:/admin/today"
+    },
+    {
+      "route": "/admin/activity",
+      "page": "src/app/admin/activity/page.tsx",
+      "primaryAction": "Inspect and filter operator audit events",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/activity/route.ts",
+          "domainImports": ["@/lib/revenue-os/audit"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Audit events are not the normalized business activity timeline.",
+      "followUp": {
+        "key": "canonical-revenue-activity-parity",
+        "id": "38a08974-f92b-4106-821b-b328d40090d7"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/ai",
+      "page": "src/app/admin/ai/page.tsx",
+      "primaryAction": "Ask the assistant; inspect runs and capabilities",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue-os/ai/capabilities/route.ts",
+          "domainImports": ["@/lib/revenue-os/ai-operations-contract", "@/lib/revenue-os/ai-tools"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts",
+          "domainImports": ["@/lib/revenue-os/ai-conversations"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/ai/conversations/route.ts",
+          "domainImports": ["@/lib/revenue-os/ai-conversations"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/ai/feedback/route.ts",
+          "domainImports": ["@/lib/revenue-os/agent-learning"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/ai/runs/[id]/route.ts",
+          "domainImports": ["@/lib/revenue-os/ai-operations"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/ai/runs/route.ts",
+          "domainImports": ["@/lib/revenue-os/ai-operations"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/ai/stream/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/ai-agent",
+            "@/lib/revenue-os/ai-conversations",
+            "@/lib/revenue-os/ai-stream-contract"
+          ],
+          "directTables": []
+        }
+      ],
+      "boundary": "Shared AI workspace; writes require the existing action approval path.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/ai-operations",
+      "page": "src/app/admin/ai-operations/page.tsx",
+      "primaryAction": "Open AI run history",
+      "adapters": [],
+      "boundary": "Compatibility redirect preserves demo scenario context.",
+      "followUp": null,
+      "specialBoundary": "redirect:/admin/ai?view=runs"
+    },
+    {
+      "route": "/admin/analytics",
+      "page": "src/app/admin/analytics/page.tsx",
+      "primaryAction": "Compare funnel and revenue metrics",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue-os/analytics/route.ts",
+          "domainImports": ["@/lib/revenue-os/analytics", "@/lib/revenue-os/db"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Canonical analytics read model; field parity with Revenue remains unproven.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/bookings",
+      "page": "src/app/admin/bookings/page.tsx",
+      "primaryAction": "Review bookings and change an opportunity stage",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/bookings/route.ts",
+          "domainImports": ["@/lib/email/booking", "@/lib/revenue-os/pipeline"],
+          "directTables": ["opportunities", "tasks"]
+        }
+      ],
+      "boundary": "Stage changes call pipeline.ts; value patches and follow-up task writes remain in the adapter.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/campaigns",
+      "page": "src/app/admin/campaigns/page.tsx",
+      "primaryAction": "Preview a campaign audience and manage members",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue-os/campaigns/members/route.ts",
+          "domainImports": ["@/lib/revenue-os/db", "@/lib/revenue-os/identity"],
+          "directTables": ["campaign_members", "campaigns"]
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/campaigns/preview/route.ts",
+          "domainImports": ["@/lib/revenue-os/campaigns"],
+          "directTables": ["campaign_members", "campaign_steps", "campaigns"]
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/campaigns/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/audit",
+            "@/lib/revenue-os/campaigns",
+            "@/lib/revenue-os/db"
+          ],
+          "directTables": ["campaign_steps", "campaigns"]
+        }
+      ],
+      "boundary": "Campaign services own execution; previews are not sends.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/chat-leads",
+      "page": "src/app/admin/chat-leads/page.tsx",
+      "primaryAction": "Search and inspect chat inquiries",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/chat-leads/route.ts",
+          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "directTables": ["chat_leads"]
+        }
+      ],
+      "boundary": "Retain chat_leads.id and its canonical linkage; bounded display is not a full row reconciliation.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/clients",
+      "page": "src/app/admin/clients/page.tsx",
+      "primaryAction": "Filter clients and open a client record",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/clients/route.ts",
+          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "directTables": ["clients"]
+        }
+      ],
+      "boundary": "Retain clients.id; source values and canonical linkage have different owners.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/clients/[id]",
+      "page": "src/app/admin/clients/[id]/page.tsx",
+      "primaryAction": "Edit a client and inspect its timeline",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/clients/route.ts",
+          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "directTables": ["clients"]
+        },
+        {
+          "path": "src/app/api/admin/contacts/timeline/route.ts",
+          "domainImports": ["@/lib/revenue-os/activities"],
+          "directTables": [
+            "chat_leads",
+            "companies",
+            "contact_submissions",
+            "contacts",
+            "conversations",
+            "email_sequences",
+            "messages",
+            "opportunities",
+            "resource_downloads",
+            "sent_emails",
+            "solution_requests",
+            "subscribers",
+            "tasks",
+            "website_grades"
+          ]
+        }
+      ],
+      "boundary": "Client fields remain on clients; email-based timeline lookup needs explicit identity disposition.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/contact-imports",
+      "page": "src/app/admin/contact-imports/page.tsx",
+      "primaryAction": "Preview and apply a contact import",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue-os/contact-imports/route.ts",
+          "domainImports": ["@/lib/revenue-os/contact-imports"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Import and identity services own validation and identity decisions.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/contacts",
+      "page": "src/app/admin/contacts/page.tsx",
+      "primaryAction": "Review submissions, export and delete selected records",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/contacts/export/route.ts",
+          "domainImports": [],
+          "directTables": ["contact_submissions"]
+        },
+        {
+          "path": "src/app/api/admin/contacts/route.ts",
+          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "directTables": ["contact_submissions"]
+        }
+      ],
+      "boundary": "List rows are contact_submissions, not the canonical contacts table; preserve source IDs.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/contacts/[email]",
+      "page": "src/app/admin/contacts/[email]/page.tsx",
+      "primaryAction": "Inspect a contact timeline",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/contacts/timeline/route.ts",
+          "domainImports": ["@/lib/revenue-os/activities"],
+          "directTables": [
+            "chat_leads",
+            "companies",
+            "contact_submissions",
+            "contacts",
+            "conversations",
+            "email_sequences",
+            "messages",
+            "opportunities",
+            "resource_downloads",
+            "sent_emails",
+            "solution_requests",
+            "subscribers",
+            "tasks",
+            "website_grades"
+          ]
+        }
+      ],
+      "boundary": "URL identity is email; do not infer canonical uniqueness from the route parameter.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/content",
+      "page": "src/app/admin/content/page.tsx",
+      "primaryAction": "Create content items and move their status",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/content/route.ts",
+          "domainImports": [],
+          "directTables": ["content_calendar", "kanban_columns"]
+        }
+      ],
+      "boundary": "content_calendar and kanban_columns remain source records; status changes do not publish content.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/conversations",
+      "page": "src/app/admin/conversations/page.tsx",
+      "primaryAction": "Triage conversations and send a reply",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/google/sync/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/google",
+            "@/lib/revenue-os/google-oauth",
+            "@/lib/revenue-os/runs"
+          ],
+          "directTables": ["integration_connections"]
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/conversations/action/route.ts",
+          "domainImports": ["@/lib/revenue-os/conversations"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/conversations/reply/route.ts",
+          "domainImports": ["@/lib/revenue-os/actions", "@/lib/revenue-os/google"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/conversations/route.ts",
+          "domainImports": ["@/lib/revenue-os/conversations"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Conversation and Google services own triage and threaded replies.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/email-sequences",
+      "page": "src/app/admin/email-sequences/page.tsx",
+      "primaryAction": "Filter and inspect email sequence progress",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/email-sequences/route.ts",
+          "domainImports": [],
+          "directTables": ["email_sequences"]
+        }
+      ],
+      "boundary": "Legacy email_sequences read; no canonical execution parity established here.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/emails",
+      "page": "src/app/admin/emails/page.tsx",
+      "primaryAction": "Edit and preview templates; inspect delivery history",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/emails/history/route.ts",
+          "domainImports": [],
+          "directTables": ["messages", "sent_emails"]
+        },
+        {
+          "path": "src/app/api/admin/emails/preview/route.ts",
+          "domainImports": [
+            "@/lib/email/blocks",
+            "@/lib/email/registry",
+            "@/lib/email/resend",
+            "@/lib/revenue-os/audit",
+            "@/lib/revenue-os/communications",
+            "@/lib/tenancy/system"
+          ],
+          "directTables": ["email_template_versions", "email_templates"]
+        }
+      ],
+      "boundary": "Email template services own saved versions; history is delivery evidence, preview is not delivery.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/example-inventory",
+      "page": "src/app/admin/example-inventory/page.tsx",
+      "primaryAction": "Read the extension example",
+      "adapters": [],
+      "boundary": "Disabled-by-default example page has no inventory records or primary write.",
+      "followUp": null,
+      "specialBoundary": "none"
+    },
+    {
+      "route": "/admin/features",
+      "page": "src/app/admin/features/page.tsx",
+      "primaryAction": "Claim work, record progress and submit evidence",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/features/agents/route.ts",
+          "domainImports": ["@/lib/revenue-os/work-board", "@/lib/revenue-os/work-board-http"],
+          "directTables": ["work_board_agents"]
+        },
+        {
+          "path": "src/app/api/admin/features/route.ts",
+          "domainImports": ["@/lib/revenue-os/work-board", "@/lib/revenue-os/work-board-http"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/features/views/route.ts",
+          "domainImports": ["@/lib/revenue-os/work-board", "@/lib/revenue-os/work-board-http"],
+          "directTables": ["work_board_views"]
+        }
+      ],
+      "boundary": "Canonical work-board service owns claims and lifecycle; page is its adapter.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/identity-review",
+      "page": "src/app/admin/identity-review/page.tsx",
+      "primaryAction": "Resolve or defer ambiguous identities",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue-os/identity-review/route.ts",
+          "domainImports": ["@/lib/revenue-os/identity-review"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Use identity-review service; ambiguity is never permission for an automatic merge.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/inbox",
+      "page": "src/app/admin/inbox/page.tsx",
+      "primaryAction": "Triage inquiries, tasks and proposed actions",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/contacts/route.ts",
+          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "directTables": ["contact_submissions"]
+        },
+        {
+          "path": "src/app/api/admin/inbox/route.ts",
+          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "directTables": [
+            "action_queue",
+            "chat_leads",
+            "contact_submissions",
+            "partner_applications",
+            "proposals",
+            "solution_requests",
+            "tasks",
+            "work_items"
+          ]
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/db"
+          ],
+          "directTables": ["action_queue"]
+        },
+        {
+          "path": "src/app/api/admin/tasks/route.ts",
+          "domainImports": ["@/lib/revenue-os/tasks"],
+          "directTables": ["tasks"]
+        }
+      ],
+      "boundary": "Mixed source inbox; reconcile by source type and ID, not just combined row count.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/integrations",
+      "page": "src/app/admin/integrations/page.tsx",
+      "primaryAction": "Configure integrations, providers and module settings",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/google/sync/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/google",
+            "@/lib/revenue-os/google-oauth",
+            "@/lib/revenue-os/runs"
+          ],
+          "directTables": ["integration_connections"]
+        },
+        {
+          "path": "src/app/api/admin/integrations/route.ts",
+          "domainImports": ["@/lib/revenue-os/integrations"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/tenant/modules/route.ts",
+          "domainImports": ["@/lib/revenue-os/audit", "@/lib/revenue-os/modules"],
+          "directTables": ["tenants"]
+        },
+        {
+          "path": "src/app/api/admin/tenant/providers/route.ts",
+          "domainImports": [
+            "@/lib/ai/openrouter-credentials",
+            "@/lib/revenue-os/audit",
+            "@/lib/revenue-os/encryption",
+            "@/lib/revenue-os/integration-adapters"
+          ],
+          "directTables": ["integration_connections"]
+        }
+      ],
+      "boundary": "Integration, module and tenant provider services have separate ownership.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/leads",
+      "page": "src/app/admin/leads/page.tsx",
+      "primaryAction": "Add a lead and change its stage",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/leads/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/inbound",
+            "@/lib/revenue-os/legacy-adapter",
+            "@/lib/revenue-os/pipeline",
+            "@/lib/revenue-os/pipeline-stage-resolver"
+          ],
+          "directTables": ["clients", "opportunities", "solution_requests", "tasks"]
+        }
+      ],
+      "boundary": "Canonical intake and transitions coexist with solution_requests compatibility reads and direct updates.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/login",
+      "page": "src/app/admin/login/page.tsx",
+      "primaryAction": "Sign in or request a password reset",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/login/route.ts",
+          "domainImports": [],
+          "directTables": ["tenant_memberships"]
+        },
+        {
+          "path": "src/app/api/admin/password-reset/route.ts",
+          "domainImports": ["@/lib/email/resend", "@/lib/email/templates"],
+          "directTables": ["tenant_memberships"]
+        }
+      ],
+      "boundary": "Authentication boundary; no business record reconciliation applies.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/partners",
+      "page": "src/app/admin/partners/page.tsx",
+      "primaryAction": "Review applications and update their status",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/partners/route.ts",
+          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "directTables": ["partner_applications"]
+        }
+      ],
+      "boundary": "Preserve partner_applications.id and status; canonical identity linkage does not migrate application fields.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/pipeline",
+      "page": "src/app/admin/pipeline/page.tsx",
+      "primaryAction": "Create an opportunity and change its stage",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue-os/pipeline/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/db",
+            "@/lib/revenue-os/pipeline",
+            "@/lib/revenue-os/pipeline-stage-resolver"
+          ],
+          "directTables": [
+            "calendar_events",
+            "companies",
+            "contacts",
+            "kanban_columns",
+            "opportunities"
+          ]
+        }
+      ],
+      "boundary": "Canonical pipeline services own opportunity transitions.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/pipeline/[id]",
+      "page": "src/app/admin/pipeline/[id]/page.tsx",
+      "primaryAction": "Inspect an opportunity and its linked work",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/db",
+            "@/lib/revenue-os/pipeline",
+            "@/lib/revenue-os/records"
+          ],
+          "directTables": []
+        }
+      ],
+      "boundary": "Bounded canonical record read model; inspect referenced services before extending writes.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/proposals",
+      "page": "src/app/admin/proposals/page.tsx",
+      "primaryAction": "Create, edit and send a proposal",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/proposals/generate/route.ts",
+          "domainImports": [
+            "@/lib/ai/approved-pricing",
+            "@/lib/ai/openrouter",
+            "@/lib/ai/openrouter-credentials"
+          ],
+          "directTables": ["solution_requests"]
+        },
+        {
+          "path": "src/app/api/admin/proposals/route.ts",
+          "domainImports": ["@/lib/revenue-os/audit"],
+          "directTables": ["proposals"]
+        }
+      ],
+      "boundary": "Proposal records and adapter actions remain; audit import alone does not make a domain writer.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/recovery",
+      "page": "src/app/admin/recovery/page.tsx",
+      "primaryAction": "Preview eligible recovery contacts and stage a batch",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue-os/recovery/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/campaigns",
+            "@/lib/revenue-os/db",
+            "@/lib/revenue-os/recovery"
+          ],
+          "directTables": []
+        }
+      ],
+      "boundary": "Recovery and campaign services own eligibility and staging.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/resources",
+      "page": "src/app/admin/resources/page.tsx",
+      "primaryAction": "Search download records and open a contact",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/resources/route.ts",
+          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "directTables": ["resource_downloads"]
+        }
+      ],
+      "boundary": "resource_downloads.id is a download record; search is page-local and does not edit a resource.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/revenue",
+      "page": "src/app/admin/revenue/page.tsx",
+      "primaryAction": "Inspect recurring value and accepted proposal totals",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue/route.ts",
+          "domainImports": [],
+          "directTables": ["clients", "proposals"]
+        }
+      ],
+      "boundary": "Reads clients and accepted proposals directly; not opportunity revenue or cash receipts.",
+      "followUp": {
+        "key": "canonical-revenue-activity-parity",
+        "id": "38a08974-f92b-4106-821b-b328d40090d7"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/settings",
+      "page": "src/app/admin/settings/page.tsx",
+      "primaryAction": "Save workspace preferences and test configured services",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/settings/route.ts",
+          "domainImports": ["@/lib/revenue-os/audit"],
+          "directTables": ["admin_settings"]
+        },
+        {
+          "path": "src/app/api/admin/settings/test/route.ts",
+          "domainImports": ["@/lib/ai/openrouter"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Admin settings adapter owns preference persistence; service tests can have external effects.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/setup",
+      "page": "src/app/admin/setup/page.tsx",
+      "primaryAction": "Inspect setup health and run available setup actions",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/google/sync/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/google",
+            "@/lib/revenue-os/google-oauth",
+            "@/lib/revenue-os/runs"
+          ],
+          "directTables": ["integration_connections"]
+        },
+        {
+          "path": "src/app/api/admin/setup/route.ts",
+          "domainImports": [
+            "@/lib/ai/openrouter-credentials",
+            "@/lib/revenue-os/ai-tools",
+            "@/lib/revenue-os/encryption",
+            "@/lib/revenue-os/google",
+            "@/lib/revenue-os/health",
+            "@/lib/revenue-os/mcp-server",
+            "@/lib/revenue-os/schema-contract",
+            "@/lib/revenue-os/setup-status",
+            "@/lib/revenue-os/types"
+          ],
+          "directTables": [
+            "calendly_webhook_receipts",
+            "contact_import_batches",
+            "email_template_versions",
+            "feature_requests",
+            "integration_connections",
+            "job_runs",
+            "messages",
+            "proposals",
+            "schema_verification_runs",
+            "source_runs",
+            "website_events"
+          ]
+        }
+      ],
+      "boundary": "Health and schema checks are operational evidence, not business record parity.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/subscribers",
+      "page": "src/app/admin/subscribers/page.tsx",
+      "primaryAction": "Search subscribers and export them",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/subscribers/export/route.ts",
+          "domainImports": [],
+          "directTables": ["subscribers"]
+        },
+        {
+          "path": "src/app/api/admin/subscribers/route.ts",
+          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "directTables": ["subscribers"]
+        }
+      ],
+      "boundary": "Retain subscribers.id; identity links do not prove consent or delivery-history parity.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/tenants",
+      "page": "src/app/admin/tenants/page.tsx",
+      "primaryAction": "Create a tenant and manage membership",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/tenants/route.ts",
+          "domainImports": ["@/lib/tenancy/lifecycle"],
+          "directTables": ["tenant_memberships", "tenants"]
+        }
+      ],
+      "boundary": "Tenant lifecycle service and membership adapters own this administrative boundary.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/today",
+      "page": "src/app/admin/today/page.tsx",
+      "primaryAction": "Review priorities, complete tasks and decide on actions",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/revenue-os/actions/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/action-executor",
+            "@/lib/revenue-os/actions",
+            "@/lib/revenue-os/db"
+          ],
+          "directTables": ["action_queue"]
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/layout/route.ts",
+          "domainImports": ["@/lib/revenue-os/admin-layout", "@/lib/revenue-os/audit"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/overview/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/db",
+            "@/lib/revenue-os/health",
+            "@/lib/revenue-os/pipeline-stage-resolver",
+            "@/lib/revenue-os/queue"
+          ],
+          "directTables": [
+            "campaigns",
+            "conversations",
+            "integration_connections",
+            "opportunities",
+            "proposals",
+            "solution_requests"
+          ]
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/tasks/route.ts",
+          "domainImports": ["@/lib/revenue-os/tasks"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Shared overview, task and action services; layout changes are configuration.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/update-password",
+      "page": "src/app/admin/update-password/page.tsx",
+      "primaryAction": "Set a new password",
+      "adapters": [],
+      "boundary": "Supabase auth client owns password update; no business record source.",
+      "followUp": null,
+      "specialBoundary": "auth-client"
+    },
+    {
+      "route": "/admin/website-grades",
+      "page": "src/app/admin/website-grades/page.tsx",
+      "primaryAction": "Inspect website grades and export results",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/website-grades/export/route.ts",
+          "domainImports": [],
+          "directTables": ["website_grades"]
+        },
+        {
+          "path": "src/app/api/admin/website-grades/route.ts",
+          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "directTables": ["website_grades"]
+        }
+      ],
+      "boundary": "Retain website_grades.id and report fields; identity links do not replace grade evidence.",
+      "followUp": {
+        "key": "canonical-retained-tools-parity",
+        "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
+      },
+      "specialBoundary": null
+    }
+  ]
+}
