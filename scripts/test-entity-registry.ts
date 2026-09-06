@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import {
   getEntityType,
+  findEntityLink,
+  readEntityLinksById,
   linkEntities,
   mergeEntities,
   registerEntityType,
@@ -88,6 +90,37 @@ async function main() {
   });
   assert.equal(first.link.id, second.link.id, "replayed link must resolve to the same edge");
   assert.equal(mem.rows("entity_links").length, 1, "tuple writes must be idempotent no-ops");
+  assert.equal(
+    (
+      await findEntityLink(db, {
+        tenantId: TENANT,
+        sourceType: "webinar",
+        sourceId: "w1",
+        targetType: "contact",
+        targetId: "c1",
+        linkType: "attended_by",
+      })
+    )?.id,
+    first.link.id,
+  );
+  assert.equal(
+    await findEntityLink(db, {
+      tenantId: FOREIGN,
+      sourceType: "webinar",
+      sourceId: "w1",
+      targetType: "contact",
+      targetId: "c1",
+      linkType: "attended_by",
+    }),
+    null,
+  );
+  assert.equal((await readEntityLinksById(db, TENANT, [first.link.id, first.link.id])).length, 1);
+  assert.deepEqual(await readEntityLinksById(db, FOREIGN, [first.link.id]), []);
+  await assert.rejects(
+    () => readEntityLinksById(db, TENANT, Array(51).fill(first.link.id)),
+    /fifty/,
+  );
+
   // Same pair under a different link type is a distinct fact.
   await linkEntities(db, {
     tenantId: TENANT,

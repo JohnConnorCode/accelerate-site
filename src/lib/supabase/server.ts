@@ -190,6 +190,14 @@ export async function callRadarAssessmentRpc(
   return callVerifiedHostRpc(database, "review_radar_assessment", args);
 }
 
+/** Exact approved source-backed relationship command. */
+export async function callRadarRelationshipRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+) {
+  return callVerifiedHostRpc(database, "review_radar_relationship", args);
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

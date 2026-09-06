@@ -357,3 +357,24 @@ UI, AI and MCP must not acquire separate write implementations. The optional
 manifest `historyRoute` must be an existing exact static page inside the module's
 owned routes. It changes display gating only; each domain service still enforces
 identity, enabled state and approved writes.
+
+### Relationship review extension
+
+Canonical CRM relationships now have a source-backed review service and three
+agent tools: `get_radar_relationship_context`, `preview_radar_relationship` and
+`propose_radar_relationship`. They support cited authorship, affiliations,
+publications, topic context, public business contact pages and explicit inbound
+introduction offers. The shared approval queue saves exact assertions and
+revocations with immutable evidence snapshots and receipts. It never infers
+`KNOWS`, ranks people or grants permission to send.
+
+Read existing conversation excerpts and current restrictions before drafting.
+Expired, retracted, ambiguous, missing or changed evidence withholds contact
+paths. Incomplete history remains explicit. Offers expire within 30 days; other
+assertions within 365 days. A quotation match does not prove the claim's meaning:
+the human reviewer must confirm the exact canonical identities and assertion.
+
+See the [plugin operator and extension guide](../../plugins/opportunity-radar/README.md#source-backed-relationships)
+for limits, migration, recovery, tool inputs and extension requirements. This
+service does not complete discovery, outreach delivery, publication or verified
+recognition. Release acceptance follows the live card's attached evidence.

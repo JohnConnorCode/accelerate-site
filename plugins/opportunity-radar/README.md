@@ -296,3 +296,60 @@ budget. New interfaces should call these services rather than write Radar tables
 While disabled, use the authenticated history page for retained records. AI/MCP
 plugin tools remain hidden by the shared module availability gate until Radar is
 re-enabled; the history-page exception does not grant an agent additional tools.
+
+## Source-backed relationships
+
+The relationship extension uses canonical contacts, companies, conversations and
+`entity_links`. It adds immutable `radar_relationship_reviews` containing the exact
+assertion, quotation, evidence snapshot, canonical endpoint snapshot, validity,
+reviewer and operation receipt. These are human-reviewed claims, not inferred
+friendships, credentials or contact consent.
+
+Use `get_radar_relationship_context` with a canonical contact ID before drafting.
+It returns current assertions, restrictions, prior inbound/outbound message
+excerpts and neutral review paths. `preview_radar_relationship` validates a review
+or revocation without saving. Pass the unchanged change and returned digest to
+`propose_radar_relationship`; the shared approval queue commits it only after
+explicit human approval and a fresh transaction check. Use one stable operation
+UUID per intended change. Reusing it with changed inputs is refused.
+
+Supported assertions are authorship, affiliation, publication, topic context,
+public business contact pages and explicit introduction offers. They require an
+exact quotation from a reviewed source version. Introduction offers instead need
+a received inbound message whose uniquely resolved sender matches the canonical
+introducing contact and conversation. Same names and co-occurrence never create
+relationships. The reviewer must confirm the quotation actually supports the
+specific assertion; substring matching cannot prove its meaning.
+
+Introduction reviews expire within 30 days; other assertions within 365 days.
+Revocation appends history even when an original message or link has disappeared.
+Missing core type declarations are installed only within the approved transaction,
+with ID-only read fields. Existing declarations and read policies are preserved;
+disabled or conflicting types refuse new reviews and withhold current paths.
+Canonical CRM merges may coalesce links. Historical references deliberately do
+not prevent that operation or cascade-delete reviews: a missing or moved edge is
+withheld from current paths until reviewed again. Changed source revisions,
+retracted sources, changed sender identity, suppression and unresolved identity
+also withhold paths. Public contact pages are references, never guessed addresses
+or permission to send.
+
+Reads return at most 20 assertions, 10 conversations and 20 message excerpts of
+600 characters. Underlying message evidence is bounded to 20,000 characters with
+a hash of the complete original message. Truncation is explicit; incomplete
+history requires manual review and does not establish the absence of an earlier
+ask. Review paths are unranked and always return `outreachPermission: false`.
+Disabling Radar prevents new reviews and recommendations while authenticated
+history remains readable through its owning services. Plugin AI tools follow the
+shared module gate. This does not provide a disabled-module AI bypass.
+
+Install `20260911-radar-relationships.sql` through the ordered migration catalog
+before using this extension. Missing schema produces an unavailable result, not
+request-time schema creation. No external data source, subscription or model call
+is required. Extend assertion schemas, canonical edge mapping, transactional
+validation, read eligibility and regression proofs together; do not add a second
+CRM, arbitrary relationship types or raw SQL tools.
+
+Verification: `npm run test:radar-relationships` covers contract, bounded source
+reading and service behavior. `scripts/test-radar-relationships-postgres.mjs`
+runs in the controlled native PostgreSQL migration suite. Production activation
+and end-to-end outreach remain separate release work.

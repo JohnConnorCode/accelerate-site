@@ -247,3 +247,12 @@ shared action executor. `review_radar_assessment` commits an immutable judgment
 and audit entry with source/configuration/previous-assessment checks. Current
 views use invoker security and explicit tenant filters. No model, sender, queue
 or claims ledger is created by selection.
+
+`radar-relationships.ts` owns source-backed relationship preview/proposal and
+approved execution. `radar-relationship-context.ts` composes canonical entity-link,
+identity-review and conversation readers. `review_radar_relationship` commits an
+immutable assertion/revocation and audit in one transaction. Historical link IDs
+are snapshots: CRM merge/coalescing can retire a link without deleting history;
+current recommendations then require fresh review. No inferred KNOWS, ranked
+people, model calls or external sends are provided. The plugin README defines
+limits, recovery and extension requirements.

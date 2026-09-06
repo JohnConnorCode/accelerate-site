@@ -59,6 +59,7 @@ console.log(
 
 await import("./test-radar-store-postgres.mjs");
 await import("./test-radar-ranking-postgres.mjs");
+await import("./test-radar-relationships-postgres.mjs");
 
 if (process.env.COLLECTIONS_POSTGRES_PROOF === "1") await import("./test-collections-postgres.mjs");
 

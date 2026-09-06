@@ -294,6 +294,52 @@ export async function linkEntities(
   return { link: toLink(data as Row), duplicate: false };
 }
 
+/** Exact, tenant-scoped edge lookup for services attaching reviewed evidence.
+ * Canonical graph reads stay here; callers never reconstruct a name/email join. */
+export async function findEntityLink(
+  supabase: SupabaseClient,
+  input: Omit<EntityLinkInput, "metadata">,
+): Promise<EntityLink | null> {
+  const tenantId = requireTenant(input.tenantId);
+  const sourceType = normalizeTypeKey(input.sourceType),
+    targetType = normalizeTypeKey(input.targetType);
+  const sourceId = requireId(input.sourceId, "A link source id"),
+    targetId = requireId(input.targetId, "A link target id");
+  const linkType = input.linkType?.trim() || "relates_to";
+  const result = await supabase
+    .from("entity_links")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .eq("source_type", sourceType)
+    .eq("source_id", sourceId)
+    .eq("target_type", targetType)
+    .eq("target_id", targetId)
+    .eq("link_type", linkType)
+    .maybeSingle();
+  if (result.error) throw new Error("Canonical entity link unavailable");
+  return result.data ? toLink(result.data as Row) : null;
+}
+
+/** Bounded exact IDs for provenance readers. Missing edges remain explicit. */
+export async function readEntityLinksById(
+  supabase: SupabaseClient,
+  tenantIdInput: string,
+  ids: string[],
+): Promise<EntityLink[]> {
+  const tenantId = requireTenant(tenantIdInput);
+  if (ids.length > 50) throw new Error("At most fifty entity links can be read at once");
+  const requested = [...new Set(ids.map((id) => requireId(id, "An entity link id")))];
+  if (!requested.length) return [];
+  const result = await supabase
+    .from("entity_links")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .in("id", requested)
+    .limit(requested.length);
+  if (result.error) throw new Error("Canonical entity links unavailable");
+  return (result.data ?? []).map((row) => toLink(row as Row));
+}
+
 export interface TraversalNode {
   type: string;
   id: string;
