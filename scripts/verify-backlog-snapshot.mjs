@@ -38,6 +38,19 @@ export function validateSnapshot(snapshot) {
         ids.add(a.id);
       }
     }
+    if (["backlog", "planned", "blocked"].includes(c.status) && c.work_kind !== "initiative") {
+      if (spec.currentBehavior && spec.currentBehavior === spec.businessValue)
+        failures.push(`${c.seed_key}: current behavior repeats the desired outcome`);
+      if ((spec.workflow ?? []).some((step) => /^Deliver AC/.test(step)))
+        failures.push(`${c.seed_key}: workflow repeats acceptance instead of execution steps`);
+      const environments = new Set((spec.verification ?? []).map((check) => check.environment));
+      for (const acceptance of spec.acceptance ?? []) {
+        if (acceptance.environment && !environments.has(acceptance.environment))
+          failures.push(
+            `${c.seed_key}: ${acceptance.id} has no ${acceptance.environment} verification procedure`,
+          );
+      }
+    }
     if (
       c.readiness?.length === 0 &&
       (c.dependencies ?? []).some((id) => byId.get(id)?.status !== "shipped")

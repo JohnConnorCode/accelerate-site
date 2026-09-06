@@ -10,6 +10,34 @@ Audit of the 250-card live board exported 2026-09-05T19:55:31.272Z. The active a
 - Page counts are replaced with usable task documentation outcomes. Phase completion requires accepted end-to-end evidence, not counts of shipped components.
 - Live claims, owners, subtask state and historical receipts are preserved. New code remains separate from production protocol deployment.
 
+## Execution review follow-up
+
+A second live review corrected 153 unclaimed packets through revision-checked
+operations. It preserved acceptance wording, owners, execution states, approved
+bases and active attempts.
+
+- 136 executable cards no longer present the requested outcome as an observed
+  baseline. They explicitly identify that implementation evidence still needs
+  comparison with the approved source.
+- 107 workflows now specify inspection, implementation and verification steps;
+  12 have task-specific sequences for the ready queue.
+- 11 acceptance environment labels incorrectly inferred from the word
+  “production” now require local proof. These cover clean local installation,
+  fictional manufacturing examples and evidence reporting that explicitly does
+  not claim production success.
+- Seven cards now include the missing integration or production verification
+  procedure. Phase proofs specify complete fixture journeys and persisted
+  outcomes; general lint/build checks cannot substitute for those results.
+- Five documentation packets now require source-checked task instructions,
+  saved-result checks and recovery guidance. A newly added performance card also
+  separates its observed failure from its intended business value.
+- `npm run verify:backlog` rejects repeated goal/baseline text, “Deliver AC”
+  placeholder workflows and missing acceptance environments in future exports.
+
+The dated snapshot records this review. The live board remains authoritative;
+refresh it explicitly before another planning pass. These edits improve work
+instructions and do not accept the underlying feature implementations.
+
 ## Historical evidence reconciliation
 
 Fourteen shipped cards currently refer to prerequisites without accepted verification. This may reflect requirements added later or missing proof; it is not a claim that their code is absent. `historical-acceptance-reconciliation` owns checking the original dated evidence and recording bounded follow-up work.

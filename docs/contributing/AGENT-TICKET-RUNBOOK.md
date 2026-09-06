@@ -47,10 +47,10 @@ The live board owns definitions and status. Git templates are reviewed input;
 `--apply --plan /tmp/plan.json` applies only those versioned changes. Unlisted
 cards and live execution state survive imports.
 
-WIP admission is enforced by the atomic claim service, including the dispatcher's
-explicit `--force` override. Manifest verification checks card definitions and
-mirrored state; it does not impose a second concurrency gate that would prevent
-already-claimed work from completing.
+The claim service enforces WIP limits. There is no force override. If a claim is
+refused, read the reason, resolve it with the work owner, or choose another ready
+card. Keep the published control checkout for all board commands when the ticket
+uses an older application base.
 
 ## 2. Write the implementation contract
 

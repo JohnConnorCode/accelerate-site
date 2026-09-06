@@ -50,8 +50,8 @@ The JSON result contains `worktree`, `controlCheckout` and the complete executio
 Follow the packet's ordered steps, scope exclusions and source revisions. Verify referenced prerequisite work before extending it. When acceptance or scope is ambiguous, record the exact missing decision and release/block the ticket so another worker does not independently invent the answer.
 
 ```bash
-npm run agent:heartbeat -- --card <ticket-key>
-npm run agent:progress -- --card <ticket-key> --message "Implemented the scoped path; controlled failure checks remain."
+npm --prefix "$ACCELERATE_CONTROL" run agent:heartbeat -- --card <ticket-key>
+npm --prefix "$ACCELERATE_CONTROL" run agent:progress -- --card <ticket-key> --message "Implemented the scoped path; controlled failure checks remain."
 ```
 
 Renew before the 30-minute lease expires. When stepping away, release the claim and preserve the worktree. If an HTTP claim result is uncertain, retry the printed UUID with `agent:next -- --request-key <uuid>`; the exact original request and token are retained privately. Never start a second claim to guess whether the first succeeded. Expired claims require an operator's explicit recovery.
@@ -77,7 +77,7 @@ An evidence file has this shape; replace every example with an actual result and
 ```
 
 ```bash
-npm run agent:complete -- --card <ticket-key> --evidence-file <private-evidence.json>
+npm --prefix "$ACCELERATE_CONTROL" run agent:complete -- --card <ticket-key> --evidence-file <absolute-path-to-evidence.json>
 ```
 
 Submission enters review. Reviewer acceptance, Git integration, deployment and production proof are distinct records. A developer does not self-deploy to make a local acceptance check pass.
