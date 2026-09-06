@@ -159,7 +159,7 @@ export async function proposeRadarRelationship(
       "Records the exact cited assertion or revocation over canonical CRM links. It does not send outreach or create consent.",
     payload: payloadSchema.strip().parse(preview),
     entityType: "entity_link",
-    entityId: input.change.operation === "revoke" ? input.change.relationshipId : null,
+    entityId: input.change.operation === "revoke" ? input.change.relationshipId : undefined,
     sourceContext: "admin_ai",
     proposedBy: actorEmail,
     dedupeKey: `radar-relationship:${preview.tenantId}:${input.change.operationId}:${input.digest}`,

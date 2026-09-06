@@ -155,6 +155,132 @@ assert.match(fail(command({ ...next, operationId: randomUUID() })), /disabled/);
 sql(`UPDATE tenants SET config=${json(config)} WHERE id='${tenant}'`);
 const unknown = randomUUID();
 assert.match(fail(command().replaceAll(tenant, unknown)), /tenant|workspace/i);
+
+const foreign = randomUUID();
+sql(
+  `INSERT INTO tenants(id,slug,name,status,config) VALUES('${foreign}','radar-${foreign}','Foreign Radar','active',${json(config)})`,
+);
+assert.match(
+  fail(command({ ...next, operationId: randomUUID() }).replaceAll(tenant, foreign)),
+  /contact unavailable/,
+);
+const store = (change) =>
+  JSON.parse(
+    sql(
+      context +
+        `SELECT execute_radar_store_command('${randomUUID()}',${json(change)},${json(config)},'[]','owner@example.test');`,
+    ),
+  ).receipt;
+const text = "Workshop coordinator contact: https://workshop.example/contact";
+const source = store({
+  operation: "ingest_source",
+  url: "https://workshop.example/about",
+  title: "Workshop coordinator",
+  bodyText: text,
+}).entity_id;
+store({
+  operation: "review_source",
+  sourceVersionId: source,
+  expectedRevision: 1,
+  verification: "verified",
+  reason: "Read source",
+});
+const sourceRow = JSON.parse(
+  sql(`SELECT row_to_json(v) FROM radar_source_versions v WHERE id='${source}'`),
+);
+const contactChange = {
+  ...change,
+  operationId: randomUUID(),
+  expectedReviewId: null,
+  relationship: {
+    kind: "business_contact_path",
+    contactId: to,
+    sourceVersionId: source,
+    contactUrl: "https://workshop.example/contact",
+    evidence: { kind: "source", sourceVersionId: source, quotation: text },
+  },
+};
+const contactEdge = {
+  sourceType: "contact",
+  sourceId: to,
+  targetType: "radar_source_version",
+  targetId: source,
+  linkType: "radar_business_contact_path",
+};
+const sourceProof = {
+  kind: "source",
+  id: source,
+  contentHash: sourceRow.content_hash,
+  revision: sourceRow.revision,
+  verification: "verified",
+  conversationId: null,
+  contactId: null,
+  senderEmail: null,
+};
+const publicReview = JSON.parse(sql(command(contactChange, sourceProof, contactEdge))).review;
+assert.equal(publicReview.assertion.contactUrl, contactChange.relationship.contactUrl);
+assert.match(
+  fail(
+    command(
+      {
+        ...contactChange,
+        operationId: randomUUID(),
+        expectedReviewId: publicReview.id,
+        relationship: {
+          ...contactChange.relationship,
+          contactUrl: "https://guessed.example/contact",
+        },
+      },
+      sourceProof,
+      contactEdge,
+    ),
+  ),
+  /contact URL/,
+);
+store({
+  operation: "review_source",
+  sourceVersionId: source,
+  expectedRevision: 2,
+  verification: "retracted",
+  reason: "Source no longer current",
+});
+assert.match(
+  fail(
+    command(
+      { ...contactChange, operationId: randomUUID(), expectedReviewId: publicReview.id },
+      sourceProof,
+      contactEdge,
+    ),
+  ),
+  /source unavailable/,
+);
+// Receipt/audit is atomic: an audit failure must roll back the relationship review.
+sql(`CREATE FUNCTION public.radar_relationship_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action='radar.relationship.revoked' THEN RAISE EXCEPTION 'controlled relationship audit failure'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER radar_relationship_audit_failure BEFORE INSERT ON audit_log FOR EACH ROW EXECUTE FUNCTION public.radar_relationship_audit_failure();`);
+const rollback = {
+  operation: "revoke",
+  operationId: randomUUID(),
+  relationshipId: publicReview.link_id,
+  expectedReviewId: publicReview.id,
+  reason: "Withdraw source",
+};
+assert.match(
+  fail(command(rollback, sourceProof, contactEdge)),
+  /controlled relationship audit failure/,
+);
+assert.equal(
+  sql(
+    `SELECT count(*) FROM radar_relationship_reviews WHERE operation_key='${rollback.operationId}'`,
+  ),
+  "0",
+);
+sql(
+  "DROP TRIGGER radar_relationship_audit_failure ON audit_log; DROP FUNCTION public.radar_relationship_audit_failure();",
+);
+assert.equal(JSON.parse(sql(command(rollback, sourceProof, contactEdge))).review.state, "revoked");
+console.log(
+  "PASS: native public business source proof, guessed URL refusal, retraction, valid foreign tenant isolation and atomic audit rollback/retry.",
+);
 console.log(
   "PASS: native relationship transaction/concurrent replay, audit, changed input, stale/ambiguous inbound evidence, expiry, immutable history, canonical coalescing, revocation and disabled replay.",
 );

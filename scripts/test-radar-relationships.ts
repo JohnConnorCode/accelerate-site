@@ -129,7 +129,7 @@ const publicContext = {
   offers: [],
   publicContactPaths: [contactPath],
 };
-assert.equal(radarRelationshipPaths(publicContext, now).paths[0].kind, "public_business_contact");
+assert.equal(radarRelationshipPaths(publicContext, now).paths[0]?.kind, "public_business_contact");
 assert.equal(radarRelationshipPaths(publicContext, now).outreachPermission, false);
 for (const patch of [
   { contactId: from },
