@@ -1,13 +1,57 @@
 import "server-only";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
+import {
+  ALWAYS_LOADED_AI_TOOLS,
+  TOOL_DISCOVERY_METADATA,
+  buildToolBundles,
+  rankToolBundles,
+} from "./ai-tool-bundles";
+import {
+  MODULE_CONTROL_TOOLS,
+  MODULE_CONTROL_TOOL_NAMES,
+  moduleReadSchema,
+  modulePreviewSchema,
+  moduleProposalSchema,
+} from "./module-actions-contract";
+import { readModuleConfiguration } from "./module-configuration-read";
+import { previewModuleConfiguration, proposeModuleConfiguration } from "./module-actions";
+import { readWorkspaceBrand } from "./branding";
+import { previewWorkspaceBrandUpdate, proposeWorkspaceBrandUpdate } from "./branding-actions";
+import {
+  BRANDING_TOOLS,
+  BRANDING_TOOL_NAMES,
+  brandPreviewInputSchema,
+  brandProposalInputSchema,
+} from "./branding-actions-contract";
+import type { AiToolConnectionRequirement } from "./ai-tool-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
-import { proposeAction } from "./actions";
+import { proposeAction, withProposalWorkContext } from "./actions";
+import { assertWorkDraftTarget, findWorkDraft, workDraftKey } from "./work-drafts";
 import { loadOperatorQueue } from "./queue";
 import { loadActivityTimeline } from "./activities";
 import { ADMIN_LAYOUT_SCOPES, proposeLayoutChange } from "./admin-layout";
 import { FOUNDER_NOTE_MAX_LENGTH } from "./notes";
 import { retrieveKnowledge } from "./knowledge";
-import { isAiToolModuleEnabled } from "./modules";
+import { proposeStripeInvoiceSend } from "./stripe-invoicing";
+import { previewInvoicePage, proposeInvoicePage } from "./invoice-pages";
+import {
+  COLLECTION_AGENT_TOOLS,
+  COLLECTION_AGENT_TOOL_NAMES,
+  collectionContextInputSchema,
+  collectionPreviewInputSchema,
+  collectionProposalInputSchema,
+} from "./collection-agent-contract";
+import {
+  readCollectionAgentContext,
+  previewCollectionAgentReminder,
+  proposeCollectionAgentReminder,
+} from "./collection-agent";
+import { invoiceDesignSchema } from "./invoice-page-contract";
+import { z } from "zod";
+import { prepareWorkflowPlugin, proposeWorkflowPlugin } from "./workflow-plugins";
+import { runReportPlugin } from "./report-plugins";
+import { isAiToolModuleEnabled, REVENUE_OS_MODULES } from "./modules";
 import { listClaimableWork, type WorkItem } from "./work-items";
 import { listWorkspaceCapabilities, type WorkspaceCapability } from "./capabilities";
 import { listClaimsForEntity, type Claim } from "./claims";
@@ -15,15 +59,18 @@ import { listAutonomyPolicies, type AutonomyPolicy } from "./autonomy-policy";
 import { listCoworkers, type Coworker } from "./coworkers";
 import { listPlugins, type Plugin } from "./plugins";
 import { getAgentActivityForEntity, type AgentActivityEntry } from "./agent-activity";
-import { bootstrapSalesCoworker } from "./sales-coworker";
-import { bootstrapBusinessPulseCoworker } from "./business-pulse-coworker";
-import { bootstrapMeetingIntelCoworker } from "./meeting-intel-coworker";
-import { bootstrapFinanceCoworker } from "./finance-coworker";
-import { bootstrapOperationsCoworker } from "./operations-coworker";
-import { queryMemory, storeAgentMemory, retrieveAgentMemory, listLearnedPolicies, recordLearnedPolicy, MEMORY_CATEGORIES, type AgentMemoryEntry, type LearnedPolicyEntry, type MemoryCategory } from "./memory";
+import {
+  queryMemory,
+  retrieveAgentMemory,
+  listLearnedPolicies,
+  MEMORY_CATEGORIES,
+  type AgentMemoryEntry,
+  type LearnedPolicyEntry,
+  type MemoryCategory,
+} from "./memory";
 import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
 
-export const AI_TOOL_REGISTRY_VERSION = "revenue-os-tools.v4";
+export { AI_TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
 export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
 
@@ -35,7 +82,10 @@ export type AiToolImpact = "read" | "internal_write" | "external_action" | "dest
 type AiToolContext = {
   supabase: SupabaseClient;
   actorEmail: string;
+  workItemId?: string;
   toolPack?: RevenueToolPackId;
+  /** Server-owned context; never accepted from model arguments. */
+  workItem?: WorkItem;
   tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
 };
 type AiToolRegistration = {
@@ -45,8 +95,8 @@ type AiToolRegistration = {
   outputSchema: Record<string, unknown>;
   /** The reviewed service boundary a tool is permitted to call. */
   serviceTarget: string;
-  /** Current tools stage through Revenue OS; none calls a provider directly. */
-  connectionRequirement: "none";
+  /** Provider requirements are enforced inside the canonical host, never by raw tool access. */
+  connectionRequirement: AiToolConnectionRequirement;
   impact: AiToolImpact;
   confirmationRequired: boolean;
   execute: (context: AiToolContext, input: Record<string, unknown>) => Promise<unknown>;
@@ -59,7 +109,7 @@ export interface RevenueAiCapabilityDescriptor {
   confirmationRequired: boolean;
   packs: RevenueToolPackId[];
   serviceTarget: string;
-  connectionRequirement: "none";
+  connectionRequirement: AiToolConnectionRequirement;
   available: boolean;
   availabilityReason: string;
 }
@@ -266,7 +316,9 @@ function availabilityFor(
   return {
     available: true,
     reason:
-      "Available through the bounded Revenue OS service; no provider connection is called directly.",
+      tool.connectionRequirement === "host_verified"
+        ? "Available through the canonical host; a verified provider connection and current billing facts are required when called."
+        : "Available through the bounded Revenue OS service; no provider connection is called directly.",
   };
 }
 
@@ -298,7 +350,256 @@ export function assertImpactHonoured(tool: AiToolRegistration, output: unknown):
   }
 }
 
+const discoveryInput = z
+  .object({
+    query: z.string().trim().max(200).default(""),
+    offset: z.number().int().min(0).max(10000).default(0),
+  })
+  .strict();
+const activationInput = z.object({ bundleId: z.string().min(1).max(160) }).strict();
 const registry: AiToolRegistration[] = [
+  {
+    ...TOOL_DISCOVERY_METADATA[0],
+    inputSchema: z.toJSONSchema(discoveryInput, { io: "input" }),
+    outputSchema: {
+      type: "object",
+      required: ["bundles", "total"],
+      properties: { bundles: { type: "array" }, total: { type: "number" } },
+    },
+    execute: async (context, raw) => {
+      const input = discoveryInput.parse(raw);
+      const fresh = await refreshRevenueToolContext(context);
+      const ranked = rankToolBundles(availableRevenueToolBundles(fresh), input.query);
+      const bundles = ranked.slice(input.offset, input.offset + 8);
+      return {
+        bundles,
+        total: ranked.length,
+        nextOffset:
+          input.offset + bundles.length < ranked.length ? input.offset + bundles.length : null,
+        activationScope: "current_command_run",
+        grantsApproval: false,
+      };
+    },
+  },
+  {
+    ...TOOL_DISCOVERY_METADATA[1],
+    inputSchema: z.toJSONSchema(activationInput),
+    outputSchema: {
+      type: "object",
+      required: ["activeBundleId", "toolNames"],
+      properties: { activeBundleId: { type: "string" }, toolNames: { type: "array" } },
+    },
+    execute: async (context, raw) => {
+      const { bundleId } = activationInput.parse(raw);
+      const fresh = await refreshRevenueToolContext(context);
+      const bundle = availableRevenueToolBundles(fresh).find((b) => b.bundleId === bundleId);
+      if (!bundle) throw new Error("Unknown or unavailable tool bundle");
+      return {
+        activeBundleId: bundle.bundleId,
+        toolNames: bundle.toolNames,
+        activationScope: "current_command_run",
+        grantsApproval: false,
+      };
+    },
+  },
+  {
+    ...MODULE_CONTROL_TOOLS[0],
+    inputSchema: z.toJSONSchema(moduleReadSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => readModuleConfiguration(supabase, input),
+  },
+  {
+    ...MODULE_CONTROL_TOOLS[1],
+    inputSchema: z.toJSONSchema(modulePreviewSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => previewModuleConfiguration(supabase, input),
+  },
+  {
+    ...MODULE_CONTROL_TOOLS[2],
+    inputSchema: z.toJSONSchema(moduleProposalSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeModuleConfiguration(supabase, input, actorEmail),
+  },
+  {
+    ...BRANDING_TOOLS[0],
+    inputSchema: z.toJSONSchema(z.object({}).strict()),
+    outputSchema: { type: "object" },
+    execute: async ({ supabase }, input) => {
+      z.object({}).strict().parse(input);
+      return readWorkspaceBrand(supabase);
+    },
+  },
+  {
+    ...BRANDING_TOOLS[1],
+    inputSchema: z.toJSONSchema(brandPreviewInputSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => previewWorkspaceBrandUpdate(supabase, input),
+  },
+  {
+    ...BRANDING_TOOLS[2],
+    inputSchema: z.toJSONSchema(brandProposalInputSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeWorkspaceBrandUpdate(supabase, input, actorEmail),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.list,
+    inputSchema: z.toJSONSchema(collectionContextInputSchema),
+    outputSchema: {
+      type: "object",
+      required: ["contract", "cases", "summary", "truncated"],
+      properties: {
+        contract: { type: "string" },
+        cases: { type: "array" },
+        summary: { type: "object" },
+        truncated: { type: "boolean" },
+      },
+    },
+    execute: ({ supabase }, input) => readCollectionAgentContext(supabase, input),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.preview,
+    inputSchema: z.toJSONSchema(collectionPreviewInputSchema),
+    outputSchema: {
+      type: "object",
+      required: ["caseId", "digest", "text", "invoices", "requiresHumanApproval"],
+      properties: {
+        caseId: { type: "string" },
+        digest: { type: "string" },
+        text: { type: "string" },
+        invoices: { type: "array" },
+        requiresHumanApproval: { type: "boolean" },
+      },
+    },
+    execute: ({ supabase }, input) => previewCollectionAgentReminder(supabase, input),
+  },
+  {
+    ...COLLECTION_AGENT_TOOLS.propose,
+    inputSchema: z.toJSONSchema(collectionProposalInputSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeCollectionAgentReminder(supabase, input, actorEmail),
+  },
+  ...REVENUE_OS_MODULES.filter((module) => module.workflow).map((module): AiToolRegistration => ({
+    name: `prepare_${module.id.replaceAll("-", "_")}`,
+    description: `Prepare ${module.name}: ${module.description}. Returns a reviewable plan, never executes it.`,
+    inputSchema: module.workflow!.inputSchema,
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.workflow-plugins",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => prepareWorkflowPlugin(supabase, module.id, input),
+  })),
+  ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).map(
+    (moduleDef): AiToolRegistration => ({
+      name: `propose_${moduleDef.id.replaceAll("-", "_")}`,
+      description: `Stage the exact previewed ${moduleDef.name} for human approval. Use its digest and a stable UUID requestId. Never executes the action.`,
+      inputSchema: {
+        type: "object",
+        additionalProperties: false,
+        required: ["input", "digest", "requestId"],
+        properties: {
+          input: moduleDef.workflow!.inputSchema,
+          digest: { type: "string" },
+          requestId: { type: "string" },
+        },
+      },
+      outputSchema: ACTION_OUTPUT_SCHEMA,
+      serviceTarget: "revenue-os.workflow-plugins",
+      connectionRequirement: "none",
+      impact: "internal_write",
+      confirmationRequired: true,
+      execute: async ({ supabase, actorEmail }, input) =>
+        proposeWorkflowPlugin(
+          supabase,
+          moduleDef.id,
+          input.input,
+          value(input, "digest") || "",
+          value(input, "requestId") || "",
+          actorEmail,
+        ),
+    }),
+  ),
+  {
+    name: "propose_stripe_invoice_send",
+    description:
+      "Stage sending an existing completed Stripe invoice for explicit human approval. Does not send it.",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["creationActionId"],
+      properties: { creationActionId: { type: "string" } },
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.stripe-invoicing",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeStripeInvoiceSend(supabase, value(input, "creationActionId") || "", actorEmail),
+  },
+  {
+    name: "preview_invoice_page",
+    description:
+      "Preview a bounded customer invoice design using workspace branding and authoritative Stripe billing facts. Returns the publication digest; does not publish.",
+    inputSchema: z.toJSONSchema(
+      z.object({ creationActionId: z.uuid(), design: invoiceDesignSchema }).strict(),
+    ),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.invoice-pages",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) =>
+      previewInvoicePage(supabase, value(input, "creationActionId") || "", input.design),
+  },
+  {
+    name: "propose_invoice_page",
+    description:
+      "Stage the exact previewed invoice page for human publication approval. Does not publish or email the customer.",
+    inputSchema: z.toJSONSchema(
+      z
+        .object({
+          creationActionId: z.uuid(),
+          design: invoiceDesignSchema,
+          digest: z.string().length(64),
+          requestId: z.uuid(),
+        })
+        .strict(),
+    ),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.invoice-pages",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeInvoicePage(
+        supabase,
+        {
+          creationActionId: value(input, "creationActionId") || "",
+          design: input.design,
+          digest: value(input, "digest") || "",
+          requestId: value(input, "requestId") || "",
+        },
+        actorEmail,
+      ),
+  },
+
+  ...REVENUE_OS_MODULES.filter((module) => module.report).map(
+    ({ id: pluginId }): AiToolRegistration => ({
+      name: `run_${pluginId.replaceAll("-", "_")}`,
+      description: `Run the ${pluginId} workspace report. Returns bounded factual findings with source references; requires the plugin to be enabled.`,
+      inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      outputSchema: { type: "object" },
+      serviceTarget: "revenue-os.report-plugins",
+      connectionRequirement: "none",
+      impact: "read",
+      confirmationRequired: false,
+      execute: async ({ supabase, actorEmail }) => runReportPlugin(supabase, pluginId, actorEmail),
+    }),
+  ),
   {
     name: "get_today_snapshot",
     description:
@@ -502,19 +803,35 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "external_action",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) => {
+    execute: async ({ supabase, actorEmail, workItem }, input) => {
       requireEmail(value(input, "to"));
+      if (workItem) {
+        await assertWorkDraftTarget(supabase, workItem, "send_email", input);
+        const existing = await findWorkDraft(supabase, workItem);
+        if (existing) {
+          const { data: proposal, error } = await supabase
+            .from("action_queue")
+            .select("*")
+            .eq("tenant_id", workItem.tenant_id)
+            .eq("id", existing.id)
+            .single();
+          if (error || !proposal) throw new Error(error?.message ?? "Draft proposal disappeared");
+          return proposal;
+        }
+      }
       return proposeAction(supabase, {
         actionType: "send_email",
         title: `Send email: ${value(input, "subject") || "Untitled"}`,
         description: previewOf(String(input.body || "")),
         urgency: "normal",
-        payload: input,
+        payload: workItem ? { ...input, workItemId: workItem.id } : input,
         reasoning: value(input, "reasoning") || "",
-        sourceContext: "admin_ai",
+        sourceContext: workItem ? `coworker:${workItem.coworker_id}` : "admin_ai",
         entityType: "opportunity",
         entityId: value(input, "opportunityId"),
-        dedupeKey: `ai-email:${value(input, "to")}:${value(input, "subject")}`.slice(0, 220),
+        dedupeKey: workItem
+          ? workDraftKey(workItem)
+          : `ai-email:${value(input, "to")}:${value(input, "subject")}`.slice(0, 220),
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
       });
@@ -967,9 +1284,9 @@ const registry: AiToolRegistration[] = [
       const availableOnlyVal = value(input, "availableOnly");
       const capabilities = await listWorkspaceCapabilities(supabase, {
         category: categoryVal
-          ? (["integration", "runtime", "plugin", "system"].includes(categoryVal)
-              ? (categoryVal as "integration" | "runtime" | "plugin" | "system")
-              : undefined)
+          ? ["integration", "runtime", "plugin", "system"].includes(categoryVal)
+            ? (categoryVal as "integration" | "runtime" | "plugin" | "system")
+            : undefined
           : undefined,
         availableOnly: availableOnlyVal === "true",
       });
@@ -1000,7 +1317,8 @@ const registry: AiToolRegistration[] = [
         entityId: { type: "string", description: "The entity's UUID" },
         status: {
           type: "string",
-          description: "Comma-separated claim statuses to filter: unverified,supported,conflicted,verified",
+          description:
+            "Comma-separated claim statuses to filter: unverified,supported,conflicted,verified",
         },
       },
       required: ["entityType", "entityId"],
@@ -1016,7 +1334,10 @@ const registry: AiToolRegistration[] = [
       const entityId = value(input, "entityId")!;
       const statusStr = value(input, "status");
       const statuses = statusStr
-        ? (statusStr.split(",").map((s) => s.trim()).filter(Boolean) as Claim["status"][])
+        ? (statusStr
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean) as Claim["status"][])
         : undefined;
       const claims = await listClaimsForEntity(supabase, {
         entityType,
@@ -1044,7 +1365,8 @@ const registry: AiToolRegistration[] = [
       properties: {
         level: {
           type: "string",
-          description: "Filter to a specific level: prohibited, always_ask, ask_until_trusted, standing_permission, autonomous",
+          description:
+            "Filter to a specific level: prohibited, always_ask, ask_until_trusted, standing_permission, autonomous",
         },
       },
       additionalProperties: false,
@@ -1058,9 +1380,20 @@ const registry: AiToolRegistration[] = [
       const levelVal = value(input, "level");
       const policies = await listAutonomyPolicies(supabase, {
         level: levelVal
-          ? (["prohibited", "always_ask", "ask_until_trusted", "standing_permission", "autonomous"].includes(levelVal)
-              ? (levelVal as "prohibited" | "always_ask" | "ask_until_trusted" | "standing_permission" | "autonomous")
-              : undefined)
+          ? [
+              "prohibited",
+              "always_ask",
+              "ask_until_trusted",
+              "standing_permission",
+              "autonomous",
+            ].includes(levelVal)
+            ? (levelVal as
+                | "prohibited"
+                | "always_ask"
+                | "ask_until_trusted"
+                | "standing_permission"
+                | "autonomous")
+            : undefined
           : undefined,
       });
       return policies.map((p: AutonomyPolicy) => ({
@@ -1097,9 +1430,9 @@ const registry: AiToolRegistration[] = [
       const statusVal = value(input, "status");
       const coworkers = await listCoworkers(supabase, {
         status: statusVal
-          ? (["active", "paused", "disabled"].includes(statusVal)
-              ? (statusVal as "active" | "paused" | "disabled")
-              : undefined)
+          ? ["active", "paused", "disabled"].includes(statusVal)
+            ? (statusVal as "active" | "paused" | "disabled")
+            : undefined
           : undefined,
       });
       return coworkers.map((cw: Coworker) => ({
@@ -1175,9 +1508,9 @@ const registry: AiToolRegistration[] = [
       const statusVal = value(input, "status");
       const plugins = await listPlugins(supabase, {
         status: statusVal
-          ? (["pending_review", "approved", "enabled", "disabled", "revoked"].includes(statusVal)
-              ? (statusVal as "pending_review" | "approved" | "enabled" | "disabled" | "revoked")
-              : undefined)
+          ? ["pending_review", "approved", "enabled", "disabled", "revoked"].includes(statusVal)
+            ? (statusVal as "pending_review" | "approved" | "enabled" | "disabled" | "revoked")
+            : undefined
           : undefined,
       });
       return plugins.map((p: Plugin) => ({
@@ -1194,132 +1527,97 @@ const registry: AiToolRegistration[] = [
   {
     name: "bootstrap_sales_coworker",
     description:
-      "Bootstrap the Sales Coworker: register its capabilities, autonomy policies, and work kinds. Returns readiness status and any capability gaps. Idempotent — safe to call multiple times.",
+      "Propose configuration of the Sales Coworker: register its capabilities, autonomy policies, and work kinds. Returns a pending action; configuration runs only after human approval.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    outputSchema: {
-      type: "object",
-      required: ["readyToWork", "capabilityGaps"],
-      properties: {
-        readyToWork: { type: "boolean" },
-        capabilityGaps: { type: "array", items: { type: "string" } },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.coworker-bootstrap",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }) => {
-      const result = await bootstrapSalesCoworker(supabase, actorEmail);
-      return {
-        readyToWork: result.readyToWork,
-        capabilityGaps: result.capabilityGaps,
-        coworkerName: result.coworker.name,
-      };
-    },
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure sales coworker",
+        payload: { coworker: "sales" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "bootstrap_business_pulse_coworker",
     description:
-      "Bootstrap the Business Pulse Coworker: register its capabilities, autonomy policies, and work kinds. Monitors pipeline health, detects anomalies, and produces daily digests. Idempotent.",
+      "Propose configuration of the Business Pulse Coworker: register its capabilities, autonomy policies, and work kinds. Monitors pipeline health, detects anomalies, and produces daily digests. Returns a pending action for human approval.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    outputSchema: {
-      type: "object",
-      required: ["readyToWork", "capabilityGaps"],
-      properties: {
-        readyToWork: { type: "boolean" },
-        capabilityGaps: { type: "array", items: { type: "string" } },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.coworker-bootstrap",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }) => {
-      const result = await bootstrapBusinessPulseCoworker(supabase, actorEmail);
-      return {
-        readyToWork: result.readyToWork,
-        capabilityGaps: result.capabilityGaps,
-        coworkerName: result.coworker.name,
-      };
-    },
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure business pulse coworker",
+        payload: { coworker: "business_pulse" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "bootstrap_meeting_intel_coworker",
     description:
-      "Bootstrap the Meeting Intelligence Coworker: register its capabilities, autonomy policies, and work kinds. Generates pre-call briefs and processes post-meeting outcomes. Idempotent.",
+      "Propose configuration of the Meeting Intelligence Coworker: register its capabilities, autonomy policies, and work kinds. Generates pre-call briefs and processes post-meeting outcomes. Returns a pending action for human approval.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    outputSchema: {
-      type: "object",
-      required: ["readyToWork", "capabilityGaps"],
-      properties: {
-        readyToWork: { type: "boolean" },
-        capabilityGaps: { type: "array", items: { type: "string" } },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.coworker-bootstrap",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }) => {
-      const result = await bootstrapMeetingIntelCoworker(supabase, actorEmail);
-      return {
-        readyToWork: result.readyToWork,
-        capabilityGaps: result.capabilityGaps,
-        coworkerName: result.coworker.name,
-      };
-    },
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure meeting intel coworker",
+        payload: { coworker: "meeting_intel" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "bootstrap_finance_coworker",
     description:
-      "Bootstrap the Finance Coworker: register its capabilities, autonomy policies, and work kinds. Tracks revenue, monitors payment patterns, and reconciles financial records. Idempotent.",
+      "Propose configuration of the Finance Coworker: register its capabilities, autonomy policies, and work kinds. Tracks revenue, monitors payment patterns, and reconciles financial records. Returns a pending action for human approval.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    outputSchema: {
-      type: "object",
-      required: ["readyToWork", "capabilityGaps"],
-      properties: {
-        readyToWork: { type: "boolean" },
-        capabilityGaps: { type: "array", items: { type: "string" } },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.coworker-bootstrap",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }) => {
-      const result = await bootstrapFinanceCoworker(supabase, actorEmail);
-      return {
-        readyToWork: result.readyToWork,
-        capabilityGaps: result.capabilityGaps,
-        coworkerName: result.coworker.name,
-      };
-    },
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure finance coworker",
+        payload: { coworker: "finance" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "bootstrap_operations_coworker",
     description:
-      "Bootstrap the Operations Coworker: register its capabilities, autonomy policies, and work kinds. Monitors system health, integration status, data quality, and operational anomalies. Idempotent.",
+      "Propose configuration of the Operations Coworker: register its capabilities, autonomy policies, and work kinds. Monitors system health, integration status, data quality, and operational anomalies. Returns a pending action for human approval.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    outputSchema: {
-      type: "object",
-      required: ["readyToWork", "capabilityGaps"],
-      properties: {
-        readyToWork: { type: "boolean" },
-        capabilityGaps: { type: "array", items: { type: "string" } },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.coworker-bootstrap",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }) => {
-      const result = await bootstrapOperationsCoworker(supabase, actorEmail);
-      return {
-        readyToWork: result.readyToWork,
-        capabilityGaps: result.capabilityGaps,
-        coworkerName: result.coworker.name,
-      };
-    },
+    execute: async ({ supabase, actorEmail }) =>
+      proposeAction(supabase, {
+        actionType: "bootstrap_coworker",
+        title: "Configure operations coworker",
+        payload: { coworker: "operations" },
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "query_memory",
@@ -1330,10 +1628,16 @@ const registry: AiToolRegistration[] = [
       properties: {
         categories: {
           type: "array",
-          items: { type: "string", enum: ["canonical", "activity", "knowledge", "agent", "learned_policy"] },
+          items: {
+            type: "string",
+            enum: ["canonical", "activity", "knowledge", "agent", "learned_policy"],
+          },
           description: "Which categories to query. Defaults to all.",
         },
-        entityType: { type: "string", description: "Entity type to scope (contact, company, opportunity)" },
+        entityType: {
+          type: "string",
+          description: "Entity type to scope (contact, company, opportunity)",
+        },
         entityId: { type: "string", description: "Entity UUID to scope" },
         query: { type: "string", description: "Free-text search (used by knowledge category)" },
         coworkerId: { type: "string", description: "Coworker to scope agent memory" },
@@ -1350,7 +1654,9 @@ const registry: AiToolRegistration[] = [
     execute: async ({ supabase }, input) => {
       const categoryStrs = input.categories as string[] | undefined;
       const categories = categoryStrs
-        ? (categoryStrs.filter((c): c is MemoryCategory => MEMORY_CATEGORIES.includes(c as MemoryCategory)))
+        ? categoryStrs.filter((c): c is MemoryCategory =>
+            MEMORY_CATEGORIES.includes(c as MemoryCategory),
+          )
         : undefined;
       const results = await queryMemory(supabase, {
         categories,
@@ -1372,11 +1678,14 @@ const registry: AiToolRegistration[] = [
   {
     name: "store_agent_memory",
     description:
-      "Store agent-specific context: prior work results, research findings, unresolved questions, or scheduled check reminders. This is agent memory, not canonical data — it decays over time based on the relevance horizon.",
+      "Propose storing agent-specific context: prior work results, research findings, unresolved questions, or scheduled check reminders. This is agent memory, not canonical data — it decays over time based on the relevance horizon.",
     inputSchema: {
       type: "object",
       properties: {
-        category: { type: "string", enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"] },
+        category: {
+          type: "string",
+          enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"],
+        },
         subject: { type: "string" },
         body: { type: "string" },
         coworkerId: { type: "string" },
@@ -1387,33 +1696,19 @@ const registry: AiToolRegistration[] = [
       required: ["category", "subject", "body"],
       additionalProperties: false,
     },
-    outputSchema: {
-      type: "object",
-      required: ["id", "category", "subject"],
-      properties: {
-        id: { type: "string" },
-        category: { type: "string" },
-        subject: { type: "string" },
-        relevanceHorizon: { type: "string" },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.memory-write",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) => {
-      const entry = await storeAgentMemory(supabase, {
-        coworkerId: value(input, "coworkerId"),
-        category: value(input, "category") as AgentMemoryEntry["category"],
-        subject: value(input, "subject")!,
-        body: value(input, "body")!,
-        entityType: value(input, "entityType"),
-        entityId: value(input, "entityId"),
-        relevanceHorizon: value(input, "relevanceHorizon") as AgentMemoryEntry["relevance_horizon"],
-        actorEmail,
-      });
-      return { id: entry.id, category: entry.category, subject: entry.subject, relevanceHorizon: entry.relevance_horizon };
-    },
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeAction(supabase, {
+        actionType: "store_agent_memory",
+        title: "Store agent memory",
+        payload: input,
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "get_agent_memory",
@@ -1423,7 +1718,10 @@ const registry: AiToolRegistration[] = [
       type: "object",
       properties: {
         coworkerId: { type: "string" },
-        category: { type: "string", enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"] },
+        category: {
+          type: "string",
+          enum: ["prior_work", "prior_research", "scheduled_check", "unresolved_question"],
+        },
         entityType: { type: "string" },
         entityId: { type: "string" },
         limit: { type: "number" },
@@ -1461,7 +1759,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "get_learned_policies",
     description:
-      "List active learned policies — explicit rules derived from human decisions. These are the \"don't do X\" and \"always ask before Y\" rules from operational experience.",
+      'List active learned policies — explicit rules derived from human decisions. These are the "don\'t do X" and "always ask before Y" rules from operational experience.',
     inputSchema: {
       type: "object",
       properties: {
@@ -1500,14 +1798,17 @@ const registry: AiToolRegistration[] = [
   {
     name: "record_learned_policy",
     description:
-      "Record a learned policy — an explicit rule derived from a human decision. These capture operational wisdom like \"never auto-advance deals above $50k\" or \"always ask before emailing C-level contacts\". Supersedes any previous active policy for the same action and scope.",
+      'Propose a learned observation for human review — an explicit rule derived from a human decision. These capture operational wisdom like "never auto-advance deals above $50k" or "always ask before emailing C-level contacts". Supersedes any previous active policy for the same action and scope.',
     inputSchema: {
       type: "object",
       properties: {
         actionKey: { type: "string" },
         rule: { type: "string" },
         rationale: { type: "string" },
-        source: { type: "string", enum: ["human_decision", "founder_override", "incident_remediation", "policy_review"] },
+        source: {
+          type: "string",
+          enum: ["human_decision", "founder_override", "incident_remediation", "policy_review"],
+        },
         coworkerId: { type: "string" },
         scopeEntityType: { type: "string" },
         scopeEntityId: { type: "string" },
@@ -1515,33 +1816,19 @@ const registry: AiToolRegistration[] = [
       required: ["actionKey", "rule", "rationale", "source"],
       additionalProperties: false,
     },
-    outputSchema: {
-      type: "object",
-      required: ["id", "actionKey", "rule"],
-      properties: {
-        id: { type: "string" },
-        actionKey: { type: "string" },
-        rule: { type: "string" },
-        source: { type: "string" },
-      },
-    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
     serviceTarget: "revenue-os.memory-write",
     connectionRequirement: "none",
     impact: "internal_write",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) => {
-      const entry = await recordLearnedPolicy(supabase, {
-        actionKey: value(input, "actionKey")!,
-        rule: value(input, "rule")!,
-        rationale: value(input, "rationale")!,
-        source: value(input, "source") as LearnedPolicyEntry["source"],
-        coworkerId: value(input, "coworkerId"),
-        scopeEntityType: value(input, "scopeEntityType"),
-        scopeEntityId: value(input, "scopeEntityId"),
-        actorEmail,
-      });
-      return { id: entry.id, actionKey: entry.action_key, rule: entry.rule, source: entry.source };
-    },
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeAction(supabase, {
+        actionType: "record_learned_policy",
+        title: "Record reviewed learning",
+        payload: input,
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
   },
   {
     name: "check_budgets",
@@ -1582,7 +1869,17 @@ const registry: AiToolRegistration[] = [
       type: "object",
       properties: {
         coworkerId: { type: "string" },
-        budgetKind: { type: "string", enum: ["model_spend", "vendor_api_calls", "emails_sent", "research_depth", "retry_count", "runtime_seconds"] },
+        budgetKind: {
+          type: "string",
+          enum: [
+            "model_spend",
+            "vendor_api_calls",
+            "emails_sent",
+            "research_depth",
+            "retry_count",
+            "runtime_seconds",
+          ],
+        },
       },
       additionalProperties: false,
     },
@@ -1624,7 +1921,7 @@ const registry: AiToolRegistration[] = [
     connectionRequirement: "none",
     impact: "external_action",
     confirmationRequired: true,
-    execute: async ({ supabase, actorEmail }, input) => {
+    execute: async ({ supabase, actorEmail, workItem }, input) => {
       const conversationId = value(input, "conversationId")!;
       const body = value(input, "body")!;
       const reasoning = value(input, "reasoning") || "";
@@ -1634,17 +1931,38 @@ const registry: AiToolRegistration[] = [
         .eq("id", conversationId)
         .maybeSingle();
 
+      if (workItem) {
+        await assertWorkDraftTarget(supabase, workItem, "send_gmail_reply", input);
+        const existing = await findWorkDraft(supabase, workItem);
+        if (existing) {
+          const { data: proposal, error } = await supabase
+            .from("action_queue")
+            .select("*")
+            .eq("tenant_id", workItem.tenant_id)
+            .eq("id", existing.id)
+            .single();
+          if (error || !proposal) throw new Error(error?.message ?? "Draft proposal disappeared");
+          return proposal;
+        }
+      }
       return proposeAction(supabase, {
         actionType: "send_gmail_reply",
         title: `Reply to: ${conv?.subject || "Conversation"}`,
         description: previewOf(body),
         urgency: "normal",
-        payload: { conversationId, body, reasoning },
+        payload: {
+          conversationId,
+          body,
+          reasoning,
+          ...(workItem ? { workItemId: workItem.id } : {}),
+        },
         reasoning,
-        sourceContext: "admin_ai",
+        sourceContext: workItem ? `coworker:${workItem.coworker_id}` : "admin_ai",
         entityType: "conversation",
         entityId: conversationId,
-        dedupeKey: `ai-reply:${conversationId}:${body.slice(0, 80)}`,
+        dedupeKey: workItem
+          ? workDraftKey(workItem)
+          : `ai-reply:${conversationId}:${body.slice(0, 80)}`,
         proposedBy: actorEmail,
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
       });
@@ -1654,6 +1972,16 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
+    ...BRANDING_TOOL_NAMES,
+    ...MODULE_CONTROL_TOOL_NAMES,
+    ...COLLECTION_AGENT_TOOL_NAMES,
+    ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
+      (moduleDef) => moduleDef.aiToolNames || [],
+    ),
+    ...REVENUE_OS_MODULES.filter((module) => module.report).map(
+      (module) => `run_${module.id.replaceAll("-", "_")}`,
+    ),
     "get_today_snapshot",
     "search_pipeline",
     "search_contacts",
@@ -1685,6 +2013,9 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_founder_note",
   ],
   pipeline: [
+    ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
+    ...BRANDING_TOOL_NAMES,
+    ...MODULE_CONTROL_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",
     "search_contacts",
@@ -1708,6 +2039,10 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_stage_change",
   ],
   outreach: [
+    ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
+    ...BRANDING_TOOL_NAMES,
+    ...MODULE_CONTROL_TOOL_NAMES,
+    ...COLLECTION_AGENT_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",
     "search_contacts",
@@ -1750,7 +2085,7 @@ export function getRevenueAiTools(pack?: RevenueToolPackId): AiToolRegistration[
   return registry.filter((tool) => names.has(tool.name));
 }
 export function listRevenueAiCapabilities(
-  context?: Pick<AiToolContext, "toolPack">,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
 ): RevenueAiCapabilityDescriptor[] {
   return registry.map((tool) => {
     const availability = availabilityFor(tool, context);
@@ -1767,11 +2102,16 @@ export function listRevenueAiCapabilities(
     };
   });
 }
-export function toOpenRouterTools(pack?: RevenueToolPackId): OpenRouterTool[] {
-  return getRevenueAiTools(pack).map(({ name, description, inputSchema }) => ({
-    type: "function",
-    function: { name, description, parameters: inputSchema },
-  }));
+export function toOpenRouterTools(
+  pack?: RevenueToolPackId,
+  tenantConfig?: AiToolContext["tenantConfig"],
+): OpenRouterTool[] {
+  return getRevenueAiTools(pack)
+    .filter((tool) => availabilityFor(tool, { toolPack: pack, tenantConfig }).available)
+    .map(({ name, description, inputSchema }) => ({
+      type: "function",
+      function: { name, description, parameters: inputSchema },
+    }));
 }
 export async function executeRegisteredRevenueTool(
   context: AiToolContext,
@@ -1791,8 +2131,56 @@ export async function executeRegisteredRevenueTool(
   if (!availability.available)
     throw new Error(`${tool.name} is unavailable: ${availability.reason}`);
   validateToolInput(tool.name, tool.inputSchema, input);
-  const output = await tool.execute(context, input);
+  const output = await withProposalWorkContext(context.workItemId, () =>
+    tool.execute(context, input),
+  );
   validateToolOutput(tool.name, tool.outputSchema, output);
   assertImpactHonoured(tool, output);
   return { output, tool };
+}
+
+/** Refresh live module state without broadening an explicit caller restriction. */
+export async function refreshRevenueToolContext(context: AiToolContext): Promise<AiToolContext> {
+  const tenantId = tenantIdForDatabase(context.supabase);
+  if (!tenantId) throw new Error("Tenant-bound tool context required");
+  const { data, error } = await context.supabase
+    .from("tenants")
+    .select("config,status")
+    .eq("id", tenantId)
+    .maybeSingle();
+  if (error || data?.status !== "active") throw new Error("Active tool workspace unavailable");
+  const modules = { ...(data.config?.modules ?? {}) };
+  for (const [id, enabled] of Object.entries(context.tenantConfig?.modules ?? {})) {
+    if (enabled === false) modules[id] = false;
+  }
+  return { ...context, tenantConfig: { modules } };
+}
+export function availableRevenueToolBundles(
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
+) {
+  const available = new Set(
+    listRevenueAiCapabilities(context)
+      .filter((t) => t.available)
+      .map((t) => t.name),
+  );
+  return buildToolBundles(REVENUE_OS_MODULES, registry)
+    .map((bundle) => ({
+      ...bundle,
+      toolNames: bundle.toolNames.filter((name) => available.has(name)),
+    }))
+    .filter((bundle) => bundle.toolNames.length > 0);
+}
+/** One small core plus one bounded bundle. Recomputed each turn; no permission cache. */
+export function toActivatedOpenRouterTools(
+  bundleId: string | null,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
+): OpenRouterTool[] {
+  const bundle = availableRevenueToolBundles(context).find((b) => b.bundleId === bundleId);
+  const names = new Set<string>([...ALWAYS_LOADED_AI_TOOLS, ...(bundle?.toolNames ?? [])]);
+  return registry
+    .filter((tool) => names.has(tool.name) && availabilityFor(tool, context).available)
+    .map(({ name, description, inputSchema }) => ({
+      type: "function",
+      function: { name, description, parameters: inputSchema },
+    }));
 }

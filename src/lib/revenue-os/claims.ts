@@ -14,12 +14,7 @@ export type EvidenceStrength =
   | "model_inference";
 
 export type ClaimStatus =
-  | "unverified"
-  | "supported"
-  | "conflicted"
-  | "verified"
-  | "superseded"
-  | "retracted";
+  "unverified" | "supported" | "conflicted" | "verified" | "superseded" | "retracted";
 
 export interface Claim {
   id: string;

@@ -1,3 +1,4 @@
+import { readBoundedJson } from "@/lib/http/bounded-json";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
@@ -17,6 +18,7 @@ import {
 import type { AdminAuthorization } from "@/lib/admin/auth";
 
 const providerSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("configure_stripe"), apiKey: z.string().trim().min(20).max(256) }),
   z.object({
     action: z.literal("configure_resend"),
     apiKey: z.string().trim().min(10).max(500),
@@ -47,7 +49,16 @@ const providerSchema = z.discriminatedUnion("action", [
   }),
   z.object({
     action: z.literal("disconnect"),
-    provider: z.enum(["resend", "google", "calendly", "openrouter", "mcp", "whatsapp", "hubspot"]),
+    provider: z.enum([
+      "resend",
+      "google",
+      "calendly",
+      "openrouter",
+      "mcp",
+      "whatsapp",
+      "hubspot",
+      "stripe",
+    ]),
   }),
 ]);
 
@@ -183,7 +194,13 @@ async function configureAdapterProvider(
       { status: 400 },
     );
   }
-  const encryptedCredentials = buildEncryptedCredentials(adapter, credentials, encryptSecret);
+  const encryptedCredentials = buildEncryptedCredentials(
+    adapter,
+    credentials,
+    provider === "stripe"
+      ? (value, field) => encryptTenantSecret(value, authorization.tenant.id, provider, field)
+      : encryptSecret,
+  );
   const { data, error } = await authorization.database
     .from("integration_connections")
     .upsert(
@@ -218,7 +235,7 @@ async function configureAdapterProvider(
 export async function POST(request: NextRequest) {
   const authorization = await requireAdmin();
   if (authorization instanceof NextResponse) return authorization;
-  const parsed = providerSchema.safeParse(await request.json().catch(() => null));
+  const parsed = providerSchema.safeParse(await readBoundedJson(request).catch(() => null));
   if (!parsed.success)
     return NextResponse.json({ error: "Invalid provider action" }, { status: 400 });
   if (parsed.data.action === "disconnect") {
@@ -256,17 +273,19 @@ export async function POST(request: NextRequest) {
   }
   const now = new Date().toISOString();
   const provider =
-    parsed.data.action === "configure_calendly"
-      ? "calendly"
-      : parsed.data.action === "configure_openrouter"
-        ? "openrouter"
-        : parsed.data.action === "configure_mcp"
-          ? "mcp"
-          : parsed.data.action === "configure_whatsapp"
-            ? "whatsapp"
-            : parsed.data.action === "configure_hubspot"
-              ? "hubspot"
-              : "resend";
+    parsed.data.action === "configure_stripe"
+      ? "stripe"
+      : parsed.data.action === "configure_calendly"
+        ? "calendly"
+        : parsed.data.action === "configure_openrouter"
+          ? "openrouter"
+          : parsed.data.action === "configure_mcp"
+            ? "mcp"
+            : parsed.data.action === "configure_whatsapp"
+              ? "whatsapp"
+              : parsed.data.action === "configure_hubspot"
+                ? "hubspot"
+                : "resend";
   const { data: existing } = await authorization.database
     .from("integration_connections")
     .select("credential_version,status,settings")
@@ -317,8 +336,12 @@ export async function POST(request: NextRequest) {
     // It is never recoverable from the API again after this response.
     return NextResponse.json({ provider: data, apiKey: rawKey });
   }
-  if (parsed.data.action === "configure_whatsapp" || parsed.data.action === "configure_hubspot") {
-    const provider = parsed.data.action === "configure_whatsapp" ? "whatsapp" : "hubspot";
+  if (
+    parsed.data.action === "configure_whatsapp" ||
+    parsed.data.action === "configure_hubspot" ||
+    parsed.data.action === "configure_stripe"
+  ) {
+    const provider = parsed.data.action.slice("configure_".length);
     const credentials: Record<string, unknown> = { ...parsed.data };
     delete credentials.action;
     return configureAdapterProvider(

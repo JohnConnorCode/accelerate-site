@@ -42,7 +42,9 @@ export function KanbanChecklist({
 }: KanbanChecklistProps) {
   const [draft, setDraft] = useState("");
   const visible = compact ? items.filter((item) => !item.done).slice(0, compactLimit) : items;
-  const hiddenCount = compact ? Math.max(0, items.filter((item) => !item.done).length - visible.length) : 0;
+  const hiddenCount = compact
+    ? Math.max(0, items.filter((item) => !item.done).length - visible.length)
+    : 0;
 
   const add = () => {
     const title = draft.trim();
@@ -130,7 +132,9 @@ export function KanbanChecklist({
         </ul>
       )}
       {hiddenCount > 0 && (
-        <p className="pl-7 text-[10px] font-medium text-[var(--admin-muted)]">+{hiddenCount} more</p>
+        <p className="pl-7 text-[10px] font-medium text-[var(--admin-muted)]">
+          +{hiddenCount} more
+        </p>
       )}
       {!compact && onAdd && (
         <div className="flex gap-2 pt-0.5">

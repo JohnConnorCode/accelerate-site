@@ -16,7 +16,11 @@ interface AddColumnInlineProps {
  * Trailing "+ Add column" tile. Expands in place into a label input (plus
  * any board-specific `extraFields`) and calls the create mutation on submit.
  */
-export function AddColumnInline({ onAdd, extraFields, tileLabel = "Add column" }: AddColumnInlineProps) {
+export function AddColumnInline({
+  onAdd,
+  extraFields,
+  tileLabel = "Add column",
+}: AddColumnInlineProps) {
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [saving, setSaving] = useState(false);

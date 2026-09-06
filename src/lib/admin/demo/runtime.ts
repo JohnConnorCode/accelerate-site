@@ -1,10 +1,24 @@
+import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
+import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
+import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
+import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
+import { COLLECTION_AGENT_TOOLS } from "@/lib/revenue-os/collection-agent-contract";
+import { demoPacketProblems } from "../../work-packet";
 import { KANBAN_DEFAULT_COLUMNS } from "@/lib/kanban/defaults";
 import { isKanbanBoardKey } from "@/lib/kanban/types";
 import type { FeatureRequest } from "@/lib/feature-board";
+import {
+  createDemoBusinessState,
+  demoTasksForGraph,
+  handleDemoBusinessRequest,
+  DEMO_BUSINESS_MODULES,
+  type DemoBusinessState,
+} from "./business-runtime";
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
 import { clearDemoAppearance } from "./appearance-state";
 import {
   REVENUE_OS_MODULES,
+  isAiToolModuleEnabled,
   getActiveModules,
   validateModuleSettingsInput,
 } from "@/lib/revenue-os/modules";
@@ -56,6 +70,7 @@ type DemoEmailStudioDetail = {
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
 type DemoState = {
+  business: DemoBusinessState | null;
   completedActions: string[];
   completedTasks: string[];
   stageOverrides: Record<string, string>;
@@ -66,6 +81,11 @@ type DemoState = {
   clientOverrides: Record<string, Record<string, unknown>>;
   generatedAiRuns: DemoGeneratedAiRun[];
   sentReplies: Record<string, string[]>;
+  conversationOverrides: Record<
+    string,
+    { status?: string; assignee?: string | null; opportunityId?: string | null }
+  >;
+  conversationTasks: Record<string, Array<{ id: string; title: string; due_date: string | null }>>;
   readNotifications: string[];
   emailDrafts: Record<string, DemoEmailDraft>;
   featureOverrides: Record<
@@ -79,6 +99,7 @@ type DemoState = {
   moduleSettings: Record<string, Record<string, unknown>>;
 };
 const initialState = (): DemoState => ({
+  business: null,
   completedActions: [],
   completedTasks: [],
   stageOverrides: {},
@@ -86,6 +107,8 @@ const initialState = (): DemoState => ({
   clientOverrides: {},
   generatedAiRuns: [],
   sentReplies: {},
+  conversationOverrides: {},
+  conversationTasks: {},
   readNotifications: [],
   emailDrafts: {},
   featureOverrides: {},
@@ -250,7 +273,11 @@ function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string)
     ],
   };
 }
-function auditHistory(pack: DemoScenarioPack, params: URLSearchParams) {
+function auditHistory(
+  pack: DemoScenarioPack,
+  params: URLSearchParams,
+  business?: DemoBusinessState,
+) {
   const founder = pack.tenant.founder.email;
   const system = pack.tenant.founder.systemActorEmail;
   const samples: Array<{
@@ -327,6 +354,20 @@ function auditHistory(pack: DemoScenarioPack, params: URLSearchParams) {
       createdAt: ago(index * 3 + 1),
     };
   });
+  entries.unshift(
+    ...(business?.receipts ?? []).map((receipt) => ({
+      id: receipt.id,
+      actorEmail: founder,
+      action: "demo.simulated",
+      entityType: "business_workflow",
+      entityId: receipt.id,
+      source: "demo",
+      before: null,
+      after: { operation: receipt.operation },
+      metadata: { simulated: true },
+      createdAt: receipt.at,
+    })),
+  );
   const filtered = entries.filter((entry) => {
     if (params.get("actor") && entry.actorEmail !== params.get("actor")) return false;
     if (params.get("entity") && entry.entityType !== params.get("entity")) return false;
@@ -370,6 +411,22 @@ function queue(pack: DemoScenarioPack, state: DemoState) {
       recommendedNextAction: "Review the exact simulated change",
       href: `/admin/today?focus=approval&action=${item.id}`,
     }));
+  approvals.unshift(
+    ...(state.business?.actions ?? [])
+      .filter((item) => item.status === "pending")
+      .map((item) => ({
+        id: `action:${item.id}`,
+        kind: "approval",
+        title: item.title,
+        summary: item.description,
+        urgency: "normal",
+        dueAt: dateOffset(0),
+        sourceTimestamp: item.created_at,
+        priorityReason: "A simulated business workflow needs approval.",
+        recommendedNextAction: "Review the exact simulated change",
+        href: item.pluginId === "stripe-invoicing" ? "/admin/invoicing" : `/admin/${item.pluginId}`,
+      })),
+  );
   const replies = pack.conversations.slice(0, 2).map((item, index) => {
     const contact = person(pack, item.personId);
     return {
@@ -474,24 +531,59 @@ function notifications(pack: DemoScenarioPack, state: DemoState) {
     priority: priority(pack, state),
   };
 }
-function conversations(pack: DemoScenarioPack, state: DemoState, selected: string | null) {
-  const rows = pack.conversations.map((item) => {
+function conversations(pack: DemoScenarioPack, state: DemoState, url: URL) {
+  const selected = url.searchParams.get("id");
+  const overrides = state.conversationOverrides || {};
+  const extraTasks = state.conversationTasks || {};
+  const founderEmail = pack.tenant.founder.email.toLowerCase();
+  const rows = pack.conversations.map((item, index) => {
     const contact = person(pack, item.personId);
+    const opportunity =
+      index % 2 === 0
+        ? pack.opportunities.find((entry) => entry.personId === item.personId) || null
+        : null;
+    const override = overrides[item.id] || {};
+    const status = (override.status as "open" | "waiting" | "resolved" | "archived") || "open";
+    const defaultContactId = index % 2 === 0 ? contact.id : null;
+    const opportunityId =
+      override.opportunityId === undefined ? opportunity?.id || null : override.opportunityId;
+    const linkedOpportunity = opportunityId
+      ? pack.opportunities.find((entry) => entry.id === opportunityId) || opportunity
+      : null;
     return {
       id: item.id,
-      channel: "gmail",
+      channel: "gmail" as const,
       external_id: `demo-${item.id}`,
       subject: item.subject,
-      status: "open",
+      status,
       intent: item.intent,
-      unread_count: item.unread,
+      unread_count: status === "resolved" || status === "archived" ? 0 : item.unread,
       last_message_at: item.messages.at(-1)!.at,
+      contact_id: defaultContactId,
+      company_id: null as string | null,
+      opportunity_id: opportunityId,
+      campaign_id: index < 2 ? "demo-campaign" : null,
+      assignee_email: override.assignee === undefined ? null : override.assignee,
       metadata: { contact_email: contact.email },
+      contact: {
+        id: contact.id,
+        full_name: contact.name,
+        primary_email: contact.email,
+        phone: contact.phone,
+      },
+      company: null,
+      opportunity: linkedOpportunity
+        ? {
+            id: linkedOpportunity.id,
+            name: linkedOpportunity.name,
+            stage: linkedOpportunity.stage,
+            estimated_value: linkedOpportunity.value,
+          }
+        : null,
+      created_at: item.messages[0]!.at,
+      updated_at: item.messages.at(-1)!.at,
     };
   });
-  // Mirrors the stats loop in src/lib/revenue-os/conversations.ts so the demo
-  // tab counts (Open/Waiting/Resolved/Archived/Unread) aren't stuck at zero
-  // while the list beside them is visibly full.
   const stats = {
     total: rows.length,
     open: rows.filter((row) => row.status === "open").length,
@@ -500,14 +592,79 @@ function conversations(pack: DemoScenarioPack, state: DemoState, selected: strin
     archived: rows.filter((row) => row.status === "archived").length,
     unread: rows.filter((row) => row.unread_count > 0).length,
   };
-  const active = selected
-    ? pack.conversations.find((item) => item.id === selected)
-    : pack.conversations[0];
-  if (!active) return { schemaReady: true, conversations: rows, stats, messages: [] };
-  const contact = person(pack, active.personId);
+  let filtered = rows;
+  const statusFilter = url.searchParams.get("status") || "all";
+  if (statusFilter !== "all") filtered = filtered.filter((row) => row.status === statusFilter);
+  const channelFilter = url.searchParams.get("channel") || "all";
+  if (channelFilter !== "all") filtered = filtered.filter((row) => row.channel === channelFilter);
+  const intentFilter = url.searchParams.get("intent");
+  if (intentFilter && intentFilter !== "all") {
+    filtered = filtered.filter(
+      (row) => (row.intent || "").toLowerCase() === intentFilter.toLowerCase(),
+    );
+  }
+  if (url.searchParams.get("unread") === "1" || url.searchParams.get("unread") === "true") {
+    filtered = filtered.filter((row) => row.unread_count > 0);
+  }
+  const recordFilter = url.searchParams.get("record") || "all";
+  if (recordFilter === "linked") {
+    filtered = filtered.filter((row) => Boolean(row.opportunity_id || row.contact_id));
+  } else if (recordFilter === "unlinked") {
+    filtered = filtered.filter((row) => !row.opportunity_id && !row.contact_id);
+  }
+  const campaignFilter = url.searchParams.get("campaign") || "all";
+  if (campaignFilter === "linked") filtered = filtered.filter((row) => Boolean(row.campaign_id));
+  else if (campaignFilter === "unlinked") filtered = filtered.filter((row) => !row.campaign_id);
+  const assigneeFilter = url.searchParams.get("assignee");
+  if (assigneeFilter === "unassigned") {
+    filtered = filtered.filter((row) => !row.assignee_email);
+  } else if (assigneeFilter === "me") {
+    filtered = filtered.filter((row) => (row.assignee_email || "").toLowerCase() === founderEmail);
+  } else if (assigneeFilter) {
+    filtered = filtered.filter(
+      (row) => (row.assignee_email || "").toLowerCase() === assigneeFilter.toLowerCase(),
+    );
+  }
+  if (url.searchParams.get("followUp") === "1" || url.searchParams.get("followUp") === "true") {
+    filtered = filtered.filter((row) => {
+      const packItem = pack.conversations.find((item) => item.id === row.id);
+      const personTasks = packItem
+        ? pack.tasks.some(
+            (task) => task.personId === packItem.personId && task.status !== "completed",
+          )
+        : false;
+      return personTasks || (extraTasks[row.id] || []).length > 0;
+    });
+  }
+  const search = (url.searchParams.get("search") || "").trim().toLowerCase();
+  if (search) {
+    filtered = filtered.filter((row) => {
+      const email = (row.metadata.contact_email as string) || row.contact?.primary_email || "";
+      return (
+        email.toLowerCase().includes(search) ||
+        (row.contact?.full_name || "").toLowerCase().includes(search) ||
+        (row.subject || "").toLowerCase().includes(search) ||
+        (row.intent || "").toLowerCase().includes(search)
+      );
+    });
+  }
+  const activePack =
+    pack.conversations.find((item) => item.id === selected) || pack.conversations[0];
+  const activeRow = activePack ? rows.find((row) => row.id === activePack.id) || null : null;
+  if (!activePack || !activeRow) {
+    return {
+      schemaReady: true,
+      conversations: filtered,
+      stats,
+      intents: [],
+      detail: null,
+      messages: [],
+    };
+  }
+  const contact = person(pack, activePack.personId);
   const messages = [
-    ...active.messages,
-    ...(state.sentReplies[active.id] || []).map((body, index) => ({
+    ...activePack.messages,
+    ...(state.sentReplies[activePack.id] || []).map((body, index) => ({
       id: `local-${index}`,
       direction: "outbound" as const,
       body,
@@ -515,17 +672,55 @@ function conversations(pack: DemoScenarioPack, state: DemoState, selected: strin
     })),
   ].map((item) => ({
     id: item.id,
+    conversation_id: activePack.id,
     direction: item.direction,
     sender_email: item.direction === "inbound" ? contact.email : pack.tenant.founder.email,
     recipient_emails: [item.direction === "inbound" ? pack.tenant.founder.email : contact.email],
-    subject: active.subject,
+    subject: activePack.subject,
     body_text: item.body,
     status: "delivered",
     sent_at: item.direction === "outbound" ? item.at : null,
     received_at: item.direction === "inbound" ? item.at : null,
     created_at: item.at,
   }));
-  return { schemaReady: true, conversations: rows, stats, messages };
+  const lastInbound = [...messages].reverse().find((item) => item.direction === "inbound");
+  const inboundText = (lastInbound?.body_text || "").toLowerCase();
+  const suggestedReply = lastInbound
+    ? inboundText.includes("pricing") || inboundText.includes("cost")
+      ? {
+          intent: "pricing_inquiry",
+          body: "Hi there,\n\nThanks for reaching out regarding pricing. I can walk through the options this week.",
+          confidence: 0.9,
+        }
+      : {
+          intent: activePack.intent || "general_inquiry",
+          body: "Hi,\n\nThank you for your message. I have reviewed the request and will follow up shortly.",
+          confidence: 0.75,
+        }
+    : null;
+  const packTasks = pack.tasks
+    .filter((task) => task.personId === activePack.personId && task.status !== "completed")
+    .slice(0, 5)
+    .map((task) => ({
+      id: task.id,
+      title: task.title,
+      due_date: dateOffset(task.dueOffset),
+      status: task.status,
+    }));
+  const tasks = [...packTasks, ...(extraTasks[activePack.id] || [])];
+  const detail = {
+    contract: "revenue-os-conversations.v1",
+    conversation: activeRow,
+    messages,
+    contact: activeRow.contact,
+    company: null,
+    opportunity: activeRow.opportunity,
+    tasks,
+    activity: [],
+    suggestedReply,
+  };
+  const intents = [...new Set(rows.map((row) => row.intent).filter(Boolean))].sort();
+  return { schemaReady: true, conversations: filtered, stats, intents, detail, messages };
 }
 function analytics(pack: DemoScenarioPack, state: DemoState) {
   const rows = opportunityRows(pack, state);
@@ -1069,7 +1264,7 @@ function capabilityLabel(name: string): string {
  *  src/lib/revenue-os/ai-tools.ts (AI_TOOL_REGISTRY_VERSION,
  *  registry, PACK_TOOL_NAMES) since the demo has no server context to read
  *  it from live. Every real tool is available in the fictional workspace. */
-function aiCapabilities() {
+function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>> }) {
   const rows: Array<
     [
       name: string,
@@ -1201,6 +1396,32 @@ function aiCapabilities() {
       "revenue-os.action-queue",
     ],
   ];
+  rows.push(
+    ...[...BRANDING_TOOLS, ...MODULE_CONTROL_TOOLS, ...TOOL_DISCOVERY_METADATA].map(
+      (t) =>
+        [
+          t.name,
+          t.description,
+          t.impact,
+          t.confirmationRequired,
+          ["core", "pipeline", "outreach"],
+          t.serviceTarget,
+        ] as (typeof rows)[number],
+    ),
+  );
+  rows.push(
+    ...Object.values(COLLECTION_AGENT_TOOLS).map(
+      (t) =>
+        [
+          t.name,
+          t.description,
+          t.impact,
+          t.confirmationRequired,
+          ["core", "outreach"],
+          t.serviceTarget,
+        ] as (typeof rows)[number],
+    ),
+  );
   const capabilities = rows.map(
     ([name, description, impact, confirmationRequired, packs, serviceTarget]) => ({
       name,
@@ -1210,15 +1431,22 @@ function aiCapabilities() {
       confirmationRequired,
       packs,
       serviceTarget,
-      connectionRequirement: "none" as const,
-      state: "available" as const,
-      operationalReadiness: "ready" as const,
+      connectionRequirement:
+        Object.values(COLLECTION_AGENT_TOOLS).find((t) => t.name === name)?.connectionRequirement ??
+        ("none" as const),
+      state: isAiToolModuleEnabled(name, tenantConfig).enabled
+        ? ("available" as const)
+        : ("unavailable" as const),
+      operationalReadiness: isAiToolModuleEnabled(name, tenantConfig).enabled
+        ? ("ready" as const)
+        : ("unavailable" as const),
       availabilityReason:
-        "Available through the bounded Revenue OS service; no provider connection is called directly.",
+        isAiToolModuleEnabled(name, tenantConfig).reason ??
+        "Available in this fictional workspace; outcomes are simulated.",
     }),
   );
   return {
-    registryVersion: "revenue-os-tools.v4",
+    registryVersion: AI_TOOL_REGISTRY_VERSION,
     scope: "runtime_registry",
     readinessEvaluated: true,
     capabilities,
@@ -1632,6 +1860,10 @@ function featureBoard(pack: DemoScenarioPack, state: DemoState) {
       };
       const deps = result.dependencies ?? [];
       const readiness = [
+        ...(result.work_kind === "initiative" ? ["initiative_not_executable"] : []),
+        ...(["feature", "bug"].includes(result.work_kind)
+          ? demoPacketProblems(result.work_spec)
+          : []),
         ...(!["backlog", "planned"].includes(result.status) ? [`status:${result.status}`] : []),
         ...(!result.description ? ["missing_outcome"] : []),
         ...(!result.acceptance_criteria ? ["missing_acceptance"] : []),
@@ -1834,6 +2066,12 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
   activeRuntime?.restore();
   const pack = DEMO_SCENARIOS[scenarioId];
   const state = loadState(scenarioId);
+  if (!state.business || state.business.version !== 1) {
+    state.business = createDemoBusinessState(pack);
+    saveState(scenarioId, state);
+  }
+  const business = state.business;
+  const scenarioPack = pack;
   const nativeFetch = window.fetch.bind(window);
   const nativeOpen = window.open.bind(window);
   const reset = () => {
@@ -1842,8 +2080,24 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     window.location.reload();
   };
   const demoFetch: typeof window.fetch = async (input, init) => {
+    const pack = {
+      ...scenarioPack,
+      opportunities: scenarioPack.opportunities.map((item) => ({
+        ...item,
+        stage: state.stageOverrides[item.id] || item.stage,
+      })),
+      tasks: [...demoTasksForGraph(business), ...scenarioPack.tasks].map((item) => ({
+        ...item,
+        status: state.completedTasks.includes(item.id) ? "completed" : item.status,
+      })),
+    };
     const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     const url = new URL(raw, window.location.origin);
+    if (url.origin !== window.location.origin)
+      return jsonResponse(
+        { error: "External requests are blocked in this fictional workspace" },
+        403,
+      );
     const path = url.pathname;
     const method = (
       init?.method || (input instanceof Request ? input.method : "GET")
@@ -1861,6 +2115,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    const businessResponse = await handleDemoBusinessRequest(
+      pack,
+      business,
+      { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
+      url,
+      method,
+      body,
+      () => {
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+      },
+      state.moduleSettings,
+    );
+    if (businessResponse) return businessResponse;
     const emailTemplateIds = [
       "inquiry-reply",
       "appointment-confirmation",
@@ -2036,10 +2304,21 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         aiRunDetail(pack, state, decodeURIComponent(path.split("/").at(-1) || "")),
       );
     if (method === "GET" && path === "/api/admin/revenue-os/ai/capabilities")
-      return jsonResponse(aiCapabilities());
+      return jsonResponse(
+        aiCapabilities({ modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } }),
+      );
     if (method === "GET" && path === "/api/admin/tenant/providers")
       return jsonResponse({
         providers: [
+          {
+            id: `demo-stripe-${scenarioId}`,
+            provider: "stripe",
+            status: "connected",
+            credential_source: "simulated",
+            credential_version: 1,
+            account_email: null,
+            key_metadata: null,
+          },
           {
             id: `demo-openrouter-${scenarioId}`,
             provider: "openrouter",
@@ -2268,17 +2547,58 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       else if (operation === "progress") {
         /* Event only. */
       } else if (operation === "submit") {
-        const evidence = p.evidence as { checks?: { status: string; evidence: string }[] };
+        const evidence = p.evidence as {
+          checks?: {
+            status: string;
+            evidence: string;
+            acceptanceId?: string;
+            environment?: string;
+          }[];
+        };
         if (
           !evidence?.checks?.length ||
           evidence.checks.some((c) => c.status !== "passed" || !c.evidence)
         )
           return jsonResponse({ error: "Passing evidence required" }, 400);
+        const acceptance = (current!.work_spec?.acceptance ?? []) as {
+          id: string;
+          environment?: string;
+        }[];
+        if (
+          current!.work_spec?.packetVersion === 2 &&
+          acceptance.some(
+            (a) =>
+              !evidence.checks?.some(
+                (c) => c.acceptanceId === a.id && c.environment === a.environment,
+              ),
+          )
+        )
+          return jsonResponse(
+            {
+              error:
+                "Every acceptance criterion requires passing evidence in its required environment",
+            },
+            400,
+          );
         patch.status = "in_review";
         patch.work_delivery = p.evidence as Record<string, unknown>;
       } else if (operation === "review") {
-        if (current!.status !== "in_review")
-          return jsonResponse({ error: "Submitted work required" }, 409);
+        if (
+          current!.status !== "in_review" &&
+          !(
+            current!.work_kind === "initiative" &&
+            ["backlog", "planned", "blocked"].includes(current!.status)
+          )
+        )
+          return jsonResponse({ error: "Submitted work or initiative required" }, 409);
+        if (
+          current!.work_kind === "initiative" &&
+          (!current!.dependencies?.length || current!.readiness.includes("dependencies_incomplete"))
+        )
+          return jsonResponse(
+            { error: "Initiative requires verified children before review" },
+            409,
+          );
         patch.status = p.accept ? "shipped" : "planned";
       } else if (operation === "recover") {
         if (
@@ -2386,10 +2706,10 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({ schemaReady: true, updated: 0 });
     }
     if (method === "GET" && path === "/api/admin/tenant/modules") {
-      const tenantConfig = { modules: state.moduleOverrides };
+      const tenantConfig = { modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides } };
       return jsonResponse({
         modules: getActiveModules(tenantConfig).map((mod) => mod.id),
-        overrides: state.moduleOverrides,
+        overrides: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
         moduleSettings: state.moduleSettings,
       });
     }
@@ -2407,11 +2727,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         if (moduleDef.isCore)
           return jsonResponse({ error: "Core modules cannot be disabled" }, 400);
         state.moduleOverrides[moduleId] = payload.enabled;
+        business.receipts.unshift({
+          id: crypto.randomUUID(),
+          operation: `${payload.enabled ? "Enabled" : "Disabled"} ${moduleDef.name}`,
+          at: new Date().toISOString(),
+          simulated: true,
+        });
         saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
         return jsonResponse({
           moduleId,
           enabled: payload.enabled,
-          modules: getActiveModules({ modules: state.moduleOverrides }).map((mod) => mod.id),
+          modules: getActiveModules({
+            modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
+          }).map((mod) => mod.id),
         });
       }
       if (payload.settings && typeof payload.settings === "object") {
@@ -2577,6 +2906,37 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         const id = String(body.conversationId);
         state.sentReplies[id] = [...(state.sentReplies[id] || []), String(body.body || "")];
       }
+      if (path === "/api/admin/revenue-os/conversations") {
+        const id = String(body.id || "");
+        if (id) {
+          const current = state.conversationOverrides[id] || {};
+          if (body.status) current.status = String(body.status);
+          if (body.assigneeEmail !== undefined) {
+            current.assignee =
+              body.assigneeEmail === "me" || body.assigneeEmail === pack.tenant.founder.email
+                ? pack.tenant.founder.email
+                : body.assigneeEmail
+                  ? String(body.assigneeEmail)
+                  : null;
+          }
+          if (body.opportunityId !== undefined)
+            current.opportunityId = body.opportunityId ? String(body.opportunityId) : null;
+          state.conversationOverrides[id] = current;
+        }
+      }
+      if (path === "/api/admin/revenue-os/conversations/action") {
+        const id = String(body.conversationId || "");
+        if (id && body.actionType === "create_task" && body.taskTitle) {
+          state.conversationTasks[id] = [
+            ...(state.conversationTasks[id] || []),
+            {
+              id: `demo-task-${crypto.randomUUID()}`,
+              title: String(body.taskTitle),
+              due_date: body.taskDueDate ? String(body.taskDueDate) : null,
+            },
+          ];
+        }
+      }
       if (path === "/api/admin/notifications" && body.id)
         state.readNotifications.push(String(body.id));
       saveState(scenarioId, state);
@@ -2662,31 +3022,34 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/revenue-os/actions")
       return jsonResponse({
-        actions: pack.actions
-          .filter((item) => !state.completedActions.includes(item.id))
-          .map((item, index) => ({
-            id: item.id,
-            action_type: item.type,
-            title: item.title,
-            description: item.description,
-            urgency: index < 2 ? "high" : "normal",
-            reasoning: item.description,
-            status: "pending",
-            created_at: ago(index + 1),
-            expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
-            payload:
-              item.type === "send_gmail_reply"
-                ? {
-                    to: person(pack, item.personId).email,
-                    subject: pack.conversations[index]!.subject,
-                    body: item.body,
-                  }
-                : {
-                    opportunityId: pack.opportunities[index]!.id,
-                    stage: "proposal",
-                    reason: item.description,
-                  },
-          })),
+        actions: [
+          ...business.actions.filter((item) => item.status === "pending"),
+          ...pack.actions
+            .filter((item) => !state.completedActions.includes(item.id))
+            .map((item, index) => ({
+              id: item.id,
+              action_type: item.type,
+              title: item.title,
+              description: item.description,
+              urgency: index < 2 ? "high" : "normal",
+              reasoning: item.description,
+              status: "pending",
+              created_at: ago(index + 1),
+              expires_at: new Date(Date.now() + 4 * 86_400_000).toISOString(),
+              payload:
+                item.type === "send_gmail_reply"
+                  ? {
+                      to: person(pack, item.personId).email,
+                      subject: pack.conversations[index]!.subject,
+                      body: item.body,
+                    }
+                  : {
+                      opportunityId: pack.opportunities[index]!.id,
+                      stage: "proposal",
+                      reason: item.description,
+                    },
+            })),
+        ],
       });
     if (path === "/api/admin/revenue-os/pipeline")
       return jsonResponse({
@@ -2695,7 +3058,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         opportunities: opportunityRows(pack, state),
       });
     if (path === "/api/admin/revenue-os/conversations")
-      return jsonResponse(conversations(pack, state, url.searchParams.get("id")));
+      return jsonResponse(conversations(pack, state, url));
     if (path === "/api/admin/revenue-os/analytics") return jsonResponse(analytics(pack, state));
     if (path === "/api/admin/contacts/timeline") {
       const requestedEmail = (url.searchParams.get("email") || "").toLowerCase();
@@ -2801,7 +3164,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         proposalRevenue: 24600,
       });
     }
-    if (path === "/api/admin/activity") return jsonResponse(auditHistory(pack, url.searchParams));
+    if (path === "/api/admin/activity")
+      return jsonResponse(auditHistory(pack, url.searchParams, business));
     if (path === "/api/admin/revenue-os/ai/conversations")
       return jsonResponse({
         schemaReady: true,
@@ -2880,4 +3244,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
   };
   activeRuntime = { scenarioId, restore, reset };
   return { pack, reset, restore };
+}
+
+export function readDemoModuleConfig(id: DemoScenarioId) {
+  return { modules: { ...DEMO_BUSINESS_MODULES, ...loadState(id).moduleOverrides } };
 }

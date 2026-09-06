@@ -133,7 +133,12 @@ export function EmailBlockComposer({
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <p className="admin-eyebrow mb-0">Exact rendered preview</p>
-            {pending && <Loader2 className="size-3 animate-spin text-[var(--admin-muted)]" aria-hidden="true" />}
+            {pending && (
+              <Loader2
+                className="size-3 animate-spin text-[var(--admin-muted)]"
+                aria-hidden="true"
+              />
+            )}
           </div>
           <div className="inline-flex rounded-[var(--admin-control-radius)] bg-[var(--admin-surface)] p-1 shadow-[var(--admin-shadow-border)]">
             <button

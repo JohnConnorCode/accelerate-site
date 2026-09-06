@@ -9,7 +9,7 @@ An agent can scaffold a CRM in an afternoon now, so owning the code has stopped 
 
 You own it outright: your own Supabase project, your own AI provider key, your own data. Multi-tenancy is built in from the schema up, so an agency can run several client businesses from one deployment without any of them seeing another's records.
 
-[Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/self-hosting/ARCHITECTURE.md) · [Self-hosting](docs/self-hosting/SELF-HOSTING.md) · [All docs](docs/README.md) · [Roadmap](#roadmap)
+[Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/self-hosting/ARCHITECTURE.md) · [Self-hosting](docs/self-hosting/SELF-HOSTING.md) · [Developer start](docs/contributing/DEVELOPER-START.md) · [All docs](docs/README.md) · [Roadmap](#roadmap)
 
 ![The Today command center, showing a founder's priority queue, open pipeline value, and pending approvals for a fictional roofing company workspace.](docs/images/command-center-workspace.png)
 
@@ -95,15 +95,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). The public site and fictional demo are the fastest way to explore the project; neither one touches an external service.
 
-To connect a real workspace instead:
+To connect a workspace, use your own hosted Supabase project and PostgreSQL client tools (`psql`). Follow [Self-hosting](docs/self-hosting/SELF-HOSTING.md) to configure credentials, create the first owner, and apply the verified migration catalog. External providers can be connected afterward in Setup Center.
 
-```bash
-cp .env.example .env.local
-# Add your own Supabase values, then apply the documented migrations.
-npm run dev
-```
-
-Never copy production credentials into a fork. [Self-hosting](docs/self-hosting/SELF-HOSTING.md) covers migration order, environment tiers, tenant bootstrap, and turning on providers.
+Never copy production credentials into a fork.
 
 ## Useful commands
 
@@ -136,7 +130,7 @@ Route handlers and UI components are thin adapters, nothing more. Every business
 
 ## Roadmap
 
-`scripts/feature-backlog-data.mjs` is the single source of truth for what's shipped, in progress, planned, and backlog. Every card carries acceptance criteria, dependencies, and required verification, following the [Feature Board taxonomy](docs/contracts/FEATURE-BOARD-TAXONOMY.md). Extend that manifest; don't start a second roadmap in a fork.
+The live Feature Board is the source of truth for current definitions, dependencies, claims and acceptance. `scripts/feature-backlog-data.mjs` contains historical templates; dated reports are orientation, not dispatch authority. Use the [developer handoff](docs/contributing/DEVELOPER-START.md) to inspect and claim an executable card through the canonical protocol.
 
 [**/roadmap**](https://www.acceleratewith.us/roadmap) renders that manifest publicly, with every card's real description and acceptance criteria, no signup required. A curated, dependency-satisfied subset — cards ready to pick up without waiting on other work — is also mirrored to [GitHub Issues labeled `help wanted`](https://github.com/JohnConnorCode/accelerate-site/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) via `npm run mirror:feature-board-issues -- --apply`.
 

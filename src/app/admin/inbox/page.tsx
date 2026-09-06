@@ -203,9 +203,7 @@ export default function AdminInboxPage() {
       );
       toast.success(decision === "approve" ? "Action approved" : "Action rejected");
     } catch (actionError) {
-      toast.error(
-        actionError instanceof Error ? actionError.message : "Couldn't process action",
-      );
+      toast.error(actionError instanceof Error ? actionError.message : "Couldn't process action");
     }
   };
 
@@ -399,7 +397,7 @@ export default function AdminInboxPage() {
                           <Copy className="h-4 w-4" />
                         </button>
                       )}
-{item.kind === "task" && (
+                      {item.kind === "task" && (
                         <button
                           type="button"
                           onClick={() => completeTask(item)}
@@ -446,7 +444,7 @@ export default function AdminInboxPage() {
                       <Link
                         href={item.href}
                         className="ml-1 inline-flex min-h-10 items-center gap-1.5 rounded-[10px] bg-[#0b0b0b] px-3 text-xs font-medium text-white transition-[background-color,transform] duration-150 hover:bg-[#252525] active:scale-[0.96]"
->
+                      >
                         Open <ArrowUpRight className="h-3.5 w-3.5" />
                       </Link>
                     </div>

@@ -23,7 +23,10 @@ export function TeamCard({ member, index = 0 }: { member: TeamMember; index?: nu
         className="team-card-float group relative flex h-full flex-col items-center border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] bg-[var(--bg)] px-6 pb-7 pt-10 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fg)] focus-visible:ring-offset-4 motion-reduce:transform-none"
         aria-label={`${member.name}, ${member.role}. Read bio.`}
       >
-        <span className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 font-mono text-[0.62rem] tracking-[0.3em] text-white-muted/70 transition-colors duration-300 group-hover:text-white-muted" aria-hidden="true">
+        <span
+          className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 font-mono text-[0.62rem] tracking-[0.3em] text-white-muted/70 transition-colors duration-300 group-hover:text-white-muted"
+          aria-hidden="true"
+        >
           {String(index + 1).padStart(2, "0")}
         </span>
         <span className="relative mt-4 block h-44 w-44 overflow-hidden rounded-full bg-[var(--bg-subtle)] ring-1 ring-[color-mix(in_srgb,var(--fg)_16%,transparent)] transition-all duration-500 ease-out group-hover:ring-2 group-hover:ring-[color-mix(in_srgb,var(--fg)_45%,transparent)] group-focus-visible:ring-2 group-focus-visible:ring-[color-mix(in_srgb,var(--fg)_45%,transparent)] sm:h-52 sm:w-52 motion-reduce:transition-none">
@@ -47,7 +50,11 @@ export function TeamCard({ member, index = 0 }: { member: TeamMember; index?: nu
         </p>
         <span className="mt-4 inline-flex min-h-9 items-center gap-1.5 text-sm font-semibold text-heading">
           Read bio
-          <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:rotate-45 motion-reduce:transition-none" strokeWidth={2} aria-hidden="true" />
+          <ArrowUpRight
+            className="h-4 w-4 transition-transform duration-300 group-hover:rotate-45 motion-reduce:transition-none"
+            strokeWidth={2}
+            aria-hidden="true"
+          />
         </span>
       </Link>
     </Reveal>
@@ -110,7 +117,10 @@ export function TeamPreviewStrip({ members }: { members: TeamMember[] }) {
           className="group inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-heading"
         >
           Meet the whole team
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden="true" />
+          <ArrowRight
+            className="h-4 w-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+            aria-hidden="true"
+          />
         </Link>
       </Reveal>
     </div>

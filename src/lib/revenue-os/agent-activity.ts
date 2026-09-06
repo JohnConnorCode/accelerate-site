@@ -45,7 +45,9 @@ export async function getAgentActivityForEntity(
   // 1. Work items for this entity
   const { data: workItems, error: wiError } = await supabase
     .from("work_items")
-    .select("id, kind, objective, status, priority, reason, source, coworker_id, created_at, started_at, finished_at, next_check_at, next_check_reason, outcome, error, attempt_count")
+    .select(
+      "id, kind, objective, status, priority, reason, source, coworker_id, created_at, started_at, finished_at, next_check_at, next_check_reason, outcome, error, attempt_count",
+    )
     .eq("entity_type", input.entityType)
     .eq("entity_id", input.entityId)
     .order("created_at", { ascending: false })
@@ -81,7 +83,9 @@ export async function getAgentActivityForEntity(
   // 2. Action queue entries for this entity
   const { data: actions, error: actError } = await supabase
     .from("action_queue")
-    .select("id, action_type, title, status, urgency, reasoning, proposed_by, created_at, executed_at")
+    .select(
+      "id, action_type, title, status, urgency, reasoning, proposed_by, created_at, executed_at",
+    )
     .eq("entity_type", input.entityType)
     .eq("entity_id", input.entityId)
     .order("created_at", { ascending: false })
@@ -109,7 +113,9 @@ export async function getAgentActivityForEntity(
   // 3. Claims for this entity
   const { data: claims, error: claimError } = await supabase
     .from("claims")
-    .select("id, field, proposed_value, status, best_evidence, source_type, coworker_id, created_at, resolved_at")
+    .select(
+      "id, field, proposed_value, status, best_evidence, source_type, coworker_id, created_at, resolved_at",
+    )
     .eq("entity_type", input.entityType)
     .eq("entity_id", input.entityId)
     .order("created_at", { ascending: false })
@@ -141,7 +147,9 @@ export async function getAgentActivityForEntity(
     .from("audit_log")
     .select("entity_id, created_at, action, metadata")
     .eq("entity_type", "agent_run")
-    .or(`metadata->>'contact_id'.eq.${input.entityId},metadata->>'opportunity_id'.eq.${input.entityId},metadata->>'company_id'.eq.${input.entityId}`)
+    .or(
+      `metadata->>'contact_id'.eq.${input.entityId},metadata->>'opportunity_id'.eq.${input.entityId},metadata->>'company_id'.eq.${input.entityId}`,
+    )
     .order("created_at", { ascending: false })
     .limit(limit);
   // Audit queries may not match the JSON path — best-effort, not blocking.
@@ -154,7 +162,7 @@ export async function getAgentActivityForEntity(
         action: run.action,
         summary: `Agent run: ${run.action}`,
         status: "completed",
-        coworkerId: (run.metadata as Record<string, unknown>)?.coworker_id as string ?? null,
+        coworkerId: ((run.metadata as Record<string, unknown>)?.coworker_id as string) ?? null,
         entity_type: input.entityType,
         entity_id: input.entityId,
         detail: (run.metadata as Record<string, unknown>) ?? {},
@@ -166,7 +174,14 @@ export async function getAgentActivityForEntity(
   const { data: activities, error: actLedgerError } = await supabase
     .from("activities")
     .select("id, activity_type, title, summary, source, actor_email, external_id, occurred_at")
-    .eq(input.entityType === "contact" ? "contact_id" : input.entityType === "company" ? "company_id" : "opportunity_id", input.entityId)
+    .eq(
+      input.entityType === "contact"
+        ? "contact_id"
+        : input.entityType === "company"
+          ? "company_id"
+          : "opportunity_id",
+      input.entityId,
+    )
     .like("source", "work_engine%")
     .order("occurred_at", { ascending: false })
     .limit(limit);
@@ -221,7 +236,9 @@ function describeWorkItemStatus(wi: {
 }): string {
   switch (wi.status) {
     case "pending":
-      return `Queued: ${wi.objective}`;
+      return wi.error && wi.next_check_reason
+        ? `Retry scheduled: ${wi.next_check_reason}`
+        : `Queued: ${wi.objective}`;
     case "claimed":
       return `Claimed: ${wi.objective} — preparing to execute`;
     case "in_progress":
@@ -231,15 +248,13 @@ function describeWorkItemStatus(wi: {
         ? `Waiting: ${wi.next_check_reason}`
         : `Waiting: ${wi.objective} — scheduled check at ${wi.next_check_at ?? "unknown"}`;
     case "completed":
-      return wi.outcome
-        ? `Completed: ${wi.outcome}`
-        : `Completed: ${wi.objective}`;
+      return wi.outcome ? `Completed: ${wi.outcome}` : `Completed: ${wi.objective}`;
     case "failed":
       return wi.error
         ? `Failed (attempt ${wi.attempt_count}): ${wi.error}`
         : `Failed: ${wi.objective}`;
     case "cancelled":
-      return `Cancelled: ${wi.objective}`;
+      return `Cancelled: ${wi.outcome || wi.objective}`;
     default:
       return `${wi.status}: ${wi.objective}`;
   }

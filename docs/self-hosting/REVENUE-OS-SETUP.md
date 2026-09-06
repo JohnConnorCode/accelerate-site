@@ -4,45 +4,9 @@ The admin Setup Center at `/admin/setup` is the live source of truth. It checks 
 
 ## Required migration order
 
-1. `supabase/migration.sql`
-2. `supabase/migration-prompt2.sql`
-3. `supabase/migration-prompt2b.sql`
-4. `supabase/migration-prompt3.sql`
-5. `supabase/migration-prompt4.sql`
-6. `supabase/migration-prompt5.sql`
-7. `migrations/business-operating-system.sql`
-8. `migrations/utm-tracking.sql`
-9. `migrations/roofing-booking-machine.sql`
-10. `migrations/20260816-revenue-os.sql`
-11. `migrations/20260816-feature-board.sql`
-12. `migrations/20260816-first-party-analytics.sql`
-13. `migrations/20260816-money-first-outreach.sql`
-14. `migrations/20260816-email-studio.sql`
-15. `migrations/20260816-contact-importer.sql`
-16. `migrations/20260817-schema-verification.sql`
-17. `migrations/20260817-atomic-job-claims.sql`
-18. `migrations/20260817-atomic-campaign-member-claims.sql`
-19. `migrations/20260817-resend-webhooks.sql`
-20. `migrations/20260817-campaign-stop-claims.sql`
-21. `migrations/20260817-campaign-stop-claims-lock-order.sql`
-22. `migrations/20260819-campaign-send-attempts.sql`
-23. `migrations/20260819-stale-claim-recovery.sql`
-24. `migrations/20260820-agent-run-partial.sql`
-25. `migrations/20260820-notification-dedupe.sql`
-26. `migrations/20260820-responder-policy.sql`
-27. `migrations/20260823-command-center-scheduler.sql`
-28. `migrations/20260823-remove-legacy-job-claim-overload.sql`
-29. `migrations/20260824-ai-command-runtime.sql`
-30. `migrations/20260830-shared-database-tenancy.sql`
-31. `migrations/20260830-tenant-context-authorization.sql`
-32. `migrations/20260830-tenant-public-boundaries.sql`
-33. `migrations/20260830-tenant-uniqueness-cutover.sql`
-34. `migrations/20260830-revenue-recovery.sql`
-35. `migrations/20260831-tenant-lifecycle-rpcs.sql`
-36. `migrations/20260831-tenant-invitation-receipt-idempotency.sql`
-37. `migrations/20260831-tenant-suspension-guards.sql`
+Use `npm run db:migrate:all`. The ordered catalog and explicit historical exclusions live in [`scripts/lib/migration-manifest.mjs`](../../scripts/lib/migration-manifest.mjs). Run `npm run verify:migrations` to reject missing or unclassified SQL files. There is no separate manually maintained list.
 
-The Revenue OS migrations are idempotent. The core migration preserves legacy tables and creates the canonical operating model. The Feature Board migration creates the delivery roadmap. First-party analytics adds anonymous event storage. Money-first outreach adds campaign send idempotency and unguessable unsubscribe tokens. Email Studio adds protected draft and published template revisions. Contact Import adds review batches, row receipts, immutable events, and an atomic digest-bound execution claim.
+The migration ledger records each file and checksum atomically with its schema changes. Repeat runs verify completed files and resume pending files; they never replay seed updates. Changed recorded files and unknown database history fail closed. Existing installations without a ledger require reviewed baseline adoption before upgrading. See [Self-hosting](SELF-HOSTING.md) for first-owner ordering and hosted Supabase setup.
 
 The AI command runtime migration adds founder-owned conversation history, replay-safe client message IDs, and run linkage for provider, tool-pack, duration, and conversation observability. Apply it before enabling `/admin/ai`; until then the command UI fails closed with a setup message and no schema is created from a request path.
 
@@ -61,8 +25,7 @@ Production tenant release and activation use the staged, fail-closed checks in
 `docs/internal/TENANT-CUTOVER-RUNBOOK.md`; a green Setup Center or schema check alone is
 not activation evidence.
 
-Maintainers apply all migrations in order with `npm run db:migrate:all`, or one
-at a time with `npm run db:migrate -- <migration.sql>`, then
+Maintainers apply all migrations in order with `npm run db:migrate:all`, or through a selected manifest entry with `npm run db:migrate -- <migration.sql>`, then
 verify the resulting objects through the service role. `db:migrate:all` is
 safe to re-run against a fresh install or to resume after an early failure,
 but re-running it from scratch against a long-lived, already-migrated
@@ -161,35 +124,27 @@ The initial seed includes production migration, admin QA, unsubscribe handling, 
 
 ### Master backlog and agent handoff
 
-The complete execution backlog is source-controlled in `scripts/feature-backlog-data.mjs`. Its current managed count and status totals come from `npm run verify:agent-contract`; do not copy those mutable totals into documentation. The cards cover foundation, admin, Google, Gmail, Calendar, Drive, campaigns, proposals, AI, setup, security, operations, QA, release, documentation, and client productization.
+The live Feature Board owns card definitions, UUID dependencies, revisions, claims,
+review decisions and execution evidence. `scripts/feature-backlog-data.mjs` contains
+bootstrap templates; an older checkout must never overwrite newer live work or
+archive cards absent from its templates.
 
-The universal implementation framework is `docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md`; the exact pickup/evidence/recovery procedure is `docs/contributing/AGENT-TICKET-RUNBOOK.md`; and `src/lib/revenue-os/README.md` maps every core service to its callers and invariants. Run `npm run verify:agent-contract` before claiming work. Managed card definitions are durable in the manifest and projected into `/admin/features`; changes that must survive reconciliation belong in the manifest first.
+Follow [the universal work protocol](../contracts/UNIVERSAL-WORK-BOARD.md) and
+[the agent ticket runbook](../contributing/AGENT-TICKET-RUNBOOK.md). Configure a
+project-scoped work token and use `npm run agent:next` to claim ready work
+atomically. Renew the lease with `agent:heartbeat`; an Owner label is not a claim.
 
-After applying the Feature Board migration, validate the manifest without writing:
+For an intentional template import, create and review a bounded plan first:
 
-`npm run seed:features`
+```sh
+npm run seed:features -- --plan /tmp/work-plan.json --cards card-key
+npm run seed:features -- --apply --plan /tmp/work-plan.json
+```
 
-Reconcile the live board to the authoritative manifest:
-
-`npm run seed:features -- --apply`
-
-Verify live count, content, ordering, and outside-manifest drift without writing:
-
-`npm run seed:features -- --verify`
-
-The apply command upserts every managed card by stable `seed_key`, restores managed cards if they were archived, and recoverably archives active cards outside the manifest. It never hard-deletes backlog history.
-
-Every managed card includes:
-
-- A phase and workstream taxonomy.
-- A concrete outcome-oriented description.
-- Explicit dependency titles.
-- Likely code and documentation starting points.
-- Guardrails and stated non-goals.
-- Testable acceptance criteria.
-- A standard agent handoff protocol.
-
-Agents must claim a card by setting **Owner** before implementation. They should keep the card in **Planned** until work actually begins, move it to **In progress** while actively changing it, record test evidence and material decisions in **Internal notes**, and move it to **Shipped** only after every acceptance item is verified. A partially built foundation may be marked In progress when the remaining scope is explicitly described; this is not permission to call it shipped.
+Apply only the reviewed plan against its expected revisions. Use the live board
+for ongoing definition edits. Submit the exact code commit and acceptance-linked
+check evidence with `agent:complete`. Review acceptance, merge and production
+deployment are separate facts; local acceptance does not mean deployed.
 
 ## AI operating architecture
 
@@ -306,3 +261,7 @@ The public Calendly embed is the active booking path when `CALENDLY_ENABLED` is 
 8. Confirm the Vercel cron jobs have terminal `job_runs` and `source_runs` receipts.
 
 For local Command Center verification, run `npm run test:admin-recovery`, `npm run test:features`, `npm run test:contact-imports`, and `npm run test:admin-parity`. These authenticated Playwright journeys cover shared dialogs, Email Studio, Contact Import review/approval, collapsed/mobile navigation, Feature Board movement, and document-level overflow across every registered admin route. A source review or in-app browser check is not a substitute for these repository journeys.
+
+## Developer work board
+
+Clean installs include `20260906-universal-work-board.sql` and `20260907-work-packet-quality.sql` in the ordered catalog. The latter supplies packet validation and ordered card reads. Applying schema alone does not activate an older deployment: release compatible adapters, verify canonical writes and then check `npm run dev:doctor -- --board` with an issued worker credential. See [developer start](../contributing/DEVELOPER-START.md).

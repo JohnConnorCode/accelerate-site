@@ -1,0 +1,29 @@
+---
+title: "Check an action result"
+description: "Tell a prepared draft, an approved request, and a completed action apart."
+updated: "2026-09-05"
+---
+
+Use the result of an action to decide what to do next. A success message about saving a draft does not mean that its email has been sent.
+
+## Understand the difference
+
+| State                      | What it tells you                                 | Next step                            |
+| -------------------------- | ------------------------------------------------- | ------------------------------------ |
+| Prepared or pending review | A proposal exists                                 | Review its target and content        |
+| Approved                   | The action was authorized                         | Check execution status               |
+| Failed or unfinished       | Work did not reach a confirmed successful outcome | Read the reason and recovery option  |
+| Send accepted              | The provider accepted the message                 | Check delivery status when available |
+| Delivered                  | A delivery event was recorded                     | Continue the conversation as needed  |
+
+Exact labels vary by screen and provider. Look at what the receipt confirms, not just whether something is green.
+
+## Find the supporting evidence
+
+Start with the action or conversation where you did the work. Check its result, then use [Activity](/docs/command-center/activity) to understand related changes. [Setup Center](/docs/workspace/setup) helps investigate a provider connection that is failing across multiple actions.
+
+## If the screen is out of date
+
+Today can retain the last successfully loaded queue when a refresh fails. Check the last-success time and refresh status. An old row is not proof that the action needs to run again.
+
+If an action's result is uncertain, inspect the original request before submitting another one. Retries should preserve its identity so the same intended effect does not happen twice. Share the action identifier and visible error with your workspace administrator when you need help.

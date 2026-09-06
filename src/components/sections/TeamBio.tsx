@@ -60,7 +60,10 @@ export function TeamBioContent({ slug }: { slug: string }) {
                   </div>
                 ) : (
                   <div className="relative">
-                    <div className="absolute -left-3 -top-3 h-full w-full border border-[color-mix(in_srgb,var(--fg)_25%,transparent)]" aria-hidden="true" />
+                    <div
+                      className="absolute -left-3 -top-3 h-full w-full border border-[color-mix(in_srgb,var(--fg)_25%,transparent)]"
+                      aria-hidden="true"
+                    />
                     <div className="team-card-float relative aspect-[4/5] overflow-hidden bg-[var(--bg-subtle)] motion-reduce:transform-none">
                       <FadeImage
                         src={member.image}
@@ -124,7 +127,10 @@ export function TeamBioContent({ slug }: { slug: string }) {
             {member.highlights.map((highlight, i) => (
               <Reveal key={highlight} delay={Math.min(i, 3) * 0.06}>
                 <li className="group flex items-baseline gap-5 border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] py-5 transition-colors last:border-b hover:bg-[color-mix(in_srgb,var(--fg)_4%,transparent)]">
-                  <span className="font-mono text-[0.62rem] tracking-[0.2em] text-white-muted transition-colors group-hover:text-heading" aria-hidden="true">
+                  <span
+                    className="font-mono text-[0.62rem] tracking-[0.2em] text-white-muted transition-colors group-hover:text-heading"
+                    aria-hidden="true"
+                  >
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <span className="text-base leading-relaxed text-white-primary">{highlight}</span>
@@ -153,7 +159,10 @@ export function TeamBioContent({ slug }: { slug: string }) {
                       className="saturate-[0.85] transition-all duration-500 group-hover:scale-[1.08] group-hover:saturate-100 motion-reduce:transition-none [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
                     />
                   </span>
-                  <ArrowLeft className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-1 motion-reduce:transition-none" aria-hidden="true" />
+                  <ArrowLeft
+                    className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-1 motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
                   <span>
                     <span className="block font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
                       Previous
@@ -182,7 +191,10 @@ export function TeamBioContent({ slug }: { slug: string }) {
                       {next.name}
                     </span>
                   </span>
-                  <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden="true" />
+                  <ArrowRight
+                    className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
                   <span className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-full bg-[var(--bg-subtle)]">
                     <FadeImage
                       src={next.image}
@@ -208,8 +220,7 @@ export function TeamBioContent({ slug }: { slug: string }) {
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              Thirty minutes about how the business works and where AI or automation
-              may be useful.
+              Thirty minutes about how the business works and where AI or automation may be useful.
             </p>
             <BookCallButton location="team-bio" />
             <CallTerms />

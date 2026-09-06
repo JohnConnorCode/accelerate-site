@@ -1,80 +1,172 @@
 # Northstar Build Plan
 
-> **Auto-generated — do not hand-edit.** Produced by `npm run report:build-plan`
-> from `scripts/feature-backlog-data.mjs`. Every number below is computed
-> from live card data; `npm run verify:build-plan` (wired into
-> `verify:agent-contract`) fails if this file drifts from the generator's
-> output. To update it after a manifest change, run
-> `npm run report:build-plan` and commit the result.
->
-> This replaces a hand-maintained second roadmap that AGENTS.md's own rule
-> forbids ("do not create a second roadmap") and that nothing verified —
-> see `docs/contributing/AGENT-TICKET-RUNBOOK.md` for the actual pickup
-> procedure (`npm run agent:next`), and `docs/NORTHSTAR.md` for the vision
-> this board tracks against.
+Generated from the live-board snapshot exported **2026-09-06T03:29:25.513Z**. This is a dated report, not live dispatch authority. Use `npm run agent:status` for current readiness. Git templates never overwrite live definitions.
 
-## Status by phase
+291 active records: 33 planned, 136 backlog, 9 blocked, 108 shipped, 3 in_review, 2 in_progress. Accepted verification does not imply integration or deployment. Historical phase classifications are identified in the snapshot; frozen specifications remain unchanged.
 
-| Phase | Backlog | Planned | In progress | Blocked | Shipped | Total |
-|---|---|---|---|---|---|---|
-| A — A (Complete Loop One — See + Remember) | 0 | 0 | 0 | 1 | 18 | 19 |
-| B — B (Agent Runtime foundation — Notice + Act primitives) | 21 | 21 | 0 | 4 | 35 | 81 |
-| C — C (Reference coworker — Sales end-to-end loop) | 21 | 5 | 0 | 1 | 10 | 37 |
-| D — D (Plugin SDK + MCP) | 6 | 4 | 0 | 1 | 13 | 25 |
-| E — E (Additional coworkers/plugins + documentation) | 59 | 5 | 0 | 0 | 13 | 77 |
+## Outcome gates
 
-**Board total:** 107 backlog, 35 planned, 0 in progress, 7 blocked, 89 shipped (239 managed cards).
+| Phase | Classified cards | Outcome evidence | Proof card |
+|---|---:|---|---|
+| A — Connected business loop | 73 | Outcome not yet verified | `northstar-phase-a-proof` · backlog |
+| B — Governed runtime | 73 | Outcome not yet verified | `northstar-phase-b-proof` · backlog |
+| C — Reference Sales coworker | 21 | Outcome not yet verified | `northstar-phase-c-proof` · backlog |
+| D — Supported extensions | 43 | Outcome not yet verified | `northstar-phase-d-proof` · backlog |
+| E — Additional business workflows | 81 | Outcome not yet verified | `northstar-phase-e-proof` · backlog |
 
-## Dispatchable now (`npm run agent:next` picks from this set)
+Phases can advance in parallel. Dependencies and capability requirements gate implementation; useful business journeys set priority. Card counts are inventory, never phase completion percentages.
 
-- `drive-content-indexing` [medium] — Extract and index approved Drive documents
-- `ai-bounded-context` [high] — Enforce bounded AI context and grounding rules
-- `drive-provenance-retrieval` [medium] — Ground AI retrieval in Drive provenance and citations
-- `workshelter-reuse-baseline` [high] — Reconcile the reusable business-plugin baseline before Workshelter adoption
-- `admin-shell-design-system` [high] — Complete the shared professional admin system
-- `feature-board-interaction-rebuild` [high] — Rebuild Feature Board drag, details, and mobile interaction
-- `additional-tools-canonical-parity` [high] — Modernize and canonically integrate every additional admin tool
-- `de-vertical-inbound` [high] — Turn the roofing ingestion path into a configurable playbook
-- `proposal-lifecycle-service` [high] — Complete the proposal lifecycle and version rules
-- `admin-settings-consolidation` [medium] — Consolidate Settings and connection ownership
-- `ai-model-job-registry` [medium] — Route every AI job through an audited model registry
-- `system-health-report` [high] — Build the system-health report and freshness thresholds
-- `gmail-reply-actions` [high] — Finish reply, local archive, and follow-up actions in Conversations
-- `booking-mode-contract-reconciliation` [high] — Reconcile booking activation and health truth
-- `won-to-delivery-handoff` [high] — Create the won-to-delivery handoff
-- `unified-action-executor` [high] — Route every write through one executor with reversibility and compensators
-- `plugin-isolate-host` [high] — Run plugin code in an isolate with no ambient authority
-- `api-contract-tests` [high] — Add authenticated API contract and failure tests
-- `stage-history-analytics-reconciliation` [high] — Reconcile analytics with canonical stage history
-- `operating-goals-scorecards` [high] — Add operating goals and scorecards
-- `governed-bulk-operator-actions` [medium] — Add governed bulk operator actions
-- `integration-adapter-contract` [high] — Define the provider integration adapter contract
-- `guided-first-run-setup` [medium] — Guide first-run setup inside the product, not the terminal
-- `csv-hubspot-importers` [low] — Ship CSV and HubSpot contact/deal importers
-- `roles-and-permissions` [high] — Add real roles, record ownership, and per-object agent permissions
-- `integration-adapter-registry-resolution` [high] — Make the integration adapter registry the real resolution point
-- `generic-record-merge` [medium] — Add foreign-key-safe generic record merge with supersession
-- `report-recipe-engine` [high] — Make server-computed report recipes a registrable primitive
-- `docs-module-coverage-gate` [high] — Make a module that ships without documentation a red build
+## Ready within Now and Next
 
-## In progress
+- `ai-bounded-context` — Enforce bounded AI context and grounding rules
+- `runtime-record-permission-contract` — Make record and action permissions consistent for UI, agents and plugins
+- `plugin-isolate-cold-start-headroom` — Give first plugin evaluation reliable headroom under the cold-start budget
+- `won-to-delivery-handoff` — Create the won-to-delivery handoff
+- `unified-action-executor` — Route every write through one executor with reversibility and compensators
+- `admin-shell-design-system` — Complete the shared professional admin system
+- `de-vertical-inbound` — Turn the roofing ingestion path into a configurable playbook
+- `proposal-lifecycle-service` — Complete the proposal lifecycle and version rules
+- `booking-mode-contract-reconciliation` — Reconcile booking activation and health truth
+- `system-health-report` — Build the system-health report and freshness thresholds
+- `stage-history-analytics-reconciliation` — Reconcile analytics with canonical stage history
+- `operating-goals-scorecards` — Add operating goals and scorecards
+- `roles-and-permissions` — Add real roles, record ownership, and per-object agent permissions
+- `historical-acceptance-reconciliation` — Reconcile historical completion claims with their current prerequisite evidence
+- `neutral-runtime-distribution` — Provide a neutral fork distribution without inherited agency assets or deployment assumptions
+- `release-reference-business-journeys` — Verify receivables, sales follow-up and onboarding as complete release exemplars
+- `drive-content-indexing` — Extract and index approved Drive documents
+- `admin-settings-consolidation` — Consolidate Settings and connection ownership
+- `canonical-tools-route-inventory` — Reconcile retained admin routes with their canonical owners
+- `northstar-phase-b-proof` — Verify north star Phase B through a complete business outcome
 
-_None._
+## Ready but intentionally Later
+
+- `feature-board-interaction-rebuild` — Rebuild Feature Board drag, details, and mobile interaction
+- `integration-adapter-contract` — Define the provider integration adapter contract
+- `gmail-reply-actions` — Finish reply, local archive, and follow-up actions in Conversations
+- `integration-adapter-registry-resolution` — Make the integration adapter registry the real resolution point
+- `api-contract-tests` — Add authenticated API contract and failure tests
+- `report-recipe-engine` — Make server-computed report recipes a registrable primitive
+- `docs-module-coverage-gate` — Implement strict documentation coverage checks and actionable gap reports
+- `release-restore-upgrade-proof` — Prove workspace recovery and upgrades preserve business truth
+- `governed-bulk-operator-actions` — Add governed bulk operator actions
+- `generic-record-merge` — Add foreign-key-safe generic record merge with supersession
+
+## Needs specification
+
+_None in this snapshot._
+
+## Active and in review
+
+- `backlog-execution-quality` — Make the backlog an executable guide to north star business outcomes · status:in_review
+- `developer-handoff-readiness` — Make developer onboarding and backlog pickup work from a fresh checkout · status:in_review
+- `plugin-workflow-validator-generation` — Generate bundled workflow contracts from the business validators · status:in_progress; already_claimed
+- `workshelter-reuse-baseline` — Reconcile the reusable business-plugin baseline before Workshelter adoption · status:in_progress; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `universal-work-board` — Make the Feature Board an authoritative human and agent work system · status:in_review; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
 
 ## Blocked
 
-- `communication-sender-service` — Finish one auditable communication sender
-- `google-oauth-first-sync` — Connect Google OAuth and complete the first Workspace sync
-- `gmail-incremental-sync` — Import Gmail incrementally with cursor recovery
-- `calendar-sync-association` — Synchronize Calendar events and associate revenue records
-- `second-brain-see` — Phase A: give the system eyes
-- `email-studio-runtime` — Restore Email Studio, sent history, and live template publishing
-- `site-capacity-visual-rebuild` — Rebuild the public site around capacity liberation and editorial visuals
+- `google-oauth-first-sync` — Connect Google OAuth and complete the first Workspace sync · status:blocked
+- `communication-sender-service` — Finish one auditable communication sender · status:blocked
+- `gmail-incremental-sync` — Import Gmail incrementally with cursor recovery · status:blocked; dependencies_incomplete
+- `calendar-sync-association` — Synchronize Calendar events and associate revenue records · status:blocked; dependencies_incomplete
+- `second-brain-see` — Phase A: give the system eyes · status:blocked; initiative_not_executable; dependencies_incomplete
+- `developer-shared-dispatch-activation` — Activate and prove the shared developer dispatch handoff · status:blocked; blocker:Requires accepted prerequisites and explicit founder production-release instruction. First correct Vercel CLI account access: website-4827 listed theresa-vs-projects, which could not access configured project prj_w46n3AgV4L4IGEJZ0WzCBCZhDTot in team team_aoXdtupaCmY2LDwBtCd4d7If. Follow DEPLOY.md and deployment-target.json; do not infer hosting suspension from this mismatch. GitHub separately reported Account is blocked; investigate only after verifying intended account access. Shared agent endpoint last returned 404; compatible rollout and production strict-write/drill proof remain outstanding.; dependencies_incomplete
+- `ai-model-job-registry` — Route every AI job through an audited model registry · status:blocked
+- `email-studio-runtime` — Restore Email Studio, sent history, and live template publishing · status:blocked; dependencies_incomplete
+- `site-capacity-visual-rebuild` — Rebuild the public site around capacity liberation and editorial visuals · status:blocked
 
-## Dependency-ready but outside the dispatch horizon
+## Verified work with integration or required production proof unrecorded
 
-Should always be empty — a non-empty list here means the same defect
-`findDispatchDeadlock` in `scripts/lib/feature-board-graph.mjs` catches:
-dependency-ready work exists that no milestone label makes claimable.
+- `open-source-release-readiness` — Prepare the repository for a safe public launch · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `gmail-thread-idempotency` — Preserve Gmail threading and message idempotency · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `gmail-record-association` — Associate Gmail threads with canonical revenue records · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `conversations-operator-inbox` — Finish Conversations as the unified communication inbox · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `drive-folder-boundary` — Enforce selected-folder Drive access boundaries · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `playwright-inbound-pipeline` — Add Playwright journey for inbound capture and pipeline progression · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `legacy-api-adapters` — Back legacy admin reads with canonical adapters · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `work-completion-truth` — Require truthful coworker completion and durable Sales drafts · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `verification-workflow-efficiency` — Make commits fast while preserving reliable review and release verification · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `webhook-cron-api-defense` — Harden webhook, cron, replay, validation, and rate-limit defenses · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `identity-review-workbench` — Build the identity review workbench · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `entity-registry-and-link-graph` — Add an open entity registry and a polymorphic link graph · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `docs-site-infrastructure` — Build the documentation site infrastructure at /docs · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `command-palette-tools` — Connect the command palette to real Revenue OS actions · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `bundled-report-plugins` — Prove the plugin runtime with four switchable business reports · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `capability-scoped-data-api` — Expose one capability-checked data API with no raw database handle · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `docs-integration-surfaces` — Wire docs into search, sitemap, navigation and a generated llms index · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `feature-board-dependency-integrity` — Enforce Feature Board dependency integrity · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `identity-resolution-service` — Implement deterministic contact and company identity resolution · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `pipeline-stage-board` — Finish the canonical Pipeline workspace · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `priority-selector-service` — Create the shared operator-priority selector · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `today-operator-inbox` — Finish Today as the prioritized operator inbox · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `shared-database-multi-tenancy-contract` — Adopt shared-database multi-tenancy as the Command Center product shape · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `tenant-control-plane-schema` — Build the tenant control plane and backfill Accelerate · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `tenant-context-authorization` — Enforce tenant context through authentication and domain services · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `tenant-isolation-cutover` — Prove multi-tenant isolation and activate the first client · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `integration-capability-platform` — Build the provider capability platform and integration catalog · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `marketing-positioning-copy-reset` — Lock the full-service AI positioning and reset public marketing copy · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `selected-work-portfolio` — Build the selected work portfolio · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `portfolio-art-direction-motion` — Give every portfolio case distinct art direction and restrained motion · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `public-site-motion-performance` — Repair public-site motion and static delivery · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `full-admin-demo-runtime` — Build the isolated full-admin demo runtime · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `five-business-admin-demo-suite` — Deliver five complete targeted business demo workspaces · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `public-shell-route-consistency` — Keep every public route inside the standard site shell · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `activity-ledger-normalization` — Normalize the cross-channel activity ledger · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `record-detail-workspace` — Build contextual contact, company, and opportunity details · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `pipeline-saved-views` — Add useful Pipeline saved views and ownership filters · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `task-dedup-service` — Build the canonical task generator with deduplication · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `canonical-attribution` — Consolidate analytics on canonical source-to-revenue data · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `cloneable-command-center-contract` — Adopt instance-per-client cloning as the Command Center product shape · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `tenant-config-seam` — Extract every business fact into one tenant configuration · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `tenant-workspace-provisioning` — Ship tenant workspaces, switching, and founder provisioning · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `atomic-execution-claims` — Enforce atomic claims and idempotency for jobs and actions · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `setup-control-plane` — Finish Setup Center as the operational control plane · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `secret-storage-hardening` — Harden encrypted secret and token storage · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `tenant-provider-public-boundaries` — Tenant-isolate providers, public intake, webhooks, and jobs · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `openrouter-ai-gateway` — Standardize every AI workflow on the OpenRouter gateway · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `founder-note-capture` — Give the founder's own knowledge a way in · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `audit-ledger-coverage` — Complete before/after audit coverage for material changes · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `ai-tool-registry` — Complete AI tool registry and impact tiers · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `ai-command-runtime` — Build the persistent streamed AI command runtime · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `ai-run-traces` — Complete AI run traces, tool evidence, errors, and usage · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `ai-command-workspace` — Ship one operator-grade AI workspace everywhere · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `ai-confirmation-system` — Finish the shared AI confirmation system · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `second-brain-remember` — Phase B: a knowledge substrate with provenance · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `autonomous-inbound-responder` — Answer every inbound inquiry inside an approved response policy · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `scheduling-substrate-decision` — Decide the scheduling substrate · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `revenue-os-production-migration` — Verify the production Revenue OS schema · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `feature-board-operational` — Operate the Feature Board as the delivery source of truth · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `schema-drift-verification` — Add schema-version and drift verification · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `legacy-canonical-reconciliation` — Reconcile legacy records with the canonical model · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `pipeline-transition-service` — Finish the canonical pipeline transition service · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `admin-overlay-motion-recovery` — Repair admin overlays, entry motion, tokens, and collapsible navigation · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `analytics-workspace` — Rebuild Analytics around decisions and data quality · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `resend-webhooks` — Add Resend delivery webhooks and suppression receipts · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `ai-contact-importer` — Import and clean ad hoc contacts with AI review and approval · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `agent-learning-feedback-loop` — Build the governed agent learning feedback loop · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `founder-access-rls` — Verify founder-only admin access and service-only data policies · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `operations-alerting` — Add actionable health alerts and recovery runbooks · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `command-center-demo-mode` — Ship an isolated, persistent Command Center demo mode · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `agent-runbooks` — Maintain agent-ready architecture and recovery runbooks · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `full-admin-demo-scenarios` — Ship three complete full-admin demo scenarios · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `one-click-vercel-deploy` — Ship a one-click Vercel deploy button · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `module-route-gating-enforcement` — Enforce module enablement on routes, not only navigation · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `module-contract-gate-hardening` — Close the module contract gaps that let unreachable code ship · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `durable-work-engine` — Generalise tasks and scheduling into a durable Work Engine · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `capability-graph-canonical` — Build one canonical Capability Graph for workspace capabilities · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `evidence-claim-ledger` — Build the Evidence and Claim Ledger for AI-derived facts · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `autonomy-policy-engine` — Unify agent permissions into one Autonomy Policy Engine · status:shipped; dependencies_incomplete; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `coworker-model` — Introduce Coworkers as first-class runtime identities with manifests · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `finance-coworker` — Finance Coworker: revenue tracking, overdue detection, and reconciliation · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `work-scheduler` — Work scheduler: auto-create recurring daily and weekly coworker work items · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `memory-architecture` — Memory architecture: five distinct memory categories with unified query · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `budgets` — Resource budgets for autonomous workers with explicit spending caps · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `mcp-ai-tool-bridge` — Expose the governed tool registry through MCP · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `agent-activity-surface` — Add Agent Activity surfaces on every major business record · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
+- `operations-coworker` — Operations Coworker: system health, integration monitoring, and data quality · status:shipped; missing_packet_version; missing_business_value; missing_current_behavior; missing_northstar; missing_scope; missing_exclusions; missing_references; missing_verification; missing_workflow; missing_failureModes; missing_acceptance; missing_required_capabilities; missing_repository
 
-_None — every dependency-ready card carries milestone:now or milestone:next._
+## Snapshot integrity
+
+Missing dependency records: 0.
+Audit dispositions and historical prerequisite anomalies are in [BACKLOG-AUDIT](planning/BACKLOG-AUDIT.md). Refresh with `npm run backlog:snapshot`, then regenerate this report; offline checks never mutate live work.

@@ -49,8 +49,8 @@ if (stillDefault) {
         message:
           "This installation's bootstrap tenant still carries Accelerate's own identity " +
           `(founder ${founderEmail}, domain ${domain}). If this is a fork, set the ` +
-          "BOOTSTRAP_* variables documented in .env.example and re-run the migration " +
-          "that seeded this tenant, or update tenants.config directly.",
+          "BOOTSTRAP_* variables before first installation. For an existing workspace, " +
+          "use Branding and the reviewed tenant configuration service; migrations do not overwrite saved configuration.",
         tenantSlug: data.slug,
       },
       null,

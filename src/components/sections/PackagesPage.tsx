@@ -282,10 +282,7 @@ export function PackagesPageContent() {
         <AnimateOnScroll
           as="div"
           delay={0.1}
-          variants={{
-            hidden: { opacity: 0 },
-            visible: { opacity: 1, transition: { duration: 0.7 } },
-          }}
+          appearance="fade"
           className="border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] p-6 sm:p-8"
         >
           <ComparisonTable />

@@ -27,7 +27,9 @@ const readHeadings = (selector: string): TocItem[] => {
     }));
 };
 
-export function TableOfContents({ selector = "[data-article-content]" }: { selector?: string } = {}) {
+export function TableOfContents({
+  selector = "[data-article-content]",
+}: { selector?: string } = {}) {
   // Start empty so the server render and the client's first (hydration) render
   // match — both produce `null`. Headings are read from the DOM after mount,
   // then the TOC fades in. Reading during render would diverge (no `document`
@@ -80,7 +82,10 @@ export function TableOfContents({ selector = "[data-article-content]" }: { selec
   if (headings.length === 0) return null;
 
   return (
-    <nav className="bg-[var(--surface-bg)] p-5 shadow-[var(--card-shadow)]">
+    <nav
+      aria-label="On this page"
+      className="bg-[var(--surface-bg)] p-5 shadow-[var(--card-shadow)]"
+    >
       <div className="flex items-center gap-2 mb-4">
         <div className="h-4 w-0.5 bg-[var(--fg)]" />
         <h4 className="font-display text-sm font-semibold text-white-primary">On this page</h4>
@@ -90,12 +95,13 @@ export function TableOfContents({ selector = "[data-article-content]" }: { selec
           <li key={heading.id}>
             <a
               href={`#${heading.id}`}
+              aria-current={activeId === heading.id ? "location" : undefined}
               className={cn(
                 "-ml-px block border-l-2 py-1.5 text-sm transition-[color,border-color,transform] duration-200",
                 heading.level === 3 ? "pl-6" : "pl-4",
                 activeId === heading.id
                   ? "translate-x-0.5 border-l-[var(--fg)] font-medium text-heading"
-                  : "text-white-muted hover:text-white-secondary border-l-transparent",
+                  : "text-white-secondary hover:text-heading border-l-transparent",
               )}
             >
               {heading.text}

@@ -230,19 +230,17 @@ export function OpenSourcePageContent() {
             </Heading>
             <p className="mt-5 max-w-md text-base leading-relaxed text-white-muted">
               The public site and fictional demo run with zero external services. Connecting a real
-              workspace with your own Supabase project is a second step, fully documented in the
-              repository.
+              workspace with your own Supabase project is a second step. Follow the installation
+              walkthrough in our docs.
             </p>
-            <a
-              href="https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/SELF-HOSTING.md"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/docs/self-hosting"
               data-cursor="link"
-              className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
             >
               Read the self-hosting docs
               <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
+            </Link>
           </div>
           <AnimateOnScroll as="div" delay={0.08} className="min-w-0">
             <CodeBlock language="bash" title="terminal">

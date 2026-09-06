@@ -186,3 +186,12 @@ profile control. It must fail on stale disk-cached RSC responses, service-worker
 control, repeated document navigation, mixed deployment identities, URL/route
 disagreement, runtime errors, or a material persistent-versus-fresh regression.
 Physical Android Chrome evidence follows `docs/internal/ANDROID-CHROME-CACHE-INCIDENT.md`.
+
+## Public static-page continuity
+
+Public marketing and docs segments must not define full-page `loading.tsx`
+skeletons. Keep the committed route readable while the next route resolves;
+use the existing bounded pending feedback and enter the destination when ready.
+Regional data loading and private application loading remain separate concerns.
+Browser verification must hold a real RSC response, sample the pending frames,
+and reject a skeleton flash, blank stage, or premature loss of the old heading.

@@ -33,7 +33,14 @@ export interface PublicRoadmapCard {
  * route.ts) is inserted with no labels at all, so it stays invisible here
  * until a human triages it in /admin/features and gives it one.
  */
+export function isPublicRoadmapConfigured() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() && process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
+  );
+}
+
 export async function getPublicRoadmapCards(): Promise<PublicRoadmapCard[]> {
+  if (!isPublicRoadmapConfigured()) return [];
   const supabase = createPlatformServiceRoleClient("public-roadmap");
   const { data, error } = await supabase
     .from("feature_requests")
@@ -60,4 +67,18 @@ export async function getPublicRoadmapCards(): Promise<PublicRoadmapCard[]> {
     });
   }
   return cards;
+}
+
+export type PublicRoadmapAvailability = "ready" | "unconfigured" | "unavailable";
+export async function getPublicRoadmapState(): Promise<{
+  cards: PublicRoadmapCard[];
+  availability: PublicRoadmapAvailability;
+}> {
+  if (!isPublicRoadmapConfigured()) return { cards: [], availability: "unconfigured" };
+  try {
+    return { cards: await getPublicRoadmapCards(), availability: "ready" };
+  } catch {
+    console.error("Public roadmap is temporarily unavailable");
+    return { cards: [], availability: "unavailable" };
+  }
 }

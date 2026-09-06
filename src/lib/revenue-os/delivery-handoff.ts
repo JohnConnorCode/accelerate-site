@@ -126,7 +126,12 @@ export async function getActiveTemplate(
 
 export async function createOnboardingTemplateVersion(
   supabase: SupabaseClient,
-  input: { tenantId: string; templateKey?: string; milestones: OnboardingMilestone[]; actorEmail: string },
+  input: {
+    tenantId: string;
+    templateKey?: string;
+    milestones: OnboardingMilestone[];
+    actorEmail: string;
+  },
 ): Promise<OnboardingTemplate> {
   const tenant = requireTenant(input.tenantId);
   const key = (input.templateKey ?? DEFAULT_TEMPLATE_KEY).trim() || DEFAULT_TEMPLATE_KEY;
@@ -214,18 +219,22 @@ export async function createHandoffFromOpportunity(
   if (!opportunity) throw new Error("Opportunity not found");
   const stages = await loadPipelineStages(supabase, tenantId);
   const role = stages.role(stages.canonicalStage(String(opportunity.stage)) ?? "");
-  if (role !== "won") throw new Error(`Handoff requires a won opportunity (current stage is ${opportunity.stage})`);
+  if (role !== "won")
+    throw new Error(`Handoff requires a won opportunity (current stage is ${opportunity.stage})`);
 
   const [{ data: contact }, { data: company }] = await Promise.all([
     opportunity.contact_id
-      ? supabase.from("contacts").select("id,full_name,primary_email").eq("id", opportunity.contact_id).maybeSingle()
+      ? supabase
+          .from("contacts")
+          .select("id,full_name,primary_email")
+          .eq("id", opportunity.contact_id)
+          .maybeSingle()
       : Promise.resolve({ data: null }),
     opportunity.company_id
       ? supabase.from("companies").select("id,name").eq("id", opportunity.company_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
-  const contactEmail =
-    (contact?.primary_email as string) || (opportunity.email as string) || null;
+  const contactEmail = (contact?.primary_email as string) || (opportunity.email as string) || null;
   if (!contactEmail) throw new Error("Handoff needs a contact email; nothing to hand off to");
 
   // One engagement per opportunity: return the existing row on replay.
@@ -256,7 +265,8 @@ export async function createHandoffFromOpportunity(
       })
       .select("*")
       .single();
-    if (createError || !createdClient) throw new Error(`Could not create engagement: ${createError?.message || "no row"}`);
+    if (createError || !createdClient)
+      throw new Error(`Could not create engagement: ${createError?.message || "no row"}`);
     client = createdClient as Row;
     created = true;
   }
@@ -282,13 +292,20 @@ export async function createHandoffFromOpportunity(
   for (const milestone of requested) {
     if (completedKeys.has(milestone.key)) {
       const existingTask = await findMilestoneTask(supabase, String(client.id), milestone.key);
-      milestones.push({ key: milestone.key, title: milestone.title, status: "complete", task_id: existingTask });
+      milestones.push({
+        key: milestone.key,
+        title: milestone.title,
+        status: "complete",
+        task_id: existingTask,
+      });
       continue;
     }
     const dedupeKey = `handoff:${client.id}:${milestone.key}`;
     const { task, deduplicated } = await createRevenueTask(supabase, {
       title: milestone.title,
-      description: `${milestone.owner ? `Owner: ${milestone.owner}. ` : ""}${milestone.description || ""}`.trim() || null,
+      description:
+        `${milestone.owner ? `Owner: ${milestone.owner}. ` : ""}${milestone.description || ""}`.trim() ||
+        null,
       dueDate: dueDate(milestone.due_offset_days),
       priority: "medium",
       relatedType: "client",
@@ -306,7 +323,12 @@ export async function createHandoffFromOpportunity(
     milestones.push({
       key: milestone.key,
       title: milestone.title,
-      status: taskStatus === "completed" ? "complete" : taskStatus === "pending" || taskStatus === "snoozed" ? "in_progress" : "created",
+      status:
+        taskStatus === "completed"
+          ? "complete"
+          : taskStatus === "pending" || taskStatus === "snoozed"
+            ? "in_progress"
+            : "created",
       task_id: String((task as Row).id),
     });
   }
@@ -320,14 +342,16 @@ export async function createHandoffFromOpportunity(
     return {
       key: milestone.key,
       title: milestone.title,
-      status: state ? (state.status === "complete" ? "complete" : "open") : (prior?.status ?? "open"),
+      status: state
+        ? state.status === "complete"
+          ? "complete"
+          : "open"
+        : (prior?.status ?? "open"),
       task_id: state?.task_id ?? (prior as { task_id?: string } | undefined)?.task_id ?? null,
     };
   });
   const coveredKeys = new Set([...completedKeys, ...milestones.map((m) => m.key)]);
-  const remainder = template.milestones
-    .filter((m) => !coveredKeys.has(m.key))
-    .map((m) => m.key);
+  const remainder = template.milestones.filter((m) => !coveredKeys.has(m.key)).map((m) => m.key);
   const receipt: HandoffReceipt = {
     engagement_id: String(client.id),
     opportunity_id: opportunityId,
@@ -375,7 +399,7 @@ export async function createHandoffFromOpportunity(
     .eq("id", client.id)
     .maybeSingle();
   return {
-    client: ((refreshed ?? client) as Row),
+    client: (refreshed ?? client) as Row,
     created,
     milestones,
     remainder,
@@ -395,5 +419,7 @@ async function findMilestoneTask(
     .eq("dedupe_key", `handoff:${clientId}:${milestoneKey}`)
     .limit(1)
     .maybeSingle();
-  return (data as { id?: unknown } | null)?.id != null ? String((data as { id: unknown }).id) : null;
+  return (data as { id?: unknown } | null)?.id != null
+    ? String((data as { id: unknown }).id)
+    : null;
 }

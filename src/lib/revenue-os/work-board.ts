@@ -1,7 +1,8 @@
 /** Canonical platform work service. Never import into tenant-scoped tool catalogues. */
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { EVIDENCE_ENVIRONMENTS, compareWorkOrder } from "../work-packet";
 
 export const WORK_OPERATIONS = [
   "create",
@@ -30,17 +31,45 @@ export type WorkActor = {
   capabilities?: string[];
 };
 const line = z.string().max(500);
+const evidenceEnvironment = z.enum(EVIDENCE_ENVIRONMENTS);
 const reference = z
   .object({ path: line, reason: z.string().min(1).max(2000), revision: line.optional() })
   .strict();
 export const workSpecSchema = z
   .object({
+    packetVersion: z.literal(2).optional(),
+    northstar: z
+      .object({
+        phase: z.enum(["A", "B", "C", "D", "E"]),
+        layers: z
+          .array(z.enum(["See", "Remember", "Notice", "Act", "Learn"]))
+          .min(1)
+          .max(5),
+        contribution: z.string().min(1).max(2000),
+      })
+      .strict()
+      .optional(),
+    currentBehavior: z.string().min(1).max(10000).optional(),
+    failureModes: z.array(line).max(100).optional(),
+    blockerResolution: z.string().max(10000).optional(),
+    handoff: z
+      .object({ completed: z.array(line), remaining: z.array(line), commits: z.array(line) })
+      .strict()
+      .optional(),
     businessValue: z.string().max(10000).optional(),
     scope: z.array(line).max(100).optional(),
     exclusions: z.array(line).max(100).optional(),
     references: z.array(reference).max(100).optional(),
     verification: z
-      .array(z.object({ command: line, expected: z.string().max(2000) }).strict())
+      .array(
+        z
+          .object({
+            command: line.min(1),
+            expected: z.string().min(1).max(2000),
+            environment: evidenceEnvironment.optional(),
+          })
+          .strict(),
+      )
       .max(100)
       .optional(),
     requiredCapabilities: z.array(line).max(50).optional(),
@@ -51,7 +80,15 @@ export const workSpecSchema = z
       .optional(),
     workflow: z.array(line).max(100).optional(),
     acceptance: z
-      .array(z.object({ id: line, criterion: z.string().max(4000) }).strict())
+      .array(
+        z
+          .object({
+            id: line.min(1),
+            criterion: z.string().min(1).max(4000),
+            environment: evidenceEnvironment.optional(),
+          })
+          .strict(),
+      )
       .max(100)
       .optional(),
   })
@@ -71,6 +108,7 @@ export const workEvidenceSchema = z
             status: z.literal("passed"),
             evidence: z.string().min(1).max(4000),
             acceptanceId: line.optional(),
+            environment: evidenceEnvironment.optional(),
           })
           .strict(),
       )
@@ -297,12 +335,14 @@ export async function listWorkBoard(
     throw new WorkBoardError("Invalid pagination");
   const offset = Math.max(0, options.offset ?? 0),
     limit = Math.min(500, Math.max(1, options.limit ?? 250));
-  let query = db.from("feature_requests").select(WORK_CARD_COLUMNS);
+  let query = db.from("work_board_ordered_cards").select(WORK_CARD_COLUMNS);
   if (!options.id) query = query.is("archived_at", null);
   if (!actor.projects.includes("*")) query = query.in("project_key", actor.projects);
   if (options.id) query = query.eq("id", options.id);
   if (options.seedKey) query = query.eq("seed_key", options.seedKey);
   const { data, error } = await query
+    .order("horizon_rank")
+    .order("priority_rank")
     .order("sort_order")
     .order("id")
     .range(offset, offset + limit);
@@ -322,22 +362,25 @@ export async function listWorkBoard(
     (readiness.data ?? []).map((row: { id: string; reasons: string[] }) => [row.id, row.reasons]),
   );
   return {
+    protocolVersion: 2,
     schemaReady: true,
-    features: rows.map((row) => ({
-      ...row,
-      readiness: [
-        ...(reasons.get(row.id) ?? []),
-        ...(!actor.reviewer &&
-        (row.work_spec?.requiredCapabilities ?? []).some(
-          (cap: string) => !actor.capabilities?.includes(cap),
-        )
-          ? ["worker_capabilities_missing"]
-          : []),
-      ],
-      dependencies: (edges.data ?? [])
-        .filter((e) => e.card_id === row.id)
-        .map((e) => e.depends_on_id),
-    })),
+    features: rows
+      .map((row) => ({
+        ...row,
+        readiness: [
+          ...(reasons.get(row.id) ?? []),
+          ...(!actor.reviewer &&
+          (row.work_spec?.requiredCapabilities ?? []).some(
+            (cap: string) => !actor.capabilities?.includes(cap),
+          )
+            ? ["worker_capabilities_missing"]
+            : []),
+        ],
+        dependencies: (edges.data ?? [])
+          .filter((e) => e.card_id === row.id)
+          .map((e) => e.depends_on_id),
+      }))
+      .sort(compareWorkOrder),
     nextOffset: (data?.length ?? 0) > limit ? offset + limit : null,
   };
 }
@@ -446,6 +489,8 @@ export const workViewSchema = z
         ownerFilter: z.string().max(120),
         priority: z.string().max(20),
         queue: z.string().max(30),
+        phase: z.string().max(10).optional(),
+        initiative: z.string().max(200).optional(),
       })
       .strict(),
   })
@@ -471,4 +516,51 @@ export async function deleteWorkView(db: SupabaseClient, owner: string, id: stri
     .maybeSingle();
   if (error) throw new WorkBoardError(error.message, 500);
   if (!data) throw new WorkBoardError("Saved view not found or owned by another operator", 404);
+}
+
+/** Public intake has create-only authority and never accepts work metadata. */
+export async function submitPublicWorkSuggestion(db: SupabaseClient, raw: unknown) {
+  const input = z
+    .object({
+      title: z.string().trim().min(1).max(120),
+      description: z.string().trim().min(1).max(2000),
+      email: z.string().max(254).email().optional(),
+    })
+    .strict()
+    .parse(raw);
+  const requestKey = randomUUID();
+  const result = await mutateWorkBoard(
+    db,
+    {
+      id: "public-roadmap-submission",
+      projects: ["accelerate"],
+      scopes: ["create"],
+      reviewer: false,
+    },
+    {
+      operation: "create",
+      requestKey,
+      payload: {
+        project_key: "accelerate",
+        seed_key: `community-${requestKey}`,
+        title: input.title,
+        description: input.description,
+        priority: "low",
+        labels: [],
+        notes: `Submitted ${new Date().toISOString()} via the public roadmap suggestion form.${input.email ? ` Contact: ${input.email}` : " No contact provided."}`,
+      },
+    },
+  );
+  try {
+    const { error } = await db.from("admin_notifications").insert({
+      type: "roadmap_suggestion",
+      title: `New roadmap suggestion: ${input.title}`,
+      description: input.description.slice(0, 200),
+      link: "/admin/features",
+    });
+    if (error) console.error("Roadmap suggestion saved; operator notification failed");
+  } catch {
+    console.error("Roadmap suggestion saved; operator notification failed");
+  }
+  return result;
 }

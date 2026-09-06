@@ -87,11 +87,7 @@ async function main() {
     linkType: "attended_by",
   });
   assert.equal(first.link.id, second.link.id, "replayed link must resolve to the same edge");
-  assert.equal(
-    mem.rows("entity_links").length,
-    1,
-    "tuple writes must be idempotent no-ops",
-  );
+  assert.equal(mem.rows("entity_links").length, 1, "tuple writes must be idempotent no-ops");
   // Same pair under a different link type is a distinct fact.
   await linkEntities(db, {
     tenantId: TENANT,
@@ -173,10 +169,7 @@ async function main() {
   const rsvp = mem.rows("webinar_rsvps").find((r) => r.id === "r1");
   assert.equal(rsvp?.webinar_id, "w1", "fk_catalog references must reassign");
   const loser = mem.rows("webinars").find((r) => r.id === "w2");
-  assert.ok(
-    typeof loser?.archived_at === "string",
-    "loser must retire through archived_at:now",
-  );
+  assert.ok(typeof loser?.archived_at === "string", "loser must retire through archived_at:now");
   assert.ok(
     mem.rows("audit_log").some((r) => r.action === "entity.merged"),
     "merge must leave an audit receipt",

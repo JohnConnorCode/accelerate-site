@@ -107,7 +107,10 @@ function escapeSqlLiteral(value) {
 export function resolveBootstrapIdentity() {
   const resolved = {};
   for (const { token, env, default: fallback } of BOOTSTRAP_IDENTITY_TOKENS) {
-    resolved[token] = process.env[env]?.trim() || fallback;
+    resolved[token] =
+      env === "BOOTSTRAP_SCHEDULER_URL"
+        ? (process.env[env]?.trim() ?? "")
+        : process.env[env]?.trim() || fallback;
   }
   return resolved;
 }

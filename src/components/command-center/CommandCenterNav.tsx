@@ -6,8 +6,8 @@ import { trackConversion } from "@/lib/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 
 const SECTIONS = [
+  { id: "demo", label: "Product screens" },
   { id: "built", label: "Built for you" },
-  { id: "demo", label: "Demo" },
   { id: "how", label: "How it works" },
   { id: "autonomy", label: "Autonomy" },
   { id: "capabilities", label: "Capabilities" },

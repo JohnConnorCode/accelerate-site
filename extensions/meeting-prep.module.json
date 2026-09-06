@@ -1,0 +1,21 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "meeting-prep",
+  "name": "Meeting preparation",
+  "description": "Prepare a factual agenda of stored meetings in the next 48 hours.",
+  "category": "intelligence",
+  "defaultEnabled": false,
+  "navLinks": [],
+  "routes": [],
+  "aiToolNames": ["run_meeting_prep"],
+  "report": {
+    "version": 1,
+    "sources": [
+      {
+        "name": "records",
+        "type": "report_calendar_events",
+        "columns": ["id", "title", "status", "start_at", "end_at"]
+      }
+    ]
+  }
+}

@@ -69,7 +69,8 @@ export function useKanbanDnd<T>({
 
   const columnKeys = columns.map((column) => column.column_key);
   const columnLabel = useCallback(
-    (columnKey: string) => columns.find((column) => column.column_key === columnKey)?.label ?? columnKey,
+    (columnKey: string) =>
+      columns.find((column) => column.column_key === columnKey)?.label ?? columnKey,
     [columns],
   );
 
@@ -237,7 +238,9 @@ export function useKanbanDnd<T>({
     ],
   );
 
-  const activeItem = activeId ? (localItems.find((item) => getItemId(item) === activeId) ?? null) : null;
+  const activeItem = activeId
+    ? (localItems.find((item) => getItemId(item) === activeId) ?? null)
+    : null;
 
   const getColumnItems = useCallback(
     (columnKey: string) => sortByColumn(columnKey, localItems),

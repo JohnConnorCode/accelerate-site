@@ -106,6 +106,25 @@ async function main() {
     assert.equal(calls.length, 3, "expected three attempts, not more");
   });
 
+  await scenario("every request attempt reserves budget and denial stops retries", async () => {
+    stubFetch([{ status: 503 }]);
+    const attempts: number[] = [];
+    await assert.rejects(
+      () =>
+        openRouterChat({
+          ...ask,
+          beforeAttempt: async (attempt) => {
+            attempts.push(attempt);
+            if (attempts.length > 1) throw new Error("Budget exhausted");
+          },
+        }),
+      /Budget exhausted/,
+    );
+    assert.equal(attempts.length, 2);
+    assert.equal(new Set(attempts).size, 2, "attempt keys must be distinct");
+    assert.equal(calls.length, 1, "denied retries must not reach the provider");
+  });
+
   await scenario("a client error fails immediately without retrying", async () => {
     stubFetch([{ status: 400 }]);
     await assert.rejects(() => openRouterChat(ask));

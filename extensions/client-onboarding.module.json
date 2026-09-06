@@ -1,0 +1,57 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "client-onboarding",
+  "name": "Client onboarding",
+  "description": "Turn a won deal into an assigned, dated delivery checklist with durable task receipts.",
+  "category": "delivery",
+  "defaultEnabled": false,
+  "navLinks": [
+    {
+      "id": "client-onboarding",
+      "label": "Client onboarding",
+      "href": "/admin/client-onboarding",
+      "icon": "ListChecks",
+      "description": "Turn a won deal into an assigned, dated delivery checklist with durable task receipts.",
+      "moreGroup": "Delivery"
+    }
+  ],
+  "routes": ["/admin/client-onboarding"],
+  "aiToolNames": ["prepare_client_onboarding", "propose_client_onboarding"],
+  "workflow": {
+    "version": 1,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "opportunityId": { "type": "string", "maxLength": 36, "minLength": 36 },
+        "tasks": {
+          "minItems": 1,
+          "maxItems": 10,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "description": { "type": "string", "maxLength": 2000 },
+              "dueDate": { "type": "string", "maxLength": 10, "minLength": 10 },
+              "assigneeUserId": { "type": "string", "maxLength": 36, "minLength": 36 }
+            },
+            "required": ["title", "description", "dueDate", "assigneeUserId"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["opportunityId", "tasks"],
+      "additionalProperties": false
+    },
+    "actions": ["create_task_batch"],
+    "sources": [
+      {
+        "name": "opportunity",
+        "type": "workflow_opportunities",
+        "columns": ["id", "name", "stage"],
+        "inputKey": "opportunityId"
+      }
+    ],
+    "inputContract": "task-batch-opportunity-v1"
+  }
+}

@@ -29,7 +29,13 @@ interface KanbanCardProps<T> {
  * its own beyond the dnd-kit transform/transition, so a board's existing
  * card component can be dropped in unchanged in spirit.
  */
-export function KanbanCard<T>({ item, id, columnKey, disabled = false, renderCard }: KanbanCardProps<T>) {
+export function KanbanCard<T>({
+  item,
+  id,
+  columnKey,
+  disabled = false,
+  renderCard,
+}: KanbanCardProps<T>) {
   const { setNodeRef, transform, transition, isDragging, attributes, listeners } = useSortable({
     id,
     disabled,

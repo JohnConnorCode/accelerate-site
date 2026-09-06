@@ -1,0 +1,28 @@
+---
+title: "Understand revenue figures"
+description: "Read client and proposal totals and investigate differences from pipeline or payment records."
+updated: "2026-09-05"
+---
+
+Open `/admin/revenue` to review recorded client value and accepted proposals. The current screen calculates its figures from client and proposal records. It does not report cash collected from a payment provider.
+
+## What the figures mean
+
+| Figure                    | Source in the current application                              |
+| ------------------------- | -------------------------------------------------------------- |
+| Monthly recurring revenue | Monthly values on active client records                        |
+| One-time value            | One-time values recorded on client records                     |
+| Average client value      | Active-client monthly total divided by the active-client count |
+| Industry breakdown        | Active-client monthly values grouped by industry               |
+| Accepted proposal value   | Monthly totals on accepted proposals                           |
+
+The MRR timeline is derived from client status and contract-start dates, falling back to record creation dates. It is not an immutable history of invoices, payments or every contract change. Treat it as a view of the recorded client data.
+
+## Investigate a difference
+
+1. Identify the figure and the records included in it. Compare monthly value with monthly value; keep one-time amounts separate.
+2. Open the relevant [client](/docs/delivery/clients) or [proposal](/docs/proposals) and check status, amount and dates against the agreement.
+3. Compare with [Pipeline](/docs/pipeline/board) only after checking what that view counts. An opportunity amount, a client agreement and an accepted proposal can represent different stages of the same business.
+4. Correct a demonstrated source-record error through its supported edit flow, then reload Revenue.
+
+Do not change a record merely to make two reports agree. If the inputs are correct and the calculation still differs, report the expected formula and example record IDs to the technical owner.

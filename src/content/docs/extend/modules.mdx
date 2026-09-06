@@ -1,0 +1,56 @@
+---
+title: "Add a module"
+description: "Register a JSON manifest and pages. Nothing in extensions/ is executed."
+updated: "2026-09-04"
+---
+
+A module is the unit a workspace turns on and off. You drop a JSON manifest in `extensions/` and the pages it names. You do not edit a core array.
+
+## Manifest
+
+Create `extensions/<your-module>.module.json`:
+
+```json
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "acme-inventory",
+  "name": "Inventory",
+  "description": "Stock levels, reorder points, and supplier lead times.",
+  "category": "delivery",
+  "defaultEnabled": true,
+  "navLinks": [
+    {
+      "id": "acme-inventory",
+      "label": "Inventory",
+      "href": "/admin/acme-inventory",
+      "icon": "Library",
+      "description": "Stock levels and reorder points",
+      "moreGroup": "Delivery"
+    }
+  ],
+  "routes": ["/admin/acme-inventory"],
+  "aiToolNames": [],
+  "docsUrl": "/docs/delivery"
+}
+```
+
+Then create `src/app/admin/acme-inventory/page.tsx`, run `npm run build:extensions`, and commit both the manifest and `src/lib/revenue-os/extension-modules.generated.ts`.
+
+`example-inventory.module.json` in that directory is a complete working example. It ships disabled.
+
+## Rules that fail the build
+
+- `id` is kebab-case, 3 to 49 characters, and must not collide with a core module.
+- `icon` is a name from the allowlist in `scripts/build-extension-modules.mjs`, never a React component.
+- Each `routes` entry must have a real `page.tsx`.
+- Each `aiToolNames` entry must exist in the tool registry and belong to exactly one module.
+- `docsUrl` is a `/docs/...` path or an `https://` URL. Core and optional first-party modules must resolve to a live guide.
+- `settings` cannot look like secrets. Credentials go through an [adapter](/docs/extend/adapters).
+
+## What a manifest cannot do
+
+It cannot execute code, override a core module, ship an icon component, or add a schema change. Schema changes are ordered files in `migrations/`. Nothing in `extensions/` is executed. That is why an operator can read exactly what a module can reach before enabling it.
+
+For module-owned API routes, use `requireAdminForModule("your-module-id")` in every handler and register the directories in `MODULE_API_DIRECTORIES` (`scripts/verify-module-route-guards.mjs`) so the verifier checks that boundary. Adding a directory to the verifier alone does not enforce runtime authorization.
+
+New to the repository? Start with [your first developer change](/docs/extend/first-change) before adding a write path.

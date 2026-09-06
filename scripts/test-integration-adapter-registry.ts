@@ -25,12 +25,12 @@ import {
 
 const fakeEncrypt = (value: string) => `enc(${value})`;
 
-// The registry contains exactly the two adapters route.ts dispatches
+// The registry contains the reviewed adapters route.ts dispatches
 // "configure_whatsapp" and "configure_hubspot" to, keyed by the same ids
 // the action names derive from.
 assert.equal(INTEGRATION_ADAPTERS.get("whatsapp"), whatsAppAdapter);
 assert.equal(INTEGRATION_ADAPTERS.get("hubspot"), hubSpotAdapter);
-assert.equal(INTEGRATION_ADAPTERS.size, 2);
+assert.equal(INTEGRATION_ADAPTERS.size, 3);
 
 // WhatsApp: accessToken -> api_key, phoneNumberId -> phone_number_id.
 // This is the exact mapping the old hand-written block built.

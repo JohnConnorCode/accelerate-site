@@ -1,16 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useHydratedReducedMotion } from "@/hooks/useHydratedReducedMotion";
 import { BookCallButton } from "@/components/v2/studio/primitives";
 import { Reveal, useRv } from "@/components/home/reveal";
 import { AmbientField } from "@/components/home/AmbientField";
-import { ApprovalQueue } from "@/components/command-center/ApprovalQueue";
 import { CapabilityCatalog } from "@/components/command-center/CapabilityCatalog";
-import { CommandCenterDemo } from "@/components/command-center/demo/CommandCenterDemo";
 import { CommandCenterNav } from "@/components/command-center/CommandCenterNav";
 import { ProductSlider } from "@/components/media/ProductSlider";
 import { commandCenterFaqs } from "@/content/command-center-faq";
@@ -38,7 +34,6 @@ export function CommandCenterPageContent() {
       <Problem />
       <Built />
       <CurrentSurface />
-      <Demo />
       <HowItWorks />
       <TrustLadder />
       <Catalog />
@@ -55,119 +50,58 @@ export function CommandCenterPageContent() {
 /* ── hero ─────────────────────────────────────────────────────────────── */
 
 function Hero() {
-  const [loaded, setLoaded] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-  const reduced = useHydratedReducedMotion();
-
-  // One scroll listener drives both layers: content lifts and fades, the
-  // instrument grid behind it drifts the other way. Same technique as the
-  // homepage hero.
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-  // Removed fade out completely per user request so demo stays visible
-  const lift = useTransform(scrollYProgress, [0, 1], [0, -70]);
-  const gridDrift = useTransform(scrollYProgress, [0, 1], [0, 120]);
-
-  useEffect(() => {
-    // Leave the initial styles in place for two frames before revealing. This
-    // makes the word cascade reliable after an App Router navigation instead
-    // of depending on a cache-timing-sensitive timeout.
-    let frame = requestAnimationFrame(() => {
-      frame = requestAnimationFrame(() => setLoaded(true));
-    });
-    const onPageShow = () => setLoaded(true);
-    window.addEventListener("pageshow", onPageShow);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("pageshow", onPageShow);
-    };
-  }, []);
-
   return (
-    <section ref={sectionRef} className={`hero cc-hero${loaded ? " loaded" : ""}`} id="top">
-      <motion.div
-        className="hero-field"
-        aria-hidden="true"
-        style={reduced ? undefined : { y: gridDrift }}
-      >
-        <div className="hero-grid-base" />
-        <div className="hero-grid-lit" />
-        <span className="hero-tick hero-tick-tl" />
-        <span className="hero-tick hero-tick-br" />
-      </motion.div>
-
-      <motion.div className="wrap" style={reduced ? undefined : { y: lift }}>
-        <div className="grid items-center gap-y-12 lg:grid-cols-[1.12fr_0.88fr] lg:gap-x-14">
-          <div className="min-w-0">
-            <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>The Command Center</p>
-            <h1 className="h1">
-              <span className="h1-word-row">
-                {["Your", "operation,"].map((w, i) => (
-                  <span key={w} className="word">
-                    <span style={{ "--d": `${0.06 + i * 0.1}s` } as CSSProperties}>{w}</span>
-                  </span>
-                ))}
-              </span>
-              <span className="h1-word-row">
-                {["running", "itself."].map((w, i) => (
-                  <span key={w} className="word">
-                    <span style={{ "--d": `${0.26 + i * 0.1}s` } as CSSProperties}>{w}</span>
-                  </span>
-                ))}
-              </span>
-              <span className="h1-word-row">
-                {["More", "every", "month."].map((w, i) => (
-                  <span key={w} className="word">
-                    <span className="it" style={{ "--d": `${0.46 + i * 0.08}s` } as CSSProperties}>
-                      {w}
-                    </span>
-                  </span>
-                ))}
-              </span>
-            </h1>
-            <div
-              className={`rv${loaded ? " in" : ""} flex flex-col gap-5`}
-              style={{ "--d": ".5s", marginTop: 26 } as CSSProperties}
+    <section className="sect page-offset cc-product-hero" id="top">
+      <div className="wrap">
+        <div className="grid gap-8 lg:grid-cols-2 lg:items-end lg:gap-16">
+          <div>
+            <Reveal rv as="p" className="label eyebrow-anim">
+              Command Center
+            </Reveal>
+            <Reveal rv as="h1" className="cc-product-title" delay={0.08}>
+              Your work.
+              <br />
+              <span className="it">One clear view.</span>
+            </Reveal>
+          </div>
+          <div>
+            <Reveal rv as="p" className="lede" delay={0.16}>
+              See what needs you, follow the customer conversation, and move the next action
+              forward. Command Center connects your records, approvals, and workflows in one
+              workspace.
+            </Reveal>
+            <Reveal
+              rv
+              as="div"
+              delay={0.24}
+              className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3"
             >
-              <p className="lede text-balance">
-                The Command Center is one integrated solution we build for businesses that need
-                shared context and connected execution. It is not a required starting point or the
-                right answer for every team.
-              </p>
-              <p className="lede text-balance">
-                It captures communications, advances the pipeline, drafts follow-ups, and files
-                meeting notes before you have opened the laptop.
-              </p>
-              <p className="lede text-balance hidden sm:block">
-                Smart approvals route the judgment calls to you and let the routine earn the right
-                to run itself. We build it around your business and install it running.
-              </p>
-            </div>
-            <div
-              className={`rv${loaded ? " in" : ""} flex flex-wrap items-center gap-6`}
-              style={{ "--d": ".62s", marginTop: 32 } as CSSProperties}
-            >
-              <BookCallButton location="command_center_hero" />
               <Link
                 href="/demo/command-center"
-                data-cursor="link"
-                className="text-sm font-medium text-[var(--mid)] underline-offset-4 transition-colors hover:text-[var(--fg)] hover:underline"
+                className="inline-flex min-h-12 items-center rounded-xl bg-[var(--fg)] px-5 text-sm font-semibold text-[var(--bg)] transition-opacity hover:opacity-80"
               >
-                Explore the live demo
+                Explore the demo{" "}
+                <span aria-hidden="true" className="ml-3">
+                  ↗
+                </span>
               </Link>
-            </div>
-          </div>
-
-          <div
-            className={`rv${loaded ? " in" : ""} min-w-0`}
-            style={{ "--d": ".38s" } as CSSProperties}
-          >
-            <ApprovalQueue />
+              <Link href="/docs" className="ink-sweep inline-flex min-h-11 items-center text-sm">
+                Read the docs{" "}
+                <span aria-hidden="true" className="ml-2">
+                  →
+                </span>
+              </Link>
+            </Reveal>
           </div>
         </div>
-      </motion.div>
+        <Reveal rv id="demo" className="cc-product-gallery" delay={0.12}>
+          <ProductSlider slides={PRODUCT_SCREENSHOTS} groupLabel="Command Center screens" />
+          <p className="mt-3 text-center text-xs leading-relaxed text-white-muted">
+            Captured from the real product demo with fictional business data. Select a screen to
+            enlarge it.
+          </p>
+        </Reveal>
+      </div>
     </section>
   );
 }
@@ -305,44 +239,6 @@ function CurrentSurface() {
 }
 
 /* ── the demonstration ────────────────────────────────────────────────── */
-
-function Demo() {
-  return (
-    <section className="sect" id="demo">
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
-            Interactive demonstration
-          </Reveal>
-          <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
-              See how your day
-              <br />
-              <span className="it">actually changes.</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Try the live sandbox below. Approve draft emails, update deal stages, query records,
-              or process meeting notes in seconds. For your business, this runs in the background
-              with your real data, contacts, and workflow.
-            </Reveal>
-          </div>
-        </div>
-        <Reveal rv as="div" delay={0.1} style={{ marginTop: "clamp(32px,4vw,54px)" }}>
-          <CommandCenterDemo />
-          <div className="mt-4 flex justify-end">
-            <Link
-              href="/demo/command-center"
-              className="inline-flex min-h-12 items-center rounded-xl bg-[var(--fg)] px-5 text-xs font-semibold text-[var(--bg)] transition-[opacity,transform] hover:opacity-80 active:scale-[0.96]"
-            >
-              Open the full admin demo →
-            </Link>
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
 
 /* ── how it works: the loop ───────────────────────────────────────────── */
 
@@ -492,9 +388,6 @@ function OpenSource() {
             </Reveal>
           </div>
         </div>
-        <Reveal rv as="div" delay={0.1} style={{ marginTop: "clamp(32px,4vw,54px)" }}>
-          <ProductSlider slides={PRODUCT_SCREENSHOTS} groupLabel="Command Center screens" />
-        </Reveal>
       </div>
     </section>
   );

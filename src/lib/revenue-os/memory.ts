@@ -191,9 +191,12 @@ export async function recordLearnedPolicy(
     .eq("action_key", input.actionKey)
     .is("superseded_at", null);
 
-  supersedeQuery = input.scopeEntityType && input.scopeEntityId
-    ? supersedeQuery.eq("scope_entity_type", input.scopeEntityType).eq("scope_entity_id", input.scopeEntityId)
-    : supersedeQuery.is("scope_entity_type", null).is("scope_entity_id", null);
+  supersedeQuery =
+    input.scopeEntityType && input.scopeEntityId
+      ? supersedeQuery
+          .eq("scope_entity_type", input.scopeEntityType)
+          .eq("scope_entity_id", input.scopeEntityId)
+      : supersedeQuery.is("scope_entity_type", null).is("scope_entity_id", null);
 
   const { error: supersedeError } = await supersedeQuery;
   if (supersedeError) {
@@ -271,23 +274,26 @@ export async function getPoliciesForAction(
   },
 ): Promise<LearnedPolicyEntry[]> {
   // Global policies for this action.
-  const { data: globalPolicies } = await supabase
+  const { data: globalPolicies, error: globalError } = await supabase
     .from("learned_policies")
     .select()
     .eq("action_key", input.actionKey)
     .is("scope_entity_type", null)
     .is("superseded_at", null);
 
+  if (globalError) throw new Error(`Policy lookup failed: ${globalError.message}`);
+
   // Entity-scoped policies (if entity provided).
   let scopedPolicies: LearnedPolicyEntry[] = [];
   if (input.entityType && input.entityId) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("learned_policies")
       .select()
       .eq("action_key", input.actionKey)
       .eq("scope_entity_type", input.entityType)
       .eq("scope_entity_id", input.entityId)
       .is("superseded_at", null);
+    if (error) throw new Error(`Scoped policy lookup failed: ${error.message}`);
     scopedPolicies = (data ?? []) as LearnedPolicyEntry[];
   }
 

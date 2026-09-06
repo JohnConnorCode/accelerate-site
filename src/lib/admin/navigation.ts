@@ -1,5 +1,6 @@
 import {
   Activity,
+  Palette,
   BarChart3,
   Bot,
   BriefcaseBusiness,
@@ -258,6 +259,14 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/features",
         icon: KanbanSquare,
         description: "Managed delivery backlog",
+        moreGroup: "System",
+      },
+      {
+        id: "branding",
+        label: "Branding",
+        href: "/admin/branding",
+        icon: Palette,
+        description: "Logo, colors, and customer document identity",
         moreGroup: "System",
       },
       {

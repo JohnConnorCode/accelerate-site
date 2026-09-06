@@ -134,10 +134,7 @@ export async function listCoworkers(
     workKind?: string;
   },
 ): Promise<Coworker[]> {
-  let query = supabase
-    .from("coworkers")
-    .select("*")
-    .order("name", { ascending: true });
+  let query = supabase.from("coworkers").select("*").order("name", { ascending: true });
 
   if (input?.status) {
     query = query.eq("status", input.status);

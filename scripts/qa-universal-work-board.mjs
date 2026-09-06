@@ -55,6 +55,35 @@ for (const scenario of scenarios) {
   await page.getByRole("button", { name: "All work", exact: true }).click();
   // Open via the rendered card title, never call a protected backend from demo.
   await page.getByRole("button", { name: `Edit QA ${scenario}`, exact: true }).click();
+  await page.getByText("Implementation contract", { exact: true }).click();
+  await page.getByText("Edit full execution packet", { exact: true }).click();
+  const packet = {
+    packetVersion: 2,
+    northstar: {
+      phase: "B",
+      layers: ["Remember", "Act"],
+      contribution: "Controlled fictional receipt",
+    },
+    businessValue: "Prove a fictional operator work journey",
+    currentBehavior: "The controlled task has no receipt yet",
+    scope: ["Controlled work only"],
+    exclusions: ["No provider calls"],
+    references: [{ path: "scripts/qa-universal-work-board.mjs", reason: "Fictional verification" }],
+    repository: {
+      url: "https://example.test/repo",
+      baseBranch: "test",
+      baseCommit: "a".repeat(40),
+    },
+    workflow: ["Record and verify a simulated receipt"],
+    failureModes: ["Duplicate requests keep one receipt"],
+    requiredCapabilities: [],
+    acceptance: [{ id: "AC1", criterion: "Controlled receipt is recorded", environment: "local" }],
+    verification: [
+      { command: "browser fixture", expected: "Simulated receipt exists", environment: "local" },
+    ],
+  };
+  await page.getByLabel("Execution packet JSON", { exact: true }).fill(JSON.stringify(packet));
+  await page.getByRole("button", { name: "Save full packet", exact: true }).click();
   await page.getByRole("button", { name: "Claim work", exact: true }).click();
   await page.getByRole("button", { name: "Renew claim", exact: true }).waitFor();
   await page
@@ -64,8 +93,8 @@ for (const scenario of scenarios) {
   await page.getByText("Submit verification for review", { exact: true }).click();
   await page.getByLabel("Exact commit SHA", { exact: true }).fill("a".repeat(40));
   await page
-    .getByLabel("Passing checks — one per line: check name | evidence", { exact: true })
-    .fill("browser | Controlled demo journey passed");
+    .getByLabel("Passing checks, one per line: check name | evidence", { exact: true })
+    .fill("AC1 | local | browser | Controlled demo journey passed");
   await page.getByRole("button", { name: "Submit for review", exact: true }).click();
   await page.getByRole("button", { name: "Accept verification", exact: true }).click();
   await page
@@ -82,7 +111,12 @@ for (const scenario of scenarios) {
   await page.evaluate(() => scrollTo(0, 0));
   await page.screenshot({ path: `${out}/${scenario}-mobile.png`, fullPage: true });
   assert.ok(
-    await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <= innerWidth + 1 &&
+        document.querySelector(".admin-main").scrollWidth <=
+          document.querySelector(".admin-main").clientWidth + 1,
+    ),
     "page must not overflow horizontally",
   );
   await context.close();

@@ -1,6 +1,9 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+const environmentFile = resolve(fileURLToPath(new URL("../../.env.local", import.meta.url)));
+if (existsSync(environmentFile)) process.loadEnvFile(environmentFile);
 
 function projectRefFromUrl() {
   const configuredUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
@@ -45,6 +48,24 @@ export function readDatabasePassword() {
 export function psqlArgs(extra = []) {
   if (!PROJECT_REF || !POOLER_HOST || !DATABASE_USER)
     throw new Error("Supabase database target is incomplete. See .env.example.");
+  const local = ["localhost", "127.0.0.1", "::1"].includes(POOLER_HOST);
+  const configuredUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (configuredUrl) {
+    const hostname = new URL(configuredUrl).hostname;
+    const localApi = ["localhost", "127.0.0.1", "[::1]"].includes(hostname);
+    if (local !== localApi)
+      throw new Error("Database and API targets mix local and hosted environments");
+    if (hostname.endsWith(".supabase.co") && hostname.split(".")[0] !== PROJECT_REF)
+      throw new Error("Supabase API URL does not match SUPABASE_PROJECT_REF");
+  }
+  if (POOLER_HOST.endsWith(".pooler.supabase.com") && DATABASE_USER !== `postgres.${PROJECT_REF}`)
+    throw new Error("Supabase pooler user does not match the configured project");
+  if (
+    POOLER_HOST.startsWith("db.") &&
+    POOLER_HOST.endsWith(".supabase.co") &&
+    POOLER_HOST !== `db.${PROJECT_REF}.supabase.co`
+  )
+    throw new Error("Supabase database host does not match the configured project");
   return [
     "-X",
     "-h",
@@ -54,7 +75,7 @@ export function psqlArgs(extra = []) {
     "-U",
     DATABASE_USER,
     "-d",
-    "postgres",
+    process.env.SUPABASE_DB_NAME?.trim() || "postgres",
     "--set",
     "ON_ERROR_STOP=on",
     ...extra,
@@ -64,7 +85,13 @@ export function psqlArgs(extra = []) {
 export function runPsql(extra = [], { input } = {}) {
   return spawnSync("psql", psqlArgs(extra), {
     cwd: repoRoot,
-    env: { ...process.env, PGPASSWORD: readDatabasePassword() },
+    env: {
+      ...process.env,
+      PGSSLMODE:
+        process.env.PGSSLMODE ||
+        (["localhost", "127.0.0.1", "::1"].includes(POOLER_HOST) ? "disable" : "require"),
+      PGPASSWORD: readDatabasePassword(),
+    },
     encoding: "utf8",
     input,
   });

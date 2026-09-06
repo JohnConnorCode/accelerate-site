@@ -95,11 +95,16 @@ export async function finishJobRun(
   supabase: SupabaseClient,
   id: string,
   summary: Record<string, unknown>,
-  status: "success" | "partial" | "skipped" = "success",
+  status: "success" | "partial" | "skipped" | "failed" = "success",
 ) {
   const { error } = await supabase
     .from("job_runs")
-    .update({ status, summary, finished_at: new Date().toISOString() })
+    .update({
+      status,
+      summary,
+      finished_at: new Date().toISOString(),
+      ...(status === "failed" ? { error: "Job reported failed work; see execution summary" } : {}),
+    })
     .eq("id", id)
     .eq("status", "running");
   if (error) throw new Error(error.message);
@@ -123,7 +128,7 @@ export async function withJobRun<T>(
   work: () => Promise<{
     value: T;
     summary: Record<string, unknown>;
-    status?: "success" | "partial" | "skipped";
+    status?: "success" | "partial" | "skipped" | "failed";
   }>,
   idempotencyKey?: string,
 ): Promise<JobRunOutcome<T>> {

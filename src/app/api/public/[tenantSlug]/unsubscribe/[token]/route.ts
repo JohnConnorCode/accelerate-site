@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { unsubscribe } from "@/app/api/unsubscribe/[token]/route";
+import { unsubscribe } from "@/lib/revenue-os/public-unsubscribe";
 import { resolveActiveTenantSystemContext } from "@/lib/tenancy/system";
 
 type RouteContext = { params: Promise<{ tenantSlug: string; token: string }> };

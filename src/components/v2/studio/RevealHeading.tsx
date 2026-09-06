@@ -1,8 +1,8 @@
 "use client";
 
-import { Children, Fragment, isValidElement } from "react";
+import { Children, Fragment, isValidElement, useContext } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { useRevealLifecycle } from "@/components/motion/useReveal";
+import { RevealOwnerContext, useRevealLifecycle } from "@/components/motion/useReveal";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Word-by-word heading reveal — the single source of truth for animated
@@ -54,12 +54,15 @@ export function WordMask({
   entrance?: "self" | "parent";
 }) {
   const Tag = as;
-  const ref = useRevealLifecycle<HTMLHeadingElement>({ initialViewport: "immediate" });
+  const parentOwnsEntrance = useContext(RevealOwnerContext);
+  const ownsEntrance = entrance === "self" && !parentOwnsEntrance;
+  const ref = useRevealLifecycle<HTMLHeadingElement>({ initialViewport: "animate" });
 
   if (tokens.length === 0) {
     return (
       <Tag
-        ref={entrance === "self" ? ref : undefined}
+        ref={ownsEntrance ? ref : undefined}
+        data-reveal-state={ownsEntrance ? "pending" : undefined}
         className={`reveal-self word-mask-heading ${className}`}
       >
         {renderPlain(tokens)}
@@ -69,7 +72,8 @@ export function WordMask({
 
   return (
     <Tag
-      ref={entrance === "self" ? ref : undefined}
+      ref={ownsEntrance ? ref : undefined}
+      data-reveal-state={ownsEntrance ? "pending" : undefined}
       className={`reveal-self word-mask-heading ${className}`}
       data-motion-role="heading"
       data-hero-heading={entrance === "parent" ? "true" : undefined}
@@ -171,6 +175,7 @@ export function RevealHeading({
   ];
   return (
     <WordMask
+      key={tokens.map((token) => token.w).join(" ")}
       tokens={tokens}
       as={as}
       className={className}

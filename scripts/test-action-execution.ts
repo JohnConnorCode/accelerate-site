@@ -15,7 +15,8 @@
  *   - an unregistered action type fails closed
  */
 import assert from "node:assert/strict";
-import { MemorySupabase, type Row } from "./lib/memory-supabase";
+import type { Row } from "./lib/memory-supabase";
+import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixture";
 import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
 import {
   failAction,
@@ -258,7 +259,11 @@ async function main() {
   // action that never succeeded. Nothing else in this file exercises it,
   // because the executor always reaches them through a fresh claim.
   const terminal = seed(pending({ status: "failed", error: "Provider rejected the recipient" }));
-  await finishAction(terminal.client, "action-1", { pretend: "success" });
+  await rejects(
+    () => finishAction(terminal.client, "action-1", { pretend: "success" }),
+    "superseded",
+    "late completion must report that no receipt changed",
+  );
   assert.equal(
     terminal.rows("action_queue")[0]!.status,
     "failed",
@@ -271,7 +276,11 @@ async function main() {
   );
 
   const alreadyRejected = seed(pending({ status: "rejected" }));
-  await failAction(alreadyRejected.client, "action-1", "late failure");
+  await rejects(
+    () => failAction(alreadyRejected.client, "action-1", "late failure"),
+    "superseded",
+    "late failure must report that no receipt changed",
+  );
   assert.equal(
     alreadyRejected.rows("action_queue")[0]!.status,
     "rejected",

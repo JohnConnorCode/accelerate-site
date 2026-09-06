@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { tenant } from "@/config/tenant";
 import {
   useCallback,
@@ -147,6 +148,8 @@ export default function AdminShell({
   // the persistent layout must follow the current public demo URL or its
   // breadcrumb and active navigation state remain stuck on the first route.
   const effectivePathname = resolveAdminPathname(pathname, scenarioId, demoRoute);
+  const demo = useAdminDemo();
+  const effectiveModuleConfig = demo?.moduleConfig ?? moduleConfig;
   const visibleNavSections = useMemo(() => {
     const roleFiltered = adminNavSections
       .map((section) => ({
@@ -159,9 +162,9 @@ export default function AdminShell({
         ),
       }))
       .filter((section) => section.links.length > 0);
-    const moduleFiltered = filterNavSectionsByTenant(roleFiltered, moduleConfig ?? tenant);
+    const moduleFiltered = filterNavSectionsByTenant(roleFiltered, effectiveModuleConfig ?? tenant);
     return applyNavLayoutOverride(moduleFiltered, navLayoutOverride);
-  }, [isPlatformAdmin, scenarioId, navLayoutOverride, moduleConfig]);
+  }, [isPlatformAdmin, scenarioId, navLayoutOverride, effectiveModuleConfig]);
   const visibleNavLinks = useMemo(
     () => visibleNavSections.flatMap((section) => section.links),
     [visibleNavSections],
@@ -169,6 +172,7 @@ export default function AdminShell({
   const routeKey = `${scenarioId || "live"}:${effectivePathname}`;
   const router = useAdminNavigation();
   const { pendingHref, registerAdminScroller } = useNavigationRuntime();
+  const isAuthRoute = pathname === "/admin/login" || pathname === "/admin/update-password";
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -353,7 +357,7 @@ export default function AdminShell({
   useEffect(() => setMobileOpen(false), [effectivePathname]);
 
   useEffect(() => {
-    if (scenarioId) return;
+    if (scenarioId || isAuthRoute) return;
     const controller = new AbortController();
     const onPageHide = () => controller.abort();
     window.addEventListener("pagehide", onPageHide);
@@ -372,7 +376,7 @@ export default function AdminShell({
       controller.abort();
       window.removeEventListener("pagehide", onPageHide);
     };
-  }, [scenarioId, workspaceSlug]);
+  }, [scenarioId, workspaceSlug, isAuthRoute]);
 
   const switchWorkspace = useCallback(
     (slug: string) => {
@@ -393,6 +397,7 @@ export default function AdminShell({
   }, [registerAdminScroller]);
 
   useEffect(() => {
+    if (isAuthRoute) return;
     let cancelled = false;
     let controller: AbortController | null = null;
     const refresh = async () => {
@@ -430,7 +435,7 @@ export default function AdminShell({
       window.removeEventListener("admin:priority-refresh", onRefresh);
       window.removeEventListener("pagehide", onPageHide);
     };
-  }, []);
+  }, [isAuthRoute]);
 
   useEffect(() => {
     setSidebarCollapsed(window.localStorage.getItem("accelerate:admin-sidebar") === "collapsed");
@@ -454,7 +459,7 @@ export default function AdminShell({
     return () => window.removeEventListener("admin:compose-email", openComposer);
   }, []);
 
-  if (pathname === "/admin/login" || pathname === "/admin/update-password") {
+  if (isAuthRoute) {
     return (
       <>
         {children}
@@ -563,7 +568,10 @@ export default function AdminShell({
       run: () =>
         window.dispatchEvent(
           new CustomEvent("admin:open-ai", {
-            detail: { prompt: "Summarize current pipeline risk: stale deals, bottlenecks, and what needs me first. Read-only summary, no changes." },
+            detail: {
+              prompt:
+                "Summarize current pipeline risk: stale deals, bottlenecks, and what needs me first. Read-only summary, no changes.",
+            },
           }),
         ),
     },

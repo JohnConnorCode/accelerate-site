@@ -1,0 +1,741 @@
+import assert from "node:assert/strict";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { chromium } from "playwright";
+import { expect } from "playwright/test";
+import { navItems, footerLinks } from "../src/content/navigation";
+
+const base = process.env.DOCS_QA_URL ?? "http://localhost:3025";
+const output = process.env.DOCS_QA_OUTPUT ?? "/tmp/accelerate-docs-takeover-qa";
+const routes = [
+  "/docs",
+  "/docs/start/daily-path",
+  "/docs/start/business-owners",
+  "/docs/start/agencies",
+  "/docs/extend/first-change",
+  "/docs/self-hosting/installation",
+  "/docs/start/troubleshooting",
+  "/docs/command-center",
+  "/docs/contacts/import",
+  "/docs/extend/mcp-clients",
+  "/docs/intelligence/tools",
+  "/docs/start/overview",
+  "/docs/follow-up/overview",
+  "/docs/command-center/today",
+  "/docs/command-center/activity",
+  "/docs/delivery/bookings",
+  "/docs/delivery/clients",
+  "/docs/delivery/content",
+  "/docs/delivery/resources",
+  "/docs/pipeline/revenue",
+  "/docs/workspace/settings",
+  "/docs/sources/leads",
+  "/docs/intelligence/workspace",
+  "/docs/outreach/recovery",
+];
+const failures: string[] = [];
+const checks: string[] = [];
+mkdirSync(output, { recursive: true });
+async function main() {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    for (const viewport of [
+      { width: 1440, height: 1000 },
+      { width: 390, height: 844 },
+    ]) {
+      const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
+      try {
+        const page = await context.newPage();
+        page.on("pageerror", (error) => failures.push(error.message));
+        for (const route of routes) {
+          const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
+          assert.equal(response?.status(), 200, route);
+          await page.locator("main h1").waitFor({ state: "visible" });
+          const overflow = await page.evaluate(
+            () => document.documentElement.scrollWidth > innerWidth + 1,
+          );
+          assert.equal(overflow, false, `${route} overflows at ${viewport.width}`);
+          const headerBackground = await page
+            .locator("header.site-header")
+            .evaluate((header) => getComputedStyle(header).backgroundColor);
+          assert.notEqual(
+            headerBackground,
+            "rgba(0, 0, 0, 0)",
+            "Docs navigation must remain opaque over reading content",
+          );
+          if (route === "/docs/intelligence/tools") {
+            await page.getByText("Input schema for propose_send_email", { exact: true }).click();
+            assert.ok(await page.locator("details[open] pre").isVisible());
+          }
+          if (route === "/docs/pipeline/revenue") {
+            await expect(page.locator("main")).toContainText("client and proposal records");
+            await expect(page.locator("main table")).toBeVisible();
+          }
+          if (route === "/docs/delivery/resources") {
+            await expect(page.locator("main")).toContainText("loaded page of downloads");
+          }
+          await page.screenshot({
+            path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
+          });
+          if (route === "/docs/start/daily-path") {
+            await page.locator("figure img").scrollIntoViewIfNeeded();
+            await page.waitForFunction(() => {
+              const image = document.querySelector<HTMLImageElement>("figure img");
+              return image?.complete && image.naturalWidth > 0;
+            });
+            await page.screenshot({ path: `${output}/${viewport.width}-workflow-figure.png` });
+          }
+          checks.push(`${viewport.width}: ${route} renders without horizontal overflow`);
+        }
+        await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+        const audiencePaths = page.getByRole("list", { name: "Choose your docs path" });
+        for (const href of [
+          "/docs/start/business-owners",
+          "/docs/start/agencies",
+          "/docs/extend/first-change",
+        ]) {
+          await audiencePaths.locator(`a[href="${href}"]`).click();
+          await page.waitForURL(`**${href}`);
+          await page.locator("main h1").waitFor({ state: "visible" });
+          await page.goBack({ waitUntil: "domcontentloaded" });
+          await audiencePaths.waitFor();
+        }
+        checks.push(
+          `${viewport.width}: each audience path opens its guide and Back returns to the chooser`,
+        );
+        const search = page.getByRole("searchbox", { name: "Search the docs" });
+        await search.fill("RFC threading");
+        await page.getByRole("status").filter({ hasText: "matching guide" }).waitFor();
+        await page
+          .locator('section[aria-label="Search documentation"] a[href="/docs/conversations/reply"]')
+          .click();
+        await page.waitForURL("**/docs/conversations/reply");
+        await expect(search).toHaveValue("");
+        await search.fill("zxq_nonexistent_reference");
+        await page.getByRole("status").filter({ hasText: "No matching guides" }).waitFor();
+        await search.press("Escape");
+        await expect(search).toHaveValue("");
+        await search.fill("propose_send_email");
+        await page
+          .locator('section[aria-label="Search documentation"] a[href="/docs/intelligence/tools"]')
+          .waitFor();
+        await page.screenshot({ path: `${output}/${viewport.width}-search.png` });
+        checks.push(
+          `${viewport.width}: body and generated-tool search, result navigation, empty state, Escape`,
+        );
+        if (viewport.width >= 1024) {
+          await search.press("Tab");
+          assert.equal(await page.locator(":focus").getAttribute("aria-label"), "Clear search");
+          await page.keyboard.press("Tab");
+          assert.equal(
+            await page.locator(":focus").getAttribute("href"),
+            "/docs/intelligence/tools",
+          );
+          await page.keyboard.press("Enter");
+          await page.waitForURL("**/docs/intelligence/tools");
+          await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+          await page.getByRole("button", { name: "Switch to dark mode" }).click();
+          await page.getByRole("button", { name: "Switch to light mode" }).waitFor();
+          await page.screenshot({ path: `${output}/1440-dark-docs.png` });
+          checks.push("Keyboard search navigation and dark-mode rendering");
+        }
+        if (viewport.width < 1024) {
+          await search.press("Escape");
+          const mobile = page.locator("main details").first();
+          await mobile.locator("summary").click();
+          await mobile.locator('a[href="/docs/start"]').click();
+          await page.waitForURL("**/docs/start");
+          await page.waitForFunction(
+            () => !document.querySelector("main details")?.hasAttribute("open"),
+          );
+          checks.push("Mobile navigation closes after selecting a guide");
+        }
+      } finally {
+        await context.close();
+      }
+    }
+    // The docs must be discoverable through the real public site, not only direct URLs.
+    for (const width of [1440, 1024, 390]) {
+      const context = await browser.newContext({
+        viewport: { width, height: 1000 },
+        reducedMotion: width === 390 ? "reduce" : "no-preference",
+      });
+      try {
+        const page = await context.newPage();
+        page.on("pageerror", (error) => failures.push(error.message));
+        await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+        if (width >= 1280) {
+          const nav = page.getByRole("navigation", { name: "Primary", exact: true });
+          const product = nav.getByRole("button", { name: "Command Center", exact: true });
+          await product.focus();
+          await product.press("Enter");
+          const submenu = nav.getByRole("group", { name: "Command Center submenu" });
+          await submenu.getByRole("link", { name: "Try the demo", exact: true }).waitFor();
+          await product.press("Tab");
+          assert.equal(await page.locator(":focus").getAttribute("href"), "/command-center");
+          await page.keyboard.press("Escape");
+          assert.equal(await product.getAttribute("aria-expanded"), "false");
+          assert.equal(await product.evaluate((el) => el === document.activeElement), true);
+          await product.click();
+          await submenu.waitFor({ state: "visible" });
+          await page.waitForFunction(
+            (element) =>
+              element?.parentElement && getComputedStyle(element.parentElement).opacity === "1",
+            await submenu.elementHandle(),
+          );
+          await page.screenshot({ path: `${output}/${width}-public-submenu.png` });
+          await page.locator("main h1").click();
+          assert.equal(await product.getAttribute("aria-expanded"), "false");
+          const company = nav.getByRole("button", { name: "Company", exact: true });
+          await company.click();
+          await nav.getByRole("link", { name: "Team", exact: true }).click();
+          await page.waitForURL("**/team");
+          assert.equal(await company.getAttribute("aria-expanded"), "false");
+          checks.push(
+            "Desktop disclosures: keyboard, Escape focus, outside click, and route dismissal",
+          );
+        } else {
+          const trigger = page.getByRole("button", { name: "Open navigation menu" });
+          await trigger.click();
+          const mobile = page.getByRole("navigation", { name: "Mobile", exact: true });
+          const product = mobile.getByRole("button", { name: "Command Center", exact: true });
+          await product.click();
+          await mobile.getByRole("link", { name: "Try the demo", exact: true }).waitFor();
+          await page.waitForFunction(() => {
+            const overlay = document.querySelector(".mobile-nav-overlay");
+            const children = document.querySelector("#mobile-command-center");
+            return (
+              overlay &&
+              children &&
+              getComputedStyle(overlay).opacity === "1" &&
+              getComputedStyle(children).opacity === "1"
+            );
+          });
+          await page.screenshot({ path: `${output}/${width}-public-submenu.png` });
+          await product.click();
+          assert.equal(await page.locator("#mobile-command-center").getAttribute("inert"), "");
+          await product.press("Tab");
+          assert.equal(
+            await page
+              .locator(":focus")
+              .innerText()
+              .then((text) => text.includes("Industries")),
+            true,
+          );
+          await page.keyboard.press("Escape");
+          assert.equal(await trigger.evaluate((el) => el === document.activeElement), true);
+          await trigger.click();
+          await mobile.getByRole("link", { name: "Docs", exact: true }).click();
+          assert.equal(await trigger.getAttribute("aria-expanded"), "false");
+          await trigger.click();
+          await page.setViewportSize({ width: 1440, height: 1000 });
+          await page.waitForFunction(() => !document.body.dataset.mobileNavigation);
+          await page.setViewportSize({ width, height: 1000 });
+          checks.push(
+            `${width}: mobile submenu excludes collapsed links from Tab, restores focus, closes on navigation and resize`,
+          );
+        }
+        assert.equal(
+          await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+          false,
+        );
+        for (const section of await page.locator("footer [data-footer-section]").all()) {
+          await section.scrollIntoViewIfNeeded();
+          await page.waitForFunction(
+            (element) => element && getComputedStyle(element).opacity === "1",
+            await section.elementHandle(),
+          );
+        }
+        await page.locator("footer").scrollIntoViewIfNeeded();
+        const clippedFooterControls = await page
+          .locator("footer input, footer button, footer a")
+          .evaluateAll((elements) =>
+            elements
+              .filter((element) => {
+                const rect = element.getBoundingClientRect();
+                return rect.width > 0 && (rect.left < -1 || rect.right > innerWidth + 1);
+              })
+              .map((element) => element.getAttribute("aria-label") || element.textContent),
+          );
+        assert.deepEqual(
+          clippedFooterControls,
+          [],
+          `${width}: footer controls must fit the viewport`,
+        );
+
+        await page.locator("footer").screenshot({ path: `${output}/${width}-public-footer.png` });
+        await page
+          .locator("footer")
+          .getByRole("link", { name: "Documentation", exact: true })
+          .click();
+        await page.waitForURL("**/docs");
+        await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
+        const homeDocs = page
+          .locator("#command-center")
+          .getByRole("link", { name: "Read the docs" });
+        await homeDocs.scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => {
+          const link = document.querySelector('#command-center a[href="/docs"]');
+          return link?.parentElement && getComputedStyle(link.parentElement).opacity === "1";
+        });
+        await page.screenshot({ path: `${output}/${width}-home-docs-link.png` });
+        await homeDocs.click();
+        await page.waitForURL("**/docs");
+        for (const [route, label, destination] of [
+          ["/command-center", "Read the docs", "/docs"],
+          ["/open-source", "Read the self-hosting docs", "/docs/self-hosting"],
+        ] as const) {
+          await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
+          await page.locator("main").getByRole("link", { name: label, exact: true }).click();
+          await page.waitForURL(`**${destination}`);
+        }
+        checks.push(
+          `${width}: footer, homepage, product overview, and open-source page lead into the docs`,
+        );
+        if (width === 1440) {
+          const links = [
+            ...navItems.flatMap((item) => item.children ?? [item]),
+            ...footerLinks.flatMap((group) => group.links),
+          ];
+          const documents = new Map<string, string>();
+          for (const href of new Set(links.map((link) => link.href))) {
+            const [path, hash] = href.split("#");
+            assert.ok(
+              path && path.startsWith("/"),
+              `Real navigation destination required: ${href}`,
+            );
+            if (!documents.has(path)) {
+              const response = await page.request.get(`${base}${path}`);
+              assert.equal(response.status(), 200, `Public link ${href}`);
+              documents.set(path, await response.text());
+            }
+            if (hash)
+              assert.ok(documents.get(path)?.includes(`id="${hash}"`), `Missing section ${href}`);
+          }
+          checks.push("All shared header/footer destinations return 200 and service anchors exist");
+        }
+      } finally {
+        await context.close();
+      }
+    }
+    // Homepage design evidence: real content, both themes, both motion preferences.
+    for (const width of [1440, 390]) {
+      for (const theme of ["light", "dark"] as const) {
+        const context = await browser.newContext({
+          viewport: { width, height: width === 390 ? 844 : 1000 },
+          reducedMotion: theme === "dark" ? "reduce" : "no-preference",
+        });
+        try {
+          const page = await context.newPage();
+          page.on("pageerror", (error) => failures.push(error.message));
+          await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
+          if (theme === "dark") {
+            if (width < 1280)
+              await page.getByRole("button", { name: "Open navigation menu" }).click();
+            await page.getByRole("button", { name: "Switch to dark mode" }).click();
+            if (width < 1280)
+              await page.getByRole("button", { name: "Close navigation menu" }).click();
+          }
+          await page.waitForFunction(() => {
+            const cta = document.querySelector(".hero-inline-cta");
+            return cta && getComputedStyle(cta).opacity === "1";
+          });
+          await page.screenshot({ path: `${output}/${width}-${theme}-home-hero.png` });
+          for (const selector of [".hero-statement", "#systems", "#trades"]) {
+            const section = page.locator(selector);
+            for (const reveal of await section.locator(".rv").all()) {
+              await reveal.evaluate((element) => element.scrollIntoView({ block: "center" }));
+              await page.waitForFunction(
+                (element) => element && getComputedStyle(element).opacity === "1",
+                await reveal.elementHandle(),
+              );
+            }
+            for (const img of await section.locator("img").all()) {
+              await img.scrollIntoViewIfNeeded();
+              await img.evaluate((element) => (element as HTMLImageElement).decode());
+            }
+            await section.scrollIntoViewIfNeeded();
+            if (selector === ".hero-statement")
+              await page.waitForFunction(() => {
+                const copy = document.querySelector(".hero-statement-copy");
+                return copy && getComputedStyle(copy).opacity === "1";
+              });
+            await section.screenshot({
+              path: `${output}/${width}-${theme}-home-${selector.replace(/[.#]/g, "")}.png`,
+            });
+            assert.equal(
+              await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+              false,
+              `${selector}: ${width} ${theme} overflow`,
+            );
+          }
+          assert.equal(await page.locator("#systems h3").count(), 4);
+          assert.equal(await page.locator(".engagement-drawing").count(), 4);
+          const service = page.locator(".engagement-link").first();
+          await service.focus();
+          await service.press("Tab");
+          await page.keyboard.press("Shift+Tab");
+          assert.equal(
+            await service.evaluate((element) => element === document.activeElement),
+            true,
+          );
+          assert.notEqual(
+            await service.evaluate((element) => getComputedStyle(element).outlineStyle),
+            "none",
+          );
+          await service.press("Enter");
+          await page.waitForURL("**/services#strategy");
+          await page.goBack({ waitUntil: "domcontentloaded" });
+          for (const href of ["#systems", "#selected-work", "#command-center"]) {
+            await page
+              .getByRole("navigation", { name: "Explore the homepage" })
+              .locator(`a[href="${href}"]`)
+              .click();
+            await page.waitForURL(`**/${href}`);
+            assert.ok(await page.locator(href).count());
+          }
+          checks.push(
+            `${width} ${theme}: homepage sections, loaded photography, service keyboard navigation, local anchors, no overflow`,
+          );
+        } finally {
+          await context.close();
+        }
+      }
+    }
+    const recovery = await browser.newContext();
+    try {
+      await recovery.route("**/api/search", (route) =>
+        route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: '{"error":"unavailable"}',
+        }),
+      );
+      const page = await recovery.newPage();
+      await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+      await page.getByRole("searchbox", { name: "Search the docs" }).fill("contacts");
+      await page.getByRole("status").filter({ hasText: "unavailable" }).waitFor();
+      await recovery.unroute("**/api/search");
+      await page.getByRole("button", { name: "Retry search" }).click();
+      await page.getByRole("status").filter({ hasText: "matching guide" }).waitFor();
+      checks.push("Search failure remains navigable and retry recovers");
+    } finally {
+      await recovery.close();
+    }
+    for (const width of [1440, 390]) {
+      for (const reducedMotion of ["no-preference", "reduce"] as const) {
+        const context = await browser.newContext({
+          viewport: { width, height: 1000 },
+          reducedMotion,
+        });
+        try {
+          const page = await context.newPage();
+          page.on("pageerror", (error) => failures.push(error.message));
+          page.on("console", (message) => {
+            if (message.type() === "error") failures.push(message.text());
+          });
+          await page.goto(`${base}/command-center`, { waitUntil: "domcontentloaded" });
+          if (reducedMotion === "reduce") {
+            if (width < 1280)
+              await page.getByRole("button", { name: "Open navigation menu" }).click();
+            await page.getByRole("button", { name: "Switch to dark mode" }).click();
+            if (width < 1280)
+              await page.getByRole("button", { name: "Close navigation menu" }).click();
+          }
+          const gallery = page.getByRole("region", { name: "Command Center screens", exact: true });
+          await gallery.scrollIntoViewIfNeeded();
+          await gallery.getByRole("button", { name: "Next screen", exact: true }).click();
+          await gallery.getByText("Pipeline · Night theme", { exact: true }).waitFor();
+          assert.equal(
+            await gallery.locator('button[aria-label^="Open"][tabindex="0"]').count(),
+            1,
+          );
+          await gallery
+            .getByRole("button", { name: "Open Pipeline · Night theme in full screen" })
+            .click();
+          await page.getByRole("dialog").waitFor();
+          await page.keyboard.press("Escape");
+          await page.getByRole("dialog").waitFor({ state: "hidden" });
+          assert.equal(await page.locator("[data-demo-interactive]").count(), 0);
+          await gallery.getByRole("button", { name: "Show slide 1 of 7" }).click();
+          await gallery
+            .locator('button[tabindex="0"] img')
+            .evaluate((image) => (image as HTMLImageElement).decode());
+          await gallery.locator('button[tabindex="0"]').scrollIntoViewIfNeeded();
+          await gallery.screenshot({
+            path: `${output}/${width}-${reducedMotion}-product-gallery.png`,
+          });
+          await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+          await page.waitForFunction(() =>
+            [...document.querySelectorAll(".cc-product-hero .rv")].every(
+              (element) => getComputedStyle(element).opacity === "1",
+            ),
+          );
+          await page.screenshot({ path: `${output}/${width}-${reducedMotion}-product-header.png` });
+          assert.equal(
+            await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+            false,
+          );
+          await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+          await page.locator(".docs-entrance h1").waitFor();
+          const motion = await page.locator(".docs-entrance h1").evaluate((heading) => {
+            const animation = heading.getAnimations()[0];
+            if (animation) {
+              animation.pause();
+              const timing = animation.effect!.getTiming();
+              animation.currentTime = Number(timing.delay) + Number(timing.duration) / 2;
+            }
+            const style = getComputedStyle(heading);
+            const result = {
+              name: style.animationName,
+              opacity: Number(style.opacity),
+              transform: style.transform,
+            };
+            animation?.finish();
+            return result;
+          });
+          if (reducedMotion === "reduce") {
+            assert.equal(motion.name, "none");
+            assert.equal(motion.opacity, 1);
+          } else {
+            assert.equal(motion.name, "docs-enter");
+            assert.ok(
+              motion.opacity > 0 && motion.opacity < 1,
+              "Docs entrance has a perceptible intermediate frame",
+            );
+            assert.notEqual(motion.transform, "none");
+          }
+          await page.getByRole("link", { name: "Try your first workflow", exact: true }).click();
+          await page.waitForURL("**/docs/start/daily-path");
+          await page.locator("[data-docs-content]").waitFor();
+          assert.equal(
+            await page
+              .locator(".docs-entrance h1")
+              .evaluate((element) => getComputedStyle(element).animationName),
+            reducedMotion === "reduce" ? "none" : "docs-enter",
+          );
+          await page.evaluate(() =>
+            document
+              .getAnimations()
+              .filter(
+                (animation) =>
+                  animation.effect instanceof KeyframeEffect &&
+                  (animation.effect.target as Element | null)?.closest(".docs-entrance"),
+              )
+              .forEach((animation) => animation.finish()),
+          );
+          await page.screenshot({ path: `${output}/${width}-${reducedMotion}-docs-entrance.png` });
+          assert.equal(
+            await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+            false,
+          );
+          checks.push(
+            `${width} ${reducedMotion}: real screenshot gallery, enlargement, one active slide, docs entrance intermediate frame and guide navigation`,
+          );
+        } finally {
+          await context.close();
+        }
+      }
+    }
+    // Public header families must actually move, including on direct load.
+    // This catches skip-on-first-viewport and inert initial={false} regressions.
+    for (const width of [1440, 390]) {
+      for (const reducedMotion of ["no-preference", "reduce"] as const) {
+        const context = await browser.newContext({
+          viewport: { width, height: 1000 },
+          reducedMotion,
+        });
+        try {
+          const page = await context.newPage();
+          page.on("pageerror", (error) => failures.push(error.message));
+          for (const route of [
+            "/work",
+            "/work/work-shelter",
+            "/learn",
+            "/resources",
+            "/about",
+            "/contact",
+            "/partners",
+            "/open-source",
+            "/industries",
+            "/services",
+            "/roadmap",
+            "/changelog",
+          ]) {
+            await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
+            await page.locator("main h1").waitFor();
+            await page.waitForFunction(() => {
+              const heading = document.querySelector("main h1");
+              return (
+                heading &&
+                (heading.classList.contains("in") ||
+                  heading.closest(".in") ||
+                  document.querySelector(".public-hero-entrance.in"))
+              );
+            });
+            const sample = await page.locator("main h1").evaluate((heading) => {
+              const word = heading.querySelector(".word-mask-word > span");
+              let owner = word ?? heading;
+              while (owner && !owner.getAnimations().length && owner !== document.body)
+                owner = owner.parentElement!;
+              const animation = owner?.getAnimations()[0];
+              if (!animation) return null;
+              const timing = animation.effect!.getTiming();
+              animation.pause();
+              animation.currentTime = Number(timing.delay) + Number(timing.duration) / 2;
+              const style = getComputedStyle(owner);
+              const result = {
+                opacity: Number(style.opacity),
+                transform: style.transform,
+                name: style.animationName,
+              };
+              animation.finish();
+              return result;
+            });
+            if (reducedMotion === "reduce") assert.equal(sample, null, `${route} reduced motion`);
+            else
+              assert.ok(
+                sample &&
+                  (sample.transform !== "none" || (sample.opacity > 0 && sample.opacity < 1)),
+                `${route}: header has a real intermediate entrance frame`,
+              );
+            if (["/work", "/learn", "/resources"].includes(route)) {
+              await page.evaluate(() =>
+                document.getAnimations().forEach((animation) => {
+                  if (animation.effect?.getComputedTiming().iterations !== Infinity)
+                    animation.finish();
+                }),
+              );
+              await page.screenshot({
+                path: `${output}/${width}-${reducedMotion}-${route.slice(1)}-header.png`,
+              });
+            }
+            assert.equal(
+              await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
+              false,
+              `${route} overflow`,
+            );
+          }
+          // The pages remain available but are deliberately absent from main navigation.
+          if (width < 1280)
+            await page.getByRole("button", { name: "Open navigation menu" }).click();
+          const navigation = page.getByRole("navigation", {
+            name: width < 1280 ? "Mobile" : "Primary",
+            exact: true,
+          });
+          assert.equal(
+            await navigation.locator('a[href="/learn"], a[href="/resources"]').count(),
+            0,
+          );
+          await navigation.getByRole("link", { name: "Work", exact: true }).click();
+          await page.waitForURL("**/work");
+          await page.locator("h1.word-mask-heading.in").waitFor();
+          assert.equal(
+            await page
+              .locator("h1")
+              .evaluate((heading) => heading.classList.contains("reveal-immediate")),
+            reducedMotion === "reduce",
+          );
+          checks.push(
+            `${width} ${reducedMotion}: twelve public header routes, Work menu navigation, hidden Learn/Resources primary links`,
+          );
+        } finally {
+          await context.close();
+        }
+      }
+    }
+    for (const width of [1440, 390]) {
+      for (const destination of ["/work", "/docs/start/daily-path"]) {
+        const context = await browser.newContext({ viewport: { width, height: 1000 } });
+        let release!: () => void;
+        const heldResponse = new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        let intercepted = false;
+        try {
+          const page = await context.newPage();
+          page.on("pageerror", (error) => failures.push(error.message));
+          await page.route(`**${destination}?*`, async (route) => {
+            if (route.request().headers()["rsc"] === "1") {
+              intercepted = true;
+              await heldResponse;
+            }
+            await route.continue();
+          });
+          await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+          const previousHeading = await page.locator("main h1").innerText();
+          if (destination === "/work") {
+            if (width < 1280)
+              await page.getByRole("button", { name: "Open navigation menu" }).click();
+            await page
+              .getByRole("navigation", { name: width < 1280 ? "Mobile" : "Primary", exact: true })
+              .getByRole("link", { name: "Work", exact: true })
+              .click({ noWaitAfter: true });
+          } else
+            await page.getByRole("link", { name: "Try your first workflow", exact: true }).click();
+          await page.locator('[data-navigation-pending="true"]').waitFor();
+          const frames = await page.evaluate(async () => {
+            const samples: { heading: string; skeleton: boolean; opacity: number }[] = [];
+            const started = performance.now();
+            while (performance.now() - started < 350) {
+              await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+              const stage = document.querySelector("[data-route-entry]");
+              samples.push({
+                heading: (document.querySelector("main h1") as HTMLElement)?.innerText ?? "",
+                skeleton: /Loading page|Loading documentation/.test(
+                  document.querySelector("main")?.textContent ?? "",
+                ),
+                opacity: stage ? Number(getComputedStyle(stage).opacity) : 0,
+              });
+            }
+            return samples;
+          });
+          assert.ok(intercepted, "Navigation proof must actually delay its route response");
+          assert.ok(
+            frames.length > 2 &&
+              frames.every(
+                (frame) =>
+                  frame.heading === previousHeading && !frame.skeleton && frame.opacity > 0.5,
+              ),
+            "Retain readable content; never flash a full-page skeleton",
+          );
+          release();
+          await page.waitForURL(`**${destination}`);
+          await page.locator("main h1").waitFor();
+          await page.unroute(`**${destination}?*`);
+          await page.goBack();
+          await page.waitForURL("**/docs");
+          await page.waitForFunction(
+            (title) => (document.querySelector("main h1") as HTMLElement)?.innerText === title,
+            previousHeading,
+          );
+          const started = Date.now();
+          if (destination === "/work") {
+            if (width < 1280)
+              await page.getByRole("button", { name: "Open navigation menu" }).click();
+            await page
+              .getByRole("navigation", { name: width < 1280 ? "Mobile" : "Primary", exact: true })
+              .getByRole("link", { name: "Work", exact: true })
+              .click({ noWaitAfter: true });
+          } else
+            await page.getByRole("link", { name: "Try your first workflow", exact: true }).click();
+          await page.waitForURL(`**${destination}`);
+          checks.push(
+            `${width} ${destination}: no skeleton or blank during delayed RSC; repeat navigation ${Date.now() - started}ms`,
+          );
+        } finally {
+          release();
+          await context.close();
+        }
+      }
+    }
+    assert.deepEqual(failures, [], "Browser runtime errors");
+    writeFileSync(`${output}/results.json`, JSON.stringify({ result: "passed", checks }, null, 2));
+    console.log(JSON.stringify({ result: "passed", checks: checks.length, output }));
+  } finally {
+    await browser.close();
+  }
+}
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

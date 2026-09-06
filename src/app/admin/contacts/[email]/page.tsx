@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { CollectionCaseLinks } from "@/components/admin/CollectionsWorkspace";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -139,6 +140,7 @@ export default function ContactTimelinePage() {
         </div>
       </AdminSurface>
 
+      {canonical?.contact && <CollectionCaseLinks contactId={canonical.contact.id} />}
       <ContactTimeline items={timeline} />
     </motion.div>
   );

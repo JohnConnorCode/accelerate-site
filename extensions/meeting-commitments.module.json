@@ -1,0 +1,57 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "meeting-commitments",
+  "name": "Meeting commitments",
+  "description": "Turn reviewed meeting commitments into assigned follow-ups linked to the meeting.",
+  "category": "delivery",
+  "defaultEnabled": false,
+  "navLinks": [
+    {
+      "id": "meeting-commitments",
+      "label": "Meeting commitments",
+      "href": "/admin/meeting-commitments",
+      "icon": "ListChecks",
+      "description": "Turn reviewed meeting commitments into assigned follow-ups linked to the meeting.",
+      "moreGroup": "Delivery"
+    }
+  ],
+  "routes": ["/admin/meeting-commitments"],
+  "aiToolNames": ["prepare_meeting_commitments", "propose_meeting_commitments"],
+  "workflow": {
+    "version": 1,
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "meetingId": { "type": "string", "maxLength": 36, "minLength": 36 },
+        "tasks": {
+          "minItems": 1,
+          "maxItems": 10,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "description": { "type": "string", "maxLength": 2000 },
+              "dueDate": { "type": "string", "maxLength": 10, "minLength": 10 },
+              "assigneeUserId": { "type": "string", "maxLength": 36, "minLength": 36 }
+            },
+            "required": ["title", "description", "dueDate", "assigneeUserId"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["meetingId", "tasks"],
+      "additionalProperties": false
+    },
+    "actions": ["create_task_batch"],
+    "sources": [
+      {
+        "name": "meeting",
+        "type": "workflow_meetings",
+        "columns": ["id", "title", "start_at"],
+        "inputKey": "meetingId"
+      }
+    ],
+    "inputContract": "task-batch-meeting-v1"
+  }
+}

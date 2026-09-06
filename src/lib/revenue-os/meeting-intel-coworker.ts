@@ -7,26 +7,7 @@ import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
-import { runCoworkerAgentTask } from "./coworker-agent";
-import type { WorkItem } from "./work-items";
-
-const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
-
-async function tryAiExecution(
-  supabase: SupabaseClient,
-  wi: WorkItem,
-): Promise<{ outcome: string } | null> {
-  if (!aiModelConfigured) return null;
-  try {
-    const result = await runCoworkerAgentTask(supabase, wi);
-    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
-      return { outcome: result.outcome };
-    }
-  } catch {
-    // Fall through to deterministic logic.
-  }
-  return null;
-}
+import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
 
 // ---------------------------------------------------------------------------
 // Meeting Intelligence Coworker (northstar Phase E, priority 2)
@@ -54,11 +35,23 @@ export const MEETING_INTEL_REQUIRED_CAPABILITIES = [
 
 export const MEETING_INTEL_AUTONOMY_POLICIES = [
   { actionKey: "crm.read", label: "Read CRM records", level: "autonomous" as const },
-  { actionKey: "crm.write", label: "Update CRM from meetings", level: "ask_until_trusted" as const },
+  {
+    actionKey: "crm.write",
+    label: "Update CRM from meetings",
+    level: "ask_until_trusted" as const,
+  },
   { actionKey: "calendar.read", label: "Read calendar events", level: "autonomous" as const },
   { actionKey: "gmail.read", label: "Read email history", level: "autonomous" as const },
-  { actionKey: "meeting.brief", label: "Generate pre-call briefs", level: "standing_permission" as const },
-  { actionKey: "meeting.process", label: "Process post-meeting notes", level: "ask_until_trusted" as const },
+  {
+    actionKey: "meeting.brief",
+    label: "Generate pre-call briefs",
+    level: "standing_permission" as const,
+  },
+  {
+    actionKey: "meeting.process",
+    label: "Process post-meeting notes",
+    level: "ask_until_trusted" as const,
+  },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -72,7 +65,10 @@ export async function bootstrapMeetingIntelCoworker(
   for (const capKey of MEETING_INTEL_REQUIRED_CAPABILITIES) {
     await registerCapability(supabase, {
       capabilityKey: capKey,
-      label: capKey.split(".").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+      label: capKey
+        .split(".")
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(" "),
       category: "integration",
       source: "coworker_bootstrap",
     }).catch(() => {});
@@ -93,7 +89,8 @@ export async function bootstrapMeetingIntelCoworker(
     id: MEETING_INTEL_COWORKER_ID,
     name: "Meeting Intelligence",
     role: "Generates pre-call briefs, processes post-meeting outcomes, and updates CRM from meetings",
-    description: "Watches for upcoming calendar events and prepares pre-call briefs with company context, recent activity, and open items. After meetings, processes notes into CRM updates, follow-up tasks, and next-step work items.",
+    description:
+      "Watches for upcoming calendar events and prepares pre-call briefs with company context, recent activity, and open items. After meetings, processes notes into CRM updates, follow-up tasks, and next-step work items.",
     toolPack: "pipeline",
     requiredCapabilities: [...MEETING_INTEL_REQUIRED_CAPABILITIES],
     workKinds: [...MEETING_INTEL_WORK_KINDS],
@@ -173,11 +170,13 @@ export async function createPostMeetingProcessWork(
 
 const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
   const contactId = wi.entity_id;
-  if (!contactId) return { outcome: "No contact ID linked — cannot prepare brief" };
+  if (!contactId)
+    return { status: "skipped", outcome: "No contact ID linked — cannot prepare brief" };
 
   // AI-first: let the model synthesize a rich pre-call brief from available data.
   const aiResult = await tryAiExecution(supabase, wi);
   if (aiResult) {
+    if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {
       coworkerId: MEETING_INTEL_COWORKER_ID,
       category: "prior_work",
@@ -197,7 +196,7 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
     .select("id, email, first_name, last_name, company_id")
     .eq("id", contactId)
     .maybeSingle();
-  if (!contact) return { outcome: `Contact ${contactId} not found` };
+  if (!contact) return { status: "skipped", outcome: `Contact ${contactId} not found` };
 
   // Load open opportunity for this contact.
   const { data: opportunity } = await supabase
@@ -225,7 +224,9 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
 
   const briefParts = [
     `Contact: ${contact.first_name ?? ""} ${contact.last_name ?? ""} (${contact.email})`,
-    opportunity ? `Opportunity: ${opportunity.company_name} — stage: ${opportunity.stage}, probability: ${opportunity.probability}%` : "No active opportunity",
+    opportunity
+      ? `Opportunity: ${opportunity.company_name} — stage: ${opportunity.stage}, probability: ${opportunity.probability}%`
+      : "No active opportunity",
     opportunity?.next_action ? `Next action: ${opportunity.next_action}` : "No next action set",
     `Recent activity (14d): ${recentActivity ?? 0} events`,
     `Pending actions: ${pendingActions ?? 0}`,
@@ -252,16 +253,18 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome: `Pre-call brief: ${brief}` };
+  return { status: "completed", outcome: `Pre-call brief: ${brief}` };
 };
 
 const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
   const opportunityId = wi.entity_id;
-  if (!opportunityId) return { outcome: "No opportunity ID linked — cannot process meeting" };
+  if (!opportunityId)
+    return { status: "skipped", outcome: "No opportunity ID linked — cannot process meeting" };
 
   // AI-first: let the model extract outcomes and propose CRM updates.
   const aiResult = await tryAiExecution(supabase, wi);
   if (aiResult) {
+    if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {
       coworkerId: MEETING_INTEL_COWORKER_ID,
       category: "prior_work",
@@ -280,7 +283,7 @@ const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
     .select("id, stage, company_name, contact_id")
     .eq("id", opportunityId)
     .maybeSingle();
-  if (!opportunity) return { outcome: `Opportunity ${opportunityId} not found` };
+  if (!opportunity) return { status: "skipped", outcome: `Opportunity ${opportunityId} not found` };
 
   // Create a CRM update work item to capture meeting outcomes.
   await createWorkItem(supabase, {
@@ -317,19 +320,19 @@ const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome };
+  return { status: "completed", outcome };
 };
 
 const updateCrmFromMeetingHandler: WorkKindHandler = async (supabase, wi) => {
   const opportunityId = wi.entity_id;
-  if (!opportunityId) return { outcome: "No opportunity ID linked" };
+  if (!opportunityId) return { status: "skipped", outcome: "No opportunity ID linked" };
 
   const { data: opportunity } = await supabase
     .from("opportunities")
     .select("id, stage, company_name, next_action")
     .eq("id", opportunityId)
     .maybeSingle();
-  if (!opportunity) return { outcome: `Opportunity ${opportunityId} not found` };
+  if (!opportunity) return { status: "skipped", outcome: `Opportunity ${opportunityId} not found` };
 
   // In a full implementation, this would parse meeting notes/transcript
   // and propose CRM updates. For the reference implementation, we audit
@@ -360,7 +363,7 @@ const updateCrmFromMeetingHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome };
+  return { status: "completed", outcome };
 };
 
 // ---------------------------------------------------------------------------

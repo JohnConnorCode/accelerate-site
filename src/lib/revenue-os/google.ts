@@ -11,15 +11,12 @@ import {
   type GmailHistoryPage,
   type GmailThreadListPage,
 } from "./gmail-sync-plan";
+import { isWithinAllowlist, normalizeDriveFolderIds, staleAllowlistIds } from "./drive-sync-plan";
 import { recordActivity } from "./activities";
 import { recordAudit } from "./audit";
 import { associateConversationParticipants } from "./conversations";
 import { prepareGmailReply } from "./gmail-reply-mime";
-import {
-  parseAddressList,
-  parseRfcMessageId,
-  resolveGmailDirection,
-} from "./gmail-threading";
+import { parseAddressList, parseRfcMessageId, resolveGmailDirection } from "./gmail-threading";
 import { createPreCallBriefWork, createPostMeetingProcessWork } from "./meeting-intel-coworker";
 import { assertActiveTenantExecution } from "@/lib/tenancy/system";
 
@@ -308,7 +305,8 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
   let stored = 0;
   let failed = 0;
   const ownerEmails = await listGmailOwnerEmails(token, connection.account_email as string);
-  const isOutbound = (from: string | null) => resolveGmailDirection(from, ownerEmails) === "outbound";
+  const isOutbound = (from: string | null) =>
+    resolveGmailDirection(from, ownerEmails) === "outbound";
   for (const threadId of threadIds) {
     try {
       const thread = await googleFetch<{
@@ -342,7 +340,8 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       if (existingError) throw new Error(existingError.message);
       const unread = messages.filter(
         (message) =>
-          message.labelIds?.includes("UNREAD") && !isOutbound(parseAddress(header(message, "From"))),
+          message.labelIds?.includes("UNREAD") &&
+          !isOutbound(parseAddress(header(message, "From"))),
       ).length;
       const lastAt = latest.internalDate
         ? new Date(Number(latest.internalDate)).toISOString()
@@ -401,12 +400,11 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
           sent_at: message.internalDate
             ? new Date(Number(message.internalDate)).toISOString()
             : null,
-          received_at:
-            outbound
-              ? null
-              : message.internalDate
-                ? new Date(Number(message.internalDate)).toISOString()
-                : null,
+          received_at: outbound
+            ? null
+            : message.internalDate
+              ? new Date(Number(message.internalDate)).toISOString()
+              : null,
           metadata: {
             labels: message.labelIds ?? [],
             gmail_thread_id: thread.id,
@@ -444,9 +442,10 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       );
       const upsertRows = rows.filter((row) => !terminalIds.has(row.external_id));
       if (upsertRows.length) {
-        const { error: messageError } = await supabase
-          .from("messages")
-          .upsert(upsertRows, { onConflict: "conversation_id,external_id", ignoreDuplicates: false });
+        const { error: messageError } = await supabase.from("messages").upsert(upsertRows, {
+          onConflict: "conversation_id,external_id",
+          ignoreDuplicates: false,
+        });
         if (messageError) throw new Error(messageError.message);
       }
       const priorIds = new Set((priorRows ?? []).map((message) => message.external_id));
@@ -733,16 +732,17 @@ export async function syncCalendar(supabase: SupabaseClient) {
 export async function syncDrive(supabase: SupabaseClient) {
   const { token, connection } = await getGoogleAccessToken(supabase);
   const settings = (connection.settings || {}) as { drive_folder_ids?: string[] };
-  const folders = (settings.drive_folder_ids ?? []).filter(Boolean).slice(0, 10);
+  const { ids: folders, rejected } = normalizeDriveFolderIds(settings.drive_folder_ids ?? []);
   if (!folders.length) {
     await recordSourceRun(supabase, {
       sourceKey: "google_drive",
       status: "not_configured",
-      summary: { reason: "No folders selected" },
+      summary: { reason: "No folders selected", rejected: rejected.length },
     });
-    return { stored: 0, notConfigured: true };
+    return { stored: 0, notConfigured: true, rejected: rejected.length };
   }
   let stored = 0;
+  let quarantined = 0;
   for (const folderId of folders) {
     const params = new URLSearchParams({
       q: `'${folderId.replace(/'/g, "")}' in parents and trashed = false`,
@@ -766,20 +766,41 @@ export async function syncDrive(supabase: SupabaseClient) {
       metadata: { parents: file.parents ?? [] },
       synced_at: new Date().toISOString(),
     }));
-    const { error } = rows.length
+    // The Drive query is folder-scoped, and this proves the results stayed
+    // inside the allowlist before anything is stored.
+    const inScope = rows.filter((row) => isWithinAllowlist(row.metadata.parents, folders));
+    quarantined += rows.length - inScope.length;
+    const { error } = inScope.length
       ? await supabase
           .from("drive_documents")
-          .upsert(rows, { onConflict: "tenant_id,provider,external_id" })
+          .upsert(inScope, { onConflict: "tenant_id,provider,external_id" })
       : { error: null };
     if (error) throw new Error(error.message);
-    stored += rows.length;
+    stored += inScope.length;
   }
+  // Removing a folder stops future reads; its already-synced documents stay.
+  // Report which stored folders left the allowlist so that provenance is
+  // explicit in the run receipt instead of silently orphaned.
+  const { data: storedFolders } = await supabase
+    .from("drive_documents")
+    .select("folder_id")
+    .not("folder_id", "is", null);
+  const staleFolders = staleAllowlistIds(
+    (storedFolders ?? []).map((row) => (row as { folder_id: unknown }).folder_id),
+    folders,
+  );
   await recordSourceRun(supabase, {
     sourceKey: "google_drive",
     status: "success",
-    summary: { stored, folders: folders.length },
+    summary: {
+      stored,
+      folders: folders.length,
+      rejected: rejected.length,
+      quarantined,
+      stale_folders: staleFolders.length,
+    },
   });
-  return { stored, folders: folders.length };
+  return { stored, folders: folders.length, rejected: rejected.length, quarantined, staleFolders };
 }
 
 export async function sendGmailReply(

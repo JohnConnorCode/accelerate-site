@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getRevenueAiTools,
+  listRevenueAiCapabilities,
   executeRegisteredRevenueTool,
   AI_TOOL_REGISTRY_VERSION,
   type RevenueToolPackId,
@@ -114,7 +115,8 @@ export const MCP_REVENUE_OS_RESOURCES = [
   {
     uri: "revenue-os://memory/overview",
     name: "Memory Architecture Overview",
-    description: "Active learned policies and recent agent memory across all five memory categories.",
+    description:
+      "Active learned policies and recent agent memory across all five memory categories.",
     mimeType: "application/json",
   },
 ] as const;
@@ -212,13 +214,21 @@ export async function handleMcpRequest(
       }
 
       case "tools/list": {
-        const tools = getRevenueAiTools(context.toolPack).map((tool) => ({
-          name: tool.name,
-          description: tool.description,
-          inputSchema: tool.inputSchema,
-          impact: tool.impact,
-          confirmationRequired: tool.confirmationRequired,
-        }));
+        const available = new Set(
+          listRevenueAiCapabilities(context)
+            .filter((tool) => tool.available)
+            .map((tool) => tool.name),
+        );
+        const tools = getRevenueAiTools(context.toolPack)
+          .filter((tool) => available.has(tool.name))
+          .map((tool) => ({
+            name: tool.name,
+            description: tool.description,
+            inputSchema: tool.inputSchema,
+            impact: tool.impact,
+            confirmationRequired: tool.confirmationRequired,
+            connectionRequirement: tool.connectionRequirement,
+          }));
         return {
           jsonrpc: "2.0",
           id,
@@ -385,7 +395,11 @@ export async function handleMcpRequest(
                 {
                   uri,
                   mimeType: "application/json",
-                  text: JSON.stringify({ claimableWork: queue, timestamp: new Date().toISOString() }, null, 2),
+                  text: JSON.stringify(
+                    { claimableWork: queue, timestamp: new Date().toISOString() },
+                    null,
+                    2,
+                  ),
                 },
               ],
             },
@@ -402,7 +416,11 @@ export async function handleMcpRequest(
                 {
                   uri,
                   mimeType: "application/json",
-                  text: JSON.stringify({ capabilities, timestamp: new Date().toISOString() }, null, 2),
+                  text: JSON.stringify(
+                    { capabilities, timestamp: new Date().toISOString() },
+                    null,
+                    2,
+                  ),
                 },
               ],
             },

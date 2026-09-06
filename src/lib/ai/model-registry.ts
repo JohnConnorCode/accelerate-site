@@ -47,14 +47,15 @@ export interface JobRegistration {
  * default). Everything else is operator-registered, never invented. */
 const BUILT_IN_MODEL_ID = DEFAULT_OPENROUTER_MODEL;
 
-const BUILT_IN_REGISTRATION: Omit<ModelRegistration, "evalPassed" | "evaluatedAt" | "evaluatedBy"> = {
-  id: BUILT_IN_MODEL_ID,
-  label: "GPT-4.1 Mini (default)",
-  costTier: "low",
-  supportsTools: true,
-  supportsJson: true,
-  contextWindow: 1_047_576,
-};
+const BUILT_IN_REGISTRATION: Omit<ModelRegistration, "evalPassed" | "evaluatedAt" | "evaluatedBy"> =
+  {
+    id: BUILT_IN_MODEL_ID,
+    label: "GPT-4.1 Mini (default)",
+    costTier: "low",
+    supportsTools: true,
+    supportsJson: true,
+    contextWindow: 1_047_576,
+  };
 
 export const AI_JOBS: readonly JobRegistration[] = [
   {
@@ -121,7 +122,10 @@ function normalizeId(id: string, what: string): string {
   return value;
 }
 
-function toRegistration(modelId: string, stored: Record<string, unknown> | null): ModelRegistration {
+function toRegistration(
+  modelId: string,
+  stored: Record<string, unknown> | null,
+): ModelRegistration {
   if (!stored) {
     return {
       ...BUILT_IN_REGISTRATION,
@@ -134,7 +138,10 @@ function toRegistration(modelId: string, stored: Record<string, unknown> | null)
   return {
     id: modelId,
     label: typeof stored.label === "string" ? stored.label : modelId,
-    costTier: costTier === "free" || costTier === "low" || costTier === "standard" || costTier === "premium" ? costTier : "standard",
+    costTier:
+      costTier === "free" || costTier === "low" || costTier === "standard" || costTier === "premium"
+        ? costTier
+        : "standard",
     supportsTools: stored.supportsTools !== false,
     supportsJson: stored.supportsJson !== false,
     contextWindow: Number.isFinite(Number(stored.contextWindow)) ? Number(stored.contextWindow) : 0,
@@ -291,7 +298,11 @@ export async function resolveModelForJob(
     throw new Error(
       `Job ${jobKey} needs ${job.minContextWindow} context, but ${model.id} offers ${model.contextWindow}`,
     );
-  if (job.consequential && (model.costTier === "free" || model.costTier === "low") && !model.evalPassed)
+  if (
+    job.consequential &&
+    (model.costTier === "free" || model.costTier === "low") &&
+    !model.evalPassed
+  )
     throw new Error(
       `Model ${model.id} is ${model.costTier}-cost and unevaluated: it cannot run consequential job ${jobKey} until its eval set passes`,
     );
@@ -343,6 +354,7 @@ export async function recordModelCall(
     })
     .select("id")
     .single();
-  if (error || !data) throw new Error(`Could not record model call: ${error?.message || "no receipt"}`);
+  if (error || !data)
+    throw new Error(`Could not record model call: ${error?.message || "no receipt"}`);
   return { id: (data as { id: string }).id };
 }

@@ -14,15 +14,20 @@ for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ADM
   if (!process.env[key]) throw new Error(`${key} is required`);
 }
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: { autoRefreshToken: false, persistSession: false },
+  },
+);
 const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
   type: "magiclink",
   email: process.env.ADMIN_EMAIL,
   options: { redirectTo: `${base}/auth/callback?next=/admin/features` },
 });
-if (linkError || !linkData?.properties?.hashed_token) throw linkError || new Error("no sign-in token");
+if (linkError || !linkData?.properties?.hashed_token)
+  throw linkError || new Error("no sign-in token");
 const { data: verified, error: verifyError } = await supabase.auth.verifyOtp({
   token_hash: linkData.properties.hashed_token,
   type: "magiclink",
@@ -37,7 +42,7 @@ const cookieParts =
     ? [{ name: cookieKey, value: cookieValue }]
     : Array.from({ length: Math.ceil(cookieValue.length / 3180) }, (_, index) => ({
         name: `${cookieKey}.${index}`,
-        value: cookieValue.slice(index * 3180, (index * 3180 + 3180)),
+        value: cookieValue.slice(index * 3180, index * 3180 + 3180),
       }));
 
 const failures = [];
@@ -67,7 +72,9 @@ async function authedPage(viewport) {
 {
   const { context, page } = await authedPage({ width: 1440, height: 1000 });
   await page.goto("/admin/features", { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.getByRole("heading", { name: "Feature Board", exact: true }).waitFor({ timeout: 30_000 });
+  await page
+    .getByRole("heading", { name: "Feature Board", exact: true })
+    .waitFor({ timeout: 30_000 });
   await page.locator('[role="region"][aria-label="Kanban board"] article').first().waitFor({
     timeout: 30_000,
   });
@@ -83,17 +90,19 @@ async function authedPage(viewport) {
   const addCard = await page.getByRole("button", { name: "Add card" }).count();
   if (!addCard) failures.push("desktop: missing column quick-add");
 
-  await page.locator('[role="region"][aria-label="Kanban board"]').evaluate((node) =>
-    node.scrollIntoView({ block: "start" }),
-  );
+  await page
+    .locator('[role="region"][aria-label="Kanban board"]')
+    .evaluate((node) => node.scrollIntoView({ block: "start" }));
   await page.screenshot({ path: `${outDir}/desktop-board.png` });
 
   if (completeCount) {
     const label = await completeButtons.first().getAttribute("aria-label");
-    const responsePromise = page.waitForResponse(
-      (res) => res.url().includes("/api/admin/features") && res.request().method() === "PATCH",
-      { timeout: 15_000 },
-    ).catch(() => null);
+    const responsePromise = page
+      .waitForResponse(
+        (res) => res.url().includes("/api/admin/features") && res.request().method() === "PATCH",
+        { timeout: 15_000 },
+      )
+      .catch(() => null);
     await completeButtons.first().click();
     const response = await responsePromise;
     if (!response) failures.push("desktop: subtask toggle did not PATCH");
@@ -109,7 +118,9 @@ async function authedPage(viewport) {
   if (await editButtons.count()) {
     await editButtons.first().click();
     const heading = page.getByRole("heading", { name: "Subtasks" });
-    await heading.waitFor({ timeout: 10_000 }).catch(() => failures.push("desktop: Subtasks heading missing in dialog"));
+    await heading
+      .waitFor({ timeout: 10_000 })
+      .catch(() => failures.push("desktop: Subtasks heading missing in dialog"));
     const inView = await heading
       .evaluate((node) => {
         const box = node.getBoundingClientRect();
@@ -134,13 +145,15 @@ async function authedPage(viewport) {
 {
   const { context, page } = await authedPage({ width: 390, height: 844 });
   await page.goto("/admin/features", { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.getByRole("heading", { name: "Feature Board", exact: true }).waitFor({ timeout: 30_000 });
+  await page
+    .getByRole("heading", { name: "Feature Board", exact: true })
+    .waitFor({ timeout: 30_000 });
   await page.locator('[role="region"][aria-label="Kanban board"] article').first().waitFor({
     timeout: 30_000,
   });
-  await page.locator('[role="region"][aria-label="Kanban board"]').evaluate((node) =>
-    node.scrollIntoView({ block: "start" }),
-  );
+  await page
+    .locator('[role="region"][aria-label="Kanban board"]')
+    .evaluate((node) => node.scrollIntoView({ block: "start" }));
   const geom = await page.evaluate(() => {
     const board = document.querySelector('[role="region"][aria-label="Kanban board"]');
     const column = board?.querySelector("section[aria-labelledby]");

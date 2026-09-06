@@ -31,6 +31,8 @@ export interface EntityTypeRegistration {
   label: string;
   backingTable: string;
   idColumn?: string;
+  /** Exact scalar columns exposed by capability reads; omitted preserves the declaration. */
+  readableColumns?: string[];
   /** Concrete [{table, column}] pairs holding this type's ids; drives merge. */
   fkCatalog?: ForeignKeyReference[];
   /** Fields driving record resolution for this type. */
@@ -43,7 +45,9 @@ export interface EntityTypeRegistration {
   softDeleteColumn?: string | null;
 }
 
-export interface EntityTypeRecord extends Required<Omit<EntityTypeRegistration, "softDeleteColumn">> {
+export interface EntityTypeRecord extends Required<
+  Omit<EntityTypeRegistration, "softDeleteColumn" | "readableColumns">
+> {
   id: string;
   softDeleteColumn: string | null;
   isDisabled: boolean;
@@ -68,6 +72,13 @@ export interface EntityLink extends Required<Omit<EntityLinkInput, "metadata">> 
 const TYPE_KEY_PATTERN = /^[a-z][a-z0-9_]*$/;
 const MAX_TRAVERSAL_DEPTH = 6;
 
+/** PostgREST selectors must be identifiers, never expressions or relationships. */
+export function validateEntityIdentifier(value: unknown): string {
+  if (typeof value !== "string" || !/^[a-z_][a-z0-9_]{0,62}$/.test(value))
+    throw new Error(`Invalid entity database identifier ${JSON.stringify(value)}`);
+  return value;
+}
+
 function requireTenant(tenantId: string): string {
   const id = tenantId?.trim();
   if (!id) throw new Error("A tenant id is required for entity registry access");
@@ -83,7 +94,9 @@ function requireId(value: string, what: string): string {
 function normalizeTypeKey(typeKey: string): string {
   const key = typeKey?.trim().toLowerCase();
   if (!key || !TYPE_KEY_PATTERN.test(key))
-    throw new Error(`Invalid entity type key ${JSON.stringify(typeKey)}: use lowercase letters, digits, underscores`);
+    throw new Error(
+      `Invalid entity type key ${JSON.stringify(typeKey)}: use lowercase letters, digits, underscores`,
+    );
   return key;
 }
 
@@ -142,25 +155,36 @@ export async function registerEntityType(
   const typeKey = normalizeTypeKey(input.typeKey);
   const label = input.label?.trim();
   if (!label) throw new Error("An entity type label is required");
-  const backingTable = input.backingTable?.trim();
-  if (!backingTable) throw new Error("An entity backing table is required");
+  const backingTable = validateEntityIdentifier(input.backingTable);
+  const idColumn = validateEntityIdentifier(input.idColumn ?? "id");
+  if (
+    input.readableColumns !== undefined &&
+    (!Array.isArray(input.readableColumns) || input.readableColumns.length > 64)
+  )
+    throw new Error("Invalid readable column declaration");
+  const readableColumns = input.readableColumns?.map(validateEntityIdentifier);
   const payload = {
     tenant_id: tenantId,
     type_key: typeKey,
     label,
     backing_table: backingTable,
-    id_column: input.idColumn?.trim() || "id",
+    id_column: idColumn,
     fk_catalog: input.fkCatalog ?? [],
     identity_fields: input.identityFields ?? [],
     soft_delete_column: input.softDeleteColumn ?? null,
     metadata: {},
   };
-  const { data: existing } = await supabase
+  const { data: existing, error: readError } = await supabase
     .from("entity_types")
-    .select("id")
+    .select("id,metadata")
     .eq("tenant_id", tenantId)
     .eq("type_key", typeKey)
     .maybeSingle();
+  if (readError) throw new Error(readError.message);
+  payload.metadata = {
+    ...(existing?.metadata ?? {}),
+    ...(readableColumns === undefined ? {} : { readable_columns: [...new Set(readableColumns)] }),
+  };
   if (existing) {
     const { data, error } = await supabase
       .from("entity_types")
@@ -265,7 +289,8 @@ export async function linkEntities(
     .eq("target_id", targetId)
     .eq("link_type", linkType)
     .maybeSingle();
-  if (readError || !data) throw new Error(`Link receipt could not be recorded for ${sourceType}:${sourceId}`);
+  if (readError || !data)
+    throw new Error(`Link receipt could not be recorded for ${sourceType}:${sourceId}`);
   return { link: toLink(data as Row), duplicate: false };
 }
 
@@ -394,7 +419,12 @@ export interface MergeInput {
 export async function mergeEntities(
   supabase: SupabaseClient,
   input: MergeInput,
-): Promise<{ winnerId: string; movedLinks: number; movedReferences: number; alreadyMerged: boolean }> {
+): Promise<{
+  winnerId: string;
+  movedLinks: number;
+  movedReferences: number;
+  alreadyMerged: boolean;
+}> {
   const tenantId = requireTenant(input.tenantId);
   const type = await requireUsableType(supabase, tenantId, input.typeKey);
   const winnerId = requireId(input.winnerId, "A merge winner id");
@@ -448,15 +478,22 @@ export async function mergeEntities(
       .eq("target_type", type.typeKey)
       .eq("target_id", loserId),
   ]);
-  const loserEdges = [...((loserOutgoing.data ?? []) as Row[]), ...((loserIncoming.data ?? []) as Row[])];
-  if (loserOutgoing.error) throw new Error(`Could not read links during merge: ${loserOutgoing.error.message}`);
-  if (loserIncoming.error) throw new Error(`Could not read links during merge: ${loserIncoming.error.message}`);
+  const loserEdges = [
+    ...((loserOutgoing.data ?? []) as Row[]),
+    ...((loserIncoming.data ?? []) as Row[]),
+  ];
+  if (loserOutgoing.error)
+    throw new Error(`Could not read links during merge: ${loserOutgoing.error.message}`);
+  if (loserIncoming.error)
+    throw new Error(`Could not read links during merge: ${loserIncoming.error.message}`);
   for (const edge of (loserEdges ?? []) as Row[]) {
     const rewrote = {
       source_type: edge.source_type,
-      source_id: edge.source_type === type.typeKey && edge.source_id === loserId ? winnerId : edge.source_id,
+      source_id:
+        edge.source_type === type.typeKey && edge.source_id === loserId ? winnerId : edge.source_id,
       target_type: edge.target_type,
-      target_id: edge.target_type === type.typeKey && edge.target_id === loserId ? winnerId : edge.target_id,
+      target_id:
+        edge.target_type === type.typeKey && edge.target_id === loserId ? winnerId : edge.target_id,
     };
     const { error } = await supabase
       .from("entity_links")
@@ -481,7 +518,10 @@ export async function mergeEntities(
       .eq("tenant_id", tenantId)
       .eq(ref.column, loserId)
       .select("id");
-    if (error) throw new Error(`Could not reassign ${ref.table}.${ref.column} during merge: ${error.message}`);
+    if (error)
+      throw new Error(
+        `Could not reassign ${ref.table}.${ref.column} during merge: ${error.message}`,
+      );
     movedReferences += ((reassigned ?? []) as Row[]).length;
   }
 
@@ -491,7 +531,8 @@ export async function mergeEntities(
     .update({ [marker.column]: marker.value })
     .eq("tenant_id", tenantId)
     .eq(idColumn, loserId);
-  if (retireError) throw new Error(`Could not retire ${type.typeKey}:${loserId}: ${retireError.message}`);
+  if (retireError)
+    throw new Error(`Could not retire ${type.typeKey}:${loserId}: ${retireError.message}`);
 
   await recordAudit(supabase, {
     actorEmail: input.actorEmail,

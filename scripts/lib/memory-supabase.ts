@@ -43,6 +43,7 @@ export class MemorySupabase {
   private readonly failures: Record<string, QueryFailure> = {};
   private sequence = 0;
 
+  idFactory = (sequence: number) => `row-${sequence}`;
   constructor(seed: Record<string, Row[]> = {}) {
     this.tables = JSON.parse(JSON.stringify(seed));
   }
@@ -133,7 +134,17 @@ export class MemorySupabase {
     };
 
     self.eq = (column: string, value: unknown) => {
-      filters.push((row) => row[column] === value);
+      filters.push((row) => {
+        // PostgREST JSONB equality receives a serialized JSON filter value.
+        if (row[column] !== null && typeof row[column] === "object" && typeof value === "string") {
+          try {
+            return JSON.stringify(row[column]) === JSON.stringify(JSON.parse(value));
+          } catch {
+            return false;
+          }
+        }
+        return row[column] === value;
+      });
       return self;
     };
     self.neq = (column: string, value: unknown) => {
@@ -234,7 +245,7 @@ export class MemorySupabase {
           Object.assign(existing, payload);
           return resolve({ data: one ? existing : [existing], error: null });
         }
-        const created: Row = { id: `row-${++this.sequence}`, ...payload };
+        const created: Row = { id: this.idFactory(++this.sequence), ...payload };
         this.tables[table]!.push(created);
         return resolve({ data: one ? created : [created], error: null });
       }
@@ -259,14 +270,23 @@ export class MemorySupabase {
         const key = payload.dedupe_key;
         if (
           key &&
-          this.tables[table]!.some((row) => row.dedupe_key === key && row.status === "pending")
+          this.tables[table]!.some(
+            (row) =>
+              row.dedupe_key === key &&
+              row.tenant_id === payload.tenant_id &&
+              (row.status === "pending" ||
+                (table === "action_queue" &&
+                  payload.source_context === "plugin" &&
+                  row.source_context === "plugin") ||
+                (table === "tasks" && payload.source === "plugin" && row.source === "plugin")),
+          )
         ) {
           return resolve({
             data: null,
             error: { code: "23505", message: "duplicate key value violates unique constraint" },
           });
         }
-        const row: Row = { id: `row-${++this.sequence}`, status: "pending", ...payload };
+        const row: Row = { id: this.idFactory(++this.sequence), status: "pending", ...payload };
         this.tables[table]!.push(row);
         return resolve({ data: one ? row : [row], error: null });
       }

@@ -4,7 +4,10 @@ import { flattenDocsPages } from "@/content/docs/manifest";
 
 export function DocsBreadcrumbs({ items }: { items: Array<{ title: string; href: string }> }) {
   return (
-    <nav aria-label="Breadcrumb" className="mb-8 flex min-h-8 flex-wrap items-center gap-1.5 font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted">
+    <nav
+      aria-label="Breadcrumb"
+      className="mb-8 flex min-h-8 flex-wrap items-center gap-1.5 font-mono text-[0.64rem] uppercase tracking-[0.12em] text-white-muted"
+    >
       {items.map((item, index) => (
         <span key={item.href} className="flex items-center gap-1.5">
           {index > 0 && <ChevronRight className="h-3 w-3" aria-hidden="true" />}
@@ -33,7 +36,10 @@ export function DocsPager({ slug }: { slug: string[] }) {
   const next = index < pages.length - 1 ? pages[index + 1] : null;
   if (!prev && !next) return null;
   return (
-    <nav aria-label="Docs pages" className="mt-16 grid gap-3 border-t border-[var(--rule)] pt-8 sm:grid-cols-2">
+    <nav
+      aria-label="Docs pages"
+      className="mt-16 grid gap-3 border-t border-[var(--rule)] pt-8 sm:grid-cols-2"
+    >
       {prev ? (
         <Link
           href={`/docs/${prev.slug.join("/")}`}
@@ -49,7 +55,7 @@ export function DocsPager({ slug }: { slug: string[] }) {
           </span>
         </Link>
       ) : (
-        <span />
+        <span className="hidden sm:block" />
       )}
       {next && (
         <Link

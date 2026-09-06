@@ -7,26 +7,7 @@ import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
-import { runCoworkerAgentTask } from "./coworker-agent";
-import type { WorkItem } from "./work-items";
-
-const aiModelConfigured = !!process.env.OPENROUTER_AGENT_MODEL;
-
-async function tryAiExecution(
-  supabase: SupabaseClient,
-  wi: WorkItem,
-): Promise<{ outcome: string } | null> {
-  if (!aiModelConfigured) return null;
-  try {
-    const result = await runCoworkerAgentTask(supabase, wi);
-    if (result.outcome && !result.outcome.startsWith("AI execution failed")) {
-      return { outcome: result.outcome };
-    }
-  } catch {
-    // Fall through to deterministic logic.
-  }
-  return null;
-}
+import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
 
 // ---------------------------------------------------------------------------
 // Business Pulse Coworker (northstar Phase E, priority 1)
@@ -46,14 +27,20 @@ export const BUSINESS_PULSE_WORK_KINDS = [
 
 export type BusinessPulseWorkKind = (typeof BUSINESS_PULSE_WORK_KINDS)[number];
 
-export const BUSINESS_PULSE_REQUIRED_CAPABILITIES = [
-  "crm.read",
-] as const;
+export const BUSINESS_PULSE_REQUIRED_CAPABILITIES = ["crm.read"] as const;
 
 export const BUSINESS_PULSE_AUTONOMY_POLICIES = [
   { actionKey: "crm.read", label: "Read CRM records", level: "autonomous" as const },
-  { actionKey: "pipeline.analyze", label: "Analyze pipeline health", level: "standing_permission" as const },
-  { actionKey: "notification.send", label: "Send anomaly alerts", level: "ask_until_trusted" as const },
+  {
+    actionKey: "pipeline.analyze",
+    label: "Analyze pipeline health",
+    level: "standing_permission" as const,
+  },
+  {
+    actionKey: "notification.send",
+    label: "Send anomaly alerts",
+    level: "ask_until_trusted" as const,
+  },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -67,7 +54,10 @@ export async function bootstrapBusinessPulseCoworker(
   for (const capKey of BUSINESS_PULSE_REQUIRED_CAPABILITIES) {
     await registerCapability(supabase, {
       capabilityKey: capKey,
-      label: capKey.split(".").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+      label: capKey
+        .split(".")
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(" "),
       category: "integration",
       source: "coworker_bootstrap",
     }).catch(() => {});
@@ -88,7 +78,8 @@ export async function bootstrapBusinessPulseCoworker(
     id: BUSINESS_PULSE_COWORKER_ID,
     name: "Business Pulse",
     role: "Monitors pipeline health, detects anomalies, and produces daily business digests",
-    description: "Continuously watches the pipeline for stale deals, stage bottlenecks, and velocity changes. Produces daily digest summaries and surfaces anomalies that need attention.",
+    description:
+      "Continuously watches the pipeline for stale deals, stage bottlenecks, and velocity changes. Produces daily digest summaries and surfaces anomalies that need attention.",
     toolPack: "core",
     requiredCapabilities: [...BUSINESS_PULSE_REQUIRED_CAPABILITIES],
     workKinds: [...BUSINESS_PULSE_WORK_KINDS],
@@ -191,6 +182,7 @@ const dailyDigestHandler: WorkKindHandler = async (supabase, wi) => {
   // AI-first: let the model produce an interpreted pipeline summary.
   const aiResult = await tryAiExecution(supabase, wi);
   if (aiResult) {
+    if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {
       coworkerId: BUSINESS_PULSE_COWORKER_ID,
       category: "prior_work",
@@ -237,7 +229,9 @@ const dailyDigestHandler: WorkKindHandler = async (supabase, wi) => {
   const digest = [
     `Active pipeline: ${totalActive} opportunities`,
     `Weighted pipeline value: ${weightedPipeline.toFixed(1)} units`,
-    `By stage: ${Object.entries(byStage).map(([s, c]) => `${s}=${c}`).join(", ")}`,
+    `By stage: ${Object.entries(byStage)
+      .map(([s, c]) => `${s}=${c}`)
+      .join(", ")}`,
     `New this week: ${newThisWeek ?? 0}`,
     `Stale (7+ days): ${staleCount}`,
     `Pending actions: ${pendingActions ?? 0}`,
@@ -260,7 +254,7 @@ const dailyDigestHandler: WorkKindHandler = async (supabase, wi) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome: digest };
+  return { status: "completed", outcome: digest };
 };
 
 const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
@@ -275,7 +269,7 @@ const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
 
   const count = stale?.length ?? 0;
   if (count === 0) {
-    return { outcome: "No stale deals detected" };
+    return { status: "completed", outcome: "No stale deals detected" };
   }
 
   const summary = (stale ?? [])
@@ -288,7 +282,10 @@ const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
     entityType: "work_engine",
     entityId: "stale_deals",
     source: "automation",
-    after: { count, deals: stale?.map((s) => ({ id: s.id, company: s.company_name, stage: s.stage })) },
+    after: {
+      count,
+      deals: stale?.map((s) => ({ id: s.id, company: s.company_name, stage: s.stage })),
+    },
   });
 
   await storeAgentMemory(supabase, {
@@ -299,7 +296,7 @@ const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
     relevanceHorizon: "daily",
   }).catch(() => {});
 
-  return { outcome: `${count} stale deals: ${summary}` };
+  return { status: "completed", outcome: `${count} stale deals: ${summary}` };
 };
 
 const detectStageBottleneckHandler: WorkKindHandler = async (supabase) => {
@@ -317,10 +314,17 @@ const detectStageBottleneckHandler: WorkKindHandler = async (supabase) => {
   const total = Object.values(byStage).reduce((a, b) => a + b, 0);
   const bottlenecks = Object.entries(byStage)
     .filter(([, count]) => total > 0 && count / total > 0.4)
-    .map(([stage, count]) => `${stage} (${count}/${total} = ${((count / total) * 100).toFixed(0)}%)`);
+    .map(
+      ([stage, count]) => `${stage} (${count}/${total} = ${((count / total) * 100).toFixed(0)}%)`,
+    );
 
   if (bottlenecks.length === 0) {
-    return { outcome: `No stage bottlenecks detected. Distribution: ${Object.entries(byStage).map(([s, c]) => `${s}=${c}`).join(", ")}` };
+    return {
+      status: "completed",
+      outcome: `No stage bottlenecks detected. Distribution: ${Object.entries(byStage)
+        .map(([s, c]) => `${s}=${c}`)
+        .join(", ")}`,
+    };
   }
 
   await recordAudit(supabase, {
@@ -336,11 +340,16 @@ const detectStageBottleneckHandler: WorkKindHandler = async (supabase) => {
     coworkerId: BUSINESS_PULSE_COWORKER_ID,
     category: "prior_work",
     subject: `detect_stage_bottleneck: ${bottlenecks.length > 0 ? "detected" : "none"}`,
-    body: bottlenecks.length > 0 ? `Bottleneck: ${bottlenecks.join(", ")}` : `No bottleneck. Distribution: ${Object.entries(byStage).map(([s, c]) => `${s}=${c}`).join(", ")}`,
+    body:
+      bottlenecks.length > 0
+        ? `Bottleneck: ${bottlenecks.join(", ")}`
+        : `No bottleneck. Distribution: ${Object.entries(byStage)
+            .map(([s, c]) => `${s}=${c}`)
+            .join(", ")}`,
     relevanceHorizon: "weekly",
   }).catch(() => {});
 
-  return { outcome: `Bottleneck detected: ${bottlenecks.join(", ")}` };
+  return { status: "completed", outcome: `Bottleneck detected: ${bottlenecks.join(", ")}` };
 };
 
 const detectVelocityChangeHandler: WorkKindHandler = async (supabase) => {
@@ -382,7 +391,7 @@ const detectVelocityChangeHandler: WorkKindHandler = async (supabase) => {
       body: outcome,
       relevanceHorizon: "weekly",
     }).catch(() => {});
-    return { outcome };
+    return { status: "completed", outcome };
   }
 
   const outcome = `Velocity stable: ${tw} new this week vs ${lw} last week (${change > 0 ? "+" : ""}${change.toFixed(0)}%)`;
@@ -393,7 +402,7 @@ const detectVelocityChangeHandler: WorkKindHandler = async (supabase) => {
     body: outcome,
     relevanceHorizon: "daily",
   }).catch(() => {});
-  return { outcome };
+  return { status: "completed", outcome };
 };
 
 // ---------------------------------------------------------------------------

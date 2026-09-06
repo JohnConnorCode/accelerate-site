@@ -8,7 +8,7 @@ import {
   buildContentBriefSystemPrompt,
   parseContentBriefInput,
   validateContentBrief,
-} from "../src/app/api/admin/ai-content-brief/route";
+} from "../src/lib/ai/content-brief";
 
 const input = parseContentBriefInput({
   title: "  Practical AI intake for contractors  ",

@@ -21,7 +21,11 @@
  * Shrink the allowlist there as call sites move here.
  */
 
-export interface TenantBrand {
+import type { WorkspaceBrand } from "@/lib/revenue-os/branding-contract";
+
+/** Legacy bootstrap fields stay required; live workspace presentation fields
+ * come from the same validated brand contract used by documents and plugins. */
+export interface TenantBrand extends Partial<WorkspaceBrand> {
   /** Display name used in the admin chrome and outbound email. */
   name: string;
   /** Bare domain, no scheme. Used for display and analytics defaults. */

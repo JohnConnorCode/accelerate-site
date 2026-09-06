@@ -294,7 +294,9 @@ async function waitForLiveText(page, text, timeoutMs = 5000) {
 }
 
 async function testKeyboardMove(page) {
-  const backlogCard = page.getByRole("button", { name: "Drag Configure Google OAuth and first sync" });
+  const backlogCard = page.getByRole("button", {
+    name: "Drag Configure Google OAuth and first sync",
+  });
 
   await backlogCard.focus();
   await page.waitForTimeout(100);
@@ -316,8 +318,7 @@ async function testKeyboardMove(page) {
   for (let i = 0; i < 24 && !arrived; i++) {
     await page.keyboard.press("ArrowRight");
     await page.waitForTimeout(120);
-    arrived =
-      (await plannedSection.getByText(keyboardTarget, { exact: true }).count()) > 0;
+    arrived = (await plannedSection.getByText(keyboardTarget, { exact: true }).count()) > 0;
   }
   if (!arrived) throw new Error("Keyboard move did not reach the Planned column");
 
@@ -336,11 +337,12 @@ async function testKeyboardMove(page) {
     .locator('section[aria-labelledby="column-backlog"]')
     .getByText("Configure Google OAuth and first sync", { exact: true })
     .count();
-  if (inBacklog)
-    throw new Error("Keyboard-moved card remained in Backlog");
+  if (inBacklog) throw new Error("Keyboard-moved card remained in Backlog");
 
   // Unsaved-change confirmation: open edit dialog, change title, try to close with X
-  await page.getByRole("button", { name: "Edit Configure Google OAuth and first sync", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Edit Configure Google OAuth and first sync", exact: true })
+    .click();
   await page.getByRole("heading", { name: "Feature details" }).waitFor();
 
   const titleInput = page.getByLabel("Title");
@@ -357,7 +359,9 @@ async function testKeyboardMove(page) {
     await dialog.accept();
   });
   await page.getByRole("button", { name: "Close feature details" }).click();
-  await page.getByRole("heading", { name: "Feature details" }).waitFor({ state: "hidden", timeout: 5000 });
+  await page
+    .getByRole("heading", { name: "Feature details" })
+    .waitFor({ state: "hidden", timeout: 5000 });
   if (!confirmMessage || !/unsaved|discard/i.test(confirmMessage))
     throw new Error(
       `Unsaved-change confirmation did not trigger (heard: ${JSON.stringify(confirmMessage)})`,
@@ -375,7 +379,9 @@ if (!liveBoard) {
 // not a mouse) must drive the same pickup → cross-column move → persisted
 // reorder. The grip carries touch-none so the gesture is not stolen by scroll.
 async function testTouchMove(page) {
-  const grip = page.getByRole("button", { name: "Drag Apply and verify the Revenue OS migrations" });
+  const grip = page.getByRole("button", {
+    name: "Drag Apply and verify the Revenue OS migrations",
+  });
   const targetCard = page
     .locator('section[aria-labelledby="column-in_progress"]')
     .getByText("Add Resend delivery webhooks", { exact: true });
@@ -470,5 +476,7 @@ if (liveBoard) {
   console.log(`${outDir}/feature-board-desktop.png`);
   console.log(`${outDir}/feature-board-details.png`);
   console.log(`${outDir}/feature-board-mobile.png`);
-  console.log("Feature Board desktop/mobile render, drag reorder, keyboard move, touch move, list move, unsaved-change guard, and details interaction passed.");
+  console.log(
+    "Feature Board desktop/mobile render, drag reorder, keyboard move, touch move, list move, unsaved-change guard, and details interaction passed.",
+  );
 }

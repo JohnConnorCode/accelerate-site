@@ -199,6 +199,15 @@ async function main() {
         const listed = await fetch(new URL("/api/agent/work-board", base), { headers });
         assert.equal(listed.status, 200);
         assert.equal((await listed.json()).features.length, 2);
+        const connection = await fetch(new URL("/api/agent/work-board?connection=1", base), {
+          headers,
+        });
+        assert.equal(connection.status, 200);
+        const connectionBody = await connection.json();
+        assert.equal(connectionBody.protocolVersion, 2);
+        assert.equal(typeof connectionBody.strictWrites, "boolean");
+        assert.deepEqual(connectionBody.access.projects, [project]);
+        assert.ok(!JSON.stringify(connectionBody).includes(credential.token));
         const unauthorized = await fetch(new URL("/api/admin/features", base));
         assert.equal(unauthorized.status, 401);
         const response = await fetch(new URL("/api/agent/work-board/mcp", base), {
@@ -230,7 +239,7 @@ async function main() {
         assert.equal((await denied.json()).result.isError, true);
         const output = execFileSync(
           "npx",
-          ["tsx", "scripts/agent-dispatch.ts", "next", "--card", b.id, "--no-worktree"],
+          ["tsx", "scripts/agent-dispatch.ts", "next", "--card", b.id, "--no-worktree", "--json"],
           {
             encoding: "utf8",
             env: {

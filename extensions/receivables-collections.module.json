@@ -1,0 +1,35 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "receivables-collections",
+  "name": "Collections Action Desk",
+  "description": "Track verified overdue invoices, disputes, payment promises and collection follow-up for CRM billing contacts.",
+  "category": "revenue",
+  "defaultEnabled": false,
+  "navLinks": [
+    {
+      "id": "receivables-collections",
+      "label": "Collections",
+      "href": "/admin/collections",
+      "icon": "Wallet",
+      "description": "Resolve overdue balances and review reminders",
+      "moreGroup": "Revenue"
+    }
+  ],
+  "routes": ["/admin/collections"],
+  "settings": [
+    {
+      "key": "cooldownHours",
+      "label": "Reminder cooldown (hours)",
+      "description": "Minimum time between confirmed reminder sends for an account and currency.",
+      "type": "number",
+      "default": 72,
+      "min": 1,
+      "max": 720
+    }
+  ],
+  "aiToolNames": [
+    "get_collection_cases",
+    "preview_collection_reminder",
+    "propose_collection_reminder"
+  ]
+}

@@ -55,7 +55,8 @@ export async function GET() {
     const weightedValue = open.reduce(
       (sum, item) =>
         sum +
-        (Number(item.estimated_value || 0) * Math.min(100, Math.max(0, Number(item.probability || 0)))) /
+        (Number(item.estimated_value || 0) *
+          Math.min(100, Math.max(0, Number(item.probability || 0)))) /
           100,
       0,
     );

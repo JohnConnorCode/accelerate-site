@@ -38,8 +38,16 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
 
+  // The live Collections decision isolate loads its inspectable source at runtime.
+  outputFileTracingIncludes: {
+    "/*": [
+      "./plugins/receivables-collections/plan.js",
+      "./node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm",
+    ],
+  },
+
   // Server external packages that should not be bundled
-  serverExternalPackages: ["@react-pdf/renderer"],
+  serverExternalPackages: ["@react-pdf/renderer", "@jitl/quickjs-wasmfile-release-sync"],
 
   // Plausible analytics proxy (bypasses ad blockers)
   async rewrites() {

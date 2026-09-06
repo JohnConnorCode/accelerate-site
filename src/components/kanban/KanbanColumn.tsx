@@ -8,7 +8,11 @@ import { AdminDialog } from "@/components/admin/AdminDialog";
 import { toast } from "@/lib/admin/useToast";
 import { cn } from "@/lib/utils";
 import { KanbanCannotDeleteLastRoleError, KanbanColumnHasCardsError } from "@/lib/kanban/api";
-import { parseWipLimit, type KanbanColumnMetadata, type KanbanColumnRecord } from "@/lib/kanban/types";
+import {
+  parseWipLimit,
+  type KanbanColumnMetadata,
+  type KanbanColumnRecord,
+} from "@/lib/kanban/types";
 import { KanbanCard, type KanbanCardRenderOpts } from "./KanbanCard";
 
 interface KanbanColumnProps<T> {
@@ -169,7 +173,8 @@ function ColumnMenu({
             Work-in-progress limit
           </h2>
           <p className="admin-copy mt-1.5 text-xs leading-5">
-            Soft cap for this column. Over-limit counts turn red so you can see overload; cards can still move.
+            Soft cap for this column. Over-limit counts turn red so you can see overload; cards can
+            still move.
           </p>
           <input
             type="number"
@@ -221,11 +226,15 @@ function ColumnMenu({
         maxWidth="sm"
       >
         <div className="w-full rounded-[20px] bg-[var(--admin-surface)] p-5 shadow-2xl">
-          <h2 id="kanban-reassign-title" className="text-base font-semibold text-[var(--admin-ink)]">
+          <h2
+            id="kanban-reassign-title"
+            className="text-base font-semibold text-[var(--admin-ink)]"
+          >
             Move cards to another column
           </h2>
           <p className="admin-copy mt-1.5 text-xs leading-5">
-            This column still has cards on it. Choose where they should go before the column is deleted.
+            This column still has cards on it. Choose where they should go before the column is
+            deleted.
           </p>
           {otherColumns.length ? (
             <>
@@ -318,10 +327,7 @@ function ColumnQuickAdd({
   }
 
   return (
-    <div
-      className="flex items-center gap-1.5"
-      onPointerDown={(event) => event.stopPropagation()}
-    >
+    <div className="flex items-center gap-1.5" onPointerDown={(event) => event.stopPropagation()}>
       <input
         autoFocus
         value={title}
@@ -407,10 +413,7 @@ export function KanbanColumn<T>({
         <div className="min-w-0 flex-1">
           <div className="group flex min-h-10 items-center gap-1.5">
             <span
-              className={cn(
-                "size-2 shrink-0 rounded-full",
-                column.color || "bg-slate-400",
-              )}
+              className={cn("size-2 shrink-0 rounded-full", column.color || "bg-slate-400")}
               aria-hidden="true"
             />
             {editing ? (
@@ -510,7 +513,8 @@ export function KanbanColumn<T>({
           "shadow-[inset_0_0_0_1px_var(--admin-border)]",
           "transition-[background-color,box-shadow] duration-150",
           "dark:bg-white/[0.018]",
-          isOver && !dragDisabled &&
+          isOver &&
+            !dragDisabled &&
             "bg-amber-500/[0.055] shadow-[inset_0_0_0_1px_rgba(184,134,11,0.38),0_12px_30px_-24px_rgba(90,60,0,0.5)] dark:bg-amber-300/[0.045]",
         )}
         aria-label={`Column: ${column.label}. Drop zone`}

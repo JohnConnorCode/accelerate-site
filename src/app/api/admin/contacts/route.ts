@@ -43,9 +43,14 @@ export async function GET(request: NextRequest) {
       );
   }
 
-  const linked = await attachRevenueLinkageWithTelemetry(supabase, data || [], {
-    sourceRecordType: "contact_form",
-  }, { route: "admin-contacts" });
+  const linked = await attachRevenueLinkageWithTelemetry(
+    supabase,
+    data || [],
+    {
+      sourceRecordType: "contact_form",
+    },
+    { route: "admin-contacts" },
+  );
 
   return NextResponse.json({
     contacts: linked.records,

@@ -9,7 +9,7 @@ Read `docs/NORTHSTAR.md` before picking up any card. It defines what Accelerate
 is building: an **agent-native business runtime** with five product layers
 (See → Remember → Notice → Act → Learn), five implementation phases (A–E), and
 ten architectural principles that govern every decision. Every card on the board
-maps to a northstar phase; every card's notes include that mapping. When
+maps to a northstar phase through its execution packet or explicit historical audit classification. When
 implementation choices arise, the northstar principles resolve them.
 
 Key concepts you will encounter on the board:
@@ -28,7 +28,9 @@ From `accelerate-site/`:
 
 ```bash
 git status --short
-npm run agent:next
+npm run dev:doctor -- --board
+npm run agent:show -- --card <key>
+npm run agent:next -- --card <key>
 ```
 
 Configure `WORK_BOARD_URL` and a scoped `WORK_BOARD_TOKEN` from the founder's
@@ -44,6 +46,11 @@ The live board owns definitions and status. Git templates are reviewed input;
 `seed:features -- --plan /tmp/plan.json --cards <keys>` creates a proposal, and
 `--apply --plan /tmp/plan.json` applies only those versioned changes. Unlisted
 cards and live execution state survive imports.
+
+The claim service enforces WIP limits. There is no force override. If a claim is
+refused, read the reason, resolve it with the work owner, or choose another ready
+card. Keep the published control checkout for all board commands when the ticket
+uses an older application base.
 
 ## 2. Write the implementation contract
 
@@ -89,16 +96,21 @@ Always run:
 
 ```bash
 npm run verify:agent-contract
-npx tsc --noEmit
+npm run typecheck # optional separately when the final build will check the same source
 npm run lint
 git diff --check
 ```
 
-Before a shipped handoff:
+Before a shipped application-code handoff:
 
 ```bash
 npm run build
 ```
+
+A successful build also satisfies TypeScript validation for the same relevant
+source tree. Do not repeat it just to commit or update ticket prose. Tooling/docs
+changes use their scoped verification when application and build inputs remain
+unchanged. Follow [verification workflow](VERIFICATION-WORKFLOW.md).
 
 Then run the scoped test named by the card. For admin work, use the repository
 Playwright scripts, not an in-app browser dependency. Open and inspect generated
@@ -171,3 +183,17 @@ After explicit release authorization:
 
 Escalate when safe recovery needs new authority, destructive action, a new
 provider, real customer contact, or production data mutation beyond the card.
+
+## Execution packet and phase proof
+
+Inspect `agent:show -- --card <key>` before claim; `--json` exposes the same packet
+for any agent client. Verification checks identify their acceptance ID and exact
+`environment`: local, controlled-integration, production or observation. A passing
+local test cannot satisfy a production or observation acceptance item. Partial
+proof belongs in progress evidence, not a successful submission.
+
+Features and bugs need a complete packet before claim. Initiatives cannot be
+claimed; review their verified children before accepting the aggregate. Frozen
+active/submitted specifications require release or review resolution before edits.
+Prioritize useful business journeys across parallel phases; preserve the six-card
+WIP limit, lease fencing and the separate integration/release records.

@@ -23,7 +23,8 @@ const base = process.env.QA_BASE_URL || "http://localhost:3099";
 const TEST_TENANT_SLUG = "isolation-proof-alpha";
 const RUN_ID = Date.now();
 const FEATURE_CARD_TITLE = `QA-DELETE-ME browser drag test card ${RUN_ID}`;
-const shotDir = "/private/tmp/claude-501/-Users-johnconnor-Documents-GitHub-Accelerate-agency/2115b36b-88b7-4a82-b535-d166936d2285/scratchpad/qa-shots";
+const shotDir =
+  "/private/tmp/claude-501/-Users-johnconnor-Documents-GitHub-Accelerate-agency/2115b36b-88b7-4a82-b535-d166936d2285/scratchpad/qa-shots";
 mkdirSync(shotDir, { recursive: true });
 
 const DEFAULT_FEATURE_LABELS = {
@@ -42,7 +43,9 @@ async function assertDefaultFeatureLabelsIntact(admin, when) {
     .is("tenant_id", null);
   if (error) throw error;
   const byKey = Object.fromEntries((data ?? []).map((r) => [r.column_key, r.label]));
-  const mismatches = Object.entries(DEFAULT_FEATURE_LABELS).filter(([key, label]) => byKey[key] !== label);
+  const mismatches = Object.entries(DEFAULT_FEATURE_LABELS).filter(
+    ([key, label]) => byKey[key] !== label,
+  );
   if (mismatches.length) {
     throw new Error(
       `${when}: real Feature Board column labels are not as expected — ${JSON.stringify(mismatches)}. Refusing to proceed against corrupted state.`,
@@ -156,7 +159,9 @@ async function dragCard(fromLocator, toLocator) {
   // check right up against a viewport edge without ever being centered,
   // driving a naive loop all the way to the container's max scroll and
   // landing the target partially (or fully) off-screen anyway.
-  await toLocator.first().evaluate((el) => el.scrollIntoView({ inline: "center", block: "nearest" }));
+  await toLocator
+    .first()
+    .evaluate((el) => el.scrollIntoView({ inline: "center", block: "nearest" }));
   await page.waitForTimeout(300);
   const to = await toLocator.first().boundingBox();
   if (!to) throw new Error("drag target not visible after wheel-scrolling");
@@ -184,10 +189,14 @@ try {
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${shotDir}/features-board.png` });
 
-  const backlogColumn = page.locator("section", { has: page.locator("h2", { hasText: "Backlog" }) });
-  const plannedColumn = page.locator("section", { has: page.locator("h2", { hasText: "Planned" }) });
-  check("Backlog column visible", await backlogColumn.count() > 0, await backlogColumn.count());
-  check("Planned column visible", await plannedColumn.count() > 0, await plannedColumn.count());
+  const backlogColumn = page.locator("section", {
+    has: page.locator("h2", { hasText: "Backlog" }),
+  });
+  const plannedColumn = page.locator("section", {
+    has: page.locator("h2", { hasText: "Planned" }),
+  });
+  check("Backlog column visible", (await backlogColumn.count()) > 0, await backlogColumn.count());
+  check("Planned column visible", (await plannedColumn.count()) > 0, await plannedColumn.count());
 
   // Create a test card via the real "New feature" dialog.
   await page.click('button:has-text("New feature")');
@@ -197,14 +206,18 @@ try {
   await page.screenshot({ path: `${shotDir}/features-card-created.png` });
 
   const testCard = page.locator("article", { hasText: FEATURE_CARD_TITLE }).first();
-  check("test card rendered in a column", await testCard.count() > 0, await testCard.count());
+  check("test card rendered in a column", (await testCard.count()) > 0, await testCard.count());
 
-  if (await testCard.count() > 0) {
+  if ((await testCard.count()) > 0) {
     const dragHandle = page.locator(`button[aria-label="Drag ${FEATURE_CARD_TITLE}"]`);
     await dragCard(dragHandle, plannedColumn);
     await page.screenshot({ path: `${shotDir}/features-after-drag.png` });
     const movedToPlanned = plannedColumn.locator("article", { hasText: FEATURE_CARD_TITLE });
-    check("drag moved the card into Planned", await movedToPlanned.count() > 0, await movedToPlanned.count());
+    check(
+      "drag moved the card into Planned",
+      (await movedToPlanned.count()) > 0,
+      await movedToPlanned.count(),
+    );
 
     await page.reload({ waitUntil: "networkidle" });
     await page.waitForSelector('h2:has-text("Planned")', { timeout: 10000 });
@@ -212,12 +225,13 @@ try {
     // the default milestone filter too, which would hide our unlabeled test
     // card again and make this check fail for the wrong reason.
     const milestoneSelectAfterReload = page.locator('select[aria-label="Filter by milestone"]');
-    if (await milestoneSelectAfterReload.count()) await milestoneSelectAfterReload.selectOption("all");
+    if (await milestoneSelectAfterReload.count())
+      await milestoneSelectAfterReload.selectOption("all");
     await page.waitForTimeout(300);
     const persisted = page
       .locator("section", { has: page.locator("h2", { hasText: "Planned" }) })
       .locator("article", { hasText: FEATURE_CARD_TITLE });
-    check("drag persisted across a reload", await persisted.count() > 0, await persisted.count());
+    check("drag persisted across a reload", (await persisted.count()) > 0, await persisted.count());
   }
 
   // Add a column via the "+ Add column" tile — a dedicated, uniquely-named
@@ -229,14 +243,20 @@ try {
   await addColumnTile.click();
   await page.fill('input[placeholder="Column name"]', TEST_COLUMN_LABEL);
   const [createColResponse] = await Promise.all([
-    page.waitForResponse((res) => res.url().includes("/api/admin/kanban/columns") && res.request().method() === "POST"),
+    page.waitForResponse(
+      (res) => res.url().includes("/api/admin/kanban/columns") && res.request().method() === "POST",
+    ),
     page.click('button:has-text("Add column"):visible >> nth=-1'),
   ]);
-  check("column creation POST succeeded", createColResponse.status() === 201, createColResponse.status());
+  check(
+    "column creation POST succeeded",
+    createColResponse.status() === 201,
+    createColResponse.status(),
+  );
   await page.waitForTimeout(500);
   check(
     "new column appears after Add column",
-    await page.locator(`h2:has-text("${TEST_COLUMN_LABEL}")`).count() > 0,
+    (await page.locator(`h2:has-text("${TEST_COLUMN_LABEL}")`).count()) > 0,
     await page.locator(`h2:has-text("${TEST_COLUMN_LABEL}")`).count(),
   );
 
@@ -263,14 +283,14 @@ try {
   await renameButtonLocator.waitFor({ state: "visible", timeout: 5000 });
   await renameButtonLocator.click();
   await page.screenshot({ path: `${shotDir}/features-rename-clicked.png` });
-  const renameInput = (await testColSectionHandle.$("input"));
+  const renameInput = await testColSectionHandle.$("input");
   if (!renameInput) throw new Error("rename input did not appear inside the test column section");
   await renameInput.fill("QA-DELETE-ME Renamed");
   await renameInput.press("Enter");
   await page.waitForTimeout(800);
   check(
     "column rename via UI took effect",
-    await page.locator('h2:has-text("QA-DELETE-ME Renamed")').count() > 0,
+    (await page.locator('h2:has-text("QA-DELETE-ME Renamed")').count()) > 0,
     await page.locator('h2:has-text("QA-DELETE-ME Renamed")').count(),
   );
 
@@ -283,7 +303,7 @@ try {
   await page.waitForTimeout(600);
   check(
     "empty column deleted via UI",
-    await page.locator('h2:has-text("QA-DELETE-ME Renamed")').count() === 0,
+    (await page.locator('h2:has-text("QA-DELETE-ME Renamed")').count()) === 0,
     await page.locator('h2:has-text("QA-DELETE-ME Renamed")').count(),
   );
 
@@ -291,17 +311,21 @@ try {
   await page.click('button:has-text("List")');
   await page.waitForTimeout(500);
   await page.screenshot({ path: `${shotDir}/features-list-view.png` });
-  check("List view renders a table", await page.locator("table").count() > 0, await page.locator("table").count());
+  check(
+    "List view renders a table",
+    (await page.locator("table").count()) > 0,
+    await page.locator("table").count(),
+  );
   await page.click('button:has-text("Board")');
   await page.waitForTimeout(500);
 
   // Clean up the test card: find its current column and archive it.
   const cardNow = page.locator("article", { hasText: FEATURE_CARD_TITLE }).first();
-  if (await cardNow.count() > 0) {
+  if ((await cardNow.count()) > 0) {
     await cardNow.locator("h3", { hasText: FEATURE_CARD_TITLE }).click();
     await page.waitForTimeout(600);
     const archiveBtn = page.getByRole("button", { name: "Archive", exact: true });
-    if (await archiveBtn.count() > 0) {
+    if ((await archiveBtn.count()) > 0) {
       await archiveBtn.click();
       await page.waitForTimeout(600);
     }
@@ -310,7 +334,7 @@ try {
   // ===================== Pipeline =====================
   console.log("\n=== Pipeline (browser, tenant: isolation-proof-alpha) ===");
   await page.goto(`${base}/admin/pipeline`, { waitUntil: "networkidle" });
-  await page.waitForSelector('text=New opportunity', { timeout: 15000 });
+  await page.waitForSelector("text=New opportunity", { timeout: 15000 });
   await page.screenshot({ path: `${shotDir}/pipeline-board.png` });
 
   // The create dialog has no "opportunity name" field — createOpportunity()
@@ -329,14 +353,16 @@ try {
   await page.fill('input[name="estimatedValue"]', "4200");
   const [createOppResponse] = await Promise.all([
     page.waitForResponse(
-      (res) => res.url().includes("/api/admin/revenue-os/pipeline") && res.request().method() === "POST",
+      (res) =>
+        res.url().includes("/api/admin/revenue-os/pipeline") && res.request().method() === "POST",
       { timeout: 15000 },
     ),
     // The dialog's success handler triggers its own GET refetch after the
     // POST resolves — wait for that too, not just the POST, so the DOM has
     // actually re-rendered with the new row before we go looking for it.
     page.waitForResponse(
-      (res) => res.url().includes("/api/admin/revenue-os/pipeline") && res.request().method() === "GET",
+      (res) =>
+        res.url().includes("/api/admin/revenue-os/pipeline") && res.request().method() === "GET",
       { timeout: 15000 },
     ),
     page.click('button:has-text("Create opportunity")'),
@@ -371,7 +397,7 @@ try {
   await page.screenshot({ path: `${shotDir}/pipeline-card-created.png` });
 
   const oppCard = page.locator("article", { hasText: OPP_NAME }).first();
-  check("test opportunity card rendered", await oppCard.count() > 0, await oppCard.count());
+  check("test opportunity card rendered", (await oppCard.count()) > 0, await oppCard.count());
 
   const lostHeader = page.getByRole("heading", { name: "Lost", exact: true }).first();
   const lostColumn = page.locator("section", { has: lostHeader });
@@ -381,7 +407,7 @@ try {
   // section, so the drop coordinate can't land in the header/padding area
   // dnd-kit doesn't consider part of the droppable rect at all.
   const lostDropTarget = lostColumn.getByText("No opportunities in this stage.");
-  if (await oppCard.count() > 0 && (await lostColumn.count()) > 0) {
+  if ((await oppCard.count()) > 0 && (await lostColumn.count()) > 0) {
     // The card's whole wrapper carries dragHandleProps (PipelineKanbanCard),
     // so drag from the article's own body rather than a specific control.
     await dragCard(oppCard, lostDropTarget);
@@ -390,14 +416,14 @@ try {
     const nowInLost = lostColumn.locator("article", { hasText: OPP_NAME });
     check(
       "dragging to Lost (after accepting the native reason prompt) moved the card",
-      await nowInLost.count() > 0,
+      (await nowInLost.count()) > 0,
       await nowInLost.count(),
     );
   }
 
   // Capture the opportunity id for cleanup via its detail link.
   const stillCard = page.locator("article", { hasText: OPP_NAME }).first();
-  if (await stillCard.count() > 0) {
+  if ((await stillCard.count()) > 0) {
     const href = await stillCard.locator("a").first().getAttribute("href");
     const id = href?.split("/").pop();
     if (id) createdOpportunityIds.push(id);
@@ -405,7 +431,11 @@ try {
 
   console.log("\nConsole errors captured during the whole run:", consoleErrors.length);
   for (const err of consoleErrors.slice(0, 20)) console.log("  console:", err);
-  check("no browser console errors during the whole run", consoleErrors.length === 0, consoleErrors);
+  check(
+    "no browser console errors during the whole run",
+    consoleErrors.length === 0,
+    consoleErrors,
+  );
 } finally {
   await browser.close();
   console.log("\n--- cleanup ---");
@@ -418,26 +448,51 @@ try {
       await admin.from(table).delete().in("opportunity_id", createdOpportunityIds);
     }
     const { error } = await admin.from("opportunities").delete().in("id", createdOpportunityIds);
-    console.log(`  deleted ${createdOpportunityIds.length} test opportunity(ies) ->`, error?.message || "ok");
+    console.log(
+      `  deleted ${createdOpportunityIds.length} test opportunity(ies) ->`,
+      error?.message || "ok",
+    );
   }
   const { error: cardCleanupErr, data: leftoverCards } = await admin
     .from("feature_requests")
     .select("id")
     .ilike("title", "QA-DELETE-ME%");
   if (leftoverCards?.length) {
-    await admin.from("feature_requests").delete().in("id", leftoverCards.map((c) => c.id));
+    await admin
+      .from("feature_requests")
+      .delete()
+      .in(
+        "id",
+        leftoverCards.map((c) => c.id),
+      );
   }
-  console.log("  leftover QA feature cards removed:", leftoverCards?.length ?? 0, cardCleanupErr?.message || "");
+  console.log(
+    "  leftover QA feature cards removed:",
+    leftoverCards?.length ?? 0,
+    cardCleanupErr?.message || "",
+  );
   const { data: leftoverCols } = await admin
     .from("kanban_columns")
     .select("id,board_key,column_key,tenant_id")
     .ilike("label", "QA-DELETE-ME%");
   if (leftoverCols?.length) {
     console.log("  leftover QA columns found:", leftoverCols);
-    await admin.from("kanban_columns").delete().in("id", leftoverCols.map((c) => c.id));
+    await admin
+      .from("kanban_columns")
+      .delete()
+      .in(
+        "id",
+        leftoverCols.map((c) => c.id),
+      );
   }
 }
 
 console.log("\n=== Result ===");
-console.log(JSON.stringify({ passed: failures.length === 0, failureCount: failures.length, failures }, null, 2));
+console.log(
+  JSON.stringify(
+    { passed: failures.length === 0, failureCount: failures.length, failures },
+    null,
+    2,
+  ),
+);
 if (failures.length) process.exit(1);
