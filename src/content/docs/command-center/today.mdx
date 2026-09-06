@@ -1,43 +1,30 @@
 ---
-title: "Today"
-description: "Work the founder queue: replies, commitments, meetings, proposals, and approvals."
-updated: "2026-09-04"
+title: "Work the Today queue"
+description: "Review urgent work, take the next action and confirm the result."
+updated: "2026-09-05"
 ---
 
-Today is the daily queue. Open `/admin/today` (or the matching demo route). It ranks work the operator should see now, with a reason, an urgency, a safe link, and a recommended next action.
+Open `/admin/today` at the start of your work session. Today gathers items that need attention, including replies, due tasks, upcoming meetings, proposals, approvals and system problems.
 
-## What appears
+## Work one item
 
-The queue is assembled from live workspace records. Item kinds currently include:
+1. Read the item's reason and due date. Open its linked record to check the latest context.
+2. Take the offered action: respond, review an approval, complete a task or choose a later date where snooze is available.
+3. For an approval, inspect the exact proposed change. For a message, check the recipients and full body before approving a send.
+4. Check the result. Refresh the queue if needed and confirm the item is resolved or has a specific next step.
 
-- Unread replies that still need a response
-- Tasks and follow-ups, including overdue ones
-- Meetings inside the next 48 hours
-- Proposals waiting on a decision
-- Approvals for staged outbound or record changes
-- System exceptions, such as a health check that missed its cadence
+Completing a task records that the task is done. It does not prove an email was delivered or a customer accepted a proposal. Check the relevant [action result](/docs/start/receipts) when work involves an external service.
 
-Ordering is urgency, then deadline, then kind, then the source timestamp, then a stable id. Two items with the same urgency do not shuffle.
+## Decide what to do first
 
-## What you can do from the row
+Use urgency, deadline and the stated reason together. A customer waiting for a promised response may need attention before an undated internal task. If you postpone work, leave a date and enough context for the next person to continue.
 
-Each item links into the exact record or dialog it is about. Approval items open the review dialog rather than dropping you on an unfiltered list.
+Ask AI can help summarize the underlying records. Review the evidence before accepting its recommendation.
 
-From the row you can:
+## When the queue looks wrong
 
-- Approve a staged action, or approve and send when the action is outbound mail
-- Reject or edit before anything leaves
-- Complete a task, or snooze it until tomorrow
-- Refresh the queue after you act
+- **An item remains after you act:** inspect the saved record and refresh. Do not repeat an external action just to clear the row.
+- **A refresh fails:** the page may retain the last successful queue. Check its age before relying on it.
+- **Nothing appears:** confirm the workspace and loading state. An empty queue is not proof that every connected system is healthy.
 
-Successful mutations remove the item immediately, then reconcile against the shared queue so counters do not flash stale work.
-
-## When the read fails
-
-Today keeps the last good queue on screen, shows the last-success time, and distinguishes a background refresh from a first load. A degraded read is visible as degraded. A fatal read explains what failed and offers a recovery action. An empty queue is a real empty state.
-
-## Layout
-
-The Today layout is customizable per workspace. Regions you hide stay hidden until you put them back. The queue itself is still the same ranked list.
-
-Ask AI on this screen uses the same tools and approval rules as the rest of the workspace. It does not get a private write path.
+Use [Setup Center](/docs/workspace/setup) for connection problems and [Activity](/docs/command-center/activity) to inspect recorded changes.

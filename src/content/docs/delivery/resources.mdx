@@ -1,9 +1,26 @@
 ---
-title: "Resources"
-description: "Gated downloads that attach to contacts instead of becoming orphan files."
-updated: "2026-09-04"
+title: "Review resource downloads"
+description: "Find who requested a resource and check the recorded download time."
+updated: "2026-09-05"
 ---
 
-Open `/admin/resources`. Downloads are gated assets. A download creates or updates intake so the person is a [contact](/docs/contacts) or [subscriber](/docs/sources), not an anonymous file hit.
+Open `/admin/resources` to see **Resource Downloads**. This screen lists download records; it is not the editor for uploading or publishing resources.
 
-Counts on this screen are download receipts for this workspace.
+## Find a download
+
+1. Search by the person's name or email address.
+2. Use the resource filter when it is available to narrow the displayed records.
+3. Read the resource name and download time on the matching row.
+4. Check the related [contact](/docs/contacts) before deciding whether follow-up is appropriate.
+
+Search and resource filtering apply to the loaded page of downloads in the current implementation. If an expected record is absent, clear the filters and check the other pages.
+
+## Read the counts correctly
+
+**Total Downloads** counts recorded downloads. **Unique Users** reports distinct users according to the service's grouping. Neither number tells you whether someone read the file, qualified as a lead or agreed to receive marketing.
+
+A repeat download can be a real second event. Do not merge people or remove records solely to make these counts match.
+
+## When a download is missing
+
+Confirm the resource, email address and approximate time. Keep those details for the technical owner to compare with intake records. Use [Leads and chat](/docs/sources/leads) to inspect an associated inquiry and [Troubleshooting](/docs/start/troubleshooting) if the page could not load.

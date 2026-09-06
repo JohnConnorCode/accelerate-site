@@ -1,19 +1,28 @@
 ---
-title: "Activity"
-description: "The audit ledger: who changed what, when, and from which origin."
-updated: "2026-09-04"
+title: "Inspect activity"
+description: "Find a recorded change and trace it to the affected record."
+updated: "2026-09-05"
 ---
 
-Activity at `/admin/activity` is the operator view of the audit ledger. It records material changes: actor, action, entity, source, and a before/after snapshot. It is how you answer "who did this?" without reading a database.
+Open `/admin/activity` when you need to find who changed a record, what action was recorded and when it happened.
 
-## What is stored
+## Find a change
 
-Each row is one change. Filters cover actor, entity type, action, source, and a date range. Opening a row with a known entity takes you to that record: an opportunity, a conversation, a task on Today, a proposal, or a campaign.
+1. Narrow the time range to when the event occurred.
+2. Filter by actor, action, source or entity type where available.
+3. Find the matching event and open its linked record.
+4. Compare the recorded action with the record's current state and any related execution or provider receipt.
 
-Prompt text, raw customer bodies, tokens, and secrets do not belong here. If a field would leak those, the service redacts it or omits it.
+For example, when a proposal appears to have changed after a customer review, start with that proposal's events and the time of the review. Keep the proposal identifier with your findings so another operator can inspect the same record.
 
-## What it is for
+## Interpret the evidence
 
-Use Activity when a send, a stage move, or an approval needs a receipt you can show someone. Provider facts stay immutable. Human notes and configuration are edited through their own services, and those edits still write a row.
+An activity event records an application action. For an external effect, inspect the associated result as well: an approved request, provider acceptance and final delivery are different facts. [Action results](/docs/start/receipts) explains those states.
 
-System exceptions on [Today](/docs/command-center/today) (a missed health cadence, a webhook that keeps failing) are the same facts Setup Center uses. Activity is the history; Today is the queue.
+Events omit sensitive content. A row may identify a message operation without containing its full body. Open the authorized business record for the content you are allowed to read.
+
+## When you cannot find an event
+
+Check the workspace, date range and filters. Retain the affected record ID and approximate time for the technical owner if the event is still missing. Do not invent a replacement event or treat absence as proof that nothing happened.
+
+[Today](/docs/command-center/today) shows work to act on; Activity helps investigate what was recorded.
