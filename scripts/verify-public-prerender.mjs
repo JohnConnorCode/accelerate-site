@@ -12,6 +12,7 @@ try {
   process.exit(1);
 }
 
+// The package command also runs the manifest-derived docs gate against this build.
 const required = [
   "/",
   "/about",
@@ -19,18 +20,6 @@ const required = [
   "/changelog",
   "/command-center",
   "/docs",
-  "/docs/start",
-  "/docs/command-center",
-  "/docs/pipeline",
-  "/docs/conversations",
-  "/docs/contacts",
-  "/docs/outreach",
-  "/docs/proposals",
-  "/docs/delivery",
-  "/docs/intelligence",
-  "/docs/sources",
-  "/docs/workspace",
-  "/docs/extend",
   "/open-source",
   "/command-center/demo",
   "/contact",
