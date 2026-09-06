@@ -1407,5 +1407,88 @@
     }
   ],
   "previousBase": "50f3aa671751619f44af22bb0736618c362d1b6b",
-  "baseCorrection": "Original base failed repository hygiene (CI 34012078950) and omitted six retained pages. Live card moved to the fully verified development baseline (CI 34011591738)."
+  "baseCorrection": "Original base failed repository hygiene (CI 34012078950) and omitted six retained pages. Live card moved to the fully verified development baseline (CI 34011591738).",
+  "controlledSourceIdentities": {
+    "environment": "synthetic isolated-test inputs; not inserted or observed production records",
+    "tenantId": "10000000-0000-4000-8000-000000000001",
+    "records": [
+      {
+        "sourceTable": "clients",
+        "sourceId": "40000000-0000-4000-8000-000000000001",
+        "canonicalContactId": "20000000-0000-4000-8000-000000000001",
+        "canonicalOpportunityId": "30000000-0000-4000-8000-000000000001"
+      },
+      {
+        "sourceTable": "proposals",
+        "sourceId": "40000000-0000-4000-8000-000000000002",
+        "canonicalContactId": "20000000-0000-4000-8000-000000000001",
+        "canonicalOpportunityId": "30000000-0000-4000-8000-000000000001"
+      },
+      {
+        "sourceTable": "solution_requests",
+        "sourceId": "40000000-0000-4000-8000-000000000003",
+        "canonicalContactId": "20000000-0000-4000-8000-000000000001",
+        "canonicalOpportunityId": "30000000-0000-4000-8000-000000000001"
+      },
+      {
+        "sourceTable": "contact_submissions",
+        "sourceId": "40000000-0000-4000-8000-000000000004",
+        "canonicalContactId": "20000000-0000-4000-8000-000000000001",
+        "canonicalOpportunityId": "30000000-0000-4000-8000-000000000001"
+      },
+      {
+        "sourceTable": "chat_leads",
+        "sourceId": "40000000-0000-4000-8000-000000000005",
+        "canonicalContactId": "20000000-0000-4000-8000-000000000001",
+        "canonicalOpportunityId": "30000000-0000-4000-8000-000000000001"
+      },
+      {
+        "sourceTable": "subscribers",
+        "sourceId": "40000000-0000-4000-8000-000000000006",
+        "canonicalContactId": "20000000-0000-4000-8000-000000000001",
+        "canonicalOpportunityId": null
+      },
+      {
+        "sourceTable": "resource_downloads",
+        "sourceId": "40000000-0000-4000-8000-000000000007",
+        "canonicalContactId": "20000000-0000-4000-8000-000000000001",
+        "canonicalOpportunityId": "30000000-0000-4000-8000-000000000001"
+      },
+      {
+        "sourceTable": "partner_applications",
+        "sourceId": "40000000-0000-4000-8000-000000000008",
+        "canonicalContactId": "20000000-0000-4000-8000-000000000001",
+        "canonicalOpportunityId": "30000000-0000-4000-8000-000000000001"
+      },
+      {
+        "sourceTable": "website_grades",
+        "sourceId": "40000000-0000-4000-8000-000000000009",
+        "canonicalContactId": "20000000-0000-4000-8000-000000000001",
+        "canonicalOpportunityId": "30000000-0000-4000-8000-000000000001"
+      },
+      {
+        "sourceTable": "content_calendar",
+        "sourceId": "40000000-0000-4000-8000-000000000010",
+        "canonicalContactId": null,
+        "canonicalOpportunityId": null
+      },
+      {
+        "sourceTable": "email_sequences",
+        "sourceId": "40000000-0000-4000-8000-000000000011",
+        "canonicalContactId": null,
+        "canonicalOpportunityId": null
+      },
+      {
+        "sourceTable": "opportunities",
+        "sourceId": "30000000-0000-4000-8000-000000000001",
+        "canonicalContactId": "20000000-0000-4000-8000-000000000001",
+        "canonicalOpportunityId": "30000000-0000-4000-8000-000000000001"
+      }
+    ],
+    "rules": [
+      "Preserve the tuple (tenantId, sourceTable, sourceId) in every comparison.",
+      "Use two source records sharing one email and an unmatched record in each affected follow-up fixture; do not infer identity from email alone.",
+      "Complete required source fields in the claimed isolated harness before inserting; these identity mappings do not constitute database-ready rows or passing parity results."
+    ]
+  }
 }

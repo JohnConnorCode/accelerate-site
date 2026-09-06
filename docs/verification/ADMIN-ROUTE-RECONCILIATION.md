@@ -96,8 +96,11 @@ claim or replace the live contract.
 These are source identities to preserve, not production rows that have been
 inspected. The fixture IDs below are a recipe for the next card's isolated test
 harness; they have not been inserted or verified by this inventory ticket.
-Use UUID values when a harness uses UUID columns, and retain this logical label in
-its fixture manifest. Keep `tenant_id` in every comparison key.
+The JSON's `controlledSourceIdentities` supplies twelve concrete synthetic source
+UUIDs, a tenant UUID and intended canonical identity links. Complete each source
+row's required fields in the isolated harness; these mappings are not insert-ready
+rows or passing parity results. Retain the logical label in the fixture manifest
+and keep `tenant_id` in every comparison key.
 
 | Source identity           | Controlled fixture label            | Fields or relationship to reconcile                                                                                              |
 | ------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
