@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
+import { expect } from "@playwright/test";
 import { navItems, footerLinks } from "../src/content/navigation";
 
 const base = process.env.DOCS_QA_URL ?? "http://localhost:3025";
@@ -17,6 +18,19 @@ const routes = [
   "/docs/contacts/import",
   "/docs/extend/mcp-clients",
   "/docs/intelligence/tools",
+  "/docs/start/overview",
+  "/docs/follow-up/overview",
+  "/docs/command-center/today",
+  "/docs/command-center/activity",
+  "/docs/delivery/bookings",
+  "/docs/delivery/clients",
+  "/docs/delivery/content",
+  "/docs/delivery/resources",
+  "/docs/pipeline/revenue",
+  "/docs/workspace/settings",
+  "/docs/sources/leads",
+  "/docs/intelligence/workspace",
+  "/docs/outreach/recovery",
 ];
 const failures: string[] = [];
 const checks: string[] = [];
@@ -51,6 +65,13 @@ async function main() {
           if (route === "/docs/intelligence/tools") {
             await page.getByText("Input schema for propose_send_email", { exact: true }).click();
             assert.ok(await page.locator("details[open] pre").isVisible());
+          }
+          if (route === "/docs/pipeline/revenue") {
+            await expect(page.locator("main")).toContainText("client and proposal records");
+            await expect(page.locator("main table")).toBeVisible();
+          }
+          if (route === "/docs/delivery/resources") {
+            await expect(page.locator("main")).toContainText("loaded page of downloads");
           }
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
@@ -88,11 +109,11 @@ async function main() {
           .locator('section[aria-label="Search documentation"] a[href="/docs/conversations/reply"]')
           .click();
         await page.waitForURL("**/docs/conversations/reply");
-        assert.equal(await search.inputValue(), "");
+        await expect(search).toHaveValue("");
         await search.fill("zxq_nonexistent_reference");
         await page.getByRole("status").filter({ hasText: "No matching guides" }).waitFor();
         await search.press("Escape");
-        assert.equal(await search.inputValue(), "");
+        await expect(search).toHaveValue("");
         await search.fill("propose_send_email");
         await page
           .locator('section[aria-label="Search documentation"] a[href="/docs/intelligence/tools"]')
