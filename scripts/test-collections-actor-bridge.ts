@@ -6,6 +6,7 @@ import {
   callCollectionHostRpc,
   callModelBudgetRpc,
   callRadarStoreRpc,
+  callRadarAssessmentRpc,
 } from "../src/lib/supabase/server";
 import { runWithTenantRequestContext, type TenantActorContext } from "../src/lib/tenancy/context";
 async function main() {
@@ -36,7 +37,7 @@ async function main() {
     assert.equal(url.hostname, "collections-fixture.supabase.co");
     assert.match(
       url.pathname,
-      /^\/rest\/v1\/rpc\/(sync_collection_observations|update_collection_case|reserve_collection_reminder|reconcile_collection_reminder|reserve_model_call|complete_model_call|execute_radar_store_command)$/,
+      /^\/rest\/v1\/rpc\/(sync_collection_observations|update_collection_case|reserve_collection_reminder|reconcile_collection_reminder|reserve_model_call|complete_model_call|execute_radar_store_command|review_radar_assessment)$/,
     );
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("x-tenant-id"), tenant);
@@ -63,7 +64,12 @@ async function main() {
     }
     const radar = await runWithTenantRequestContext(actor, () => callRadarStoreRpc(db, {}));
     assert.equal(radar.data.verified, true);
-    assert.equal(network, 7);
+    assert.equal(
+      (await runWithTenantRequestContext(actor, () => callRadarAssessmentRpc(db, {}))).data
+        .verified,
+      true,
+    );
+    assert.equal(network, 8);
     mem.tables.tenant_memberships![0]!.status = "revoked";
     await assert.rejects(
       () =>
@@ -79,6 +85,10 @@ async function main() {
     );
     await assert.rejects(
       () => runWithTenantRequestContext(actor, () => callRadarStoreRpc(db, {})),
+      /membership/,
+    );
+    await assert.rejects(
+      () => runWithTenantRequestContext(actor, () => callRadarAssessmentRpc(db, {})),
       /membership/,
     );
     mem.tables.tenant_memberships![0]!.status = "active";
@@ -101,7 +111,7 @@ async function main() {
       () => callCollectionHostRpc(db, "delete_tenant" as "update_collection_case", {}),
       /not allowed/,
     );
-    assert.equal(network, 7);
+    assert.equal(network, 8);
     await assert.rejects(
       () => callModelBudgetRpc(db, "delete_tenant" as "reserve_model_call", {}),
       /not allowed/,
@@ -116,7 +126,7 @@ async function main() {
       (await callCollectionHostRpc(db, "reserve_collection_reminder", {})).data.originalDatabase,
       true,
     );
-    assert.equal(network, 7);
+    assert.equal(network, 8);
     console.log(
       "PASS: authenticated actor bridge uses exact tenant RPC scope; revoked/suspended/mismatched actors and unknown operations cannot elevate; background clients remain unchanged.",
     );

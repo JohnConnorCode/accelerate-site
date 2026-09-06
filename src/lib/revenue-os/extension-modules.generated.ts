@@ -138,7 +138,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "67e4f24442e2f373629b9e509a8aceedba2917573049b0d08350d77b432325bd",
+      contractHash: "58b9ecdf5066879da8cd0a47d60d89de56c8ef0fc107c4dbba5337dac1751a97",
       tools: [
         {
           operation: "prepare-workflow",
@@ -426,7 +426,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "f6f56c5b47b77ede341336c21dde13c6561af6478d034b2210aae220941b9960",
+      contractHash: "becfce86012d40a47ef39a1410285d22faf50e972a42d0b67497cc2b16313ada",
       tools: [
         {
           operation: "prepare-workflow",
@@ -602,6 +602,9 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       "get_radar_store",
       "preview_radar_store_change",
       "propose_radar_store_change",
+      "get_radar_selection",
+      "preview_radar_assessment",
+      "propose_radar_assessment",
     ],
     routes: [],
     setupChecks: [],
@@ -944,7 +947,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "32c714955ea9a575575a83841c2145d0333dc4d709bef8d440e28abfeea86ed9",
+      contractHash: "ebeae760413591942ebc252183497b80624a3ba636fd1806ce426b8286e201db",
       tools: [
         {
           operation: "prepare-workflow",

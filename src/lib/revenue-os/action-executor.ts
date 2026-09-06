@@ -1,4 +1,5 @@
 import "server-only";
+import { executeRadarAssessment } from "./radar-ranking";
 import { executeRadarStoreChange } from "./radar-store";
 import { executeModuleConfiguration } from "./module-actions";
 import { executeWorkspaceBrandUpdate } from "./branding-actions";
@@ -37,6 +38,7 @@ function stringValue(
 }
 
 export const APPROVABLE_ACTIONS = [
+  "review_radar_assessment",
   "update_radar_store",
   "update_module_configuration",
   "update_workspace_brand",
@@ -128,6 +130,12 @@ export async function approveAndExecuteAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "review_radar_assessment": {
+        if (mode !== "approved")
+          throw new Error("Radar estimates and classification require human approval");
+        result = await executeRadarAssessment(supabase, payload, actorEmail);
+        break;
+      }
       case "update_radar_store": {
         if (mode !== "approved")
           throw new Error("Radar source and opportunity changes require human approval");

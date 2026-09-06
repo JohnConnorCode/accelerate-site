@@ -1,4 +1,10 @@
 import "server-only";
+import { getRadarSelection, previewRadarAssessment, proposeRadarAssessment } from "./radar-ranking";
+import {
+  radarSelectionSchema,
+  radarAssessmentPreviewSchema,
+  radarAssessmentProposalSchema,
+} from "./radar-ranking-contract";
 import { readRadarStore, previewRadarStoreChange, proposeRadarStoreChange } from "./radar-store";
 import {
   radarStoreReadSchema,
@@ -555,6 +561,46 @@ const registry: AiToolRegistration[] = [
     });
   }),
 
+  {
+    name: "get_radar_selection",
+    description:
+      "Read a bounded business shortlist from current human-reviewed estimates and evidence, with configurable weights and effort budget. Unknown/public-affairs items remain unranked. No model call or external effect.",
+    inputSchema: z.toJSONSchema(radarSelectionSchema),
+    parseInput: (input) => radarSelectionSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-ranking",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => getRadarSelection(supabase, input),
+  },
+  {
+    name: "preview_radar_assessment",
+    description:
+      "Preview cited operator estimates and explicit subject classification against current opportunity, sources and configuration. Unknown values remain unknown. This does not approve classification or save estimates.",
+    inputSchema: z.toJSONSchema(radarAssessmentPreviewSchema),
+    parseInput: (input) => radarAssessmentPreviewSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-ranking",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => previewRadarAssessment(supabase, input),
+  },
+  {
+    name: "propose_radar_assessment",
+    description:
+      "Queue the exact assessment preview and digest for human review. Never infer permission to classify political or ambiguous material as business. Only the approved shared executor saves judgments.",
+    inputSchema: z.toJSONSchema(radarAssessmentProposalSchema),
+    parseInput: (input) => radarAssessmentProposalSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.radar-ranking",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeRadarAssessment(supabase, input, actorEmail),
+  },
   {
     name: "get_radar_store",
     description:
@@ -2019,6 +2065,9 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "get_radar_selection",
+    "preview_radar_assessment",
+    "propose_radar_assessment",
     "get_radar_store",
     "preview_radar_store_change",
     "propose_radar_store_change",

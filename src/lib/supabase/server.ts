@@ -183,6 +183,13 @@ export async function callRadarStoreRpc(database: SupabaseClient, args: Record<s
   return callVerifiedHostRpc(database, "execute_radar_store_command", args);
 }
 
+export async function callRadarAssessmentRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+) {
+  return callVerifiedHostRpc(database, "review_radar_assessment", args);
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

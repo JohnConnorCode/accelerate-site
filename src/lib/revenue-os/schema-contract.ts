@@ -8,6 +8,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-06.3";
 
 export const TENANT_SCOPED_TABLES = [
+  "radar_assessments",
+  "radar_current_assessments",
+  "radar_current_evidence_links",
   "radar_sources",
   "radar_source_versions",
   "radar_discoveries",
