@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { verifySalesQualificationHandoff } from "./test-sales-qualification-handoff";
 import { writeFileSync } from "node:fs";
 import { type Row } from "./lib/memory-supabase";
 import {
@@ -526,6 +527,10 @@ async function main() {
   } finally {
     if (savedModel === undefined) delete process.env.OPENROUTER_AGENT_MODEL;
     else process.env.OPENROUTER_AGENT_MODEL = savedModel;
+  }
+  for (const name of await verifySalesQualificationHandoff()) {
+    checks++;
+    console.log(`ok ${checks} - ${name}`);
   }
   if (process.argv.includes("--browser-fixtures")) {
     writeFileSync(
