@@ -399,6 +399,8 @@ export function RadarWorkspace({
         </p>
       )}
       <AdminAsyncRegion
+        className="mt-5"
+        contentClassName="space-y-5"
         loading={query.isPending}
         hasData={Boolean(data)}
         loadingFallback={

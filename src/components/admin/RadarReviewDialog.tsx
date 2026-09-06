@@ -12,7 +12,14 @@ export type RadarReview = {
   change?: RadarStoreChange;
   assessment?: RadarAssessment;
 };
-const displayLabel = (key: string) => words(key).replace(/([A-Z])/g, " $1");
+const fieldLabels: Record<string, string> = {
+  patch: "Changes",
+  opportunityId: "Opportunity",
+  expectedRevision: "Current record version",
+  sourceVersionId: "Source",
+  sourceVersionIds: "Sources",
+};
+const displayLabel = (key: string) => fieldLabels[key] ?? words(key).replace(/([A-Z])/g, " $1");
 export function RadarReviewDialog({
   review,
   sources,

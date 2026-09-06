@@ -60,9 +60,8 @@ try {
       });
       await page.getByRole("button", { name: "Approve this change", exact: true }).press("Enter");
       await page
-        .getByText("Change approved and recorded. The workspace has been refreshed.", {
-          exact: true,
-        })
+        .getByRole("status")
+        .filter({ hasText: "Change approved and recorded. The workspace has been refreshed." })
         .waitFor();
       assert.equal(await page.locator("h1").textContent(), "Workshop scope reviewed in demo");
       await page.reload();
