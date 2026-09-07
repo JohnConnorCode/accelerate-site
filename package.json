@@ -316,7 +316,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.3",
+    "eslint-config-next": "16.3.4",
     "eslint-config-prettier": "^10.1.8",
     "playwright": "^1.62.1",
     "prettier": "^3.9.6",
