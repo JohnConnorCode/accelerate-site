@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
   const date = searchParams.get("date");
+  const owner = searchParams.get("owner");
+  const id = searchParams.get("id");
   const relatedType = searchParams.get("related_type");
   const relatedId = searchParams.get("related_id");
   const includeOverdue = searchParams.get("include_overdue");
@@ -23,6 +25,10 @@ export async function GET(request: NextRequest) {
   if (status && status !== "all") {
     query = query.eq("status", status);
   }
+
+  if (id) query = query.eq("id", id);
+  if (owner === "me") query = query.eq("assigned_to", auth.user.id);
+  if (owner === "unassigned") query = query.is("assigned_to", null);
 
   if (date) {
     query = query.eq("due_date", date);
@@ -44,7 +50,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
-  return NextResponse.json({ tasks: data || [] });
+  return NextResponse.json({ tasks: data || [], viewerId: auth.user.id });
 }
 
 export async function POST(request: NextRequest) {

@@ -121,7 +121,7 @@ export async function loadOperatorQueue(supabase: SupabaseClient): Promise<Opera
     await Promise.all([
       supabase
         .from("action_queue")
-        .select("id,title,description,urgency,entity_type,entity_id,created_at")
+        .select("id,title,description,urgency,entity_type,entity_id,created_at,expires_at")
         .eq("status", "pending")
         .or(`expires_at.is.null,expires_at.gt.${now}`)
         .limit(50),
@@ -179,7 +179,7 @@ export async function loadOperatorQueue(supabase: SupabaseClient): Promise<Opera
       title: action.title,
       summary: action.description || "Review the proposed action before it runs.",
       urgency: action.urgency,
-      dueAt: action.created_at,
+      dueAt: action.expires_at ?? null,
       sourceTimestamp: action.created_at,
       priorityReason: "Approval required before execution",
       recommendedNextAction: "Review the exact action and approve or reject it.",

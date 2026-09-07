@@ -177,6 +177,12 @@ export const docsManifest: DocsSection[] = [
         description: "Triage leads, messages, tasks, and staged actions that still need a person.",
       },
       {
+        slug: ["command-center", "work"],
+        title: "Manage tasks and approvals in Work",
+        description:
+          "Edit commitments and review decisions while keeping one saved task or approval across views.",
+      },
+      {
         slug: ["command-center", "approvals"],
         title: "Review and approve actions",
         description:

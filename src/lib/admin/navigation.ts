@@ -61,6 +61,14 @@ export const adminNavSections: AdminNavSection[] = [
         mobilePrimary: true,
       },
       {
+        id: "work",
+        label: "Work",
+        href: "/admin/work",
+        icon: ListChecks,
+        description: "Tasks and approvals linked to their source records",
+        keywords: "tasks approvals commitments team assigned work",
+      },
+      {
         id: "pipeline",
         label: "Pipeline",
         href: "/admin/pipeline",

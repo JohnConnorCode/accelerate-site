@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "How do Today and Work fit together?",
+    answer:
+      "Today shows decisions, tasks, signals and upcoming context that deserve attention. Work lets you filter and edit tasks or review pending approvals. Both use the same saved records and approval service: editing a task keeps its status, snoozing postpones it, and completing it records the result. Custom Apps can keep their own domain workspaces and lifecycles.",
+  },
+  {
     question: "Can we build a completely different App or interface?",
     answer:
       "Yes. The open-source platform can be extended with domain records, custom lifecycles, native queues, integrations, AI tools and bespoke screens. Existing settings handle supported configuration; broader changes require code today. Reuse the shared customer identity, permissions and execution history while building the process your business needs. The public customization and extension guides explain both paths.",

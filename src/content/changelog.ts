@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "shared-today-work-views",
+    slug: "shared-today-work-views",
+    title: "Today separates attention, and Work shares tasks and approvals",
+    description:
+      "Today groups decisions, tasks, watch signals and upcoming context by source identity. Work adds task ownership/status/source filters and editing alongside the same approval inspector. Recovery tasks keep their task controls, approvals appear once in Today, and edits, snoozes and completion retain the same saved record across views. The fictional demos use the shared task transition rules and source-linked history.",
+    category: "improvement",
+    publishedAt: "2026-09-07",
+  },
+  {
     id: "custom-app-development-guides",
     slug: "custom-app-development-guides",
     title: "Guides explain full App customization and AI-assisted development",

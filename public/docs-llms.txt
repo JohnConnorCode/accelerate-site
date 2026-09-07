@@ -32,11 +32,12 @@ See what you can build: reports, reviewed workflows and dedicated business works
 ## Command Center
 One shared operating layer for the businesses that need it, and how to run the daily workspace.
 
-- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-05): Customer context, daily priorities, and reviewed actions in one workspace.
+- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-07): Customer context, daily priorities, and reviewed actions in one workspace.
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-05): Explore capabilities and check their availability in your workspace.
-- [Work the Today queue](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-05): Review urgent work, take the next action and confirm the result.
+- [Work the Today queue](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-07): Review urgent work, take the next action and confirm the result.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-04): Triage leads, messages, tasks, and staged actions that still need a person.
-- [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-05): Understand what waits for review, what approval does, and how to check the result.
+- [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-07): Edit commitments and review decisions while keeping one saved task or approval across views.
+- [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-07): Understand what waits for review, what approval does, and how to check the result.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-05): Find a recorded change and trace it to the affected record.
 - [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-05): Ask a specific question, inspect the evidence, and review any proposed action.
 

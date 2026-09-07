@@ -1,3 +1,7 @@
+import {
+  prepareOperatorTaskPatch,
+  type OperatorTaskPatchInput,
+} from "@/lib/revenue-os/operator-task-patch";
 import { demoRadarProfile } from "./radar-fixtures";
 import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
@@ -74,6 +78,7 @@ type DemoState = {
   business: DemoBusinessState | null;
   completedActions: string[];
   completedTasks: string[];
+  taskOverrides: Record<string, Partial<OperatorTaskPatchInput> & { completed_at?: string | null }>;
   stageOverrides: Record<string, string>;
   opportunityOverrides: Record<
     string,
@@ -103,6 +108,7 @@ const initialState = (): DemoState => ({
   business: null,
   completedActions: [],
   completedTasks: [],
+  taskOverrides: {},
   stageOverrides: {},
   opportunityOverrides: {},
   clientOverrides: {},
@@ -199,23 +205,49 @@ function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
   });
 }
 
+function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
+  return pack.tasks.map((item, index) => {
+    const native = state.business?.tasks.find((task) => task.id === item.id);
+    const patch = state.taskOverrides[item.id];
+    return {
+      id: item.id,
+      title: patch?.title ?? native?.title ?? item.title,
+      status:
+        patch?.status ??
+        native?.status ??
+        (state.completedTasks.includes(item.id) ? "completed" : item.status),
+      due_date:
+        patch?.due_date !== undefined
+          ? patch.due_date
+          : native
+            ? native.dueDate
+            : dateOffset(item.dueOffset),
+      priority:
+        patch?.priority ??
+        native?.priority ??
+        (item.priority === "normal" ? "medium" : item.priority),
+      description: patch?.description ?? native?.description ?? null,
+      snoozed_until: patch?.snoozed_until ?? native?.snoozedUntil ?? null,
+      completed_at: patch?.completed_at ?? native?.completedAt ?? null,
+      assigned_to:
+        native?.assigneeUserId ?? (index % 3 ? "00000000-0000-4000-8000-000000000079" : null),
+      source: native ? "workflow" : "manual",
+      related_name: person(pack, item.personId).name,
+      related_id: item.personId,
+      related_type: "contact",
+    };
+  });
+}
+
 function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string) {
   const row = opportunityRows(pack, state).find((item) => item.id === id);
   const source = pack.opportunities.find((item) => item.id === id);
   if (!row || !source) return null;
   const contact = person(pack, source.personId);
   const relatedConversation = pack.conversations.find((item) => item.personId === contact.id);
-  const relatedTasks = pack.tasks
-    .filter((item) => item.personId === contact.id)
-    .slice(0, 4)
-    .map((item, index) => ({
-      id: item.id,
-      title: item.title,
-      status: state.completedTasks.includes(item.id) ? "completed" : item.status,
-      priority: item.priority,
-      due_date: dateOffset(item.dueOffset),
-      created_at: ago(48 + index),
-    }));
+  const relatedTasks = demoTaskRows(pack, state)
+    .filter((item) => item.related_id === contact.id)
+    .slice(0, 4);
   const relatedProposals = proposals(pack)
     .filter((item) => item.lead_id === contact.id)
     .map((item) => ({ ...item, subject: item.title }));
@@ -374,12 +406,12 @@ function auditHistory(
       id: receipt.id,
       actorEmail: founder,
       action: "demo.simulated",
-      entityType: "business_workflow",
-      entityId: receipt.id,
+      entityType: receipt.sourceType ?? "business_workflow",
+      entityId: receipt.sourceId ?? receipt.id,
       source: "demo",
       before: null,
       after: { operation: receipt.operation },
-      metadata: { simulated: true },
+      metadata: { simulated: true, sourceType: receipt.sourceType, sourceId: receipt.sourceId },
       createdAt: receipt.at,
     })),
   );
@@ -479,21 +511,28 @@ function queue(pack: DemoScenarioPack, state: DemoState) {
     recommendedNextAction: "Review the proposal and advance the decision",
     href: "/admin/proposals",
   }));
-  const commitments = pack.tasks
-    .slice(0, 6)
-    .filter((item) => item.status === "pending" && !state.completedTasks.includes(item.id))
+  const commitments = demoTaskRows(pack, state)
+    .filter(
+      (item) =>
+        item.status === "pending" ||
+        (item.status === "snoozed" &&
+          Boolean(item.snoozed_until && item.snoozed_until <= dateOffset(0))),
+    )
+    .slice(0, 20)
     .map((item, index) => ({
       id: `task:${item.id}`,
       kind: index % 2 === 0 ? "task" : "follow_up",
       title: item.title,
       summary: "Linked to the latest conversation and opportunity context.",
       urgency: item.priority === "high" ? "high" : "normal",
-      dueAt: dateOffset(item.dueOffset),
+      dueAt: item.due_date,
       sourceTimestamp: ago(index + 2),
       priorityReason:
-        item.dueOffset < 0 ? "The commitment is overdue." : "The next action is due soon.",
+        item.due_date && item.due_date < dateOffset(0)
+          ? "The commitment is overdue."
+          : "The next step is due soon.",
       recommendedNextAction: "Complete or snooze this task",
-      href: "/admin/today",
+      href: "/admin/work",
     }));
   return [...approvals, ...replies, ...proposals, ...commitments];
 }
@@ -713,15 +752,9 @@ function conversations(pack: DemoScenarioPack, state: DemoState, url: URL) {
           confidence: 0.75,
         }
     : null;
-  const packTasks = pack.tasks
-    .filter((task) => task.personId === activePack.personId && task.status !== "completed")
-    .slice(0, 5)
-    .map((task) => ({
-      id: task.id,
-      title: task.title,
-      due_date: dateOffset(task.dueOffset),
-      status: task.status,
-    }));
+  const packTasks = demoTaskRows(pack, state)
+    .filter((task) => task.related_id === activePack.personId && task.status !== "completed")
+    .slice(0, 5);
   const tasks = [...packTasks, ...(extraTasks[activePack.id] || [])];
   const detail = {
     contract: "revenue-os-conversations.v1",
@@ -2101,10 +2134,19 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         ...item,
         stage: state.stageOverrides[item.id] || item.stage,
       })),
-      tasks: [...demoTasksForGraph(business), ...scenarioPack.tasks].map((item) => ({
-        ...item,
-        status: state.completedTasks.includes(item.id) ? "completed" : item.status,
-      })),
+      tasks: [...demoTasksForGraph(business), ...scenarioPack.tasks].map((item) => {
+        const patch = state.taskOverrides[item.id];
+        return {
+          ...item,
+          title: patch?.title ?? item.title,
+          priority: patch?.priority ?? item.priority,
+          dueOffset: patch?.due_date
+            ? Math.ceil((Date.parse(patch.due_date) - Date.now()) / 86400000)
+            : item.dueOffset,
+          status:
+            patch?.status ?? (state.completedTasks.includes(item.id) ? "completed" : item.status),
+        };
+      }),
     };
     const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     const url = new URL(raw, window.location.origin);
@@ -2911,10 +2953,66 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         simulated: true,
       });
     }
+    if (method === "PATCH" && ["/api/admin/tasks", "/api/admin/revenue-os/tasks"].includes(path)) {
+      try {
+        const before = demoTaskRows(pack, state).find((item) => item.id === body.id);
+        if (!before) return jsonResponse({ error: "Task not found" }, 404);
+        const input =
+          path === "/api/admin/revenue-os/tasks"
+            ? body.action === "complete"
+              ? { id: before.id, status: "completed" }
+              : body.action === "snooze" && typeof body.until === "string"
+                ? { id: before.id, snoozed_until: body.until as string }
+                : null
+            : (body as unknown as OperatorTaskPatchInput);
+        if (!input) return jsonResponse({ error: "Unsupported task action" }, 400);
+        const patch = prepareOperatorTaskPatch(
+          before,
+          input,
+          path === "/api/admin/revenue-os/tasks",
+        );
+        state.taskOverrides[before.id] = { ...state.taskOverrides[before.id], ...patch };
+        const task = { ...before, ...patch };
+        if (Object.keys(patch).some((key) => before[key as keyof typeof before] !== patch[key]))
+          business.receipts.unshift({
+            id: crypto.randomUUID(),
+            operation: `Task ${task.status === "completed" ? "completed" : task.status === "snoozed" ? "snoozed" : "updated"}: ${task.title}`,
+            at: new Date().toISOString(),
+            simulated: true,
+            sourceType: "task",
+            sourceId: before.id,
+          });
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+        return jsonResponse({ task, simulated: true });
+      } catch (error) {
+        return jsonResponse(
+          { error: error instanceof Error ? error.message : "Invalid task change" },
+          400,
+        );
+      }
+    }
+    if (path === "/api/admin/revenue-os/actions" && method === "PATCH") {
+      const action = pack.actions.find((item) => item.id === body.id);
+      if (!action) return jsonResponse({ error: "Approval not found" }, 404);
+      if (!["approve", "reject"].includes(String(body.decision)))
+        return jsonResponse({ error: "Invalid decision" }, 400);
+      if (state.completedActions.includes(action.id))
+        return jsonResponse({ error: "Action already handled" }, 409);
+      state.completedActions.push(action.id);
+      business.receipts.unshift({
+        id: crypto.randomUUID(),
+        operation: `${body.decision === "approve" ? "Approved" : "Rejected"} ${action.title}`,
+        at: new Date().toISOString(),
+        simulated: true,
+        sourceType: "approval",
+        sourceId: action.id,
+      });
+      saveState(scenarioId, state);
+      window.dispatchEvent(new Event("admin:demo-state"));
+      return jsonResponse({ simulated: true, decision: body.decision, actionId: action.id });
+    }
     if (method !== "GET") {
-      if (path === "/api/admin/revenue-os/actions") state.completedActions.push(String(body.id));
-      if (["/api/admin/tasks", "/api/admin/revenue-os/tasks"].includes(path))
-        state.completedTasks.push(String(body.id));
       if (path === "/api/admin/revenue-os/pipeline" && body.id && body.stage)
         state.stageOverrides[String(body.id)] = String(body.stage);
       if (path === "/api/admin/revenue-os/conversations/reply") {
@@ -3218,20 +3316,25 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     const legacyPayload = legacy(pack, path);
     if (legacyPayload) return jsonResponse(legacyPayload);
-    if (path === "/api/admin/revenue-os/tasks")
+    if (["/api/admin/tasks", "/api/admin/revenue-os/tasks"].includes(path)) {
+      const status = url.searchParams.get("status");
+      const owner = url.searchParams.get("owner");
+      const viewerId = "00000000-0000-4000-8000-000000000079";
       return jsonResponse({
-        tasks: pack.tasks.filter((item) => !state.completedTasks.includes(item.id)),
+        viewerId,
+        tasks: demoTaskRows(pack, state)
+          .filter((item) => !url.searchParams.get("id") || item.id === url.searchParams.get("id"))
+          .filter((item) => !status || status === "all" || item.status === status)
+          .filter((item) =>
+            owner === "me"
+              ? item.assigned_to === viewerId
+              : owner === "unassigned"
+                ? !item.assigned_to
+                : true,
+          )
+          .slice(0, 100),
       });
-    if (path === "/api/admin/tasks")
-      return jsonResponse({
-        tasks: pack.tasks
-          .filter((item) => !state.completedTasks.includes(item.id))
-          .map((item) => ({
-            ...item,
-            due_date: dateOffset(item.dueOffset),
-            contact_email: person(pack, item.personId).email,
-          })),
-      });
+    }
     if (path === "/api/admin/google/sync") return jsonResponse({ success: true, simulated: true });
     return jsonResponse(
       { error: "This fictional workspace has no handler for this request.", simulated: true },

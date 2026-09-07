@@ -312,7 +312,8 @@ export const capabilities: Capability[] = [
     id: "web",
     category: "connect",
     title: "The web app",
-    detail: "A dashboard, a daily view, and one inbox holding everything that is waiting on you.",
+    detail:
+      "Today separates decisions, tasks, watch signals and upcoming commitments. Work provides task filters and editing alongside the same approval inspector, with shared records across both views.",
   },
   {
     id: "chat",
