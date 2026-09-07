@@ -42,6 +42,14 @@ async function main() {
     let workspace = (await call("/api/admin/collections/workspace"))
       .data as CollectionWorkspaceData;
     assert.equal(workspace.cases.length, 6);
+    const billing = (await call("/api/admin/invoicing")).data;
+    for (const action of billing.actions) {
+      if (action.result?.invoiceId) {
+        assert.match(action.result.currency, /^[a-z]{3}$/);
+        assert.equal(typeof action.result.amountRemaining, "number");
+        assert.equal(typeof action.result.amountPaid, "number");
+      }
+    }
     assert.equal(collectionSummary(workspace.cases).paidInvoices, 1);
     const first = workspace.cases[0]!,
       partial = workspace.cases[1]!,

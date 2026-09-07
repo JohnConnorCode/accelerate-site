@@ -1,3 +1,4 @@
+import { formatInvoiceAmount } from "../src/lib/revenue-os/stripe-contract";
 import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
 import assert from "node:assert/strict";
 import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
@@ -24,6 +25,12 @@ import {
 import { defaultInvoiceDesign } from "../src/lib/revenue-os/invoice-page-contract";
 import { stripeBillingChoices } from "../src/lib/revenue-os/stripe-invoicing";
 async function main() {
+  assert.equal(formatInvoiceAmount(1200, undefined), "Unknown amount");
+  assert.equal(formatInvoiceAmount(undefined, "usd"), "Unknown amount");
+  assert.equal(formatInvoiceAmount(NaN, "usd"), "Unknown amount");
+  assert.equal(formatInvoiceAmount(1200, "invalid"), "Unknown amount");
+  assert.match(formatInvoiceAmount(1200, "usd"), /12[.,]00/);
+
   process.env.GOOGLE_TOKEN_ENCRYPTION_KEY = "controlled-stripe-fixture-key-not-a-provider-secret";
   const tenantId = "11111111-1111-4111-8111-111111111111",
     contactId = "22222222-2222-4222-8222-222222222222";

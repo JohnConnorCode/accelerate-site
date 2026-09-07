@@ -6,8 +6,6 @@ updated: "2026-09-06"
 
 Invoicing connects a business decision to a real financial document. This example shows how an extension can use existing customer records, a connected provider and the shared approval flow, with a separate record of what Stripe actually accepted.
 
-**Demo verification limit:** The documentation review found an invoice-history rendering error when a simulated result lacks its currency. The issue is tracked as `invoice-demo-missing-currency`; this guide does not claim that the current demo invoice journey passed. The workflow below describes the intended controls and should be verified after that repair.
-
 ## Try a complete invoice
 
 Enable **Stripe invoicing** in **Plugins**, configure the workspace's Stripe connection in **Integrations**, and open `/admin/invoicing`. Credentials belong in the server-only connection controls. Verify test or live mode before a provider action.

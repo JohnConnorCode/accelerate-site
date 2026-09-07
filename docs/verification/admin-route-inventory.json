@@ -31,7 +31,7 @@
     "src/app/admin/identity-review/page.tsx": "2086cc071264866556dcc434acf28dc31ca3380ab10598a2e4ff24ec5b6b1245",
     "src/app/admin/inbox/page.tsx": "1e369d8ab2b847d576ad87fe5d2841f41963f7e8b1050cca08bf2babe319a030",
     "src/app/admin/integrations/page.tsx": "ba7ff34546ed9195f63d14a07dca43248f779517c723cfa0ccca96f6c8e3fec7",
-    "src/app/admin/invoicing/page.tsx": "6158401ac8550e04786a82f226ba21335766afcb2040da8b54a33b1dd5ac9f8f",
+    "src/app/admin/invoicing/page.tsx": "eeff1b84fb87abe910e1a13dabba3b8081e882c10dda98d2e955684015984521",
     "src/app/admin/leads/page.tsx": "7292e3df5e676a3881a2f295d293d27281f982a12bb1a40d56258f995f04ed4a",
     "src/app/admin/login/page.tsx": "befb611861c075f5541ea88d4c6b792d2cbf4b2250a370000811a83c54a1e2da",
     "src/app/admin/meeting-commitments/page.tsx": "8321baededd9c74b3f742cfdefbe5dacb221c79f153ad78293d07690dfb12174",
