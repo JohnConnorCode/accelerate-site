@@ -140,6 +140,8 @@ try {
       await page.getByRole("link", { name: "Customer record", exact: true }).click();
       await page.getByRole("heading", { name: "Collections follow-up", exact: true }).waitFor();
       await page.goto(root + "/today");
+      const snapshot = page.getByText("Business snapshot and App follow-up", { exact: true });
+      if (await snapshot.count()) await snapshot.click();
       await page.getByRole("heading", { name: "Collections follow-up", exact: true }).waitFor();
       await page.getByRole("link", { name: "Open Collections Action Desk", exact: true }).click();
       await page.getByRole("button", { name: "Preview reminder", exact: true }).waitFor();
