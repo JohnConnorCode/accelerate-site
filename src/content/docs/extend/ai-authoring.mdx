@@ -1,0 +1,47 @@
+---
+title: "Build Apps with a coding assistant"
+description: "Use a concrete development brief today and understand the planned in-app draft, preview and publish experience."
+updated: "2026-09-07"
+---
+
+Describe the software your business needs in terms of a real workflow. An assistant can help build a review queue, a specialist integration or an entire operating screen from the open-source repository. It should reuse the business context and services already present while adding the parts specific to your process.
+
+Today this is a source-development workflow with a coding assistant. Command Center does not yet include a general-purpose in-app App builder or development terminal.
+
+## Give the assistant a complete brief
+
+Use this example as a starting point. Creative Review is a proposed extension, not a bundled App.
+
+> Read NORTHSTAR.md, AGENTS.md and the live Feature Board packet before editing. Build a Creative Review App for an agency. Reuse canonical customers, memberships, activity and approval services. Add a review record that owns its brief, revision history, reviewer and lifecycle. Provide a native review queue and a revision comparison screen. Treat a preparation task and an approval of a particular revision as separate linked objects. Expose the same domain operations to the UI and governed AI tools. Keep the App usable without a model call. Use fictional reviews to prove accepted, changes-requested, stale-version, disabled-module and cross-tenant behavior. Update its public guide, changelog and Command Center description with the implemented behavior. Show the exact tested source changes and remaining limitations before release.
+
+Add the actual business rules: who reviews, what acceptance means, what expires, which integrations are needed and whether any operation sends something outside the workspace. A useful example record is more precise than a request for “a powerful dashboard.”
+
+Follow [your first developer change](/docs/extend/first-change) to run the repository. For shared work, the live Feature Board owns the approved scope, dependencies and verification evidence. Source changes remain reviewable and versioned through the normal development process.
+
+## Planned: create and update Apps inside Command Center
+
+The intended experience is:
+
+1. Describe an App or a change to an existing App, with relevant business context.
+2. Generate a draft in an isolated development workspace.
+3. Preview the working interface with fictional or explicitly scoped data on desktop and mobile.
+4. Inspect its source, dependency changes, requested capabilities and data migrations.
+5. Run checks for business behavior, permissions, replay, failures and the user interface.
+6. Review and publish the exact verified App version.
+7. Reopen that version for further changes, compare versions and roll back compatible code when needed.
+
+This is planned product behavior. The current source extension path and bounded plugin runtime provide pieces of the foundation; they do not yet implement this complete authoring flow.
+
+## What an App can become
+
+An App may define domain objects, custom work types, connectors, workflows, tools, coworkers and a bespoke interface. It can participate in shared views when useful or use its own native workspace. The default task and approval screens are not an exhaustive list of business processes.
+
+A development terminal could help build and test such Apps. It would need its own isolated execution environment, explicit network and secret access, resource limits and an inspectable result. It would not receive the running application's production credentials merely because AI generated the code.
+
+## Publishing and recovery need exact versions
+
+The intended publication review binds source, dependencies, requested capabilities, migration plan and check results to one immutable artifact. A changed artifact requires a new review. App updates should preserve record identities, customer context and execution history.
+
+Rolling back code cannot retract a delivered email or erase a completed business operation. Schema changes need a compatible recovery plan. Those distinctions let the authoring experience support ambitious Apps while keeping the business state understandable.
+
+Read [App design](/docs/extend/apps), [custom work](/docs/extend/work-primitives) and [custom UI](/docs/extend/custom-ui) to start implementing that range of software today.

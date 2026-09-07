@@ -1,0 +1,37 @@
+---
+title: "Make Command Center fit your business"
+description: "Configure the defaults, adapt a workflow, or build an App with its own records and screens."
+updated: "2026-09-07"
+---
+
+Start with the part of your work that does not fit. A roofing company may need inspection visits and warranty claims. An agency may need creative review rounds. Both can keep their existing customers and conversations while adding a different operating process.
+
+You own the source, so customization can reach the interface, data model, workflows, integrations and AI tools. The built-in screens provide a useful starting point. Your App can use them, extend them or offer its own workspace.
+
+## Choose how much you need to change
+
+| Level     | Example                                                                 | How you do it today                                                                                             |
+| --------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Configure | Enable Collections and set its available options                        | Workspace controls and each App's declared settings. Start with [workspace settings](/docs/workspace/settings). |
+| Tailor    | Add a job-specific field or change the working screen                   | Use an existing setting when available; new data fields and custom interfaces require source changes.           |
+| Compose   | Turn an accepted job into assigned preparation work                     | Adapt a reviewed workflow such as [client onboarding](/docs/plugins/client-onboarding). This requires code.     |
+| Integrate | Bring a specialist service's records into the workspace                 | Build an [adapter](/docs/extend/adapters) with explicit identity mapping and recovery.                          |
+| Build     | Run creative reviews with version rounds, reviewers and their own queue | Implement an [App](/docs/extend/apps) with its own domain service and interface.                                |
+
+These levels describe implementation choices, not subscription tiers. An App can combine them. A manifest adds registration and configuration; it does not automatically create a database, workflow or user interface.
+
+## Try an existing business workflow
+
+Open [the fictional demo](/demo/command-center) and explore [Collections](/docs/plugins/receivables-collections) or [Opportunity Radar](/docs/plugins/opportunity-radar). Collections owns account cases and invoice evidence. Radar owns sourced opportunities and reviews. Neither needs to represent its entire process as a task checklist.
+
+Write down one change that would make the example useful to your business. Check its guide for a current setting first. If the change needs code, follow [your first developer change](/docs/extend/first-change), then use the relevant source example.
+
+## Keep the result connected
+
+A custom process should link to the customer already in the workspace. Its own service should own its state changes. A task created for a person is a separate, linked object only when someone actually has work to do. An approval records a particular decision. A report finding can remain a finding.
+
+The [custom work guide](/docs/extend/work-primitives) explains these choices. The [custom interface guide](/docs/extend/custom-ui) shows how to provide a completely different working screen while retaining the shared services.
+
+## Build with AI
+
+Today, a coding assistant can work on the source using a concrete business brief and the repository's development contract. [Build with AI](/docs/extend/ai-authoring) gives a brief you can copy and describes the planned in-app draft, preview and publish experience. The in-app App builder is a future capability; it is not a control available in the current workspace.

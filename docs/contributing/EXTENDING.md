@@ -1,8 +1,18 @@
 # Extending Revenue OS
 
-Three things can be added without forking core: a **module**, an **integration
-adapter**, and an **AI tool**. Each one inherits the same governance the rest of
-the system runs under, by construction rather than by remembering to.
+The existing extension paths include **modules**, **integration adapters**,
+**AI tools**, bounded reports and reviewed workflows. They are building blocks
+for Apps with their own records, lifecycles and interfaces. They do not define a
+closed list of features a business may build. Domain services remain responsible
+for validation and state; adapters expose those operations to people and agents.
+
+Start with the [extension choices](/docs/extend/apps) and
+[custom work design](/docs/extend/work-primitives) to decide what to reuse and
+what your App should own. A bespoke screen can replace the default experience
+while sharing tenant identity, canonical records and execution history. Some
+changes require application code and an additive migration; a JSON manifest by
+itself does not implement them. The future in-app AI authoring direction is
+specified in [the northstar](../NORTHSTAR.md#29-ai-generated-extensions).
 
 What every extension inherits automatically:
 

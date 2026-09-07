@@ -356,6 +356,14 @@ export const capabilities: Capability[] = [
       "See source, owner, campaign, stage, communication, forecast, attribution, and data-quality signals together, with the metric semantics documented.",
   },
 
+  {
+    id: "custom-apps",
+    category: "connect",
+    title: "Build Apps around your own business process",
+    detail:
+      "Extend the open-source platform with custom records, lifecycles, workflows, integrations, AI tools and working screens. Reuse shared customer context and execution services. Current customization uses workspace settings and source development; a general-purpose in-app AI App builder is planned.",
+  },
+
   // Govern
   {
     id: "audit",

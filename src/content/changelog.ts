@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "custom-app-development-guides",
+    slug: "custom-app-development-guides",
+    title: "Guides explain full App customization and AI-assisted development",
+    description:
+      "New customization and developer guides cover domain-specific records, custom work lifecycles, native queues and bespoke interfaces using shared business services. A copyable AI development brief explains the source workflow available today and clearly labels the planned in-app draft, preview and publish experience. Product descriptions now distinguish current customization from the future App builder.",
+    category: "improvement",
+    publishedAt: "2026-09-07",
+  },
+  {
     id: "visual-plugin-guides",
     slug: "visual-plugin-guides",
     title: "Visual guides explain all ten bundled plugins",

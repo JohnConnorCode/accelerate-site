@@ -17,7 +17,7 @@ Learn the essentials and try your first complete workflow.
 ## Plugin examples
 See what you can build: reports, reviewed workflows and dedicated business workspaces.
 
-- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-06): Explore ten bundled examples, from focused reports to complete business workspaces.
+- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-07): Explore ten bundled examples, from focused reports to complete business workspaces.
 - [Business Pulse](https://www.acceleratewith.us/docs/plugins/business-pulse) (updated 2026-09-06): See pipeline risks, overdue commitments and upcoming meetings in one report.
 - [Client onboarding](https://www.acceleratewith.us/docs/plugins/client-onboarding) (updated 2026-09-06): Turn a won opportunity into a reviewed, assigned kickoff checklist.
 - [Overdue commitments](https://www.acceleratewith.us/docs/plugins/commitment-watch) (updated 2026-09-06): Find overdue tasks and return to the work behind each commitment.
@@ -105,14 +105,23 @@ Tenants, setup, settings, integrations, and the Feature Board.
 - [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-05): Verify access and the connections needed for your first real workflow.
 - [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-05): Update notifications and configuration, then confirm the saved result.
 
+## Customize
+Configure your workspace or build around a different business process.
+
+- [Make Command Center fit your business](https://www.acceleratewith.us/docs/customize/overview) (updated 2026-09-07): Configure the defaults, adapt a workflow, or build an App with its own records and screens.
+
 ## Build on it
 For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.
 
-- [Build the capabilities your business needs](https://www.acceleratewith.us/docs/extend/overview) (updated 2026-09-06): Add screens, integrations and AI tools while reusing the records and workflows already in place.
+- [Build the capabilities your business needs](https://www.acceleratewith.us/docs/extend/overview) (updated 2026-09-07): Add screens, integrations and AI tools while reusing the records and workflows already in place.
+- [Build an App around your business process](https://www.acceleratewith.us/docs/extend/apps) (updated 2026-09-07): Choose shared primitives, custom domain work or a dedicated workspace without duplicating state.
+- [Design custom work without duplicate state](https://www.acceleratewith.us/docs/extend/work-primitives) (updated 2026-09-07): Give an App its own lifecycle and connect tasks, decisions, attention and history to the original records.
+- [Build a custom operating screen](https://www.acceleratewith.us/docs/extend/custom-ui) (updated 2026-09-07): Add a native App workspace or replace the default experience while retaining shared business services.
+- [Build Apps with a coding assistant](https://www.acceleratewith.us/docs/extend/ai-authoring) (updated 2026-09-07): Use a concrete development brief today and understand the planned in-app draft, preview and publish experience.
 - [Your first developer change](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-09-05): Run the demo, find the important files, and make a small extension change.
 - [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-09-04): Register a JSON manifest and pages. Nothing in extensions/ is executed.
 - [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-04): Verify credentials, encrypt them, and turn inbound events into canonical records.
-- [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-06): Register a plugin manifest with tools and triggers that still go through governance.
+- [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-07): Register a plugin manifest with tools and triggers that still go through governance.
 - [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-04): Register a schema, an impact tier, and a service boundary. Mutating tools propose.
 - [MCP concepts](https://www.acceleratewith.us/docs/extend/mcp) (updated 2026-09-04): Bounded reads, staged writes, tenant isolation. The same registry the UI uses.
 - [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-05): Connect an external assistant to the intended workspace and verify a read first.

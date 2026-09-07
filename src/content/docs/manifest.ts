@@ -429,6 +429,19 @@ export const docsManifest: DocsSection[] = [
     ],
   },
   {
+    id: "customize",
+    title: "Customize",
+    description: "Configure your workspace or build around a different business process.",
+    pages: [
+      {
+        slug: ["customize", "overview"],
+        title: "Make Command Center fit your business",
+        description:
+          "Configure the defaults, adapt a workflow, or build an App with its own records and screens.",
+      },
+    ],
+  },
+  {
     id: "extend",
     title: "Build on it",
     description:
@@ -439,6 +452,30 @@ export const docsManifest: DocsSection[] = [
         title: "Build the capabilities your business needs",
         description:
           "Add screens, integrations and AI tools while reusing the records and workflows already in place.",
+      },
+      {
+        slug: ["extend", "apps"],
+        title: "Build an App around your business process",
+        description:
+          "Choose shared primitives, custom domain work or a dedicated workspace without duplicating state.",
+      },
+      {
+        slug: ["extend", "work-primitives"],
+        title: "Design custom work without duplicate state",
+        description:
+          "Give an App its own lifecycle and connect tasks, decisions, attention and history to the original records.",
+      },
+      {
+        slug: ["extend", "custom-ui"],
+        title: "Build a custom operating screen",
+        description:
+          "Add a native App workspace or replace the default experience while retaining shared business services.",
+      },
+      {
+        slug: ["extend", "ai-authoring"],
+        title: "Build Apps with a coding assistant",
+        description:
+          "Use a concrete development brief today and understand the planned in-app draft, preview and publish experience.",
       },
       {
         slug: ["extend", "first-change"],
