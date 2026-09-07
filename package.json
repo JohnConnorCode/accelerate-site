@@ -213,6 +213,7 @@
     "test:plugin-workflow-postgres": "node scripts/test-plugin-workflow-postgres.mjs",
     "test:stripe-sandbox": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-stripe-sandbox.ts",
     "test:demo-business-workflows": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-demo-business-workflows.ts",
+    "test:first-value-business-journey": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-first-value-business-journey.ts",
     "qa:demo-business-workflows": "node scripts/qa-demo-business-workflows.mjs",
     "test:delivery-handoff": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-delivery-handoff.ts",
     "test:feature-subtasks": "npx tsx scripts/test-feature-subtasks.ts",
