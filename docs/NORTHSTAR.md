@@ -1599,6 +1599,44 @@ It should only implement:
 
 This should be a primary architecture test.
 
+## Full customization and in-app App authoring
+
+The default Command Center is a starting operating surface. Simplifying its
+navigation and everyday language must not reduce the range of software a business
+can build. An App may introduce domain records, its own lifecycle, queues,
+interfaces, connectors, tools and coworkers. It may extend a core primitive,
+compose existing services, or provide a bespoke operating surface. Tasks and
+Approvals are useful defaults, not an exhaustive business ontology.
+
+Each mutable object has one authoritative lifecycle. A Collections case can own
+promises, disputes and resolution without becoming a shadow Task. A creative
+review can own revision rounds without becoming a duplicate Approval. Shared
+attention views reference the original object; commands delegate to its owning
+service. Participation in Today or Work is optional for a domain App. The
+[work surfaces contract](contracts/WORK-SURFACES.md) defines source ownership and
+acceptance requirements for these projections.
+
+The long-term authoring experience belongs inside the product: describe an App,
+let AI build an isolated draft, inspect its source and permissions, try it with
+fictional or explicitly scoped data, and publish a verified version. Existing
+Apps should be editable through the same flow, with version history, updates and
+rollback. Generated interfaces and terminal execution are possible authoring
+capabilities, not substitutes for the business runtime.
+
+This authoring flow is a product direction, not a currently shipped in-app
+builder. Its delivery and dependencies belong on the live Feature Board. Current
+source extensions, bounded plugin execution and layout configuration remain the
+implemented paths. A future development terminal runs in an isolated build
+workspace with explicit resource, network and secret grants. It must not inherit
+the application server's credentials or production database session.
+
+A publishable App version must bind source, dependency versions, requested
+capabilities, schema changes and verification evidence to the exact artifact the
+operator reviews. A changed artifact needs a new review. Reverting executable
+code must preserve business records and receipts; a database migration requires
+its own compatible recovery strategy. These requirements apply equally to AI
+and human authors and do not impose a fixed list of business features.
+
 ---
 
 # 30. Non-goals

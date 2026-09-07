@@ -1,28 +1,21 @@
 "use client";
 
+import { AttentionList } from "@/components/admin/AttentionList";
+import { projectOperatorAttention } from "@/lib/revenue-os/operator-attention";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "@/components/admin/AdminLink";
 import { useAdminNavigation } from "@/components/admin/AdminLink";
-import {
-  AlarmClock,
-  ArrowRight,
-  Check,
-  CheckCircle2,
-  Loader2,
-  RefreshCw,
-  SlidersHorizontal,
-  TriangleAlert,
-  X,
-} from "lucide-react";
+import { ArrowRight, RefreshCw, SlidersHorizontal, TriangleAlert } from "lucide-react";
 import { LayoutCustomizeDialog } from "@/components/admin/LayoutCustomizeDialog";
 import { CollectionCaseLinks } from "@/components/admin/CollectionsWorkspace";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminAsyncRegion } from "@/components/admin/AdminAsyncRegion";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
-import { AdminDialog } from "@/components/admin/AdminDialog";
+import { ActionReviewDialog, type ActionRow } from "@/components/admin/ActionReviewDialog";
+import { relativeTime } from "@/lib/admin/work-presentation";
 import { RevenueAICommand } from "@/components/admin/RevenueAICommand";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -31,7 +24,7 @@ import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
 import { cn } from "@/lib/utils";
 import { describeExpectedCheck } from "@/lib/revenue-os/health-expectation";
 import { applyLayoutOverride, type LayoutDoc } from "@/lib/admin/layout-overrides";
-import { ADMIN_LAYOUT_SCOPES, TODAY_LAYOUT_REGIONS } from "@/lib/admin/layout-scopes";
+import { TODAY_LAYOUT_REGIONS } from "@/lib/admin/layout-scopes";
 
 interface QueueItem {
   id: string;
@@ -89,323 +82,6 @@ interface Overview {
     queueBacklog?: { pending: number; expired: number };
   };
 }
-interface ActionRow {
-  id: string;
-  action_type: string;
-  title: string;
-  description: string | null;
-  urgency: string;
-  reasoning: string | null;
-  status: string;
-  created_at: string;
-  expires_at: string | null;
-  payload: Record<string, unknown> | null;
-}
-
-/**
- * What each action will actually do if approved, in plain language. Approving is
- * irreversible for external actions, so the operator is told the consequence
- * before the button, not after.
- */
-const ACTION_CONSEQUENCE: Record<string, string> = {
-  send_email: "Sends this email immediately. It cannot be recalled.",
-  send_gmail_reply: "Sends this reply from your Gmail account immediately. It cannot be recalled.",
-  activate_campaign:
-    "Starts this campaign. Enrolled contacts begin receiving email on the next run.",
-  transition_opportunity:
-    "Moves this opportunity to a new stage and records an immutable stage event.",
-  create_task: "Creates a task on your queue.",
-  update_next_action: "Changes the next action recorded on this opportunity.",
-  admin_layout_change:
-    "Reorders or hides an admin layout region immediately. Revert it any time from Settings → Layout.",
-  create_founder_note:
-    "Saves this note to the timeline immediately, visible wherever this record is reviewed. Notes are permanent: there is no edit or delete once saved.",
-};
-
-/** Renders an admin_layout_change payload as a readable order/hidden summary
-    instead of raw JSON — the generic payload table can't resolve ids to
-    labels or distinguish order from hidden. */
-function layoutChangeSummary(payload: Record<string, unknown> | null) {
-  if (!payload) return null;
-  const scopeId = typeof payload.scope === "string" ? payload.scope : null;
-  const doc = payload.doc as { order?: unknown; hidden?: unknown } | undefined;
-  if (!scopeId || !doc) return null;
-  const scope = ADMIN_LAYOUT_SCOPES.find((candidate) => candidate.id === scopeId);
-  const labelFor = (id: string) => scope?.regions.find((region) => region.id === id)?.label ?? id;
-  const order = Array.isArray(doc.order) ? doc.order.filter((id) => typeof id === "string") : [];
-  const hidden = Array.isArray(doc.hidden) ? doc.hidden.filter((id) => typeof id === "string") : [];
-  return {
-    scopeLabel: scope?.label ?? scopeId,
-    orderText: order.length ? order.map(labelFor).join(" → ") : "Default order",
-    hiddenText: hidden.length ? hidden.map(labelFor).join(", ") : null,
-  };
-}
-
-/** Fields worth showing verbatim, in the order an operator reads them. */
-const PAYLOAD_FIELD_ORDER = [
-  "to",
-  "recipient",
-  "subject",
-  "stage",
-  "reason",
-  "lossReason",
-  "dueDate",
-  "priority",
-  "campaignId",
-  "opportunityId",
-  "contactId",
-];
-const BODY_FIELDS = new Set(["body", "text", "message", "description"]);
-
-function payloadEntries(payload: Record<string, unknown> | null) {
-  if (!payload) return { fields: [] as Array<[string, string]>, body: null as string | null };
-  const fields: Array<[string, string]> = [];
-  let body: string | null = null;
-  const keys = Object.keys(payload).sort((a, b) => {
-    const ai = PAYLOAD_FIELD_ORDER.indexOf(a),
-      bi = PAYLOAD_FIELD_ORDER.indexOf(b);
-    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi) || a.localeCompare(b);
-  });
-  for (const key of keys) {
-    const value = payload[key];
-    if (value === null || value === undefined || value === "") continue;
-    const text = typeof value === "string" ? value : JSON.stringify(value);
-    if (BODY_FIELDS.has(key) && text.length > 120) {
-      body = text;
-      continue;
-    }
-    fields.push([key, text]);
-  }
-  return { fields, body };
-}
-
-function ActionReviewDialog({
-  open,
-  action,
-  busy,
-  onClose,
-  onApprove,
-  onReject,
-}: {
-  open: boolean;
-  action: ActionRow | null;
-  busy: boolean;
-  onClose: () => void;
-  onApprove: () => void;
-  onReject: () => void;
-}) {
-  if (!action) {
-    return (
-      <AdminDialog open={false} onClose={onClose} title="Review before approving">
-        <span />
-      </AdminDialog>
-    );
-  }
-  const { fields, body } = payloadEntries(action.payload);
-  const layoutSummary =
-    action.action_type === "admin_layout_change" ? layoutChangeSummary(action.payload) : null;
-  const consequence =
-    ACTION_CONSEQUENCE[action.action_type] ??
-    "Executes this action through the same service the admin uses.";
-  const external =
-    action.action_type === "send_email" ||
-    action.action_type === "send_gmail_reply" ||
-    action.action_type === "activate_campaign";
-  return (
-    <AdminDialog
-      open={open}
-      onClose={onClose}
-      title="Review before approving"
-      labelledBy="action-review-title"
-      maxWidth="lg"
-    >
-      <div className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[24px]">
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="admin-eyebrow">Approval queue</p>
-              <span
-                className={cn(
-                  "rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider",
-                  external
-                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
-                    : "bg-blue-500/15 text-blue-700 dark:text-blue-300",
-                )}
-              >
-                {external ? "External Action" : "Internal Mutation"}
-              </span>
-            </div>
-            <h2
-              id="action-review-title"
-              className="mt-1 text-balance text-xl font-semibold tracking-[-0.03em] text-[var(--admin-ink)]"
-            >
-              {action.title}
-            </h2>
-            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-              {action.action_type.replace(/_/g, " ")}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close review"
-            className="grid size-10 place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.05]"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-
-        <div
-          className={cn(
-            "mx-5 mt-5 flex items-start gap-2.5 rounded-xl border px-3.5 py-3 sm:mx-6",
-            external
-              ? "border-amber-500/25 bg-amber-500/[0.07]"
-              : "border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]",
-          )}
-        >
-          <TriangleAlert
-            className={cn(
-              "mt-px size-4 shrink-0",
-              external ? "text-amber-600 dark:text-amber-400" : "text-[var(--admin-muted)]",
-            )}
-          />
-          <div className="admin-copy text-[11px] leading-5">
-            <span className="font-semibold text-[var(--admin-ink)]">
-              {external ? "Irreversible external consequence:" : "Material consequence:"}
-            </span>{" "}
-            {consequence}
-          </div>
-        </div>
-
-        <div className="grid gap-4 px-5 py-5 sm:px-6">
-          {layoutSummary && (
-            <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
-              <div className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
-                <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                  scope
-                </dt>
-                <dd className="break-words text-xs text-[var(--admin-ink)]">
-                  {layoutSummary.scopeLabel}
-                </dd>
-              </div>
-              <div className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
-                <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                  new order
-                </dt>
-                <dd className="break-words text-xs text-[var(--admin-ink)]">
-                  {layoutSummary.orderText}
-                </dd>
-              </div>
-              {layoutSummary.hiddenText && (
-                <div className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
-                  <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                    hidden
-                  </dt>
-                  <dd className="break-words text-xs text-[var(--admin-ink)]">
-                    {layoutSummary.hiddenText}
-                  </dd>
-                </div>
-              )}
-            </dl>
-          )}
-
-          {!layoutSummary && fields.length > 0 && (
-            <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
-              {fields.map(([key, value]) => (
-                <div key={key} className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
-                  <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                    {key.replace(/_/g, " ")}
-                  </dt>
-                  <dd className="break-words text-xs text-[var(--admin-ink)]">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-
-          {body && (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                Exact message that will be sent
-              </p>
-              <pre className="mt-1.5 max-h-72 overflow-y-auto whitespace-pre-wrap break-words rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3 font-sans text-xs leading-6 text-[var(--admin-ink)]">
-                {body}
-              </pre>
-            </div>
-          )}
-
-          {!fields.length && !body && (
-            <p className="admin-copy text-xs">
-              This proposal recorded no payload. Reject it and ask the copilot to restage the
-              action.
-            </p>
-          )}
-
-          {(action.reasoning || action.description) && (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
-                Why the copilot proposed this
-              </p>
-              <p className="admin-copy mt-1.5 text-pretty text-xs leading-5">
-                {action.reasoning || action.description}
-              </p>
-            </div>
-          )}
-
-          {action.expires_at && (
-            <p className="admin-copy text-[11px]">
-              Expires{" "}
-              {relativeTime(action.expires_at)
-                .replace(/^Due in /, "in ")
-                .replace(/^Due today$/, "today")}
-              .
-            </p>
-          )}
-        </div>
-
-        <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
-          <button
-            type="button"
-            disabled={busy}
-            onClick={onReject}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-rose-700 transition-[background-color,transform] duration-150 hover:bg-rose-500/10 active:scale-[0.96] disabled:opacity-50 dark:text-rose-300"
-          >
-            <X className="size-3.5" /> Reject
-          </button>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="min-h-11 rounded-xl px-4 text-xs font-semibold text-[var(--admin-muted)] transition-[color,transform] duration-150 hover:text-[var(--admin-ink)] active:scale-[0.96]"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={onApprove}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
-            >
-              {busy ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Check className="size-3.5" />
-              )}
-              {external ? "Approve and send" : "Approve"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </AdminDialog>
-  );
-}
-
-const urgencyClass = {
-  critical: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
-  high: "bg-amber-500/12 text-amber-800 dark:text-amber-300",
-  normal: "bg-black/[0.045] text-[var(--admin-muted)] dark:bg-white/[0.06]",
-  low: "bg-black/[0.025] text-[var(--admin-muted)] dark:bg-white/[0.04]",
-};
-
 function formatMoney(value: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -422,31 +98,6 @@ const focusOptions = [
   { id: "proposal", label: "Proposals" },
 ] as const;
 
-function relativeTime(value: string | null) {
-  if (!value) return "No due date";
-  // Task due dates come from a DATE column, so they carry no time. Parsing one
-  // as an instant makes it midnight, which meant a task created at 09:00 and due
-  // the same day immediately read as "9h overdue". Compare whole days instead,
-  // in UTC, to match how the queue service decides urgency.
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const today = new Date().toISOString().slice(0, 10);
-    if (value === today) return "Due today";
-    const days = Math.round(
-      (Date.parse(`${value}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000,
-    );
-    if (days < 0) return `${Math.abs(days)}d overdue`;
-    return days === 1 ? "Due tomorrow" : `Due in ${days}d`;
-  }
-  const difference = Date.parse(value) - Date.now();
-  const absoluteHours = Math.max(1, Math.round(Math.abs(difference) / 3_600_000));
-  if (difference < 0)
-    return absoluteHours < 24
-      ? `${absoluteHours}h overdue`
-      : `${Math.ceil(absoluteHours / 24)}d overdue`;
-  if (absoluteHours < 24) return `Due in ${absoluteHours}h`;
-  return `Due in ${Math.ceil(absoluteHours / 24)}d`;
-}
-
 function observedTime(value: string) {
   if (value === "unknown" || Number.isNaN(Date.parse(value))) return "Source time unavailable";
   const minutes = Math.max(0, Math.floor((Date.now() - Date.parse(value)) / 60_000));
@@ -455,15 +106,6 @@ function observedTime(value: string) {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `Observed ${hours}h ago`;
   return `Observed ${Math.floor(hours / 24)}d ago`;
-}
-
-function isRepeatedQueueCopy(summary: string, priorityReason: string) {
-  const normalize = (value: string) =>
-    value
-      .toLocaleLowerCase()
-      .replace(/[^a-z0-9]+/g, " ")
-      .trim();
-  return normalize(summary) === normalize(priorityReason);
 }
 
 export default function TodayPage() {
@@ -485,11 +127,8 @@ export default function TodayPage() {
   );
   const overview = overviewQuery.data ?? null;
   const todayLayoutDoc = layoutQuery.data?.doc ?? null;
-  // "operating-summary" stays pinned above the health banner and workspace
-  // grid — moving it would bury the at-a-glance KPI strip below the queue by
-  // default. Only its visibility is layout-managed; the ledger and copilot
-  // panel (already adjacent below the workspace grid) are freely reorderable
-  // and hideable relative to each other.
+  // Preserve the existing layout visibility setting while keeping the business
+  // snapshot in a disclosure below the operator attention sections.
   const operatingSummaryHidden = Boolean(todayLayoutDoc?.hidden.includes("operating-summary"));
   const tailRegions = useMemo(
     () =>
@@ -513,7 +152,6 @@ export default function TodayPage() {
   const [acting, setActing] = useState<string | null>(null);
   const [taskActioning, setTaskActioning] = useState<string | null>(null);
   const [focus, setFocus] = useState<(typeof focusOptions)[number]["id"]>("all");
-  const [showAllApprovals, setShowAllApprovals] = useState(false);
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const dismissedActionRef = useRef<string | null>(null);
   const reviewTriggerRef = useRef<HTMLElement | null>(null);
@@ -529,7 +167,6 @@ export default function TodayPage() {
     const requestedFocus = searchParams.get("focus");
     if (requestedFocus === "approvals") {
       setFocus("approval");
-      setShowAllApprovals(true);
     } else if (focusOptions.some((option) => option.id === requestedFocus))
       setFocus(requestedFocus as (typeof focusOptions)[number]["id"]);
   }, [searchParams]);
@@ -822,7 +459,7 @@ export default function TodayPage() {
     <div className="space-y-4 pb-10 sm:space-y-7">
       <PageHeader
         title="Today"
-        subtitle="The founder queue: replies, commitments, meetings, proposals, approvals, and system exceptions in revenue order."
+        subtitle="Decisions, work, signals and upcoming commitments."
         actions={
           <button
             type="button"
@@ -851,7 +488,6 @@ export default function TodayPage() {
           </>
         }
       />
-      <CollectionCaseLinks />
       {error && overview && (
         <AdminSurface
           tone="attention"
@@ -887,54 +523,6 @@ export default function TodayPage() {
         ) : (
           overview && (
             <div className="space-y-5 sm:space-y-7" data-today-content-stack>
-              {!operatingSummaryHidden && (
-                <AdminSurface
-                  padding="none"
-                  className="overflow-hidden"
-                  aria-label="Operating summary"
-                >
-                  <dl className="grid grid-cols-2 divide-x divide-y divide-[var(--admin-border)] xl:grid-cols-4 xl:divide-y-0">
-                    {[
-                      {
-                        label: "Priority work",
-                        value: urgentCount,
-                        note: `${overview.queue.length} total`,
-                      },
-                      {
-                        label: "Open pipeline",
-                        value: formatMoney(overview.metrics.pipelineValue),
-                        note: `${formatMoney(overview.metrics.weightedValue)} weighted`,
-                      },
-                      {
-                        label: "Unread replies",
-                        value: overview.metrics.unreadConversations,
-                        note: "Synced conversations",
-                      },
-                      {
-                        label: "Active campaigns",
-                        value: overview.metrics.activeCampaigns,
-                        note: `${overview.metrics.pendingProposals} proposals awaiting`,
-                      },
-                    ].map(({ label, value, note }) => (
-                      <div
-                        key={label}
-                        className="min-w-0 px-4 py-3.5 sm:min-h-[96px] sm:px-5 sm:py-4"
-                      >
-                        <dt className="truncate text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--admin-muted)] sm:text-[10px] sm:normal-case sm:tracking-normal">
-                          {label}
-                        </dt>
-                        <dd className="mt-1 truncate text-[clamp(1.25rem,6vw,1.75rem)] font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)] sm:text-2xl">
-                          {value}
-                        </dd>
-                        <p className="admin-copy mt-0.5 truncate text-[9px] sm:text-[10px]">
-                          {note}
-                        </p>
-                      </div>
-                    ))}
-                  </dl>
-                </AdminSurface>
-              )}
-
               {!demo && overview.health.status === "attention" && (
                 <AdminSurface
                   tone="default"
@@ -987,332 +575,110 @@ export default function TodayPage() {
                 </AdminSurface>
               )}
 
-              <section
-                className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem] 2xl:grid-cols-[minmax(0,1fr)_24rem]"
-                data-today-workspace
+              <div
+                className="scrollbar-hide flex gap-2 overflow-x-auto"
+                data-priority-tabs
+                aria-label="Filter attention"
               >
-                <AdminSurface padding="none" className="overflow-hidden">
-                  <div className="flex flex-col gap-4 px-5 py-4 sm:px-6">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="admin-eyebrow">Priority queue</p>
-                        <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
-                          What needs your attention
-                        </h2>
-                      </div>
-                      <span className="rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">
-                        {visibleQueue.length}
-                      </span>
-                    </div>
-                    <div
-                      className="scrollbar-hide -mx-1 flex gap-1 overflow-x-auto pb-1"
-                      data-priority-tabs
-                    >
-                      {focusOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => setFocus(option.id)}
-                          className={cn(
-                            "min-h-10 shrink-0 rounded-lg px-3 text-xs font-semibold transition-[background-color,color,box-shadow] duration-150",
-                            focus === option.id
-                              ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
-                              : "text-[var(--admin-muted)] hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]",
-                          )}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
-                    {visibleQueue.slice(0, 15).map((item, itemIndex) => {
-                      const taskId =
-                        item.kind === "task" || item.kind === "follow_up"
-                          ? item.id.replace(/^task:/, "")
-                          : null;
-                      const repeatsReason = isRepeatedQueueCopy(item.summary, item.priorityReason);
-                      const approvalId =
-                        item.kind === "approval" ? item.id.replace(/^action:/, "") : null;
-                      const approval = approvalId
-                        ? (actions.find((action) => action.id === approvalId) ?? null)
-                        : null;
-                      const itemContent = (
-                        <>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="truncate text-sm font-semibold text-[var(--admin-ink)]">
-                              {item.title}
-                            </h3>
-                            {item.urgency !== "normal" && (
-                              <span
-                                className={cn(
-                                  "rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em]",
-                                  urgencyClass[item.urgency],
-                                )}
-                              >
-                                {item.urgency}
-                              </span>
-                            )}
-                          </div>
-                          {!repeatsReason && (
-                            <p className="admin-copy mt-1 line-clamp-2 text-pretty text-xs leading-5">
-                              {item.summary}
-                            </p>
-                          )}
-                          <p
-                            className={cn(
-                              "text-pretty text-xs leading-5 text-[var(--admin-muted)]",
-                              repeatsReason ? "mt-1" : "mt-2",
-                            )}
-                          >
-                            {item.priorityReason}
-                          </p>
-                          <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[9px] font-medium uppercase tracking-[0.07em] text-[var(--admin-muted)]">
-                            <span>{relativeTime(item.dueAt)}</span>
-                            <span
-                              className="size-0.5 rounded-full bg-[var(--admin-border)]"
-                              aria-hidden="true"
-                            />
-                            <span>{observedTime(item.sourceTimestamp)}</span>
-                          </p>
-                          <p className="admin-copy mt-1.5 line-clamp-2 text-[11px] leading-4">
-                            <span className="font-semibold text-[var(--admin-ink)]">Next:</span>{" "}
-                            {item.recommendedNextAction}
-                          </p>
-                        </>
-                      );
-                      return (
-                        <div
-                          key={`${item.id}:${itemIndex}`}
-                          className="group flex min-h-[84px] items-start gap-3 px-5 py-4 transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025] sm:px-6"
-                        >
-                          {approval ? (
-                            <button
-                              type="button"
-                              onClick={(event) =>
-                                openReview(approval, item.href, event.currentTarget)
-                              }
-                              aria-haspopup="dialog"
-                              data-approval-review={approval.id}
-                              className="min-w-0 flex-1 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)] focus-visible:ring-offset-2"
-                            >
-                              {itemContent}
-                            </button>
-                          ) : (
-                            <Link
-                              href={item.href}
-                              className="min-w-0 flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)] focus-visible:ring-offset-2"
-                            >
-                              {itemContent}
-                            </Link>
-                          )}
-                          {taskId ? (
-                            <div className="flex shrink-0 items-center gap-1">
-                              <button
-                                type="button"
-                                aria-label={`Complete ${item.title}`}
-                                title="Complete task"
-                                disabled={Boolean(taskActioning)}
-                                onClick={() => void updateTask(taskId, "complete")}
-                                className="grid size-10 place-items-center rounded-lg text-emerald-700 transition-[background-color,scale,opacity] duration-150 hover:bg-emerald-500/10 active:scale-[0.96] disabled:opacity-50 dark:text-emerald-300"
-                              >
-                                {taskActioning === `${taskId}:complete` ? (
-                                  <Loader2 className="size-4 animate-spin" />
-                                ) : (
-                                  <CheckCircle2 className="size-4" />
-                                )}
-                              </button>
-                              <button
-                                type="button"
-                                aria-label={`Snooze ${item.title} until tomorrow`}
-                                title="Snooze until tomorrow"
-                                disabled={Boolean(taskActioning)}
-                                onClick={() => void updateTask(taskId, "snooze")}
-                                className="grid size-10 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,scale,opacity] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:opacity-50 dark:hover:bg-white/[0.06]"
-                              >
-                                {taskActioning === `${taskId}:snooze` ? (
-                                  <Loader2 className="size-4 animate-spin" />
-                                ) : (
-                                  <AlarmClock className="size-4" />
-                                )}
-                              </button>
-                            </div>
-                          ) : approval ? (
-                            <button
-                              type="button"
-                              onClick={(event) =>
-                                openReview(approval, item.href, event.currentTarget)
-                              }
-                              aria-label={`Review ${item.title}`}
-                              aria-haspopup="dialog"
-                              data-approval-review={approval.id}
-                              className="mt-2 grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,transform] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.06]"
-                            >
-                              <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
-                            </button>
-                          ) : (
-                            <Link
-                              href={item.href}
-                              aria-label={`Open ${item.title}`}
-                              className="mt-2 grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,transform] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]"
-                            >
-                              <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
-                            </Link>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {!visibleQueue.length && (
-                      <div className="px-6 py-14 text-center">
-                        <Check className="mx-auto size-5 text-emerald-600" />
-                        <p className="mt-3 text-sm font-semibold text-[var(--admin-ink)]">
-                          {overview.queue.length ? "Nothing in this focus" : "Queue clear"}
-                        </p>
-                        <p className="admin-copy mx-auto mt-1 max-w-sm text-xs">
-                          {overview.queue.length
-                            ? "This category is clear. Return to the full queue for the next highest-priority item."
-                            : "No current replies, approvals, due commitments, or system exceptions. You can develop pipeline or verify operations without inventing busywork."}
-                        </p>
-                        <div className="mt-4 flex flex-wrap justify-center gap-2">
-                          {overview.queue.length ? (
-                            <button
-                              type="button"
-                              onClick={() => setFocus("all")}
-                              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)]"
-                            >
-                              Show all work <ArrowRight className="size-3.5" />
-                            </button>
-                          ) : (
-                            <>
-                              <Link
-                                href="/admin/pipeline"
-                                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)]"
-                              >
-                                Open pipeline <ArrowRight className="size-3.5" />
-                              </Link>
-                              <Link
-                                href="/admin/setup"
-                                className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
-                              >
-                                Verify systems
-                              </Link>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                {focusOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setFocus(option.id)}
+                    aria-pressed={focus === option.id}
+                    className={cn(
+                      "min-h-11 shrink-0 rounded-lg px-3 text-sm font-medium",
+                      focus === option.id
+                        ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
+                        : "text-[var(--admin-muted)] hover:bg-[var(--admin-surface-subtle)]",
                     )}
-                  </div>
-                </AdminSurface>
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <AttentionList
+                items={projectOperatorAttention(visibleQueue)}
+                busyTask={taskActioning}
+                onTask={(id, action) => void updateTask(id, action)}
+                onReview={(id, trigger) => {
+                  const action = actions.find((item) => item.id === id);
+                  if (action) openReview(action, undefined, trigger);
+                  else
+                    setMutationError(
+                      "This approval is no longer pending. Refresh to see its current state.",
+                    );
+                }}
+              />
+              <Link
+                href="/admin/work"
+                className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--admin-ink)]"
+              >
+                Open all work <ArrowRight className="size-4" />
+              </Link>
 
-                <AdminSurface
-                  padding="none"
-                  className="hidden self-start overflow-hidden xl:sticky xl:top-24 xl:block"
-                  data-today-approval-rail
-                >
-                  <div className="flex items-start justify-between gap-3 px-5 py-4">
-                    <div>
-                      <p className="admin-eyebrow">Decisions</p>
-                      <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
-                        Approval queue
-                      </h2>
-                      <p className="admin-copy mt-1 text-pretty text-xs">
-                        Review exact changes before anything consequential runs.
-                      </p>
-                    </div>
-                    <span
-                      className="mt-0.5 rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]"
-                      aria-label={`${actions.length} pending approvals`}
+              <details className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4">
+                <summary className="cursor-pointer text-sm font-semibold text-[var(--admin-ink)]">
+                  Business snapshot and App follow-up
+                </summary>
+                <div className="mt-4 space-y-4">
+                  <CollectionCaseLinks />
+                  {!operatingSummaryHidden && (
+                    <AdminSurface
+                      padding="none"
+                      className="overflow-hidden"
+                      aria-label="Operating summary"
                     >
-                      {actions.length}
-                    </span>
-                  </div>
-                  <div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
-                    {actions.slice(0, showAllApprovals ? 8 : 3).map((action) => (
-                      <div key={action.id} className="px-5 py-4">
-                        <div className="min-w-0">
-                          <h3 className="text-pretty text-sm font-semibold leading-5 text-[var(--admin-ink)]">
-                            {action.title}
-                          </h3>
-                          <p className="admin-copy mt-1 line-clamp-2 text-pretty text-xs leading-5">
-                            {action.description || action.reasoning || "Review before execution."}
-                          </p>
-                          <div className="mt-3 flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={(event) =>
-                                openReview(action, undefined, event.currentTarget)
-                              }
-                              disabled={acting === action.id}
-                              aria-haspopup="dialog"
-                              data-approval-review={action.id}
-                              className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
-                            >
-                              {acting === action.id ? (
-                                <Loader2 className="size-3.5 animate-spin" />
-                              ) : (
-                                <Check className="size-3.5" />
-                              )}{" "}
-                              Review
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void decide(action.id, "reject")}
-                              disabled={acting === action.id}
-                              aria-label={`Reject ${action.title}`}
-                              title="Reject proposal"
-                              className="grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] transition-[color,box-shadow,transform] duration-150 hover:text-rose-700 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50 dark:hover:text-rose-300"
-                            >
-                              <X className="size-3.5" />
-                            </button>
+                      <dl className="grid grid-cols-2 divide-x divide-y divide-[var(--admin-border)] xl:grid-cols-4 xl:divide-y-0">
+                        {[
+                          {
+                            label: "Priority work",
+                            value: urgentCount,
+                            note: `${overview.queue.length} total`,
+                          },
+                          {
+                            label: "Open pipeline",
+                            value: formatMoney(overview.metrics.pipelineValue),
+                            note: `${formatMoney(overview.metrics.weightedValue)} weighted`,
+                          },
+                          {
+                            label: "Unread replies",
+                            value: overview.metrics.unreadConversations,
+                            note: "Synced conversations",
+                          },
+                          {
+                            label: "Active campaigns",
+                            value: overview.metrics.activeCampaigns,
+                            note: `${overview.metrics.pendingProposals} proposals awaiting`,
+                          },
+                        ].map(({ label, value, note }) => (
+                          <div
+                            key={label}
+                            className="min-w-0 px-4 py-3.5 sm:min-h-[96px] sm:px-5 sm:py-4"
+                          >
+                            <dt className="truncate text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--admin-muted)] sm:text-[10px] sm:normal-case sm:tracking-normal">
+                              {label}
+                            </dt>
+                            <dd className="mt-1 truncate text-[clamp(1.25rem,6vw,1.75rem)] font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)] sm:text-2xl">
+                              {value}
+                            </dd>
+                            <p className="admin-copy mt-0.5 truncate text-[9px] sm:text-[10px]">
+                              {note}
+                            </p>
                           </div>
-                        </div>
-                      </div>
-                    ))}
-                    {actions.length > 3 && (
-                      <button
-                        type="button"
-                        onClick={() => setShowAllApprovals((current) => !current)}
-                        className="flex min-h-11 w-full items-center justify-between px-5 text-xs font-semibold text-[var(--admin-ink)] transition-[background-color,transform] duration-150 hover:bg-black/[0.025] active:scale-[0.96] dark:hover:bg-white/[0.03]"
-                        aria-expanded={showAllApprovals}
-                      >
-                        {showAllApprovals
-                          ? "Show fewer decisions"
-                          : `Review all ${actions.length} decisions`}{" "}
-                        <ArrowRight
-                          className={cn(
-                            "size-3.5 transition-transform duration-150",
-                            showAllApprovals && "rotate-90",
-                          )}
-                        />
-                      </button>
-                    )}
-                    {!actions.length && (
-                      <div className="px-6 py-12 text-center">
-                        <Check className="mx-auto size-5 text-emerald-600" />
-                        <p className="mt-3 text-sm font-semibold text-[var(--admin-ink)]">
-                          No decisions waiting
-                        </p>
-                        <p className="admin-copy mx-auto mt-1 max-w-xs text-xs">
-                          Nothing consequential will run without approval. Ask the copilot to
-                          prepare work when you have a concrete outcome.
-                        </p>
-                        <a
-                          href="#revenue-copilot"
-                          className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
-                        >
-                          Open copilot <ArrowRight className="size-3.5" />
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </AdminSurface>
-              </section>
+                        ))}
+                      </dl>
+                    </AdminSurface>
+                  )}
+                </div>
+              </details>
 
               {tailRegions.map((region) => (
                 <Fragment key={region.id}>{tailRegionNodes[region.id]}</Fragment>
               ))}
 
               <ActionReviewDialog
+                error={mutationError}
                 open={reviewOpen}
                 action={reviewing}
                 busy={Boolean(reviewing && acting === reviewing.id)}

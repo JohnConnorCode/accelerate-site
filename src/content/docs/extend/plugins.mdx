@@ -1,12 +1,18 @@
 ---
 title: "Plugins"
 description: "Register a plugin manifest with tools and triggers that still go through governance."
-updated: "2026-09-06"
+updated: "2026-09-07"
 ---
 
 A plugin adds business-specific behavior to Command Center using the shared workspace records and services. It can be a focused report, a reviewed operation, or part of a larger business workspace. Explore the [ten bundled examples](/docs/plugins) to choose a pattern before working through this technical reference.
 
 Runtime plugins declare their tools, triggers, required capabilities and permissions. Registration begins in review; enablement makes approved capabilities available to a workspace. Modules describe the pages, navigation and configuration that present a capability. The [extension overview](/docs/extend) explains how these pieces fit together.
+
+## Build beyond the default workflows
+
+A plugin can be part of an App with custom records, its own lifecycle and a dedicated interface. Use the existing module, entity and domain service paths to implement those capabilities; the runtime manifest alone does not create them. [App design](/docs/extend/apps) explains the choices, and [custom work](/docs/extend/work-primitives) shows how a native queue can retain authoritative state without copying it into a task.
+
+Source-built Apps can change the whole operating experience. The current isolated plugin hosts expose bounded capabilities; adding a new execution capability requires a host implementation and verification. [AI authoring](/docs/extend/ai-authoring) distinguishes source development today from the planned in-app builder.
 
 ## Manifest shape
 

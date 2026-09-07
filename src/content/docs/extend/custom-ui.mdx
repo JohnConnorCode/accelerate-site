@@ -1,0 +1,35 @@
+---
+title: "Build a custom operating screen"
+description: "Add a native App workspace or replace the default experience while retaining shared business services."
+updated: "2026-09-07"
+---
+
+A dispatcher may need a map and schedule. A creative team may need a version comparison with comments. An owner may want a compact morning report. Command Center's default navigation and pages do not set the limit on the interfaces you can build from the source.
+
+## Choose the right level of change
+
+Use existing workspace appearance and module settings for supported configuration. The current layout service also supports approved ordering and visibility changes within registered layout scopes. It does not generate arbitrary components or replace the entire application from a prompt.
+
+For a new workflow, add a module-owned page and build its interface in application code. For a bespoke operating experience, customize the shell or provide a dedicated set of pages in your deployment, retaining the same authentication and domain services. These are source development paths today.
+
+## Example: a dispatch workspace
+
+Imagine a maintenance company that wants a list of unassigned jobs beside a technician schedule. Start by identifying the authoritative job and booking records. Reuse the customer IDs already attached to the work. A drag-and-drop gesture should request a validated scheduling operation; the browser should not become the authority for assignment conflicts.
+
+Build the page under `src/app/admin/` and put reusable interface pieces in `src/components/admin/`. Register its route and navigation in the module manifest. Register and enforce API ownership through the module guard. Follow the existing tenant-aware admin query and navigation paths so switching workspaces cannot display the previous business's results.
+
+Keep the business operation in `src/lib/revenue-os/`. Give an assistant a governed equivalent through the same operation. When a schedule changes, return the saved source record and refresh views that depend on it. If a concurrent change wins, show the current record and let the operator review the conflict.
+
+## Preserve the shared interface contracts
+
+Use the existing admin design tokens, dialog, navigation and query components where they fit. A custom visual layout can still provide visible keyboard focus, meaningful labels, a mobile alternative to dragging, reduced motion and honest loading and failure states.
+
+A custom screen may be highly specialized. It still needs to show which workspace and records the user is operating on, what a command will change, and the saved result. Follow the source [navigation contract](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md) when changing routing, scroll or focus behavior.
+
+## Verify a complete user journey
+
+Use fictional jobs to check direct loading, navigation, keyboard scheduling, mobile layout, stale updates and retry after a failed request. Confirm the saved assignment in another view of the same record. Disable the module and verify that its API refuses operations as well as its navigation disappearing.
+
+For a production upgrade, retain compatible records and inspect migration needs separately from UI rollback. Restoring an older screen does not undo a booking that has already been changed or a message that has already been sent.
+
+See [custom work](/docs/extend/work-primitives) for state ownership and [AI authoring](/docs/extend/ai-authoring) for the planned in-app development experience.

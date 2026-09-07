@@ -1,0 +1,64 @@
+---
+title: "Design custom work without duplicate state"
+description: "Give an App its own lifecycle and connect tasks, decisions, attention and history to the original records."
+updated: "2026-09-07"
+---
+
+A creative review has a brief, versions, reviewers, requested changes and a final accepted version. Compressing all of that into one task status would lose useful meaning. Give the review its own record and lifecycle, and link ordinary tasks or approvals only when they represent additional work or a specific decision.
+
+This is an implementation design for a custom App, not a bundled Creative Review feature. It requires domain code, storage, interface work and verification. The existing entity registry and shared services are starting points; they do not generate the whole App.
+
+## Decide which object owns each fact
+
+| Object   | Meaning                                  | Example                                            |
+| -------- | ---------------------------------------- | -------------------------------------------------- |
+| Record   | An authoritative business entity or fact | Creative review CR-42 and its current revision     |
+| Signal   | Evidence worth noticing                  | The review has received no response for three days |
+| Task     | Work assigned to a person                | Prepare a smaller version of the image by Friday   |
+| Approval | A decision over an exact proposed change | Accept revision 4 for publication                  |
+| Action   | An operation that can execute            | Record the approved revision transition            |
+| Workflow | A definition and its executions          | Prepare follow-up work after a review is accepted  |
+| Activity | Recorded history                         | Revision 4 was accepted by its authorized reviewer |
+| View     | A projection of these objects            | A queue filtered to reviews awaiting this team     |
+
+The durable agent work engine has its own execution records. A successful background run belongs in history unless it produces something a person needs to do or decide. It should not silently create another human task.
+
+## Implement Creative Review in the existing architecture
+
+1. Define a tenant-owned review record with a stable ID, related customer, current revision, lifecycle status and update version. Keep revision artifacts immutable when they are evidence for a decision.
+2. Put allowed transitions in a domain service under `src/lib/revenue-os/`. For example, a proposed transition from `in_review` to `accepted` must name the exact review and revision. Reject a stale version or an unauthorized reviewer.
+3. Register the new entity type through `entity-registry.ts`, including its backing table, readable fields, identity conventions and related references. Add the storage through an ordered migration; registration alone does not create it.
+4. Add a native review queue and detail page through the module registration path. Route handlers authenticate, resolve the tenant and call the domain service.
+5. Prepare consequential AI changes through the shared action proposal and executor services. The proposal identifies the exact transition and evidence; the domain service rechecks them at execution.
+6. Record the result in shared activity and audit history with the review ID. Link a follow-up task only if it represents distinct work.
+
+Use `radar-relationships.ts`, `action-executor.ts`, `tasks.ts` and `entity-registry.ts` as source references for the existing service pattern. Their field names and signatures remain authoritative; adapt the pattern to the review's actual needs.
+
+## Describe optional host participation
+
+For each integration, identify the source and behavior the host can rely on:
+
+| Integration | Define for the App                                                  |
+| ----------- | ------------------------------------------------------------------- |
+| Identity    | Source type, stable source ID and tenant                            |
+| Lifecycle   | Owning service, statuses, version checks and allowed transitions    |
+| Ownership   | Who can see the work and who can change it                          |
+| Attention   | When it matters, why, when it expires and whether to show it at all |
+| Decision    | Exact proposed change, evidence, reviewer and terminal result       |
+| Commands    | Validated domain operations with permission checks                  |
+| Activity    | Immutable events linked to source records and execution receipts    |
+| Search      | Bounded, authorized source results with direct links                |
+| AI          | Read context and governed proposals through the same services       |
+| Views       | Native workspace and any optional shared-view contribution          |
+
+This table is a design checklist, not a currently supported manifest schema. Shared work contribution adapters are part of the redesign. Do not paste these fields into a current module manifest and expect runtime wiring.
+
+A shared attention row should carry `sourceType` and `sourceId`, a reason, a display category and permitted commands. It can have a projection ID, but it must not store a second copy of the review's status. A command from that row calls the same service as the native review screen.
+
+## Prove the lifecycle stays authoritative
+
+Create a fictional review at revision 4. Open it in its native queue and any shared view you implement. Accept it from one surface and confirm both read the same accepted source record. Submit a stale revision-3 proposal and confirm nothing changes. Repeat with another tenant, a disabled App and an unauthorized reviewer; each must refuse access or execution.
+
+Dismiss a signal without completing the review or creating a task. Complete a separately linked preparation task without accepting the review. Check that successful background runs appear in history and failures surface only with a clear human decision or recovery operation.
+
+These are acceptance cases for your implementation. They are not claims that this hypothetical App has been tested or shipped.

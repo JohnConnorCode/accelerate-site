@@ -106,6 +106,8 @@ export interface RevenueOpportunity {
 }
 
 export interface OperatorQueueItem {
+  /** Optional App-owned identity and attention category; no duplicate lifecycle. */
+  attention?: import("./operator-attention").AttentionSource;
   id: string;
   kind: "reply" | "task" | "follow_up" | "proposal" | "meeting" | "approval" | "system";
   title: string;

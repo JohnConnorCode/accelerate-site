@@ -120,7 +120,10 @@ remaining manifest-policy work.
 - New person/business matching extends `identity.ts`.
 - New import format or contact cleanup policy extends `contact-imports.ts`; approved identity writes still extend `identity.ts`.
 - New pipeline movement extends `pipeline.ts`.
-- New task source extends `tasks.ts`.
+- New task source extends `tasks.ts`. Shared task transition validation lives in
+  `operator-task-patch.ts` and is reused by the fictional runtime. Today projects
+  source identities through `operator-attention.ts`; `/admin/work` reads the same
+  tasks and approvals without storing another work lifecycle.
 - New message channel extends the communication contract; do not send directly.
 - New scheduled/integration work wraps execution with `runs.ts`; use one stable
   job key and a deterministic claim/replay key whenever the invocation itself

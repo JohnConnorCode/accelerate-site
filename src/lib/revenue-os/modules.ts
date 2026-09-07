@@ -119,8 +119,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     category: "system",
     isCore: true,
     defaultEnabled: true,
-    navLinkIds: ["today", "inbox", "activity"],
-    routes: ["/admin/today", "/admin/inbox", "/admin/activity"],
+    navLinkIds: ["today", "work", "inbox", "activity"],
+    routes: ["/admin/today", "/admin/work", "/admin/inbox", "/admin/activity"],
     aiToolNames: [
       "get_today_snapshot",
       "get_record_timeline",

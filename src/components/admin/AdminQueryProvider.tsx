@@ -32,5 +32,13 @@ export function AdminQueryProvider({
     previousScope.current = scope;
   }, [client, scope]);
 
+  useEffect(() => {
+    const refresh = () => {
+      void client.invalidateQueries();
+    };
+    window.addEventListener("admin:priority-refresh", refresh);
+    return () => window.removeEventListener("admin:priority-refresh", refresh);
+  }, [client]);
+
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }

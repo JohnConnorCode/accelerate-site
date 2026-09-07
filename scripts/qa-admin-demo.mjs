@@ -453,14 +453,9 @@ for (const scenario of scenarios) {
       if (route === "today") {
         for (const label of ["All work", "Replies", "Commitments", "Approvals", "Proposals"]) {
           await page.getByRole("button", { name: label, exact: true }).click();
-          const visibleCount = Number(
-            await page
-              .locator("[data-today-workspace] .admin-surface")
-              .first()
-              .locator("span.rounded-full")
-              .first()
-              .textContent(),
-          );
+          const visibleCount = await page
+            .locator("[data-today-workspace] [data-source-id]")
+            .count();
           if (!Number.isFinite(visibleCount) || visibleCount < 1)
             failures.push(`${scenario} ${label}: Today filter has no credible fictional work`);
         }

@@ -1,3 +1,7 @@
+import {
+  prepareOperatorTaskPatch,
+  type OperatorTaskPatchInput,
+} from "@/lib/revenue-os/operator-task-patch";
 import { handleDemoRadar } from "./radar-runtime";
 import type { DemoRadarState } from "./radar-fixtures";
 import { handleDemoCollections } from "./collections-runtime";
@@ -30,7 +34,10 @@ type Task = {
   id: string;
   title: string;
   description: string;
-  dueDate: string;
+  dueDate: string | null;
+  priority?: string;
+  snoozedUntil?: string | null;
+  completedAt?: string | null;
   assigneeUserId: string;
   personId: string;
   sourceId: string;
@@ -70,7 +77,14 @@ export type DemoBusinessState = {
   invoices: Invoice[];
   tasks: Task[];
   pages: Page[];
-  receipts: { id: string; operation: string; at: string; simulated: true }[];
+  receipts: {
+    id: string;
+    operation: string;
+    at: string;
+    simulated: true;
+    sourceType?: string;
+    sourceId?: string;
+  }[];
 };
 const memberId = "00000000-0000-4000-8000-000000000079";
 const now = () => new Date().toISOString();
@@ -208,8 +222,8 @@ export function demoTasksForGraph(state: DemoBusinessState) {
     id: t.id,
     title: t.title,
     personId: t.personId,
-    dueOffset: Math.ceil((Date.parse(t.dueDate) - Date.now()) / 86400000),
-    priority: "normal",
+    dueOffset: t.dueDate ? Math.ceil((Date.parse(t.dueDate) - Date.now()) / 86400000) : 0,
+    priority: t.priority ?? "medium",
     status: t.status,
   }));
 }
@@ -252,8 +266,15 @@ export async function handleDemoBusinessRequest(
     if (!enabled(id))
       throw new Error("This plugin is disabled. Enable it from Plugins to continue.");
   };
-  const record = (operation: string) => {
-    state.receipts.unshift({ id: crypto.randomUUID(), operation, at: now(), simulated: true });
+  const record = (operation: string, sourceType?: string, sourceId?: string) => {
+    state.receipts.unshift({
+      id: crypto.randomUUID(),
+      operation,
+      at: now(),
+      simulated: true,
+      sourceType,
+      sourceId,
+    });
     state.receipts = state.receipts.slice(0, 100);
     save();
   };
@@ -529,7 +550,7 @@ export async function handleDemoBusinessRequest(
       if (body.decision === "reject") {
         if (action.status !== "pending") throw new Error("Action already handled");
         action.status = "rejected";
-        record("Rejected " + action.title);
+        record("Rejected " + action.title, "approval", action.id);
         return response({ simulated: true });
       }
       if (body.decision === "retry") {
@@ -636,7 +657,7 @@ export async function handleDemoBusinessRequest(
           action.result = { complete: true, tasks: structuredClone(tasks) };
         }
         action.status = "executed";
-        record("Approved " + action.title);
+        record("Approved " + action.title, "approval", action.id);
         return response({ result: action.result, simulated: true });
       } catch (error) {
         action.status = "failed";
@@ -648,9 +669,44 @@ export async function handleDemoBusinessRequest(
     if (["/api/admin/tasks", "/api/admin/revenue-os/tasks"].includes(path) && method === "PATCH") {
       const task = state.tasks.find((x) => x.id === body.id);
       if (!task) return null;
-      if (body.action !== "complete") throw new Error("Unsupported demo task change");
-      task.status = "completed";
-      record("Completed " + task.title);
+      const input =
+        path === "/api/admin/revenue-os/tasks"
+          ? body.action === "complete"
+            ? { id: task.id, status: "completed" }
+            : body.action === "snooze" && typeof body.until === "string"
+              ? { id: task.id, snoozed_until: body.until as string }
+              : null
+          : (body as unknown as OperatorTaskPatchInput);
+      if (!input) throw new Error("Unsupported task action");
+      const before = {
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        due_date: task.dueDate,
+        priority: task.priority ?? "medium",
+        snoozed_until: task.snoozedUntil ?? null,
+        completed_at: task.completedAt ?? null,
+      };
+      const patch = prepareOperatorTaskPatch(before, input, path === "/api/admin/revenue-os/tasks");
+      const updated = { ...before, ...patch };
+      task.title = updated.title as string;
+      task.description = (updated.description ?? "") as string;
+      task.status = updated.status as string;
+      task.dueDate = updated.due_date as string | null;
+      task.priority = updated.priority as string;
+      task.snoozedUntil = updated.snoozed_until as string | null;
+      task.completedAt = updated.completed_at as string | null;
+      if (Object.keys(patch).some((key) => before[key as keyof typeof before] !== patch[key]))
+        record(
+          (task.status === "completed"
+            ? "Completed "
+            : task.status === "snoozed"
+              ? "Snoozed "
+              : "Updated ") + task.title,
+          "task",
+          task.id,
+        );
       return response({ task, simulated: true });
     }
     if (path === "/api/admin/plugins/run" && method === "POST") {

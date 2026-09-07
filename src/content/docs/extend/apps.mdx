@@ -1,0 +1,44 @@
+---
+title: "Build an App around your business process"
+description: "Choose shared primitives, custom domain work or a dedicated workspace without duplicating state."
+updated: "2026-09-07"
+---
+
+An App can be a complete business capability: records, workflows, integrations, an interface and tools an assistant can use. A small report is one useful shape. A dispatch console, creative review system or equipment maintenance workspace is another.
+
+In developer references, a module registers pages and settings, while a plugin supplies behavior through the runtime. Together with domain services and adapters, these can form an App. Current screens may still use the terms Modules and Plugins.
+
+## Choose what the App should own
+
+| Your process                                                | Reuse                                           | Add when needed                                                           |
+| ----------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------- |
+| A person must finish a dated commitment                     | Shared tasks, owners and related records        | Additional validated task metadata and a useful view                      |
+| Someone must approve an exact proposed change               | Shared action proposals and execution           | Domain validation, evidence and an appropriate review screen              |
+| Creative work moves through revisions and specialist review | Customers, identities, activity and permissions | A creative-review record, revision lifecycle and native queue             |
+| Dispatchers plan jobs on a board and map                    | Customers, bookings and existing integrations   | Job scheduling rules and a bespoke operating screen                       |
+| A source contains something worth investigating             | Source records and evidence                     | A finding with a reason; create a task only through an explicit operation |
+
+A domain object may produce tasks or approvals without becoming either one. [Collections](/docs/plugins/receivables-collections), for example, retains account cases, disputes and promises alongside separately reviewed reminder sends.
+
+## Start from the current implementation
+
+1. Follow [the local development entry path](/docs/extend/first-change) and read the repository contract.
+2. Choose a bundled example close to the desired behavior. Read its domain service, UI and tests as well as its manifest.
+3. Register the App's navigation, settings and route ownership through a [module](/docs/extend/modules). Register API ownership with the existing module guard as described in the extension reference.
+4. Implement business rules in `src/lib/revenue-os/`. Reuse customer identities and other existing records. Add tenant-owned storage only for new authoritative state.
+5. Expose the same operations through UI adapters and [governed AI tools](/docs/extend/tools). Keep external effects on the existing capability and receipt paths.
+6. Add a fictional example, a public guide and failure tests before release.
+
+A source extension requires code review and a verified application build. Declaring an operation in JSON does not make a new service executable.
+
+## Let the App choose its interface
+
+An App can use a shared list and inspector, add its own pages, or provide a bespoke workspace. It may contribute attention to shared views when that helps operators. A contribution must retain the original record identity and delegate changes to the original service.
+
+Custom work contribution contracts and broader shared Work views are part of the redesign direction. The current module manifest does not automatically register arbitrary Today renderers. Until that runtime integration exists, implement and test a source adapter explicitly. See [custom work](/docs/extend/work-primitives) and [custom UI](/docs/extend/custom-ui).
+
+## Preserve useful history
+
+Disabling the App should stop its operations and remove active navigation while retaining historical records and receipts according to its documented retention policy. An upgrade should preserve stable identities and use ordered, additive migrations. A failed provider request must report whether it was rejected, accepted or remains uncertain before offering a retry.
+
+The [plugin reference](/docs/extend/plugins) explains runtime declarations and execution boundaries. [AI authoring](/docs/extend/ai-authoring) describes how a coding assistant can help today and the future in-app experience.

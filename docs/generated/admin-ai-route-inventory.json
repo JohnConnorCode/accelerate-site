@@ -1331,7 +1331,7 @@
         "@/lib/revenue-os/tasks",
         "next/server"
       ],
-      "sourceSha256": "3aaa4b46286dc7c4d29688c8ae66163d8019f7d418ae24dd360fdb90ce731a78"
+      "sourceSha256": "6482ce152c7f1d849703fb24d63f9cff97d94058ab4968efd64a6ef50f356804"
     },
     {
       "source": "src/app/api/admin/tenant/branding/route.ts",

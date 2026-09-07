@@ -312,7 +312,8 @@ export const capabilities: Capability[] = [
     id: "web",
     category: "connect",
     title: "The web app",
-    detail: "A dashboard, a daily view, and one inbox holding everything that is waiting on you.",
+    detail:
+      "Today separates decisions, tasks, watch signals and upcoming commitments. Work provides task filters and editing alongside the same approval inspector, with shared records across both views.",
   },
   {
     id: "chat",
@@ -354,6 +355,14 @@ export const capabilities: Capability[] = [
     title: "Decision-ready analytics",
     detail:
       "See source, owner, campaign, stage, communication, forecast, attribution, and data-quality signals together, with the metric semantics documented.",
+  },
+
+  {
+    id: "custom-apps",
+    category: "connect",
+    title: "Build Apps around your own business process",
+    detail:
+      "Extend the open-source platform with custom records, lifecycles, workflows, integrations, AI tools and working screens. Reuse shared customer context and execution services. Current customization uses workspace settings and source development; a general-purpose in-app AI App builder is planned.",
   },
 
   // Govern
