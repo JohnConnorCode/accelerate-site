@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "visual-plugin-guides",
+    slug: "visual-plugin-guides",
+    title: "Visual guides explain all ten bundled plugins",
+    description:
+      "Explore dedicated plugin guides with fictional workspace screenshots, setup steps, approval and cost boundaries, and recovery instructions. The documentation introduction explains connected business context and extensibility. Collections demo invoices now retain complete simulated receipts, and incomplete invoice balances display as unknown instead of crashing the page.",
+    category: "improvement",
+    publishedAt: "2026-09-07",
+  },
+  {
     id: "tenant-message-upsert-repair",
     slug: "tenant-message-upsert-repair",
     title: "Shared email and message sync use compatible workspace replay indexes",

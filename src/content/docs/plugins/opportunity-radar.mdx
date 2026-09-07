@@ -1,0 +1,43 @@
+---
+title: "Opportunity Radar"
+description: "Explore a business-specific workspace for source-backed growth opportunities and relationship reviews."
+updated: "2026-09-06"
+---
+
+Opportunity Radar shows how a plugin can carry the context of a particular business without baking that business into the platform. A profile describes the organization, its expertise and audiences. The workspace keeps supplied sources, reviewed opportunities, relationship context and drafts together so an operator can decide what is worth pursuing.
+
+The same profile schema includes a SuperDebate preset and an unrelated fictional service-business preset. That is the extension lesson: change the business configuration while reusing the workspace and underlying services.
+
+<DocsFigure
+  src="/images/docs/plugins/radar.png"
+  width={1440}
+  height={1000}
+  alt="Opportunity Radar showing five fictional business opportunities and their reviewed estimates."
+  caption="A business-specific workspace built on shared services. These are fictional reviewed estimates, not live discovery results."
+/>
+
+## Start with a business profile
+
+Use the [full Radar guide](/docs/intelligence/opportunity-radar) to set up the profile and open `/admin/radar/today`. The CLI can prepare a reviewable configuration packet with `npm run radar:setup -- --preset service-business`. Preparing that packet does not make a provider request or activate the plugin.
+
+Review the organization, website, mission, expertise and audiences. Save the profile through the module controls in **Integrations**, then separately enable Radar. Required profile fields must be present. Public configuration must not contain credentials or private relationship notes.
+
+## Follow an evidence-backed review
+
+In the [fictional demo](/demo/command-center), open Radar and inspect an opportunity's supplied source, business fit and next step. Follow the relationship context and reviewed draft rather than treating an AI suggestion as a verified fact.
+
+For a controlled briefing example, supply the text of a fictional workshop announcement and ask for observations about that source. The URL is a reference; supplying it does not mean the system fetched or verified the page. The returned evidence and model receipt help you understand what was actually used.
+
+## What this example teaches you to build
+
+A substantial plugin can combine configuration, stored evidence, model budgets, business decisions and a tailored workspace. The reusable platform supplies identity, source records, tool access and approvals. The plugin defines the business-specific review process.
+
+The [source guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md) explains the profile schema, two presets, AI configuration tools and current implementation boundaries. Use it alongside the operator guide when adapting Radar for another organization.
+
+## Control cost and activation
+
+Model mode starts **off**, with no inference budget. Briefing requires a reviewed compatible model and explicit limits. Free-only mode requires verified zero pricing; paid mode requires run and daily caps. There is no automatic premium fallback. Hosting and surrounding AI chat have their own costs.
+
+Missing model readiness or exhausted limits should defer work with an explanation. Inspect the original operation and cost receipt before retrying an uncertain request. Disable the module to stop new plugin operations; retain evidence and history and inspect any pending approved work separately.
+
+The available workspace and review stages do not establish automatic end-to-end discovery, publication or outcome measurement. Follow the current operator guide's release limits before relying on a stage, and do not treat enabling a profile as starting an autonomous growth worker.

@@ -1,21 +1,41 @@
 ---
-title: "Intelligence"
-description: "Ask with bounded context, inspect what ran, and read funnel numbers from the same records."
+title: "Put AI to work with your business context"
+description: "Ask questions, inspect the evidence, and turn supported requests into reviewed actions."
 updated: "2026-09-06"
 ---
 
-Intelligence is the assistant, its traces, knowledge retrieval, and source-to-revenue analytics.
+The most useful business assistant can work with the information your team uses every day. In Command Center, AI can read through registered workspace tools, explain what it found, and prepare supported changes against the same records you see in the interface.
 
-## AI Workspace
+Open **AI Workspace** to start a conversation. A connected workspace needs its AI provider configured; the public demo simulates the experience without making a model request.
 
-`/admin/ai` is where you ask, inspect runs, and review capabilities. How to use that screen is in [AI Workspace](/docs/intelligence/workspace). Context is bounded and sourced. Invented citations degrade to a partial answer. Writes and outbound actions enter the [approval](/docs/command-center/approvals) queue and use the same services as the UI.
+<DocsFigure
+  src="/images/open-source/slide-ai-frost.png"
+  alt="AI Workspace in a fictional community organization, showing Ask, Run history and Capabilities."
+  caption="Ask about your business, then inspect the run and available capabilities. This screenshot shows the fictional demo interface, not a live model response."
+/>
 
-The [AI tool reference](/docs/intelligence/tools) lists every registered tool from the registry. That list is not copied into prose.
+## Begin with a question that has a useful next step
 
-## Analytics
+Try asking, “What needs my attention today?” Then narrow the request: “Show me the opportunity and explain why its next action is overdue.” A useful answer identifies the records it read and the limits of that evidence, so you can open the source and decide what to do.
 
-`/admin/analytics` is the funnel: source, owner, campaign, stage, communication, forecast, and data-quality signals. Counts come from the same records the rest of the workspace uses.
+For action requests, name the customer or record and the intended change. For example: “Prepare a follow-up for this conversation” or “Propose moving this opportunity to the next stage.” The available tools and permissions determine which requests the assistant can fulfill. The [tool catalog](/docs/intelligence/tools) is generated from the registered tools rather than a marketing list.
 
-## Opportunity Radar
+## From a request to a recorded result
 
-[Review opportunities with Radar](/docs/intelligence/opportunity-radar) to keep supplied sources, reviewed business estimates, relationship context, and drafts together. Exact approvals preserve the history of changes. Model spending starts off; automatic discovery and outreach sending remain unfinished.
+<DocsApprovalLoop />
+
+Reading a record can return an answer immediately. A supported AI write prepares a proposal for review. Inspect the affected record and exact change in [Approvals](/docs/command-center/approvals), approve it when ready, then check the result. This lets AI help with operational work while keeping the decision and its outcome visible.
+
+If a source is missing or a connection is unavailable, the answer should explain the gap. If an action fails, inspect the original result before trying again. [Action results](/docs/start/receipts) explains how to distinguish a prepared draft, an approved request and a completed effect.
+
+## Add the capabilities your business needs
+
+A custom AI tool can expose a narrow business operation: read a service history, prepare a renewal plan, or propose a project update. These are extension ideas; each needs an implementation and verification. Your in-app assistant and a connected external assistant can then use the registered operation through the shared platform.
+
+Explore [plugin examples](/docs/plugins) to see the different building blocks. Reports such as Business Pulse compute findings without a model call. Workflows such as Client onboarding prepare tasks for approval. [Opportunity Radar](/docs/plugins/opportunity-radar) adds a larger review workspace with its own evidence and model-budget controls.
+
+## Bring your preferred assistant
+
+The [MCP connection guide](/docs/extend/mcp-clients) explains how an external assistant can use workspace tools. Connecting a client grants the capabilities available to that workspace, not unrestricted access to every service or database.
+
+For pipeline and revenue analysis, use the [analytics guides](/docs/pipeline/revenue) alongside AI. Recorded amounts, forecasts and missing data have different meanings. AI can help explain the evidence; it should not turn an estimate into a payment or invent a missing fact.

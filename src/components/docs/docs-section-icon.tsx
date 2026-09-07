@@ -10,6 +10,7 @@ import {
   Mail,
   MessageSquareText,
   PlugZap,
+  Puzzle,
   RotateCcw,
   Settings,
   UserPlus,
@@ -19,6 +20,7 @@ import {
 /** One icon per docs section. Shared by the sidebar and the landing index. */
 export const DOCS_SECTION_ICONS: Record<string, LucideIcon> = {
   start: Compass,
+  plugins: Puzzle,
   "command-center": LayoutDashboard,
   pipeline: KanbanSquare,
   conversations: MessageSquareText,

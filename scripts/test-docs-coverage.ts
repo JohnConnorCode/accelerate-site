@@ -204,3 +204,43 @@ test("route groups preserve dynamic token pages without accepting prerendered to
   assert.equal(hasLiveAppRoute("/plan/[token]", routes, new Set(["/plan/[token]"])), false);
   assert.equal(hasLiveAppRoute("/proposal/[token]", routes, new Set()), false);
 });
+
+test("bundled plugins cannot substitute a generic guide or external README", (t) => {
+  const { input } = fixture(t);
+  input.requireBuild = false;
+  input.prerenderRoutes!.push(
+    "/docs/plugins",
+    "/docs/plugins/overview",
+    "/docs/plugins/fixture-plugin",
+  );
+  input.extensionIds = ["fixture-plugin"];
+  input.modules!.push({ id: "fixture-plugin", docsUrl: "/docs/extend/plugins" });
+  assert.ok(
+    inspectDocs(input).failures.some((issue) => issue.includes('Bundled plugin "fixture-plugin"')),
+  );
+  const folder = path.join(input.docsDir!, "plugins");
+  mkdirSync(folder);
+  writeFileSync(
+    path.join(folder, "overview.mdx"),
+    '---\ntitle: Plugins\ndescription: Examples\nupdated: "2026-09-06"\n---\nChoose an example.',
+  );
+  writeFileSync(
+    path.join(folder, "fixture-plugin.mdx"),
+    '---\ntitle: Example\ndescription: A plugin guide\nupdated: "2026-09-06"\n---\nRun the report and inspect the source records.',
+  );
+  input.manifest!.push({
+    id: "plugins",
+    title: "Plugins",
+    description: "Examples",
+    pages: [
+      { slug: ["plugins", "overview"], title: "Plugins", description: "Examples" },
+      { slug: ["plugins", "fixture-plugin"], title: "Example", description: "A plugin guide" },
+    ],
+  });
+  input.modules![1]!.docsUrl = "/docs/plugins/fixture-plugin";
+  assert.deepEqual(inspectDocs(input).failures, []);
+  input.modules![1]!.docsUrl = "https://example.com/README.md";
+  assert.ok(
+    inspectDocs(input).failures.some((issue) => issue.includes('Bundled plugin "fixture-plugin"')),
+  );
+});

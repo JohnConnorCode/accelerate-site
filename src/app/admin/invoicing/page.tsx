@@ -18,7 +18,7 @@ import AdminLink from "@/components/admin/AdminLink";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import type { WorkflowPreview } from "@/lib/revenue-os/workflow-plugins";
-import type { StripeInvoiceReceipt } from "@/lib/revenue-os/stripe-contract";
+import { formatInvoiceAmount, type StripeInvoiceReceipt } from "@/lib/revenue-os/stripe-contract";
 const button =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-50";
 const primary = button + " bg-[var(--admin-ink)] text-[var(--admin-surface)]";
@@ -50,9 +50,6 @@ function minorUnits(value: string) {
   const match = value.trim().match(/^(0|[1-9]\d{0,6})(?:\.(\d{1,2}))?$/);
   if (!match) throw new Error("Enter amounts with at most two decimal places");
   return Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
-}
-function money(amount: number, currency: string) {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amount / 100);
 }
 export default function InvoicingPage() {
   const [designAction, setDesignAction] = useState<string | null>(null);
@@ -658,7 +655,10 @@ export default function InvoicingPage() {
                   <>
                     <p className="admin-copy mt-3 text-sm leading-6">{preview.summary}</p>
                     <p className="mt-4 text-3xl font-semibold tabular-nums">
-                      {money(Number(preview.payload.total), String(preview.payload.currency))}
+                      {formatInvoiceAmount(
+                        Number(preview.payload.total),
+                        String(preview.payload.currency),
+                      )}
                     </p>
                     <button
                       className={`${primary} mt-5`}
@@ -720,8 +720,9 @@ export default function InvoicingPage() {
                       {result?.invoiceId && (
                         <div className="mt-3 space-y-1 text-sm">
                           <p className="font-medium tabular-nums">
-                            {money(result.amountRemaining, result.currency)} outstanding ·{" "}
-                            {money(result.amountPaid, result.currency)} paid · {result.status}
+                            {formatInvoiceAmount(result.amountRemaining, result.currency)}{" "}
+                            outstanding · {formatInvoiceAmount(result.amountPaid, result.currency)}{" "}
+                            paid · {result.status}
                           </p>
                           <p className="admin-copy text-xs">
                             {result.complete

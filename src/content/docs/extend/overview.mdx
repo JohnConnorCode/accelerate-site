@@ -1,25 +1,40 @@
 ---
-title: "Extend the runtime"
-description: "What every extension inherits: approval, audit, module gating, and MCP."
-updated: "2026-09-04"
+title: "Build the capabilities your business needs"
+description: "Add screens, integrations and AI tools while reusing the records and workflows already in place."
+updated: "2026-09-06"
 ---
 
-You can add a module, an integration adapter, a plugin, or an MCP client without forking core. Inbound provider events use webhooks. You do not get a private write path.
+Command Center gives you a starting point for software that fits your business. You can build a specialist workflow around your own records, connect a service you already use, or give AI a new operation it can perform through the workspace.
 
-- [Add a module](/docs/extend/modules). Register a JSON manifest and pages. Nothing in `extensions/` is executed.
-- [Add an integration adapter](/docs/extend/adapters). Verify credentials, encrypt them, and turn inbound events into canonical records.
-- [Plugins](/docs/extend/plugins). Register tools and triggers that still go through governance.
-- [Add an AI tool](/docs/extend/tools). Schema, impact tier, service boundary. Mutating tools propose.
-- [MCP concepts](/docs/extend/mcp) and [connect a client](/docs/extend/mcp-clients). Bounded reads, staged writes, tenant isolation.
-- [Inbound webhooks](/docs/extend/webhooks). Tenant-scoped public routes, signature checks, replay windows.
+For example, a maintenance company could build an equipment-service workspace linked to its existing customers. An agency could turn its kickoff process into an approved checklist. The [bundled plugin examples](/docs/plugins) show working patterns you can study and adapt, from a small report to a complete operator workspace.
 
-Every extension inherits the same governance, by construction:
+## Choose the smallest useful extension
 
-- **Approval queue.** A mutating AI tool can only stage a proposal into `action_queue`. The registry throws if a write tool does not stage one, and if a read tool does.
-- **Audit ledger.** Writes through `src/lib/revenue-os/` land in `audit_log` with actor, origin, and before/after state. No secrets.
-- **Module gating.** Disable a module and its nav disappears, its pages show a disabled notice, its API refuses, and its tools report unavailable to the in-app agent and to MCP.
-- **MCP exposure.** The MCP server offers the same registry the UI uses, with the same impact tier and the same gates.
+| What you want to add                        | Building block                               | A useful starting example                                 |
+| ------------------------------------------- | -------------------------------------------- | --------------------------------------------------------- |
+| A page, navigation item and settings        | [Module](/docs/extend/modules)               | [Inventory registration](/docs/plugins/example-inventory) |
+| A report over existing records              | [Report plugin](/docs/extend/plugins)        | [Business Pulse](/docs/plugins/business-pulse)            |
+| A reviewed operation that creates work      | [Workflow plugin](/docs/extend/plugins)      | [Client onboarding](/docs/plugins/client-onboarding)      |
+| Information or actions from another service | [Integration adapter](/docs/extend/adapters) | [Stripe invoicing](/docs/plugins/stripe-invoicing)        |
+| A new operation an assistant can use        | [AI tool](/docs/extend/tools)                | [Meeting commitments](/docs/plugins/meeting-commitments)  |
+| Access from an external assistant           | [MCP](/docs/extend/mcp)                      | [Connect your client](/docs/extend/mcp-clients)           |
 
-Domain writes belong in `src/lib/revenue-os/`. Route handlers, UI, cron, webhooks, and AI tools are adapters. They do not own business rules.
+A module describes how a capability appears and is configured. A connector supplies access to another system. A plugin adds behavior using capabilities the workspace makes available. They fit together, but they do different jobs.
 
-The field-by-field contract still lives in `docs/contributing/EXTENDING.md` in the repository. These pages are the operator-and-agent version of that contract, kept to shipped behavior.
+## Build on what the platform already knows
+
+Keep a customer's identity, conversations and activity attached to the existing records. Let the shared services handle permissions, proposed actions and execution results. Your extension can focus on the part that is specific to your business: what deserves attention, which inputs matter, and what the next action should be.
+
+That is also a useful brief for a coding assistant. Give it one example to follow, the business outcome, the source records, the required approvals and a concrete acceptance test. Ask it to explain how the extension uses the existing services before introducing new infrastructure. [Your first change](/docs/extend/first-change) walks through the development entry path.
+
+## An example brief you can adapt
+
+> Build a report that finds customers whose service review is due. Use existing customer and task records. Show the source record and reason for each finding. Keep the first version read-only, and include a fictional overdue example, an empty result and a disabled state.
+
+This is a proposed extension, not a bundled service-review feature. Starting with a bounded report makes the result easier to check. You can add a separately reviewed task-creation workflow once the report is useful.
+
+## Connect another service
+
+For a service with an API or suitable export, add an adapter that maps its information into the workspace's records. Inbound changes can use [webhooks](/docs/extend/webhooks). A custom connection still needs authentication, data mapping, permissions and failure handling; not every provider is already supported.
+
+The [extension reference](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/EXTENDING.md) covers the contracts and tests. You can modify the source under its MIT license and run your own deployment. Keep changes focused so future updates remain easier to integrate.

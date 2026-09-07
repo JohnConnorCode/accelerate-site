@@ -1,0 +1,52 @@
+---
+title: "Plugin examples"
+description: "Explore ten bundled examples, from focused reports to complete business workspaces."
+updated: "2026-09-06"
+---
+
+Plugins show how you can shape Command Center around the work your business actually does. Start with a focused report, add a reviewed workflow, or build a dedicated workspace on the shared records and services.
+
+These examples are included in the source. Their guides explain what is implemented, how to try it and which parts you can adapt. A report, a registration scaffold and a complete operator workspace have different capabilities; choose the example that matches the change you want to make.
+
+<DocsFigure
+  src="/images/docs/plugins/radar.png"
+  width={1440}
+  height={1000}
+  alt="Opportunity Radar in the fictional Northline Roofing workspace, showing reviewed business opportunities and source context."
+  caption="One example of a tailored workspace: Radar keeps business opportunities and their evidence together. This is the real interface with fictional demo data."
+/>
+
+## Reports that turn records into a useful review
+
+| Example                                               | What you get                                                    |
+| ----------------------------------------------------- | --------------------------------------------------------------- |
+| [Business Pulse](/docs/plugins/business-pulse)        | Pipeline risks, commitments and meetings in one factual report. |
+| [Pipeline follow-up](/docs/plugins/pipeline-watch)    | Open deals with stale updates or overdue next actions.          |
+| [Overdue commitments](/docs/plugins/commitment-watch) | Overdue tasks linked to the work behind them.                   |
+| [Meeting preparation](/docs/plugins/meeting-prep)     | Upcoming meetings that need preparation time.                   |
+
+These reports compute findings without a model call. They are useful examples of keeping factual business rules in code while letting AI help interpret the result.
+
+## Workflows that create something you can use
+
+| Example                                                  | What you get                                                  |
+| -------------------------------------------------------- | ------------------------------------------------------------- |
+| [Client onboarding](/docs/plugins/client-onboarding)     | A reviewed checklist tied to a won opportunity.               |
+| [Meeting commitments](/docs/plugins/meeting-commitments) | Assigned, dated tasks tied to a meeting.                      |
+| [Stripe invoicing](/docs/plugins/stripe-invoicing)       | Reviewed invoice creation, sending and customer presentation. |
+
+These examples connect a preview to an approval and an execution result. They show how your own workflow can reuse the platform's task or provider services.
+
+## Workspaces for a business process
+
+[Receivables Collections](/docs/plugins/receivables-collections) brings invoice evidence, promises, disputes and reviewed reminders into one case workspace. [Opportunity Radar](/docs/plugins/opportunity-radar) combines a business profile with source-backed growth and relationship reviews. Their guides explain current limits as well as the larger extension patterns.
+
+## Learn the smallest building block
+
+The [Inventory registration example](/docs/plugins/example-inventory) demonstrates a page, navigation and settings. It is a scaffold for learning module registration, not an inventory product.
+
+## Build your own
+
+Choose an example, read its guide, and follow the linked source. Describe your desired business outcome to a coding assistant along with the records it should use and the approvals it must preserve. Then implement and test a focused change using [the extension guide](/docs/extend).
+
+An extension should feel like part of the same workspace: the same customers, the same permissions, and a recorded result your team can inspect. That shared foundation is what lets you spend more time on your business-specific capability.

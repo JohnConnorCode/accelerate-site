@@ -67,7 +67,7 @@
       "impact": "internal_write",
       "reversibility": "compensable"
     },
-    "contractHash": "097583fcb331aec084f93158a64dff32c7f18e452bc7c955aa50a0ee8703c1ae",
+    "contractHash": "27f87482d57e0782ae9ed3fe255904601e3058dd7e593d82dc17e787c459e131",
     "tools": [
       {
         "operation": "prepare-workflow",
@@ -176,5 +176,5 @@
       }
     ]
   },
-  "docsUrl": "https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/meeting-commitments/README.md"
+  "docsUrl": "/docs/plugins/meeting-commitments"
 }

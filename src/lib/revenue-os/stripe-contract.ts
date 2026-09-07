@@ -40,3 +40,15 @@ export type StripeInvoiceReceipt = {
   delivery: "not_requested" | "not_sent_test_mode" | "requested";
   complete: boolean;
 };
+
+/** Missing provider facts remain unknown rather than fabricated balances. */
+export function formatInvoiceAmount(amount: unknown, currency: unknown): string {
+  if (
+    typeof amount !== "number" ||
+    !Number.isFinite(amount) ||
+    typeof currency !== "string" ||
+    !/^[a-zA-Z]{3}$/.test(currency)
+  )
+    return "Unknown amount";
+  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amount / 100);
+}

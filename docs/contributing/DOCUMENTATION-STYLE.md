@@ -47,3 +47,28 @@ A short reference can be complete; a long guide can still omit the first step.
    interaction changes; inspect desktop and mobile rendering for those changes.
 5. Give the reviewer the task, changed pages, source checks and any verification
    limitation. A content checker proves structure, not factual correctness.
+
+## Explain why the product is worth learning
+
+Public entry pages should connect the product's promise to a visible workflow:
+an open-source AI command center, shared business context, an owned deployment
+and database, and capabilities the reader can extend. Explain what the reader can
+accomplish before detailing implementation restrictions. Use connected paragraphs
+and concrete examples; a sequence of short commands is not a product introduction.
+
+Show real interface screenshots using fictional data. Captions should identify
+what the reader is seeing and whether actions are simulated. Include useful alt
+text and a full-size view. Pair a screenshot with an explanation of what to notice;
+do not rely on small UI text to carry the guide on mobile.
+
+Every bundled plugin example needs a dedicated public subpage, linked from the
+plugin index and its manifest. Explain both the first useful task and the pattern
+a developer or coding assistant can adapt. Distinguish a registration scaffold,
+a read-only report, an approved workflow and a dedicated business workspace.
+Keep existing operator and source references accessible.
+
+Describe extensibility confidently and accurately. Owning the source lets a team
+build more capabilities; it does not mean every provider is already supported,
+that AI can execute arbitrary actions, or that a planned worker is running.
+Put practical limits where they affect the workflow, alongside the next useful
+step. Keep product documentation distinct from the broader agency offer.

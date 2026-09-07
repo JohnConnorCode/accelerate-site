@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { DocsFigure } from "@/components/docs/DocsFigure";
+import { ArrowRight, Database, Sparkles, CheckCircle2 } from "lucide-react";
 import { docsManifest } from "@/content/docs/manifest";
 import { seoMetadata } from "@/lib/og";
 import { DocsSectionIcon } from "@/components/docs/docs-section-icon";
@@ -8,7 +9,7 @@ import { DocsSectionIcon } from "@/components/docs/docs-section-icon";
 export const metadata: Metadata = seoMetadata({
   title: "Documentation",
   description:
-    "Learn Command Center, work your daily queue, connect your tools, and extend the runtime.",
+    "Explore an open-source AI command center you own. Connect business context, review actions and build your own capabilities.",
 });
 
 const AUDIENCE_PATHS = [
@@ -45,11 +46,13 @@ export default function DocsLandingPage() {
         Documentation
       </p>
       <h1 className="max-w-[20ch] text-balance font-display text-[clamp(2.2rem,5vw,3.75rem)] font-medium leading-[1.02] tracking-[-0.04em] text-heading">
-        Know what needs you. Keep work moving.
+        Your business. Connected, understood, and ready to act.
       </h1>
       <p className="mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-white-secondary">
-        Command Center connects your conversations, customer records, and next actions. Learn the
-        daily workflow, see what needs approval, and find the guide for your next task.
+        Command Center is an open-source AI workspace for your business. Bring customer records,
+        conversations and work into shared context, ask AI for help, and turn supported requests
+        into reviewed actions. Host it with your own database and build the capabilities your
+        business needs.
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">
@@ -60,12 +63,104 @@ export default function DocsLandingPage() {
           Try your first workflow <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
         <Link
-          href="/docs/workspace/setup"
+          href="/docs/plugins"
           className="inline-flex min-h-11 items-center rounded-xl border border-[var(--rule)] px-5 py-3 text-sm font-medium"
         >
-          Set up your workspace
+          Explore plugin examples
         </Link>
       </div>
+      <DocsFigure
+        src="/images/open-source/slide-today-paper.png"
+        alt="Today in the fictional Northline Roofing workspace, showing priorities and actions awaiting review."
+        caption="See the workspace before you set anything up. The fictional demo uses the real interface; no business accounts or provider keys are needed."
+      />
+      <section aria-labelledby="connected-work-heading" className="mt-12">
+        <h2
+          id="connected-work-heading"
+          className="text-balance font-display text-2xl font-medium tracking-[-0.025em] text-heading"
+        >
+          Give AI the context to help with real work
+        </h2>
+        <p className="mt-3 max-w-2xl text-pretty leading-relaxed text-white-secondary">
+          A customer question can involve a conversation, a proposal and a promised next step.
+          Connected records let you work with that history. Registered tools let AI help you read it
+          and prepare a supported action.
+        </p>
+        <ol
+          aria-label="From business context to a reviewed result"
+          className="mt-6 grid gap-4 md:grid-cols-3"
+        >
+          {[
+            {
+              icon: Database,
+              title: "Connect the context",
+              text: "Bring records together through supported connections and imports. Add an adapter for another service.",
+              href: "/docs/workspace/integrations",
+            },
+            {
+              icon: Sparkles,
+              title: "Ask and understand",
+              text: "Ask about the business, inspect the source records, and see which tools your assistant can use.",
+              href: "/docs/intelligence",
+            },
+            {
+              icon: CheckCircle2,
+              title: "Review and act",
+              text: "Review the exact proposed change, then inspect its recorded result after execution.",
+              href: "/docs/command-center/approvals",
+            },
+          ].map((step, index) => (
+            <li
+              key={step.title}
+              className="min-w-0 rounded-2xl bg-[var(--bg-muted)] p-5 ring-1 ring-inset ring-[var(--rule)]"
+            >
+              <div className="flex items-center justify-between text-white-muted">
+                <step.icon className="h-5 w-5" aria-hidden="true" />
+                <span className="font-mono text-xs">0{index + 1}</span>
+              </div>
+              <h3 className="mt-4 font-semibold text-heading">{step.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-white-secondary">{step.text}</p>
+              <Link
+                href={step.href}
+                className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm font-medium underline underline-offset-4"
+              >
+                Read the guide <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
+        </ol>
+      </section>
+      <section
+        aria-labelledby="build-on-heading"
+        className="mt-12 rounded-2xl border border-[var(--rule)] p-6 sm:p-8"
+      >
+        <p className="text-sm font-medium text-white-muted">
+          Open source · Your database · Your extensions
+        </p>
+        <h2
+          id="build-on-heading"
+          className="mt-3 text-balance font-display text-2xl font-medium tracking-[-0.025em] text-heading"
+        >
+          Build beyond the starting feature set
+        </h2>
+        <p className="mt-3 max-w-2xl text-pretty leading-relaxed text-white-secondary">
+          Turn a won deal into an onboarding checklist. Bring invoice evidence into a Collections
+          workspace. Adapt a report for your team’s review process. The bundled plugins show how to
+          add business-specific behavior while reusing the same customers, permissions and action
+          services.
+        </p>
+        <Link
+          href="/docs/plugins"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 font-medium underline underline-offset-4"
+        >
+          Explore all ten plugin examples <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+        <p className="mt-3 text-sm leading-relaxed text-white-secondary">
+          Use the MIT-licensed source with a developer or coding assistant to build your next
+          capability. New integrations still need implementation, and each guide makes current
+          availability clear.
+        </p>
+      </section>
       <h2 className="mt-12 font-display text-lg font-semibold tracking-[-0.02em] text-heading">
         Start with what you need
       </h2>

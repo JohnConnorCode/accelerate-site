@@ -68,7 +68,7 @@ function seed(pack: DemoScenarioPack, state: DemoBusinessState) {
       status: "executed",
       error: null,
       payload: { contactId: person.id },
-      result: { invoiceId, complete: true },
+      result: { ...state.invoices[state.invoices.length - 1]!.receipt },
       pluginId: "stripe-invoicing",
       created_at: now(),
     });

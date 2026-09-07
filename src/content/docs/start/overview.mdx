@@ -1,35 +1,48 @@
 ---
-title: "Start using Command Center"
-description: "Choose a task, follow its steps and check the result."
-updated: "2026-09-05"
+title: "An AI command center you can make your own"
+description: "Connect your business, work with AI, and build on an open-source foundation you control."
+updated: "2026-09-06"
 ---
 
-Command Center lets a team work with customer records, conversations, opportunities, tasks and proposed AI actions in one application. Use these guides to complete a task or understand a result.
+Your business already has a way of working: the people you serve, the promises you make, the tools you rely on, and the decisions that need your attention. Command Center brings that context into a workspace where your team and AI can work with the same records.
 
-## Try a workflow
+You can review a deal, understand its conversation history, ask AI what needs attention, and prepare the next action without rebuilding the context each time. As your needs grow, you can add your own screens, integrations and plugins. The source is available under the MIT license; you can host the application with your own database and provider accounts.
 
-Open the [fictional demo](/demo/command-center) and follow [your first workflow](/docs/start/daily-path). You will find an item on Today, review an action and check its result. The demo needs no account or provider credentials.
+<DocsFigure
+  src="/images/open-source/slide-today-paper.png"
+  alt="Today in a fictional roofing business, with a priority queue and actions awaiting review."
+  caption="Start with the work that needs a decision. This is the real Command Center interface using fictional demo data."
+/>
 
-## Do your work
+## What changes when your tools share context?
 
-| Task                            | Guide                                                                                        |
-| ------------------------------- | -------------------------------------------------------------------------------------------- |
-| Decide what needs attention     | [Work the Today queue](/docs/command-center/today)                                           |
-| Respond to a customer           | [Reply to a conversation](/docs/conversations/reply)                                         |
-| Qualify a new inquiry           | [Review leads and chat handoffs](/docs/sources/leads)                                        |
-| Update a deal and its next step | [Use the pipeline board](/docs/pipeline/board)                                               |
-| Bring in existing contacts      | [Import contacts](/docs/contacts/import)                                                     |
-| Review a proposed change        | [Approvals](/docs/command-center/approvals)                                                  |
-| Understand a number             | [Revenue figures](/docs/pipeline/revenue)                                                    |
-| Investigate a change or failure | [Activity](/docs/command-center/activity) and [Troubleshooting](/docs/start/troubleshooting) |
+Imagine a customer asks when their project can start. The useful answer depends on more than the message: who they are, which proposal they accepted, and what your team has promised. Linked contacts, conversations, opportunities and tasks give you a place to find that context and keep the next step attached to the right customer.
 
-These guides describe the current application. The features available to you depend on your workspace, permissions, enabled modules and connections. Use [Setup Center](/docs/workspace/setup) to check your installation.
+AI uses the workspace's available tools to read that information and prepare supported changes. You can inspect the sources, review a proposed action, and check its recorded result. The [AI guide](/docs/intelligence) shows how to move from a question to useful work.
 
-## Set up or extend a workspace
+## Start with a working foundation, then shape it
 
-- **Business owners:** [choose a workflow and assign responsibility](/docs/start/business-owners).
-- **Agencies:** [prepare a client workspace and hand it over](/docs/start/agencies).
-- **Developers:** [run the app and make a first change](/docs/extend/first-change).
-- **Self-hosters:** [install with your own database and accounts](/docs/self-hosting/installation).
+The application includes customer records, conversations, pipeline, campaigns, proposals, tasks and analytics. Optional modules let you choose the areas you need. Connections bring external information into the workspace; extensions add business-specific behavior.
 
-For unfamiliar terms, use [Core concepts](/docs/start/core-concepts). For an action that has already run, use [Action results](/docs/start/receipts) to distinguish approval, execution and delivery.
+The [plugin examples](/docs/plugins) make this tangible. Business Pulse combines several sources into a report. Client onboarding turns an approved plan into assigned tasks. Collections connects invoice evidence to a reviewed reminder. Each example explains what runs today and what you could build on top of it.
+
+A coding assistant can help implement those extensions using the same records, permissions and action services as the existing application. You still review and test the result. An extensible foundation gives you room to build; it does not make an unimplemented integration appear automatically.
+
+## Explore it before connecting your business
+
+Open the [fictional demo](/demo/command-center), then follow [your first workflow](/docs/start/daily-path). It needs no account or provider keys, and its actions stay inside the demo. Look at Today, open a customer conversation, and inspect an approval to see how the pieces connect.
+
+When you are ready to use your own data, follow [installation](/docs/self-hosting/installation) and [workspace setup](/docs/workspace/setup). You control the deployment and database. Connected providers still process the information you send them under their own terms, and hosting, email and model usage can incur costs.
+
+## Choose where to go next
+
+| Your goal                                 | Start here                                       |
+| ----------------------------------------- | ------------------------------------------------ |
+| Understand and try the daily workflow     | [Your first workflow](/docs/start/daily-path)    |
+| Ask questions and prepare actions with AI | [Work with business context](/docs/intelligence) |
+| Connect existing tools and data           | [Integrations](/docs/workspace/integrations)     |
+| See what an extension can become          | [Plugin examples](/docs/plugins)                 |
+| Build a capability for your business      | [Extend the runtime](/docs/extend)               |
+| Run an instance you control               | [Self-hosting](/docs/self-hosting/installation)  |
+
+The guides describe the current application. Availability depends on your enabled modules, permissions and connections. The [capability reference](/docs/command-center/capabilities) helps you understand the tools your workspace can actually use.

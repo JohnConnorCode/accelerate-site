@@ -243,6 +243,17 @@ export function inspectDocs(input: DocsInspectionInput = {}) {
 
   // 8. Non-extension modules and user-guide sections are a bijection via docsUrl.
   const extensionIds = new Set(input.extensionIds ?? EXTENSION_MODULES.map((mod) => mod.id));
+  // Bundled examples need an individual public guide, not a repository README
+  // or a generic extension landing page. Existing page checks verify its prose.
+  for (const id of extensionIds) {
+    const pluginModule = modules.find((item) => item.id === id);
+    const expected = `/docs/plugins/${id}`;
+    if (!pluginModule || pluginModule.docsUrl !== expected || !manifestKeys.has(`plugins/${id}`)) {
+      failures.push(
+        `Bundled plugin "${id}" needs its dedicated public guide at "${expected}" and matching docsUrl.`,
+      );
+    }
+  }
   const firstPartyIds = new Set(
     modules.filter((mod) => !extensionIds.has(mod.id)).map((mod) => mod.id),
   );

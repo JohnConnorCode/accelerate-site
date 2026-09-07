@@ -1,6 +1,18 @@
 import Image from "next/image";
 
-export function DocsFigure({ src, alt, caption }: { src: string; alt: string; caption: string }) {
+export function DocsFigure({
+  src,
+  alt,
+  caption,
+  width = 1400,
+  height = 875,
+}: {
+  src: string;
+  alt: string;
+  caption: string;
+  width?: number;
+  height?: number;
+}) {
   return (
     <figure className="not-prose my-8">
       <a
@@ -12,8 +24,8 @@ export function DocsFigure({ src, alt, caption }: { src: string; alt: string; ca
         <Image
           src={src}
           alt={alt}
-          width={1400}
-          height={875}
+          width={width}
+          height={height}
           sizes="(max-width: 1023px) 100vw, 800px"
           className="h-auto w-full rounded-xl outline outline-1 outline-black/10"
         />

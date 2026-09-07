@@ -76,6 +76,10 @@ try {
       await page.screenshot({
         path: `${output}/${scenario}-${mobile ? "mobile" : "desktop"}-branding.png`,
       });
+      // Collections seeds invoices into the same history. Their receipts must
+      // remain renderable when the operator subsequently opens Invoicing.
+      await page.goto(root + "/collections");
+      await page.getByRole("button", { name: "Preview reminder", exact: true }).waitFor();
       await page.goto(root + "/invoicing");
       await page.getByRole("button", { name: "Use sample invoice" }).click();
       await page.getByRole("button", { name: "Prepare invoice", exact: true }).click();

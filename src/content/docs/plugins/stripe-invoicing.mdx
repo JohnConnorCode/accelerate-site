@@ -1,0 +1,36 @@
+---
+title: "Stripe invoicing"
+description: "Prepare an invoice from a customer record, review it, and follow its provider result."
+updated: "2026-09-06"
+---
+
+Invoicing connects a business decision to a real financial document. This example shows how an extension can use existing customer records, a connected provider and the shared approval flow, with a separate record of what Stripe actually accepted.
+
+## Try a complete invoice
+
+Enable **Stripe invoicing** in **Plugins**, configure the workspace's Stripe connection in **Integrations**, and open `/admin/invoicing`. Credentials belong in the server-only connection controls. Verify test or live mode before a provider action.
+
+1. Select an existing contact and its matching Stripe billing customer.
+2. Enter currency, line items and payment terms. For a fictional example, use one consulting session at `125.00` USD, quantity one. The UI uses normal currency units; the corresponding API value is `12500` minor units.
+3. Preview the recipient, amount and terms, then submit the exact draft for approval.
+4. After approval execution, inspect the provider result. Use the separate reviewed send control when ready, and check its receipt.
+
+A created draft, a sent invoice and a paid invoice are different states. The demo simulates provider actions with fictional records and does not create a live invoice.
+
+## Give the customer a coherent experience
+
+The invoice presentation controls support a branded customer page. Review an AI-assisted design before the separate publication approval. Public content should contain only information intended for the recipient. Demo previews remain inside the browser scenario; they are not live public links.
+
+## What this example teaches you to build
+
+An external action needs more than a form. The plugin connects a source record, a reviewable plan, provider execution and a durable result. You can study this pattern when adding another billing or document service.
+
+AI tools `prepare_stripe_invoice` and `propose_stripe_invoice` use the same services as the interface. Provider secrets stay on the host, and the model cannot approve its own action. See the [workflow source](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/stripe-invoicing/workflow.js) and [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/stripe-invoicing/README.md) for contracts, verification and upgrade behavior.
+
+## Costs and recovery
+
+Draft preparation is deterministic. Stripe usage, hosting and any AI design or chat can incur their normal costs. There is no plugin-specific unlimited free allowance.
+
+If the contact has no matching Stripe customer, correct or add the billing customer and refresh the choices. After a timeout, inspect the original action and provider invoice before retrying with its existing identity. A changed draft needs a new preview and approval.
+
+Disabling the plugin blocks later plugin execution. Existing invoices, payments and published pages remain; revoke a public page using its explicit controls. Disabling does not reverse a provider effect. Controlled tests in the developer guide do not prove a live connection or payment.

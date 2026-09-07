@@ -124,6 +124,13 @@ try {
     });
     await page.goto(base + "/demo/command-center/northline-roofing/setup");
     await page.getByRole("button", { name: "Refresh checks", exact: true }).waitFor();
+    // Wait for the initial demo transport and Setup read to settle before
+    // overriding the response; an in-flight initial load can overwrite fixtures.
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll("button")].some(
+        (button) => button.textContent?.includes("Refresh checks") && !button.disabled,
+      ),
+    );
     for (const state of visualStates) {
       // Controlled response exercises the shared Setup screen. Runtime state rules
       // are proved separately by test-booking-mode-contract.ts; no live API is mocked as proof.

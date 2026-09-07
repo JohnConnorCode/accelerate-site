@@ -1,0 +1,48 @@
+---
+title: "Meeting commitments"
+description: "Turn an existing meeting into assigned tasks with dates and a reviewed plan."
+updated: "2026-09-06"
+---
+
+Meetings become useful when the agreed next steps turn into work someone owns. This plugin connects an explicit checklist to a stored meeting so the commitments remain traceable.
+
+<DocsFigure
+  src="/images/docs/plugins/meeting-commitments.png"
+  width={1440}
+  height={1000}
+  alt="Meeting commitments showing a fictional meeting follow-up and its assigned tasks."
+  caption="See the work that follows a meeting. Tasks and completion states shown here are fictional demo records."
+/>
+
+## Complete your first checklist
+
+Enable **Meeting commitments** in **Plugins**, then open `/admin/meeting-commitments`. You need an authorized workspace, a stored meeting and valid task assignees. The plugin starts disabled and has no extra provider credentials or public settings.
+
+1. Select the stored meeting that the work belongs to.
+2. Enter one to ten tasks, each with a title, description, due date and assignee.
+3. Preview the plan and check the source, dates and owners. Submit that exact version for approval.
+4. Approve it through the shared action queue, then inspect the execution result and the created tasks.
+
+For a fictional example, prepare two tasks: send the agreed summary and confirm the next appointment. After successful approval execution, expect two assigned tasks linked to the selected source. A preview or pending proposal has not created them yet. The [demo](/demo/command-center) uses the actual admin components with session-local fictional data.
+
+## Use it through AI
+
+The registered tools `prepare_meeting_commitments` and `propose_meeting_commitments` use the same workflow as the interface. Preparation returns a reviewable plan; proposing uses that plan's digest and a stable request identity. The assistant cannot approve its own task creation.
+
+At execution, the host checks the workspace, enabled plugin, source, assignments and approved plan again. If those facts have changed, prepare and review a new plan. This keeps the task list attached to the decision you actually made.
+
+## What this example teaches you to build
+
+Build another source-to-task workflow using the same preview, approval and task-creation services. This version takes the tasks you enter; automatic extraction from a transcript would be an additional capability to implement and verify.
+
+The [workflow source](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/meeting-commitments/workflow.js) produces a bounded plan. The shared host owns permissions and business writes. You can change the business-specific plan while reusing the approval queue, task records and execution receipts.
+
+## Costs, disabling and recovery
+
+Checklist preparation and task creation are deterministic and make no paid model or provider request. Hosting and database costs still apply; surrounding AI chat uses the configured model.
+
+Disable the plugin in **Plugins** to block later execution, including pending approvals. Existing tasks and receipts remain. Use normal task controls to edit or complete work already created.
+
+If the source or an assignee is missing, correct the input and preview again. After an uncertain result, inspect the original receipt and reuse its request identity for a retry; do not submit a fresh request just to bypass the uncertainty. Code or policy upgrades can invalidate previews, which need a fresh review.
+
+The [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/meeting-commitments/README.md) covers the contracts and `npm run test:business-workflows`. Controlled tests and fictional demo behavior are distinct from verification of your own workspace permissions and database.

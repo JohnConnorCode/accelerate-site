@@ -1,21 +1,33 @@
 ---
-title: "Integrations and modules"
-description: "Providers, module switches, and the MCP key, from the operator console."
-updated: "2026-09-04"
+title: "Connect your tools and data"
+description: "Bring external context into the workspace and make supported actions available to your team and AI."
+updated: "2026-09-06"
 ---
 
-`/admin/integrations` is one console for providers, module switches, and the workspace MCP key.
+Connections make Command Center useful alongside the tools your business already relies on. A customer message, calendar event or invoice can become part of the context you use to make a decision, instead of remaining an isolated fact in another application.
 
-## Providers
+Open **Integrations** in your workspace to inspect provider connections, module controls and the MCP connection key. Your available providers depend on the adapters included in your installation. A listed or planned provider is not necessarily a working connection.
 
-Each card is evidence-backed: connected, planned, or degraded. Configuration is not health. A planned provider does not appear installed. Google Workspace, Resend, and similar first-party paths are the ones to use before adding another vendor.
+## Make your first connection useful
 
-Connecting a provider that has an [adapter](/docs/extend/adapters) runs verify, encrypts the declared credential fields, and stores a receipt. Credentials never come back in API responses or logs.
+Choose a workflow before adding credentials. If you want to work with invoices, start with the [Stripe invoicing example](/docs/plugins/stripe-invoicing). If you want an external assistant to read and propose workspace actions, start with [MCP setup](/docs/extend/mcp-clients). Connect only the accounts and permissions that workflow requires.
 
-## Modules
+For a supported provider, follow its setup controls, verify the connection and inspect its reported state. Credentials are handled through the platform's server-only connection storage. Public module settings are for ordinary configuration; do not paste secrets into them.
 
-Optional modules turn off from this screen. Core modules stay on. Each card links to its [guide](/docs/start/modules). The documentation URL is verified in CI.
+After setup, test the intended workflow with a controlled record. Saving credentials establishes configuration, while a successful verified operation establishes that the connection works for that task. If the connection becomes degraded, inspect its failure and correct access or provider settings before retrying.
 
-## MCP
+## Connect a service that is not built in
 
-Generate a tenant MCP key here. It is shown once. Use it as a Bearer token against `/api/public/<tenantSlug>/mcp`. See [Connect an MCP client](/docs/extend/mcp-clients).
+The open-source adapter interface is the route for adding another service or data source. A developer or coding assistant can implement authentication, map incoming data to the right business records, and expose the supported actions. Start with [integration adapters](/docs/extend/adapters) and [inbound webhooks](/docs/extend/webhooks).
+
+“Extensible” means you can build that connection. It does not mean every service already has an adapter, or that any API can be connected without implementation work. The provider's API, permissions, rate limits and terms determine what is possible.
+
+## Choose the capabilities available to a workspace
+
+Optional modules control which areas of the application a workspace uses. Plugins can require particular modules or provider connections. Their [individual guides](/docs/plugins) explain setup, permissions, costs and what happens when you disable them.
+
+## Connect an external AI assistant
+
+Generate a workspace MCP key from the integration controls and follow the [client guide](/docs/extend/mcp-clients). The key is shown once. Store it as a secret in the client's configuration; do not put it in a chat message, screenshot or public repository.
+
+The client uses the workspace's registered tools and approval rules. It can help with supported questions and actions while your records remain in the database you control. Providers may process data sent through their services, and connected AI or email usage can incur their normal charges.
