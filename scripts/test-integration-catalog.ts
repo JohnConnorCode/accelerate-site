@@ -74,10 +74,7 @@ assert.equal(
   "available",
   "unconfigured Calendly attribution is available, not Ready",
 );
-assert.match(
-  provider(baseline, "calendly").guardrail,
-  /Manual scheduling remains usable/,
-);
+assert.match(provider(baseline, "calendly").guardrail, /Manual scheduling remains usable/);
 
 const calendlyTokenOnly = buildIntegrationCatalog(
   evidence({

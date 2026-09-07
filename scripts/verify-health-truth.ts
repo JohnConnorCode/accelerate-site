@@ -102,14 +102,16 @@ async function main() {
       "next expected execution is last receipt plus cadence, not a wall-clock bucket",
       Boolean(
         overdueRun?.nextExpectedAt &&
-          overdueRun.nextExpectedAt < Date.now() &&
-          overdueRun.nextExpectedAt > Date.parse(staleSuccess),
+        overdueRun.nextExpectedAt < Date.now() &&
+        overdueRun.nextExpectedAt > Date.parse(staleSuccess),
       ),
       overdueRun,
     );
     check(
       "an overdue successful job still requires attention",
-      withOverdue.concerns.some((c) => c.kind === "job" && c.key === OVERDUE_JOB_KEY && /overdue/i.test(c.detail)),
+      withOverdue.concerns.some(
+        (c) => c.kind === "job" && c.key === OVERDUE_JOB_KEY && /overdue/i.test(c.detail),
+      ),
       withOverdue.concerns.filter((c) => c.key === OVERDUE_JOB_KEY),
     );
   } finally {

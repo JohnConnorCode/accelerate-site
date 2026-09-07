@@ -166,10 +166,7 @@ assert.match(sources.catalogLoad, /calendly_webhook_receipts/);
 assert.doesNotMatch(sources.bookingMachine, /Set `CALENDLY_ENABLED=true`/);
 assert.match(sources.bookingMachine, /src\/lib\/booking\.ts/);
 assert.match(sources.setupDoc, /tenant\.capabilities\.publicBooking/);
-assert.doesNotMatch(
-  sources.setupDoc,
-  /active booking path when `CALENDLY_ENABLED` is not `false`/,
-);
+assert.doesNotMatch(sources.setupDoc, /active booking path when `CALENDLY_ENABLED` is not `false`/);
 assert.doesNotMatch(
   sources.envExample,
   /^CALENDLY_ENABLED=false$/m,

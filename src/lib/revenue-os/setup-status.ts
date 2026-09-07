@@ -82,9 +82,7 @@ export const CALENDLY_ATTRIBUTION_EVENT_TYPES = ["invitee.created", "invitee.can
 export const CALENDLY_ATTRIBUTION_FRESHNESS_HOURS = 720;
 
 export function isCalendlyAttributionEvent(eventType: string | null | undefined): boolean {
-  return (
-    eventType === "invitee.created" || eventType === "invitee.canceled"
-  );
+  return eventType === "invitee.created" || eventType === "invitee.canceled";
 }
 
 export function isFreshEvidence(

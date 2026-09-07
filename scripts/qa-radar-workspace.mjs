@@ -133,6 +133,7 @@ try {
       await page.reload();
       await page.getByText("Simulated sent", { exact: true }).waitFor();
       assert.equal(await page.getByText("Simulated sent", { exact: true }).count(), 1);
+      await page.getByText("Simulated sent", { exact: true }).scrollIntoViewIfNeeded();
       await page.screenshot({
         path: `${output}/${scenario}-${width}-outreach-receipt.png`,
         fullPage: true,

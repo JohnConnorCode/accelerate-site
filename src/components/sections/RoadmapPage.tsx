@@ -350,11 +350,25 @@ export function RoadmapPageContent({
       <div aria-live="polite" className="mt-12 flex flex-col gap-14">
         {filtered.length === 0 && (
           <p className="text-sm text-white-secondary">
-            {hasFilters
-              ? "No roadmap items match your search or filter."
-              : availability === "ready"
-                ? "Nothing here yet."
-                : "No roadmap items are available to display."}
+            {availability === "unconfigured" ? (
+              <>
+                No workspace data is connected.{" "}
+                <Link href="/demo/command-center/northline-roofing" className="underline">
+                  Explore the fictional Command Center
+                </Link>{" "}
+                or follow the{" "}
+                <Link href="/docs/self-hosting/overview" className="underline">
+                  setup guide
+                </Link>
+                .
+              </>
+            ) : availability === "unavailable" ? (
+              "The connected roadmap could not be loaded. Please try again shortly."
+            ) : hasFilters ? (
+              "No roadmap items match your search or filter."
+            ) : (
+              "Nothing here yet."
+            )}
           </p>
         )}
         {COLUMN_ORDER.map((status) => {
@@ -388,27 +402,29 @@ export function RoadmapPageContent({
       </div>
 
       {/* suggest */}
-      <div className="mt-16 grid gap-8 border-t border-border-glass pt-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
-        <div>
-          <h2 className="font-display text-2xl font-semibold text-heading">Got an idea?</h2>
-          <p className="mt-2 max-w-md text-sm leading-relaxed text-white-secondary">
-            Suggest a feature. A founder reviews every submission before it appears here.
-          </p>
+      {availability === "ready" && (
+        <div className="mt-16 grid gap-8 border-t border-border-glass pt-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
+          <div>
+            <h2 className="font-display text-2xl font-semibold text-heading">Got an idea?</h2>
+            <p className="mt-2 max-w-md text-sm leading-relaxed text-white-secondary">
+              Suggest a feature. A founder reviews every submission before it appears here.
+            </p>
+          </div>
+          <div>
+            {!showSuggest && (
+              <button
+                type="button"
+                onClick={() => setShowSuggest(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-border-glass px-4 py-2 text-sm font-medium text-heading transition-colors hover:border-border-gold hover:text-gold"
+              >
+                <Send className="h-4 w-4 text-gold" />
+                Suggest a feature
+              </button>
+            )}
+            {showSuggest && <SuggestForm />}
+          </div>
         </div>
-        <div>
-          {!showSuggest && (
-            <button
-              type="button"
-              onClick={() => setShowSuggest(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-border-glass px-4 py-2 text-sm font-medium text-heading transition-colors hover:border-border-gold hover:text-gold"
-            >
-              <Send className="h-4 w-4 text-gold" />
-              Suggest a feature
-            </button>
-          )}
-          {showSuggest && <SuggestForm />}
-        </div>
-      </div>
+      )}
     </Section>
   );
 }
