@@ -17,6 +17,11 @@ export const commandCenterFaqs: FAQ[] = [
       "That is a planned capability. The intended flow is to describe an App, preview an isolated draft, inspect its code and requested access, verify it, and publish a version that can be updated or rolled back. Today a coding assistant can build source changes through the repository's development and review workflow; the general-purpose in-app builder and development terminal are not yet available.",
   },
   {
+    question: "Can I point any coding agent at the backlog?",
+    answer:
+      "Yes. A plain-language request such as “pick up work from the backlog and go until it is completed and committed; follow protocol” is enough. The repository entrypoint resolves the configured private transport, chooses one eligible task, creates its approved isolated worktree, supplies the full acceptance packet, and keeps the agent moving through verification, commit and evidence submission. The agent does not need a ticket key or a special provider-specific command, and it does not ask you to paste credentials.",
+  },
+  {
     question: "Where can I explore the bundled plugins?",
     answer:
       "The public documentation includes individual guides for all ten bundled plugins, with fictional examples, setup steps, approval requirements, costs and recovery instructions. Start at /docs/plugins to explore reports, invoice workflows, Collections and Opportunity Radar, then adapt the open-source examples to your business.",

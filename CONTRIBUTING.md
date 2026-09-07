@@ -2,6 +2,16 @@
 
 Thanks for helping improve Accelerate Revenue OS.
 
+## Pick up work from a plain-language request
+
+If a maintainer asks you to “pick up work from the backlog,” “take the next
+task,” or “go until it is completed and committed,” treat that as permission to
+execute the repository workflow. Read `AGENTS.md`, run its internal pickup
+runner, and continue through the live packet, verification, exact commit and
+evidence submission. Do not require the maintainer to know a CLI command or
+ticket key, and do not stop after a status or orientation response. See
+[Natural-language agent execution](docs/contributing/NATURAL-LANGUAGE-AGENT.md).
+
 ## Before opening a change
 
 1. Start with [the developer handoff](docs/contributing/DEVELOPER-START.md). The live Feature Board owns current scope, readiness and claims. Public roadmap entries and Git templates are orientation; confirm the live ticket before starting assigned work.
@@ -12,7 +22,7 @@ Thanks for helping improve Accelerate Revenue OS.
 
 ## Local workflow
 
-Start the fictional demo without credentials using `npm ci`, `npm run dev:doctor` and `npm run dev`. Assigned work additionally needs the maintainer-provided board endpoint, scoped token and approved test environment described in [the developer handoff](docs/contributing/DEVELOPER-START.md).
+Start the fictional demo without credentials using `npm ci`, `npm run dev:doctor` and `npm run dev`. Assigned work uses the configured private transport and approved test environment described in [the developer handoff](docs/contributing/DEVELOPER-START.md): remote workers use the maintainer-provided board endpoint and scoped token, while an authorized local operator uses the named-project profile.
 
 ```bash
 npm ci

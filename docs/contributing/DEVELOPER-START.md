@@ -23,24 +23,45 @@ Open `/demo/command-center` on the local server to explore fictional data. Node 
 
 ## Connect to assigned work
 
+### Natural-language pickup
+
+Agents should understand “pick up work from the backlog and go until it is
+completed and committed” as the complete execution request. The user does not
+need to provide a card key or the internal command name. After reading the
+repository entrypoint, run the internal `agent:go` runner, accept its selected
+worktree and packet, and continue until evidence is submitted or an explicit
+operator block is returned. Do not stop at `git status`, `git log`, broad
+documentation browsing, or a status-only answer. See [Natural-language agent
+execution](NATURAL-LANGUAGE-AGENT.md).
+
 The maintainer must provide all of the following before a developer is expected to pick up tickets:
 
-| Required handoff                                                        | What it establishes                                                                                                               |
-| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Published development ref and exact commit                              | Another machine can fetch the agreed code.                                                                                        |
-| HTTPS board URL running packet protocol v2                              | All workers use the same current definitions, claims and evidence.                                                                |
-| Individually issued token with project, scopes, expiry and capabilities | The worker can read, claim, heartbeat, progress, release, block and submit only authorized work. Review authority stays separate. |
-| Approved isolated test workspace and any required provider sandbox      | Service and integration verification can run without production keys or customer data.                                            |
-| Named reviewer and integration/release owner                            | Submitted work has a clear next owner.                                                                                            |
+| Required handoff                                                                                                                                   | What it establishes                                                                                                               |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Published development ref and exact commit                                                                                                         | Another machine can fetch the agreed code.                                                                                        |
+| HTTPS board URL running packet protocol v2 for remote workers, or the local Supabase board for an owner-authorized local profile                   | All workers use the same current definitions, claims and evidence.                                                                |
+| Individually issued remote token with project, scopes, expiry and capabilities, or an owner-authorized local operator profile with a named project | The worker can read, claim, heartbeat, progress, release, block and submit only authorized work. Review authority stays separate. |
+| Approved isolated test workspace and any required provider sandbox                                                                                 | Service and integration verification can run without production keys or customer data.                                            |
+| Named reviewer and integration/release owner                                                                                                       | Submitted work has a clear next owner.                                                                                            |
 
-Put only the supplied `WORK_BOARD_URL` and `WORK_BOARD_TOKEN` in an ignored `.env.agent.local` file, or export them from your secret manager. The CLI and doctor load that file automatically. Never paste the token into a ticket, commit, terminal argument or screenshot. A worktree does not inherit environment files: provide the same scoped token through the environment or a private file in the new checkout.
+For remote dispatch, put only the supplied `WORK_BOARD_URL` and `WORK_BOARD_TOKEN` in an ignored `.env.agent.local` file, or export them from your secret manager. For owner-operated local dispatch, the maintainer may configure one private `work-board-operator.json` profile with a named project and the existing `.env.local`; `agent:go` detects it automatically in every worktree. The CLI and doctor load the configured private transport automatically. Never paste a token or database key into a ticket, commit, terminal argument or screenshot. A worktree does not inherit environment files; the shared private profile supplies the transport without another user prompt.
 
 ```bash
 npm run dev:doctor -- --board
-npm run agent:status
-npm run agent:show -- --card <ticket-key>
-npm run agent:next -- --card <ticket-key> --json
+npm run agent:go -- --json
 ```
+
+The board doctor is the remote HTTP readiness check. A configured local operator
+profile is checked by `agent:go` itself and does not need a remote URL or token.
+
+For a named task, add `--card <ticket-key>`. The first connected machine can
+create its private reusable profile with
+`npm run agent:setup -- --env-file /absolute/path/to/.env.agent.local`; the
+profile contains no credential. An owner-authorized local profile uses
+`npm run agent:setup -- --local-operator --project accelerate --env-file /absolute/path/to/.env.local`;
+it contains only the named project and env-file path. The natural-language request in
+[Natural-language agent execution](NATURAL-LANGUAGE-AGENT.md) is the normal
+user interface after setup.
 
 The board doctor makes only authenticated GET requests. It reports incompatible deployments, missing scopes and unfinished strict-write rollout. Resolve blocked checks with the maintainer before unattended shared dispatch. Per-ticket dependencies, capability requirements and WIP limits still apply.
 

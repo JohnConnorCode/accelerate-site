@@ -15,6 +15,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Added
 
+- Natural-language backlog execution for coding agents. A plain-language request selects one eligible task, creates its approved worktree, and carries the worker through verification, commit, and evidence submission without requiring a ticket key or internal command name.
+- Owner-authorized local operator profiles are now detected across worktrees, so the same plain-language flow can use the canonical local Supabase board without a credential prompt; remote workers keep scoped HTTPS transport.
 - Reviewed Radar outreach: shared draft preparation, exact approval, consented introductions, canonical sender, durable reservations, cooldowns, daily limits and receipt recovery. Default remains draft-only.
 - Transactional proposal lifecycle and successor revisions, source-output health with live processing backlog, unified booking readiness and registered model-job attribution.
 

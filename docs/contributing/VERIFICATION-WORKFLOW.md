@@ -35,7 +35,9 @@ name files and pattern categories without printing secret values. Pattern checks
 are a useful early guard, not a guarantee that a repository contains no secrets.
 
 `npm run verify:commit` runs the same checks manually. Live Feature Board status
-remains explicit operational work: `agent:next`, `agent:heartbeat`,
+remains explicit operational work: the natural-language `agent:go` pickup
+runner accepts requests to pick up work from the backlog, followed by
+`agent:heartbeat`,
 `agent:complete`, and `verify:feature-status`. A network outage or another agent's
 lease change must not prevent saving a local checkpoint.
 

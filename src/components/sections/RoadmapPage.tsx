@@ -9,7 +9,14 @@ import { cn } from "@/lib/utils";
 import { FEATURE_STATUS_META, type FeatureStatus } from "@/lib/feature-board";
 import type { PublicRoadmapCard } from "@/lib/roadmap";
 
-const COLUMN_ORDER: FeatureStatus[] = ["in_progress", "planned", "blocked", "backlog", "shipped"];
+const COLUMN_ORDER: FeatureStatus[] = [
+  "in_progress",
+  "in_review",
+  "planned",
+  "blocked",
+  "backlog",
+  "shipped",
+];
 
 function acceptanceLines(card: PublicRoadmapCard): string[] {
   return card.acceptance_criteria
@@ -22,7 +29,10 @@ function RoadmapCard({ card }: { card: PublicRoadmapCard }) {
   const [open, setOpen] = useState(false);
   const lines = acceptanceLines(card);
   return (
-    <div className="rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] p-5 backdrop-blur-md transition-colors hover:border-[var(--border-glass-hover)]">
+    <div
+      id={`roadmap-${card.seed_key}`}
+      className="scroll-mt-24 rounded-2xl border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] p-5 backdrop-blur-md transition-colors hover:border-[var(--border-glass-hover)]"
+    >
       <div className="flex flex-wrap items-center gap-2">
         {card.category && (
           <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-gold">
@@ -34,7 +44,12 @@ function RoadmapCard({ card }: { card: PublicRoadmapCard }) {
         </span>
       </div>
       <h3 className="mt-2 font-display text-base font-semibold leading-snug tracking-[-0.01em] text-heading">
-        {card.title}
+        <Link
+          href={`/roadmap#roadmap-${encodeURIComponent(card.seed_key)}`}
+          className="underline decoration-dotted underline-offset-4 hover:text-gold"
+        >
+          {card.title}
+        </Link>
       </h3>
       {card.description && (
         <p className="mt-2 text-sm leading-relaxed text-white-secondary">{card.description}</p>

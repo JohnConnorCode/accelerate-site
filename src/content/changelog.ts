@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "natural-language-agent-pickup",
+    slug: "natural-language-agent-pickup",
+    title: "Any coding agent can pick up the next backlog task from plain language",
+    description:
+      "A request such as “pick up work from the backlog and go until it is completed and committed; follow protocol” now starts the governed developer workflow without a ticket key or provider-specific command. The entrypoint selects one eligible card, preserves claim ownership, creates the approved isolated worktree, supplies the full packet, repairs dated report drift, and continues through verification, commit and evidence submission. An owner-authorized local operator profile is detected across worktrees and uses the canonical local board without a credential prompt; remote workers keep scoped HTTPS transport. Review, merge and deployment remain separate recorded steps.",
+    category: "improvement",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "shared-today-work-views",
     slug: "shared-today-work-views",
     title: "Today separates attention, and Work shares tasks and approvals",

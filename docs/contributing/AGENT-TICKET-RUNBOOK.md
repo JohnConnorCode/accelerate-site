@@ -24,20 +24,31 @@ Key concepts you will encounter on the board:
 
 ## 1. Orient and claim
 
+The natural-language request “pick up work from the backlog and go until it is
+completed and committed” is the default command for this runbook. Do not ask
+the user to translate it into a card key or CLI sequence. Read the entrypoint,
+run the internal `agent:go` runner immediately, and keep working until evidence
+is submitted or a precise operator-required block is recorded. A status page,
+`git log`, or stale generated report is not a terminal result.
+
 From `accelerate-site/`:
 
 ```bash
-git status --short
-npm run dev:doctor -- --board
-npm run agent:show -- --card <key>
-npm run agent:next -- --card <key>
+npm run agent:go -- --json
 ```
 
-Configure `WORK_BOARD_URL` and a scoped `WORK_BOARD_TOKEN` from the founder's
-Agent access panel. The canonical protocol is
+For an unqualified backlog request, the equivalent first action is the
+internal `npm run agent:go -- --json`; it chooses the next eligible card and
+returns the same packet without requiring the user to name `<key>`.
+
+Use the configured private transport: remote workers use `WORK_BOARD_URL` and a
+scoped `WORK_BOARD_TOKEN` from the founder's Agent access panel; an
+owner-authorized local worker uses the named-project profile in the Git common
+directory and the existing local Supabase environment. The canonical protocol is
 [UNIVERSAL-WORK-BOARD.md](../contracts/UNIVERSAL-WORK-BOARD.md).
-`agent:next` atomically claims ready work through that HTTP service and returns
-the live contract. Read all referenced services/migrations before editing.
+The selected transport atomically claims ready work through the canonical service
+and returns the live contract. Read all referenced services/migrations before
+editing.
 The repository base branch and exact commit must be present before worktree
 creation. An expired claim needs operator review; no automatic reassignment or
 force cleanup is allowed. Renew the lease at least every 30 minutes.

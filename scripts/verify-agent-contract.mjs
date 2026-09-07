@@ -24,9 +24,11 @@ const requiredFiles = [
   "docs/contracts/ADMIN-DEMO-CONTRACT.md",
   "docs/contracts/WORK-MOTION-CONTRACT.md",
   "docs/contributing/PROGRAM-WAVES.md",
+  "docs/contributing/NATURAL-LANGUAGE-AGENT.md",
   "src/lib/revenue-os/README.md",
 ];
 const failures = [];
+const pickupMode = process.argv.includes("--pickup");
 if (existsSync("docs/planning/backlog-snapshot.json"))
   failures.push(
     ...validateSnapshot(JSON.parse(readFileSync("docs/planning/backlog-snapshot.json", "utf8"))),
@@ -157,10 +159,12 @@ for (const warning of boardIntegrity.warnings) console.warn(`warning: ${warning}
 // history shipped and called done. See scripts/verify-wiring.mjs.
 failures.push(...collectWiringFailures());
 
-if (!(await buildPlanIsInSync()))
-  failures.push(
-    "docs/NORTHSTAR-BUILD-PLAN.md is out of date. Run `npm run report:build-plan` and commit the result.",
-  );
+if (!(await buildPlanIsInSync())) {
+  const message =
+    "docs/NORTHSTAR-BUILD-PLAN.md is out of date. Run `npm run report:build-plan` and commit the result.";
+  if (pickupMode) console.warn(`pickup warning: ${message}`);
+  else failures.push(message);
+}
 
 // The program waves doc sequences stable card keys but never owns their
 // mutable status. Resolve every `card:<key>` reference against the manifest so

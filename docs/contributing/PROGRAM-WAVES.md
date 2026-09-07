@@ -5,16 +5,20 @@
 This document is the dependency-ordered execution program for a coordinated
 multi-agent implementation effort — any coding agent, not a specific model or
 vendor. It is not a second roadmap and never owns a card's status, owner,
-priority, order, or evidence; it exists to give `npm run agent:next` and any
-agent skimming the board a wave ordering finer-grained than milestone:now/next
-alone, so "what's dependency-ready" and "what actually matters to do first"
-stay distinguishable.
+priority, order, or evidence; it exists to give the natural-language pickup
+runner and any agent skimming the board a wave ordering finer-grained than
+milestone:now/next alone, so "what's dependency-ready" and "what actually
+matters to do first" stay distinguishable.
 
 The live Feature Board is the authoritative work record. Git holds templates
 and dated exports. `seed:features -- --apply --plan <reviewed.json>` applies
 explicit revision-checked changes and never archives unlisted work. When this
 guide disagrees with the board, repair this guide before dispatching work.
 See `docs/contracts/UNIVERSAL-WORK-BOARD.md` for the current protocol.
+
+The request “pick up work from the backlog and follow protocol” is the default
+agent execution trigger; the internal runner chooses the dependency-ready card
+and carries it through commit and evidence submission.
 
 The program prioritizes useful business journeys and allows independent phases
 to progress together. The live board records the exact next work. Phase gates in
@@ -40,17 +44,20 @@ The program is successful when the founder can:
 
 ## Claiming and coordination
 
-Use `npm run agent:next` with scoped WORK_BOARD_URL and WORK_BOARD_TOKEN.
-Readiness, UUID dependencies, six-card WIP limit, revision and session fencing
-are enforced by the shared service. No implicit expired-claim reassignment,
-force bypass, caller-HEAD worktree base or automatic worktree deletion.
-Completion submits exact commit and passing checks for founder review.
+Use the plain-language request described in [Natural-language agent
+execution](NATURAL-LANGUAGE-AGENT.md), which invokes the internal `agent:go`
+runner. The configured private transport (scoped WORK_BOARD_URL and WORK_BOARD_TOKEN
+for remote workers, or an owner-authorized named-project local profile), readiness, UUID
+dependencies, six-card WIP limit, revision and session fencing are enforced by
+the shared service. No implicit expired-claim reassignment, force bypass,
+caller-HEAD worktree base or automatic worktree deletion. Completion submits
+the exact commit and passing checks for founder review.
 The execution order below remains a planning aid, not a second roadmap.
 
 ## Mandatory ticket packet
 
 Before an agent edits product behavior, its claimed Feature Board card must
-answer every item below — `npm run agent:next` prints the card's description,
+answer every item below — the natural-language pickup runner prints the card's description,
 acceptance criteria, and notes (dependencies/starting points/guardrails) in
 one call, so this is what to check that output against. If an answer is
 missing, improve the card rather than inventing policy in code.
