@@ -81,6 +81,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260911-radar-relationships.sql",
   "migrations/20260912-proposal-lifecycle.sql",
   "migrations/20260913-radar-outreach.sql",
+  "migrations/20260914-message-upsert-conflict-targets.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {
