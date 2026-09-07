@@ -71,6 +71,7 @@
     "test:playbooks": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-playbooks.ts",
     "test:plugin-modules": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-plugin-modules.ts",
     "test:mcp-server": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-mcp-server.ts",
+    "test:runtime-record-permission-contract": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-runtime-record-permission-contract.ts",
     "test:integration-adapters": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-integration-adapters.ts",
     "test:webhook-security": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-webhook-security.ts",
     "mcp:stdio": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/revenue-os-mcp.ts",

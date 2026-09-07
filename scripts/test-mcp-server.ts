@@ -20,6 +20,7 @@ import {
   type McpJsonRpcRequest,
 } from "../src/lib/revenue-os/mcp-server";
 import { tenant } from "../src/config/tenant";
+import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { taskToolProfileToolNames } from "../src/lib/revenue-os/ai-tools";
 import type { TaskToolProfile } from "../src/lib/revenue-os/tool-profiles";
@@ -70,7 +71,7 @@ interface PromptGetResult {
 
 async function main() {
   console.log("Starting MCP Server tests...");
-  const stubDb = new MemorySupabase({
+  const mem = new MemorySupabase({
     tasks: [
       {
         id: "task-1",
@@ -81,7 +82,15 @@ async function main() {
       },
     ],
     action_queue: [],
-  }).client as unknown as Parameters<typeof handleMcpRequest>[1]["supabase"];
+    // Resource reads pass the shared record-permission gate, so the fixture
+    // carries the bound tenant scope and active workspace row a real caller
+    // presents after authentication.
+    tenants: [{ id: "tenant-1", status: "active", config: {} }],
+  });
+  const stubDb = bindTenantDatabaseForTest(
+    mem.client,
+    "tenant-1",
+  ) as unknown as Parameters<typeof handleMcpRequest>[1]["supabase"];
 
   const context = {
     supabase: stubDb,

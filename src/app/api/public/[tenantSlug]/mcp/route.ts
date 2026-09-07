@@ -198,6 +198,8 @@ export async function POST(
       tenantSlug: auth.context.tenantSlug,
       tenantConfig: defaultTenant,
       toolProfile: parseTaskToolProfile(new URL(request.url).searchParams.get("profile")),
+      // Per-tenant bearer key: no membership row, still tenant/module/grant bound.
+      principalKind: "integration",
     });
     // handleMcpRequest returns null for a true notification (no id member),
     // which per JSON-RPC 2.0 must not receive a response body at all.

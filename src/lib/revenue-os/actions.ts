@@ -229,6 +229,54 @@ export async function failAction(supabase: SupabaseClient, id: string, errorMess
   if (!data) throw new Error("Action failure receipt was superseded");
 }
 
+export interface ActionDenial {
+  /** Machine-readable deny code, e.g. "autonomy_denied" or "membership_revoked". */
+  code: string;
+  reason: string;
+  /** Policy provenance: policy id/level/module/grant that produced the denial. */
+  policy?: Record<string, unknown>;
+}
+
+/**
+ * Truthful denied receipt for permission revocation after preview or
+ * approval. Unlike failAction (the action broke) and rejectAction (a human
+ * said no while pending), denyAction records that authority was withdrawn:
+ * terminal `denied` status, the deny code, and an `action.denied` audit entry
+ * carrying the policy reference. Requires the `denied` status migration.
+ */
+export async function denyAction(
+  supabase: SupabaseClient,
+  id: string,
+  denial: ActionDenial,
+) {
+  const { data, error } = await supabase
+    .from("action_queue")
+    .update({
+      status: "denied",
+      error: denial.reason,
+      result: { denied: true, code: denial.code, policy: denial.policy ?? {} },
+    })
+    .eq("id", id)
+    .eq("status", "executing")
+    .select("id,action_type")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Action denial receipt was superseded");
+  await recordAudit(supabase, {
+    actorEmail: "system",
+    action: "action.denied",
+    entityType: "action_queue",
+    entityId: id,
+    metadata: {
+      code: denial.code,
+      reason: denial.reason,
+      action_type: (data as { action_type?: string }).action_type,
+      ...(denial.policy ?? {}),
+    },
+  });
+  return data;
+}
+
 export async function rejectAction(
   supabase: SupabaseClient,
   id: string,

@@ -11,7 +11,7 @@ import { executeInvoicePagePublication } from "./invoice-pages";
 import { executeWorkflowTaskBatch } from "./workflow-tasks";
 import { executeStripeInvoiceAction } from "./stripe-invoicing";
 import { assertPluginActionAllowed } from "./workflow-plugins";
-import { claimApprovedAction, failAction, finishAction } from "./actions";
+import { claimApprovedAction, denyAction, failAction, finishAction } from "./actions";
 import { executeRuntimeAction } from "./runtime-actions";
 import { checkAutonomy } from "./autonomy-policy";
 import { recordAudit } from "./audit";
@@ -112,12 +112,29 @@ export async function approveAndExecuteAction(
         ? action.proposed_by.slice("coworker:".length)
         : null;
     const policy = await checkAutonomy(supabase, String(action.action_type), coworkerId);
+    // The policy is re-resolved here, after the claim, so authority revoked
+    // between approval and execution denies with a truthful `denied` receipt
+    // instead of a generic failure. denyAction closes the row; the marker
+    // below keeps the catch from overwriting it with failAction.
     if (
       policy.hardFloor ||
       policy.level === "prohibited" ||
       (mode === "autonomous" && (!policy.allowed || policy.level !== "standing_permission"))
-    )
-      throw new Error(`Action denied: ${policy.reason}`);
+    ) {
+      await denyAction(supabase, id, {
+        code: "autonomy_denied",
+        reason: `Action denied: ${policy.reason}`,
+        policy: {
+          policy_id: policy.policyId,
+          action_key: policy.actionKey,
+          level: policy.level,
+          mode,
+        },
+      });
+      const denial = new Error(`Action denied: ${policy.reason}`);
+      (denial as Error & { actionDenied?: boolean }).actionDenied = true;
+      throw denial;
+    }
     await recordAudit(supabase, {
       actorEmail,
       action: "action.authorized",
@@ -428,7 +445,10 @@ export async function approveAndExecuteAction(
     await finishAction(supabase, id, result);
     return result;
   } catch (error) {
-    await failAction(supabase, id, error instanceof Error ? error.message : "Action failed");
+    // A denial already wrote its terminal receipt; failAction would find no
+    // `executing` row and mask the denial with a superseded error.
+    if (!(error instanceof Error && (error as Error & { actionDenied?: boolean }).actionDenied))
+      await failAction(supabase, id, error instanceof Error ? error.message : "Action failed");
     throw error;
   }
 }
