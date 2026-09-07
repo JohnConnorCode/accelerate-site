@@ -215,197 +215,198 @@ export function RoadmapPageContent({
 
   const hasFilters = activeStatus !== "all" || activeCategory !== "all" || query.trim().length > 0;
 
+  const statusPill = (active: boolean) =>
+    cn(
+      "shrink-0 rounded-full border px-3.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors",
+      active
+        ? "border-border-gold text-gold"
+        : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
+    );
+
   return (
     <Section width="wide" className="page-offset-roomy">
-      <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
-        {/* sticky left rail */}
-        <div className="lg:sticky lg:top-32 lg:self-start">
-          <Eyebrow className="mb-7">Roadmap</Eyebrow>
-          <Heading size={2} as="h1" className="leading-[1.04]">
-            Shipped, in progress, and <span className="display-italic">planned next.</span>
-          </Heading>
-          <p className="mt-6 max-w-sm text-lg leading-relaxed text-white-secondary">
-            {availability === "ready"
-              ? "Read live from the same board the team works from, acceptance criteria included."
-              : availability === "unconfigured"
-                ? "This installation is ready to explore. Connect a workspace to publish its roadmap."
-                : "The roadmap is temporarily unavailable. Please try again shortly."}{" "}
-            See{" "}
-            <Link href="/open-source" className="underline">
-              Open Source
-            </Link>{" "}
-            for the code behind it.
-          </p>
+      {/* hero */}
+      <Eyebrow className="mb-7">Roadmap</Eyebrow>
+      <Heading size={2} as="h1" className="max-w-3xl leading-[1.04]">
+        Shipped, in progress, and <span className="display-italic">planned next.</span>
+      </Heading>
+      <p className="mt-6 max-w-xl text-lg leading-relaxed text-white-secondary">
+        {availability === "ready"
+          ? "Read live from the same board the team works from, acceptance criteria included."
+          : availability === "unconfigured"
+            ? "This installation is ready to explore. Connect a workspace to publish its roadmap."
+            : "The roadmap is temporarily unavailable. Please try again shortly."}{" "}
+        See{" "}
+        <Link href="/open-source" className="underline">
+          Open Source
+        </Link>{" "}
+        for the code behind it.
+      </p>
 
-          <div className="mt-8">
-            <label htmlFor="roadmap-search" className="sr-only">
-              Search the roadmap
-            </label>
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
-              <input
-                id="roadmap-search"
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search the roadmap…"
-                className="admin-field w-full rounded-full border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] py-2.5 pl-10 pr-9 text-sm text-heading placeholder:text-white-muted focus:border-border-gold focus:outline-none"
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery("")}
-                  aria-label="Clear search"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white-muted transition-colors hover:text-heading"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
+      {/* filter bar: search first, then status, then categories */}
+      <div className="mt-10 border-y border-border-glass py-6" aria-label="Filter the roadmap">
+        <div className="max-w-xl">
+          <label htmlFor="roadmap-search" className="sr-only">
+            Search the roadmap
+          </label>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+            <input
+              id="roadmap-search"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search the roadmap…"
+              className="admin-field w-full rounded-full border border-border-glass bg-[color-mix(in_srgb,var(--bg-elevated)_80%,transparent)] py-2.5 pl-10 pr-9 text-sm text-heading placeholder:text-white-muted focus:border-border-gold focus:outline-none"
+            />
+            {query && (
               <button
                 type="button"
-                onClick={() => setActiveStatus("all")}
+                onClick={() => setQuery("")}
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white-muted transition-colors hover:text-heading"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div
+          className="mt-4 flex gap-2 overflow-x-auto pb-1"
+          role="group"
+          aria-label="Filter by status"
+        >
+          <button
+            type="button"
+            onClick={() => setActiveStatus("all")}
+            aria-pressed={activeStatus === "all"}
+            className={statusPill(activeStatus === "all")}
+          >
+            All ({cards.length})
+          </button>
+          {COLUMN_ORDER.map((status) => {
+            const count = statusCounts[status];
+            if (!count) return null;
+            return (
+              <button
+                key={status}
+                type="button"
+                onClick={() => setActiveStatus(status)}
+                aria-pressed={activeStatus === status}
+                className={statusPill(activeStatus === status)}
+              >
+                {FEATURE_STATUS_META[status].label} ({count})
+              </button>
+            );
+          })}
+        </div>
+
+        {categories.length > 1 && (
+          <div
+            className="mt-2.5 flex gap-2 overflow-x-auto pb-1"
+            role="group"
+            aria-label="Filter by category"
+          >
+            <button
+              type="button"
+              onClick={() => setActiveCategory("all")}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1 text-[0.7rem] font-medium transition-colors",
+                activeCategory === "all"
+                  ? "border-border-gold text-gold"
+                  : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
+              )}
+            >
+              All categories
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setActiveCategory(category)}
+                aria-pressed={activeCategory === category}
                 className={cn(
-                  "rounded-full border px-3.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors",
-                  activeStatus === "all"
+                  "shrink-0 rounded-full border px-3 py-1 text-[0.7rem] font-medium capitalize transition-colors",
+                  activeCategory === category
                     ? "border-border-gold text-gold"
                     : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
                 )}
               >
-                All ({cards.length})
+                {category}
               </button>
-              {COLUMN_ORDER.map((status) => {
-                const count = statusCounts[status];
-                if (!count) return null;
-                return (
-                  <button
-                    key={status}
-                    type="button"
-                    onClick={() => setActiveStatus(status)}
-                    className={cn(
-                      "rounded-full border px-3.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors",
-                      activeStatus === status
-                        ? "border-border-gold text-gold"
-                        : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
-                    )}
-                  >
-                    {FEATURE_STATUS_META[status].label} ({count})
-                  </button>
-                );
-              })}
-            </div>
+            ))}
+          </div>
+        )}
 
-            {categories.length > 1 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveCategory("all")}
-                  className={cn(
-                    "rounded-full border px-3 py-1 text-[0.7rem] font-medium transition-colors",
-                    activeCategory === "all"
-                      ? "border-border-gold text-gold"
-                      : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
-                  )}
-                >
-                  All categories
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => setActiveCategory(category)}
-                    className={cn(
-                      "rounded-full border px-3 py-1 text-[0.7rem] font-medium capitalize transition-colors",
-                      activeCategory === category
-                        ? "border-border-gold text-gold"
-                        : "border-border-glass text-white-muted hover:border-[var(--border-glass-hover)] hover:text-heading",
-                    )}
-                  >
-                    {category}
-                  </button>
+        <p className="mt-3 text-xs text-white-muted" aria-live="polite">
+          {hasFilters
+            ? `${filtered.length} of ${cards.length} items match.`
+            : `${cards.length} items across ${byStatus.size} stages.`}
+        </p>
+      </div>
+
+      {/* stacked status sections */}
+      <div aria-live="polite" className="mt-12 flex flex-col gap-14">
+        {filtered.length === 0 && (
+          <p className="text-sm text-white-secondary">
+            {hasFilters
+              ? "No roadmap items match your search or filter."
+              : availability === "ready"
+                ? "Nothing here yet."
+                : "No roadmap items are available to display."}
+          </p>
+        )}
+        {COLUMN_ORDER.map((status) => {
+          const list = byStatus.get(status);
+          if (!list?.length) return null;
+          const meta = FEATURE_STATUS_META[status];
+          return (
+            <section key={status} aria-label={meta.label}>
+              <AnimateOnScroll as="div">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span
+                    aria-hidden
+                    className={cn("h-2 w-2 shrink-0 self-center rounded-full", meta.accent)}
+                  />
+                  <h2 className="font-mono text-[0.75rem] uppercase tracking-[0.2em] text-heading">
+                    {meta.label} · {list.length}
+                  </h2>
+                </div>
+                <p className="mt-1 max-w-2xl text-sm text-white-muted">{meta.description}</p>
+              </AnimateOnScroll>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {list.map((card, i) => (
+                  <AnimateOnScroll key={card.seed_key} as="div" delay={Math.min(i, 5) * 0.04}>
+                    <RoadmapCard card={card} />
+                  </AnimateOnScroll>
                 ))}
               </div>
-            )}
-          </div>
+            </section>
+          );
+        })}
+      </div>
 
-          {availability === "ready" && (
-            <div className="mt-10 border-t border-border-glass pt-6">
-              <h2 className="font-display text-lg font-semibold text-heading">Got an idea?</h2>
-              <p className="mt-2 text-sm text-white-secondary">
-                Suggest a feature. A founder reviews every submission before it appears here.
-              </p>
-              {!showSuggest && (
-                <button
-                  type="button"
-                  onClick={() => setShowSuggest(true)}
-                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-border-glass px-4 py-2 text-sm font-medium text-heading transition-colors hover:border-border-gold hover:text-gold"
-                >
-                  <Send className="h-4 w-4 text-gold" />
-                  Suggest a feature
-                </button>
-              )}
-              {showSuggest && <SuggestForm />}
-            </div>
-          )}
+      {/* suggest */}
+      <div className="mt-16 grid gap-8 border-t border-border-glass pt-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
+        <div>
+          <h2 className="font-display text-2xl font-semibold text-heading">Got an idea?</h2>
+          <p className="mt-2 max-w-md text-sm leading-relaxed text-white-secondary">
+            Suggest a feature. A founder reviews every submission before it appears here.
+          </p>
         </div>
-
-        {/* kanban-style columns */}
-        <div aria-live="polite">
-          {filtered.length === 0 && (
-            <p className="text-sm text-white-secondary">
-              {availability === "unconfigured" ? (
-                <>
-                  No workspace data is connected.{" "}
-                  <Link href="/demo/command-center/northline-roofing" className="underline">
-                    Explore the fictional Command Center
-                  </Link>{" "}
-                  or follow the{" "}
-                  <Link href="/docs/self-hosting/overview" className="underline">
-                    setup guide
-                  </Link>
-                  .
-                </>
-              ) : availability === "unavailable" ? (
-                "The connected roadmap could not be loaded. Please try again shortly."
-              ) : hasFilters ? (
-                "No roadmap items match your search or filter."
-              ) : (
-                "Nothing here yet."
-              )}
-            </p>
+        <div>
+          {!showSuggest && (
+            <button
+              type="button"
+              onClick={() => setShowSuggest(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-border-glass px-4 py-2 text-sm font-medium text-heading transition-colors hover:border-border-gold hover:text-gold"
+            >
+              <Send className="h-4 w-4 text-gold" />
+              Suggest a feature
+            </button>
           )}
-          <div className="flex gap-5 overflow-x-auto pb-4">
-            {COLUMN_ORDER.map((status) => {
-              const list = byStatus.get(status);
-              if (!list?.length) return null;
-              const meta = FEATURE_STATUS_META[status];
-              return (
-                <div key={status} className="flex w-[320px] shrink-0 flex-col gap-4">
-                  <AnimateOnScroll as="div">
-                    <div className="flex items-center gap-2">
-                      <span
-                        aria-hidden
-                        className={cn("h-2 w-2 shrink-0 rounded-full", meta.accent)}
-                      />
-                      <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-heading">
-                        {meta.label} · {list.length}
-                      </p>
-                    </div>
-                    <p className="mt-1 text-xs text-white-muted">{meta.description}</p>
-                  </AnimateOnScroll>
-                  <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto pr-1">
-                    {list.map((card, i) => (
-                      <AnimateOnScroll key={card.seed_key} as="div" delay={i * 0.02}>
-                        <RoadmapCard card={card} />
-                      </AnimateOnScroll>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {showSuggest && <SuggestForm />}
         </div>
       </div>
     </Section>

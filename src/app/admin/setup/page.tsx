@@ -31,11 +31,7 @@ import {
   TriangleAlert,
   UserCheck,
 } from "lucide-react";
-import {
-  bookingModeSummary,
-  bookingModeTitle,
-  type BookingMode,
-} from "@/lib/booking";
+import { bookingModeSummary, bookingModeTitle, type BookingMode } from "@/lib/booking";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminStatusMessage } from "@/components/admin/AdminStatusMessage";
@@ -363,16 +359,11 @@ function bookingModeGuide(mode: BookingMode): SetupGuide {
   };
 }
 
-function SetupCheckCard({
-  check,
-  bookingMode,
-}: {
-  check: SetupCheck;
-  bookingMode: BookingMode;
-}) {
+function SetupCheckCard({ check, bookingMode }: { check: SetupCheck; bookingMode: BookingMode }) {
   const meta = statusMeta[check.status];
   const StatusIcon = meta.icon;
-  const guide = check.id === "manual_booking" ? bookingModeGuide(bookingMode) : setupGuides[check.id];
+  const guide =
+    check.id === "manual_booking" ? bookingModeGuide(bookingMode) : setupGuides[check.id];
 
   return (
     <AdminSurface id={check.id} padding="none" className="scroll-mt-24 overflow-hidden">
@@ -637,7 +628,8 @@ export default function AdminSetupPage() {
       id: "booking",
       eyebrow: "Scheduling",
       title: "Booking mode",
-      description: "Tenant-owned public embed, manual fallback, or emergency pause — separate from attribution health.",
+      description:
+        "Tenant-owned public embed, manual fallback, or emergency pause. Attribution health is tracked separately.",
       icon: CalendarDays,
     },
     {
@@ -993,11 +985,7 @@ export default function AdminSetupPage() {
                   </div>
                   <div className="grid gap-3 lg:grid-cols-2">
                     {checks.map((check) => (
-                      <SetupCheckCard
-                        key={check.id}
-                        check={check}
-                        bookingMode={data.bookingMode}
-                      />
+                      <SetupCheckCard key={check.id} check={check} bookingMode={data.bookingMode} />
                     ))}
                   </div>
                 </section>

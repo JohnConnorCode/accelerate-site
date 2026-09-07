@@ -100,18 +100,30 @@ try {
       await page.goto(root + "/integrations");
       await page.getByRole("tab", { name: /Pluggable Modules/ }).click();
       await page.getByLabel("Search modules", { exact: true }).fill("Opportunity Radar");
-      await page.getByLabel("Outreach mode", { exact: true }).selectOption("approval-required");
+      await page.getByLabel(/^Outreach mode/).selectOption("approval-required");
       await page.getByRole("button", { name: "Save settings", exact: true }).click();
       await page.getByText("Settings saved", { exact: true }).waitFor();
       await page.goto(detailUrl);
       await page
-        .getByLabel("Saved outreach draft", { exact: true })
+        .getByLabel(/^Saved outreach draft/)
         .selectOption({ label: "Reviewed outreach example" });
       await page
         .getByLabel("Why this message is appropriate now", { exact: true })
         .fill("The current request matches this useful contribution.");
       await page.getByRole("button", { name: "Review exact message", exact: true }).click();
       await page.getByRole("button", { name: "Approve and send", exact: true }).waitFor();
+      await page.waitForFunction(() => {
+        const dialog = document.querySelector('[data-admin-overlay="dialog"]');
+        return dialog && Number(getComputedStyle(dialog).opacity) >= 0.999;
+      });
+      assert.equal(
+        await page.getByRole("dialog").evaluate((el) => {
+          const panel = el.querySelector("div");
+          return panel ? getComputedStyle(panel).backgroundColor !== "rgba(0, 0, 0, 0)" : false;
+        }),
+        true,
+        "Review must have an opaque readable surface",
+      );
       await page.screenshot({
         path: `${output}/${scenario}-${width}-outreach-review.png`,
         fullPage: true,
