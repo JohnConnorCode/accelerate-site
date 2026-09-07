@@ -148,8 +148,8 @@ export function ActionReviewDialog({
                 className={cn(
                   "rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider",
                   external
-                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
-                    : "bg-blue-500/15 text-blue-700 dark:text-blue-300",
+                    ? "bg-[var(--admin-warning-soft)] text-[var(--admin-warning)]"
+                    : "bg-[var(--admin-accent-soft)] text-[var(--admin-accent)]",
                 )}
               >
                 {external ? "External Action" : "Internal Mutation"}
@@ -179,14 +179,14 @@ export function ActionReviewDialog({
           className={cn(
             "mx-5 mt-5 flex items-start gap-2.5 rounded-xl border px-3.5 py-3 sm:mx-6",
             external
-              ? "border-amber-500/25 bg-amber-500/[0.07]"
+              ? "border-[var(--admin-warning)]/25 bg-[var(--admin-warning-soft)]"
               : "border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]",
           )}
         >
           <TriangleAlert
             className={cn(
               "mt-px size-4 shrink-0",
-              external ? "text-amber-600 dark:text-amber-400" : "text-[var(--admin-muted)]",
+              external ? "text-[var(--admin-warning)]" : "text-[var(--admin-muted)]",
             )}
           />
           <div className="admin-copy text-[11px] leading-5">
@@ -200,7 +200,7 @@ export function ActionReviewDialog({
         {error && (
           <p
             role="alert"
-            className="m-5 rounded-lg border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300"
+            className="m-5 rounded-lg border border-[var(--admin-danger)]/30 p-3 text-sm text-[var(--admin-danger)]"
           >
             {error}
           </p>
@@ -295,7 +295,7 @@ export function ActionReviewDialog({
             type="button"
             disabled={busy}
             onClick={onReject}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-rose-700 transition-[background-color,transform] duration-150 hover:bg-rose-500/10 active:scale-[0.96] disabled:opacity-50 dark:text-rose-300"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-danger)] transition-[background-color,transform] duration-150 hover:bg-[var(--admin-danger-soft)] active:scale-[0.96] disabled:opacity-50"
           >
             <X className="size-3.5" /> Reject
           </button>

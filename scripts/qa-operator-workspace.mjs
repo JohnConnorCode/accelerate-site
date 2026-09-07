@@ -114,6 +114,7 @@ try {
         .click();
       review = page.getByRole("dialog", { name: approval.title, exact: true });
       await review.waitFor();
+      await settleInspector();
       await page.screenshot({ path: `${output}/${scenario}-${width}-approval-inspector.png` });
       await review.getByRole("button", { name: /^Approve/ }).click();
       await review.waitFor({ state: "hidden" });

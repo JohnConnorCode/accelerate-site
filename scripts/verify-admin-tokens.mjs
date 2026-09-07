@@ -88,7 +88,7 @@ const COLOR_BUDGET = {
   "src/app/admin/revenue/page.tsx": 4,
   "src/app/admin/setup/page.tsx": 20,
   "src/app/admin/tenants/page.tsx": 32,
-  "src/app/admin/today/page.tsx": 39,
+  "src/app/admin/today/page.tsx": 13,
   "src/app/admin/website-grades/page.tsx": 9,
   "src/components/admin/AICapabilities.tsx": 9,
   "src/components/admin/AIRunHistory.tsx": 29,

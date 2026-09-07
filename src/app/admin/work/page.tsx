@@ -198,7 +198,7 @@ export default function WorkPage() {
       {(error || tasksQuery.error || actionsQuery.error) && (
         <p
           role="alert"
-          className="rounded-lg border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300"
+          className="rounded-lg border border-[var(--admin-danger)]/30 p-3 text-sm text-[var(--admin-danger)]"
         >
           {error || tasksQuery.error?.message || actionsQuery.error?.message}
         </p>
@@ -294,7 +294,7 @@ export default function WorkPage() {
                       disabled={busy}
                       onClick={() => void mutateTask(row, true)}
                       aria-label={`Complete ${row.title}`}
-                      className="grid size-11 shrink-0 place-items-center rounded-lg text-emerald-700 hover:bg-emerald-500/10 disabled:opacity-50 dark:text-emerald-300"
+                      className="grid size-11 shrink-0 place-items-center rounded-lg text-[var(--admin-success)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
                     >
                       <CheckCircle2 className="size-4" />
                     </button>
@@ -393,7 +393,7 @@ export default function WorkPage() {
           </div>
           <div className="flex-1 space-y-4 overflow-y-auto p-5">
             {error && (
-              <p role="alert" className="text-sm text-rose-700">
+              <p role="alert" className="text-sm text-[var(--admin-danger)]">
                 {error}
               </p>
             )}

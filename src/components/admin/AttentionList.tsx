@@ -102,7 +102,7 @@ export function AttentionList({
                           disabled={Boolean(busyTask)}
                           onClick={() => onTask(item.sourceId, "complete")}
                           aria-label={`Complete ${item.title}`}
-                          className="grid size-11 place-items-center rounded-lg text-emerald-700 hover:bg-emerald-500/10 disabled:opacity-50 dark:text-emerald-300"
+                          className="grid size-11 place-items-center rounded-lg text-[var(--admin-success)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
                         >
                           {busyTask === `${item.sourceId}:complete` ? (
                             <Loader2 className="size-4 animate-spin" />
