@@ -235,6 +235,6 @@
       "description": "Allow only terms stated verbatim in current approved facts. Every message still requires human review; this cannot create a new payment commitment."
     }
   ],
-  "docsUrl": "/docs/intelligence/opportunity-radar",
+  "docsUrl": "/docs/plugins/opportunity-radar",
   "historyRoute": "/admin/radar/history"
 }

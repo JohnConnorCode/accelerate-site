@@ -3,11 +3,13 @@
 [![CI](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml/badge.svg)](https://github.com/JohnConnorCode/accelerate-site/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Accelerate Revenue OS is a self-hosted operating system for service businesses. It runs your pipeline, inbox, campaigns, proposals, and analytics in one application, and it lets people and AI agents operate that system under one set of rules. This is the actual code behind a working business, open-sourced as-is, not a demo trimmed down for GitHub.
+Accelerate is an **open-source AI command center for your business**. Bring customer records, conversations, pipeline, tasks and business actions into one workspace, where your team and AI can work with shared context.
 
-An agent can scaffold a CRM in an afternoon now, so owning the code has stopped being the hard part. The hard part is what happens the moment something acts on a real customer's behalf. Here, every write an agent attempts becomes a staged proposal that a person approves, every answer has to cite the tools it actually read, and every external effect carries an idempotency key and ends in a receipt. Outside assistants reach the workspace over the Model Context Protocol through that same registry and the same approval queue, with no looser path than the interface has.
+Ask what needs attention, inspect the records behind an answer, and review supported changes before they run. Connect existing services, or build an adapter for another data source. Extend the application with your own screens, reports and workflows while reusing its identity, permissions and action services.
 
-You own it outright: your own Supabase project, your own AI provider key, your own data. Multi-tenancy is built in from the schema up, so an agency can run several client businesses from one deployment without any of them seeing another's records.
+You control the deployment, your Supabase database and your provider accounts. The MIT license lets you inspect, modify and build on the source. Connected providers still process the information you send them, and hosting and model usage have their normal costs.
+
+**See what you can build:** [ten plugin examples](https://www.acceleratewith.us/docs/plugins), from Business Pulse reports and onboarding checklists to Stripe invoicing, Collections and Opportunity Radar. Each guide explains what works today, how to try it and how to adapt the pattern. You can use a coding assistant to develop extensions against those examples and the shared contracts.
 
 [Live site](https://www.acceleratewith.us) · [Interactive fictional demo](https://www.acceleratewith.us/demo/command-center) · [Architecture](docs/self-hosting/ARCHITECTURE.md) · [Self-hosting](docs/self-hosting/SELF-HOSTING.md) · [Developer start](docs/contributing/DEVELOPER-START.md) · [All docs](docs/README.md) · [Roadmap](#roadmap)
 

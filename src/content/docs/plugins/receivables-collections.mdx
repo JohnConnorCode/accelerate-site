@@ -1,0 +1,41 @@
+---
+title: "Receivables Collections"
+description: "Bring invoice evidence, customer commitments and reviewed reminders into one workspace."
+updated: "2026-09-06"
+---
+
+Collections shows what a larger business extension can become. It combines verified invoice observations, customer context, follow-up decisions and a dedicated operator workspace. A person can inspect why a balance needs attention, record a promise or hold, and review a reminder before it is sent.
+
+<DocsFigure
+  src="/images/docs/plugins/collections.png"
+  width={1440}
+  height={1000}
+  alt="Collections in the fictional roofing workspace, with currency balances and linked customer cases."
+  caption="A dedicated business workspace: review the account, invoice evidence and policy together. The figures and customers shown are fictional."
+/>
+
+## Follow a fictional case
+
+Open Collections in the [Command Center demo](/demo/command-center). Inspect a case's currency, last-observed balance and invoice references. Record a promise or pause, review the proposed reminder, and inspect its simulated result. Demo changes remain in the browser and never contact a customer.
+
+In a connected installation, enable **Collections Action Desk** and **Stripe invoicing** in **Plugins**, configure the existing Stripe and email connections, and open `/admin/collections`. Refresh the explicitly tracked invoices before relying on their financial state. This version handles up to 25 tracked, platform-created invoices; it does not scan every invoice in a Stripe account.
+
+## Keep the decision attached to the evidence
+
+Cases group a billing contact and currency. Promises, pauses, disputes and reminder history influence the next eligible action. The preview uses verified recipients, amounts and invoice links. Submit that exact version for approval, then inspect the send result.
+
+A changed balance or hold can invalidate an earlier preview. A recorded payment is evidence of settlement; it is not proof that a reminder caused the payment. The [complete operator guide](/docs/outreach/collections) covers the case controls, approval and failure paths in detail.
+
+## What this example teaches you to build
+
+A plugin can be more than a small report. Collections adds its own case lifecycle and interface while reusing customer identity, Stripe access, task scheduling records, branding, approvals and email delivery. The business-specific decision logic stays separate from the shared services that execute an action.
+
+Study the [plugin source and architecture](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/receivables-collections/README.md) to see the bounded decision program, case records and host integration. AI tools can read cases, preview a reminder and propose it through the same services; they cannot approve or send it themselves.
+
+## Costs, disabling and recovery
+
+The decision program and reminder wording are deterministic. Provider and hosting usage can incur costs; surrounding AI chat uses the workspace model. Keep credentials in connection storage and business policies on the case.
+
+Disable Collections in **Plugins** to block new operations while retaining historical cases and receipts. Disabling does not reverse sent mail or Stripe activity. If delivery is uncertain, reconcile the original action before another reminder. If a provider refresh fails, the absence of new evidence must not be treated as payment.
+
+The source guide documents controlled tests and remaining limits. Do not assume that enabling the plugin starts a fully unattended reminder schedule; scheduled handlers and model-written wording are separate work.

@@ -1,6 +1,8 @@
-# Documentation index
+# Command Center documentation
 
-Organized by who needs it.
+Start with the [public documentation](https://www.acceleratewith.us/docs) for a visual introduction to the open-source AI Command Center, then explore the [plugin examples](https://www.acceleratewith.us/docs/plugins) to see how you can shape it around your business.
+
+The references below cover running your own installation and contributing to the shared platform.
 
 ## Platform vision
 

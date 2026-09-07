@@ -1,0 +1,48 @@
+---
+title: "Client onboarding"
+description: "Turn a won opportunity into a reviewed, assigned kickoff checklist."
+updated: "2026-09-06"
+---
+
+Winning the work is the beginning of delivery. This plugin helps a team carry the customer’s context into the tasks needed to start the project, without copying the deal into another system.
+
+<DocsFigure
+  src="/images/docs/plugins/client-onboarding.png"
+  width={1440}
+  height={1000}
+  alt="Client onboarding showing a fictional won opportunity and assigned task history."
+  caption="The workflow retains its source and task results. This history is seeded fictional demo data, not evidence of a live customer project."
+/>
+
+## Complete your first checklist
+
+Enable **Client onboarding** in **Plugins**, then open `/admin/client-onboarding`. You need an authorized workspace, a won opportunity and valid task assignees. The plugin starts disabled and has no extra provider credentials or public settings.
+
+1. Select the won opportunity that the work belongs to.
+2. Enter one to ten tasks, each with a title, description, due date and assignee.
+3. Preview the plan and check the source, dates and owners. Submit that exact version for approval.
+4. Approve it through the shared action queue, then inspect the execution result and the created tasks.
+
+For a fictional example, prepare two tasks: confirm the kickoff meeting and request brand assets. After successful approval execution, expect two assigned tasks linked to the selected source. A preview or pending proposal has not created them yet. The [demo](/demo/command-center) uses the actual admin components with session-local fictional data.
+
+## Use it through AI
+
+The registered tools `prepare_client_onboarding` and `propose_client_onboarding` use the same workflow as the interface. Preparation returns a reviewable plan; proposing uses that plan's digest and a stable request identity. The assistant cannot approve its own task creation.
+
+At execution, the host checks the workspace, enabled plugin, source, assignments and approved plan again. If those facts have changed, prepare and review a new plan. This keeps the task list attached to the decision you actually made.
+
+## What this example teaches you to build
+
+Adapt the checklist for your own delivery process: a site survey, legal intake or account setup. Keep the opportunity as the source of truth and let the shared task service handle assignments and saved work.
+
+The [workflow source](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/client-onboarding/workflow.js) produces a bounded plan. The shared host owns permissions and business writes. You can change the business-specific plan while reusing the approval queue, task records and execution receipts.
+
+## Costs, disabling and recovery
+
+Checklist preparation and task creation are deterministic and make no paid model or provider request. Hosting and database costs still apply; surrounding AI chat uses the configured model.
+
+Disable the plugin in **Plugins** to block later execution, including pending approvals. Existing tasks and receipts remain. Use normal task controls to edit or complete work already created.
+
+If the source or an assignee is missing, correct the input and preview again. After an uncertain result, inspect the original receipt and reuse its request identity for a retry; do not submit a fresh request just to bypass the uncertainty. Code or policy upgrades can invalidate previews, which need a fresh review.
+
+The [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/client-onboarding/README.md) covers the contracts and `npm run test:business-workflows`. Controlled tests and fictional demo behavior are distinct from verification of your own workspace permissions and database.

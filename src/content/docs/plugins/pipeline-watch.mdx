@@ -1,0 +1,33 @@
+---
+title: "Pipeline follow-up"
+description: "Find open opportunities whose next action or update needs attention."
+updated: "2026-09-06"
+---
+
+A promising opportunity can go quiet while everyone assumes someone else is following up. Pipeline follow-up helps a sales owner find the records that deserve a closer look.
+
+## Try the report
+
+Enable **Pipeline follow-up** in **Plugins**, then choose **Run report**. It reads the workspace’s opportunity records without requiring another provider connection. The plugin starts disabled. Use an authorized workspace, or explore **Plugins** in the [fictional demo](/demo/command-center).
+
+Give a fictional open deal a next action in the past. Run the report and open the linked opportunity to inspect its history before deciding whether to contact the customer.
+
+Open opportunities qualify when their next action is overdue or their last update is older than seven days. The report describes the inspected records, not the probability of winning a deal.
+
+## Read the result
+
+Each finding is a reason to inspect its source. Check the inspected-record count and any truncation indication before drawing a conclusion. Each source is limited to 100 records, the combined input to 64 KiB, and displayed findings to 20. An empty result means no matches in that snapshot; it does not certify the entire business.
+
+The report is read-only and deterministic. It neither changes business records nor contacts anyone. Its AI/MCP tool is `run_pipeline_watch`; the host checks whether the plugin is enabled when it runs. The report needs no write approval and makes no model request. Hosting and database usage still apply, and an AI conversation around the report can incur model charges.
+
+## What this example teaches you to build
+
+Build a focused exception report over canonical business records. Change the rules for a different review process without introducing a second CRM or asking a model to calculate dates.
+
+Start with the [report source](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/pipeline-watch/report.js) and its [module manifest](https://github.com/JohnConnorCode/accelerate-site/blob/main/extensions/pipeline-watch.module.json). The report code receives declared fields inside the shared isolate; the host supplies access and records the result. Reuse that boundary when changing the logic.
+
+## Disable or recover
+
+Turn the plugin off in **Plugins** to stop new evaluations. Source records and historical receipts remain. For missing-source or access errors, check the workspace's source registration and permissions, correct them, then rerun. For truncated results, inspect the source records rather than assuming the omitted records are clear. Repeating a report does not create duplicate tasks or messages.
+
+The [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/pipeline-watch/README.md) links the source contracts and controlled tests, including `npm run test:report-plugins`. Those fixtures exercise the report behavior; they do not verify every installation's data or provider connections.

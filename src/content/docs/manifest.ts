@@ -34,8 +34,9 @@ export const docsManifest: DocsSection[] = [
     pages: [
       {
         slug: ["start", "overview"],
-        title: "Start using Command Center",
-        description: "Choose a task, follow its steps and check the result.",
+        title: "An AI command center you can make your own",
+        description:
+          "Connect your business, work with AI, and build on an open-source foundation you control.",
       },
       {
         slug: ["start", "business-owners"],
@@ -78,6 +79,73 @@ export const docsManifest: DocsSection[] = [
         title: "Troubleshooting",
         description:
           "Recover from common setup, access, search, and action failures without guessing.",
+      },
+    ],
+  },
+  {
+    id: "plugins",
+    title: "Plugin examples",
+    description:
+      "See what you can build: reports, reviewed workflows and dedicated business workspaces.",
+    pages: [
+      {
+        slug: ["plugins", "overview"],
+        title: "Plugin examples",
+        description:
+          "Explore ten bundled examples, from focused reports to complete business workspaces.",
+      },
+      {
+        slug: ["plugins", "business-pulse"],
+        title: "Business Pulse",
+        description: "See pipeline risks, overdue commitments and upcoming meetings in one report.",
+      },
+      {
+        slug: ["plugins", "client-onboarding"],
+        title: "Client onboarding",
+        description: "Turn a won opportunity into a reviewed, assigned kickoff checklist.",
+      },
+      {
+        slug: ["plugins", "commitment-watch"],
+        title: "Overdue commitments",
+        description: "Find overdue tasks and return to the work behind each commitment.",
+      },
+      {
+        slug: ["plugins", "example-inventory"],
+        title: "Inventory registration example",
+        description: "Learn how a module adds a page, navigation and settings to a workspace.",
+      },
+      {
+        slug: ["plugins", "meeting-commitments"],
+        title: "Meeting commitments",
+        description: "Turn an existing meeting into assigned tasks with dates and a reviewed plan.",
+      },
+      {
+        slug: ["plugins", "meeting-prep"],
+        title: "Meeting preparation",
+        description: "See which meetings are approaching so you can plan preparation time.",
+      },
+      {
+        slug: ["plugins", "opportunity-radar"],
+        title: "Opportunity Radar",
+        description:
+          "Explore a business-specific workspace for source-backed growth opportunities and relationship reviews.",
+      },
+      {
+        slug: ["plugins", "pipeline-watch"],
+        title: "Pipeline follow-up",
+        description: "Find open opportunities whose next action or update needs attention.",
+      },
+      {
+        slug: ["plugins", "receivables-collections"],
+        title: "Receivables Collections",
+        description:
+          "Bring invoice evidence, customer commitments and reviewed reminders into one workspace.",
+      },
+      {
+        slug: ["plugins", "stripe-invoicing"],
+        title: "Stripe invoicing",
+        description:
+          "Prepare an invoice from a customer record, review it, and follow its provider result.",
       },
     ],
   },
@@ -289,9 +357,9 @@ export const docsManifest: DocsSection[] = [
     pages: [
       {
         slug: ["intelligence", "overview"],
-        title: "Intelligence",
+        title: "Put AI to work with your business context",
         description:
-          "Ask with bounded context, inspect what ran, and read funnel numbers from the same records.",
+          "Ask questions, inspect the evidence, and turn supported requests into reviewed actions.",
       },
       {
         slug: ["intelligence", "opportunity-radar"],
@@ -344,8 +412,9 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["workspace", "integrations"],
-        title: "Integrations and modules",
-        description: "Providers, module switches, and the MCP key, from the operator console.",
+        title: "Connect your tools and data",
+        description:
+          "Bring external context into the workspace and make supported actions available to your team and AI.",
       },
       {
         slug: ["workspace", "setup"],
@@ -367,8 +436,9 @@ export const docsManifest: DocsSection[] = [
     pages: [
       {
         slug: ["extend", "overview"],
-        title: "Extend the runtime",
-        description: "What every extension inherits: approval, audit, module gating, and MCP.",
+        title: "Build the capabilities your business needs",
+        description:
+          "Add screens, integrations and AI tools while reusing the records and workflows already in place.",
       },
       {
         slug: ["extend", "first-change"],

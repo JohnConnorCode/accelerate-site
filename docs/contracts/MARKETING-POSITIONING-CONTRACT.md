@@ -75,3 +75,13 @@ inferring:
 4. Is the Command Center optional? Yes.
 
 If any answer is unclear, the copy is incomplete.
+
+## Public product documentation
+
+The product docs and open-source README explain Command Center in its own right:
+an open-source AI workspace for connected business context, reviewed actions and
+business-specific extensions. Lead with ownership, useful workflows and concrete
+examples of what readers can build. This product positioning does not change the
+broader agency offer described above. State current capabilities and distinguish
+custom development from a built-in integration or planned automation. Follow
+`docs/contributing/DOCUMENTATION-STYLE.md` for examples and visual evidence.

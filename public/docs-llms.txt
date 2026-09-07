@@ -4,7 +4,7 @@
 ## Start
 Learn the essentials and try your first complete workflow.
 
-- [Start using Command Center](https://www.acceleratewith.us/docs/start/overview) (updated 2026-09-05): Choose a task, follow its steps and check the result.
+- [An AI command center you can make your own](https://www.acceleratewith.us/docs/start/overview) (updated 2026-09-06): Connect your business, work with AI, and build on an open-source foundation you control.
 - [For business owners](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-09-05): Choose a useful first workflow, assign ownership, and measure whether it helps.
 - [For agencies](https://www.acceleratewith.us/docs/start/agencies) (updated 2026-09-05): Onboard client workspaces, verify access, and agree an operational handoff.
 - [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-05): Try the daily queue and review a proposed action using fictional data.
@@ -13,6 +13,21 @@ Learn the essentials and try your first complete workflow.
 - [Modules](https://www.acceleratewith.us/docs/start/modules) (updated 2026-09-04): Optional capabilities a workspace turns on and off without forking the app.
 - [Check an action result](https://www.acceleratewith.us/docs/start/receipts) (updated 2026-09-05): Tell a prepared draft, an approved request, and a completed action apart.
 - [Troubleshooting](https://www.acceleratewith.us/docs/start/troubleshooting) (updated 2026-09-05): Recover from common setup, access, search, and action failures without guessing.
+
+## Plugin examples
+See what you can build: reports, reviewed workflows and dedicated business workspaces.
+
+- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-06): Explore ten bundled examples, from focused reports to complete business workspaces.
+- [Business Pulse](https://www.acceleratewith.us/docs/plugins/business-pulse) (updated 2026-09-06): See pipeline risks, overdue commitments and upcoming meetings in one report.
+- [Client onboarding](https://www.acceleratewith.us/docs/plugins/client-onboarding) (updated 2026-09-06): Turn a won opportunity into a reviewed, assigned kickoff checklist.
+- [Overdue commitments](https://www.acceleratewith.us/docs/plugins/commitment-watch) (updated 2026-09-06): Find overdue tasks and return to the work behind each commitment.
+- [Inventory registration example](https://www.acceleratewith.us/docs/plugins/example-inventory) (updated 2026-09-06): Learn how a module adds a page, navigation and settings to a workspace.
+- [Meeting commitments](https://www.acceleratewith.us/docs/plugins/meeting-commitments) (updated 2026-09-06): Turn an existing meeting into assigned tasks with dates and a reviewed plan.
+- [Meeting preparation](https://www.acceleratewith.us/docs/plugins/meeting-prep) (updated 2026-09-06): See which meetings are approaching so you can plan preparation time.
+- [Opportunity Radar](https://www.acceleratewith.us/docs/plugins/opportunity-radar) (updated 2026-09-06): Explore a business-specific workspace for source-backed growth opportunities and relationship reviews.
+- [Pipeline follow-up](https://www.acceleratewith.us/docs/plugins/pipeline-watch) (updated 2026-09-06): Find open opportunities whose next action or update needs attention.
+- [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-09-06): Bring invoice evidence, customer commitments and reviewed reminders into one workspace.
+- [Stripe invoicing](https://www.acceleratewith.us/docs/plugins/stripe-invoicing) (updated 2026-09-06): Prepare an invoice from a customer record, review it, and follow its provider result.
 
 ## Command Center
 One shared operating layer for the businesses that need it, and how to run the daily workspace.
@@ -71,7 +86,7 @@ Clients, bookings, content, and resources after the sale.
 ## Intelligence
 The assistant, run traces, knowledge, and source-to-revenue analytics.
 
-- [Intelligence](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-06): Ask with bounded context, inspect what ran, and read funnel numbers from the same records.
+- [Put AI to work with your business context](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-06): Ask questions, inspect the evidence, and turn supported requests into reviewed actions.
 - [Review opportunities with Radar](https://www.acceleratewith.us/docs/intelligence/opportunity-radar) (updated 2026-09-06): Review sources, relationship context, estimates, and drafts with explicit approvals and model budgets.
 - [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-05): Registered tools, connection requirements, and input schemas.
 - [Use the AI Workspace](https://www.acceleratewith.us/docs/intelligence/workspace) (updated 2026-09-05): Ask a specific question, check its sources and inspect the result of an action.
@@ -86,14 +101,14 @@ Inbound leads, chat, subscribers, partners, and website grades.
 Tenants, setup, settings, integrations, and the Feature Board.
 
 - [Workspace](https://www.acceleratewith.us/docs/workspace/overview) (updated 2026-09-04): How a tenant is provisioned, connected, and kept ready.
-- [Integrations and modules](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-04): Providers, module switches, and the MCP key, from the operator console.
+- [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-06): Bring external context into the workspace and make supported actions available to your team and AI.
 - [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-05): Verify access and the connections needed for your first real workflow.
 - [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-05): Update notifications and configuration, then confirm the saved result.
 
 ## Build on it
 For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.
 
-- [Extend the runtime](https://www.acceleratewith.us/docs/extend/overview) (updated 2026-09-04): What every extension inherits: approval, audit, module gating, and MCP.
+- [Build the capabilities your business needs](https://www.acceleratewith.us/docs/extend/overview) (updated 2026-09-06): Add screens, integrations and AI tools while reusing the records and workflows already in place.
 - [Your first developer change](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-09-05): Run the demo, find the important files, and make a small extension change.
 - [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-09-04): Register a JSON manifest and pages. Nothing in extensions/ is executed.
 - [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-04): Verify credentials, encrypt them, and turn inbound events into canonical records.
