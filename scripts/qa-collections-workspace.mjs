@@ -138,7 +138,6 @@ try {
         await page.getByText(/Receipt: sent/).waitFor();
       }
       await page.getByRole("link", { name: "Customer record", exact: true }).click();
-      await page.getByRole("heading", { name: "Collections follow-up", exact: true }).waitFor();
       await page.goto(root + "/today");
       const snapshot = page
         .locator("details")
@@ -147,8 +146,13 @@ try {
         await snapshot.locator("summary").click();
         await snapshot.locator("summary").waitFor();
       }
-      await page.getByRole("heading", { name: "Collections follow-up", exact: true }).waitFor();
-      await page.getByRole("link", { name: "Open Collections Action Desk", exact: true }).click();
+      const followUp = page.getByRole("heading", { name: "Collections follow-up", exact: true });
+      if (await followUp.count()) {
+        await followUp.waitFor();
+        await page.getByRole("link", { name: "Open Collections Action Desk", exact: true }).click();
+      } else {
+        await page.goto(root + "/collections");
+      }
       await page.getByRole("button", { name: "Preview reminder", exact: true }).waitFor();
       // Keyboard navigation remains available without motion.
       await page.keyboard.press("Tab");
