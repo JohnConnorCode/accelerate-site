@@ -108,6 +108,7 @@ export async function generateInvoiceDesign(
   if (!run.id) throw new Error("An invoice design trace could not be opened");
   try {
     const response = await openRouterJson({
+      job: "invoice-design",
       database: db,
       maxTokens: 500,
       temperature: 0.2,

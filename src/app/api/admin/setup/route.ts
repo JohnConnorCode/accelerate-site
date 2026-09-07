@@ -689,7 +689,7 @@ export async function GET() {
         publicBookingMode === "embed"
           ? "The public contact and qualifier pages embed the tenant scheduler URL. API attribution is a separate check."
           : publicBookingMode === "disabled"
-            ? "CALENDLY_ENABLED=false paused public self-booking. The founder still schedules by reply."
+            ? "CALENDLY_ENABLED=false paused the public embed. The founder still schedules by reply."
             : "No public embed. The founder reviews opportunities and schedules through email or Calendar.",
       accomplishes: "Keeps calendar activation optional without blocking the revenue workflow.",
       status: publicBookingMode === "disabled" ? "disabled" : "ready",
@@ -774,7 +774,7 @@ export async function GET() {
   const optionalReady = optional.filter((check) => check.status === "ready").length;
   return NextResponse.json({
     checks,
-    bookingMode: publicBookingMode === "embed" ? "calendly" : "manual",
+    bookingMode: publicBookingMode,
     google: google
       ? {
           accountEmail: google.account_email,

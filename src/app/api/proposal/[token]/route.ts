@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createBootstrapServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/server";
 import type { TenantSystemContext } from "@/lib/tenancy/context";
 import { rateLimit } from "@/lib/rate-limit";
-import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
-import { recordActivity } from "@/lib/revenue-os/activities";
-import { proposalAuditSummary, recordAudit } from "@/lib/revenue-os/audit";
+import { transitionStatusFromError } from "@/lib/revenue-os/pipeline";
+import { decideProposal, recordProposalView } from "@/lib/revenue-os/proposals";
 
 export async function handleProposalGet(
   request: NextRequest,
@@ -32,45 +31,29 @@ export async function handleProposalGet(
     .eq("share_token", token)
     .single();
 
-  if (error || !proposal) {
+  if (error || !proposal || proposal.status === "draft") {
     return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
   }
 
-  // Track view if not already viewed
-  if (!proposal.viewed_at && proposal.status !== "draft") {
-    const nextStatus = proposal.status === "sent" ? "viewed" : proposal.status;
-    await supabase
-      .from("proposals")
-      .update({
-        viewed_at: new Date().toISOString(),
-        status: nextStatus,
-      })
-      .eq("id", proposal.id);
-
-    // Create notification for proposal view
-    await supabase.from("admin_notifications").insert({
-      type: "proposal_viewed",
-      title: `Proposal viewed: ${proposal.title}`,
-      description: `${proposal.client_name} viewed the proposal`,
-      link: "/admin/proposals",
-      read: false,
-    });
-
-    try {
-      await recordAudit(supabase, {
-        action: "proposal.viewed",
-        entityType: "proposal",
-        entityId: proposal.id,
-        source: "public",
-        before: proposalAuditSummary(proposal),
-        after: proposalAuditSummary({ ...proposal, status: nextStatus }),
+  let status = proposal.status;
+  try {
+    const viewed = await recordProposalView(supabase, { id: proposal.id, source: "public_link" });
+    status = viewed.proposal.status;
+    if (!viewed.alreadyViewed) {
+      await supabase.from("admin_notifications").insert({
+        type: "proposal_viewed",
+        title: `Proposal viewed: ${proposal.title}`,
+        description: `${proposal.client_name} viewed the proposal`,
+        link: "/admin/proposals",
+        read: false,
       });
-    } catch (error) {
-      console.error(
-        "Proposal view audit failed:",
-        error instanceof Error ? error.message : "unknown",
-      );
     }
+  } catch (error) {
+    console.error("Proposal view unavailable", error instanceof Error ? error.message : "unknown");
+    return NextResponse.json(
+      { error: "Proposal is temporarily unavailable. Please try again." },
+      { status: 503 },
+    );
   }
 
   return NextResponse.json({
@@ -80,7 +63,7 @@ export async function handleProposalGet(
       content: proposal.content,
       total_one_time: proposal.total_one_time,
       total_monthly: proposal.total_monthly,
-      status: proposal.status,
+      status,
       created_at: proposal.created_at,
     },
   });
@@ -119,106 +102,39 @@ export async function handleProposalPost(
     .maybeSingle();
   if (error || !proposal)
     return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
-  if (["accepted", "declined"].includes(proposal.status))
-    return NextResponse.json({ success: true, status: proposal.status, alreadyResponded: true });
-  if (!["sent", "viewed"].includes(proposal.status))
-    return NextResponse.json(
-      { error: "This proposal is not open for a response" },
-      { status: 409 },
-    );
-  const now = new Date().toISOString();
-  const { data: updated, error: updateError } = await supabase
-    .from("proposals")
-    .update({
-      status: body.decision,
-      responded_at: now,
-      decline_reason: body.decision === "declined" ? body.reason!.trim().slice(0, 1000) : null,
-    })
-    .eq("id", proposal.id)
-    .in("status", ["sent", "viewed"])
-    .select("id,status")
-    .maybeSingle();
-  if (updateError)
-    return NextResponse.json({ error: "Could not record the response" }, { status: 500 });
-  if (!updated)
-    return NextResponse.json(
-      { error: "This proposal was already updated. Refresh the page." },
-      { status: 409 },
-    );
-  await Promise.all([
-    supabase.from("proposal_events").insert({
-      proposal_id: proposal.id,
-      event_type: body.decision,
+  try {
+    const decided = await decideProposal(supabase, {
+      id: proposal.id,
+      decision: body.decision,
+      reason: body.reason,
+      actorEmail: "public_link",
       source: "public_link",
-      metadata: { reason: body.reason?.trim() || null },
-    }),
-    recordActivity(supabase, {
-      activityType: `proposal_${body.decision}`,
-      title: `${proposal.client_name} ${body.decision} ${proposal.title}`,
-      summary: body.reason?.trim() || null,
-      opportunityId: proposal.opportunity_id,
-      proposalId: proposal.id,
-      source: "public_link",
-      externalId: `proposal:${proposal.id}:decision:${body.decision}`,
-      occurredAt: now,
-    }),
-    supabase.from("admin_notifications").insert({
-      type: "proposal_response",
-      title: `Proposal ${body.decision}: ${proposal.title}`,
-      description: body.reason?.trim() || `${proposal.client_name} ${body.decision} the proposal`,
-      link: "/admin/proposals",
-      read: false,
-      priority: "urgent",
-    }),
-    supabase.from("tasks").insert({
-      title: `${body.decision === "accepted" ? "Start next steps with" : "Review decline from"} ${proposal.client_name}`,
-      description: body.reason?.trim() || `Proposal ${body.decision}. Follow up personally.`,
-      due_date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-      priority: "high",
-      opportunity_id: proposal.opportunity_id,
-      related_type: "proposal",
-      related_id: proposal.id,
-      related_name: proposal.client_name,
-      source: "proposal_response",
-      dedupe_key: `proposal-response:${proposal.id}`,
-    }),
-    recordAudit(supabase, {
-      action: body.decision === "accepted" ? "proposal.accepted" : "proposal.declined",
-      entityType: "proposal",
-      entityId: proposal.id,
-      source: "public",
-      before: proposalAuditSummary(proposal),
-      after: proposalAuditSummary({ ...proposal, status: body.decision }),
-      metadata: { has_reason: Boolean(body.reason?.trim()) },
-    }),
-  ]);
-  if (proposal.opportunity_id) {
-    const nextStage = body.decision === "accepted" ? "negotiation" : "lost";
-    const { data: opportunity } = await supabase
-      .from("opportunities")
-      .select("stage")
-      .eq("id", proposal.opportunity_id)
-      .maybeSingle();
-    if (opportunity && !["won", "lost"].includes(opportunity.stage)) {
-      try {
-        await transitionOpportunity(supabase, {
-          id: proposal.opportunity_id,
-          to: nextStage,
-          actorEmail: "public_link",
-          source: "proposal_response",
-          reason:
-            body.decision === "accepted" ? "Client accepted proposal" : "Client declined proposal",
-          lossReason: body.decision === "declined" ? body.reason!.trim().slice(0, 1000) : undefined,
-        });
-      } catch (error) {
-        return NextResponse.json(
-          { error: error instanceof Error ? error.message : "Transition blocked by current stage" },
-          { status: transitionStatusFromError(error) },
-        );
-      }
+    });
+    if (!decided.alreadyResponded) {
+      await supabase.from("admin_notifications").insert({
+        type: "proposal_response",
+        title: `Proposal ${body.decision}: ${proposal.title}`,
+        description: body.reason?.trim() || `${proposal.client_name} ${body.decision} the proposal`,
+        link: "/admin/proposals",
+        read: false,
+        priority: "urgent",
+      });
     }
+    return NextResponse.json({
+      success: true,
+      status: decided.proposal.status,
+      alreadyResponded: decided.alreadyResponded,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not record the response";
+    if (/no longer open|already updated|expired/i.test(message))
+      return NextResponse.json({ error: message }, { status: 409 });
+    if (/decline reason|cannot move/i.test(message))
+      return NextResponse.json({ error: message }, { status: 400 });
+    if (/Transition blocked|loss reason|unknown stage/i.test(message))
+      return NextResponse.json({ error: message }, { status: transitionStatusFromError(error) });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-  return NextResponse.json({ success: true, status: body.decision });
 }
 
 export async function GET(request: NextRequest, context: { params: Promise<{ token: string }> }) {

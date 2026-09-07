@@ -69,6 +69,81 @@ assert.equal(
   "planned",
   "a roadmap provider must never appear installed",
 );
+assert.equal(
+  provider(baseline, "calendly").status,
+  "available",
+  "unconfigured Calendly attribution is available, not Ready",
+);
+assert.match(provider(baseline, "calendly").guardrail, /Manual scheduling remains usable/);
+
+const calendlyTokenOnly = buildIntegrationCatalog(
+  evidence({
+    configured: {
+      supabase: true,
+      google: false,
+      resend: false,
+      resend_webhooks: false,
+      openrouter: false,
+      calendly: true,
+    },
+  }),
+  now,
+);
+assert.equal(
+  provider(calendlyTokenOnly, "calendly").status,
+  "action",
+  "a Calendly webhook secret without a signed receipt is not Ready",
+);
+
+const calendlyFresh = buildIntegrationCatalog(
+  evidence({
+    configured: {
+      supabase: true,
+      google: false,
+      resend: false,
+      resend_webhooks: false,
+      openrouter: false,
+      calendly: true,
+    },
+    webhooks: [
+      {
+        provider: "calendly",
+        status: "success",
+        receivedAt: now.toISOString(),
+        error: null,
+      },
+    ],
+  }),
+  now,
+);
+assert.equal(provider(calendlyFresh, "calendly").status, "ready");
+
+const calendlyStale = buildIntegrationCatalog(
+  evidence({
+    configured: {
+      supabase: true,
+      google: false,
+      resend: false,
+      resend_webhooks: false,
+      openrouter: false,
+      calendly: true,
+    },
+    webhooks: [
+      {
+        provider: "calendly",
+        status: "success",
+        receivedAt: "2026-07-01T00:00:00.000Z",
+        error: null,
+      },
+    ],
+  }),
+  now,
+);
+assert.equal(
+  provider(calendlyStale, "calendly").status,
+  "degraded",
+  "stale Calendly attribution is degraded, not green forever",
+);
 
 const configuredOnly = buildIntegrationCatalog(
   evidence({

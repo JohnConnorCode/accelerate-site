@@ -60,8 +60,11 @@ console.log(
 await import("./test-radar-store-postgres.mjs");
 await import("./test-radar-ranking-postgres.mjs");
 await import("./test-radar-relationships-postgres.mjs");
+await import("./test-proposal-lifecycle-postgres.mjs");
 
 if (process.env.COLLECTIONS_POSTGRES_PROOF === "1") await import("./test-collections-postgres.mjs");
 
 if (process.env.COLLECTIONS_REMINDER_POSTGRES_PROOF === "1")
   await import("./test-collections-reminder-postgres.mjs");
+
+await import("./test-radar-outreach-postgres.mjs");

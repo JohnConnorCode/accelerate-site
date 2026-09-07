@@ -1,4 +1,12 @@
+import {
+  readRadarOutreachOptions,
+  previewRadarOutreach,
+  proposeRadarOutreach,
+  readRadarOutreach,
+  reconcileRadarOutreach,
+} from "./radar-outreach";
 import "server-only";
+import { prepareRadarOutreachDraft } from "./radar-outreach-drafting";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { getModuleSettings, isModuleEnabled } from "./modules";
@@ -176,6 +184,18 @@ export async function dispatchRadarWorkspaceCommand(
 ) {
   const command = radarWorkspaceCommandSchema.parse(raw);
   switch (command.kind) {
+    case "prepare_outreach":
+      return prepareRadarOutreachDraft(db, command.input);
+    case "outreach_options":
+      return readRadarOutreachOptions(db, command.input);
+    case "outreach_preview":
+      return previewRadarOutreach(db, command.input);
+    case "outreach_propose":
+      return proposeRadarOutreach(db, command.input, actorEmail);
+    case "outreach_history":
+      return readRadarOutreach(db, command.input);
+    case "outreach_reconcile":
+      return reconcileRadarOutreach(db, command.input.actionId);
     case "prepare_brief":
       return prepareRadarOpportunityBrief(db, command.input);
     case "read_record":

@@ -81,6 +81,23 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
   const seededTables: Record<string, Row[]> = {
     tenants: [{ id: ACCELERATE_TENANT_ID, slug: "accelerate", status: "active" }],
     integration_connections: [],
+    // Fixture approval exercises the real gateway; no live-model evaluation is implied.
+    admin_settings: [
+      {
+        tenant_id: ACCELERATE_TENANT_ID,
+        key: "ai-model:openai/gpt-4.1-mini",
+        value: JSON.stringify({
+          label: "Controlled fixture",
+          costTier: "low",
+          supportsTools: true,
+          supportsJson: true,
+          contextWindow: 1047576,
+          evalPassed: true,
+          evaluatedAt: "2026-09-06T00:00:00Z",
+          evaluatedBy: "fixture@example.test",
+        }),
+      },
+    ],
     ...tables,
   };
   const writes: Array<{ table: string; op: "insert" | "update"; payload: Row }> = [];
@@ -379,6 +396,7 @@ async function main() {
   assert.equal(
     crossDomain.writes.filter(
       (write) =>
+        !(write.table === "activities" && write.payload.activity_type === "model_call") &&
         ![
           "agent_runs",
           "agent_run_events",

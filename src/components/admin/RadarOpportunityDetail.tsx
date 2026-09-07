@@ -46,8 +46,7 @@ export function RadarOpportunityDetail({
           <AdminSurface tone="attention">
             <p className="text-sm font-semibold">Do not contact {packet.contact.name}</p>
             <p className="mt-1 text-sm">
-              The canonical contact is {packet.contact.communicationStatus}. This workspace does not
-              send outreach.
+              The canonical contact is {packet.contact.communicationStatus}. Outreach is blocked.
             </p>
           </AdminSurface>
         )}

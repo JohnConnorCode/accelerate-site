@@ -174,6 +174,7 @@ export async function runCoworkerAgentTask(
             workItemId: workItem.id,
           });
         },
+        job: "coworker-task",
         model,
         maxTokens: 800,
         messages: [

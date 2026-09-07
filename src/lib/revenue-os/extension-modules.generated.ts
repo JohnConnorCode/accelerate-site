@@ -138,7 +138,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "0bb5983956faa37d9cde79eae4e88a5d26c23ff10fa02e2ade006e13015a18ef",
+      contractHash: "9b621b60fdbe5196ee945e178d8244a0b9a8f58dd17845ad117ae6207518f2d2",
       tools: [
         {
           operation: "prepare-workflow",
@@ -426,7 +426,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "716311c6a924b21ad061cfd564eb96421b11dcfb633b7014f8334abea90b6973",
+      contractHash: "097583fcb331aec084f93158a64dff32c7f18e452bc7c955aa50a0ee8703c1ae",
       tools: [
         {
           operation: "prepare-workflow",
@@ -590,7 +590,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     id: "opportunity-radar",
     name: "Opportunity Radar",
     description:
-      "Review supplied sources, business opportunities, relationship evidence and drafts in a shared workspace, with optional budgeted source briefing. Automated discovery, outreach sending and publication remain unfinished.",
+      "Review sources, opportunities, relationships and drafts, then send configured outreach after exact human approval. Discovery and publication remain unfinished. Sending and model spending start off.",
     category: "intelligence",
     isCore: false,
     defaultEnabled: false,
@@ -610,6 +610,9 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       "get_radar_relationship_context",
       "preview_radar_relationship",
       "propose_radar_relationship",
+      "prepare_radar_outreach",
+      "preview_radar_outreach",
+      "propose_radar_outreach",
     ],
     routes: ["/admin/radar"],
     historyRoute: "/admin/radar/history",
@@ -785,9 +788,46 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         key: "outreachMode",
         label: "Outreach mode",
         type: "enum",
-        options: ["draft-only"],
+        options: ["draft-only", "approval-required"],
         default: "draft-only",
-        description: "No sending or publication is enabled by setup.",
+        description:
+          "Draft-only never sends. Approval-required still needs a verified sender, current checks and exact human approval for every message.",
+      },
+      {
+        key: "outreachDailyLimit",
+        label: "Daily outreach limit",
+        type: "number",
+        min: 1,
+        max: 25,
+        default: 5,
+        description:
+          "Maximum reserved Radar messages per UTC day; uncertain attempts consume the limit.",
+      },
+      {
+        key: "outreachCooldownHours",
+        label: "Recipient cooldown (hours)",
+        type: "number",
+        min: 24,
+        max: 2160,
+        default: 168,
+        description:
+          "Recent outbound messages to any recipient stop another Radar send. Uncertain acceptance must be reconciled first.",
+      },
+      {
+        key: "outreachForbiddenPhrases",
+        label: "Forbidden outreach phrases",
+        type: "string",
+        default: "",
+        description:
+          "One literal phrase per line. Matching phrases block approval; no executable regular expressions.",
+      },
+      {
+        key: "outreachApprovedTerms",
+        label: "Allow existing approved financial terms",
+        type: "boolean",
+        default: false,
+        description:
+          "Allow only terms stated verbatim in current approved facts. Every message still requires human review; this cannot create a new payment commitment.",
       },
     ],
     settingsContract: "opportunity-radar-profile-v1",
@@ -951,7 +991,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "7a721a254bb71e985a42c3272babf1ffb3535f74d079232c4b91055a788fd469",
+      contractHash: "59375bf39c3690bade0c8e52cd814d8b9c3c4d45113ab2e10cbea9c9d327c93b",
       tools: [
         {
           operation: "prepare-workflow",

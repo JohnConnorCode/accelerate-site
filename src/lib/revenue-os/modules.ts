@@ -154,7 +154,13 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["conversations"],
     routes: ["/admin/conversations"],
-    aiToolNames: ["propose_send_email", "search_conversations", "propose_conversation_reply"],
+    aiToolNames: [
+      "propose_send_email",
+      "search_conversations",
+      "propose_conversation_reply",
+      "get_radar_outreach_history",
+      "reconcile_radar_outreach",
+    ],
   },
   {
     id: "core-contacts",

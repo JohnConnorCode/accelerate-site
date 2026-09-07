@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { proposalAuditSummary, recordAudit } from "@/lib/revenue-os/audit";
+import { applyProposalWrite } from "@/lib/revenue-os/proposals";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdminForModule("proposals");
@@ -111,8 +112,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Proposal id is required" }, { status: 400 });
   }
 
-  const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
-
+  const patch: Record<string, unknown> = {};
   const allowedFields = [
     "title",
     "content",
@@ -120,43 +120,25 @@ export async function PATCH(request: NextRequest) {
     "total_monthly",
     "status",
     "client_name",
+    "decline_reason",
   ];
   for (const field of allowedFields) {
-    if (updates[field] !== undefined) {
-      updateData[field] = updates[field];
-    }
+    if (updates[field] !== undefined) patch[field] = updates[field];
   }
 
-  if (updates.status === "sent") {
-    updateData.sent_at = new Date().toISOString();
+  try {
+    const proposal = await applyProposalWrite(supabase, {
+      id,
+      actorEmail: auth.user.email || "founder",
+      patch,
+    });
+    return NextResponse.json({ proposal });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Database operation failed";
+    if (/not found/i.test(message)) return NextResponse.json({ error: message }, { status: 404 });
+    if (/cannot|only draft|no longer|required/i.test(message))
+      return NextResponse.json({ error: message }, { status: 409 });
+    console.error("Database error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const { data: before } = await supabase
-    .from("proposals")
-    .select("id,title,status,client_name,total_one_time,total_monthly,lead_id,opportunity_id")
-    .eq("id", id)
-    .maybeSingle();
-
-  const { data, error } = await supabase
-    .from("proposals")
-    .update(updateData)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
-  }
-
-  await recordAudit(supabase, {
-    actorEmail: auth.user.email,
-    action: updates.status === "sent" ? "proposal.sent" : "proposal.updated",
-    entityType: "proposal",
-    entityId: data.id,
-    before: proposalAuditSummary(before),
-    after: proposalAuditSummary(data),
-  });
-
-  return NextResponse.json({ proposal: data });
 }

@@ -192,6 +192,23 @@ export const tenant: TenantConfig = {
 };
 
 /** Environment wins over configuration, so one deployment can be retargeted without a code change. */
+/** Resolve a configured playbook, or synthesize one from the key so a second
+ *  industry can be added in `tenant.playbooks` without touching ingest code. */
+export function resolvePlaybook(key?: string | null): TenantPlaybook {
+  const configured = tenant.playbooks.find((playbook) => playbook.key === key);
+  if (configured) return configured;
+  if (!key && tenant.playbooks[0]) return tenant.playbooks[0];
+  const resolved = key || "roofing";
+  return {
+    key: resolved,
+    label: resolved.charAt(0).toUpperCase() + resolved.slice(1),
+    industry: resolved,
+    sourceTag: `${resolved}_qualifier`,
+    path: `/${resolved}`,
+    nextAction: `Respond to qualified ${resolved} audit request`,
+  };
+}
+
 export const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL || tenant.brand.siteUrl;
 export const adminEmail = () => process.env.ADMIN_EMAIL || tenant.founder.email;
 export const fromEmail = () =>

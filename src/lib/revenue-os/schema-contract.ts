@@ -8,6 +8,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-06.4";
 
 export const TENANT_SCOPED_TABLES = [
+  "proposal_lifecycle_receipts",
+  "radar_outreach_attempts",
   "radar_relationship_reviews",
   "radar_current_relationships",
   "message_evidence_context",
@@ -241,7 +243,16 @@ const BASE_REVENUE_SCHEMA_TABLES = [
   },
   {
     table: "proposals",
-    columns: ["id", "opportunity_id", "contact_id", "company_id", "status", "version"],
+    columns: [
+      "id",
+      "opportunity_id",
+      "contact_id",
+      "company_id",
+      "status",
+      "version",
+      "supersedes_id",
+      "superseded_by",
+    ],
   },
   { table: "proposal_events", columns: ["id", "proposal_id", "event_type", "source"] },
   {

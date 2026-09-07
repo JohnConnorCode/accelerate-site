@@ -637,6 +637,7 @@ export async function analyzeContactImport(
     const allowedSourceIndexes = new Set(aiContext.sourceRows.map((row) => row.sourceIndex));
     const ai = await openRouterJson({
       database: supabase,
+      job: "contact-extract",
       model: process.env.OPENROUTER_IMPORT_MODEL,
       maxTokens: 7000,
       temperature: 0,

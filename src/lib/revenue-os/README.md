@@ -256,3 +256,7 @@ are snapshots: CRM merge/coalescing can retire a link without deleting history;
 current recommendations then require fresh review. No inferred KNOWS, ranked
 people, model calls or external sends are provided. The plugin README defines
 limits, recovery and extension requirements.
+
+Booking mode is resolved by `src/lib/booking.ts`. Public embed availability stays separate from verified Calendly attribution in setup and the integration catalog.
+
+`proposals.ts` owns proposal transitions, material-edit versions, immutable events, and acceptance/decline pipeline updates. API adapters reuse that service.

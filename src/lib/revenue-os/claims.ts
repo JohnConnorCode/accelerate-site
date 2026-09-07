@@ -1,5 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { recordAudit } from "./audit";
 
 // ---------------------------------------------------------------------------
@@ -328,4 +330,32 @@ export async function listConflictedClaims(
 
   if (error) throw new Error(error.message);
   return (data ?? []) as Claim[];
+}
+
+/** Exact bounded human-confirmed facts for governed drafting; no inferred claim promotion. */
+export async function readApprovedClaimReferences(supabase: SupabaseClient, raw: unknown) {
+  const ids = z.array(z.uuid()).max(10).parse(raw);
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Approved facts require an explicit workspace");
+  if (new Set(ids).size !== ids.length) throw new Error("Approved fact IDs must be distinct");
+  if (!ids.length) return [];
+  const read = await supabase
+    .from("claims")
+    .select("id,entity_type,entity_id,field,proposed_value,status,best_evidence,resolved_at")
+    .eq("tenant_id", tenantId)
+    .in("id", ids)
+    .limit(10);
+  if (
+    read.error ||
+    read.data?.length !== ids.length ||
+    read.data.some(
+      (row) =>
+        row.status !== "verified" ||
+        row.best_evidence !== "human_confirmed" ||
+        typeof row.proposed_value !== "string" ||
+        row.proposed_value.length > 2000,
+    )
+  )
+    throw new Error("A cited approved fact is unavailable, changed, unconfirmed or too large");
+  return read.data.sort((a, b) => a.id.localeCompare(b.id));
 }

@@ -82,6 +82,62 @@ try {
       await page.keyboard.press("Escape");
       await page.getByRole("dialog").waitFor({ state: "hidden" });
       assert.equal(await page.evaluate(() => document.activeElement?.tagName), "BUTTON");
+      const detailUrl = page.url();
+      assert.equal(
+        await page.getByRole("button", { name: "Review exact message", exact: true }).isDisabled(),
+        true,
+      );
+      await page.getByText("Prepare a new outreach draft", { exact: true }).click();
+      await page
+        .getByLabel("Useful contribution", { exact: true })
+        .fill("We can offer a practical workshop outline.");
+      await page.getByLabel("Specific ask", { exact: true }).fill("Would you like to review it?");
+      await page.getByRole("button", { name: "Prepare draft for review", exact: true }).click();
+      await page.getByLabel("Title", { exact: true }).fill("Reviewed outreach example");
+      await page.getByRole("button", { name: "Preview exact change", exact: true }).click();
+      await page.getByRole("button", { name: "Approve this change", exact: true }).click();
+      await page.getByRole("button", { name: /Reviewed outreach example/ }).waitFor();
+      await page.goto(root + "/integrations");
+      await page.getByRole("tab", { name: /Pluggable Modules/ }).click();
+      await page.getByLabel("Search modules", { exact: true }).fill("Opportunity Radar");
+      await page.getByLabel(/^Outreach mode/).selectOption("approval-required");
+      await page.getByRole("button", { name: "Save settings", exact: true }).click();
+      await page.getByText("Settings saved", { exact: true }).waitFor();
+      await page.goto(detailUrl);
+      await page
+        .getByLabel(/^Saved outreach draft/)
+        .selectOption({ label: "Reviewed outreach example" });
+      await page
+        .getByLabel("Why this message is appropriate now", { exact: true })
+        .fill("The current request matches this useful contribution.");
+      await page.getByRole("button", { name: "Review exact message", exact: true }).click();
+      await page.getByRole("button", { name: "Approve and send", exact: true }).waitFor();
+      await page.waitForFunction(() => {
+        const dialog = document.querySelector('[data-admin-overlay="dialog"]');
+        return dialog && Number(getComputedStyle(dialog).opacity) >= 0.999;
+      });
+      assert.equal(
+        await page.getByRole("dialog").evaluate((el) => {
+          const panel = el.querySelector("div");
+          return panel ? getComputedStyle(panel).backgroundColor !== "rgba(0, 0, 0, 0)" : false;
+        }),
+        true,
+        "Review must have an opaque readable surface",
+      );
+      await page.screenshot({
+        path: `${output}/${scenario}-${width}-outreach-review.png`,
+        fullPage: true,
+      });
+      await page.getByRole("button", { name: "Approve and send", exact: true }).press("Enter");
+      await page.getByText("Simulated sent", { exact: true }).waitFor();
+      await page.reload();
+      await page.getByText("Simulated sent", { exact: true }).waitFor();
+      assert.equal(await page.getByText("Simulated sent", { exact: true }).count(), 1);
+      await page.getByText("Simulated sent", { exact: true }).scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: `${output}/${scenario}-${width}-outreach-receipt.png`,
+        fullPage: true,
+      });
       await page.goto(root + "/radar/history");
       await page.getByRole("heading", { name: "Radar history", exact: true }).waitFor();
       await page.screenshot({ path: `${output}/${scenario}-${width}-history.png`, fullPage: true });
@@ -108,6 +164,7 @@ try {
           "source detail",
           "keyboard approval",
           "draft creation",
+          "default-off outreach, exact keyboard approval and persisted simulated receipt",
           "reload persistence",
           "session reset and scenario isolation",
           "dialog escape/focus",

@@ -225,6 +225,7 @@ export async function runRevenueCommandAgent(
       const advertisedNames = new Set(activeTools.map((tool) => tool.function.name));
       const request = {
         database: supabase,
+        job: "copilot-answer",
         model,
         maxTokens: 1200,
         signal: options.signal,

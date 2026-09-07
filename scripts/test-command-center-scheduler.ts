@@ -41,6 +41,7 @@ const summary = summarizeOperationalHealth({
       receivedAt: null,
     },
   ],
+  queueBacklog: { pending: 3, expired: 1 },
   concerns: [
     {
       kind: "integration",
@@ -57,6 +58,8 @@ assert.deepEqual(summary, {
   sourceCount: 0,
   jobCount: 0,
   webhookFailureCount: 1,
+  queuePending: 3,
+  queueExpired: 1,
 });
 assert.ok(
   !JSON.stringify(summary).includes("secret-bearing detail"),

@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import {
   EXPECTED_CADENCE_LABELS,
   describeExpectedCheck,
+  isCheckOverdue,
+  nextExpectedFromAnchor,
   type HealthConcernKind,
 } from "../src/lib/revenue-os/health-expectation";
 
@@ -37,5 +39,14 @@ assert.equal(
 // Items without an expectation (integrations) render nothing extra.
 assert.equal(describeExpectedCheck(undefined, EXPECTED_CADENCE_LABELS.source, now), null);
 assert.equal(describeExpectedCheck(now + 60_000, undefined, now), null);
+
+const hourly = 60 * 60_000;
+assert.equal(nextExpectedFromAnchor(now - 10 * 60_000, hourly, now), now - 10 * 60_000 + hourly);
+assert.equal(nextExpectedFromAnchor(null, hourly, now), now);
+assert.equal(nextExpectedFromAnchor(undefined, hourly, now), now);
+assert.equal(nextExpectedFromAnchor(now, 0, now), undefined);
+assert.equal(isCheckOverdue(now - 1, now), true);
+assert.equal(isCheckOverdue(now + 1, now), false);
+assert.equal(isCheckOverdue(undefined, now), false);
 
 console.log(JSON.stringify({ result: "passed", kinds: kinds.length }));

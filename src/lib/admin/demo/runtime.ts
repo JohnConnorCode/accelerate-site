@@ -3021,6 +3021,9 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
               startedAt: ago(2),
               finishedAt: ago(2),
               error: null,
+              cadenceLabel: "hourly",
+              nextExpectedAt: Date.now() + 42 * 60_000,
+              receiptHref: "/admin/setup#operations",
             },
           ],
           jobRuns: [
@@ -3030,8 +3033,13 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
               startedAt: ago(1),
               finishedAt: ago(1),
               error: null,
+              cadenceLabel: "every 30 minutes",
+              nextExpectedAt: Date.now() + 18 * 60_000,
+              receiptHref: "/admin/setup#operations",
             },
           ],
+          webhookFailures: [],
+          queueBacklog: { pending: 1, expired: 0 },
         },
       });
     }

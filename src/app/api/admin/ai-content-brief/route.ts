@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
     }
     const response = await openRouterJson({
       database: auth.database,
+      job: "content-brief",
       model: process.env.OPENROUTER_CONTENT_MODEL,
       maxTokens: 1_000,
       temperature: 0.2,

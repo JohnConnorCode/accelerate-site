@@ -26,14 +26,11 @@ Production tenant release and activation use the staged, fail-closed checks in
 not activation evidence.
 
 Maintainers apply all migrations in order with `npm run db:migrate:all`, or through a selected manifest entry with `npm run db:migrate -- <migration.sql>`, then
-verify the resulting objects through the service role. `db:migrate:all` is
-safe to re-run against a fresh install or to resume after an early failure,
-but re-running it from scratch against a long-lived, already-migrated
-database can hit a transitional constraint that a later migration in the
-list deliberately supersedes (real data can outlive an early, intentionally
-temporary constraint). That is expected, not a bug; use `npm run
-db:verify-schema` to check an existing installation instead of re-running
-the full manifest. Either command resolves the
+verify the resulting objects through the service role. The checksum ledger skips
+completed files and resumes pending migrations. For an existing database without
+a ledger, first follow the reviewed baseline adoption procedure in the self-hosting
+guide; never replay historical seed migrations over live data. Changed recorded
+checksums and unknown history stop the upgrade. The commands resolve the
 project, pooler host, database user, and password from the self-hosted
 environment described in `.env.example`; on macOS the password may instead come
 from the configured Keychain service. Always inspect the printed target before
@@ -86,7 +83,7 @@ If the Email Studio tables are unavailable, runtime email continues with built-i
 
 ## Money-first operating mode
 
-The contact form, roofing qualifier, and chat capture now feed the canonical identity, opportunity, activity, attribution, and same-day follow-up services. The public contact experience embeds the configured free Calendly event; Calendly API/webhook attribution remains an optional separate capability and must not be represented as connected until its credentials and booking/cancellation receipts pass production checks. Resend confirmation failures never discard an already stored inquiry.
+The contact form, roofing qualifier, and chat capture now feed the canonical identity, opportunity, activity, attribution, and same-day follow-up services. Public booking is tenant-owned (`tenant.capabilities.publicBooking` plus `tenant.booking.schedulerUrl`); `CALENDLY_ENABLED=false` is only an emergency pause. The public embed is not Calendly API/webhook attribution. Attribution remains optional and must not read as Ready until a fresh signed booking or cancellation receipt exists. Resend confirmation failures never discard an already stored inquiry.
 
 ### Additional tools compatibility
 
@@ -247,7 +244,13 @@ Create a separate OpenRouter key per tenant and set a provider-side monthly limi
 
 ## Booking mode
 
-The public Calendly embed is the active booking path when `CALENDLY_ENABLED` is not `false`; it does not require a Calendly API token. Manual scheduling remains available as a fallback. Set `CALENDLY_PERSONAL_ACCESS_TOKEN` and `CALENDLY_WEBHOOK_SECRET` only when enabling automatic booking/cancellation attribution, and keep that capability marked degraded/action until its signed production receipts pass.
+`src/lib/booking.ts` owns public booking mode for every embed and admin instruction:
+
+- **embed** — `tenant.capabilities.publicBooking` and a scheduler URL
+- **manual** — public booking off or no scheduler URL; founder replies with times
+- **disabled** — `CALENDLY_ENABLED=false` emergency pause; founder still replies with times
+
+The public embed does not require a Calendly API token and is not verified attribution. Set `CALENDLY_WEBHOOK_SECRET` only when enabling automatic booking/cancellation attribution. Ready requires a fresh signed `invitee.created` or `invitee.canceled` receipt inside the freshness window. Tokens, environment flags, and the embed itself stay action/optional/disabled until that evidence exists. `CALENDLY_ENABLED=true` is not an activation switch.
 
 ## Verification
 

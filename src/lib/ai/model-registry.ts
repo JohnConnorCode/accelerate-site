@@ -1,6 +1,7 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { DEFAULT_OPENROUTER_MODEL } from "./openrouter";
+import { DEFAULT_OPENROUTER_MODEL } from "./openrouter-models";
 
 /**
  * Audited model registry (ai-model-job-registry): AI calls name a registered
@@ -59,6 +60,24 @@ const BUILT_IN_REGISTRATION: Omit<ModelRegistration, "evalPassed" | "evaluatedAt
 
 export const AI_JOBS: readonly JobRegistration[] = [
   {
+    key: "invoice-design",
+    label: "Invoice presentation",
+    consequential: false,
+    requiresTools: false,
+    requiresJson: true,
+    minContextWindow: 32000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
+  {
+    key: "budgeted-draft",
+    label: "Budgeted structured draft",
+    consequential: false,
+    requiresTools: false,
+    requiresJson: true,
+    minContextWindow: 32000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
+  {
     key: "copilot-answer",
     label: "Revenue Copilot answer",
     consequential: true,
@@ -103,6 +122,42 @@ export const AI_JOBS: readonly JobRegistration[] = [
     minContextWindow: 64_000,
     defaultModel: BUILT_IN_MODEL_ID,
   },
+  {
+    key: "growth-plan",
+    label: "Public growth plan generation",
+    consequential: false,
+    requiresTools: false,
+    requiresJson: true,
+    minContextWindow: 32_000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
+  {
+    key: "contact-extract",
+    label: "Contact import extraction",
+    consequential: false,
+    requiresTools: false,
+    requiresJson: true,
+    minContextWindow: 32_000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
+  {
+    key: "coworker-task",
+    label: "Coworker headless execution",
+    consequential: true,
+    requiresTools: true,
+    requiresJson: false,
+    minContextWindow: 64_000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
+  {
+    key: "connectivity-check",
+    label: "Provider connectivity check",
+    consequential: false,
+    requiresTools: false,
+    requiresJson: false,
+    minContextWindow: 4_000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
 ];
 
 function settingKey(modelId: string): string {
@@ -129,6 +184,8 @@ function toRegistration(
   if (!stored) {
     return {
       ...BUILT_IN_REGISTRATION,
+      id: modelId,
+      label: modelId === BUILT_IN_MODEL_ID ? BUILT_IN_REGISTRATION.label : modelId,
       evalPassed: false,
       evaluatedAt: null,
       evaluatedBy: null,
@@ -345,6 +402,8 @@ export async function recordModelCall(
     tenantId: string;
     actorEmail?: string | null;
     latencyMs?: number | null;
+    callId?: string;
+    phase?: "started" | "completed" | "failed" | "cancelled";
   },
 ): Promise<{ id: string }> {
   const job = input.job?.trim();
@@ -353,20 +412,22 @@ export async function recordModelCall(
   // rather than landing in a global bucket nobody can bill or audit.
   const tenantId = requireTenant(input.tenantId);
   const switched = input.requested !== input.resolved;
+  const phase = input.phase ?? "completed";
+  const callId = input.callId ?? randomUUID();
   const { data, error } = await supabase
     .from("activities")
     .insert({
       tenant_id: tenantId,
       activity_type: "model_call",
-      title: `Model ${switched ? `${input.requested} → ${input.resolved}` : input.resolved} served ${job}`,
-      summary: switched
-        ? `Fallback or model change during ${job}: requested ${input.requested}, served ${input.resolved}.`
-        : `Job ${job} served by ${input.resolved}.`,
+      title: `Model call ${phase}: ${job}`,
+      summary: `Requested ${input.requested}; ${phase === "started" ? "selected" : "reported"} model ${input.resolved}.`,
       source: "ai-gateway",
       actor_email: input.actorEmail ?? null,
-      external_id: `model:${job}:${input.resolved}:${Date.now()}`,
+      external_id: `model:${callId}:${phase}`,
       metadata: {
         job,
+        phase,
+        callId,
         requested: input.requested,
         resolved: input.resolved,
         fallback: switched,

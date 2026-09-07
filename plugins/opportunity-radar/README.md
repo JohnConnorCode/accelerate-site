@@ -3,7 +3,7 @@
 Configure a reusable business profile for evidence-backed earned-growth work.
 **Available now: validated profile, two presets, CLI setup and governed AI
 configuration, bounded source briefing, model charge receipts and a versioned
-evidence store, reviewed business selection, shared admin/demo workspace and source-backed relationship reviews.** Automated discovery, outreach,
+evidence store, reviewed business selection, shared admin/demo workspace and source-backed relationship reviews.** Automated discovery,
 publication and outcome measurement remain unfinished. Enabling this foundation
 does not start a background worker.
 
@@ -270,7 +270,7 @@ and the shared approval/read service in
 [`radar-ranking.ts`](../../src/lib/revenue-os/radar-ranking.ts). Keep estimates
 separate from claims, retain source/configuration freshness and prove new
 selection rules in `npm run test:radar-ranking`. The native PostgreSQL proof is
-part of the existing migration suite. The daily workspace and source-backed relationship reviews are implemented below. Automatic discovery, outreach execution and publication remain unfinished.
+part of the existing migration suite. The daily workspace and source-backed relationship reviews are implemented below. Automatic discovery and publication remain unfinished. Reviewed outreach is implemented below.
 
 ## Daily workspace
 
@@ -352,4 +352,31 @@ CRM, arbitrary relationship types or raw SQL tools.
 Verification: `npm run test:radar-relationships` covers contract, bounded source
 reading and service behavior. `scripts/test-radar-relationships-postgres.mjs`
 runs in the controlled native PostgreSQL migration suite. Production activation
-and end-to-end outreach remain separate release work.
+remains a separate deployment step.
+
+### Outreach implementation status
+
+The host now has a bounded draft-preparation service in
+`src/lib/revenue-os/radar-outreach-drafting.ts`. It reads the canonical opportunity,
+reviewed source excerpts, contact and conversation history before preparing text.
+The default uses the operator's contribution and specific ask without a provider
+call. Optional generation uses the existing evaluated-model budget gateway; a
+refused or disabled model retains the operator-supplied draft. Results are unsaved
+and use the existing `add_asset` approval path to become retained drafts.
+
+Quality policy catches specific unsupported audience figures, unreviewed links,
+financial commitments and introduction claims. Human-confirmed claim references
+come from the shared ledger; profile prose is not an approved fact. The checks do
+not establish semantic truth. Introduction evidence requires exact received
+quotations from both canonical parties, a current expiry and human interpretation.
+
+The shared outreach panel, workspace commands and AI/MCP tools use this preparation service and the same exact send preview. `send_radar_outreach` is permanently human-approved. The service binds recipients, sender, message, source versions, approved claims, profile, conversation history and current two-party consent, then rechecks them immediately before using `sendRecordedEmail`.
+
+Apply ordered migration `20260913-radar-outreach.sql` for durable reservations. The tenant-wide daily cap counts unresolved reservations; contact cooldowns include prior canonical outbound messages. Reconciliation can observe confirmed acceptance or a recorded pre-dispatch failure after module disable, but can never send or automatically release an uncertain attempt. A provider receipt establishes acceptance, not reading, agreement or a verified outcome.
+
+Use the [public operator guide](/docs/intelligence/opportunity-radar) for the complete workflow and recovery steps. The fictional demo runs the same controls with session-owned state and simulated receipts.
+Controlled tests cover provider-free preparation for SuperDebate and an unrelated
+business, suppressed recipients, missing or stale facts, quoted consent, exact
+email replay, final-guard refusal and uncertain provider acceptance. Run
+`npm run test:radar-outreach`. No real outreach or paid-model call is part of those
+tests. Full release acceptance remains on the live Feature Board.

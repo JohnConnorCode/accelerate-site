@@ -2,11 +2,29 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "reviewed-outreach-and-runtime-integration",
+    slug: "reviewed-outreach-and-runtime-integration",
+    title: "Reviewed outreach joins the shared business workflows",
+    description:
+      "Radar can prepare a sourced draft, review the exact message and recipient, and send through the configured workspace sender after human approval. Two-party introductions require cited consent. Durable reservations, contact cooldowns and daily limits prevent repeated sends; uncertain provider acceptance remains on hold for receipt reconciliation. The same controls run with fictional data in the demo. Sending starts disabled.",
+    category: "feature",
+    publishedAt: "2026-09-06",
+  },
+  {
+    id: "integrated-lifecycle-health-and-model-jobs",
+    slug: "integrated-lifecycle-health-and-model-jobs",
+    title: "Proposal revisions, booking readiness, health and model jobs share clearer evidence",
+    description:
+      "Sent proposal edits create a successor draft while retaining the original decision history. Booking distinguishes an embed from verified event attribution. Source health separates quiet syncs from missing configuration and incomplete processing, alongside live work counts. Model calls name registered jobs and retain requested-model, fallback and failure receipts; unevaluated low-cost models cannot run consequential jobs.",
+    category: "improvement",
+    publishedAt: "2026-09-06",
+  },
+  {
     id: "radar-reviewed-workspace",
     slug: "radar-reviewed-workspace",
     title: "Opportunity Radar brings sources, reviewed opportunities, and drafts together",
     description:
-      "Review supplied sources, compare business opportunities using human-reviewed estimates, and save drafts through exact approval previews. Today, opportunity details, and retained history share the same admin pages across live workspaces and fictional demos. Model spending starts off; optional source briefing uses explicit model settings, call limits, cost reservations, and charge receipts. Automated discovery, outreach sending, publication, and independently verified outcome measurement remain unfinished.",
+      "Review supplied sources, compare business opportunities using human-reviewed estimates, and save drafts through exact approval previews. Today, opportunity details, and retained history share the same admin pages across live workspaces and fictional demos. Model spending starts off; optional source briefing uses explicit model settings, call limits, cost reservations, and charge receipts. Automated discovery, publication, and independently verified outcome measurement remain unfinished. Reviewed outreach is described in its release entry.",
     category: "feature",
     publishedAt: "2026-09-06",
   },

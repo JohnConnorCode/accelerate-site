@@ -11,7 +11,8 @@ import {
 } from "@/lib/opportunities";
 import { bookingMode } from "@/lib/booking";
 import { recordAudit } from "@/lib/revenue-os/audit";
-import { ingestRoofingQualification } from "@/lib/revenue-os/inbound";
+import { ingestPlaybookQualification } from "@/lib/revenue-os/inbound";
+import { resolvePlaybook, siteUrl } from "@/config/tenant";
 
 const ALLOWED_ROLES = new Set([
   "owner",
@@ -63,14 +64,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Complete every qualification field." }, { status: 400 });
   }
 
+  const playbookKey = (body as typeof body & { playbookKey?: unknown }).playbookKey;
+  const playbook = resolvePlaybook(typeof playbookKey === "string" ? playbookKey : null);
   const qualification = qualifyRoofingOpportunity(body.role, body.revenueBand);
   // Public self-booking is tenant-owned. CALENDLY_ENABLED=false is an emergency
   // pause. Embed availability is not Calendly API health.
-  const calendlyEnabled = bookingMode() === "embed";
+  const publicBookingMode = bookingMode();
+  const calendlyEnabled = publicBookingMode === "embed";
   const supabase = createBootstrapServiceRoleClient("legacy-public-qualifier");
   let ingestion;
   try {
-    ingestion = await ingestRoofingQualification(supabase, {
+    ingestion = await ingestPlaybookQualification(supabase, {
+      playbookKey: playbook.key,
       email,
       companyWebsite,
       role: body.role,
@@ -96,7 +101,9 @@ export async function POST(request: NextRequest) {
   if (!ingestion.existing) {
     const { error: notificationError } = await supabase.from("admin_notifications").insert({
       type: "new_lead",
-      title: qualification.qualified ? "Qualified roofing audit request" : "Roofing nurture signup",
+      title: qualification.qualified
+        ? `Qualified ${playbook.label.toLowerCase()} audit request`
+        : `${playbook.label} nurture signup`,
       description: `${email} · ${companyWebsite}`,
       link: "/admin/bookings",
       priority: qualification.qualified ? "urgent" : "info",
@@ -113,7 +120,7 @@ export async function POST(request: NextRequest) {
         entityId: opportunity.id,
         source: "webhook",
         metadata: {
-          surface: "roofing_qualifier",
+          surface: playbook.sourceTag,
           qualified: qualification.qualified,
           error: notificationError.message,
         },
@@ -128,10 +135,12 @@ export async function POST(request: NextRequest) {
           ? calendlyEnabled
             ? "booking_nurture"
             : "manual_audit_followup"
-          : "roofing_nurture",
+          : playbook.key === "roofing"
+            ? "roofing_nurture"
+            : "manual_audit_followup",
         metadata: {
-          planLink: `https://www.acceleratewith.us/roofing?resume=${opportunity.qualifier_token || ""}#book`,
-          industry: "roofing",
+          planLink: `${siteUrl()}${playbook.path}?resume=${opportunity.qualifier_token || ""}#book`,
+          industry: playbook.industry,
         },
       });
     } catch (sequenceError) {
@@ -144,6 +153,6 @@ export async function POST(request: NextRequest) {
     qualified: qualification.qualified,
     token: opportunity.qualifier_token,
     email,
-    bookingMode: calendlyEnabled ? "calendly" : "manual",
+    bookingMode: publicBookingMode,
   });
 }

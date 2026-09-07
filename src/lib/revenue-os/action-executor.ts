@@ -1,3 +1,4 @@
+import { executeRadarOutreach } from "./radar-outreach";
 import "server-only";
 import { executeRadarRelationship } from "./radar-relationships";
 import { executeRadarAssessment } from "./radar-ranking";
@@ -39,6 +40,7 @@ function stringValue(
 }
 
 export const APPROVABLE_ACTIONS = [
+  "send_radar_outreach",
   "review_radar_relationship",
   "review_radar_assessment",
   "update_radar_store",
@@ -132,6 +134,10 @@ export async function approveAndExecuteAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "send_radar_outreach": {
+        result = await executeRadarOutreach(supabase, id, actorEmail);
+        break;
+      }
       case "review_radar_relationship": {
         if (mode !== "approved")
           throw new Error("Relationship assertions require exact human approval");

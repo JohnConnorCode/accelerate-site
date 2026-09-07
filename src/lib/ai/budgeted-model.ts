@@ -176,6 +176,7 @@ export async function runBudgetedModel<T>(
   let reason: string | null = null;
   try {
     response = await openRouterChat({
+      job: "budgeted-draft",
       database,
       model: model.id,
       messages: input.messages,

@@ -11,6 +11,13 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "send_radar_outreach",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale:
+      "An external email cannot be recalled. Every exact message and introduction requires human approval; uncertain acceptance must be reconciled, never automatically retried.",
+  },
+  {
     actionType: "review_radar_relationship",
     impact: "internal_write",
     reversibility: "compensable",

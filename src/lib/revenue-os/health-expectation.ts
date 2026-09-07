@@ -33,13 +33,31 @@ function formatDuration(ms: number): string {
  * "Runs every 30 minutes · check overdue by 5m". Returns null when the item
  * carries no expectation (integrations have no fixed cadence).
  */
+/**
+ * Next expected execution is last-receipt + cadence, not a wall-clock bucket.
+ * Missing evidence is due now — configuration or “nothing failed” is not health.
+ */
+export function nextExpectedFromAnchor(
+  anchorMs: number | null | undefined,
+  cadenceMs: number,
+  now = Date.now(),
+): number | undefined {
+  if (!Number.isFinite(cadenceMs) || cadenceMs <= 0) return undefined;
+  if (anchorMs == null || !Number.isFinite(anchorMs)) return now;
+  return anchorMs + cadenceMs;
+}
+
+export function isCheckOverdue(nextExpectedAt: number | undefined, now = Date.now()): boolean {
+  return nextExpectedAt != null && nextExpectedAt < now;
+}
+
 export function describeExpectedCheck(
   nextExpectedAt: number | undefined,
   cadenceLabel: string | undefined,
   now = Date.now(),
 ): string | null {
   if (nextExpectedAt === undefined || cadenceLabel === undefined) return null;
-  if (nextExpectedAt < now)
+  if (isCheckOverdue(nextExpectedAt, now))
     return `Runs ${cadenceLabel} · check overdue by ${formatDuration(now - nextExpectedAt)}`;
   return `Runs ${cadenceLabel} · next check in ${formatDuration(nextExpectedAt - now)}`;
 }

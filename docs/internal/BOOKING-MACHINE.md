@@ -19,31 +19,40 @@ The `/admin/setup` page checks the running deployment and gives the exact next s
 
 Use `/admin/setup` as the source of truth after every deploy. It reports whether the environment is actually ready without exposing credential values.
 
-## 3. Manual review mode (default)
+## 3. Tenant-owned booking mode
 
-Set `CALENDLY_ENABLED=false`, or leave it unset. The qualified flow is:
+`src/lib/booking.ts` is the one public booking mode. Tenant config owns the default:
+
+- **embed** when `tenant.capabilities.publicBooking` is true and `tenant.booking.schedulerUrl` is set
+- **manual** when public booking is off or no scheduler URL is configured
+- **disabled** only when `CALENDLY_ENABLED=false` (emergency pause of an existing embed)
+
+`CALENDLY_ENABLED=true` is not an activation switch and is ignored. Leaving the variable unset does not force manual mode.
+
+In **manual** or **disabled**, the qualified flow is:
 
 1. Prospect completes the fit gate on `/roofing`.
 2. The system creates or updates one canonical opportunity with campaign attribution.
 3. The prospect receives a confirmation email.
 4. `ADMIN_EMAIL` receives the new request and the opportunity appears in `/admin/bookings`.
-5. John reviews the company and replies personally with a recommendation and meeting times.
+5. The founder reviews the company and replies personally with a recommendation and meeting times.
 
-## 4. Optional Calendly activation
+## 4. Optional Calendly attribution
 
-Only complete this section when self-booking is desirable. Set `CALENDLY_ENABLED=true` after all credentials and the webhook are ready.
+The public embed does not require a Calendly API token. Attribution is a separate optional path. Do not describe the embed as verified attribution.
 
-1. Create a long random value for `CALENDLY_WEBHOOK_SECRET` and add it to Vercel.
-2. Generate a Calendly personal access token with scheduled-event, invitee, and webhook access. Add it as `CALENDLY_PERSONAL_ACCESS_TOKEN`.
-3. Retrieve the current Calendly user and organization URIs with `GET https://api.calendly.com/users/me`.
-4. Create a user-scoped webhook subscription for `invitee.created` and `invitee.canceled` using this callback:
+1. Keep the tenant scheduler URL and `publicBooking` on if the public embed should render.
+2. Create a long random value for `CALENDLY_WEBHOOK_SECRET` and add it to Vercel.
+3. Create a user-scoped webhook subscription for `invitee.created` and `invitee.canceled` using this callback:
 
    `https://www.acceleratewith.us/api/webhooks/calendly?secret=<CALENDLY_WEBHOOK_SECRET>`
 
-5. Set `CALENDLY_ENABLED=true` and redeploy.
-6. Submit a qualified test request at `/roofing`, book and cancel a test event, and confirm the single opportunity progresses through `qualified → calendar_viewed → booked → qualified` in `/admin/bookings`.
+4. Submit a qualified test request at `/roofing`, book and cancel a test event, and confirm the single opportunity progresses through `qualified → calendar_viewed → booked → qualified` in `/admin/bookings`.
+5. Setup Center marks Calendly attribution Ready only after a fresh signed booking or cancellation receipt. A personal access token without that receipt is not Ready.
 
 Calendly sends both a cancel and a create event during rescheduling. The webhook matches the invitee URI so a late cancellation for the old event cannot overwrite the new booking.
+
+To pause the public embed without changing tenant config, set `CALENDLY_ENABLED=false` and redeploy. Manual scheduling stays usable.
 
 ## Campaign links
 

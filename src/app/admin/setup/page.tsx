@@ -21,6 +21,7 @@ import {
   Loader2,
   MailCheck,
   Megaphone,
+  PauseCircle,
   PlugZap,
   RefreshCw,
   Rocket,
@@ -30,6 +31,7 @@ import {
   TriangleAlert,
   UserCheck,
 } from "lucide-react";
+import { bookingModeSummary, bookingModeTitle, type BookingMode } from "@/lib/booking";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminStatusMessage } from "@/components/admin/AdminStatusMessage";
@@ -65,7 +67,7 @@ interface SetupCheck {
 
 interface SetupResponse {
   checks: SetupCheck[];
-  bookingMode: "manual" | "calendly";
+  bookingMode: BookingMode;
   google?: {
     accountEmail: string;
     connected: boolean;
@@ -173,9 +175,9 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   manual_booking: {
     steps: [
-      "Leave CALENDLY_ENABLED unset or set it to false.",
-      `${tenant.founder.name} receives the audit request, reviews the company, and replies with meeting times.`,
-      "No calendar credentials or webhook are needed in this mode.",
+      "Tenant config owns the public booking default: capabilities.publicBooking plus booking.schedulerUrl.",
+      `${tenant.founder.name} receives the audit request, reviews the company, and replies with meeting times when the embed is off.`,
+      "CALENDLY_ENABLED=false is only an emergency pause. It is not an activation switch, and leaving it unset does not force manual mode.",
     ],
   },
   google_oauth: {
@@ -241,10 +243,10 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   calendly: {
     steps: [
-      "Public embed is tenant.capabilities.publicBooking plus a scheduler URL. It does not need Calendly API tokens.",
-      "CALENDLY_ENABLED=false is an emergency pause of the public embed, not a health signal.",
+      "Public embed is tenant.capabilities.publicBooking plus a scheduler URL. It does not need Calendly API tokens and is not verified attribution.",
+      "CALENDLY_ENABLED=false is an emergency pause of the public embed, not a health signal and not an on-switch.",
       "Add a long random CALENDLY_WEBHOOK_SECRET and subscribe invitee.created plus invitee.canceled to /api/webhooks/calendly.",
-      "Ready for attribution requires a signed booking or cancellation receipt. A token without a receipt is not Ready.",
+      "Ready for attribution requires a fresh signed booking or cancellation receipt. A token or embed without that receipt is not Ready.",
     ],
     href: "https://calendly.com/integrations/api_webhooks",
     linkLabel: "Open Calendly API & webhooks",
@@ -329,10 +331,39 @@ const statusMeta: Record<
   },
 };
 
-function SetupCheckCard({ check }: { check: SetupCheck }) {
+function bookingModeGuide(mode: BookingMode): SetupGuide {
+  if (mode === "embed") {
+    return {
+      steps: [
+        "The public embed is on because tenant.capabilities.publicBooking and a scheduler URL are set.",
+        "CALENDLY_ENABLED=false is the emergency pause. Clearing publicBooking or the scheduler URL returns the site to manual scheduling.",
+        "Webhook attribution is the separate Calendly check. The embed itself is not Ready attribution.",
+      ],
+    };
+  }
+  if (mode === "disabled") {
+    return {
+      steps: [
+        "CALENDLY_ENABLED=false paused the public embed. Remove that emergency pause to restore the tenant-owned scheduler.",
+        `${tenant.founder.name} still receives qualified requests and replies with meeting times.`,
+        "Do not set CALENDLY_ENABLED=true. That value is not an activation switch.",
+      ],
+    };
+  }
+  return {
+    steps: [
+      "No public embed: tenant.capabilities.publicBooking is off or booking.schedulerUrl is empty.",
+      `${tenant.founder.name} receives the audit request, reviews the company, and replies with meeting times.`,
+      "No calendar credentials or webhook are needed in this mode. CALENDLY_ENABLED=false is only an emergency pause of an existing embed.",
+    ],
+  };
+}
+
+function SetupCheckCard({ check, bookingMode }: { check: SetupCheck; bookingMode: BookingMode }) {
   const meta = statusMeta[check.status];
   const StatusIcon = meta.icon;
-  const guide = setupGuides[check.id];
+  const guide =
+    check.id === "manual_booking" ? bookingModeGuide(bookingMode) : setupGuides[check.id];
 
   return (
     <AdminSurface id={check.id} padding="none" className="scroll-mt-24 overflow-hidden">
@@ -597,7 +628,8 @@ export default function AdminSetupPage() {
       id: "booking",
       eyebrow: "Scheduling",
       title: "Booking mode",
-      description: "Manual scheduling now, with Calendly preserved as an optional later channel.",
+      description:
+        "Tenant-owned public embed, manual fallback, or emergency pause. Attribution health is tracked separately.",
       icon: CalendarDays,
     },
     {
@@ -623,11 +655,12 @@ export default function AdminSetupPage() {
               Integration map <PlugZap className="size-3.5" aria-hidden="true" />
             </Link>
             <Link
-              href="/roofing"
+              href={tenant.playbooks[0]?.path || "/"}
               target="_blank"
               className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 text-xs font-semibold text-[var(--admin-ink)] shadow-sm transition-[transform,background-color] duration-150 hover:bg-[var(--admin-surface-subtle)] active:scale-[0.96]"
             >
-              View funnel <ArrowRight className="size-3.5" aria-hidden="true" />
+              View {tenant.playbooks[0]?.label || "public"} funnel{" "}
+              <ArrowRight className="size-3.5" aria-hidden="true" />
             </Link>
             <button
               type="button"
@@ -724,20 +757,20 @@ export default function AdminSetupPage() {
 
               <AdminSurface tone="attention" padding="lg">
                 <span className="grid size-10 place-items-center rounded-xl bg-amber-500/12 text-amber-800 dark:text-amber-300">
-                  {data.bookingMode === "manual" ? (
-                    <UserCheck className="size-5" />
-                  ) : (
+                  {data.bookingMode === "embed" ? (
                     <CalendarClock className="size-5" />
+                  ) : data.bookingMode === "disabled" ? (
+                    <PauseCircle className="size-5" />
+                  ) : (
+                    <UserCheck className="size-5" />
                   )}
                 </span>
                 <p className="admin-eyebrow mt-5">Current booking mode</p>
                 <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
-                  {data.bookingMode === "manual" ? "Personal review" : "Calendly self-booking"}
+                  {bookingModeTitle(data.bookingMode)}
                 </h2>
                 <p className="admin-copy mt-2 text-sm leading-6">
-                  {data.bookingMode === "manual"
-                    ? `This is launch-safe. Qualified prospects receive confirmation, enter Bookings, and wait for ${tenant.founder.name}'s personal reply.`
-                    : "Qualified prospects can choose a time immediately, with webhook-based stage attribution."}
+                  {bookingModeSummary(data.bookingMode, tenant.founder.name)}
                 </p>
                 <Link
                   href="/admin/bookings"
@@ -952,7 +985,7 @@ export default function AdminSetupPage() {
                   </div>
                   <div className="grid gap-3 lg:grid-cols-2">
                     {checks.map((check) => (
-                      <SetupCheckCard key={check.id} check={check} />
+                      <SetupCheckCard key={check.id} check={check} bookingMode={data.bookingMode} />
                     ))}
                   </div>
                 </section>

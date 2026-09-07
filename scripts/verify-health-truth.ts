@@ -12,9 +12,10 @@
  */
 import { randomUUID } from "node:crypto";
 import { loadOperationalHealth, STALLED_JOB_MINUTES } from "../src/lib/revenue-os/health";
-import { createServiceRoleClient } from "../src/lib/supabase/server";
+import { createBootstrapServiceRoleClient } from "../src/lib/supabase/server";
 
 const JOB_KEY = `revenue-os-health-verify-${randomUUID().slice(0, 8)}`;
+const OVERDUE_JOB_KEY = `revenue-os-health-overdue-${randomUUID().slice(0, 8)}`;
 const RECEIPT_ID = `revenue-os-health-verify-${randomUUID()}`;
 const failures: string[] = [];
 
@@ -24,7 +25,7 @@ function check(label: string, condition: boolean, detail?: unknown) {
 }
 
 async function main() {
-  const supabase = createServiceRoleClient();
+  const supabase = createBootstrapServiceRoleClient("verify-health-truth");
   const baseline = await loadOperationalHealth(supabase);
 
   try {
@@ -85,8 +86,37 @@ async function main() {
       withBoth.attentionCount >= withStalled.attentionCount + 1,
       { withStalled: withStalled.attentionCount, withBoth: withBoth.attentionCount },
     );
+
+    // 3. A successful job whose last receipt is older than its cadence is stale.
+    const staleSuccess = new Date(Date.now() - 2 * 60 * 60_000).toISOString();
+    const { error: overdueError } = await supabase.from("job_runs").insert({
+      job_key: OVERDUE_JOB_KEY,
+      status: "success",
+      claimed_at: staleSuccess,
+      finished_at: staleSuccess,
+    });
+    if (overdueError) throw new Error(`seeding overdue job: ${overdueError.message}`);
+    const withOverdue = await loadOperationalHealth(supabase);
+    const overdueRun = withOverdue.jobRuns.find((run) => run.key === OVERDUE_JOB_KEY);
+    check(
+      "next expected execution is last receipt plus cadence, not a wall-clock bucket",
+      Boolean(
+        overdueRun?.nextExpectedAt &&
+        overdueRun.nextExpectedAt < Date.now() &&
+        overdueRun.nextExpectedAt > Date.parse(staleSuccess),
+      ),
+      overdueRun,
+    );
+    check(
+      "an overdue successful job still requires attention",
+      withOverdue.concerns.some(
+        (c) => c.kind === "job" && c.key === OVERDUE_JOB_KEY && /overdue/i.test(c.detail),
+      ),
+      withOverdue.concerns.filter((c) => c.key === OVERDUE_JOB_KEY),
+    );
   } finally {
     await supabase.from("job_runs").delete().eq("job_key", JOB_KEY);
+    await supabase.from("job_runs").delete().eq("job_key", OVERDUE_JOB_KEY);
     await supabase.from("webhook_receipts").delete().eq("id", RECEIPT_ID);
   }
 
@@ -123,7 +153,7 @@ main().catch((error) => {
     error instanceof Error ? error.message : error,
   );
   console.error(
-    `Look for leftovers: job_runs job_key ${JOB_KEY}, webhook_receipts id ${RECEIPT_ID}.`,
+    `Look for leftovers: job_runs job_key ${JOB_KEY} / ${OVERDUE_JOB_KEY}, webhook_receipts id ${RECEIPT_ID}.`,
   );
   process.exit(1);
 });

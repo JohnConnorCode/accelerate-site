@@ -27,3 +27,9 @@ If a run stops after an external request, inspect its [action result](/docs/star
 ## When a tool is unavailable
 
 Check its connection requirement in the [AI tool reference](/docs/intelligence/tools), then inspect [Setup Center](/docs/workspace/setup). Module settings and your permissions can also restrict access. Enabling a connection does not grant additional user authority.
+
+## Model jobs and evaluation
+
+AI requests name a registered job with capability and context requirements. An operator-selected model or configured fallback must satisfy those requirements. Free and low-cost models need a recorded passing evaluation before running consequential jobs such as the command agent. A fresh installation does not assume that evaluation has happened.
+
+The model-call activity records the requested model, reported serving model and execution state. A started call without a terminal receipt needs investigation; it is not proof of a completed answer. Model availability and evaluation are separate from permission to change business records or send messages, which still follows the approval workflow.

@@ -1,4 +1,5 @@
 import "server-only";
+import { z } from "zod";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
@@ -1106,16 +1107,39 @@ export async function readContactConversationContext(supabase: SupabaseClient, c
   const tenantId = tenantIdForDatabase(supabase);
   if (!tenantId || !/^[a-f0-9-]{36}$/i.test(contactId))
     throw new Error("Canonical contact and tenant required");
-  const read = await supabase
-    .from("conversations")
-    .select("id,contact_id,subject,status,last_message_at")
-    .eq("tenant_id", tenantId)
-    .eq("contact_id", contactId)
-    .order("last_message_at", { ascending: false })
-    .order("id")
-    .limit(11);
-  if (read.error) throw new Error("Conversation history unavailable");
-  const conversations = (read.data ?? []).slice(0, 10);
+  const query = () =>
+    supabase
+      .from("conversations")
+      .select("id,contact_id,subject,status,last_message_at")
+      .eq("tenant_id", tenantId);
+  const [primary, associated] = await Promise.all([
+    query()
+      .eq("contact_id", contactId)
+      .order("last_message_at", { ascending: false })
+      .order("id")
+      .limit(11),
+    query()
+      .contains("metadata", {
+        association: {
+          contract: CONVERSATION_ASSOCIATION_CONTRACT,
+          participants: [{ contact_id: contactId, outcome: "linked" }],
+        },
+      })
+      .order("last_message_at", { ascending: false })
+      .order("id")
+      .limit(11),
+  ]);
+  if (primary.error || associated.error) throw new Error("Conversation history unavailable");
+  const all = [
+    ...new Map(
+      [...(primary.data ?? []), ...(associated.data ?? [])].map((row) => [row.id, row]),
+    ).values(),
+  ].sort(
+    (a, b) =>
+      String(b.last_message_at ?? "").localeCompare(String(a.last_message_at ?? "")) ||
+      String(a.id).localeCompare(String(b.id)),
+  );
+  const conversations = all.slice(0, 10);
   const messages = conversations.length
     ? await supabase
         .from("message_evidence_context")
@@ -1139,9 +1163,89 @@ export async function readContactConversationContext(supabase: SupabaseClient, c
         .join(""),
       textTruncated: Array.from(String(m.body_excerpt ?? "")).length > 600,
     })),
-    complete: (read.data?.length ?? 0) <= 10 && (messages.data?.length ?? 0) <= 20,
+    complete:
+      all.length <= 10 &&
+      (primary.data?.length ?? 0) <= 10 &&
+      (associated.data?.length ?? 0) <= 10 &&
+      (messages.data?.length ?? 0) <= 20,
     limits: { conversations: 10, messages: 20, excerptCharacters: 600 },
     interpretation:
       "Read prior inbound and outbound context and earlier asks before drafting. A bounded excerpt does not prove an absent commitment or consent.",
+  };
+}
+
+const inboundEvidenceSchema = z.object({
+  id: z.uuid(),
+  conversation_id: z.uuid(),
+  direction: z.enum(["inbound", "outbound"]),
+  sender_email: z.string().nullable(),
+  status: z.string(),
+  body_excerpt: z.string().max(20000),
+  body_hash: z.string().regex(/^[a-f0-9]{64}$/),
+  created_at: z.string(),
+});
+/** Canonical received-message evidence shared by relationship and consent workflows.
+ * Exact identity and bounded source text, never a display-name match or a provider fetch. */
+export async function readInboundContactEvidence(
+  supabase: SupabaseClient,
+  raw: { contactId: string; messageId: string; allowAssociated?: boolean },
+) {
+  const input = z
+    .object({
+      contactId: z.uuid(),
+      messageId: z.uuid(),
+      allowAssociated: z.boolean().default(false),
+    })
+    .strict()
+    .parse(raw);
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Inbound evidence needs an explicit workspace");
+  const read = await supabase
+    .from("message_evidence_context")
+    .select("id,conversation_id,direction,sender_email,status,body_excerpt,body_hash,created_at")
+    .eq("tenant_id", tenantId)
+    .eq("id", input.messageId)
+    .single();
+  if (read.error || !read.data) throw new Error("Inbound message evidence unavailable");
+  const message = inboundEvidenceSchema.parse(read.data);
+  if (message.direction !== "inbound" || message.status !== "received" || !message.sender_email)
+    throw new Error("Evidence needs an identified, received inbound message");
+  const conversation = await supabase
+    .from("conversations")
+    .select("id,contact_id,subject,metadata")
+    .eq("tenant_id", tenantId)
+    .eq("id", message.conversation_id)
+    .single();
+  const participants = conversation.data?.metadata?.association?.participants;
+  const associated =
+    conversation.data?.metadata?.association?.contract === CONVERSATION_ASSOCIATION_CONTRACT &&
+    Array.isArray(participants) &&
+    participants.some((p) => p?.contact_id === input.contactId && p?.outcome === "linked");
+  if (
+    conversation.error ||
+    !conversation.data ||
+    (conversation.data.contact_id !== input.contactId && !(input.allowAssociated && associated))
+  )
+    throw new Error("The cited conversation must be linked to the canonical contact");
+  const sender = await findCanonicalContactByEmail(supabase, message.sender_email);
+  if (sender?.id !== input.contactId)
+    throw new Error(
+      "Message author identity is unavailable or does not match the canonical contact; resolve identity first",
+    );
+  return {
+    snapshot: {
+      kind: "message" as const,
+      id: message.id,
+      contentHash: message.body_hash,
+      revision: null,
+      verification: message.status,
+      conversationId: message.conversation_id,
+      contactId: input.contactId,
+      senderEmail: message.sender_email,
+    },
+    text: message.body_excerpt,
+    title: String(conversation.data.subject ?? "Canonical conversation").slice(0, 300),
+    url: null,
+    conversationId: message.conversation_id,
   };
 }

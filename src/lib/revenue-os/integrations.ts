@@ -9,6 +9,7 @@ import {
   type IntegrationDefinition,
   type IntegrationStatus,
 } from "./integration-registry";
+import { isCalendlyAttributionEvent } from "./setup-status";
 
 type EvidenceStatus = "success" | "failed" | "partial" | "running" | string;
 
@@ -325,6 +326,7 @@ export async function loadIntegrationCatalog(
     agentResult,
     schemaResult,
     openRouterCredential,
+    calendlyReceiptResult,
   ] = await Promise.all([
     supabase
       .from("integration_connections")
@@ -369,6 +371,12 @@ export async function loadIntegrationCatalog(
       .order("checked_at", { ascending: false })
       .limit(1),
     resolveOpenRouterCredential(supabase).catch(() => null),
+    supabase
+      .from("calendly_webhook_receipts")
+      .select("event_type,processed_at")
+      .in("event_type", ["invitee.created", "invitee.canceled"])
+      .order("processed_at", { ascending: false })
+      .limit(1),
   ]);
 
   const evidenceTablesAvailable =
@@ -412,6 +420,7 @@ export async function loadIntegrationCatalog(
       openrouter: Boolean(openRouterCredential),
       mcp: mcpStatus === "success",
       whatsapp: configured("WHATSAPP_APP_SECRET") || configured("WHATSAPP_ACCESS_TOKEN"),
+      calendly: configured("CALENDLY_WEBHOOK_SECRET"),
     },
     runtime: {
       mcp: {
@@ -484,11 +493,28 @@ export async function loadIntegrationCatalog(
       finishedAt: row.finished_at,
       error: row.error,
     })),
-    webhooks: (webhookResult.data ?? []).map((row) => ({
-      provider: row.provider,
-      status: row.status,
-      receivedAt: row.received_at,
-      error: row.error,
-    })),
+    webhooks: [
+      ...(webhookResult.data ?? []).map((row) => ({
+        provider: row.provider,
+        status: row.status,
+        receivedAt: row.received_at,
+        error: row.error,
+      })),
+      ...calendlyCatalogWebhook(calendlyReceiptResult.data?.[0] ?? null),
+    ],
   });
+}
+
+function calendlyCatalogWebhook(
+  receipt: { event_type: string; processed_at: string | null } | null,
+): WebhookRow[] {
+  if (!receipt || !isCalendlyAttributionEvent(receipt.event_type)) return [];
+  return [
+    {
+      provider: "calendly",
+      status: "success",
+      receivedAt: receipt.processed_at,
+      error: null,
+    },
+  ];
 }

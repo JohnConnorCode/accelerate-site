@@ -320,7 +320,7 @@ documents the implemented assessment and shortlist tools, a worked workshop
 example, configurable request weights, profile result limit, effort budget,
 source freshness and recovery. Estimates are reviewed judgments rather than
 probabilities or verified facts. The tool scans a bounded candidate window;
-public-affairs and unknown subjects remain unranked. The shared Radar Today workspace consumes this service; automated discovery and outreach execution remain unfinished.
+public-affairs and unknown subjects remain unranked. The shared Radar Today workspace consumes this service; automated discovery remains unfinished. Reviewed outreach uses the shared sender and exact human approval.
 
 ## Operator workspace and demo
 
@@ -376,3 +376,9 @@ See the [plugin operator and extension guide](../../plugins/opportunity-radar/RE
 for limits, migration, recovery, tool inputs and extension requirements. This
 service does not complete discovery, outreach delivery, publication or verified
 recognition. Release acceptance follows the live card's attached evidence.
+
+## Reviewed outreach implementation
+
+The shared opportunity page now includes draft preparation, exact send review, introduction consent selectors and retained delivery receipts. The authoritative host is `src/lib/revenue-os/radar-outreach.ts`; preparation remains in `radar-outreach-drafting.ts`. Both the workspace API and registered AI/MCP operations call these services. Apply the ordered outreach reservation migration before connected use.
+
+See the [public operator guide](/docs/intelligence/opportunity-radar) and bundled plugin README for current controls, limits and recovery. Controlled transport and native PostgreSQL tests cover dispatch replay, competing approvals, stale evidence, suppression, cooldown, uncertain acceptance and rollback. No real recipient or paid model is used by those tests.
