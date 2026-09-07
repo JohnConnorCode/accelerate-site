@@ -57,6 +57,39 @@ console.log(
   "PASS: actual business migration upgrade and replay preserve two tenants, duplicate contact emails, canonical record IDs, owner membership and edited configuration.",
 );
 
+// Real PostgreSQL conflict inference: mirrors the tenant-bound PostgREST
+// upserts used by recorded email and Google synchronization. Memory fixtures
+// cannot detect an otherwise-correct column list backed only by partial indexes.
+sql(`BEGIN;
+INSERT INTO conversations(tenant_id,channel,external_id,subject)
+VALUES('${a}','resend','upsert-proof','First'),('${b}','resend','upsert-proof','Other tenant')
+ON CONFLICT (tenant_id,channel,external_id) DO NOTHING;
+INSERT INTO conversations(tenant_id,channel,external_id,subject)
+VALUES('${a}','resend','upsert-proof','Replay')
+ON CONFLICT (tenant_id,channel,external_id) DO NOTHING;
+INSERT INTO conversations(tenant_id,channel,subject)
+VALUES('${a}','resend','No external ID'),('${a}','resend','Another without ID')
+ON CONFLICT (tenant_id,channel,external_id) DO NOTHING;
+INSERT INTO messages(tenant_id,conversation_id,external_id,direction,body_text)
+SELECT tenant_id,id,'message-proof','inbound','First' FROM conversations WHERE external_id='upsert-proof'
+ON CONFLICT (tenant_id,conversation_id,external_id) DO UPDATE SET body_text=excluded.body_text;
+INSERT INTO messages(tenant_id,conversation_id,external_id,direction,body_text)
+SELECT tenant_id,id,'message-proof','inbound','Updated' FROM conversations WHERE external_id='upsert-proof'
+ON CONFLICT (tenant_id,conversation_id,external_id) DO UPDATE SET body_text=excluded.body_text;
+INSERT INTO messages(tenant_id,conversation_id,direction,body_text)
+SELECT '${a}',id,'outbound','No external ID' FROM conversations CROSS JOIN generate_series(1,2) WHERE tenant_id='${a}' AND channel='resend' AND external_id='upsert-proof'
+ON CONFLICT (tenant_id,conversation_id,external_id) DO NOTHING;
+DO $$ BEGIN
+ IF (SELECT count(*) FROM conversations WHERE external_id='upsert-proof') <> 2 THEN RAISE EXCEPTION 'Conversation replay or tenant isolation failed'; END IF;
+ IF (SELECT count(*) FROM messages WHERE external_id='message-proof' AND body_text='Updated') <> 2 THEN RAISE EXCEPTION 'Message replay or tenant isolation failed'; END IF;
+ IF (SELECT count(*) FROM conversations WHERE tenant_id='${a}' AND channel='resend' AND external_id IS NULL) <> 2 THEN RAISE EXCEPTION 'Null conversation identity was collapsed'; END IF;
+ IF (SELECT count(*) FROM messages WHERE body_text='No external ID') <> 2 THEN RAISE EXCEPTION 'Null message identity was collapsed'; END IF;
+END $$;
+ROLLBACK;`);
+console.log(
+  "PASS: native conversation/message conflict targets support replay, tenant ID reuse and null external IDs.",
+);
+
 await import("./test-radar-store-postgres.mjs");
 await import("./test-radar-ranking-postgres.mjs");
 await import("./test-radar-relationships-postgres.mjs");

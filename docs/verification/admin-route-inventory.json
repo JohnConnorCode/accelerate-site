@@ -265,7 +265,7 @@
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/runs.ts": "94ea4fe446cc959aaf90cb4ab968f9b0baf0c165f3c393081b9fd6e4d8015fdd",
-    "src/lib/revenue-os/schema-contract.ts": "25211e92fc7504d8cb3cdabb9c2a4c93ffe7fdc2d90174e9e5cf71291eed8a84",
+    "src/lib/revenue-os/schema-contract.ts": "969b4e93aee65bb9e842440141be002237e6f22582c04163e4791a7119c85fc2",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/tasks.ts": "e3aaecd09ac8d07d40dc09a9f898efc0fe3ab344b26b17dae42cdad6b33e1b4b",

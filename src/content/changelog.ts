@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "tenant-message-upsert-repair",
+    slug: "tenant-message-upsert-repair",
+    title: "Shared email and message sync use compatible workspace replay indexes",
+    description:
+      "Fixed a database conflict-target error that could stop an approved email before provider dispatch and prevent message synchronization. An additive migration makes conversation and message upserts compatible with workspace-scoped replay keys while preserving separate tenant records and messages without external IDs.",
+    category: "fix",
+    publishedAt: "2026-09-07",
+  },
+  {
     id: "reviewed-outreach-and-runtime-integration",
     slug: "reviewed-outreach-and-runtime-integration",
     title: "Reviewed outreach joins the shared business workflows",

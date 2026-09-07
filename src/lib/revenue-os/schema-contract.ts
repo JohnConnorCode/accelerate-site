@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-06.4";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-07.1";
 
 export const TENANT_SCOPED_TABLES = [
   "proposal_lifecycle_receipts",
@@ -540,6 +540,8 @@ export const REVENUE_SCHEMA_CONSTRAINTS = [
 ] as const;
 
 export const REVENUE_SCHEMA_INDEXES = [
+  "idx_conversations_tenant_upsert",
+  "idx_messages_tenant_external_upsert",
   "idx_contacts_tenant_primary_email_unique",
   "idx_contacts_tenant_source_record_unique",
   "idx_opportunities_tenant_source_record_unique",

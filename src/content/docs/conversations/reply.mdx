@@ -29,3 +29,7 @@ Check the send result in the conversation. A provider accepting a send is differ
 Check the channel connection in [Setup Center](/docs/workspace/setup). Gmail replies also need a valid thread anchor. A missing thread anchor is refused rather than silently creating a new conversation. For developers, this includes the Message-ID and References used for RFC threading.
 
 Share the visible error and conversation identifier with your administrator when you need help. Do not include credentials.
+
+## If a send fails before dispatch
+
+Run the current migration catalog and verify Setup before retrying a database conflict-target error. The shared sender requires workspace-scoped conversation and message indexes. Keep the same request identity when retrying an unchanged message; if a provider attempt has an uncertain result, reconcile its receipt first instead of sending again.
