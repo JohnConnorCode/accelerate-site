@@ -11,6 +11,10 @@
  *   - a configured fallback model is handed to OpenRouter for provider failover
  */
 import assert from "node:assert/strict";
+import { MemorySupabase } from "./lib/memory-supabase";
+import { bindTenantDatabase } from "../src/lib/supabase/server";
+import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
+import { registerModel } from "../src/lib/ai/model-registry";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
@@ -78,7 +82,13 @@ const okBody = {
   choices: [{ message: { role: "assistant", content: "OK" } }],
   usage: { total_tokens: 7 },
 };
-const ask = { job: "connectivity-check", messages: [{ role: "user" as const, content: "hi" }] };
+const memory = new MemorySupabase({ tenants: [{ id: ACCELERATE_TENANT_ID, status: "active" }] });
+const database = bindTenantDatabase(memory.client, ACCELERATE_TENANT_ID, true);
+const ask = {
+  database,
+  job: "connectivity-check",
+  messages: [{ role: "user" as const, content: "hi" }],
+};
 const checks: string[] = [];
 
 async function scenario(name: string, run: () => Promise<void>) {
@@ -88,6 +98,16 @@ async function scenario(name: string, run: () => Promise<void>) {
 }
 
 async function main() {
+  for (const id of ["fixture/free", "anthropic/claude-haiku-4.5"])
+    await registerModel(database, {
+      tenantId: ACCELERATE_TENANT_ID,
+      id,
+      costTier: "free",
+      supportsTools: false,
+      supportsJson: true,
+      contextWindow: 32000,
+      actorEmail: "controlled-fixture@example.test",
+    });
   await scenario("a rate-limited request retries and then succeeds", async () => {
     stubFetch([{ status: 429 }, { status: 200, body: okBody }]);
     const response = await openRouterChat(ask);
@@ -300,6 +320,7 @@ async function main() {
     return value as { ok: boolean };
   };
   const jsonAsk = {
+    database,
     job: "content-brief",
     messages: [{ role: "user" as const, content: "json" }],
     schemaName: "probe",

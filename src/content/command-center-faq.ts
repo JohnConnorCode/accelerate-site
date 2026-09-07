@@ -4,7 +4,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "What can Opportunity Radar do today?",
     answer:
-      "It keeps supplied sources, reviewed business opportunities, relationship evidence, and drafts together. You review exact changes before saving. Source briefing can use an explicitly configured model budget, with spending off by default. Automated discovery, outreach sending, publication, and verified outcome measurement are still being built. The fictional demo lets you try the review workflow without provider calls.",
+      "It keeps supplied sources, reviewed business opportunities, relationship evidence, and drafts together. You review exact changes before saving. Source briefing can use an explicitly configured model budget, with spending off by default. Reviewed outreach uses the configured sender only after an exact human approval, with cooldowns and receipt recovery. Automated discovery, publication, and verified outcome measurement are still being built. The fictional demo lets you try the review workflow without provider calls.",
   },
   {
     question: "What stops it doing something stupid on my behalf?",

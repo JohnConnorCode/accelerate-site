@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { readBoundedJson } from "./bounded-json";
 import { tenant } from "@/config/tenant";
@@ -159,7 +160,7 @@ export function isOpenRouterConfigured(): boolean {
   return Boolean(process.env.OPENROUTER_API_KEY?.trim());
 }
 
-async function requestApiKey(input: OpenRouterRequest): Promise<string> {
+async function requestApiKey(input: Pick<OpenRouterRequest, "database">): Promise<string> {
   if (input.database) {
     const credential = await resolveOpenRouterCredential(input.database);
     if (!credential)
@@ -317,6 +318,8 @@ async function recordJobReceipt(
   requested: string,
   resolved: string,
   startedAt: number,
+  callId: string,
+  phase: "started" | "completed" | "failed" | "cancelled" = "completed",
 ): Promise<void> {
   if (!input.database) throw new Error("Model receipt requires a database");
   await recordModelCall(input.database, {
@@ -325,6 +328,8 @@ async function recordJobReceipt(
     resolved,
     tenantId,
     latencyMs: Date.now() - startedAt,
+    callId,
+    phase,
   });
 }
 
@@ -351,20 +356,36 @@ export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRout
   const tenantId = resolveJobTenant(input);
   const { requested, resolved: model } = await resolveJobModel(input, tenantId);
   const startedAt = Date.now();
+  const callId = randomUUID();
+  await recordJobReceipt(input, tenantId, requested, model, startedAt, callId, "started");
   let lastError: OpenRouterError | null = null;
   const attempts = input.strictPricing ? 1 : MAX_ATTEMPTS;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       await input.beforeAttempt?.(attempt);
       const payload = await attemptChat(input, model, apiKey);
-      await recordJobReceipt(input, tenantId, requested, payload.model ?? model, startedAt);
+      await recordJobReceipt(input, tenantId, requested, payload.model ?? model, startedAt, callId);
       return payload;
     } catch (error) {
-      if (!(error instanceof OpenRouterError)) throw error;
+      if (!(error instanceof OpenRouterError)) {
+        await recordJobReceipt(input, tenantId, requested, model, startedAt, callId, "failed");
+        throw error;
+      }
       lastError = error;
       const recoverable =
         isRetryableStatus(error.status) && attempt < attempts && !input.signal?.aborted;
-      if (!recoverable) throw error;
+      if (!recoverable) {
+        await recordJobReceipt(
+          input,
+          tenantId,
+          requested,
+          model,
+          startedAt,
+          callId,
+          input.signal?.aborted ? "cancelled" : "failed",
+        );
+        throw error;
+      }
       await backoff(attempt);
     }
   }
@@ -402,10 +423,12 @@ export async function openRouterChatStream(
     throw new OpenRouterError("Strict budgeted calls require non-streaming execution", 400);
   const apiKey = await requestApiKey(input);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45_000);
   const tenantId = resolveJobTenant(input);
   const { requested, resolved: model } = await resolveJobModel(input, tenantId);
   const streamStartedAt = Date.now();
+  const callId = randomUUID();
+  await recordJobReceipt(input, tenantId, requested, model, streamStartedAt, callId, "started");
+  const timeout = setTimeout(() => controller.abort(), 45_000);
   const fallbackModel = getOpenRouterFallbackModel();
   try {
     const response = await fetch(OPENROUTER_URL, {
@@ -486,7 +509,7 @@ export async function openRouterChatStream(
     }
     if (buffer.trim()) consume(buffer);
 
-    await recordJobReceipt(input, tenantId, requested, resolvedModel, streamStartedAt);
+    await recordJobReceipt(input, tenantId, requested, resolvedModel, streamStartedAt, callId);
     return {
       id,
       model: resolvedModel,
@@ -509,6 +532,15 @@ export async function openRouterChatStream(
       ],
     };
   } catch (error) {
+    await recordJobReceipt(
+      input,
+      tenantId,
+      requested,
+      model,
+      streamStartedAt,
+      callId,
+      input.signal?.aborted ? "cancelled" : "failed",
+    );
     if (error instanceof OpenRouterError) throw error;
     if (error instanceof Error && error.name === "AbortError") {
       if (input.signal?.aborted) throw new OpenRouterError("OpenRouter request was cancelled", 499);
@@ -577,10 +609,12 @@ export async function openRouterTextStream(
   if (input.strictPricing)
     throw new OpenRouterError("Strict budgeted calls require non-streaming execution", 400);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45_000);
   const tenantId = resolveJobTenant(input);
   const { requested, resolved: model } = await resolveJobModel(input, tenantId);
   const streamStartedAt = Date.now();
+  const callId = randomUUID();
+  await recordJobReceipt(input, tenantId, requested, model, streamStartedAt, callId, "started");
+  const timeout = setTimeout(() => controller.abort(), 45_000);
   const fallbackModel = getOpenRouterFallbackModel();
   const apiKey = await requestApiKey(input);
   let response: Response;
@@ -603,6 +637,15 @@ export async function openRouterTextStream(
     });
   } catch (error) {
     clearTimeout(timeout);
+    await recordJobReceipt(
+      input,
+      tenantId,
+      requested,
+      model,
+      streamStartedAt,
+      callId,
+      input.signal?.aborted ? "cancelled" : "failed",
+    );
     if (error instanceof Error && error.name === "AbortError") {
       throw new OpenRouterError(
         input.signal?.aborted
@@ -618,6 +661,7 @@ export async function openRouterTextStream(
   }
   if (!response.ok || !response.body) {
     clearTimeout(timeout);
+    await recordJobReceipt(input, tenantId, requested, model, streamStartedAt, callId, "failed");
     const payload = await response.json().catch(() => null);
     throw new OpenRouterError(
       boundedProviderMessage(payload),
@@ -635,11 +679,19 @@ export async function openRouterTextStream(
     usage: {},
   };
   let metadataDelivered = false;
-  const deliverMetadata = async () => {
+  const deliverMetadata = async (phase: "completed" | "failed" | "cancelled" = "completed") => {
     if (metadataDelivered) return;
     metadataDelivered = true;
     onMetadata?.({ ...metadata, usage: { ...metadata.usage } });
-    await recordJobReceipt(input, tenantId, requested, metadata.model ?? model, streamStartedAt);
+    await recordJobReceipt(
+      input,
+      tenantId,
+      requested,
+      metadata.model ?? model,
+      streamStartedAt,
+      callId,
+      phase,
+    );
   };
   return new ReadableStream<Uint8Array>({
     async pull(streamController) {
@@ -660,16 +712,22 @@ export async function openRouterTextStream(
           if (blocks.length) return;
         }
       } catch (error) {
-        await deliverMetadata();
-        clearTimeout(timeout);
-        streamController.error(error);
+        try {
+          await deliverMetadata("failed");
+        } finally {
+          clearTimeout(timeout);
+          streamController.error(error);
+        }
       }
     },
     async cancel() {
-      await deliverMetadata();
-      clearTimeout(timeout);
-      controller.abort();
-      void reader.cancel();
+      try {
+        await deliverMetadata("cancelled");
+      } finally {
+        clearTimeout(timeout);
+        controller.abort();
+        await reader.cancel();
+      }
     },
   });
 }
@@ -705,7 +763,7 @@ function parseSseChunk(
 export async function getOpenRouterGeneration(database: SupabaseClient, generationId: string) {
   if (!/^gen-[a-zA-Z0-9_-]{1,196}$/.test(generationId))
     throw new Error("Stored generation ID is unavailable");
-  const key = await requestApiKey({ database, messages: [] });
+  const key = await requestApiKey({ database });
   const url = new URL("https://openrouter.ai/api/v1/generation");
   url.searchParams.set("id", generationId);
   const response = await fetch(url, {

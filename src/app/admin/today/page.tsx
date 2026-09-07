@@ -45,18 +45,7 @@ interface QueueItem {
   recommendedNextAction: string;
   href: string;
 }
-interface HealthRun {
-  key: string;
-  status: string;
-  startedAt: string | null;
-  finishedAt: string | null;
-  error: string | null;
-  nextExpectedAt?: number;
-  lastSuccessAt?: number;
-  stalled?: boolean;
-  cadenceLabel?: string;
-  receiptHref?: string;
-}
+type HealthRun = import("@/lib/revenue-os/health").HealthRunView;
 interface HealthWebhookFailure {
   id: string;
   provider: string;
@@ -662,8 +651,7 @@ export default function TodayPage() {
     const webhookFailures = overview.health.webhookFailures ?? [];
     const queueBacklog = overview.health.queueBacklog;
     const attention = (status: string, error: string | null) =>
-      Boolean(error) ||
-      ["failed", "partial", "degraded", "revoked", "expired"].includes(status);
+      Boolean(error) || ["failed", "partial", "degraded", "revoked", "expired"].includes(status);
     const items = [
       ...overview.health.integrations.map((item) => ({
         label: item.provider,
@@ -678,7 +666,7 @@ export default function TodayPage() {
         status: item.status,
         at: item.finishedAt || item.startedAt,
         error: item.error,
-        expectation: runExpectation(item),
+        expectation: [runExpectation(item), item.output?.detail].filter(Boolean).join(" "),
         href: item.receiptHref ?? "/admin/setup#operations",
       })),
       ...overview.health.jobRuns.map((item) => ({
@@ -706,9 +694,7 @@ export default function TodayPage() {
               label: "Action queue",
               status: queueBacklog.expired ? "expired" : "pending",
               at: null as string | null,
-              error: queueBacklog.expired
-                ? `${queueBacklog.expired} expired`
-                : null,
+              error: queueBacklog.expired ? `${queueBacklog.expired} expired` : null,
               expectation: `${queueBacklog.pending} pending · ${queueBacklog.expired} expired`,
               href: "/admin/today",
             },

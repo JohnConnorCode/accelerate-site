@@ -36,3 +36,9 @@ Do not treat a successful demo action as proof of live delivery. The demo never 
 ## If a check stays degraded
 
 Record the check name, its visible error, and the time of the last successful verification. Give those details to your administrator. Keep credentials out of screenshots and support messages. Today's system exceptions can point to the same underlying problem.
+
+## Interpret source and processing health
+
+Read the latest execution evidence and the pending work counts together. A successful Gmail incremental sync with zero changed threads is quiet, not broken. A Drive source with no selected folders is not configured. A configured source without a run is never run; listed items that have not been stored or remain deferred indicate incomplete processing.
+
+Today links source and job status to the operational receipts. Live failed work and outbound messages still awaiting resolution can require attention even when the most recent sync succeeded. Pending counts describe work to inspect; they are not a count of successfully delivered results.

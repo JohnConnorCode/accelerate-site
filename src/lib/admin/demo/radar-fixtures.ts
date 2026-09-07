@@ -56,6 +56,15 @@ export type DemoRadarState = {
   history: DemoRadarReceipt[];
   briefs: Record<string, { inputKey: string; bodyText: string }>;
   restrictedContactIds: string[];
+  outreachAttempts?: Array<{
+    action_id: string;
+    opportunity_id: string;
+    contact_ids: string[];
+    state: string;
+    provider_id: string | null;
+    sent_at: string | null;
+    created_at: string;
+  }>;
 };
 const id = (group: number, index: number) =>
   `00000000-0000-4000-${group}-${String(index + 1).padStart(12, "0")}`;

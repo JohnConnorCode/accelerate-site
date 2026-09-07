@@ -1,5 +1,8 @@
 #!/usr/bin/env tsx
 import assert from "node:assert/strict";
+import { bindTenantDatabase } from "../src/lib/supabase/server";
+import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
+import { setModelEvalStatus } from "../src/lib/ai/model-registry";
 import { MemorySupabase } from "./lib/memory-supabase";
 import {
   appendAiAssistantMessage,
@@ -29,7 +32,16 @@ function sseResponse(blocks: unknown[]) {
 }
 
 async function main() {
-  const memory = new MemorySupabase();
+  const memory = new MemorySupabase({ tenants: [{ id: ACCELERATE_TENANT_ID, status: "active" }] });
+  const database = bindTenantDatabase(memory.client, ACCELERATE_TENANT_ID, true);
+  // Controlled transport fixture only; this is not an evaluation of a live model.
+  await setModelEvalStatus(database, {
+    tenantId: ACCELERATE_TENANT_ID,
+    modelId: "openai/gpt-4.1-mini",
+    passed: true,
+    actorEmail: "fixture@example.test",
+    notes: "Mock transport fixture",
+  });
   const first = await openAiConversationTurn(memory.client, {
     actorEmail: "founder@example.com",
     content: "Show me the most important pipeline risk",
@@ -131,7 +143,12 @@ async function main() {
       },
     ])) as typeof fetch;
   const streamed = await openRouterChatStream(
-    { job: "copilot-answer", messages: [{ role: "user", content: "What matters?" }], tools: [] },
+    {
+      database,
+      job: "copilot-answer",
+      messages: [{ role: "user", content: "What matters?" }],
+      tools: [],
+    },
     (delta) => deltas.push(delta),
   );
   assert.equal(

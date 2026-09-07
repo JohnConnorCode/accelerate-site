@@ -1,7 +1,8 @@
 import "server-only";
+import { createHash } from "node:crypto";
+import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { nanoid } from "nanoid";
-import { proposalAuditSummary, recordAudit } from "./audit";
+import { callProposalHostRpc, tenantIdForDatabase } from "@/lib/supabase/server";
 import { recordActivity } from "./activities";
 import { transitionOpportunity } from "./pipeline";
 import { createRevenueTask } from "./tasks";
@@ -29,7 +30,13 @@ export const PROPOSAL_TRANSITIONS: Record<ProposalStatus, ProposalStatus[]> = {
   superseded: [],
 };
 
-const MATERIAL_FIELDS = ["title", "content", "total_one_time", "total_monthly", "client_name"] as const;
+const MATERIAL_FIELDS = [
+  "title",
+  "content",
+  "total_one_time",
+  "total_monthly",
+  "client_name",
+] as const;
 
 export function isProposalStatus(value: unknown): value is ProposalStatus {
   return typeof value === "string" && (PROPOSAL_STATUSES as readonly string[]).includes(value);
@@ -72,95 +79,116 @@ type ProposalRow = Record<string, unknown> & {
   title?: string;
 };
 
-async function loadProposal(supabase: SupabaseClient, id: string): Promise<ProposalRow> {
-  const { data, error } = await supabase.from("proposals").select("*").eq("id", id).maybeSingle();
+const patchSchema = z
+  .object({
+    title: z.string().trim().min(1).max(300).optional(),
+    client_name: z.string().trim().min(1).max(300).optional(),
+    content: z.record(z.string(), z.unknown()).optional(),
+    total_one_time: z.number().finite().min(0).max(1e9).optional(),
+    total_monthly: z.number().finite().min(0).max(1e9).optional(),
+  })
+  .strict();
+function canonical(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === "object")
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => [k, canonical(v)]),
+    );
+  return value;
+}
+async function loadProposal(db: SupabaseClient, id: string): Promise<ProposalRow> {
+  z.uuid().parse(id);
+  const tenantId = tenantIdForDatabase(db);
+  if (!tenantId) throw new Error("Proposal workspace required");
+  const { data, error } = await db
+    .from("proposals")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Proposal not found");
   return data as ProposalRow;
 }
-
-async function writeEvent(
-  supabase: SupabaseClient,
-  proposalId: string,
-  eventType: string,
-  source: string,
-  metadata: Record<string, unknown> = {},
+async function command(
+  db: SupabaseClient,
+  input: {
+    id: string;
+    operation: string;
+    actorEmail: string;
+    source?: string;
+    patch?: Record<string, unknown>;
+    reason?: string | null;
+    expectedUpdatedAt?: unknown;
+  },
 ) {
-  const { error } = await supabase.from("proposal_events").insert({
-    proposal_id: proposalId,
-    event_type: eventType,
-    source,
-    metadata,
+  const patch = patchSchema.parse(input.patch ?? {});
+  const value = {
+    id: z.uuid().parse(input.id),
+    operation: input.operation,
+    source: input.source ?? "admin",
+    patch,
+    reason: input.reason?.trim() ?? null,
+    expectedUpdatedAt: input.expectedUpdatedAt ?? null,
+  };
+  if (JSON.stringify(value).length > 90000) throw new Error("Proposal command is too large");
+  const identity = {
+    ...value,
+    expectedUpdatedAt: input.operation === "edit" ? value.expectedUpdatedAt : null,
+  };
+  const key = createHash("sha256")
+    .update(JSON.stringify(canonical(identity)))
+    .digest("hex");
+  const { data, error } = await callProposalHostRpc(db, {
+    p_key: key,
+    p_command: value,
+    p_actor_email: z.string().trim().min(1).max(320).parse(input.actorEmail),
   });
   if (error) throw new Error(error.message);
+  return data as {
+    proposal: ProposalRow;
+    successor: ProposalRow | null;
+    changed: boolean;
+    replayed: boolean;
+  };
 }
-
-async function commitStatus(
-  supabase: SupabaseClient,
-  proposal: ProposalRow,
-  to: ProposalStatus,
-  extra: Record<string, unknown>,
-): Promise<ProposalRow> {
-  assertProposalTransition(proposal.status, to);
-  const { data, error } = await supabase
-    .from("proposals")
-    .update({ status: to, updated_at: new Date().toISOString(), ...extra })
-    .eq("id", proposal.id)
-    .eq("status", proposal.status)
-    .select("*")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("This proposal was already updated. Refresh and try again.");
-  return data as ProposalRow;
-}
-
 export async function sendProposal(
-  supabase: SupabaseClient,
+  db: SupabaseClient,
   input: { id: string; actorEmail: string; source?: string },
 ): Promise<ProposalRow> {
-  const proposal = await loadProposal(supabase, input.id);
-  if (proposal.status === "sent" || proposal.status === "viewed") return proposal;
-  const updated = await commitStatus(supabase, proposal, "sent", {
-    sent_at: new Date().toISOString(),
-  });
-  await writeEvent(supabase, updated.id, "sent", input.source ?? "admin");
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: "proposal.sent",
-    entityType: "proposal",
-    entityId: updated.id,
-    source: "admin",
-    before: proposalAuditSummary(proposal),
-    after: proposalAuditSummary(updated),
-  });
-  return updated;
+  return (await command(db, { ...input, operation: "send" })).proposal;
 }
-
+async function expireIfDue(db: SupabaseClient, p: ProposalRow, source: string) {
+  if (
+    p.expires_at &&
+    Date.parse(p.expires_at) <= Date.now() &&
+    ["sent", "viewed"].includes(p.status)
+  )
+    return (
+      await command(db, {
+        id: p.id,
+        operation: "expire",
+        actorEmail: "system:proposal-expiry",
+        source,
+      })
+    ).proposal;
+  return p;
+}
 export async function recordProposalView(
-  supabase: SupabaseClient,
+  db: SupabaseClient,
   input: { id: string; source?: string },
-): Promise<{ proposal: ProposalRow; alreadyViewed: boolean }> {
-  const proposal = await expireIfDue(supabase, await loadProposal(supabase, input.id), input.source ?? "public_link");
-  if (proposal.status === "draft") return { proposal, alreadyViewed: false };
-  if (proposal.viewed_at || proposal.status === "viewed") return { proposal, alreadyViewed: true };
-  if (isTerminalProposalStatus(proposal.status)) return { proposal, alreadyViewed: true };
-  const updated = await commitStatus(supabase, proposal, "viewed", {
-    viewed_at: new Date().toISOString(),
-  });
-  await writeEvent(supabase, updated.id, "viewed", input.source ?? "public_link");
-  await recordAudit(supabase, {
-    action: "proposal.viewed",
-    entityType: "proposal",
-    entityId: updated.id,
-    source: "public",
-    before: proposalAuditSummary(proposal),
-    after: proposalAuditSummary(updated),
-  });
-  return { proposal: updated, alreadyViewed: false };
+) {
+  const p = await expireIfDue(db, await loadProposal(db, input.id), input.source ?? "public_link");
+  if (p.status === "draft") throw new Error("Draft proposal is not shared");
+  const r = await command(db, { ...input, operation: "view", actorEmail: "public_link" });
+  return { proposal: r.proposal, alreadyViewed: r.replayed || !r.changed };
 }
-
+/** The transaction records the decision first. Canonical activity/task/pipeline
+ * follow-up is separately idempotent and reruns on receipt replay after interruption. */
 export async function decideProposal(
-  supabase: SupabaseClient,
+  db: SupabaseClient,
   input: {
     id: string;
     decision: "accepted" | "declined";
@@ -168,64 +196,96 @@ export async function decideProposal(
     actorEmail: string;
     source?: string;
   },
-): Promise<{ proposal: ProposalRow; alreadyResponded: boolean }> {
+) {
+  const decision = z.enum(["accepted", "declined"]).parse(input.decision);
+  const reason = input.reason?.trim() ?? null;
+  if (decision === "declined") z.string().min(1).max(1000).parse(reason);
   const source = input.source ?? "public_link";
-  let proposal = await expireIfDue(supabase, await loadProposal(supabase, input.id), source);
-  if (proposal.status === input.decision) {
-    await syncOpportunity(supabase, proposal, input.decision, input.reason, input.actorEmail, source);
-    return { proposal, alreadyResponded: true };
-  }
-  if (isTerminalProposalStatus(proposal.status)) {
-    throw new Error("This proposal is no longer open for a response");
-  }
-  if (input.decision === "declined" && !input.reason?.trim()) {
-    throw new Error("A decline reason is required");
-  }
-  const now = new Date().toISOString();
-  const before = proposal;
-  proposal = await commitStatus(supabase, proposal, input.decision, {
-    responded_at: now,
-    decline_reason: input.decision === "declined" ? input.reason!.trim().slice(0, 1000) : null,
+  await expireIfDue(db, await loadProposal(db, input.id), source);
+  const r = await command(db, {
+    ...input,
+    source,
+    operation: decision === "accepted" ? "accept" : "decline",
+    reason,
   });
-  await writeEvent(supabase, proposal.id, input.decision, source, {
-    reason: input.reason?.trim() || null,
-  });
-  await recordActivity(supabase, {
-    activityType: `proposal_${input.decision}`,
-    title: `${proposal.client_name} ${input.decision} ${proposal.title}`,
-    summary: input.reason?.trim() || null,
-    opportunityId: (proposal.opportunity_id as string | null) ?? null,
-    proposalId: proposal.id,
+  const p = r.proposal,
+    at = String(p.responded_at);
+  await recordActivity(db, {
+    activityType: `proposal_${decision}`,
+    title: `${p.client_name} ${decision} ${p.title}`,
+    summary: reason,
+    opportunityId: p.opportunity_id ?? null,
+    proposalId: p.id,
     source,
     actorEmail: input.actorEmail,
-    externalId: `proposal:${proposal.id}:decision:${input.decision}`,
-    occurredAt: now,
+    externalId: `proposal:${p.id}:decision:${decision}`,
+    occurredAt: at,
   });
-  await createRevenueTask(supabase, {
-    title: `${input.decision === "accepted" ? "Start next steps with" : "Review decline from"} ${proposal.client_name}`,
-    description: input.reason?.trim() || `Proposal ${input.decision}. Follow up personally.`,
-    dueDate: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+  await createRevenueTask(db, {
+    title: `${decision === "accepted" ? "Start next steps with" : "Review decline from"} ${p.client_name}`,
+    description: reason ?? `Proposal ${decision}. Follow up personally.`,
+    dueDate: new Date(Date.parse(at) + 86400000).toISOString().slice(0, 10),
     priority: "high",
     relatedType: "proposal",
-    relatedId: proposal.id,
-    relatedName: String(proposal.client_name || ""),
-    opportunityId: (proposal.opportunity_id as string | null) ?? null,
+    relatedId: p.id,
+    relatedName: p.client_name ?? "",
+    opportunityId: p.opportunity_id ?? null,
     source: "proposal_response",
-    dedupeKey: `proposal-response:${proposal.id}`,
+    dedupeKey: `proposal-response:${p.id}`,
     actorEmail: input.actorEmail,
   });
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: input.decision === "accepted" ? "proposal.accepted" : "proposal.declined",
-    entityType: "proposal",
-    entityId: proposal.id,
-    source: source === "public_link" ? "public" : "admin",
-    before: proposalAuditSummary(before),
-    after: proposalAuditSummary(proposal),
-    metadata: { has_reason: Boolean(input.reason?.trim()) },
-  });
-  await syncOpportunity(supabase, proposal, input.decision, input.reason, input.actorEmail, source);
-  return { proposal, alreadyResponded: false };
+  await syncOpportunity(db, p, decision, reason, input.actorEmail, source);
+  return { proposal: p, alreadyResponded: r.replayed || !r.changed };
+}
+export async function updateProposalDraft(
+  db: SupabaseClient,
+  input: { id: string; actorEmail: string; patch: Record<string, unknown> },
+) {
+  const p = await loadProposal(db, input.id);
+  return (await command(db, { ...input, operation: "edit", expectedUpdatedAt: p.updated_at }))
+    .proposal;
+}
+export async function reviseProposal(
+  db: SupabaseClient,
+  input: { id: string; actorEmail: string; patch: Record<string, unknown>; source?: string },
+) {
+  const p = await loadProposal(db, input.id);
+  if (p.status === "draft") return { current: p, successor: await updateProposalDraft(db, input) };
+  const r = await command(db, { ...input, operation: "revise", expectedUpdatedAt: p.updated_at });
+  if (!r.successor) throw new Error("Revision receipt has no successor");
+  return { current: r.proposal, successor: r.successor };
+}
+export async function applyProposalWrite(
+  db: SupabaseClient,
+  input: { id: string; actorEmail: string; patch: Record<string, unknown> },
+) {
+  const p = await loadProposal(db, input.id),
+    status = input.patch.status;
+  const patch = Object.fromEntries(
+    Object.entries(input.patch).filter(([key]) =>
+      (MATERIAL_FIELDS as readonly string[]).includes(key),
+    ),
+  );
+  if (status === "sent" && p.status === "draft") {
+    if (isMaterialProposalChange(p, patch)) await updateProposalDraft(db, { ...input, patch });
+    return sendProposal(db, input);
+  }
+  if (status && status !== p.status) {
+    if (status === "accepted" || status === "declined")
+      return (
+        await decideProposal(db, {
+          ...input,
+          decision: status,
+          reason:
+            typeof input.patch.decline_reason === "string" ? input.patch.decline_reason : null,
+          source: "admin",
+        })
+      ).proposal;
+    throw new Error(`Cannot move a ${p.status} proposal to ${String(status)}`);
+  }
+  if (!isMaterialProposalChange(p, patch)) return p;
+  if (p.status === "draft") return updateProposalDraft(db, { ...input, patch });
+  return (await reviseProposal(db, { ...input, patch })).successor;
 }
 
 async function syncOpportunity(
@@ -237,11 +297,12 @@ async function syncOpportunity(
   source: string,
 ) {
   if (!proposal.opportunity_id) return;
-  const { data: opportunity } = await supabase
+  const { data: opportunity, error } = await supabase
     .from("opportunities")
     .select("stage")
     .eq("id", proposal.opportunity_id)
     .maybeSingle();
+  if (error) throw new Error("Proposal pipeline follow-up unavailable; retry the same response");
   if (!opportunity) return;
   const to = decision === "accepted" ? "negotiation" : "lost";
   const current = String(opportunity.stage);
@@ -254,155 +315,4 @@ async function syncOpportunity(
     reason: decision === "accepted" ? "Client accepted proposal" : "Client declined proposal",
     lossReason: decision === "declined" ? reason?.trim().slice(0, 1000) : undefined,
   });
-}
-
-async function expireIfDue(
-  supabase: SupabaseClient,
-  proposal: ProposalRow,
-  source: string,
-): Promise<ProposalRow> {
-  if (!proposal.expires_at || isTerminalProposalStatus(proposal.status)) return proposal;
-  if (Date.parse(String(proposal.expires_at)) > Date.now()) return proposal;
-  if (!canTransitionProposal(proposal.status, "expired")) return proposal;
-  const updated = await commitStatus(supabase, proposal, "expired", {});
-  await writeEvent(supabase, updated.id, "expired", source);
-  await recordAudit(supabase, {
-    action: "proposal.expired",
-    entityType: "proposal",
-    entityId: updated.id,
-    source: "automation",
-    before: proposalAuditSummary(proposal),
-    after: proposalAuditSummary(updated),
-  });
-  return updated;
-}
-
-export async function updateProposalDraft(
-  supabase: SupabaseClient,
-  input: { id: string; actorEmail: string; patch: Record<string, unknown> },
-): Promise<ProposalRow> {
-  const proposal = await loadProposal(supabase, input.id);
-  if (proposal.status !== "draft") {
-    throw new Error("Only draft proposals can be edited in place");
-  }
-  const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  for (const field of MATERIAL_FIELDS) {
-    if (field in input.patch) patch[field] = input.patch[field];
-  }
-  const { data, error } = await supabase
-    .from("proposals")
-    .update(patch)
-    .eq("id", proposal.id)
-    .eq("status", "draft")
-    .select("*")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("This proposal was already updated. Refresh and try again.");
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: "proposal.updated",
-    entityType: "proposal",
-    entityId: proposal.id,
-    source: "admin",
-    before: proposalAuditSummary(proposal),
-    after: proposalAuditSummary(data),
-  });
-  return data as ProposalRow;
-}
-
-export async function reviseProposal(
-  supabase: SupabaseClient,
-  input: { id: string; actorEmail: string; patch: Record<string, unknown>; source?: string },
-): Promise<{ current: ProposalRow; successor: ProposalRow }> {
-  const proposal = await loadProposal(supabase, input.id);
-  if (proposal.status === "draft") {
-    return {
-      current: proposal,
-      successor: await updateProposalDraft(supabase, input),
-    };
-  }
-  if (isTerminalProposalStatus(proposal.status)) {
-    throw new Error("Accepted, declined, expired, or superseded proposals cannot be edited");
-  }
-  const token = nanoid(16);
-  const successorFields = {
-    lead_id: proposal.lead_id ?? null,
-    opportunity_id: proposal.opportunity_id ?? null,
-    contact_id: proposal.contact_id ?? null,
-    company_id: proposal.company_id ?? null,
-    client_name: input.patch.client_name ?? proposal.client_name,
-    title: input.patch.title ?? proposal.title,
-    content: input.patch.content ?? proposal.content,
-    total_one_time: input.patch.total_one_time ?? proposal.total_one_time,
-    total_monthly: input.patch.total_monthly ?? proposal.total_monthly,
-    share_token: token,
-    status: "draft",
-    version: Number(proposal.version || 1) + 1,
-    supersedes_id: proposal.id,
-    expires_at: proposal.expires_at ?? null,
-  };
-  const { data: successor, error: insertError } = await supabase
-    .from("proposals")
-    .insert(successorFields)
-    .select("*")
-    .single();
-  if (insertError) throw new Error(insertError.message);
-  const superseded = await commitStatus(supabase, proposal, "superseded", {
-    superseded_by: successor.id,
-  });
-  await writeEvent(supabase, superseded.id, "superseded", input.source ?? "admin", {
-    successor_id: successor.id,
-    version: successor.version,
-  });
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: "proposal.superseded",
-    entityType: "proposal",
-    entityId: superseded.id,
-    source: "admin",
-    before: proposalAuditSummary(proposal),
-    after: proposalAuditSummary(superseded),
-    metadata: { successor_id: successor.id },
-  });
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: "proposal.created",
-    entityType: "proposal",
-    entityId: successor.id,
-    source: "admin",
-    after: proposalAuditSummary(successor),
-    metadata: { supersedes_id: proposal.id, version: successor.version },
-  });
-  return { current: superseded, successor: successor as ProposalRow };
-}
-
-export async function applyProposalWrite(
-  supabase: SupabaseClient,
-  input: { id: string; actorEmail: string; patch: Record<string, unknown> },
-): Promise<ProposalRow> {
-  const proposal = await loadProposal(supabase, input.id);
-  const status = input.patch.status;
-  if (status === "sent" && proposal.status === "draft") {
-    if (isMaterialProposalChange(proposal, input.patch)) {
-      await updateProposalDraft(supabase, input);
-    }
-    return sendProposal(supabase, { id: input.id, actorEmail: input.actorEmail });
-  }
-  if (status && status !== proposal.status) {
-    if (status === "accepted" || status === "declined") {
-      const decided = await decideProposal(supabase, {
-        id: input.id,
-        decision: status,
-        reason: typeof input.patch.decline_reason === "string" ? input.patch.decline_reason : null,
-        actorEmail: input.actorEmail,
-        source: "admin",
-      });
-      return decided.proposal;
-    }
-    throw new Error(`Cannot move a ${proposal.status} proposal to ${String(status)}`);
-  }
-  if (!isMaterialProposalChange(proposal, input.patch)) return proposal;
-  if (proposal.status === "draft") return updateProposalDraft(supabase, input);
-  const revised = await reviseProposal(supabase, input);
-  return revised.successor;
 }

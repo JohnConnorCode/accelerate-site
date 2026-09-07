@@ -79,6 +79,8 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260909-radar-evidence-store.sql",
   "migrations/20260910-radar-assessments.sql",
   "migrations/20260911-radar-relationships.sql",
+  "migrations/20260912-proposal-lifecycle.sql",
+  "migrations/20260913-radar-outreach.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

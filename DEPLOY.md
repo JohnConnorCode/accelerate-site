@@ -25,8 +25,6 @@ If access fails, correct the CLI login with `vercel login` using the existing pr
 
 After confirming access, use `vercel link --project accelerate-site --scope <verified-team-slug>` in this checkout and run `npm run deploy:check`. The check compares the local link and environment overrides with the declared IDs and verifies authenticated access to that exact project/team. It stops before configuration pull, Vercel build, upload or rollback when identity cannot be verified.
 
-Observed during handoff: CLI login `website-4827` listed only `theresa-vs-projects`, which could not find this project. Correct account access is the immediate prerequisite. The separate GitHub status text `Account is blocked.` does not establish the cause of that CLI mismatch or prove the intended hosting account is suspended.
-
 ## First deployment
 
 1. Create or select a Vercel project you control.

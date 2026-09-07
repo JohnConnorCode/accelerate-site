@@ -31,7 +31,7 @@ export async function handleProposalGet(
     .eq("share_token", token)
     .single();
 
-  if (error || !proposal) {
+  if (error || !proposal || proposal.status === "draft") {
     return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
   }
 
@@ -49,9 +49,10 @@ export async function handleProposalGet(
       });
     }
   } catch (error) {
-    console.error(
-      "Proposal view tracking failed:",
-      error instanceof Error ? error.message : "unknown",
+    console.error("Proposal view unavailable", error instanceof Error ? error.message : "unknown");
+    return NextResponse.json(
+      { error: "Proposal is temporarily unavailable. Please try again." },
+      { status: 503 },
     );
   }
 

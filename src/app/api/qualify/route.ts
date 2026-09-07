@@ -64,11 +64,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Complete every qualification field." }, { status: 400 });
   }
 
-  const playbook = resolvePlaybook(
-    typeof (body as { playbookKey?: unknown }).playbookKey === "string"
-      ? (body as { playbookKey: string }).playbookKey
-      : null,
-  );
+  const playbookKey = (body as typeof body & { playbookKey?: unknown }).playbookKey;
+  const playbook = resolvePlaybook(typeof playbookKey === "string" ? playbookKey : null);
   const qualification = qualifyRoofingOpportunity(body.role, body.revenueBand);
   // Public self-booking is tenant-owned. CALENDLY_ENABLED=false is an emergency
   // pause. Embed availability is not Calendly API health.

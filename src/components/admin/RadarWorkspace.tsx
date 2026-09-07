@@ -8,6 +8,7 @@ import {
 } from "./RadarEditorDialog";
 import { RadarReviewDialog, type RadarReview } from "./RadarReviewDialog";
 import { RadarOverview } from "./RadarOverview";
+import { RadarOutreachPanel } from "./RadarOutreachPanel";
 import { RadarOpportunityDetail } from "./RadarOpportunityDetail";
 import { button, primary, words, Pill } from "./RadarUI";
 import { useQueryClient } from "@tanstack/react-query";
@@ -444,26 +445,42 @@ export function RadarWorkspace({
               {!opp ? (
                 <RadarOverview data={data} historyOnly={historyOnly} sourceCard={sourceCard} />
               ) : (
-                <RadarOpportunityDetail
-                  data={data}
-                  canWrite={canWrite}
-                  busy={busy}
-                  openEditor={openEditor}
-                  sourceCard={sourceCard}
-                  onReadAsset={(id) => void perform(() => readRecord(id, "assetId"))}
-                  onTransition={(state) =>
-                    void perform(async () => {
-                      operation.current = crypto.randomUUID();
-                      await previewChange({
-                        operation: "transition_opportunity",
-                        opportunityId: opp!.id,
-                        expectedRevision: opp!.revision,
-                        state,
-                        reason: `Operator requests ${words(state)} after reviewing this opportunity`,
-                      });
-                    })
-                  }
-                />
+                <>
+                  <RadarOpportunityDetail
+                    data={data}
+                    canWrite={canWrite}
+                    busy={busy}
+                    openEditor={openEditor}
+                    sourceCard={sourceCard}
+                    onReadAsset={(id) => void perform(() => readRecord(id, "assetId"))}
+                    onTransition={(state) =>
+                      void perform(async () => {
+                        operation.current = crypto.randomUUID();
+                        await previewChange({
+                          operation: "transition_opportunity",
+                          opportunityId: opp!.id,
+                          expectedRevision: opp!.revision,
+                          state,
+                          reason: `Operator requests ${words(state)} after reviewing this opportunity`,
+                        });
+                      })
+                    }
+                  />
+                  <RadarOutreachPanel
+                    key={opp.id}
+                    data={data}
+                    onDraft={(change) => {
+                      openEditor("draft");
+                      setForm((old) => ({
+                        ...old,
+                        title: change.title,
+                        body: change.bodyText,
+                        draftKind: "outreach_draft",
+                        selectedSources: change.sourceVersionIds,
+                      }));
+                    }}
+                  />
+                </>
               )}
             </>
           )

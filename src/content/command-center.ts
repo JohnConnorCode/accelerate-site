@@ -176,7 +176,7 @@ export const capabilities: Capability[] = [
     category: "organize",
     title: "Opportunity Radar: evidence, reviewed priorities, and drafts",
     detail:
-      "Keep supplied sources, reviewed opportunity estimates, CRM context, and saved drafts in one workspace. Review exact changes before saving and retain the evidence history. Optional source briefing has explicit model budgets; discovery, outreach sending, and publication remain unfinished.",
+      "Keep supplied sources, reviewed opportunity estimates, CRM context, and saved drafts in one workspace. Review exact changes before saving and retain the evidence history. Optional source briefing has explicit model budgets; automatic discovery and publication remain unfinished. Configured outreach requires exact human approval, fresh contact checks and delivery receipts.",
     gated: true,
   },
 
@@ -469,7 +469,7 @@ export const CURRENT_SURFACES = [
     n: "01",
     label: "Review opportunities",
     title: "Opportunity Radar, from evidence to a saved draft",
-    body: "Bring supplied sources, reviewed estimates, relationship context, and drafts into one daily workspace. Changes require an exact review, model spending starts off, and outreach sending remains unfinished.",
+    body: "Bring supplied sources, reviewed estimates, relationship context, and drafts into one daily workspace. Changes require an exact review, model spending starts off, and configured outreach requires an exact human approval with current evidence and contact checks.",
   },
   {
     n: "02",

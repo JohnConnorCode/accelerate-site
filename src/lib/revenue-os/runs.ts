@@ -174,7 +174,7 @@ export async function recordSourceRun(
     error?: string;
   },
 ) {
-  await supabase.from("source_runs").insert({
+  const { error } = await supabase.from("source_runs").insert({
     source_key: input.sourceKey,
     status: input.status,
     summary: input.summary ?? {},
@@ -182,4 +182,5 @@ export async function recordSourceRun(
     error: input.error ?? null,
     finished_at: new Date().toISOString(),
   });
+  if (error) throw new Error("Source execution receipt could not be recorded");
 }

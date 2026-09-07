@@ -27,6 +27,23 @@ function fixture() {
   } as WorkItem;
   const db = new AuthorizedMemorySupabase({
     tenants: [{ id: tenant, status: "active", name: "Fictional workspace", config: {} }],
+    // Controlled transport registration; this is not a live model evaluation.
+    admin_settings: [
+      {
+        tenant_id: tenant,
+        key: "ai-model:fixture-model",
+        value: JSON.stringify({
+          label: "Controlled fixture",
+          costTier: "low",
+          supportsTools: true,
+          supportsJson: true,
+          contextWindow: 1047576,
+          evalPassed: true,
+          evaluatedAt: "2026-09-06T00:00:00Z",
+          evaluatedBy: "fixture@example.test",
+        }),
+      },
+    ],
     coworkers: [
       {
         id: "sales",

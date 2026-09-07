@@ -78,7 +78,9 @@ export class MemorySupabase {
       rpc: (name: string, args: Record<string, unknown>) => {
         this.rpcCalls.push({ name, args });
         const handler = this.procedures[name];
-        const settle = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
+        const settle = (
+          resolve: (result: { data: unknown; error: unknown; count?: number }) => unknown,
+        ) => {
           if (!handler)
             return resolve({
               data: null,
@@ -115,11 +117,18 @@ export class MemorySupabase {
     let one = false;
     let sort: { column: string; ascending: boolean } | null = null;
     let cap: number | null = null;
+    let countRequested = false,
+      head = false;
 
     const self: Record<string, unknown> = {};
     const chain = () => self;
-    for (const method of ["select", "range", "filter"]) self[method] = chain;
+    for (const method of ["range", "filter"]) self[method] = chain;
 
+    self.select = (_columns?: string, options?: { count?: string; head?: boolean }) => {
+      countRequested = Boolean(options?.count);
+      head = Boolean(options?.head);
+      return self;
+    };
     self.single = self.maybeSingle = () => {
       one = true;
       return self;
@@ -248,7 +257,9 @@ export class MemorySupabase {
       return self;
     };
 
-    self.then = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
+    self.then = (
+      resolve: (result: { data: unknown; error: unknown; count?: number }) => unknown,
+    ) => {
       const failure = this.failures[table];
       if (failure) return resolve({ data: null, error: failure });
 
@@ -323,8 +334,13 @@ export class MemorySupabase {
           (a, b) => (String(a[column]) < String(b[column]) ? -1 : 1) * (ascending ? 1 : -1),
         );
       }
+      const count = matched.length;
       if (cap !== null) matched = matched.slice(0, cap);
-      return resolve({ data: one ? (matched[0] ?? null) : matched, error: null });
+      return resolve({
+        data: head ? null : one ? (matched[0] ?? null) : matched,
+        error: null,
+        ...(countRequested ? { count } : {}),
+      });
     };
     return self;
   }

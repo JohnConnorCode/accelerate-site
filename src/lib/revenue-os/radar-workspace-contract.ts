@@ -1,6 +1,11 @@
 /** Shared live/demo workspace data. No provider or database dependencies. */
 import { z } from "zod";
-import { radarOutreachPrepareSchema } from "./radar-outreach-contract";
+import {
+  radarOutreachPrepareSchema,
+  radarOutreachPreviewSchema,
+  radarOutreachProposalSchema,
+  radarOutreachReadSchema,
+} from "./radar-outreach-contract";
 import {
   radarStorePreviewSchema,
   radarStoreProposalSchema,
@@ -23,6 +28,21 @@ export const radarOpportunityBriefSchema = z
   .strict();
 export const radarWorkspaceReadSchema = z.object({ opportunityId: z.uuid().optional() }).strict();
 export const radarWorkspaceCommandSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      kind: z.literal("outreach_options"),
+      input: z.object({ opportunityId: z.uuid(), otherContactId: z.uuid().optional() }).strict(),
+    })
+    .strict(),
+  z.object({ kind: z.literal("outreach_preview"), input: radarOutreachPreviewSchema }).strict(),
+  z.object({ kind: z.literal("outreach_propose"), input: radarOutreachProposalSchema }).strict(),
+  z.object({ kind: z.literal("outreach_history"), input: radarOutreachReadSchema }).strict(),
+  z
+    .object({
+      kind: z.literal("outreach_reconcile"),
+      input: z.object({ actionId: z.uuid() }).strict(),
+    })
+    .strict(),
   z.object({ kind: z.literal("prepare_outreach"), input: radarOutreachPrepareSchema }).strict(),
   z.object({ kind: z.literal("prepare_brief"), input: radarOpportunityBriefSchema }).strict(),
   z.object({ kind: z.literal("store_preview"), input: radarStorePreviewSchema }).strict(),

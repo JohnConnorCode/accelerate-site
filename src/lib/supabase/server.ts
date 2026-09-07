@@ -198,6 +198,19 @@ export async function callRadarRelationshipRpc(
   return callVerifiedHostRpc(database, "review_radar_relationship", args);
 }
 
+/** Proposal state and lineage writes are an atomic host-owned operation. */
+export async function callRadarOutreachRpc(
+  database: SupabaseClient,
+  operation: "reserve_radar_outreach" | "reconcile_radar_outreach",
+  args: { p_action: string },
+) {
+  return callVerifiedHostRpc(database, operation, args);
+}
+
+export async function callProposalHostRpc(database: SupabaseClient, args: Record<string, unknown>) {
+  return callVerifiedHostRpc(database, "apply_proposal_lifecycle", args);
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

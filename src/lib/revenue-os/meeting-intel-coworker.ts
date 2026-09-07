@@ -71,7 +71,7 @@ export async function bootstrapMeetingIntelCoworker(
         .join(" "),
       category: "integration",
       source: "coworker_bootstrap",
-    }).catch(() => {});
+    });
   }
 
   for (const policy of MEETING_INTEL_AUTONOMY_POLICIES) {
@@ -82,7 +82,7 @@ export async function bootstrapMeetingIntelCoworker(
       coworkerId: MEETING_INTEL_COWORKER_ID,
       source: "coworker_bootstrap",
       actorEmail,
-    }).catch(() => {});
+    });
   }
 
   const coworker = await registerCoworker(supabase, {
@@ -185,7 +185,7 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
       entityType: "contact",
       entityId: contactId,
       relevanceHorizon: "daily",
-    }).catch(() => {});
+    });
     return aiResult;
   }
 
@@ -251,7 +251,7 @@ const preCallBriefHandler: WorkKindHandler = async (supabase, wi) => {
     entityType: "contact",
     entityId: contactId,
     relevanceHorizon: "daily",
-  }).catch(() => {});
+  });
 
   return { status: "completed", outcome: `Pre-call brief: ${brief}` };
 };
@@ -273,7 +273,7 @@ const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
       entityType: "opportunity",
       entityId: opportunityId,
       relevanceHorizon: "weekly",
-    }).catch(() => {});
+    });
     return aiResult;
   }
 
@@ -298,7 +298,7 @@ const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
     dedupeKey: `meeting:crm-update:${opportunityId}:${new Date().toISOString().slice(0, 10)}`,
     maxAttempts: 2,
     actorEmail: "system",
-  }).catch(() => {});
+  });
 
   await recordAudit(supabase, {
     actorEmail: "system",
@@ -318,7 +318,7 @@ const postMeetingProcessHandler: WorkKindHandler = async (supabase, wi) => {
     entityType: "opportunity",
     entityId: opportunityId,
     relevanceHorizon: "weekly",
-  }).catch(() => {});
+  });
 
   return { status: "completed", outcome };
 };
@@ -361,7 +361,7 @@ const updateCrmFromMeetingHandler: WorkKindHandler = async (supabase, wi) => {
     entityType: "opportunity",
     entityId: opportunityId,
     relevanceHorizon: "weekly",
-  }).catch(() => {});
+  });
 
   return { status: "completed", outcome };
 };

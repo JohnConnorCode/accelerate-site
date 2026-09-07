@@ -1,3 +1,7 @@
+import {
+  radarOutreachPreviewSchema,
+  reviewRadarOutreachText,
+} from "@/lib/revenue-os/radar-outreach-contract";
 import { z } from "zod";
 import { getModuleSettings, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 import {
@@ -96,6 +100,122 @@ export async function handleDemoRadar(
     return o;
   };
   const respond = (value: unknown, status = 200) => Response.json(value, { status });
+  const attempts = (s.outreachAttempts ??= []);
+  const people = pack.people
+    .filter((p) => !s.restrictedContactIds.includes(p.id))
+    .map((p) => ({ id: p.id, full_name: p.name, primary_email: p.email }));
+  const historyFor = (contactId: string) => ({
+    contactId,
+    complete: true,
+    messages: [
+      {
+        id: contactId,
+        conversation_id: contactId,
+        direction: "inbound",
+        status: "received",
+        body_excerpt:
+          "Yes, you may introduce me to the other workshop participant by email for this specific collaboration.",
+        created_at: s.opportunities[0]!.updated_at,
+      },
+    ],
+    conversations: [],
+  });
+  async function outreachPreview(raw: unknown) {
+    enabled();
+    if (settings.outreachMode !== "approval-required")
+      throw new Error("Outreach is draft-only. Configure reviewed sending first.");
+    const input = radarOutreachPreviewSchema.parse(raw),
+      asset = s.assets.find((a) => a.id === input.assetId);
+    if (!asset || asset.kind !== "outreach_draft") throw new Error("Choose a saved outreach draft");
+    const opportunity = find(asset.opportunityId),
+      sources = sourcesFor(s, opportunity.id).filter((v) => asset.sourceVersionIds.includes(v.id));
+    if (
+      sources.length !== asset.sourceVersionIds.length ||
+      sources.some((v) => v.verification !== "verified" || v.unavailable)
+    )
+      throw new Error("Draft source evidence is unavailable or changed");
+    const target = pack.people.find((p) => p.id === opportunity.contact_id);
+    if (!target || s.restrictedContactIds.includes(target.id))
+      throw new Error("Recipient is suppressed or unavailable");
+    if (input.approvedClaimIds.length)
+      throw new Error("No approved claim exists for that reference in this fictional packet");
+    const via = pack.people.find((p) => p.id !== target.id)!;
+    if (input.purpose === "introduction_request" && input.relationshipId !== target.id)
+      throw new Error("Current introduction offer unavailable");
+    const ids = [
+      input.purpose === "introduction_request" ? via.id : target.id,
+      ...(input.introductionContactId ? [input.introductionContactId] : []),
+    ];
+    const recipients = ids.map((contactId) => {
+      const person = people.find((p) => p.id === contactId);
+      if (!person) throw new Error("Recipient is suppressed or unavailable");
+      return { contactId, name: person.full_name, email: person.primary_email };
+    });
+    if (new Set(ids).size !== ids.length) throw new Error("Choose two distinct people");
+    const cooldown = Number(settings.outreachCooldownHours ?? 168) * 3600000;
+    if (
+      attempts.some(
+        (a) =>
+          a.contact_ids.some((id) => ids.includes(id)) &&
+          a.state !== "not_sent" &&
+          (a.state !== "sent" || Date.parse(a.sent_at!) > Date.now() - cooldown),
+      )
+    )
+      throw new Error("Earlier outreach is unresolved or within cooldown");
+    if (
+      attempts.filter(
+        (a) => a.state !== "not_sent" && a.created_at.slice(0, 10) === now().slice(0, 10),
+      ).length >= Number(settings.outreachDailyLimit ?? 5)
+    )
+      throw new Error("Daily Radar outreach limit reached");
+    if (
+      input.purpose === "introduction" &&
+      input.consents.some(
+        (c) =>
+          !ids.includes(c.contactId) ||
+          c.messageId !== c.contactId ||
+          !historyFor(c.contactId).messages[0]!.body_excerpt.includes(c.quotation) ||
+          Date.parse(c.validUntil) <= Date.now() ||
+          Date.parse(c.validUntil) > Date.now() + 30 * 86400000,
+      )
+    )
+      throw new Error("Current exact two-party consent required");
+    const quality = reviewRadarOutreachText({
+      subject: asset.title,
+      body: asset.body_text,
+      purpose: input.purpose,
+      approvedFacts: [],
+      allowedUrls: sources.map((v) => v.canonicalUrl!),
+      forbiddenPhrases: String(settings.outreachForbiddenPhrases ?? "").split("\n"),
+      hasPriorOutbound: false,
+      hasCurrentIntroductionOffer: input.purpose === "introduction_request",
+      hasBothConsents: input.purpose === "introduction",
+    });
+    if (quality.blockers.length) throw new Error(quality.blockers.map((b) => b.message).join(" "));
+    const result = {
+      version: 1,
+      input,
+      opportunityId: opportunity.id,
+      revision: opportunity.revision,
+      assetId: asset.id,
+      config: settings,
+      recipients,
+      from: pack.tenant.founder.email,
+      replyTo: pack.tenant.founder.email,
+      subject: asset.title,
+      text: asset.body_text,
+      sources,
+      sourceUrls: sources.map((v) => v.canonicalUrl),
+      claims: [],
+      histories: ids.map(historyFor),
+      relationships: [],
+      consent: input.purpose === "introduction" ? { consents: input.consents } : null,
+      quality,
+      cooldownHours: Number(settings.outreachCooldownHours ?? 168),
+      dailyLimit: Number(settings.outreachDailyLimit ?? 5),
+    };
+    return { ...result, digest: await digest(result) };
+  }
   async function preview(command: ReviewCommand) {
     enabled();
     const input = command.input;
@@ -287,8 +407,111 @@ export async function handleDemoRadar(
           simulated: true,
         });
       }
-      if (command.kind === "prepare_outreach")
-        throw new Error("The outreach preparation demo is not available yet");
+      if (command.kind === "outreach_options") {
+        enabled();
+        const o = find(command.input.opportunityId),
+          via = pack.people.find((p) => p.id !== o.contact_id)!;
+        return respond({
+          contactId: o.contact_id,
+          mode: settings.outreachMode,
+          people,
+          claims: [],
+          offers: [
+            {
+              kind: "introduction_offer",
+              relationshipId: o.contact_id,
+              viaContactId: via.id,
+              reason: `Fictional reviewed introduction offer from ${via.name}`,
+            },
+          ],
+          histories: [
+            historyFor(o.contact_id!),
+            ...(command.input.otherContactId && command.input.otherContactId !== o.contact_id
+              ? [historyFor(command.input.otherContactId)]
+              : []),
+          ],
+          dailyLimit: Number(settings.outreachDailyLimit ?? 5),
+          cooldownHours: Number(settings.outreachCooldownHours ?? 168),
+          simulated: true,
+        });
+      }
+      if (command.kind === "outreach_history")
+        return respond({
+          attempts: attempts
+            .filter(
+              (a) =>
+                !command.input.opportunityId || a.opportunity_id === command.input.opportunityId,
+            )
+            .slice(0, command.input.limit),
+          simulated: true,
+        });
+      if (command.kind === "outreach_reconcile") {
+        const receipt = attempts.find((a) => a.action_id === command.input.actionId);
+        if (!receipt) throw new Error("Outreach receipt unavailable");
+        return respond({ ...receipt, simulated: true });
+      }
+      if (command.kind === "outreach_preview")
+        return respond({ ...(await outreachPreview(command.input)), simulated: true });
+      if (command.kind === "outreach_propose") {
+        const current = await outreachPreview(command.input.input);
+        if (current.digest !== command.input.digest)
+          throw new Error("Outreach changed; review again");
+        let queued = state.actions.find(
+          (a) =>
+            a.action_type === "send_radar_outreach" &&
+            a.digest === current.digest &&
+            a.status === "pending",
+        );
+        if (!queued) {
+          queued = {
+            id: crypto.randomUUID(),
+            action_type: "send_radar_outreach",
+            title: current.subject,
+            description:
+              "Fictional outreach; exact approval required. No message leaves this browser.",
+            status: "pending",
+            error: null,
+            payload: { input: current.input, preview: current, digest: current.digest },
+            result: null,
+            pluginId: "opportunity-radar",
+            created_at: now(),
+            digest: current.digest,
+          };
+          state.actions.unshift(queued);
+          save();
+        }
+        return respond({ ...queued, simulated: true });
+      }
+      if (command.kind === "prepare_outreach") {
+        enabled();
+        const i = command.input,
+          o = find(i.opportunityId);
+        if (o.revision !== i.expectedRevision) throw new Error("Opportunity changed");
+        if (s.restrictedContactIds.includes(o.contact_id!))
+          throw new Error("Contact is suppressed");
+        const sources = sourcesFor(s, o.id);
+        if (
+          i.sourceVersionIds.some(
+            (id) =>
+              !sources.some((v) => v.id === id && v.verification === "verified" && !v.unavailable),
+          )
+        )
+          throw new Error("Source unavailable");
+        return respond({
+          saveChange: {
+            operation: "add_asset",
+            opportunityId: o.id,
+            expectedRevision: o.revision,
+            kind: "outreach_draft",
+            title: o.title,
+            bodyText: `${i.usefulContribution}\n\n${i.exactAsk}`,
+            sourceVersionIds: i.sourceVersionIds,
+          },
+          saved: false,
+          sendingAuthorized: false,
+          simulated: true,
+        });
+      }
       if (command.kind === "prepare_brief") {
         enabled();
         const i = command.input,
@@ -374,6 +597,27 @@ export async function handleDemoRadar(
       if (body.decision !== "approve") throw new Error("Invalid decision");
       if (action.status === "executed") return respond({ result: action.result, simulated: true });
       if (action.status !== "pending") throw new Error("Action already handled");
+      if (action.action_type === "send_radar_outreach") {
+        if (Date.parse(action.created_at) + 3600000 <= Date.now())
+          throw new Error("Approval expired");
+        const current = await outreachPreview(action.payload.input);
+        if (current.digest !== action.digest)
+          throw new Error("Outreach changed; review and approve again");
+        const receipt = {
+          action_id: action.id,
+          opportunity_id: current.opportunityId,
+          contact_ids: current.recipients.map((r) => r.contactId),
+          state: "sent",
+          provider_id: `demo:${action.id}`,
+          sent_at: now(),
+          created_at: now(),
+        };
+        attempts.unshift(receipt);
+        action.status = "executed";
+        action.result = { ...receipt, simulated: true };
+        save();
+        return respond({ result: action.result, simulated: true });
+      }
       const review = radarWorkspaceCommandSchema.parse(action.payload.review) as ReviewCommand;
       if (!["store_preview", "assessment_preview"].includes(review.kind))
         throw new Error("Invalid approval payload");

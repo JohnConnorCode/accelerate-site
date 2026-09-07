@@ -8,17 +8,17 @@ This guide is for a developer new to this repository. You will run the fictional
 
 ## Start the app
 
-You need Git, Node.js 22 or later, npm and an editor. For team work, get the reviewed branch and exact commit from the maintainer before cloning; the public default branch may not contain the assigned feature.
+You need Git, Node.js 22 or later, npm and an editor. Start from the published main branch for a local experiment.
 
 ```bash
 node --version
 npm --version
-git clone --branch <reviewed-branch> https://github.com/JohnConnorCode/accelerate-site.git
+git clone https://github.com/JohnConnorCode/accelerate-site.git
 cd accelerate-site
 git rev-parse HEAD
 ```
 
-Replace `<reviewed-branch>` with the supplied branch. Compare the printed commit with the commit supplied by the maintainer. Resolve a mismatch before continuing.
+For an assigned Feature Board task, use the approved repository base and exact commit in its live execution packet. Resolve a mismatch before changing code.
 
 Then install and start the app:
 
@@ -42,7 +42,7 @@ Open the URL printed by the terminal, then visit `/demo/command-center`. You sho
 | Public product guides                  | `src/content/docs/` and its `manifest.ts`     |
 | Database structure                     | Ordered migrations and the migration manifest |
 
-Read `AGENTS.md` and `docs/NORTHSTAR.md` before implementation. For coordinated repository work, follow the live Feature Board contract; a local experiment is not a claimed or completed board ticket.
+Read `docs/NORTHSTAR.md` and then `AGENTS.md` before implementation. For coordinated repository work, follow the live Feature Board contract; a local experiment is not a claimed or completed board ticket.
 
 ## Make one small change
 
@@ -74,5 +74,13 @@ Open `/admin/integrations`, enable the Inventory example for your test workspace
 Keep business writes in the shared domain services so the UI, AI tools, and integrations use the same rules. External effects need approval where required, idempotency, and a truthful result. Read the engineering and tenancy contracts linked from `AGENTS.md` before adding a write path.
 
 Run the affected checks and the repository's required verification before submitting application code. Use one heavy job at a time or CI; do not start parallel builds or copy dependency trees to work around resource limits.
+
+## Keep developing through the backlog
+
+Run `npm run dev:doctor` to check local readiness. To join coordinated work, obtain a project-scoped work token from the project owner, configure `WORK_BOARD_URL` and `WORK_BOARD_TOKEN`, and run `npm run dev:doctor -- --board`. Contributors do not need the owner’s database credentials.
+
+Use `npm run agent:status` to inspect ready work and `npm run agent:show -- --card <key>` to read a task before claiming it. `npm run agent:next` claims a dependency-ready task and creates its isolated worktree. Follow its live acceptance criteria, renew the lease with `agent:heartbeat`, and submit named checks and the exact commit with `agent:complete -- --card <key> --evidence-file <path.json>`. Submission, review, merge and deployment are separate recorded steps. The full command contract is in `AGENTS.md` and its linked developer handoff.
+
+Every feature change also updates the organized public guides, product changelog and Command Center descriptions in the same pull request. Keep planned capabilities clearly separate from available behavior. Report new gaps through the live board so the next contributor has a concrete task and verification criteria.
 
 **Next:** [Add a module](/docs/extend/modules). If something failed, use [Troubleshooting](/docs/start/troubleshooting).

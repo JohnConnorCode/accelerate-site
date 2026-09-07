@@ -38,7 +38,7 @@
         "@/lib/ai/openrouter-credentials",
         "next/server"
       ],
-      "sourceSha256": "9d7f57a5602446d4e69d59449df8637522217e23999c60276f615ec825b37505"
+      "sourceSha256": "52ed9da68c46dca31b037ff467820f2076821813192e86b344e5fc39a756ca66"
     },
     {
       "source": "src/app/api/admin/analytics/route.ts",
@@ -62,12 +62,13 @@
         "PATCH"
       ],
       "imports": [
+        "@/config/tenant",
         "@/lib/admin/module-guard",
         "@/lib/email/booking",
         "@/lib/revenue-os/pipeline",
         "next/server"
       ],
-      "sourceSha256": "06da3591f09cbdd8b09d0bf6d82c2c292e6df9da81d471cd3efef899df9b2a7b"
+      "sourceSha256": "57b07eb5f5da312bc972daec1cfa68584d9e4f65f0451940dabd42f04565341e"
     },
     {
       "source": "src/app/api/admin/chat-leads/route.ts",
@@ -710,7 +711,7 @@
         "@/lib/rate-limit",
         "next/server"
       ],
-      "sourceSha256": "71e8c5971e94d4630d408ed8e6a3320ff7e4620f4ab15dbb5cec48733230f0c2"
+      "sourceSha256": "7b36969fd098b914dc1ed15e020b6857ddde89ea8d55b7f38cdc9e66be70444f"
     },
     {
       "source": "src/app/api/admin/proposals/route.ts",
@@ -726,9 +727,10 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/proposals",
         "next/server"
       ],
-      "sourceSha256": "6f7bceeaba387dcb09b084c68499c4d7c86bc304a7832e368aceb0aafce758bb"
+      "sourceSha256": "9ee5f3c32dc9c3de7a51d3db521caf4b72fc812cd8b94eee74b058cb73099eff"
     },
     {
       "source": "src/app/api/admin/radar/commands/route.ts",
@@ -1099,7 +1101,7 @@
         "@/lib/revenue-os/queue",
         "next/server"
       ],
-      "sourceSha256": "7e83a399e4bae58775bb1923c2104ed68f97bb05d941b5d562251cf34995ba45"
+      "sourceSha256": "b1c89c1040fd8c1b154d2863a2442af7bded6cfa65d1512b46106c98c6c0edc7"
     },
     {
       "source": "src/app/api/admin/revenue-os/pipeline/route.ts",
@@ -1259,7 +1261,7 @@
         "@/lib/rate-limit",
         "next/server"
       ],
-      "sourceSha256": "6af19b49a18255b47341cc89fc17544196b8e13687cc4787caab1b7d0a434f0b"
+      "sourceSha256": "f6b83ed5979d5187b406f402308d12b982370adb735a2664717cf5770ea013bc"
     },
     {
       "source": "src/app/api/admin/setup/route.ts",
@@ -1283,7 +1285,7 @@
         "@/lib/supabase/server",
         "next/server"
       ],
-      "sourceSha256": "0275110e753b02e76653f4344ee7e4ea31f29b838c6e1978d9c34682db3fe9cd"
+      "sourceSha256": "5216a5815e962c53e4ae9214953ecbc56f3c3b37159663ded2a749a1fe2b9f67"
     },
     {
       "source": "src/app/api/admin/subscribers/export/route.ts",

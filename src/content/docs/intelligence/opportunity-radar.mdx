@@ -6,7 +6,7 @@ updated: "2026-09-06"
 
 Open **Opportunity Radar** in the Intelligence navigation to review supplied evidence, choose a useful business opportunity, and save a draft. The current release includes Today, opportunity details, retained history, source-backed relationship reviews, and optional bounded source briefing.
 
-Automatic discovery, outreach sending, publication, and independently verified outcome measurement remain unfinished. Saving a draft or reviewing a relationship does not send a message.
+Automatic discovery, publication, and independently verified outcome measurement remain unfinished. Saving a draft or reviewing a relationship does not send a message.
 
 ## Start with a workspace
 
@@ -40,12 +40,26 @@ Model spending starts **off**. You can write and review drafts without an AI pro
 
 If provider acceptance or usage is uncertain, inspect the model receipt and use its reconciliation path before another attempt. Do not assume a timeout means no charge occurred. The [plugin reference](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md) explains the settings and developer extension points.
 
+## Review and send outreach
+
+Sending starts in **Draft-only** mode. A workspace operator can select **Approval required** in Radar's module settings after connecting the workspace email sender. Set the daily reservation limit, contact cooldown, and any phrases the business must avoid. These settings govern Radar messages; they do not grant standing permission to send.
+
+1. Open an opportunity and find **Reviewed outreach**. Expand **Prepare a new outreach draft**, describe your useful contribution and specific ask, and choose **Prepare draft for review**. Optional model wording uses the existing budget; your supplied text works without a model.
+2. Review and save the draft through the normal exact-change approval. Select that saved outreach draft and its purpose. Select any human-confirmed facts the message relies on, then explain why the message is appropriate now.
+3. For an introduction request, select a current reviewed offer. For a two-party introduction, select the second contact and each person's received consent message. Check the exact quotations and expiry. An offer or suggested connection alone does not authorize an introduction.
+4. Choose **Review exact message**. Read the sender, recipients, subject, complete message, cited facts and prior conversation excerpts. Choose **Approve and send**, or queue it for later review in Today.
+5. Inspect **Delivery receipts**. A confirmed provider receipt records acceptance for sending; it does not establish that the recipient read the message or agreed to the ask. Demo receipts are explicitly simulated and never contact anyone.
+
+Changes to the draft, contact, profile, evidence, consent or conversation history require a fresh preview. Suppressed or unresolved contacts, incomplete history and recent outbound messages block outreach. An uncertain provider result holds the reservation: use **Check existing receipt**, without sending again. **Not sent** means the recorded failure occurred before provider dispatch; prepare a fresh review if the message is still appropriate.
+
+The controls show up to 20 active contact choices and 10 approved facts. Consent selectors use bounded received-message excerpts. If the relevant person or consent is outside that context, inspect the canonical records and use the registered Radar tools with the exact references; do not substitute a similarly named person.
+
 ## Recover and disable
 
 - **Missing or unavailable evidence:** reopen the source, correct its citation through the review flow, and review affected estimates again. Earlier evidence remains in history.
 - **Changed record or stale approval:** refresh the opportunity and create a new exact preview. Do not approve an obsolete version.
 - **No useful recommendations:** inspect neutral review and deferred items. Missing evidence is a reason to investigate, not to invent a score or contact address.
 - **Missing access or schema:** verify workspace membership, module enablement, and installation readiness. The app does not create missing production tables from a request.
-- **Disable Radar:** new Radar writes and briefing stop. Authorized users can still open `/admin/radar/history` for retained records. Plugin AI tools follow the module availability gate.
+- **Disable Radar:** new Radar writes and briefing stop. Authorized users can still open `/admin/radar/history` for retained records. New plugin operations follow the module availability gate. Outreach history and receipt reconciliation remain readable through the retained history and core tools.
 
-Desktop and mobile demo checks cover approvals, saved drafts, reload persistence, reset, session isolation, keyboard focus, reduced motion, and overflow. Controlled database checks cover replay, tenant separation, stale evidence, revocation, and audit rollback. These checks establish the review workflow; they do not establish a live outreach send or a verified business outcome.
+Desktop and mobile demo checks cover approvals, saved drafts, reload persistence, reset, session isolation, keyboard focus, reduced motion, and overflow. Controlled database checks cover replay, tenant separation, stale evidence, revocation, and audit rollback. Controlled sender tests establish approval and recovery behavior without contacting real recipients. They do not establish a verified business outcome.

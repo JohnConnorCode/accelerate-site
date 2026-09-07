@@ -1,6 +1,10 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { EXPECTED_CADENCE_LABELS, isCheckOverdue, nextExpectedFromAnchor } from "./health-expectation";
+import {
+  EXPECTED_CADENCE_LABELS,
+  isCheckOverdue,
+  nextExpectedFromAnchor,
+} from "./health-expectation";
 
 /**
  * One operational health computation, shared by the admin overview, Setup
@@ -35,7 +39,51 @@ export const EXPECTED_CADENCES = {
 
 export type HealthStatus = "ready" | "attention" | "not_configured";
 
+export function describeSourceOutput(source: string, status: string, raw: unknown) {
+  const summary = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  const count = (key: string) =>
+    typeof summary[key] === "number" && Number.isFinite(summary[key]) && Number(summary[key]) >= 0
+      ? Number(summary[key])
+      : null;
+  const listed = count("listed"),
+    stored = count("stored"),
+    pending = count("deferred"),
+    failed = count("failed");
+  const incomplete =
+    (pending ?? 0) > 0 ||
+    (failed ?? 0) > 0 ||
+    (count("quarantined") ?? 0) > 0 ||
+    (listed !== null && stored !== null && stored < listed);
+  const state =
+    status === "not_configured"
+      ? "not_configured"
+      : status === "never_run"
+        ? "never_run"
+        : incomplete
+          ? "incomplete"
+          : status === "success" &&
+              stored === 0 &&
+              source === "gmail" &&
+              summary.mode === "incremental"
+            ? "quiet"
+            : status === "success" && stored !== null
+              ? "complete"
+              : "unknown";
+  const detail =
+    state === "quiet"
+      ? "Successful incremental sync; no changed threads to store."
+      : state === "not_configured"
+        ? "Source configuration is missing; no output is expected yet."
+        : state === "never_run"
+          ? "Source is configured but has no execution receipt."
+          : state === "unknown"
+            ? "The receipt does not establish source processing output."
+            : `${listed === null ? "Listed count unknown" : `${listed} listed`} · ${stored ?? "unknown"} stored · ${pending ?? "unknown"} deferred in this run${incomplete ? "; processing is incomplete" : ""}.`;
+  return { state, listed, stored, pending, detail };
+}
+
 export interface HealthRunView {
+  output?: ReturnType<typeof describeSourceOutput>;
   key: string;
   status: string;
   startedAt: string | null;
@@ -87,6 +135,7 @@ export interface OperationalHealth {
     receiptHref?: string;
   }>;
   queueBacklog: { pending: number; expired: number };
+  processingBacklog?: { pendingWork: number; failedWork: number; unresolvedMessages: number };
   /** Everything wrong, in a form an alert can be built from. */
   concerns: HealthConcern[];
 }
@@ -127,31 +176,56 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
   const webhookSince = new Date(
     Date.now() - WEBHOOK_FAILURE_LOOKBACK_HOURS * 3_600_000,
   ).toISOString();
-  const [integrationResult, sourceRunsResult, jobRunsResult, webhookResult, pendingQueue, expiredQueue] =
-    await Promise.all([
-      supabase
-        .from("integration_connections")
-        .select("provider,status,last_success_at,last_error,updated_at"),
-      supabase
-        .from("source_runs")
-        .select("source_key,status,started_at,finished_at,error")
-        .order("started_at", { ascending: false })
-        .limit(30),
-      supabase
-        .from("job_runs")
-        .select("job_key,status,claimed_at,finished_at,error")
-        .order("claimed_at", { ascending: false })
-        .limit(30),
-      supabase
-        .from("webhook_receipts")
-        .select("id,provider,event_type,error,received_at")
-        .eq("status", "failed")
-        .gte("received_at", webhookSince)
-        .order("received_at", { ascending: false })
-        .limit(20),
-      supabase.from("action_queue").select("id", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("action_queue").select("id", { count: "exact", head: true }).eq("status", "expired"),
-    ]);
+  const [
+    integrationResult,
+    sourceRunsResult,
+    jobRunsResult,
+    webhookResult,
+    pendingQueue,
+    expiredQueue,
+    pendingWork,
+    failedWork,
+    unresolvedMessages,
+  ] = await Promise.all([
+    supabase
+      .from("integration_connections")
+      .select("provider,status,last_success_at,last_error,updated_at,settings"),
+    supabase
+      .from("source_runs")
+      .select("source_key,status,started_at,finished_at,error,summary")
+      .order("started_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("job_runs")
+      .select("job_key,status,claimed_at,finished_at,error")
+      .order("claimed_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("webhook_receipts")
+      .select("id,provider,event_type,error,received_at")
+      .eq("status", "failed")
+      .gte("received_at", webhookSince)
+      .order("received_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("action_queue")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    supabase
+      .from("action_queue")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "expired"),
+    supabase
+      .from("work_items")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["pending", "waiting", "running"]),
+    supabase.from("work_items").select("id", { count: "exact", head: true }).eq("status", "failed"),
+    supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("direction", "outbound")
+      .in("status", ["processing", "failed"]),
+  ]);
   const firstError = [
     integrationResult.error,
     sourceRunsResult.error,
@@ -159,11 +233,30 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     webhookResult.error,
     pendingQueue.error,
     expiredQueue.error,
+    pendingWork.error,
+    failedWork.error,
+    unresolvedMessages.error,
   ].find(Boolean);
   if (firstError) throw new Error(firstError.message);
 
   const integrations = integrationResult.data ?? [];
   const sourceRows = latestByKey(sourceRunsResult.data ?? [], "source_key");
+  if (integrations.some((i) => i.provider === "google" && i.status === "connected")) {
+    for (const source_key of ["gmail", "google_calendar", "google_drive"]) {
+      if (sourceRows.some((r) => r.source_key === source_key)) continue;
+      const google = integrations.find((i) => i.provider === "google");
+      const folders = (google?.settings as { drive_folder_ids?: unknown[] } | undefined)
+        ?.drive_folder_ids;
+      sourceRows.push({
+        source_key,
+        status: source_key === "google_drive" && !folders?.length ? "not_configured" : "never_run",
+        summary: {},
+        started_at: null,
+        finished_at: null,
+        error: null,
+      });
+    }
+  }
   const jobRows = latestByKey(jobRunsResult.data ?? [], "job_key");
 
   const integrationHealths: IntegrationHealth[] = integrations.map((item) => ({
@@ -177,11 +270,15 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
 
   const sourceCadenceMs = (EXPECTED_CADENCES.source ?? 0) * 60_000;
   const sourceRuns: HealthRunView[] = sourceRows.map((row) => {
-    const lastSuccessAt =
-      String(row.status) === "success" ? anchorMs(row.finished_at) : undefined;
+    const lastSuccessAt = anchorMs(
+      (sourceRunsResult.data ?? []).find(
+        (receipt) => receipt.source_key === row.source_key && receipt.status === "success",
+      )?.finished_at,
+    );
     const anchor = lastSuccessAt ?? anchorMs(row.finished_at ?? row.started_at);
     return {
       key: String(row.source_key),
+      output: describeSourceOutput(String(row.source_key), String(row.status), row.summary),
       status: String(row.status),
       startedAt: row.started_at ?? null,
       finishedAt: row.finished_at ?? null,
@@ -194,8 +291,11 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
   });
 
   const jobRuns: HealthRunView[] = jobRows.map((row) => {
-    const lastSuccessAt =
-      String(row.status) === "success" ? anchorMs(row.finished_at) : undefined;
+    const lastSuccessAt = anchorMs(
+      (jobRunsResult.data ?? []).find(
+        (receipt) => receipt.job_key === row.job_key && receipt.status === "success",
+      )?.finished_at,
+    );
     const anchor = lastSuccessAt ?? anchorMs(row.finished_at ?? row.claimed_at);
     const cadenceMs = cadenceMsForJob(String(row.job_key));
     return {
@@ -228,7 +328,27 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     expired: expiredQueue.count ?? 0,
   };
 
+  const processingBacklog = {
+    pendingWork: pendingWork.count ?? 0,
+    failedWork: failedWork.count ?? 0,
+    unresolvedMessages: unresolvedMessages.count ?? 0,
+  };
   const concerns: HealthConcern[] = [];
+  for (const run of sourceRuns)
+    if (run.output && ["incomplete", "never_run"].includes(run.output.state))
+      concerns.push({
+        kind: "source",
+        key: run.key,
+        detail: run.output.detail,
+        observedAt: run.finishedAt,
+      });
+  if (processingBacklog.failedWork || processingBacklog.unresolvedMessages)
+    concerns.push({
+      kind: "job",
+      key: "unreconciled-work",
+      detail: `${processingBacklog.failedWork} failed work items and ${processingBacklog.unresolvedMessages} failed or processing outbound messages require receipt review. Pending work: ${processingBacklog.pendingWork}.`,
+      observedAt: null,
+    });
   const integrationFreshnessMs = INTEGRATION_FRESHNESS_HOURS * 3_600_000;
   for (const integration of integrationHealths) {
     if (
@@ -337,6 +457,7 @@ export async function loadOperationalHealth(supabase: SupabaseClient): Promise<O
     jobRuns,
     webhookFailures,
     queueBacklog,
+    processingBacklog,
     concerns,
   };
 }

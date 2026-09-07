@@ -1,3 +1,16 @@
+import { prepareRadarOutreachDraft } from "./radar-outreach-drafting";
+import {
+  previewRadarOutreach,
+  proposeRadarOutreach,
+  readRadarOutreach,
+  reconcileRadarOutreach,
+} from "./radar-outreach";
+import {
+  radarOutreachPrepareSchema,
+  radarOutreachPreviewSchema,
+  radarOutreachProposalSchema,
+  radarOutreachReadSchema,
+} from "./radar-outreach-contract";
 import { getRadarRelationshipContext } from "./radar-relationship-context";
 import { previewRadarRelationship, proposeRadarRelationship } from "./radar-relationships";
 import {
@@ -570,6 +583,71 @@ const registry: AiToolRegistration[] = [
     });
   }),
 
+  {
+    name: "prepare_radar_outreach",
+    description:
+      "Prepare a provider-free outreach draft using current sources, approved facts and conversation history; optional budgeted generation never saves or sends.",
+    inputSchema: z.toJSONSchema(radarOutreachPrepareSchema),
+    parseInput: (input) => radarOutreachPrepareSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-outreach",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => prepareRadarOutreachDraft(supabase, input),
+  },
+  {
+    name: "preview_radar_outreach",
+    description:
+      "Preview a saved draft for exact human review: recipient, message, source facts, history, profile and two-party consent. Refuses suppressed contacts, stale evidence and cooldown. Does not send.",
+    inputSchema: z.toJSONSchema(radarOutreachPreviewSchema),
+    parseInput: (input) => radarOutreachPreviewSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-outreach",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => previewRadarOutreach(supabase, input),
+  },
+  {
+    name: "propose_radar_outreach",
+    description:
+      "Queue the exact outreach preview for human approval. Approval is bound to current evidence and full content. Every send requires human approval; no automated outreach.",
+    inputSchema: z.toJSONSchema(radarOutreachProposalSchema),
+    parseInput: (input) => radarOutreachProposalSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.radar-outreach",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) => proposeRadarOutreach(supabase, input, actorEmail),
+  },
+  {
+    name: "get_radar_outreach_history",
+    description:
+      "Read retained Radar outreach reservations and confirmed, uncertain or non-send receipts. Reading remains available after plugin disable.",
+    inputSchema: z.toJSONSchema(radarOutreachReadSchema),
+    parseInput: (input) => radarOutreachReadSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-outreach",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => readRadarOutreach(supabase, input),
+  },
+  {
+    name: "reconcile_radar_outreach",
+    description:
+      "Observe the existing canonical message receipt for a Radar action. Cannot send or retry a message, and remains available after plugin disable.",
+    inputSchema: z.toJSONSchema(z.object({ actionId: z.uuid() }).strict()),
+    parseInput: (input) => z.object({ actionId: z.uuid() }).strict().parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.radar-outreach",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => reconcileRadarOutreach(supabase, String(input.actionId)),
+  },
   {
     name: "get_radar_workspace",
     description:
@@ -2141,6 +2219,12 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "prepare_radar_outreach",
+    "preview_radar_outreach",
+    "propose_radar_outreach",
+    "get_radar_outreach_history",
+    "reconcile_radar_outreach",
+
     "get_radar_workspace",
     "prepare_radar_opportunity_brief",
     "get_radar_relationship_context",
