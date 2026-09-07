@@ -77,9 +77,23 @@ Run the affected checks and the repository's required verification before submit
 
 ## Keep developing through the backlog
 
+You can simply tell a coding agent: “Pick up work from the backlog and go until
+it is completed and committed. Follow protocol.” The repository entrypoint
+defines that as a complete execution request. The agent selects a ready card,
+creates its isolated worktree, follows the live packet, verifies the result,
+commits the exact change and submits evidence for review. Internally this uses
+`agent:go`, but you do not need to provide a ticket key or command name.
+
 Run `npm run dev:doctor` to check local readiness. To join coordinated work, obtain a project-scoped work token from the project owner, configure `WORK_BOARD_URL` and `WORK_BOARD_TOKEN`, and run `npm run dev:doctor -- --board`. Contributors do not need the owner’s database credentials.
 
-Use `npm run agent:status` to inspect ready work and `npm run agent:show -- --card <key>` to read a task before claiming it. `npm run agent:next` claims a dependency-ready task and creates its isolated worktree. Follow its live acceptance criteria, renew the lease with `agent:heartbeat`, and submit named checks and the exact commit with `agent:complete -- --card <key> --evidence-file <path.json>`. Submission, review, merge and deployment are separate recorded steps. The full command contract is in `AGENTS.md` and its linked developer handoff.
+The internal runner handles status, selection and claim for the natural-language
+request. For explicit diagnostics, `npm run agent:status` and
+`npm run agent:show -- --card <key>` remain available; `agent:next` is the
+compatibility command for a named card. Follow the live acceptance criteria,
+renew the lease with `agent:heartbeat`, and submit named checks and the exact
+commit with `agent:complete -- --card <key> --evidence-file <path.json>`.
+Submission, review, merge and deployment are separate recorded steps. The full
+command contract is in `AGENTS.md` and its linked developer handoff.
 
 Every feature change also updates the organized public guides, product changelog and Command Center descriptions in the same pull request. Keep planned capabilities clearly separate from available behavior. Report new gaps through the live board so the next contributor has a concrete task and verification criteria.
 

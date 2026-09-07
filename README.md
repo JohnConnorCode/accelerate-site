@@ -134,7 +134,14 @@ Route handlers and UI components are thin adapters, nothing more. Every business
 
 The live Feature Board is the source of truth for current definitions, dependencies, claims and acceptance. `scripts/feature-backlog-data.mjs` contains historical templates; dated reports are orientation, not dispatch authority. Use the [developer handoff](docs/contributing/DEVELOPER-START.md) to inspect and claim an executable card through the canonical protocol.
 
-[**/roadmap**](https://www.acceleratewith.us/roadmap) renders that manifest publicly, with every card's real description and acceptance criteria, no signup required. A curated, dependency-satisfied subset — cards ready to pick up without waiting on other work — is also mirrored to [GitHub Issues labeled `help wanted`](https://github.com/JohnConnorCode/accelerate-site/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) via `npm run mirror:feature-board-issues -- --apply`.
+For coordinated development, a plain-language request is enough: tell any
+coding agent to “pick up work from the backlog and go until it is completed and
+committed; follow protocol.” The repository entrypoint selects one eligible
+card, creates its isolated worktree, supplies the live packet, and continues
+through verification and evidence submission. The agent command is an internal
+detail (`agent:go`); see [Natural-language agent execution](docs/contributing/NATURAL-LANGUAGE-AGENT.md).
+
+[**/roadmap**](https://www.acceleratewith.us/roadmap) renders that manifest publicly, with every card's real description and acceptance criteria, no signup required. Each card has a stable shareable `/roadmap#roadmap-<seed-key>` link. A curated, dependency-satisfied subset — cards ready to pick up without waiting on other work — is also mirrored to [GitHub Issues labeled `help wanted`](https://github.com/JohnConnorCode/accelerate-site/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) via `npm run mirror:feature-board-issues -- --apply`.
 
 You can also explore the same kanban UI the founder uses, populated with representative fictional data, inside any [demo workspace](https://www.acceleratewith.us/demo/command-center) under **System → Feature Board**. The live founder board at `/admin/features` requires authentication, so it isn't publicly browsable.
 

@@ -10,6 +10,34 @@ For a connected installation, follow
 [the self-hosting guide](docs/self-hosting/SELF-HOSTING.md). Shared ticket pickup
 also requires the scoped access described below.
 
+<!--
+agent-execution-trigger:
+  intent: backlog-pickup-and-completion
+  phrases: [pick up backlog work, take the next task, continue the board, finish and commit, follow protocol]
+  first_action: npm run agent:go -- --json
+  terminal_states: [HANDOFF_SUBMITTED, BLOCKED_REQUIRES_OPERATOR]
+-->
+
+## Natural-language execution trigger
+
+If the user asks to pick up backlog work, take the next task, continue the
+board, finish and commit, or follow protocol, treat that plain-language request
+as an execution command. The user does not need to provide a card key or know a
+CLI name. After reading this entrypoint, run the internal `agent:go` runner and
+continue through implementation, verification, exact commit and evidence
+submission. Do not stop at orientation, `git status`, `git log`, a broad
+documentation scan, or a status-only answer. Stop only after handoff submission
+or a precise operator-required block. Read the complete contract in
+[Natural-language agent execution](docs/contributing/NATURAL-LANGUAGE-AGENT.md).
+
+Never ask the user to paste board credentials, database credentials, tokens or
+secrets, and never offer “work unclaimed” or “prepare only, wait” as choices.
+Resolve the private configured transport automatically. This includes the
+ignored remote profile and an explicitly authorized local-operator profile with
+its named project; profiles live in the Git common directory and are available
+to every worktree. If access is missing, return `SETUP_REQUIRED` with the setup
+instruction and make no claim or shared work mutation.
+
 ## Operating guidance and accumulated lessons
 
 - Read the northstar first, then this contract and the task's relevant references.
@@ -49,23 +77,26 @@ One integration owner pins the candidate; other agents keep their isolated work.
 After squash merge, record tree parity and close proven superseded PRs without
 removing active worktrees. This does not authorize production deployment.
 
-## Pick up work
+## Pick up and resume work
 
-Start with [the developer handoff](docs/contributing/DEVELOPER-START.md). Run
-`npm run dev:doctor` for local exploration and `npm run dev:doctor -- --board`
-before shared dispatch. The latter checks authenticated protocol and write
-enforcement without claiming or mutating work.
+Run `npm run agent:go` for the natural-language backlog flow. It performs
+read-only setup checks, selects one ready Now/Next card, claims it atomically,
+creates the approved isolated worktree, repairs deterministic generated-report
+drift there, and prints the complete continuation packet. Use `--json` for an
+agent client and `--card <key>` only when the user explicitly names a card.
 
-```
-npm run agent:next
-```
+The lower-level `agent:next` command remains available for compatibility and
+manual diagnostics. Start with [the developer handoff](docs/contributing/DEVELOPER-START.md)
+when setting up a machine; do not make the user repeat those protocol details
+for ordinary backlog execution.
 
-Read [the work protocol](docs/contracts/UNIVERSAL-WORK-BOARD.md) first. Configure
-`WORK_BOARD_URL` and a project-scoped `WORK_BOARD_TOKEN` issued by the founder.
-The CLI uses HTTP and needs no database credentials. `agent:next` atomically
-claims ready work and prints the full live contract. A worktree requires the
-card's approved repository base branch and exact commit. Never guess a base or
-fall back into another agent's checkout.
+Read [the work protocol](docs/contracts/UNIVERSAL-WORK-BOARD.md) when setup or
+recovery requires detail. Configure `WORK_BOARD_URL` and a project-scoped
+`WORK_BOARD_TOKEN` issued by the founder; the runner reports missing setup
+without claiming work. `agent:go` delegates the atomic claim to the canonical
+dispatcher and prints the full live contract. A worktree requires the card's
+approved repository base branch and exact commit. Never guess a base or fall
+back into another agent's checkout.
 
 Use `agent:status`, `agent:heartbeat -- --card <key>`, and
 `agent:release -- --card <key>`. `agent:complete -- --card <key>
@@ -101,8 +132,9 @@ operator recovery. There is no force bypass.
 12. `docs/contracts/WORK-MOTION-CONTRACT.md` before changing Work pages, public reveal
     primitives, scroll behavior, or portfolio animation QA.
 
-Run `npm run verify:agent-contract` before implementation. If it fails, repair
-the contract or card detail before changing product behavior.
+After pickup, run `npm run verify:agent-contract` in the worker checkout as part
+of the packet's verification. A stale dated generated report is repaired by
+`agent:go`; a true contract or card failure remains an actionable block.
 
 ## Inspect before claiming
 

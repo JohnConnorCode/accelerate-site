@@ -1,5 +1,17 @@
 # Universal work board protocol v1
 
+## Natural-language execution
+
+The phrase “pick up work from the backlog and go until it is completed and
+committed; follow protocol,” and equivalent requests to take the next task or
+continue the board, is an execution command for repository agents. The agent
+must run the repository pickup runner without requiring a card key, then use
+the returned claim, isolated worktree and packet until evidence is submitted or
+an operator-required block is reached. The runner's command name is an internal
+implementation detail (`agent:go`); the user-facing interface is the plain-language
+request. Orientation-only output, status-only output and stale generated
+reports are not completion.
+
 The live Feature Board is the authoritative work record. Git contains schemas,
 card templates and dated exports. A stale checkout never gets authority to
 replace live notes, claims, dependencies, review decisions or newly created cards.
@@ -18,10 +30,14 @@ recovery, archive, wildcard projects or tenant access. Project and operation sco
 are resolved on every request, including MCP calls. Never put credentials in cards,
 logs, command arguments, Git, screenshots or prompts.
 
-Agents use `WORK_BOARD_URL` and `WORK_BOARD_TOKEN`, HTTP
-`/api/agent/work-board`, or MCP `/api/agent/work-board/mcp`. No Supabase service key
-is needed. MCP provides work_list, work_history and work_mutate. Tenant MCP tools
-never include the platform board. List responses are bounded and expose nextOffset.
+Remote agents use `WORK_BOARD_URL` and `WORK_BOARD_TOKEN`, HTTP
+`/api/agent/work-board`, or MCP `/api/agent/work-board/mcp`. An owner-authorized
+local operator may instead use the private Git-common profile with a named
+project and the existing local Supabase configuration; that transport still
+uses this same service and lifecycle, and grants no review authority. No
+database key is required for remote workers. MCP provides work_list,
+work_history and work_mutate. Tenant MCP tools never include the platform board.
+List responses are bounded and expose nextOffset.
 
 ## Work contract
 
@@ -64,7 +80,9 @@ Only backlog/planned/blocked transitions are drag-and-drop actions. Execution
 requires its named operations. Labels/colors/order are presentation; arbitrary
 new columns cannot create lifecycle states or bypass the server.
 
-`npm run agent:next -- --card <key>` claims work. A worktree requires the card's
+The internal `agent:go` runner resolves the configured private transport and
+claims the next eligible card without requiring a key. For explicit/manual
+compatibility, `npm run agent:next -- --card <key>` claims work. A worktree requires the card's
 repository base commit and branch. Existing worktrees must match the expected
 branch and ancestry; errors preserve the claim/worktree for inspection. The CLI
 never falls back into an unrelated checkout and never removes a worktree.

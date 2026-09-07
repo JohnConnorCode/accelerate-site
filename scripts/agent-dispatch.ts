@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-/** Scoped HTTP adapter. Preflight precedes claims; sessions and worktrees survive failures. */
+/** Scoped HTTP by default; an explicitly configured local operator uses the same canonical service. */
 import { compareWorkOrder, formatWorkPacket, workPacket } from "../src/lib/work-packet";
 import type { FeatureRequest } from "../src/lib/feature-board";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -17,7 +17,7 @@ async function main() {
   const [command = "status", ...args] = process.argv.slice(2);
   if (command === "help" || args.includes("--help")) {
     console.log(
-      "agent:status | agent:show -- --card KEY | agent:next [-- --card KEY --json]\nSet WORK_BOARD_URL and WORK_BOARD_TOKEN. Run npm run dev:doctor -- --board first.\nnext validates/fetches the exact approved base before claiming. --no-worktree is deliberate manual preparation.\nRetry uncertain claims using the printed --request-key. Heartbeat within 30 minutes; complete submits evidence for review.",
+      "Plain-language backlog requests use npm run agent:go internally.\nagent:status | agent:show -- --card KEY | agent:next [-- --card KEY --json]\nRemote transport uses WORK_BOARD_URL and WORK_BOARD_TOKEN; explicit local operator transport uses --local-operator --project <project> with the existing local Supabase configuration.\nnext validates/fetches the exact approved base before claiming. --no-worktree is deliberate manual preparation.\nRetry uncertain claims using the printed --request-key. Heartbeat within 30 minutes; complete submits evidence for review.",
     );
     return;
   }
@@ -34,8 +34,15 @@ async function main() {
   if (!commands.includes(command))
     throw new Error("Unknown work command. Run agent-dispatch.ts help.");
   const flags: Record<string, string> = {};
-  const boolean = new Set(["json", "no-worktree"]);
-  const allowed = new Set([...boolean, "card", "request-key", "message", "evidence-file"]);
+  const boolean = new Set(["json", "no-worktree", "full", "local-operator"]);
+  const allowed = new Set([
+    ...boolean,
+    "card",
+    "project",
+    "request-key",
+    "message",
+    "evidence-file",
+  ]);
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (!arg || !arg.startsWith("--"))
@@ -54,9 +61,15 @@ async function main() {
   if (flags["request-key"] && !/^[a-f0-9-]{36}$/i.test(flags["request-key"]))
     throw new Error("--request-key must be a UUID");
   if (existsSync(".env.agent.local")) process.loadEnvFile(".env.agent.local");
-  const endpoint = boardEndpoint(process.env),
-    token = process.env.WORK_BOARD_TOKEN;
-  const request = (path = "", body?: unknown) => requestBoard(endpoint, token, path, body);
+  const localOperator = flags["local-operator"] === "true";
+  if (localOperator && !flags.project)
+    throw new Error("--local-operator requires --project <project-key>");
+  const endpoint = localOperator ? null : boardEndpoint(process.env);
+  const token = process.env.WORK_BOARD_TOKEN;
+  const request = localOperator
+    ? (await import("./lib/local-work-board")).createLocalWorkRequest(flags.project)
+    : (path = "", body?: unknown) => requestBoard(endpoint!, token, path, body);
+  const transport = localOperator ? `local-operator:${flags.project}` : String(endpoint);
   const { root, sessions: sessionDir } = repositoryContext(process.cwd());
   const getPage = async (path: string) => {
     const page = await request(path);
@@ -93,7 +106,7 @@ async function main() {
   }
   if (command === "status" || command === "show") {
     const rows = await cards();
-    if (flags.json) console.log(JSON.stringify(rows.map(workPacket), null, 2));
+    if (flags.json) console.log(JSON.stringify(flags.full ? rows : rows.map(workPacket), null, 2));
     else if (card || command === "show") console.log(rows.map(formatWorkPacket).join("\n\n"));
     else
       for (const c of rows)
@@ -108,7 +121,7 @@ async function main() {
       : undefined;
     if (
       previous &&
-      (previous.endpoint !== String(endpoint) ||
+      (previous.endpoint !== transport ||
         (flags.card && previous.card.seed_key !== flags.card && previous.card.id !== flags.card))
     )
       throw new Error(
@@ -130,7 +143,7 @@ async function main() {
       ? undefined
       : prepareWorkspace(root, card, { fetchBase: true });
     const session = previous ?? {
-      endpoint: String(endpoint),
+      endpoint: transport,
       card,
       claimToken: randomBytes(32).toString("base64url"),
       requestKey,
@@ -164,7 +177,11 @@ async function main() {
     if (flags.json)
       console.log(
         JSON.stringify(
-          { ...workPacket(card), worktree: path ?? null, controlCheckout: root },
+          {
+            ...(flags.full ? card : workPacket(card)),
+            worktree: path ?? null,
+            controlCheckout: root,
+          },
           null,
           2,
         ),

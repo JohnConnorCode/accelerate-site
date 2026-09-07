@@ -337,6 +337,13 @@ export const capabilities: Capability[] = [
       "Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity connect over the Model Context Protocol and reach the same registered tools the workspace uses. Reads return bounded queries with their sources; anything that would change a record or send a message becomes a staged proposal in the same approval queue.",
   },
   {
+    id: "agent-workflow",
+    category: "govern",
+    title: "Point any coding agent at the backlog",
+    detail:
+      "Tell any coding agent that can read and run the repository to pick up backlog work and follow protocol. The repository entrypoint resolves the configured private transport, selects one eligible card, preserves claim ownership, creates the approved isolated worktree, supplies the live packet, and carries the work through verification, commit, and evidence submission without requiring a ticket key or internal command name.",
+  },
+  {
     id: "sms",
     category: "connect",
     title: "A mobile-ready workspace",

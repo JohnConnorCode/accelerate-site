@@ -9,8 +9,10 @@ Creating this handoff does not mean those features have been implemented.
 ## Start every card the same way
 
 1. Read `AGENTS.md`, `docs/NORTHSTAR.md`, the claimed card and its dependency
-   evidence. Claim through `npm run agent:next -- --card <seed_key>`; do not edit
-   live owner/status fields. Renew long claims with `agent:heartbeat`.
+   evidence. Ask the repository agent to pick up the named card and follow
+   protocol; the internal runner is equivalent to
+   `npm run agent:go -- --card <seed_key>`. Do not edit live owner/status
+   fields. Renew long claims with `agent:heartbeat`.
 2. Use the integration commit recorded by `workshelter-reuse-baseline`. It must
    contain the previously completed plugin, branding and five-business demo work
    and the current tenant/action-executor contracts. Do not assume a card marked

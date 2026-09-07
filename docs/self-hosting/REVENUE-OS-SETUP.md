@@ -130,8 +130,9 @@ archive cards absent from its templates.
 
 Follow [the universal work protocol](../contracts/UNIVERSAL-WORK-BOARD.md) and
 [the agent ticket runbook](../contributing/AGENT-TICKET-RUNBOOK.md). Configure a
-project-scoped work token and use `npm run agent:next` to claim ready work
-atomically. Renew the lease with `agent:heartbeat`; an Owner label is not a claim.
+project-scoped work token, then tell a coding agent to pick up backlog work and
+follow protocol. The internal `agent:go` runner claims ready work atomically. Renew the
+lease with `agent:heartbeat`; an Owner label is not a claim.
 
 For an intentional template import, create and review a bounded plan first:
 
