@@ -1,4 +1,9 @@
 import {
+  SEED_DEFAULT_MILESTONES,
+  handoffRequestSchema,
+} from "@/lib/revenue-os/delivery-handoff-contract";
+import type { HandoffReceipt } from "@/lib/revenue-os/delivery-handoff";
+import {
   campaignDraftCopy,
   campaignDuplicateOptions,
 } from "@/lib/revenue-os/campaign-duplicate-contract";
@@ -80,6 +85,17 @@ type DemoEmailStudioDetail = {
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
 export type DemoState = {
+  deliveryHandoffs?: Record<
+    string,
+    {
+      id: string;
+      createdAt: string;
+      businessName: string;
+      contactId: string;
+      receipt: HandoffReceipt;
+      tasks: Array<{ id: string; key: string; title: string; status: string; due_date: string }>;
+    }
+  >;
   contactBulkOverrides?: Record<string, { tags: string[]; communicationStatus: string }>;
   campaignBulkMembers?: Record<
     string,
@@ -107,7 +123,12 @@ export type DemoState = {
   deletedContentIds: string[];
   opportunityOverrides: Record<
     string,
-    { nextAction?: string | null; nextActionAt?: string | null; estimatedValue?: number }
+    {
+      nextAction?: string | null;
+      nextActionAt?: string | null;
+      estimatedValue?: number;
+      updatedAt?: string;
+    }
   >;
   clientOverrides: Record<string, Record<string, unknown>>;
   generatedAiRuns: DemoGeneratedAiRun[];
@@ -227,7 +248,11 @@ function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
       owner_email: pack.tenant.founder.email,
       last_activity_at: new Date(Date.now() - index * 7_200_000).toISOString(),
       created_at: new Date(Date.now() - (index + 4) * 86_400_000).toISOString(),
-      updated_at: ago(index + 1),
+      updated_at:
+        override.updatedAt ??
+        new Date(
+          Math.floor(Date.now() / 86400000) * 86400000 - (index + 1) * 3600000,
+        ).toISOString(),
       contact: { full_name: contact.name, primary_email: contact.email },
       company: { name: item.company, domain: null, industry: pack.category },
     };
@@ -235,7 +260,7 @@ function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
 }
 
 function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
-  return pack.tasks.map((item, index) => {
+  const base = pack.tasks.map((item, index) => {
     const native = state.business?.tasks.find((task) => task.id === item.id);
     const patch = state.taskOverrides[item.id];
     return {
@@ -266,6 +291,26 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
       related_type: "contact",
     };
   });
+  const delivery = Object.values(state.deliveryHandoffs ?? {}).flatMap((h) =>
+    h.tasks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      status:
+        state.taskOverrides[t.id]?.status ??
+        (state.completedTasks.includes(t.id) ? "completed" : t.status),
+      due_date: t.due_date,
+      priority: "medium",
+      description: "Delivery handoff commitment",
+      snoozed_until: null,
+      completed_at: null,
+      assigned_to: null,
+      source: "delivery_handoff",
+      related_name: h.businessName,
+      related_id: h.id,
+      related_type: "client",
+    })),
+  );
+  return [...base, ...delivery];
 }
 
 export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string) {
@@ -278,7 +323,7 @@ export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: 
     .filter((item) => item.related_id === contact.id)
     .slice(0, 4);
   const relatedProposals = proposals(pack)
-    .filter((item) => item.lead_id === contact.id)
+    .filter((item) => item.opportunity_id === id)
     .map((item) => ({ ...item, subject: item.title }));
   const conversationRows = relatedConversation
     ? [
@@ -291,7 +336,32 @@ export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: 
         },
       ]
     : [];
+  const handoff = state.deliveryHandoffs?.[id];
+  const deliveryTasks =
+    handoff?.tasks.map((t) => ({
+      ...t,
+      status:
+        state.taskOverrides[t.id]?.status ??
+        (state.completedTasks.includes(t.id) ? "completed" : t.status),
+    })) ?? [];
+  const next = deliveryTasks.find((t) => t.status !== "completed");
   return {
+    handoff_templates: [{ key: "default", version: 1, milestones: SEED_DEFAULT_MILESTONES }],
+    engagement: handoff
+      ? {
+          id: handoff.id,
+          business_name: handoff.businessName,
+          status: "onboarding",
+          next_milestone: next ? { key: next.key, title: next.title } : null,
+          blockers: deliveryTasks
+            .filter(
+              (t) => t.status !== "completed" && t.due_date < new Date().toISOString().slice(0, 10),
+            )
+            .map((t) => ({ title: t.title, due_date: t.due_date })),
+          handed_off_at: handoff.createdAt,
+          receipt: handoff.receipt,
+        }
+      : null,
     contract: "revenue-os.opportunity-record.v1",
     activityContract: "revenue-os.activity.v1",
     opportunity: row,
@@ -314,7 +384,7 @@ export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: 
       location: "Fictional service area",
       research_summary: `Fictional ${pack.category.toLowerCase()} account with a recorded next action and linked operating history.`,
     },
-    tasks: relatedTasks,
+    tasks: [...relatedTasks, ...deliveryTasks],
     conversations: conversationRows,
     meetings: [
       {
@@ -1757,10 +1827,12 @@ function setup(pack: DemoScenarioPack) {
 }
 
 function proposals(pack: DemoScenarioPack) {
-  return pack.opportunities.slice(0, 7).map((opportunity, index) => {
+  return pack.opportunities.map((opportunity, index) => {
     const contact = person(pack, opportunity.personId);
     return {
-      id: `proposal-${index + 1}`,
+      id: `de100000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+      opportunity_id: opportunity.id,
+      version: 1,
       lead_id: contact.id,
       client_name: opportunity.company,
       share_token: `fictional-${index + 1}`,
@@ -3132,11 +3204,94 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         schemaReady: true,
         record: opportunityRecord(pack, state, decodeURIComponent(opportunityRecordMatch[1]!)),
       });
+    if (method === "POST" && opportunityRecordMatch) {
+      if (state.moduleOverrides.clients === false)
+        return jsonResponse({ error: "Client delivery is unavailable in this workspace" }, 403);
+      const parsed = handoffRequestSchema.safeParse(body);
+      if (!parsed.success)
+        return jsonResponse({ error: parsed.error.issues[0]?.message ?? "Invalid handoff" }, 400);
+      const opportunityId = decodeURIComponent(opportunityRecordMatch[1]!);
+      const record = opportunityRecord(pack, state, opportunityId);
+      if (!record) return jsonResponse({ error: "Opportunity not found" }, 404);
+      if (record.opportunity.canonical_stage !== "won")
+        return jsonResponse({ error: "Handoff requires a won opportunity" }, 400);
+      if (record.opportunity.updated_at !== parsed.data.expectedUpdatedAt)
+        return jsonResponse({ error: "Opportunity changed; reload and review" }, 409);
+      if (
+        (parsed.data.templateKey ?? "default") !== "default" ||
+        (parsed.data.expectedTemplateVersion ?? 1) !== 1
+      )
+        return jsonResponse({ error: "Template changed; review the onboarding plan" }, 409);
+      const proposal = parsed.data.proposalId
+        ? record.proposals.find((p) => p.id === parsed.data.proposalId)
+        : null;
+      if (
+        parsed.data.proposalId &&
+        (!proposal || Number(proposal.version) !== parsed.data.expectedProposalVersion)
+      )
+        return jsonResponse({ error: "Proposal source changed or unavailable" }, 409);
+      if (parsed.data.milestoneKeys?.some((k) => !SEED_DEFAULT_MILESTONES.some((m) => m.key === k)))
+        return jsonResponse({ error: "Unknown milestone keys" }, 400);
+      state.deliveryHandoffs ??= {};
+      let saved = state.deliveryHandoffs[opportunityId];
+      if (saved && parsed.data.proposalId && saved.receipt.proposal_id !== parsed.data.proposalId)
+        return jsonResponse({ error: "Engagement already has a different proposal binding" }, 409);
+      const created = !saved;
+      if (!saved)
+        saved = state.deliveryHandoffs[opportunityId] = {
+          id: `handoff-${opportunityId}`,
+          createdAt: new Date().toISOString(),
+          businessName: record.company.name,
+          contactId: record.contact.id,
+          tasks: [],
+          receipt: {
+            engagement_id: `handoff-${opportunityId}`,
+            opportunity_id: opportunityId,
+            template_key: "default",
+            template_version: 1,
+            proposal_id: parsed.data.proposalId ?? null,
+            replayed: false,
+            created_milestones: [],
+            remainder: [],
+          },
+        };
+      const added: string[] = [];
+      for (const m of SEED_DEFAULT_MILESTONES.filter(
+        (m) => !parsed.data.milestoneKeys || parsed.data.milestoneKeys.includes(m.key),
+      )) {
+        if (saved.tasks.some((t) => t.key === m.key)) continue;
+        saved.tasks.push({
+          id: `${saved.id}-${m.key}`,
+          key: m.key,
+          title: m.title,
+          status: "pending",
+          due_date: dateOffset(m.due_offset_days ?? 7),
+        });
+        added.push(m.key);
+      }
+      saved.receipt = {
+        ...saved.receipt,
+        created_milestones: added,
+        replayed: !created && added.length === 0,
+        remainder: SEED_DEFAULT_MILESTONES.filter(
+          (m) => !saved.tasks.some((t) => t.key === m.key),
+        ).map((m) => m.key),
+      };
+      saveState(scenarioId, state);
+      window.dispatchEvent(new Event("admin:demo-state"));
+      return jsonResponse({
+        schemaReady: true,
+        handoff: saved.receipt,
+        record: opportunityRecord(pack, state, opportunityId),
+        simulated: true,
+      });
+    }
     if (method === "PATCH" && opportunityRecordMatch) {
       const opportunityId = decodeURIComponent(opportunityRecordMatch[1]!);
       if (!pack.opportunities.some((item) => item.id === opportunityId))
         return jsonResponse({ error: "Opportunity not found" }, 404);
       state.opportunityOverrides[opportunityId] = {
+        updatedAt: new Date().toISOString(),
         nextAction:
           body.nextAction === undefined
             ? state.opportunityOverrides[opportunityId]?.nextAction

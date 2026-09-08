@@ -502,6 +502,10 @@ export const CURRENT_SURFACES = [
     body: "Bring supplied sources, reviewed estimates, relationship context, and drafts into one daily workspace. Changes require an exact review, model spending starts off, and configured outreach requires an exact human approval with current evidence and contact checks.",
   },
   {
+    title: "From a won opportunity to a reviewed delivery plan",
+    body: "Review the onboarding template and originating proposal, create one client engagement, and track its shared tasks and handoff receipt. Retries preserve completed commitments and the original source context.",
+  },
+  {
     n: "02",
     label: "Follow up on receivables",
     title: "Collections with payment context and delivery receipts",

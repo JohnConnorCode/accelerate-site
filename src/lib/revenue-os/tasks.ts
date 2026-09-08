@@ -47,16 +47,19 @@ export async function createRevenueTask(
     if (memberError || !member)
       throw new Error("Task assignee must be an active member of this workspace");
   }
-  if (input.dedupeKey) {
-    const { data: existing, error } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("dedupe_key", input.dedupeKey)
-      .in("status", ["pending", "snoozed"])
-      .maybeSingle();
+  const findExisting = async () => {
+    if (!input.dedupeKey) return null;
+    let query = supabase.from("tasks").select("*").eq("dedupe_key", input.dedupeKey);
+    query =
+      input.source === "delivery_handoff"
+        ? query.eq("source", "delivery_handoff")
+        : query.in("status", ["pending", "snoozed"]);
+    const { data, error } = await query.maybeSingle();
     if (error) throw new Error(error.message);
-    if (existing) return { task: existing, deduplicated: true };
-  }
+    return data;
+  };
+  const existing = await findExisting();
+  if (existing) return { task: existing, deduplicated: true };
   const { data: task, error } = await supabase
     .from("tasks")
     .insert({
@@ -75,6 +78,10 @@ export async function createRevenueTask(
     })
     .select("*")
     .single();
+  if (error?.code === "23505" && input.source === "delivery_handoff") {
+    const concurrent = await findExisting();
+    if (concurrent) return { task: concurrent, deduplicated: true };
+  }
   if (error) throw new Error(error.message);
   await recordAudit(supabase, {
     actorEmail: input.actorEmail,

@@ -81,7 +81,7 @@ Drafts, pricing validation, decisions, and follow-up.
 Clients, bookings, content, and resources after the sale.
 
 - [Delivery](https://www.acceleratewith.us/docs/delivery/overview) (updated 2026-09-04): The workspace past the won stage: retainers, meetings, publishing, and downloads.
-- [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-09-05): Find an account, check its status and monthly value, and open its delivery record.
+- [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-09-08): Find an account, check its status and monthly value, and open its delivery record.
 - [Review bookings](https://www.acceleratewith.us/docs/delivery/bookings) (updated 2026-09-05): Check qualification, call status and the next step for a booked conversation.
 - [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-05): Create a content item, track its status and confirm changes were saved.
 - [Review resource downloads](https://www.acceleratewith.us/docs/delivery/resources) (updated 2026-09-05): Find who requested a resource and check the recorded download time.

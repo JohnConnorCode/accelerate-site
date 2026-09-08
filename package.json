@@ -284,6 +284,7 @@
     "qa:site-studio": "node scripts/resource-run.mjs tsx scripts/qa-site-studio.ts",
     "test:campaign-duplicate-clone": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-duplicate-clone.ts",
     "qa:campaign-duplicate": "node scripts/qa-campaign-duplicate.mjs",
+    "qa:delivery-handoff": "node scripts/qa-delivery-handoff.mjs",
     "test:contact-bulk-operations": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-contact-bulk-operations.ts",
     "qa:leads-bulk": "node scripts/qa-leads-bulk.mjs",
     "supervisor": "node scripts/supervisor/cli.mjs",

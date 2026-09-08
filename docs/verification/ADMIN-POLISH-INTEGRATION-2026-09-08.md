@@ -3,7 +3,8 @@
 The candidate integrates `f71943f0e97fc7d347245033830e23aae3650a13` and
 `1e1495c2443b3e06e04bfcb325adc35e4f039fbf` onto published main
 `9276b402158ebc44d568e76bac48f7dd7d19bca8`. The original polish worker and
-all unrelated worktrees remain intact. Delivery reconciliation PR #63 is excluded.
+all unrelated worktrees remain intact. Delivery reconciliation PR #63 was initially excluded; it merged independently
+before the final merge attempt and is now retained through the updated main base.
 The live polish card remains in review; this PR does not record founder acceptance.
 
 ## Integration corrections
@@ -52,3 +53,13 @@ control to return disabled before verifying the value and reloading. No product
 behavior or approval checks were weakened.
 
 No production deployment is included.
+
+## Main update before merge
+
+The candidate `ac14d156f011232d1d5b11a772b82a731ca31101` passed every required
+check in CI run `34246431266`. The normal merge attempt then encountered newly
+merged main `02acb5241c8b2b9ced83f167faf5224999b1b2cc` (PR #63).
+The integration retains both changelog entries, refreshes combined source counts
+and inventory fingerprints, and preserves the delivery handoff in the pipeline
+record and demo runtime alongside the polish changes. The combined source tree
+requires a new CI run before merge; prior CI does not verify this update.
