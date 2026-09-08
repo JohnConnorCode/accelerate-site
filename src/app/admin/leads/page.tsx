@@ -210,9 +210,6 @@ export default function AdminLeadsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      toast.success(
-        `${result.applied} applied · ${result.skipped} skipped · ${result.failed} failed`,
-      );
       await fetchLeads();
       return result;
     } catch (err) {

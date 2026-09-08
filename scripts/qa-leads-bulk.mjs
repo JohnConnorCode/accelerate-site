@@ -80,6 +80,21 @@ try {
         .click();
       await page.getByRole("button", { name: "Confirm", exact: true }).click();
       await page.getByRole("dialog", { name: "Contacts suppressed", exact: true }).waitFor();
+      const outcomeDialog = page.getByRole("dialog", { name: "Contacts suppressed", exact: true });
+      await outcomeDialog
+        .getByRole("heading", { name: "Contacts suppressed", exact: true })
+        .waitFor();
+      assert.notEqual(
+        await outcomeDialog
+          .locator(".admin-surface")
+          .evaluate((el) => getComputedStyle(el).backgroundColor),
+        "rgba(0, 0, 0, 0)",
+      );
+      await outcomeDialog.evaluate(async (el) => {
+        await Promise.all(
+          el.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})),
+        );
+      });
       await page.screenshot({
         path: `${output}/${scenario}-${width}-outcomes.png`,
         fullPage: true,

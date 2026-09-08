@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetchJson } from "@/lib/admin/fetchJson";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { calculateLeadScore, getScoreColor, getScoreLabel } from "@/lib/admin/lead-scoring";
 import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
@@ -629,18 +630,19 @@ export function LeadsTable({
         }}
         title="Enroll into a draft campaign"
       >
-        <div className="space-y-3">
-          <p className="text-sm text-white-secondary">
+        <AdminSurface padding="lg" className="admin-dialog-surface space-y-4">
+          <h2 className="admin-dialog-title">Enroll into a draft campaign</h2>
+          <p className="text-sm text-[var(--admin-muted)]">
             {linkedContactIds().length} contact{linkedContactIds().length === 1 ? "" : "s"} will be
             staged as queued members. Staging never approves, activates, or sends.
           </p>
           {enrollError && <p role="alert">{enrollError}</p>}
           {enrollLoading ? (
-            <p className="text-sm text-white-muted">Loading draft campaigns…</p>
+            <p className="text-sm text-[var(--admin-muted)]">Loading draft campaigns…</p>
           ) : enrollError ? (
             <Button onClick={() => void openEnroll()}>Retry loading campaigns</Button>
           ) : enrollCampaigns.length === 0 ? (
-            <p className="text-sm text-white-muted">
+            <p className="text-sm text-[var(--admin-muted)]">
               No draft campaigns. Create one in Campaigns first.
             </p>
           ) : (
@@ -652,7 +654,7 @@ export function LeadsTable({
               {enrollCampaigns.map((campaign) => (
                 <label
                   key={campaign.id}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 hover:bg-white/[0.04]"
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 hover:bg-[var(--admin-surface-subtle)]"
                 >
                   <input
                     type="radio"
@@ -662,8 +664,8 @@ export function LeadsTable({
                     onChange={() => setEnrollCampaignId(campaign.id)}
                     className="cursor-pointer"
                   />
-                  <span className="text-sm text-white-primary">{campaign.name}</span>
-                  <span className="text-xs text-white-muted">{campaign.status}</span>
+                  <span className="text-sm text-[var(--admin-ink)]">{campaign.name}</span>
+                  <span className="text-xs text-[var(--admin-muted)]">{campaign.status}</span>
                 </label>
               ))}
             </div>
@@ -689,7 +691,7 @@ export function LeadsTable({
               {bulkBusy ? "Staging..." : "Stage enrollment"}
             </Button>
           </div>
-        </div>
+        </AdminSurface>
       </AdminDialog>
 
       <AdminDialog
@@ -698,8 +700,9 @@ export function LeadsTable({
         title={outcome?.title ?? "Bulk operation"}
       >
         {outcome && (
-          <div className="space-y-3">
-            <p className="text-sm text-white-secondary">
+          <AdminSurface padding="lg" className="admin-dialog-surface space-y-4">
+            <h2 className="admin-dialog-title">{outcome.title}</h2>
+            <p className="text-sm text-[var(--admin-ink)]">
               {outcome.result.applied} applied · {outcome.result.skipped} skipped ·{" "}
               {outcome.result.failed} failed
             </p>
@@ -707,11 +710,11 @@ export function LeadsTable({
               <ul className="max-h-64 space-y-1.5 overflow-y-auto text-sm">
                 {outcome.result.outcomes.map((o) => (
                   <li key={o.contactId} className="flex flex-col gap-0.5">
-                    <span className="font-mono text-xs text-white-muted">
+                    <span className="font-mono text-xs text-[var(--admin-muted)]">
                       {leads.find((lead) => lead.revenue_os?.contact_id === o.contactId)
                         ?.contact_name ?? o.contactId}
                     </span>
-                    <span className="text-white-secondary">
+                    <span className="text-[var(--admin-ink)]">
                       {o.status}: {o.reason}
                     </span>
                   </li>
@@ -723,7 +726,7 @@ export function LeadsTable({
                 Done
               </Button>
             </div>
-          </div>
+          </AdminSurface>
         )}
       </AdminDialog>
     </div>
