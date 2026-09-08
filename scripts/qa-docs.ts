@@ -31,7 +31,19 @@ const routes = [
   "/docs/sources/leads",
   "/docs/intelligence/workspace",
   "/docs/outreach/recovery",
+  "/docs/outreach/campaigns",
+  "/docs/plugins/site-studio",
+  "/docs/workspace/setup",
 ];
+const exampleHeadings: Record<string, string> = {
+  "/docs/sources/leads": "Example: prepare estimate follow-ups",
+  "/docs/outreach/campaigns": "Example: reuse a seasonal campaign",
+  "/docs/delivery/clients": "Example: start a new client's agreed work",
+  "/docs/workspace/setup": "Example: verify an approved reference folder",
+  "/docs/plugins/site-studio": "Example: draft a bookkeeping service page",
+  "/docs/intelligence/workspace": "Example: turn a review into an approved next action",
+  "/docs/extend/mcp-clients": "Example: connect a daily operations assistant",
+};
 const failures: string[] = [];
 const checks: string[] = [];
 mkdirSync(output, { recursive: true });
@@ -76,6 +88,20 @@ async function main() {
           await page.screenshot({
             path: `${output}/${viewport.width}-${route.replaceAll("/", "_")}.png`,
           });
+          if (exampleHeadings[route]) {
+            const example = page.getByRole("heading", {
+              name: exampleHeadings[route],
+              exact: true,
+            });
+            await expect(example).toBeVisible();
+            await example.scrollIntoViewIfNeeded();
+            await page.screenshot({
+              path: `${output}/${viewport.width}-example-${route.replaceAll("/", "_")}.png`,
+            });
+            checks.push(
+              `${viewport.width} ${route}: worked example visible without horizontal overflow`,
+            );
+          }
           if (route === "/docs/start/daily-path") {
             await page.locator("figure img").scrollIntoViewIfNeeded();
             await page.waitForFunction(() => {
