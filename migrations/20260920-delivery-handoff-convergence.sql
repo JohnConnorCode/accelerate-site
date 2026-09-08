@@ -23,16 +23,17 @@ LANGUAGE plpgsql SET search_path=public AS $$
 DECLARE o opportunities; p proposals; playbook onboarding_templates; binding jsonb; k text; role text;
 BEGIN
  binding:=NEW.handoff_receipt;
- IF binding->'template_snapshot' IS NULL THEN RETURN NEW; END IF;
  PERFORM id FROM tenants WHERE id=NEW.tenant_id AND status='active' AND coalesce(config->'modules'->>'clients','true')='true' FOR SHARE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Client delivery unavailable'; END IF;
  IF TG_OP='UPDATE' AND OLD.handoff_receipt->'template_snapshot' IS NOT NULL THEN
   FOREACH k IN ARRAY ARRAY['template_snapshot','proposal_id','proposal_version','contact_id','company_id','opportunity_updated_at','canonical_stage'] LOOP
    IF (binding->k) IS DISTINCT FROM (OLD.handoff_receipt->k) THEN RAISE EXCEPTION 'Handoff source binding is immutable'; END IF;
   END LOOP;
+  IF NEW.tenant_id IS DISTINCT FROM OLD.tenant_id THEN RAISE EXCEPTION 'Handoff tenant binding is immutable'; END IF;
   IF NEW.opportunity_id IS DISTINCT FROM OLD.opportunity_id THEN RAISE EXCEPTION 'Handoff opportunity binding is immutable'; END IF;
   RETURN NEW;
  END IF;
+ IF binding->'template_snapshot' IS NULL THEN RETURN NEW; END IF;
  SELECT * INTO o FROM opportunities WHERE tenant_id=NEW.tenant_id AND id=NEW.opportunity_id FOR SHARE;
  IF NOT FOUND OR o.updated_at IS DISTINCT FROM (binding->>'opportunity_updated_at')::timestamptz THEN RAISE EXCEPTION 'Opportunity source changed or unavailable'; END IF;
  SELECT metadata->>'role' INTO role FROM kanban_columns WHERE tenant_id=NEW.tenant_id AND board_key='pipeline' AND column_key=CASE WHEN EXISTS(SELECT 1 FROM kanban_columns WHERE tenant_id=NEW.tenant_id AND board_key='pipeline' AND column_key=o.stage) THEN o.stage ELSE CASE o.stage WHEN 'calendar_viewed' THEN 'qualified' WHEN 'booked' THEN 'meeting' WHEN 'showed' THEN 'meeting' WHEN 'no_show' THEN 'nurture' ELSE o.stage END END FOR SHARE;
@@ -46,7 +47,7 @@ BEGIN
  END IF;
  IF binding->>'proposal_id' IS NOT NULL THEN
   SELECT * INTO p FROM proposals WHERE tenant_id=NEW.tenant_id AND id=(binding->>'proposal_id')::uuid FOR SHARE;
-  IF NOT FOUND OR p.opportunity_id<>o.id OR p.version IS DISTINCT FROM (binding->>'proposal_version')::integer THEN RAISE EXCEPTION 'Proposal source changed or unavailable'; END IF;
+  IF NOT FOUND OR p.opportunity_id IS DISTINCT FROM o.id OR p.version IS DISTINCT FROM (binding->>'proposal_version')::integer THEN RAISE EXCEPTION 'Proposal source changed or unavailable'; END IF;
  END IF;
  SELECT * INTO playbook FROM onboarding_templates WHERE tenant_id=NEW.tenant_id AND template_key=binding->'template_snapshot'->>'key' AND version=(binding->'template_snapshot'->>'version')::integer FOR SHARE;
  IF NOT FOUND OR playbook.milestones IS DISTINCT FROM binding->'template_snapshot'->'milestones' THEN RAISE EXCEPTION 'Template source changed or unavailable'; END IF;

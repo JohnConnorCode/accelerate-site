@@ -102,6 +102,13 @@ assert.match(
   ),
   /binding is immutable/,
 );
+for (const removed of ["handoff_receipt - 'template_snapshot'", "'{}'::jsonb", "'null'::jsonb"]) {
+  assert.match(
+    fail(context(a) + `UPDATE clients SET handoff_receipt=${removed} WHERE id='${client}';`),
+    /binding is immutable/,
+    "removing the source snapshot must not bypass immutability",
+  );
+}
 assert.match(
   fail(publish().replace("SET ROLE service_role;", "SET ROLE authenticated;")),
   /permission denied/,

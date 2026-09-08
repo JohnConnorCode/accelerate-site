@@ -25,7 +25,9 @@ try {
         return x.opportunities.find((o) => o.canonical_stage === "won").id;
       });
       await page.goto(`${base}/demo/command-center/${scenario}/pipeline/${id}`, { timeout: 60000 });
-      await page.getByRole("button", { name: "Hand off to delivery", exact: true }).click();
+      const handoffButton = page.getByRole("button", { name: "Hand off to delivery", exact: true });
+      await handoffButton.focus();
+      await page.keyboard.press("Enter");
       const dialog = page.getByRole("dialog", { name: "Review delivery handoff", exact: true });
       await dialog.getByText("Kickoff call", { exact: true }).waitFor();
       await dialog.evaluate(async (el) => {
@@ -33,6 +35,13 @@ try {
           el.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})),
         );
       });
+      await page.keyboard.press("Tab");
+      assert.equal(await dialog.evaluate((el) => el.contains(document.activeElement)), true);
+      await page.keyboard.press("Escape");
+      await dialog.waitFor({ state: "hidden" });
+      assert.equal(await handoffButton.evaluate((el) => el === document.activeElement), true);
+      await page.keyboard.press("Enter");
+      await dialog.waitFor();
       await page.screenshot({ path: `${output}/${scenario}-${width}-review.png`, fullPage: true });
       await page.evaluate(() => {
         const original = window.fetch;
