@@ -110,6 +110,7 @@ Tenants, setup, settings, integrations, and the Feature Board.
 Configure your workspace or build around a different business process.
 
 - [Make Command Center fit your business](https://www.acceleratewith.us/docs/customize/overview) (updated 2026-09-07): Configure the defaults, adapt a workflow, or build an App with its own records and screens.
+- [Draft public pages with Site Studio](https://www.acceleratewith.us/docs/customize/site-studio) (updated 2026-09-08): Create a private AI-assisted page draft from approved components and photography.
 
 ## Build on it
 For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.

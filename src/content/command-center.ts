@@ -198,6 +198,13 @@ export const capabilities: Capability[] = [
       "It reads the thread and how you have written to that person before, then produces the reply you would have written at your desk.",
   },
   {
+    id: "site-pages",
+    category: "act",
+    title: "Public pages drafted from approved parts",
+    detail:
+      "Describe the service and the outcome and get a private page draft built from approved sections and catalog photography. Invented links, metrics, and images are refused before anything saves; publishing arrives later.",
+  },
+  {
     id: "followups",
     category: "act",
     title: "Follow-ups scheduled from what was said",

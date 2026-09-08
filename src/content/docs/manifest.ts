@@ -445,6 +445,12 @@ export const docsManifest: DocsSection[] = [
         description:
           "Configure the defaults, adapt a workflow, or build an App with its own records and screens.",
       },
+      {
+        slug: ["customize", "site-studio"],
+        title: "Draft public pages with Site Studio",
+        description:
+          "Create a private AI-assisted page draft from approved components and photography.",
+      },
     ],
   },
   {

@@ -60,3 +60,6 @@ scripts/smoothcap.mjs
 
 # private scratch state
 /.accelerate/
+
+# Site Studio local drafts (private working copies; export explicitly to share)
+site/drafts/

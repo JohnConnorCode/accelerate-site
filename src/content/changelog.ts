@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "site-studio-drafts",
+    slug: "site-studio-drafts",
+    title: "Site Studio creates private AI-assisted page drafts",
+    description:
+      "Open Site Studio under the admin to draft a public page from the built-in service template or an AI-generated version when OpenRouter is connected. Pages compose approved sections and catalog photography with recorded alt text, validate before they save, and stay private: invented links, metrics, or images are refused with the reason named. Publishing, scheduling, and rollback arrive in a later release.",
+    category: "feature",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "shared-today-work-views",
     slug: "shared-today-work-views",
     title: "Today separates attention, and Work shares tasks and approvals",
