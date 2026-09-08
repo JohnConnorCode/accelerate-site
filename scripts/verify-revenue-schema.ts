@@ -106,7 +106,7 @@ const requirements: Requirement[] = [
       kind: "column" as const,
       label: `public.${table}.${column}`,
       migration: migrationFor(table, column),
-      sql: `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '${table}' AND column_name = '${column}')`,
+      sql: `SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_attribute WHERE attrelid = to_regclass('public.${table}') AND attname = '${column}' AND attnum > 0 AND NOT attisdropped)`,
     })),
   ]),
   ...REVENUE_SCHEMA_CONSTRAINTS.map(({ table, name }) => ({
