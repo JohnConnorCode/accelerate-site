@@ -132,6 +132,17 @@ story intact: fresh clones run from a bundled snapshot, connected installs
 treat Supabase as truth, and operators can round-trip edits back into the
 repo. Opaque database content must not replace forkable code.
 
+**3.12 Harness substrate, not a second agent stack.** Site Studio AI rides
+the shared Command Center harness: patch proposals validate inside the
+bounded AI context, publish and rollback approvals use the existing action
+queue, page outcomes measure through canonical attribution, and component
+registration follows the module contract. The Agent Harness backlog
+initiative (goals, agent runtime, context engine, evaluation, learning,
+Teach, Pipeline Manager) extends those shared services; Site Studio cards
+never duplicate them. When the context-provider interface lands, page
+generation switches its context assembly onto it; until then the bounded
+context builder remains the integration point.
+
 ## 4. Data model
 
 All rows carry non-null `tenant_id`; uniqueness and replay keys are
@@ -202,7 +213,9 @@ proof lands.
 
 All cards: initiative `Site Studio`, workstream `site`, milestone Later,
 priority high unless noted. Numeric phase is the legacy filter; northstar
-alignment is stated per card.
+alignment is stated per card. The companion initiative `Agent Harness`
+owns the shared substrate (goals, runtime, context, evaluation, learning,
+Teach, Pipeline Manager) these cards ride; see §3.12.
 
 | Key | Title | Phase | Depends on |
 | --- | ----- | ----- | ---------- |

@@ -1543,10 +1543,12 @@ export const featureBacklog = [
       "Provide unit, PostgreSQL concurrency/replay, API/authorization, plugin conformance and desktop/mobile browser evidence, including light/dark, keyboard and reduced-motion states.",
       "Document configuration, permissions, schemas, versioning, install/enable/disable/upgrade behavior, operator recovery and an end-to-end contributor walkthrough.",
       "Record metrics with stated source/window/unknowns and separate implementation, review, merge and deployment evidence. No claim of production/provider proof from fixtures.",
+      "Overdue-account cases can be owned by a persistent collection goal that schedules bounded reviews, drafts grounded reminders, and escalates disputes or broken promises through the same approvals and receipts, with customer-facing sends reviewed by default.",
     ],
     dependencies: [
       "Reconcile the reusable business-plugin baseline before Workshelter adoption",
-      "Client deliverable review and approval room plugin",
+      "Expose reusable typed grid and board views to business plugins",
+      "Own persistent business goals apart from tasks and workflows",
     ],
     start:
       "docs/contracts/BUSINESS-PLUGIN-EXEMPLARS.md; plugins/client-onboarding/workflow.js at c7da31b; src/lib/revenue-os/workflow-plugins.ts at c7da31b; src/lib/revenue-os/knowledge.ts; src/lib/revenue-os/plugins.ts; src/lib/revenue-os/plugin-isolate.ts; src/lib/revenue-os/capabilities.ts; src/lib/revenue-os/work-items.ts",
@@ -4617,6 +4619,7 @@ export const featureBacklog = [
       "Every claim in it links to the record it came from",
       "A quiet day produces a short honest brief rather than manufactured urgency",
       "The loop reports partial and failed states like every other job and alerts on failure",
+      "Agents, goals, and apps contribute attention items to Today as projections that preserve their native type and owner, expose why they deserve attention with allowed commands and a deep link, and never copy or fork lifecycle state",
     ],
     dependencies: [
       "Phase B: a knowledge substrate with provenance",
@@ -4628,7 +4631,7 @@ export const featureBacklog = [
     start:
       "src/lib/revenue-os/health.ts and runs.ts for the job pattern; loadOperatorQueue for the signal set",
     guardrails:
-      "The Supabase Cron wake-up substrate is already shipped; reuse scheduler.ts and runs.ts rather than reopening that decision. This phase is a roll-up over proactive-operator-intelligence, not a second brief generator. Manufactured urgency is the failure mode to design against: a quiet day must read as quiet.",
+      "The Supabase Cron wake-up substrate is already shipped; reuse scheduler.ts and runs.ts rather than reopening that decision. This phase is a roll-up over proactive-operator-intelligence, not a second brief generator. Manufactured urgency is the failure mode to design against: a quiet day must read as quiet. Today is a compositor, not another work database: projections reference native objects through their owning services and Today never becomes a storage layer or an agent inbox.",
     labels: ["second-brain", "cognition"],
     verification:
       "A week of briefs read end to end, judged on whether any told the founder something not already known.",
@@ -4669,17 +4672,20 @@ export const featureBacklog = [
     status: "planned",
     priority: "medium",
     description:
-      "agent_learning records one bit per run, misattributed across every tool that run touched. Nothing links an action to what happened next: did the reply produce a booking, did the proposed task get done, did the stage move stick or get reverted. Without that link the system accumulates history and never improves, and calling it learning is decoration. Add outcome windows, per-tool attribution, and an eval set per policy.",
+      "agent_learning records one bit per run, misattributed across every tool that run touched. Nothing links an action to what happened next: did the reply produce a booking, did the proposed task get done, did the stage move stick or get reverted. Without that link the system accumulates history and never improves, and calling it learning is decoration. Add outcome windows, per-tool attribution, and an eval set per policy. This card consumes the shared evaluation service rather than inventing its own: evaluators span deterministic checks, outcome metrics, policy compliance, human ratings, model-judge rubrics where appropriate, regression replay, and cost and latency, and every record carries evaluator version, run reference, metric, result, evidence, and optimization suitability.",
     acceptance: [
       "Every autonomous or approved action has an outcome window and a measured result, including a measured nothing",
       "Attribution is per tool rather than per run",
       "A prompt or model change is accepted or rejected against a golden set instead of argued about",
       "Learning stays governed telemetry; no output becomes an instruction automatically",
+      "Policy, collections, meeting-prep, and pipeline follow-up outcomes report through the shared evaluation service with per-tool attribution and falsifiable measured results",
+      "No second scoring store is introduced: this card writes evaluation records through the shared service and reads them back for its reports",
     ],
     dependencies: [
       "Phase D: a policy registry, not bespoke agents",
       "Build the governed agent learning feedback loop",
       "Summarize meetings and extract reviewable commitments",
+      "Score agent behavior with versioned evaluators and replayable cases",
     ],
     start:
       "src/lib/revenue-os/agent-learning.ts; agent_runs and audit_log as the existing substrate",
@@ -4697,17 +4703,20 @@ export const featureBacklog = [
     status: "planned",
     priority: "medium",
     description:
-      "Audit rows exist for everything and there is nowhere that says, in sentences, what the system did today, why, and what it decided not to do. Trust is the real bottleneck on autonomy rather than capability, and nobody widens the scope of a system whose reasoning they cannot inspect. Build the narrative surface on the audit ledger and agent_runs, both of which already record enough.",
+      "Audit rows exist for everything and there is nowhere that says, in sentences, what the system did today, why, and what it decided not to do. Trust is the real bottleneck on autonomy rather than capability, and nobody widens the scope of a system whose reasoning they cannot inspect. Build the narrative surface on the audit ledger and agent_runs, both of which already record enough. Once goals and the shared runtime exist, this surface becomes the Agent Control Center: an agent list showing name, status, active goal, scope, progress, pending approvals, last run, next check, and one outcome metric, with detail views for goal and success criteria, plan and next step, work and approvals, recent runs, context and evidence used, skills and tools, child runs, budget and cost, evaluations, memory changes, version history, and pause, resume, run-now, and policy-edit controls.",
     acceptance: [
       "The founder can answer what has this thing been doing without opening a table",
       "Declines appear as prominently as actions, since a policy that only shows what it did cannot be audited for what it wrongly skipped",
       "Every statement links to its underlying receipt",
       "Mistakes are surfaced rather than buried",
+      "Each agent card reports its active goal, meaningful progress, pending approvals, and one outcome metric without exposing raw chain-of-thought or internal model messages by default",
+      "Pause, resume, run-now, and policy edits work from the surface with bounded authority, and every control rechecks permission and budget before acting",
     ],
     dependencies: [
       "Phase E: link action to outcome",
       "Complete before/after audit coverage for material changes",
       "Complete AI run traces, tool evidence, errors, and usage",
+      "Own persistent business goals apart from tasks and workflows",
     ],
     start:
       "audit_log; agent_runs and agent_run_events; the responder.declined entries already being written",
@@ -6222,7 +6231,7 @@ export const featureBacklog = [
     start:
       "src/lib/revenue-os/analytics.ts; src/app/admin/analytics; src/app/admin/today; admin settings service; migrations",
     guardrails:
-      "Do not let AI edit targets, convert projections into actuals, or introduce a route-local score formula. Missing data remains visible.",
+      "Do not let AI edit targets, convert projections into actuals, or introduce a route-local score formula. Missing data remains visible. These are founder-authored metric targets for a period, not the durable Goal runtime objects agents pursue over time: do not merge the two concepts, and scorecard edits never create, pause, or resolve a runtime goal.",
     labels: ["analytics", "pipeline"],
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint -- --max-warnings=0; npx tsx scripts/test-operating-goals.ts; PLAYWRIGHT_BASE_URL=http://localhost:3010 node --env-file=.env.local scripts/qa-operating-scorecards.mjs; npm run build; git diff --check.",
@@ -6592,9 +6601,10 @@ export const featureBacklog = [
     description:
       "Split the always-on core (contacts, companies, auth, tenancy, permissions, activity, AI context) from optional modules (proposals, campaigns, bookings, analytics) behind a declared contract, so a self-hoster or template author can enable or omit a capability without forking core logic. This is the prerequisite for business templates and a template directory; do not start those before this contract exists, or every template reinvents its own ad-hoc module boundary.",
     acceptance: [
-      "A documented module contract (what a module may register: nav entries, admin routes, migrations, AI tools, Setup Center checks) with at least one existing capability (e.g. proposals) refactored to prove the contract is sufficient without behavior change",
+      "A documented module contract (what a module may register: nav entries, admin routes, migrations, AI tools, Setup Center checks, skills, agent specifications, goal templates, context providers, evaluators, memory policies, Today and work projections, custom work types, commands and actions, automation triggers, domain-native pages and workspaces, search providers, and permissions) with at least one existing capability (e.g. proposals) refactored to prove the contract is sufficient without behavior change",
       "Disabling a module via the contract removes its nav entries, routes, and AI tools cleanly with no dangling references, verified by a scoped test",
       "The tenant-config seam and existing multi-tenancy contract are unaffected: module enablement is a deployment-time or admin-time choice, never a per-request bypass of tenant isolation",
+      "A custom work type or domain object declares capabilities such as assignable, actionable, approvable, schedulable, prioritizable, searchable, auditable, automatable, or attention-worthy so shared surfaces can project it without taking ownership of its native lifecycle",
     ],
     dependencies: [
       "Ship a one-click Vercel deploy button",
@@ -6603,7 +6613,7 @@ export const featureBacklog = [
     start:
       "src/lib/revenue-os/README.md; src/lib/admin/navigation.ts; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md; docs/contracts/MULTI-TENANCY-CONTRACT.md",
     guardrails:
-      "Do not weaken tenant isolation, the AI tool impact-tier contract, or the admin auth boundary to make modules pluggable. A module contract is an internal seam, not a runtime code-loading system — no dynamic import of untrusted third-party code.",
+      "Do not weaken tenant isolation, the AI tool impact-tier contract, or the admin auth boundary to make modules pluggable. A module contract is an internal seam, not a runtime code-loading system — no dynamic import of untrusted third-party code. Follow the builder decision hierarchy: reuse an existing primitive when the meaning matches, extend it when domain behavior differs, register a custom type only for a genuinely different lifecycle, and build a domain-native workspace only when specialized operating UX is required.",
     labels: ["clonable", "config"],
     evidence:
       "2026-09-01: Implemented the pluggable module contract (`src/lib/revenue-os/modules.ts`) separating core capabilities (Command, Pipeline, Contacts, Conversations, Intelligence, System) from optional business modules (proposals, campaigns, recovery, email-studio, bookings, clients, content, resources, subscribers, partners, website-grades, analytics, integrations). Modules declare their metadata, navigation links, AI tools, route prefixes, and setup checks. 2026-09-02: closed the two gaps that made the first pass a taxonomy rather than a working contract. Nothing had ever supplied `tenantConfig.modules`, so every module resolved to enabled everywhere and the console badge was a hardcoded string; the real tenant row's config now threads from `requireAdmin()` through `AdminLayout` into `AdminShell` nav filtering and into `runRevenueCommandAgent`, with `GET`/`PATCH /api/admin/tenant/modules` as the audited write path and real toggles in the integrations console. Extension registration then landed: `extensions/*.module.json` manifests are validated and compiled by `scripts/build-extension-modules.mjs` into `src/lib/revenue-os/extension-modules.generated.ts` and merged after core, which stays non-overridable, keeping the stated no-untrusted-code invariant because a manifest is data. Two CI gates hold it: `verify:extensions` (generated file in sync with manifests) and `verify:module-contract` (every declared nav id, route, and tool name resolves, and every registered tool is claimed by exactly one module). `extensions/example-inventory.module.json` with `src/app/admin/example-inventory/page.tsx` is a working example; `docs/contributing/EXTENDING.md` documents modules, integration adapters, and AI tools. Each gate was verified to fail on the defect it claims to catch. Verified with `npm run test:plugin-modules`, `npm run verify:module-contract`, and `npm run verify:extensions`. 2026-09-02 status corrected from Shipped to Planned. Acceptance criterion two requires that disabling a module removes its routes with no dangling references, verified by a scoped test. Route gating does not exist: `isModuleEnabled` has zero callers in `src/app` and `src/middleware.ts`, disabling a module hides its sidebar link while the page still renders on direct navigation, and `scripts/test-plugin-modules.ts` contains no assertion mentioning routes. Two further claims in shipped documentation are also false: `INTEGRATION_ADAPTERS` has zero call sites while its own comment calls it the resolution point, and `setupChecks` is read by nothing with all four declared ids drifted away from the real Setup Center checks. What did ship is real and stands: per-tenant module configuration threaded from `requireAdmin()` into navigation filtering and the agent, an audited toggle write path, manifest validation and generation, and two CI gates. The remaining work is carded as `module-route-gating-enforcement`, `module-contract-gate-hardening`, and `integration-adapter-registry-resolution`.",
@@ -7550,17 +7560,22 @@ export const featureBacklog = [
     workstream: "ai",
     phase: 6,
     status: "backlog",
-    priority: "medium",
+    priority: "high",
     description:
-      "Plugin Platform phase 4 of 6, primitive 6 of 7: Skills. A skill is markdown shipped with a plugin describing when a capability applies, what good output looks like, and what never to do. Skills load when their bundle activates. The invariant that makes them safe is that a skill may reference tools but can never grant one: a skill instructing the model to send an email, against a plugin that never declared a send capability, simply has no function to call. That is enforcement by absence applied to instructions.",
+      "Plugin Platform phase 4 of 6, primitive 6 of 7: Skills. A skill is versioned reusable procedure describing when a capability applies, what inputs and context it requires, what good output looks like, how output validates, what needs approval, how quality is evaluated, what happens on failure, and what never to do. The versioned contract carries name and version, description, inputs, context requirements, instructions, tools, examples, output schema, validation, approval policy, evaluation reference, failure behavior, and provenance. Convert two to three existing AI procedures into registered skills without changing user-facing behavior. Skills load when their bundle activates. The invariant that makes them safe is that a skill may reference tools but can never grant one: a skill instructing the model to send an email, against a plugin that never declared a send capability, simply has no function to call. That is enforcement by absence applied to instructions.",
     acceptance: [
       "Skills are registered per plugin, loaded on bundle activation, and unloaded with the bundle",
       "A skill referencing an undeclared capability has no corresponding function in scope, asserted by test",
       "Skill text is treated as authored plugin content and is never allowed to widen a capability grant, alter a trust level, or bypass an approval",
       "Skills are visible to the operator, so what the model was told is inspectable rather than hidden",
       "A skill from an untrusted publisher is subject to the same content boundary as any other untrusted input",
+      "Every skill carries a version, input and output schemas, declared context requirements, validation rules, approval policy, evaluation reference, failure behavior, and provenance, and two versions replay against the same cases with a comparable result",
+      "Two to three existing AI procedures run as registered skills with no user-facing behavior change, each declaring the context it needs instead of assuming the full dataset",
     ],
-    dependencies: ["Group tools into bundles and load them on demand"],
+    dependencies: [
+      "Group tools into bundles and load them on demand",
+      "Score agent behavior with versioned evaluators and replayable cases",
+    ],
     start:
       "src/lib/chat/system-prompt.ts and src/lib/revenue-os/ai-agent.ts for the existing prompt boundaries",
     guardrails:
@@ -7767,10 +7782,12 @@ export const featureBacklog = [
       "The trust ladder, the reversibility classes and the evidence policy each have a page written for an operator, not only for a developer",
       "Every claim about enforcement names the mechanism that enforces it, and a claim with no mechanism is deleted rather than softened",
       "These pages live in the docs site developer tree and are covered by its link and coverage gates",
+      "The intelligence-extension path is documented alongside modules, adapters, plugins, AI tools, and MCP: add a skill, add an agent, add a context provider, and add an evaluator, each with contract, versioning, examples, testing, and publishing",
     ],
     dependencies: [
       "Build the documentation site infrastructure at /docs",
       "Block publish on a conformance kit that proves safety rather than asserting it",
+      "Add a skill registry where instructions can never grant capabilities",
     ],
     start: "docs/contributing/EXTENDING.md; docs/self-hosting/MCP-SETUP.md; the docs site manifest",
     guardrails:
@@ -8674,6 +8691,224 @@ export const featureBacklog = [
     labels: ["marketing", "testing"],
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:route-coverage; node scripts/qa-site-migration.mjs covering parity screenshots, fallback restore, and rollback drill with opened screenshots; npm run build; git diff --check.",
+  }),
+
+  // ────────────────────────────────────────────────────────────────────────
+  // AGENT HARNESS — Command Center upgrade from the product spec.
+  // The model is replaceable; the durable product is the harness around it:
+  // goals, skills, agent runtime, context, memory, evaluation, and controlled
+  // learning. Order is the spec's phased plan: skills plus evaluation first,
+  // then context and memory, then goals plus the persistent runtime, then the
+  // operator surface, Teach, and controlled optimization. Every card reuses
+  // existing Loop One services rather than building parallel systems.
+  // ────────────────────────────────────────────────────────────────────────
+  card({
+    key: "harness-goal-primitive",
+    title: "Own persistent business goals apart from tasks and workflows",
+    workstream: "runtime",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    initiative: "Agent Harness",
+    description:
+      "Add the durable Goal primitive the upgrade spec requires: a persistent desired outcome with owner, scope over business entities, status lifecycle (draft, active, paused, achieved, failed, cancelled), machine- and human-readable success criteria, optional deadline and budget, execution and approval policy, compact current summary, next-check schedule, provenance, and immutable lifecycle events. Goals generate tasks, approvals, signals, agent runs, and domain-native work but are never required for deterministic immediate workflows such as creating an invoice. Operating scorecards stay founder-authored metric targets; this card owns the runtime object agents pursue over time.",
+    acceptance: [
+      "A tenant-scoped goal record persists its full lifecycle: activate, pause, resume, achieve, fail, or cancel, each transition writing an immutable history event with actor and reason",
+      "A user can activate a goal, close the browser, and later read the same durable state including current summary and next scheduled check",
+      "Pausing a goal prevents future autonomous runs without deleting its history, and an agent that reaches budget or permission limits stops cleanly and surfaces why",
+      "Goal writes reuse the shared executor with idempotency keys and receipts; duplicate creates replay to the same receipt and cross-tenant access fails closed",
+      "Two-tenant fixtures prove identical goal titles, scopes, and idempotency keys stay independent",
+    ],
+    dependencies: [
+      "Route every write through one executor with reversibility and compensators",
+      "Unify agent permissions into one Autonomy Policy Engine",
+    ],
+    start:
+      "src/lib/revenue-os/workflow-tasks.ts; src/lib/revenue-os/actions.ts:54-126; src/lib/revenue-os/action-executor.ts:42-67; src/lib/revenue-os/work-items.ts; docs/contracts/REVENUE-OS-ENGINEERING-CONTRACT.md",
+    guardrails:
+      "Do not turn every button into a goal: deterministic immediate workflows keep their existing path and a goal is only for persistent outcomes that need revisiting over time. Do not merge founder-authored operating scorecards into this object; the two concepts stay distinct. A goal's policy field declares execution and approval expectations for that goal; reusable automation envelopes stay owned by Generalize approved automation policies. Goals never widen their own authority and every side effect they produce keeps its existing approval path.",
+    labels: ["work-engine", "autonomy"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-harness-goals.ts covering lifecycle, pause semantics, budget and permission stops, replay, and cross-tenant refusal with controlled fixtures; npm run build; git diff --check.",
+  }),
+  card({
+    key: "harness-agent-runtime",
+    title: "Run one-shot, scheduled, and goal-driven agents on one runtime with delegation ceilings",
+    workstream: "runtime",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    initiative: "Agent Harness",
+    description:
+      "Unify one-shot assistant requests, triggered and scheduled runs, goal-driven runs, and continuous watches onto one Agent Runtime service sharing the same run model. A versioned AgentSpec declares identity, objective, model policy, context policy, allowed skills and tools, subagent targets and limits, memory policy, permission policy, budgets, completion policy, and evaluation policy. Child runs inherit an explicit permission ceiling, budget, and parent reference, and a child can never gain authority its parent does not possess. Coworker manifests and the existing scheduler stay the identity and wake-up layers; this card owns the common run execution they both ride.",
+    acceptance: [
+      "One run model serves one-shot, triggered, scheduled, goal-driven, and watch modes against fixtures, each recording parent and goal references, status, budgets, summaries, and trace references",
+      "A child run attempting a tool its parent is forbidden to use is refused with a named error, proven by an adversarial fixture rather than by review",
+      "Budget exhaustion, permission denial, and pause or kill-switch activation each stop the run cleanly and surface the reason instead of failing silently",
+      "Agent, skill, and policy versions are pinned per run so a mid-run publish never changes an executing run; rollback restores the prior version without touching historical run provenance",
+      "New persistent background behavior ships with pause and stop controls plus bounded cadence and budget",
+    ],
+    dependencies: [
+      "Own persistent business goals apart from tasks and workflows",
+      "Introduce Coworkers as first-class runtime identities with manifests",
+      "Unify agent permissions into one Autonomy Policy Engine",
+      "Work scheduler: auto-create recurring daily and weekly coworker work items",
+    ],
+    start:
+      "src/lib/revenue-os/ai-agent.ts; src/lib/revenue-os/coworkers.ts; src/lib/revenue-os/scheduler.ts; src/lib/revenue-os/agent-learning.ts; agent_runs and audit_log as the existing substrate",
+    guardrails:
+      "Do not expose raw model reasoning as a product surface; plans, evidence, actions, decisions, and summaries are the interface. Do not replace deterministic business rules with model decisions merely because the runtime exists. Subagents are an implementation capability, not a product promise; never present a delegation graph as operator UX.",
+    labels: ["work-engine", "coworkers"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-harness-agent-runtime.ts covering all run modes, delegation ceilings, budget and kill-switch stops, version pinning, and rollback with controlled fixtures; npm run build; git diff --check.",
+  }),
+  card({
+    key: "harness-context-engine",
+    title: "Assemble agent context through registered providers with budgets and compaction",
+    workstream: "ai",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    initiative: "Agent Harness",
+    description:
+      "Turn context assembly into a programmable service behind the existing bounded-context rules: registered context providers accept a run, entity references, and a token budget, then return ranked, truncatable context items carrying source, timestamp, confidence or type, and token estimate, with an explicit not-available state. Long-running goals compact into structured durable summaries holding decisions, unresolved items, commitments, important evidence, and pointers back to source events, without replacing immutable execution history. An inspectable Context-used view shows which items each run consumed. The shipped five-category memory architecture stays the storage layer; this card owns assembly, budgeting, and compaction policy.",
+    acceptance: [
+      "Every significant context item shown in an agent trace identifies its source, timestamp, and token estimate, or the run is refused for missing provenance",
+      "An app can register a domain-specific context provider without forking the engine, proven by a fixture provider that ranks, truncates, and reports not-available",
+      "Oversized threads compact into a structured summary preserving decisions, unresolved commitments, and evidence pointers, and a scheduled run resumes from compacted state rather than the original transcript",
+      "Context requests honor per-run token budgets deterministically: over-budget packs truncate by rank with the dropped items named, never by silent omission",
+      "Excluded records never reach model input, proven by fixtures for oversized threads, missing fields, conflicting human facts, and instructions embedded in documents",
+    ],
+    dependencies: [
+      "Enforce bounded AI context and grounding rules",
+      "Complete AI tool registry and impact tiers",
+      "Memory architecture: five distinct memory categories with unified query",
+    ],
+    start:
+      "src/lib/revenue-os/ai-agent.ts; src/lib/ai/prompts.ts; src/lib/revenue-os/ai-context.ts; src/lib/revenue-os/memory.ts; src/lib/revenue-os/claims.ts",
+    guardrails:
+      "Smallest useful context wins: providers declare required context instead of assuming the whole business dataset. Compaction summarizes; it never rewrites receipts, audit rows, or run history. Secrets stay out of model context; tools receive scoped credentials. Memory write policy from the memory architecture stands: observed fact, inference, operator preference, and learned procedure stay distinguished, and high-impact business facts need source evidence or human confirmation.",
+    labels: ["ai", "memory"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-harness-context.ts covering provider registration, budget truncation, compaction fidelity, resume-from-summary, and exclusion fixtures; npm run test:ai-command-runtime; npm run build; git diff --check.",
+  }),
+  card({
+    key: "harness-evaluation-service",
+    title: "Score agent behavior with versioned evaluators and replayable cases",
+    workstream: "ai",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    initiative: "Agent Harness",
+    description:
+      "Add evaluation as a platform service before any self-improvement: versioned evaluators across deterministic checks, outcome metrics, policy compliance, human ratings, model-judge rubrics for appropriate cases, regression replay against saved representative cases, and cost and latency budgets. Each evaluation record stores evaluator version, input and run reference, metric name, score or result, evidence, timestamp, and whether it is suitable for optimization. Scores never collapse into a single quality number. A coding agent can register an evaluator for a new skill without modifying the core runtime, and two versions replay against the same cases with a comparable result.",
+    acceptance: [
+      "Deterministic, outcome, policy, human-rating, model-judge, replay, and cost evaluators each run against fixtures and store fully attributed evaluation records",
+      "A new evaluator registers without core runtime changes and appears in the run trace for the runs it scored",
+      "Two skill or prompt versions replay against the same saved cases and produce a comparable diff, and a deliberately worsened candidate is caught",
+      "No evaluation result becomes an instruction automatically; unsuitable-for-optimization records are marked as such and excluded from candidate comparison",
+      "Business metrics ship for the pilot surface: response rate, next step created, progression, and false-positive avoidance, each with stated source and window",
+    ],
+    dependencies: [
+      "Build the governed agent learning feedback loop",
+      "Complete AI run traces, tool evidence, errors, and usage",
+    ],
+    start:
+      "src/lib/revenue-os/agent-learning.ts; agent_runs and audit_log as the existing substrate; src/lib/revenue-os/ai-tools.ts",
+    guardrails:
+      "Do not optimize against weak proxy metrics that can be gamed; every metric names its source, window, and unknowns. Model judges are used only where deterministic or human verification is impractical, and their verdicts stay advisory. Never present fixture-measured scores as production performance.",
+    labels: ["testing", "learning"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-harness-evaluation.ts covering every evaluator type, evaluator registration, version replay comparison, and optimization-suitability marking with controlled fixtures; npm run build; git diff --check.",
+  }),
+  card({
+    key: "harness-controlled-learning",
+    title: "Ship governed learning proposals with candidate replay and rollback",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    initiative: "Agent Harness",
+    description:
+      "Close the loop with controlled self-improvement over configuration and procedure only: system and agent instructions, skill instructions, few-shot examples, context ranking rules, model routing, tool ordering, thresholds, and memory summaries. A LearningProposal carries the target component, candidate diff, rationale, evaluation comparison against the current version, and status; candidates replay against the representative set, compare quality, policy violations, cost, and latency, then present diff plus evidence for authorized approval before publish, with monitoring and immediate rollback after. Autonomous production-code mutation, online fine-tuning, unbounded agent spawning, automatic permission changes, and self-authored unrestricted tools are explicitly out of scope.",
+    acceptance: [
+      "A proposal moves through observe, candidate, replay, compare, approve, publish, and monitor states with the diff and evaluation evidence inspectable at each step",
+      "Publishing requires the same approval authority as the component it changes, and rollback restores the prior version without data migration",
+      "Automatic suggestions stay disabled until the underlying metrics are stable enough to avoid noisy optimization, with the stability bar recorded",
+      "Out-of-scope targets (permission policy edits, arbitrary code deploys, fine-tuning jobs, recursive spawning) are refused with a named error, proven by fixtures",
+      "Post-deploy monitoring attributes regressions to the published candidate and links back to its proposal",
+    ],
+    dependencies: [
+      "Score agent behavior with versioned evaluators and replayable cases",
+      "Propose trust promotion on evidence and demote automatically on failure",
+    ],
+    start:
+      "src/lib/revenue-os/agent-learning.ts; src/lib/revenue-os/auto-responder.ts as the versioned-policy reference; src/lib/revenue-os/actions.ts:54-126 for the approval-queue pattern",
+    guardrails:
+      "The contract forbids autonomous prompt mutation and that stands: this produces candidates for human decisions, never self-applied changes. Permission policy is never a learning target. No output becomes an instruction automatically at any stage.",
+    labels: ["learning", "autonomy"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-harness-learning.ts covering the full lifecycle, approval gating, rollback, stability gating, and out-of-scope refusal with controlled fixtures; npm run build; git diff --check.",
+  }),
+  card({
+    key: "harness-teach-skill",
+    title: "Turn operator behavior into reviewed reusable skills",
+    workstream: "ai",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    initiative: "Agent Harness",
+    description:
+      "Build the Teach Command Center surface that turns operator behavior into draft reusable skills: from a completed task, workflow, conversation, or supported event trace, the operator names the outcome and what mattered, the system inspects consulted records, executed commands, sequence, edits, and approvals from Command Center history, then proposes a skill with trigger conditions, required context, process, tools, approval points, output, and failure cases. The operator edits and names it, the system runs it against historical or synthetic test cases, and publication requires the replay gate when the skill can trigger side effects. Published skills land in the versioned skill registry for selected agents or workflows.",
+    acceptance: [
+      "A founder handling a stale opportunity manually gets a proposed follow-up skill capturing the consulted records, sequence, draft, and approval point without creating a plugin",
+      "The operator can edit, rename, test, and publish the draft, and every published skill carries version, provenance, approval policy, and evaluation reference",
+      "A skill that can trigger side effects cannot publish until its replay tests pass; the refusal names the failing case",
+      "Taught skills resolve tools through the same capability grants as hand-written skills, so a taught skill cannot reach an undeclared tool",
+      "The full flow completes in the shared demo with fictional data and zero live provider writes",
+    ],
+    dependencies: [
+      "Add a skill registry where instructions can never grant capabilities",
+      "Score agent behavior with versioned evaluators and replayable cases",
+    ],
+    start:
+      "src/lib/revenue-os/agent-learning.ts; audit_log and agent_run_events as the trace source; src/app/admin/conversations and src/app/admin/pipeline as candidate Teach entry points",
+    guardrails:
+      "Teach proposes; the operator publishes. Never auto-publish a taught skill into a side-effecting workflow. Operator traces may contain customer facts, so historical test cases stay inside the originating tenant and fixtures use fictional data. A taught skill is data, not authority, under the same boundary as every other skill.",
+    labels: ["ai", "learning"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-harness-teach.ts covering proposal generation, edit and publish, replay gating, capability confinement, and tenant isolation with controlled fixtures; node scripts/qa-harness-teach.mjs covering the operator flow at desktop and mobile widths with opened screenshots; npm run build; git diff --check.",
+  }),
+  card({
+    key: "harness-pipeline-manager",
+    title: "Prove the harness with a goal-driven Pipeline Manager",
+    workstream: "coworker",
+    phase: 4,
+    status: "backlog",
+    priority: "high",
+    initiative: "Agent Harness",
+    description:
+      "Prove the harness end to end with one reference agent before building more: a Pipeline Manager pursuing the persistent goal that every qualified open opportunity holds a valid next step and promising deals never go stale. It reads opportunity, contact, conversation, proposal, commitment, next-action, and meeting context through registered providers; reasons with pipeline-health-review, prepare-follow-up, meeting-prep, and summarize-stall-reason skills; acts autonomously only for reads, classification, and recommendations where policy permits; and routes external follow-ups and stage changes through the existing approval paths. Success is measured with the evaluation service: stale-deal detection precision, accepted next-step recommendations, replies, deal progression, and false-positive avoidance.",
+    acceptance: [
+      "A stale deal is detected, a grounded follow-up is drafted with evidence links, approval is requested, and the durable goal state advances only after the operator decision",
+      "A quiet pipeline produces a short honest brief rather than manufactured follow-ups, and every declined action records its reason",
+      "Stale-deal precision, accepted recommendations, replies, progression, and false positives are reported from the evaluation service with stated sources and windows",
+      "The full loop completes in the shared demo with fictional data: lead context, qualification, draft, approval, send in test mode, meeting prep, commitment extraction, CRM update, and reasoned future scheduling",
+      "No new parallel pipeline, approval, audit, or scheduling system is introduced; every write rides the existing domain services",
+    ],
+    dependencies: [
+      "Own persistent business goals apart from tasks and workflows",
+      "Run one-shot, scheduled, and goal-driven agents on one runtime with delegation ceilings",
+      "Assemble agent context through registered providers with budgets and compaction",
+      "Generate grounded pre-call briefs",
+    ],
+    start:
+      "src/lib/revenue-os/pipeline.ts; src/lib/revenue-os/workflow-tasks.ts; src/lib/revenue-os/radar-ranking.ts; plugins/opportunity-radar/presets/service-business.json",
+    guardrails:
+      "Prove this goal-driven loop before starting another goal-driven reference agent; the already-shipped monitoring coworkers are out of scope and stay as they are. External follow-up stays reviewed by default and stage changes follow workspace policy. Do not invent pipeline facts in fixtures; grounded means sourced.",
+    labels: ["coworkers", "pipeline"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-harness-pipeline-manager.ts covering detection, grounding refusal, approval gating, demo loop, and metric reporting with controlled fixtures; npm run build; git diff --check.",
   }),
 ];
 
