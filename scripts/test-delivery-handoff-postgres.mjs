@@ -59,7 +59,7 @@ assert.equal(
 const binding = () =>
   `jsonb_build_object('opportunity_updated_at',o.updated_at,'canonical_stage','handoff-won','contact_id',o.contact_id,'company_id',NULL,'proposal_id',NULL,'proposal_version',NULL,'template_snapshot',jsonb_build_object('key',t.template_key,'version',t.version,'milestones',t.milestones))`;
 const create = () =>
-  context(a) +
+  memberContext +
   `INSERT INTO clients(tenant_id,opportunity_id,business_name,contact_name,contact_email,handoff_receipt) SELECT '${a}',o.id,'Delivery customer','Customer','${contact}@example.test',${binding()} FROM opportunities o CROSS JOIN onboarding_templates t WHERE o.id='${opp}' AND o.tenant_id='${a}' AND t.tenant_id='${a}' AND t.template_key='${key}' AND t.version=2 RETURNING id;`;
 const memberContext = context(a).replace(
   "SET ROLE service_role;",
@@ -69,7 +69,7 @@ const memberOpportunity = randomUUID();
 sql(
   `INSERT INTO opportunities(id,tenant_id,name,stage,contact_id,email) SELECT '${memberOpportunity}',tenant_id,'Member handoff',stage,contact_id,email FROM opportunities WHERE id='${opp}';`,
 );
-const memberCreate = create().replace(context(a), memberContext).replaceAll(opp, memberOpportunity);
+const memberCreate = create().replaceAll(opp, memberOpportunity);
 const memberClient = sql(memberCreate);
 assert.ok(
   memberClient,
@@ -101,26 +101,26 @@ assert.match(creates.find((r) => r.code !== 0).err, /idx_clients_handoff_opportu
 const client = creates.find((r) => r.code === 0).out;
 const dedupe = `handoff:${client}:kickoff`;
 sql(
-  context(a) +
+  memberContext +
     `INSERT INTO tasks(tenant_id,title,source,dedupe_key,status,related_type,related_id) VALUES('${a}','Kickoff','delivery_handoff','${dedupe}','completed','client','${client}');`,
 );
 assert.match(
   fail(
-    context(a) +
+    memberContext +
       `INSERT INTO tasks(tenant_id,title,source,dedupe_key) VALUES('${a}','Again','delivery_handoff','${dedupe}');`,
   ),
   /idx_tasks_delivery_handoff_unique/,
 );
 assert.equal(
   sql(
-    context(a) +
+    memberContext +
       `UPDATE clients SET onboarding_checklist='[{"key":"kickoff","status":"complete"}]' WHERE tenant_id='${a}' AND id='${client}' AND handoff_revision=0 RETURNING handoff_revision;`,
   ),
   "1",
 );
 assert.equal(
   sql(
-    context(a) +
+    memberContext +
       `UPDATE clients SET onboarding_checklist='[]' WHERE tenant_id='${a}' AND id='${client}' AND handoff_revision=0 RETURNING id;`,
   ),
   "",
@@ -131,14 +131,14 @@ assert.equal(
 );
 assert.match(
   fail(
-    context(a) +
+    memberContext +
       `UPDATE clients SET handoff_receipt=jsonb_set(handoff_receipt,'{template_snapshot,version}','1') WHERE id='${client}';`,
   ),
   /binding is immutable/,
 );
 for (const removed of ["handoff_receipt - 'template_snapshot'", "'{}'::jsonb", "'null'::jsonb"]) {
   assert.match(
-    fail(context(a) + `UPDATE clients SET handoff_receipt=${removed} WHERE id='${client}';`),
+    fail(memberContext + `UPDATE clients SET handoff_receipt=${removed} WHERE id='${client}';`),
     /binding is immutable/,
     "removing the source snapshot must not bypass immutability",
   );
