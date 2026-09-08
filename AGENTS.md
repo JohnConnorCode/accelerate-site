@@ -271,6 +271,7 @@ for the required release-content review, metadata, generated index and proof.
 - If the gate refuses or stops work, retain the failed receipt and address the
   resource constraint. Do not bypass it, retry repeatedly, or raise limits to
   force a pass. Use a suitable remote runner for larger verification.
+- The optional [machine supervisor](scripts/supervisor/README.md) coordinates registered local sessions and the same heavy slot. It stays off until configured. Use its ownership-checked recovery; never delete a live holder or run old supervisor copies against migrated state.
 - Reuse compatible installed dependencies; do not copy dependency trees for
   each check. Remove only your own disposable build/browser output after use.
 - Close servers and browsers you start when their check ends. Inspect ownership

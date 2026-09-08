@@ -8,7 +8,7 @@ This guide is for a developer new to this repository. You will run the fictional
 
 ## Start the app
 
-You need Git, Node.js 22 or later, npm and an editor. Start from the published main branch for a local experiment.
+You need Git, Node.js 22.16 or later, npm and an editor. Start from the published main branch for a local experiment.
 
 ```bash
 node --version
@@ -98,3 +98,9 @@ command contract is in `AGENTS.md` and its linked developer handoff.
 Every feature change also updates the organized public guides, product changelog and Command Center descriptions in the same pull request. Keep planned capabilities clearly separate from available behavior. Report new gaps through the live board so the next contributor has a concrete task and verification criteria.
 
 **Next:** [Add a module](/docs/extend/modules). If something failed, use [Troubleshooting](/docs/start/troubleshooting).
+
+## Keep agent work within machine capacity
+
+The shared resource runner allows one heavy job at a time across worktrees. An optional [local machine supervisor](https://github.com/JohnConnorCode/accelerate-site/blob/main/scripts/supervisor/README.md) adds a queue and process identity checks for registered agent sessions. It starts off and requires no service credentials. It is separate from Feature Board assignment: continue using the ordinary backlog runner to claim and complete work.
+
+The supervisor can pause a registered producer without terminating it, preserve a paused session during recovery, and report unmanaged launch paths. It does not install hooks into every agent, reconstruct lost conversations, or provide OS-level isolation. Its guide explains configuration, recovery, and the tested limits.

@@ -122,3 +122,9 @@ active theme/editor/shell changes, and a stage-history reconciliation checkout
 was created. These are preserved outside the pinned first integration. The
 inventory grew from 73 to 77 before the campaign follow-up checkout was added;
 worktree count is not a count of missing features.
+
+## Supervisor reconciliation candidate
+
+The `7cbf633` API is retained instead of combining two competing session stores. SQLite transactions replace racy JSON read/modify/write; original JSON is imported once and preserved. Resource-slot transitions share the same transaction boundary, compare current owner identity on release, and refuse replacement-owner removal. Recovery skips superseded records, revalidates the plan and records paused processes as paused without claiming a resume. Disposable cancellation requires persisted registration, current child/parent identities, enabled policy and exclusion of registered agents. PATH detection no longer invokes the nonexistent external `command` program.
+
+Twenty-two isolated supervisor/resource checks passed, including eight concurrent writers, duplicate session admission, crash rollback, replacement holders, current paused recovery, and synthetic process control. No real session was signaled and management was not installed. Node 22.16+ is explicit in the package engine, doctor and setup guide. Full CI and integration remain pending.

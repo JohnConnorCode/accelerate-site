@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -11,6 +11,10 @@ import {
   processGroupExists,
   runHeavyJob,
 } from "./resource-run.mjs";
+
+const supervisorScratch = mkdtempSync(join(tmpdir(), "resource-supervisor-state-"));
+process.env.ACCELERATE_SUPERVISOR_DIR = supervisorScratch;
+after(() => rmSync(supervisorScratch, { recursive: true, force: true }));
 
 const GiB = 1024 ** 3;
 test("refuses disk exhaustion and memory pressure, with lower running disk threshold", () => {
