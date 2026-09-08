@@ -19,7 +19,7 @@ npm run dev:doctor
 npm run dev
 ```
 
-Open `/demo/command-center` on the local server to explore fictional data. Node 22 or newer is required. No production, provider or database credentials are needed for this exploration. A green default doctor result means local-demo prerequisites passed; it does not mean shared assignment or production is ready.
+Open `/demo/command-center` on the local server to explore fictional data. Node 22.16 or newer is required. No production, provider or database credentials are needed for this exploration. A green default doctor result means local-demo prerequisites passed; it does not mean shared assignment or production is ready.
 
 ## Connect to assigned work
 

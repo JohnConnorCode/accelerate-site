@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "local-agent-supervisor",
+    slug: "local-agent-supervisor",
+    title: "Coordinate local agent jobs with durable ownership and recovery",
+    description:
+      "Optional developer supervision adds a shared queue and process identity registry. Cross-process state updates are transactional; stale releases preserve replacement owners and recovery keeps paused agents paused. Cancellation requires an explicitly registered disposable child and enabled policy. Management starts off; provider hooks and OS isolation remain separate.",
+    category: "feature",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "reviewed-bulk-contact-operations",
     slug: "reviewed-bulk-contact-operations",
     title: "Tag, suppress and stage selected contacts with individual outcomes",

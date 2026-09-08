@@ -132,3 +132,13 @@ Suppression continues through the canonical shared writer. It can still fail aft
 ## Campaign integration receipt
 
 PR 60 merged as `0ae18bf590ca204f2cc57480a290bfdcd068bc7e` on 2026-09-08 at 13:57:41 UTC. Its tree matches tested head `0b394628e3ece01545b3fb4d86b8163abd5403f2`. CI `34233603360` passed all required jobs, including native concurrent replay and audit rollback, plus the full browser suite. All four campaign screenshots were inspected at 1440/390 px for SuperDebate and Northline Roofing. Lost-response recovery across reload and confirmed stale-source recovery passed. The clean detached control checkout now points to this merge. No production deployment is asserted.
+
+## Supervisor reconciliation candidate
+
+The `7cbf633` API is retained instead of combining two competing session stores. SQLite transactions replace racy JSON read/modify/write; original JSON is imported once and preserved. Resource-slot transitions share the same transaction boundary, compare current owner identity on release, and refuse replacement-owner removal. Recovery skips superseded records, revalidates the plan and records paused processes as paused without claiming a resume. Disposable cancellation requires persisted registration, current child/parent identities, enabled policy and exclusion of registered agents. PATH detection no longer invokes the nonexistent external `command` program.
+
+Twenty-two isolated supervisor/resource checks passed, including eight concurrent writers, duplicate session admission, crash rollback, replacement holders, current paused recovery, and synthetic process control. No real session was signaled and management was not installed. Node 22.16+ is explicit in the package engine, doctor and setup guide. Full CI and integration remain pending.
+
+## Supervisor integration receipt
+
+PR 62 merged as `1c17e90db758d0399a201ec368bcb014222471cf` on 2026-09-08 at 14:33:03 UTC. Its tree matches tested head `7cb91d2ae61d974557ff3ea7e1e9998ba772d884`. CI `34237350451` passed all required jobs. The clean control checkout points to this merge; no global supervisor installation or production deployment was performed.
