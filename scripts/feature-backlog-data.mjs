@@ -8910,6 +8910,142 @@ export const featureBacklog = [
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-harness-pipeline-manager.ts covering detection, grounding refusal, approval gating, demo loop, and metric reporting with controlled fixtures; npm run build; git diff --check.",
   }),
+  card({
+    key: "site-studio-draft-revision",
+    title: "Revise page drafts through validated patch operations",
+    workstream: "site",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Drafts are create-only today: any change means recreating the page. Add revision through typed patch operations (set prop, set style, insert, remove, move, replace, update metadata) against stable node IDs, validated server-side against component schemas with the checksum and timestamp refreshed on every accepted patch. Full-tree replacement stays behind an explicit redesign command. The preview shows the diff before and after, and refused patches name the violated schema rule.",
+    acceptance: [
+      "Every patch operation applies to a draft and round-trips through the preview with updated checksum and timestamp",
+      "Patches against unknown node IDs, unknown props, or non-catalog assets are refused with the exact violated rule named",
+      "Replayed patches are idempotent and concurrent edits to one draft resolve to a single winner with a truthful receipt, never a merged corruption",
+      "Full-tree replacement is refused unless the request carries the explicit redesign flag",
+      "A scoped suite proves all seven operations plus refusal, replay, and concurrency cases with controlled fixtures",
+    ],
+    dependencies: ["Versioned site document schema and independent renderer"],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/site-studio/drafts.ts; src/lib/site-studio/document.ts; src/app/api/admin/site/drafts/route.ts",
+    guardrails:
+      "Patches validate against component schemas on the server; model JSON is never trusted. Never mutate a published version in place; revisions always produce new version rows once the publish substrate lands. Do not regenerate whole pages when a patch suffices.",
+    labels: ["marketing", "testing"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-draft-revision.ts covering all patch operations, refusal cases, replay idempotency, and concurrent-edit resolution with controlled fixtures; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-draft-discard",
+    title: "Discard drafts with explicit empty states and storage hygiene",
+    workstream: "site",
+    phase: 3,
+    status: "backlog",
+    priority: "medium",
+    initiative: "Site Studio",
+    description:
+      "Drafts accumulate with no way to remove them. Add explicit discard with a confirmation that names the draft, truthful empty states on the list when nothing remains, and storage hygiene: cap the draft count, refuse creation past the cap with recovery guidance, and record a receipt for every discard. Discard never touches published output because drafts are private working copies.",
+    acceptance: [
+      "Discarding a draft removes exactly that draft and records a receipt naming it",
+      "Discarding an already-discarded draft fails honestly instead of reporting success",
+      "Creating past the storage cap is refused with the cap value and the discard path named",
+      "Empty list, failed load, and discard-failure states each render distinct, recoverable UI",
+      "A scoped suite proves discard, double-discard, cap refusal, and receipt coverage",
+    ],
+    dependencies: ["Versioned site document schema and independent renderer"],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/site-studio/store.ts; src/lib/site-studio/drafts.ts; src/app/admin/site/page.tsx",
+    guardrails:
+      "Discard is explicit and confirmed; never auto-expire drafts silently. Do not conflate discard with publish rollback; they are separate operations on separate states.",
+    labels: ["marketing", "testing"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-draft-discard.ts covering discard, double-discard, cap refusal, receipts, and empty states; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-supabase-persistence",
+    title: "Persist drafts in tenant-scoped Supabase tables",
+    workstream: "site",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Drafts live in server-local files today, which neither survives a serverless deploy nor isolates tenants. Add tenant-scoped draft tables through an additive ordered migration registered in schema-contract.ts, implement the repository interface against Supabase with row-level tenant isolation, and keep the file adapter for tests and offline use. Every row carries non-null tenant_id with tenant-composite uniqueness on slugs; cross-tenant reads fail closed.",
+    acceptance: [
+      "Draft create, read, list, and checksum behavior is identical between the file and Supabase adapters under the same suite",
+      "Two-tenant fixtures prove identical slugs and ids stay independent and cross-tenant access fails",
+      "The migration is additive, ordered, idempotent, and registered in the schema contract with RLS policies verified",
+      "Admin routes use the Supabase adapter in connected installs and degrade explicitly without credentials",
+      "A scoped suite proves parity, isolation refusal, and migration ledger coverage",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Adopt shared-database multi-tenancy as the Command Center product shape",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/site-studio/store.ts; src/lib/revenue-os/schema-contract.ts; migrations/20260904-action-reversibility.sql as migration shape reference; docs/contracts/MULTI-TENANCY-CONTRACT.md",
+    guardrails:
+      "Never store drafts without tenant ownership. Never weaken RLS or membership checks for preview convenience. Additive migrations only; never delete or merge rows to make the migration pass.",
+    labels: ["marketing", "database"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-supabase-persistence.ts covering adapter parity, two-tenant isolation, and migration verification with controlled fixtures; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-template-library",
+    title: "Ship a template library with picker UI and template-first AI",
+    workstream: "site",
+    phase: 5,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "One built-in service template forces every page into the same shape. Ship a library of section templates (hero variants, testimonial strip, services grid) and page templates (service, about, contact, location landing) as versioned data, add a picker to the create flow, and make AI generation template-first: search the library, choose the closest template, then patch copy and sections. Templates reuse the same schema validation as generated pages.",
+    acceptance: [
+      "At least three page templates and three section templates create valid, previewable drafts through the picker",
+      "AI generation records which template it started from and patches rather than synthesizing blank pages",
+      "Unknown template ids and template/component version drift fail with named errors, never silent fallback",
+      "Every template passes the same validation, grounding, and catalog-asset rules as generated output",
+      "A scoped suite proves picker creation, template-first selection, drift refusal, and validation parity",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Semantic component registry with business components",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/site-studio/templates.ts; src/lib/site-studio/generate.ts; src/app/admin/site/page.tsx",
+    guardrails:
+      "Templates are data, not code branches; they validate through the same schemas. Do not let AI invent sections the registry cannot render. Keep the library small and curated rather than exhaustive.",
+    labels: ["marketing", "clonable"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-template-library.ts covering picker creation, template-first selection, drift refusal, and validation parity; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-image-placement",
+    title: "Author per-placement image alt text and captions in the UI",
+    workstream: "site",
+    phase: 6,
+    status: "backlog",
+    priority: "medium",
+    initiative: "Site Studio",
+    description:
+      "Attached images always render the catalog alt text today; operators cannot tune wording for placement or add captions at create time. Add per-placement alt overrides and optional captions to the create flow and the gallery model, validated for length and honesty (no invented claims in alt text), with the catalog alt as the automatic fallback. Publishing stays gated on every image resolving to appropriate alt behavior.",
+    acceptance: [
+      "Authors can set per-placement alt text and captions that render in the preview and persist on the draft",
+      "Blank overrides fall back to the catalog alt with the fallback visible in review",
+      "Overlong or URL-bearing alt text is refused with the exact rule named",
+      "The attached-images ledger shows effective alt text per placement, not just asset ids",
+      "A scoped suite proves overrides, fallback, refusal, and ledger accuracy",
+    ],
+    dependencies: ["Versioned site document schema and independent renderer"],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/site-studio/assets.ts; src/lib/site-studio/drafts.ts; src/app/admin/site/page.tsx",
+    guardrails:
+      "Alt text describes the image; it never carries marketing claims, metrics, or links. Catalog alt remains the default; overrides refine, not replace, the truthful description.",
+    labels: ["marketing", "testing"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-image-placement.ts covering overrides, fallback, refusal, and ledger accuracy; npm run build; git diff --check.",
+  }),
 ];
 
 

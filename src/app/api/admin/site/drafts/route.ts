@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { siteSlugSchema } from "@/lib/site-studio/document";
 import { siteDrafts } from "@/lib/site-studio/store";
-import { createSiteDraft, SlugInUseError } from "@/lib/site-studio/drafts";
+import { createSiteDraft, MAX_ATTACHED_ASSETS, SlugInUseError } from "@/lib/site-studio/drafts";
 import {
   buildPageSystemPrompt,
   buildPageUserPrompt,
@@ -27,7 +27,7 @@ const createSchema = z
     slug: siteSlugSchema.optional(),
     brief: briefSchema,
     mode: z.enum(["template", "ai"]),
-    assetIds: z.array(z.string().min(1).max(120)).max(8).optional(),
+    assetIds: z.array(z.string().min(1).max(120)).max(MAX_ATTACHED_ASSETS).optional(),
   })
   .strict();
 

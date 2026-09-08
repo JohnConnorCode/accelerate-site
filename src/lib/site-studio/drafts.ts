@@ -25,6 +25,10 @@ export interface CreateDraftInput {
  * provider; production passes the OpenRouter adapter. */
 export type DraftGenerator = (brief: PageBrief) => Promise<SiteDocument>;
 
+/** Gallery bound shared by the domain and the transport schema so direct
+ * callers get the same limit as HTTP. */
+export const MAX_ATTACHED_ASSETS = 8;
+
 export class SlugInUseError extends Error {
   readonly slug: string;
   constructor(slug: string) {
@@ -36,6 +40,10 @@ export class SlugInUseError extends Error {
 
 function appendGallery(document: SiteDocument, assetIds: string[]): SiteDocument {
   if (assetIds.length === 0) return document;
+  if (assetIds.length > MAX_ATTACHED_ASSETS)
+    throw new Error(
+      `Attach at most ${MAX_ATTACHED_ASSETS} images to one draft; ${assetIds.length} were supplied`,
+    );
   for (const assetId of assetIds) assertCatalogAsset(assetId);
   return parseSiteDocument({
     ...document,

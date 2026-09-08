@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ReactElement, ReactNode } from "react";
@@ -30,6 +30,7 @@ import {
 } from "../src/lib/site-studio/generate";
 import {
   createSiteDraft,
+  MAX_ATTACHED_ASSETS,
   SlugInUseError,
 } from "../src/lib/site-studio/drafts";
 import { siteSlugSchema } from "../src/lib/site-studio/document";
@@ -382,6 +383,43 @@ async function main() {
     /not configured/,
     "provider failures propagate with the setup message intact",
   );
+
+  // Direction flows into the recorded brief; the gallery bound holds for
+  // direct callers; corrupt store files never break listing.
+  const directed = await createSiteDraft(
+    serviceStore,
+    {
+      brief: { ...brief, extra: "Keep three sections" },
+      mode: "template",
+      slug: "directed-page",
+    },
+    noGenerator,
+  );
+  assert.ok(
+    (directed.brief ?? "").includes("Keep three sections"),
+    "additional direction reaches the recorded brief",
+  );
+  await assert.rejects(
+    createSiteDraft(
+      serviceStore,
+      {
+        brief,
+        mode: "template",
+        slug: "too-many-images",
+        assetIds: Array.from({ length: MAX_ATTACHED_ASSETS + 1 }, () => first.id),
+      },
+      noGenerator,
+    ),
+    /at most 8 images/,
+    "the gallery bound holds for direct callers too",
+  );
+  writeFileSync(join(serviceDir, "corrupt.json"), "not json{{{");
+  writeFileSync(join(serviceDir, "notes.txt"), "ignored");
+  assert.ok(
+    serviceStore.list().every((draft) => draft.slug !== "corrupt"),
+    "corrupt and non-draft files never break listing",
+  );
+  assert.equal(serviceStore.get("corrupt"), null);
 
   console.log(
     "Site Studio v1: schema, tokens, catalog, renderer, store, template, generation contract, job registration, and draft service passed.",
