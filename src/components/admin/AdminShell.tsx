@@ -1364,7 +1364,7 @@ function CmdKSearch({
       maxWidth="lg"
       className="max-sm:fixed max-sm:inset-0 max-sm:max-w-none"
     >
-      <div className="admin-dialog-surface relative flex h-dvh w-full flex-col overflow-hidden bg-[var(--admin-surface)] text-[var(--admin-ink)] sm:h-auto sm:max-w-xl sm:rounded-[18px]">
+      <div className="admin-dialog-surface relative flex h-dvh w-full flex-col overflow-hidden bg-[var(--admin-surface)] text-[var(--admin-ink)] sm:h-auto sm:max-w-xl">
         <div className="flex min-h-[calc(3.75rem+env(safe-area-inset-top))] items-end gap-3 border-b border-[var(--admin-border)] px-4 pb-3 pt-[env(safe-area-inset-top)] sm:min-h-14 sm:items-center sm:py-0">
           <Search className="h-4 w-4 shrink-0 text-[var(--admin-muted)]" />
           <input

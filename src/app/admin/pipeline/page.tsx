@@ -631,7 +631,7 @@ export default function PipelinePage() {
         labelledBy="customize-pipeline-title"
         maxWidth="md"
       >
-        <div className="admin-dialog-surface w-full rounded-[24px] bg-[var(--admin-surface)] p-6">
+        <div className="admin-dialog-surface w-full bg-[var(--admin-surface)] p-6">
           <DialogHead
             id="customize-pipeline-title"
             eyebrow="Pipeline view"
@@ -724,7 +724,7 @@ export default function PipelinePage() {
       >
         <form
           onSubmit={storeView}
-          className="admin-dialog-surface w-full rounded-[24px] bg-[var(--admin-surface)] p-6"
+          className="admin-dialog-surface w-full bg-[var(--admin-surface)] p-6"
         >
           <DialogHead
             id="save-pipeline-title"
@@ -787,7 +787,7 @@ export default function PipelinePage() {
               setSaving(false);
             }
           }}
-          className="admin-dialog-surface w-full rounded-[24px] bg-[var(--admin-surface)] p-6"
+          className="admin-dialog-surface w-full bg-[var(--admin-surface)] p-6"
         >
           <DialogHead
             id="add-stage-title"
@@ -863,7 +863,7 @@ export default function PipelinePage() {
       >
         <form
           onSubmit={create}
-          className="admin-dialog-surface max-h-[92dvh] w-full overflow-y-auto rounded-[24px] bg-[var(--admin-surface)] p-6"
+          className="admin-dialog-surface max-h-[92dvh] w-full overflow-y-auto bg-[var(--admin-surface)] p-6"
         >
           <DialogHead
             id="new-opportunity-title"
