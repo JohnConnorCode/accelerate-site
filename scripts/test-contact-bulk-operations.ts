@@ -1,3 +1,4 @@
+import { getRevenueAiTools } from "../src/lib/revenue-os/ai-tools";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import {
@@ -32,6 +33,31 @@ async function main() {
     ).applied,
     1,
   );
+  const tools = getRevenueAiTools("outreach");
+  for (const name of [
+    "propose_bulk_tag_contacts",
+    "propose_bulk_suppress_contacts",
+    "propose_bulk_enroll_contacts",
+  ])
+    assert.ok(tools.some((tool) => tool.name === name));
+  const tagging = tools.find((tool) => tool.name === "propose_bulk_tag_contacts")!;
+  const toolContext = { supabase: db, actorEmail: "owner@example.test" };
+  await tagging.execute(toolContext, {
+    contactIds: [id],
+    add: ["alpha"],
+    reasoning: "Review first",
+  });
+  await tagging.execute(toolContext, {
+    contactIds: [id],
+    add: ["beta"],
+    reasoning: "Review second",
+  });
+  assert.equal(
+    mem.tables.action_queue!.length,
+    2,
+    "different tag intents must not share a dedupe receipt",
+  );
+  assert.ok(mem.tables.action_queue!.every((action) => action.status === "pending"));
   const before = mem.rpcCalls.length;
   await assert.rejects(() =>
     bulkTagContacts(db, {

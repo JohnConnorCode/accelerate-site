@@ -383,7 +383,7 @@ export function LeadsTable({
                     size="sm"
                     onClick={handleBulkSuppress}
                     disabled={bulkBusy}
-                    className="!border-red-500/40 !text-red-400 hover:!border-red-500/60"
+                    className="!border-[var(--admin-danger)] !text-[var(--admin-danger)] hover:!bg-[var(--admin-danger-soft)]"
                   >
                     {bulkBusy ? "Suppressing..." : "Confirm"}
                   </Button>
@@ -402,7 +402,7 @@ export function LeadsTable({
                   onClick={() => setConfirmSuppress(true)}
                   disabled={bulkBusy || linkedContactIds().length === 0}
                   aria-label="Suppress selected contacts from campaign email"
-                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-[var(--admin-danger)] hover:bg-[var(--admin-danger-soft)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-danger)] cursor-pointer"
                 >
                   <UserX className="h-3.5 w-3.5" />
                   Suppress
@@ -423,7 +423,7 @@ export function LeadsTable({
                     size="sm"
                     onClick={handleBulkDelete}
                     disabled={bulkBusy}
-                    className="!border-red-500/40 !text-red-400 hover:!border-red-500/60"
+                    className="!border-[var(--admin-danger)] !text-[var(--admin-danger)] hover:!bg-[var(--admin-danger-soft)]"
                   >
                     {bulkBusy ? "Deleting..." : "Confirm"}
                   </Button>
@@ -442,7 +442,7 @@ export function LeadsTable({
                   onClick={() => setConfirmDelete(true)}
                   disabled={bulkBusy}
                   aria-label="Delete selected leads"
-                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-[var(--admin-danger)] hover:bg-[var(--admin-danger-soft)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-danger)] cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Delete
