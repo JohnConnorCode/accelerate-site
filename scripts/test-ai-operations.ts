@@ -203,7 +203,7 @@ async function main() {
   assert.deepEqual(missingDetail.events, []);
 
   const capabilities = listRevenueAiCapabilities();
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v16");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v17");
   assert.ok(capabilities.some((capability) => capability.impact === "read"));
   assert.ok(
     capabilities

@@ -1,8 +1,10 @@
+import { CampaignSourceChangedError } from "@/lib/revenue-os/campaign-duplicate-contract";
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import {
   activateCampaign,
+  duplicateCampaign,
   executeDueCampaignMembers,
   normalizeCampaignPolicy,
   pauseCampaign,
@@ -103,6 +105,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({
         result: await executeDueCampaignMembers(supabase, new Date(), id),
       });
+    if (action === "duplicate")
+      return NextResponse.json({
+        campaign: await duplicateCampaign(supabase, id, auth.user.email || "founder", {
+          requestId: body.requestId as string,
+          expectedVersion: body.expectedVersion as number,
+          ...(typeof body.name === "string" ? { name: body.name } : {}),
+        }),
+      });
 
     const { data: current, error: currentError } = await supabase
       .from("campaigns")
@@ -141,6 +151,11 @@ export async function PATCH(request: NextRequest) {
     });
     return NextResponse.json({ campaign: data });
   } catch (error) {
+    if (error instanceof CampaignSourceChangedError)
+      return NextResponse.json(
+        { error: error.message, code: "campaign_source_changed" },
+        { status: 409 },
+      );
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Could not update campaign" },
       { status: 400 },

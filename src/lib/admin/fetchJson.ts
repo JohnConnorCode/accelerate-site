@@ -1,3 +1,14 @@
+export class AdminRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code?: string,
+  ) {
+    super(message);
+    this.name = "AdminRequestError";
+  }
+}
+
 /**
  * Small fetch wrapper for admin data calls. Throws on a non-2xx response
  * (surfacing the API's `error` message when present) so callers can `catch`
@@ -41,15 +52,17 @@ export async function fetchJson<T = unknown>(
       window.location.replace(`/admin/login?redirect=${encodeURIComponent(destination)}`);
     }
     let message = `Request failed (${res.status})`;
+    let code: string | undefined;
     try {
       const body = await res.json();
+      if (body && typeof body.code === "string") code = body.code;
       if (body && typeof body.error === "string" && body.error.trim()) {
         message = body.error;
       }
     } catch {
       // Response had no JSON body; keep the status-based message.
     }
-    throw new Error(message);
+    throw new AdminRequestError(message, res.status, code);
   }
 
   return (await res.json()) as T;

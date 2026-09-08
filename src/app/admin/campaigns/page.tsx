@@ -1,11 +1,13 @@
 "use client";
 
+import { campaignDuplicateOptions } from "@/lib/revenue-os/campaign-duplicate-contract";
 import { tenant } from "@/config/tenant";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
   ChevronDown,
   CirclePause,
+  Copy,
   Eye,
   Loader2,
   Megaphone,
@@ -22,7 +24,7 @@ import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
-import { fetchJson } from "@/lib/admin/fetchJson";
+import { fetchJson, AdminRequestError } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { cn } from "@/lib/utils";
 
@@ -142,6 +144,49 @@ export default function CampaignsPage() {
     }
   };
 
+  const duplicate = async (id: string) => {
+    if (saving) return;
+    setSaving(true);
+    setActionError("");
+    const key = `accelerate:campaign-copy:${window.location.pathname}:${id}`;
+    try {
+      const source = data?.campaigns.find((campaign) => campaign.id === id);
+      if (!source) throw new Error("Reload the current campaign before duplicating it.");
+      const pending = sessionStorage.getItem(key);
+      const options = campaignDuplicateOptions.parse(
+        pending
+          ? JSON.parse(pending)
+          : { requestId: crypto.randomUUID(), expectedVersion: source.version },
+      );
+      sessionStorage.setItem(key, JSON.stringify(options));
+      const result = await fetchJson<{ campaign: Campaign }>("/api/admin/revenue-os/campaigns", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action: "duplicate", ...options }),
+      });
+      if (!result.campaign?.id)
+        throw new Error("The copy could not be confirmed. Retry to check the same request.");
+      sessionStorage.removeItem(key);
+      setPreview(null);
+      await load();
+      await loadPreview(result.campaign.id);
+    } catch (error) {
+      if (error instanceof AdminRequestError && error.code === "campaign_source_changed") {
+        // This typed refusal is issued only before a new copy is written. An
+        // unknown failure keeps the request identity for receipt reconciliation.
+        sessionStorage.removeItem(key);
+        await load();
+      }
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "Could not duplicate campaign; retry checks the same request.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const create = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
@@ -152,7 +197,7 @@ export default function CampaignsPage() {
       .map((email) => email.trim())
       .filter(Boolean);
     try {
-      const result = await fetchJson<{ campaign: Campaign }>("/api/admin/revenue-os/campaigns", {
+      const result = await fetchJson<{ campaign?: Campaign }>("/api/admin/revenue-os/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -174,6 +219,14 @@ export default function CampaignsPage() {
           ],
         }),
       });
+      // The fictional demo answers mutations with a simulated receipt carrying
+      // no campaign, so only continue into members/preview when a draft came
+      // back instead of crashing on an absent row.
+      if (!result.campaign?.id) {
+        setShowCreate(false);
+        await load();
+        return;
+      }
       if (recipients.length)
         await fetchJson("/api/admin/revenue-os/campaigns/members", {
           method: "POST",
@@ -308,6 +361,14 @@ export default function CampaignsPage() {
                           className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
                         >
                           <Eye className="size-3.5" /> Dry run
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void duplicate(campaign.id)}
+                          disabled={saving}
+                          className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
+                        >
+                          <Copy className="size-3.5" /> Duplicate
                         </button>
                         {campaign.status === "active" ? (
                           <button

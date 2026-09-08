@@ -968,11 +968,12 @@
         "@/config/tenant",
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/audit",
+        "@/lib/revenue-os/campaign-duplicate-contract",
         "@/lib/revenue-os/campaigns",
         "@/lib/revenue-os/db",
         "next/server"
       ],
-      "sourceSha256": "2dabf6a6b2ec93f2ca9210444f799f7b329f82efdda3334574e850caf168950d"
+      "sourceSha256": "2859455f923dc00dec63ebe331f4847fa021858fc802eb2179b022c5fba27ac0"
     },
     {
       "source": "src/app/api/admin/revenue-os/contact-imports/route.ts",

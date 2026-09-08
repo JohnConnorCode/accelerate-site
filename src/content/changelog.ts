@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "atomic-campaign-duplication",
+    slug: "atomic-campaign-duplication",
+    title: "Duplicate campaigns into fresh drafts with durable retry receipts",
+    description:
+      "Copy a campaign's audience, steps, sender and policy into a fresh draft without members, sends or approvals. The source version is checked and the copy, provenance and audit commit together. Interrupted requests reuse the same receipt; the fictional workspace saves and previews its own copy.",
+    category: "feature",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "tenant-site-studio-drafts",
     slug: "tenant-site-studio-drafts",
     title: "Site Studio prepares private, versioned page drafts",

@@ -1,4 +1,8 @@
 import {
+  campaignDraftCopy,
+  campaignDuplicateOptions,
+} from "@/lib/revenue-os/campaign-duplicate-contract";
+import {
   prepareOperatorTaskPatch,
   type OperatorTaskPatchInput,
 } from "@/lib/revenue-os/operator-task-patch";
@@ -75,6 +79,8 @@ type DemoEmailStudioDetail = {
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
 export type DemoState = {
+  campaignCopies?: ReturnType<typeof campaignDraftCopy>[];
+  campaignDuplicateReceipts?: Record<string, { fingerprint: string; copyId: string }>;
   business: DemoBusinessState | null;
   completedActions: string[];
   completedTasks: string[];
@@ -1443,6 +1449,14 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
       ["outreach"],
       "revenue-os.action-queue",
     ],
+    [
+      "propose_campaign_duplicate",
+      "Stage duplication of a campaign into a new draft for founder approval.",
+      "internal_write",
+      true,
+      ["outreach"],
+      "revenue-os.action-queue",
+    ],
   ];
   rows.push(
     ...[...BRANDING_TOOLS, ...MODULE_CONTROL_TOOLS, ...TOOL_DISCOVERY_METADATA].map(
@@ -2264,8 +2278,50 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
             }),
         ),
       });
+    const allCampaigns = [...(state.campaignCopies ?? []), ...campaigns(pack)];
     if (method === "GET" && path === "/api/admin/revenue-os/campaigns")
-      return jsonResponse({ schemaReady: true, campaigns: campaigns(pack) });
+      return jsonResponse({ schemaReady: true, campaigns: allCampaigns });
+    if (
+      method === "PATCH" &&
+      path === "/api/admin/revenue-os/campaigns" &&
+      body.action === "duplicate"
+    ) {
+      if (state.moduleOverrides.campaigns === false)
+        return jsonResponse({ error: "Campaigns disabled" }, 403);
+      const parsed = campaignDuplicateOptions.safeParse({
+        requestId: body.requestId,
+        expectedVersion: body.expectedVersion,
+        ...(body.name === undefined ? {} : { name: body.name }),
+      });
+      if (!parsed.success) return jsonResponse({ error: "Invalid duplication request" }, 400);
+      const options = parsed.data;
+      const fingerprint = JSON.stringify([body.id, options.expectedVersion, options.name ?? null]);
+      const receipts = (state.campaignDuplicateReceipts ??= {});
+      const previous = receipts[options.requestId];
+      if (previous) {
+        if (previous.fingerprint !== fingerprint)
+          return jsonResponse({ error: "Duplication request identity conflict" }, 409);
+        const copy = state.campaignCopies?.find((c) => c.id === previous.copyId);
+        return copy
+          ? jsonResponse({ campaign: copy })
+          : jsonResponse({ error: "Previously duplicated draft unavailable" }, 409);
+      }
+      const source = allCampaigns.find((c) => c.id === body.id);
+      if (!source) return jsonResponse({ error: "Campaign source unavailable" }, 404);
+      if (source.version !== options.expectedVersion)
+        return jsonResponse(
+          {
+            error: "Campaign source version changed; review the current source",
+            code: "campaign_source_changed",
+          },
+          409,
+        );
+      const copy = campaignDraftCopy(source, crypto.randomUUID(), options.name);
+      (state.campaignCopies ??= []).unshift(copy);
+      receipts[options.requestId] = { fingerprint, copyId: copy.id };
+      saveState(scenarioId, state);
+      return jsonResponse({ campaign: copy });
+    }
     if (method === "GET" && path === "/api/admin/revenue-os/recovery") {
       if (url.searchParams.get("batchId"))
         return jsonResponse({
@@ -2329,7 +2385,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       });
     }
     if (method === "GET" && path === "/api/admin/revenue-os/campaigns/preview") {
-      const campaign = campaigns(pack).find((item) => item.id === url.searchParams.get("id"));
+      const campaign = allCampaigns.find((item) => item.id === url.searchParams.get("id"));
       if (!campaign) return jsonResponse({ error: "Campaign not found" }, 404);
       return jsonResponse({
         campaign,
@@ -2343,12 +2399,12 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           eligible: campaign.campaign_members.filter((item) => item.status === "active").length,
           excluded: campaign.campaign_members.filter((item) => item.status !== "active").length,
         },
-        exclusions: pack.people
+        exclusions: (campaign.campaign_members.length ? pack.people : [])
           .slice(20, 22)
           .map((item) => ({ email: item.email, reason: "Existing reply or suppression" })),
-        samples: pack.people.slice(0, 3).map((item) => ({
+        samples: (campaign.campaign_members.length ? pack.people.slice(0, 3) : []).map((item) => ({
           email: item.email,
-          subject: campaign.campaign_steps[0]!.subject_template,
+          subject: campaign.campaign_steps[0]?.subject_template ?? "",
           body: `Hi ${item.name.split(" ")[0]}, here is the useful next step we discussed.`,
         })),
       });
