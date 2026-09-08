@@ -157,3 +157,34 @@ for (const [file, budget] of Object.entries(COLOR_BUDGET)) {
 if (colorFailures.length) throw new Error(colorFailures.join("\n"));
 
 console.log(`Admin color ratchet passed: ${colorCounts.size} files within their raw-color budget.`);
+
+// -----------------------------------------------------------------------
+// Fixed dialog-radius ban for admin surfaces.
+//
+// Dialogs and list surfaces once carried hardcoded rounded-[24px],
+// rounded-[20px], rounded-2xl and !rounded-lg overrides that fought the
+// per-appearance --admin-surface-radius token, so the same card rendered
+// at a different radius than its siblings in every theme. The token owner
+// is .admin-dialog-surface (dialogs) and AdminSurface (lists); nested
+// content derives via calc(var(--admin-surface-radius) - Npx). There are
+// zero remaining violations, so this is a ban, not a budget: any hit
+// fails with the fix spelled out.
+const radiusBanned = [/rounded-\[24px\]/g, /!rounded-[a-z]/g];
+
+const radiusFailures = [];
+for (const file of adminFiles) {
+  const relPath = "src/" + relative(root, file).replace(/\\/g, "/");
+  const content = readFileSync(file, "utf8");
+  for (const pattern of radiusBanned) {
+    pattern.lastIndex = 0;
+    const hits = content.match(pattern) || [];
+    if (hits.length) {
+      radiusFailures.push(
+        `${relPath} uses ${hits[0]}. Route dialog panels through .admin-dialog-surface and list surfaces through AdminSurface so corners follow --admin-surface-radius; never override the token radius with a fixed class.`,
+      );
+    }
+  }
+}
+if (radiusFailures.length) throw new Error(radiusFailures.join("\n"));
+
+console.log("Admin radius ban passed: no fixed dialog radii or token overrides.");

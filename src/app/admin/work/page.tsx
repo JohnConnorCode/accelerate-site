@@ -264,7 +264,7 @@ export default function WorkPage() {
           </div>
           <AdminSurface
             padding="none"
-            className="!rounded-lg !shadow-none border border-[var(--admin-border)]"
+            className="!shadow-none border border-[var(--admin-border)]"
           >
             <ul className="divide-y divide-[var(--admin-border)]">
               {visible.map((row) => (
@@ -316,7 +316,7 @@ export default function WorkPage() {
       ) : (
         <AdminSurface
           padding="none"
-          className="!rounded-lg !shadow-none border border-[var(--admin-border)]"
+          className="!shadow-none border border-[var(--admin-border)]"
         >
           <ul className="divide-y divide-[var(--admin-border)]">
             {actions.map((row) => (

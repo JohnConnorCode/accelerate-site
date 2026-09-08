@@ -66,8 +66,7 @@ export const ATTENTION_SECTIONS: ReadonlyArray<{
   kind: AttentionKind;
   title: string;
   description: string;
-}> = [
-  {
+}> = [  {
     kind: "decision",
     title: "Approvals",
     description: "Review the exact change before approving.",
@@ -80,3 +79,19 @@ export const ATTENTION_SECTIONS: ReadonlyArray<{
   { kind: "watch", title: "Watch", description: "Signals and exceptions worth investigating." },
   { kind: "upcoming", title: "Upcoming", description: "Meetings and deadlines to prepare for." },
 ];
+
+/** Which attention sections render for a (possibly pre-filtered) queue.
+ * Unfiltered views always show every section, including their empty states.
+ * Filtered views omit empty sections so a focus tab does not stack
+ * "nothing here" boxes — unless every section is empty, in which case the
+ * full set renders so a cleared filter confirms itself instead of going
+ * blank. Pure: the component stays a thin renderer over this decision. */
+export function selectVisibleAttentionSections(
+  counts: ReadonlyArray<{ kind: AttentionKind; rows: number }>,
+  hideEmpty: boolean,
+): AttentionKind[] {
+  const kinds = counts.map((entry) => entry.kind);
+  if (!hideEmpty) return kinds;
+  const nonEmpty = counts.filter((entry) => entry.rows > 0).map((entry) => entry.kind);
+  return nonEmpty.length > 0 ? nonEmpty : kinds;
+}

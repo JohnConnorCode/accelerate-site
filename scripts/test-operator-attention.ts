@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { projectOperatorAttention } from "../src/lib/revenue-os/operator-attention";
+import {
+  projectOperatorAttention,
+  selectVisibleAttentionSections,
+} from "../src/lib/revenue-os/operator-attention";
 import type { OperatorQueueItem } from "../src/lib/revenue-os/types";
 import { MemorySupabase } from "./lib/memory-supabase";
 import {
@@ -47,6 +50,37 @@ async function main() {
   );
   assert.equal(rows[4]!.href, custom.href, "Custom work retains its native command entrypoint");
   assert.equal("status" in rows[0]!, false, "Attention does not add a lifecycle");
+  const kinds = (rows: Array<{ kind: "decision" | "work" | "watch" | "upcoming"; n: number }>) =>
+    rows.map((entry) => ({ kind: entry.kind, rows: entry.n }));
+  const all = kinds([
+    { kind: "decision", n: 0 },
+    { kind: "work", n: 0 },
+    { kind: "watch", n: 0 },
+    { kind: "upcoming", n: 0 },
+  ]);
+  assert.deepEqual(
+    selectVisibleAttentionSections(all, false),
+    ["decision", "work", "watch", "upcoming"],
+    "Unfiltered views always show every section",
+  );
+  assert.deepEqual(
+    selectVisibleAttentionSections(all, true),
+    ["decision", "work", "watch", "upcoming"],
+    "A fully cleared filter confirms itself instead of going blank",
+  );
+  assert.deepEqual(
+    selectVisibleAttentionSections(
+      kinds([
+        { kind: "decision", n: 2 },
+        { kind: "work", n: 1 },
+        { kind: "watch", n: 0 },
+        { kind: "upcoming", n: 0 },
+      ]),
+      true,
+    ),
+    ["decision", "work"],
+    "Filtered views omit empty sections",
+  );
   const id = randomUUID();
   const mem = new MemorySupabase({
     tasks: [
@@ -95,7 +129,7 @@ async function main() {
     "Edit, snooze and completion retain distinct audit events",
   );
   console.log(
-    "PASS: source identities, recovery tasks, optional native custom work, duplicate projections, canonical task edits/snooze/completion and replay refusal.",
+    "PASS: source identities, recovery tasks, optional native custom work, duplicate projections, canonical task edits/snooze/completion and replay refusal, section visibility.",
   );
 }
 main().catch((e) => {

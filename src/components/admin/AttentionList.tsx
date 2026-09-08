@@ -13,6 +13,7 @@ import Link from "./AdminLink";
 import { AdminSurface } from "./AdminSurface";
 import {
   ATTENTION_SECTIONS,
+  selectVisibleAttentionSections,
   type OperatorAttentionItem,
 } from "@/lib/revenue-os/operator-attention";
 import { relativeTime } from "@/lib/admin/work-presentation";
@@ -44,10 +45,11 @@ export function AttentionList({
     section,
     rows: items.filter((item) => item.attentionKind === section.kind),
   }));
-  const visible =
-    hideEmptySections && sectionRows.some(({ rows }) => rows.length > 0)
-      ? sectionRows.filter(({ rows }) => rows.length > 0)
-      : sectionRows;
+  const visibleKinds = selectVisibleAttentionSections(
+    sectionRows.map(({ section, rows }) => ({ kind: section.kind, rows: rows.length })),
+    hideEmptySections,
+  );
+  const visible = sectionRows.filter(({ section }) => visibleKinds.includes(section.kind));
   return (
     <div className="space-y-5" data-today-workspace>
       {visible.map(({ section, rows }) => {
