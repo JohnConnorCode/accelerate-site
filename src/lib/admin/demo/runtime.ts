@@ -298,8 +298,8 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
       assigned_to: null,
       source: "delivery_handoff",
       related_name: h.businessName,
-      related_id: h.contactId,
-      related_type: "contact",
+      related_id: h.id,
+      related_type: "client",
     })),
   );
   return [...base, ...delivery];
