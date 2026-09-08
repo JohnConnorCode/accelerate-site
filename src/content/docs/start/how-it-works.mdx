@@ -1,0 +1,127 @@
+---
+title: "How Accelerate works"
+description: "Follow business context from its source to a reviewed action, recorded result, and reusable extension."
+updated: "2026-09-07"
+---
+
+Accelerate is an open-source business runtime. It gives your team, AI assistants, integrations, and coding agents one governed place to read business context and do useful work. The Command Center is the main interface, but it is only one way to reach the runtime.
+
+The easiest way to see the whole path is to open the [fictional demo](/demo/command-center), follow [your first workflow](/docs/start/daily-path), and then return here to understand what each step represents. The demo uses the same interface and contracts as a connected workspace, while its data and actions remain fictional.
+
+## The complete path
+
+```text
+source data
+    ↓
+canonical records and evidence
+    ↓
+attention signal or requested task
+    ↓
+proposal, work item, or approved action
+    ↓
+validated execution
+    ↓
+receipt, activity, and next decision
+```
+
+Every entry point follows this shape. A person can use an admin screen, an AI assistant can call a governed tool, an external assistant can connect through MCP, and an integration or scheduled job can submit an event. These entry points share the same tenant checks, identity rules, domain services, action queue, and receipts.
+
+## Five layers describe what the runtime does
+
+The platform has five connected layers. They describe the movement from raw business activity to better decisions, rather than five separate products.
+
+| Layer        | What it does                                                                                                 | What you can see                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| **See**      | Captures information from supported providers, imports, forms, conversations, meetings, payments, and notes. | A new inquiry, an email thread, an invoice observation, or a meeting record.                |
+| **Remember** | Keeps canonical records, relationships, source references, evidence, and activity history.                   | The person connected to a company, deal, conversation, task, and prior decision.            |
+| **Notice**   | Finds state that deserves attention and explains why.                                                        | Today signals, overdue work, stale opportunities, upcoming context, and integration health. |
+| **Act**      | Turns a decision into a task, proposal, approval, or validated external operation.                           | Work items, pending approvals, exact recipients and changes, and execution state.           |
+| **Learn**    | Records outcomes and feedback so the next decision has better evidence.                                      | Receipts, audit history, claims, operator feedback, and the remaining uncertainty.          |
+
+The first four layers are visible in the daily workspace today. Learn already records activity, receipts, evidence, and feedback. Broader autonomous learning is still a roadmap area, so the system shows what it knows and what remains uncertain instead of presenting an inference as a fact.
+
+## The records that keep context together
+
+A workspace is the business boundary for data, members, connections, policies, and enabled modules. Developers may also call it a tenant. Each operational record belongs to one workspace, and the same boundary is checked by the browser, APIs, background jobs, AI tools, and external connections.
+
+| Runtime object         | Purpose                                                                                | Example                                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Record**             | A canonical business object with a stable identity.                                    | A contact, company, opportunity, conversation, invoice, or meeting.                      |
+| **Evidence and claim** | A statement about a record with its source, strength, freshness, and history.          | A verified invoice balance or a human-confirmed contact detail.                          |
+| **Work item**          | Durable work with an owner, lease, retry state, and explainable outcome.               | Follow up with a lead, review a stale proposal, or prepare onboarding tasks.             |
+| **Action proposal**    | A specific change waiting for a decision.                                              | Change a pipeline stage, create a task, or send a prepared message.                      |
+| **Receipt**            | The durable outcome of an attempted action.                                            | Provider accepted a request, delivery is confirmed, or the result needs reconciliation.  |
+| **Activity and audit** | A readable history of what changed, who initiated it, and which records were involved. | A task was completed after an approved proposal, with the source and timestamp attached. |
+
+These objects are linked by canonical IDs. A matching name or email can help find a candidate, but an ambiguous identity becomes review work rather than permission to merge or contact someone.
+
+## What happens when someone asks for help
+
+Suppose a customer asks when a project can start. The answer may depend on the conversation, the customer record, an accepted proposal, a calendar commitment, and an assigned task.
+
+1. **Resolve the workspace and identity.** The request is bound to the intended workspace and the canonical people, companies, or opportunities it mentions.
+2. **Read bounded context.** The assistant or screen receives the relevant records, source references, and recent activity. It does not receive every table, secret, or unrelated tenant.
+3. **Check capability and policy.** The runtime checks whether the module, provider, membership, and autonomy policy permit the requested operation.
+4. **Prepare a result.** A read can answer immediately. A supported change creates a work item or exact action proposal with the evidence it used.
+5. **Review the decision.** The operator sees the target, proposed change, source context, and any missing information in **Today** or **Work**. An external assistant cannot approve its own proposal.
+6. **Execute through the shared service.** Approval rechecks the record version, permissions, suppression rules, provider readiness, and idempotency key before an external effect can run.
+7. **Inspect the receipt.** The result says whether the operation completed, failed, or is uncertain. **Activity** retains the linked history so a retry does not create a duplicate effect.
+
+A manual action and an AI action can look different in the interface, but they converge on the same domain service when they change business state or contact an external provider.
+
+## How the interfaces fit together
+
+| Interface                            | Best for                                                                                 | Boundary                                                                                                         |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Command Center**                   | Daily attention, records, conversations, pipeline, tasks, approvals, and activity.       | Requires the workspace membership and module access for the signed-in operator.                                  |
+| **AI assistant**                     | Questions about available business context and supported actions.                        | Reads bounded tool results; changes become proposals and follow the workspace approval policy.                   |
+| **MCP client**                       | Reaching the same workspace from Claude, ChatGPT, Cursor, or another external assistant. | Uses a tenant-scoped connection; the client can read or stage a proposal but cannot approve it.                  |
+| **Integrations, webhooks, and jobs** | Bringing in provider events and running scheduled checks.                                | Resolve the destination workspace, use replay-safe keys, and record a receipt for each accepted event or effect. |
+| **Coding agent**                     | Extending the source with a module, service, screen, integration, or test.               | Reads the live work packet, works in an isolated approved worktree, and submits commit and evidence for review.  |
+
+Use [Ask AI](/docs/command-center/ask) for a workspace question, [MCP clients](/docs/extend/mcp-clients) for an external connection, and [your first developer change](/docs/extend/first-change) to modify the source.
+
+## How modules, plugins, and Apps fit
+
+A **module** controls whether a capability is available in a workspace. Turning a module off removes its navigation, refuses its direct routes and APIs, and marks its tools unavailable. Integrations remains available so an operator can turn a module back on.
+
+A **plugin** adds behavior to the runtime through a reviewed manifest. It can register a report, page, navigation item, settings, AI tool, trigger, or workflow while reusing canonical records, capability checks, approvals, action execution, and audit history. The manifest describes what the plugin needs; it cannot provide an arbitrary import path or bypass the host's rules.
+
+An **App** can go further. It may own domain records, a custom lifecycle, a native queue, specialist connectors, coworkers, and a complete operating screen. It can still reuse shared identity, membership, activity, evidence, and action services where that makes the business easier to understand. The current source workflow supports this range. The general-purpose in-app App builder and development terminal are planned, not shipped.
+
+The [plugin examples](/docs/plugins) show the progression: a read-only report, a reviewed workflow, and a dedicated business workspace. [Build capabilities](/docs/extend) explains how to choose a module, plugin, adapter, AI tool, or custom App.
+
+## What is protected by default
+
+The runtime keeps a hard boundary between seeing a proposed operation and carrying it out.
+
+- A draft is not an approved action, and approval is not proof of successful execution.
+- An accepted provider request is not the same as confirmed delivery or payment.
+- A changed recipient, record version, policy, source, or message requires a fresh check and may make an earlier proposal stale.
+- A suppressed contact, disabled module, missing capability, ambiguous identity, or unavailable provider fails closed.
+- An uncertain provider response stays on hold for reconciliation instead of being retried blindly.
+- Demo workspaces use fictional data and cannot issue protected external requests.
+
+[Approvals](/docs/command-center/approvals) covers the operator decision. [Receipts and audit](/docs/start/receipts) explains how to interpret the result. [Troubleshooting](/docs/start/troubleshooting) lists the recovery path when a connection or action is not ready.
+
+## How development stays connected to the same runtime
+
+A coding agent does not need to learn a private command or choose a card before it can start. In a repository checkout, the plain-language request below is the normal entry point:
+
+> Pick up work from the backlog and go until it is completed and committed. Follow protocol.
+
+The repository reads the current contract and live board, selects one eligible card, creates the approved isolated worktree, supplies the acceptance packet, runs the required checks, commits the exact change, and submits evidence. A private owner profile or scoped remote profile supplies the board transport automatically; the agent never asks a user to paste a token or database key. Review, merge, and production deployment remain separate operator decisions.
+
+Read [Natural-language agent execution](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/NATURAL-LANGUAGE-AGENT.md) for the exact terminal states and [the public roadmap](/roadmap) for the current cards, dependencies, and acceptance criteria.
+
+## Choose your next step
+
+| If you want to…                              | Start here                                                                                   |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Try the complete fictional workflow          | [Your first workflow](/docs/start/daily-path)                                                |
+| Learn the terms and saved objects            | [Core concepts](/docs/start/core-concepts)                                                   |
+| Connect a real workspace                     | [Installation](/docs/self-hosting/installation) and [Workspace setup](/docs/workspace/setup) |
+| Understand what a module or plugin can add   | [Plugin examples](/docs/plugins) and [Build capabilities](/docs/extend)                      |
+| Connect an external assistant                | [MCP clients](/docs/extend/mcp-clients)                                                      |
+| Follow current work and planned capabilities | [Public roadmap](/roadmap)                                                                   |
+| Make a source change with an agent           | [Your first developer change](/docs/extend/first-change)                                     |

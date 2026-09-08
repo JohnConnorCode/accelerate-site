@@ -15,6 +15,7 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Added
 
+- A public **How Accelerate works** guide covering the five runtime layers, shared records and evidence, approvals and receipts, interfaces, plugins and Apps, coding-agent execution, failure recovery, and the path from source data to a recorded result.
 - Natural-language backlog execution for coding agents. A plain-language request selects one eligible task, creates its approved worktree, and carries the worker through verification, commit, and evidence submission without requiring a ticket key or internal command name.
 - Owner-authorized local operator profiles are now detected across worktrees, so the same plain-language flow can use the canonical local Supabase board without a credential prompt; remote workers keep scoped HTTPS transport.
 - Reviewed Radar outreach: shared draft preparation, exact approval, consented introductions, canonical sender, durable reservations, cooldowns, daily limits and receipt recovery. Default remains draft-only.

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "platform-how-it-works-guide",
+    slug: "platform-how-it-works-guide",
+    title: "A single guide explains how the Accelerate runtime fits together",
+    description:
+      "The public docs now have a complete system map from source data to canonical records, attention signals, reviewed actions, receipts, and reusable extensions. It explains the five runtime layers, workspace boundaries, AI and MCP interfaces, plugins and Apps, coding-agent execution, failure handling, and the path to try or build each part.",
+    category: "improvement",
+    publishedAt: "2026-09-07",
+  },
+  {
     id: "natural-language-agent-pickup",
     slug: "natural-language-agent-pickup",
     title: "Any coding agent can pick up the next backlog task from plain language",

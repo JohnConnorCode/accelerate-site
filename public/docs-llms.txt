@@ -5,6 +5,7 @@
 Learn the essentials and try your first complete workflow.
 
 - [An AI command center you can make your own](https://www.acceleratewith.us/docs/start/overview) (updated 2026-09-06): Connect your business, work with AI, and build on an open-source foundation you control.
+- [How Accelerate works](https://www.acceleratewith.us/docs/start/how-it-works) (updated 2026-09-07): Follow business context from its source to a reviewed action, recorded result, and reusable extension.
 - [For business owners](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-09-05): Choose a useful first workflow, assign ownership, and measure whether it helps.
 - [For agencies](https://www.acceleratewith.us/docs/start/agencies) (updated 2026-09-05): Onboard client workspaces, verify access, and agree an operational handoff.
 - [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-05): Try the daily queue and review a proposed action using fictional data.
