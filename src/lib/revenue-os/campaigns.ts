@@ -1,3 +1,4 @@
+import { CampaignSourceChangedError } from "./campaign-duplicate-contract";
 import "server-only";
 import { z } from "zod";
 import { callCampaignDuplicateRpc } from "@/lib/supabase/server";
@@ -213,6 +214,7 @@ export async function duplicateCampaign(
     p_name: options.name ?? null,
     p_actor: actor,
   });
+  if (error?.code === "PCC01") throw new CampaignSourceChangedError();
   if (error) throw new Error(error.message);
   if (!data || typeof data !== "object" || typeof data.id !== "string")
     throw new Error("Campaign duplication returned no durable receipt; retry the same request.");

@@ -2382,6 +2382,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_send_email",
     "propose_conversation_reply",
     "propose_campaign_activation",
+    "propose_campaign_duplicate",
   ],
 };
 

@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { duplicateCampaign } from "../src/lib/revenue-os/campaigns";
-import { campaignDraftCopy } from "../src/lib/revenue-os/campaign-duplicate-contract";
+import {
+  campaignDraftCopy,
+  CampaignSourceChangedError,
+} from "../src/lib/revenue-os/campaign-duplicate-contract";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 async function main() {
@@ -77,11 +80,11 @@ async function main() {
   );
   assert.equal(calls, 1);
   mem.rpc("duplicate_campaign_draft", () => ({
-    error: { message: "Campaign source version changed" },
+    error: { message: "Campaign source version changed", code: "PCC01" },
   }));
   await assert.rejects(
     () => duplicateCampaign(db, source.id, "owner@example.test", { requestId, expectedVersion: 3 }),
-    /version changed/,
+    CampaignSourceChangedError,
   );
   console.log(
     "PASS: draft-only field allowlist, provenance, exact source version, stable request identity, bound host dispatch and stale refusal.",

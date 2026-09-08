@@ -31,7 +31,7 @@ BEGIN
  ELSE
    SELECT * INTO source FROM campaigns WHERE tenant_id=t AND id=p_source FOR SHARE;
    IF NOT FOUND THEN RAISE EXCEPTION 'Campaign source unavailable'; END IF;
-   IF source.version<>p_expected_version THEN RAISE EXCEPTION 'Campaign source version changed; review the current source'; END IF;
+   IF source.version<>p_expected_version THEN RAISE EXCEPTION 'Campaign source version changed; review the current source' USING ERRCODE='PCC01'; END IF;
    SELECT coalesce(jsonb_agg(to_jsonb(s) ORDER BY s.step_order),'[]') INTO steps FROM
     (SELECT step_order,delay_days,subject_template,body_template,active FROM campaign_steps WHERE tenant_id=t AND campaign_id=p_source ORDER BY step_order FOR SHARE) s;
    IF jsonb_array_length(steps)>100 OR pg_column_size(steps)>1048576 THEN RAISE EXCEPTION 'Campaign source exceeds duplication limits'; END IF;

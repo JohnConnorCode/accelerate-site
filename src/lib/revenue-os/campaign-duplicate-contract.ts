@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+export class CampaignSourceChangedError extends Error {
+  constructor() {
+    super("Campaign source version changed; review the current source");
+    this.name = "CampaignSourceChangedError";
+  }
+}
+
 export const campaignDuplicateOptions = z
   .object({
     requestId: z.uuid(),

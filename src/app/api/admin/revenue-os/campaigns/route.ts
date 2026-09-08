@@ -1,3 +1,4 @@
+import { CampaignSourceChangedError } from "@/lib/revenue-os/campaign-duplicate-contract";
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
@@ -150,6 +151,11 @@ export async function PATCH(request: NextRequest) {
     });
     return NextResponse.json({ campaign: data });
   } catch (error) {
+    if (error instanceof CampaignSourceChangedError)
+      return NextResponse.json(
+        { error: error.message, code: "campaign_source_changed" },
+        { status: 409 },
+      );
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Could not update campaign" },
       { status: 400 },

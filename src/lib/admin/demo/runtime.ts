@@ -2310,7 +2310,10 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       if (!source) return jsonResponse({ error: "Campaign source unavailable" }, 404);
       if (source.version !== options.expectedVersion)
         return jsonResponse(
-          { error: "Campaign source version changed; review the current source" },
+          {
+            error: "Campaign source version changed; review the current source",
+            code: "campaign_source_changed",
+          },
           409,
         );
       const copy = campaignDraftCopy(source, crypto.randomUUID(), options.name);

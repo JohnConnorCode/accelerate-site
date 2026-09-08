@@ -24,7 +24,7 @@ import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
-import { fetchJson } from "@/lib/admin/fetchJson";
+import { fetchJson, AdminRequestError } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { cn } from "@/lib/utils";
 
@@ -148,10 +148,10 @@ export default function CampaignsPage() {
     if (saving) return;
     setSaving(true);
     setActionError("");
+    const key = `accelerate:campaign-copy:${window.location.pathname}:${id}`;
     try {
       const source = data?.campaigns.find((campaign) => campaign.id === id);
       if (!source) throw new Error("Reload the current campaign before duplicating it.");
-      const key = `accelerate:campaign-copy:${window.location.pathname}:${id}`;
       const pending = sessionStorage.getItem(key);
       const options = campaignDuplicateOptions.parse(
         pending
@@ -171,6 +171,12 @@ export default function CampaignsPage() {
       await load();
       await loadPreview(result.campaign.id);
     } catch (error) {
+      if (error instanceof AdminRequestError && error.code === "campaign_source_changed") {
+        // This typed refusal is issued only before a new copy is written. An
+        // unknown failure keeps the request identity for receipt reconciliation.
+        sessionStorage.removeItem(key);
+        await load();
+      }
       setActionError(
         error instanceof Error
           ? error.message

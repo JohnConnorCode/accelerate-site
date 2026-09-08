@@ -79,12 +79,41 @@ try {
         path: `${output}/${scenario}-${width}-duplicate.png`,
         fullPage: true,
       });
+      // A confirmed stale refusal creates nothing and releases only that
+      // rejected request, allowing an explicit retry against refreshed data.
+      await page.evaluate(({ id, version }) => {
+        sessionStorage.setItem(
+          `accelerate:campaign-copy:${location.pathname}:${id}`,
+          JSON.stringify({ requestId: crypto.randomUUID(), expectedVersion: version + 1 }),
+        );
+      }, source);
+      await buttons.nth(1).click();
+      await page
+        .getByText("Campaign source version changed; review the current source", { exact: true })
+        .waitFor();
+      const stale = await page.evaluate(
+        async (id) => ({
+          campaigns: (await (await fetch("/api/admin/revenue-os/campaigns")).json()).campaigns,
+          pending: sessionStorage.getItem(`accelerate:campaign-copy:${location.pathname}:${id}`),
+        }),
+        source.id,
+      );
+      assert.equal(stale.campaigns.length, before.length + 1);
+      assert.equal(stale.pending, null);
+      await buttons.nth(1).click();
+      await page.waitForFunction(
+        async (count) =>
+          (await (await fetch("/api/admin/revenue-os/campaigns")).json()).campaigns.length ===
+          count,
+        before.length + 2,
+      );
       assert.deepEqual(errors, []);
       results.push({
         scenario,
         width,
         copySaved: true,
         uncertainReplyReconciled: true,
+        staleRequestRecovery: true,
         noRecipients: true,
       });
       await context.close();
