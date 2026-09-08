@@ -15,3 +15,6 @@ docs/generated/admin-ai-route-inventory.json
 docs/planning/backlog-snapshot.json
 docs/planning/backlog-audit.json
 docs/NORTHSTAR-BUILD-PLAN.md
+
+# Theme CSS is generated and freshness-checked from the registry.
+src/app/admin-themes.css

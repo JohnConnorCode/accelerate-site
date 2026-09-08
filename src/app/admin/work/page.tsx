@@ -262,10 +262,7 @@ export default function WorkPage() {
               className={cn(control, "min-w-0 flex-1")}
             />
           </div>
-          <AdminSurface
-            padding="none"
-            className="!rounded-lg !shadow-none border border-[var(--admin-border)]"
-          >
+          <AdminSurface padding="none" elevation="flat">
             <ul className="divide-y divide-[var(--admin-border)]">
               {visible.map((row) => (
                 <li
@@ -314,10 +311,7 @@ export default function WorkPage() {
           </p>
         </>
       ) : (
-        <AdminSurface
-          padding="none"
-          className="!rounded-lg !shadow-none border border-[var(--admin-border)]"
-        >
+        <AdminSurface padding="none" elevation="flat">
           <ul className="divide-y divide-[var(--admin-border)]">
             {actions.map((row) => (
               <li

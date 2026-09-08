@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can we create our own workspace theme?",
+    answer:
+      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device.",
+  },
+  {
     question: "How does the whole system fit together?",
     answer:
       "Accelerate moves business context from source data to canonical records, attention signals, reviewed work, validated execution, and recorded results. The Command Center, AI assistant, MCP clients, integrations, scheduled jobs, and coding agents reach that same runtime through different interfaces. Read the public How Accelerate works guide for the five layers, object model, approval boundary, plugin and App extension paths, and failure recovery.",

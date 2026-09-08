@@ -169,7 +169,7 @@ export function AdminFounderNoteModal() {
           <label className="block">
             <span className="sr-only">Note</span>
             <textarea
-              autoFocus
+              data-admin-autofocus
               value={note}
               onChange={(event) => setNote(event.target.value.slice(0, 5_000))}
               onKeyDown={(event) => {

@@ -1,3 +1,4 @@
+@import "./admin-themes.css";
 @import "tailwindcss";
 
 /* ========================================
@@ -240,16 +241,16 @@
   --font-serif: var(--font-editorial);
   --font-mono: var(--font-mono-face), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  /* Square editorial system — zero every Tailwind radius utility.
-     rounded-full is untouched (uses calc(infinity), not a theme var). */
-  --radius: 0px;
-  --radius-xs: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
+  /* Public editorial geometry stays square; the admin resolves utility
+     geometry from its own appearance, including portalled overlays. */
+  --radius: var(--admin-control-radius, 0px);
+  --radius-xs: calc(var(--admin-control-radius, 0px) * 0.4);
+  --radius-sm: calc(var(--admin-control-radius, 0px) * 0.6);
+  --radius-md: calc(var(--admin-control-radius, 0px) * 0.8);
+  --radius-lg: var(--admin-control-radius, 0px);
+  --radius-xl: var(--admin-control-radius, 0px);
+  --radius-2xl: var(--admin-surface-radius, 0px);
+  --radius-3xl: calc(var(--admin-surface-radius, 0px) * 1.2);
 }
 
 /* ========================================
@@ -6264,278 +6265,36 @@ body.modal-open [data-dock] {
    Opaque, high-clarity surfaces for dense operational work. These are scoped
    away from the public-site glass material on purpose.
    ======================================== */
-.admin-shell,
-.admin-overlay-token-scope,
-body.admin-dialog-open,
-body.admin-notifications-open {
-  --admin-canvas: #f3f3f0;
-  --admin-surface: #fbfbfa;
-  --admin-surface-subtle: #f7f7f4;
-  --admin-soft: var(--admin-surface-subtle);
-  --admin-line: var(--admin-border);
-  --admin-mobile-dock-index: 0;
-  --admin-ink: #0b0b0b;
-  --admin-muted: #6e6e68;
-  --admin-accent: #0b0b0b;
-  --admin-accent-soft: rgba(11, 11, 11, 0.07);
-  --admin-sidebar: #0b0b0b;
-  --admin-nav-ink: #fbfbfa;
-  --admin-nav-muted: rgba(251, 251, 250, 0.62);
-  --admin-nav-faint: rgba(251, 251, 250, 0.42);
-  --admin-nav-hover: rgba(255, 255, 255, 0.07);
-  --admin-nav-rule: rgba(255, 255, 255, 0.1);
-  --admin-nav-active-bg: #fbfbfa;
-  --admin-nav-active-ink: #0b0b0b;
-  --admin-nav-brand-color: #fbfbfa;
-  --admin-nav-accent: #fbfbfa;
-  --admin-nav-badge-ring: #0b0b0b;
-  --admin-canvas-art: radial-gradient(
-    circle at 88% -8%,
-    var(--admin-accent-soft),
-    transparent 32rem
-  );
-  --admin-action: #0b0b0b;
-  --admin-action-ink: #fbfbfa;
-  --admin-surface-radius: 16px;
-  --admin-control-radius: 10px;
-  --admin-rule: rgba(11, 11, 11, 0.09);
-  --admin-border: rgba(11, 11, 11, 0.09);
-  --admin-shadow-border:
-    0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06),
-    0 3px 8px -4px rgba(0, 0, 0, 0.09);
-  --admin-shadow-border-hover:
-    0 0 0 1px rgba(0, 0, 0, 0.085), 0 2px 4px -2px rgba(0, 0, 0, 0.09),
-    0 10px 24px -14px rgba(0, 0, 0, 0.2);
-  --admin-shadow:
-    0 0 0 1px rgba(11, 11, 11, 0.055), 0 1px 2px -1px rgba(11, 11, 11, 0.08),
-    0 14px 34px -24px rgba(11, 11, 11, 0.24);
-  --admin-shadow-hover:
-    0 0 0 1px rgba(11, 11, 11, 0.09), 0 2px 5px -2px rgba(11, 11, 11, 0.1),
-    0 22px 42px -26px rgba(11, 11, 11, 0.28);
-  --admin-card-flat-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 5.5%, transparent);
-  --admin-card-raised-shadow: var(--admin-shadow);
-  --admin-card-outline-shadow:
-    0 0 0 1px color-mix(in srgb, var(--admin-ink) 14%, transparent),
-    0 1px 2px -1px color-mix(in srgb, var(--admin-ink) 5%, transparent);
-  --admin-danger: #e11d48;
-  --admin-danger-soft: rgba(225, 29, 72, 0.1);
-  --admin-success: #059669;
-  --admin-success-soft: rgba(5, 150, 105, 0.1);
-  --admin-warning: #d97706;
-  --admin-warning-soft: rgba(217, 119, 6, 0.1);
+:is(
+  .admin-shell,
+  .admin-overlay-token-scope,
+  body.admin-dialog-open,
+  body.admin-notifications-open
+) {
+  --white-primary: var(--admin-ink);
+  --white-secondary: var(--admin-muted);
+  --white-muted: var(--admin-muted);
+  --bg-base: var(--admin-canvas);
+  --bg-elevated: var(--admin-surface);
+  --bg-subtle: var(--admin-surface-subtle);
+  --border-glass: var(--admin-border);
+  --border-glass-hover: var(--admin-accent);
+  --gold-base: var(--admin-accent);
+  --gold-light: var(--admin-accent);
+  --gold-champagne: var(--admin-accent);
+  --heading-color: var(--admin-ink);
+  --display: var(--admin-font);
 }
-
 .admin-shell {
   min-height: 100dvh;
   color: var(--admin-ink);
   background: var(--admin-canvas-art), var(--admin-canvas);
-  color-scheme: light;
+  font-family: var(--admin-font);
 }
-
 html.admin-app-open,
 body.admin-app-open {
   height: 100%;
   overflow: hidden;
-}
-
-[data-theme="dark"] .admin-shell,
-[data-theme="dark"] .admin-overlay-token-scope,
-[data-theme="dark"] body.admin-dialog-open,
-[data-theme="dark"] body.admin-notifications-open {
-  --admin-canvas: #10100f;
-  --admin-surface: #171716;
-  --admin-surface-subtle: #1c1c1a;
-  --admin-ink: #fbfbfa;
-  --admin-muted: #a8a8a4;
-  --admin-accent: #fbfbfa;
-  --admin-accent-soft: rgba(255, 255, 255, 0.045);
-  --admin-sidebar: #0b0b0b;
-  --admin-nav-ink: #fbfbfa;
-  --admin-nav-muted: rgba(251, 251, 250, 0.66);
-  --admin-nav-faint: rgba(251, 251, 250, 0.43);
-  --admin-nav-hover: rgba(255, 255, 255, 0.08);
-  --admin-nav-rule: rgba(255, 255, 255, 0.1);
-  --admin-nav-active-bg: #fbfbfa;
-  --admin-nav-active-ink: #10100f;
-  --admin-nav-brand-color: #fbfbfa;
-  --admin-nav-accent: #fbfbfa;
-  --admin-nav-badge-ring: #0b0b0b;
-  --admin-canvas-art: radial-gradient(
-    circle at 82% -12%,
-    rgba(255, 255, 255, 0.07),
-    transparent 34rem
-  );
-  --admin-action: #fbfbfa;
-  --admin-action-ink: #10100f;
-  --admin-surface-radius: 14px;
-  --admin-control-radius: 9px;
-  --admin-rule: rgba(255, 255, 255, 0.045);
-  --admin-border: rgba(255, 255, 255, 0.085);
-  --admin-shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
-  --admin-shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
-  --admin-shadow: 0 0 0 1px rgba(255, 255, 255, 0.075);
-  --admin-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.13);
-  --admin-danger: #fb7185;
-  --admin-danger-soft: rgba(251, 113, 133, 0.14);
-  --admin-success: #34d399;
-  --admin-success-soft: rgba(52, 211, 153, 0.14);
-  --admin-warning: #fbbf24;
-  --admin-warning-soft: rgba(251, 191, 36, 0.14);
-  color-scheme: dark;
-}
-
-/* Signal is the dense, high-focus dashboard treatment: violet lives in the
-   system tokens, so every retained work surface changes together rather than
-   becoming a one-off purple page. */
-[data-theme="signal"] .admin-shell,
-[data-theme="signal"] .admin-overlay-token-scope,
-[data-theme="signal"] body.admin-dialog-open,
-[data-theme="signal"] body.admin-notifications-open {
-  --admin-canvas: #12101d;
-  --admin-surface: #1b1829;
-  --admin-surface-subtle: #221e33;
-  --admin-ink: #f5f1ff;
-  --admin-muted: #b8b0c8;
-  --admin-accent: #9b7bff;
-  --admin-accent-soft: rgba(125, 92, 255, 0.22);
-  --admin-sidebar: #141020;
-  --admin-nav-ink: #f5f1ff;
-  --admin-nav-muted: rgba(224, 214, 255, 0.68);
-  --admin-nav-faint: rgba(210, 195, 255, 0.43);
-  --admin-nav-hover: rgba(155, 123, 255, 0.12);
-  --admin-nav-rule: rgba(183, 161, 255, 0.13);
-  --admin-nav-active-bg: #9b7bff;
-  --admin-nav-active-ink: #171225;
-  --admin-nav-brand-color: #b49cff;
-  --admin-nav-accent: #9b7bff;
-  --admin-nav-badge-ring: #141020;
-  --admin-canvas-art:
-    radial-gradient(circle at 78% 0%, rgba(155, 123, 255, 0.2), transparent 30rem),
-    radial-gradient(circle at 18% 88%, rgba(89, 55, 190, 0.12), transparent 36rem);
-  --admin-action: #9b7bff;
-  --admin-action-ink: #171225;
-  --admin-surface-radius: 14px;
-  --admin-control-radius: 10px;
-  --admin-rule: rgba(244, 239, 255, 0.055);
-  --admin-border: rgba(244, 239, 255, 0.11);
-  --admin-shadow-border: 0 0 0 1px rgba(183, 161, 255, 0.12), 0 16px 34px -28px rgba(0, 0, 0, 0.7);
-  --admin-shadow-border-hover:
-    0 0 0 1px rgba(183, 161, 255, 0.24), 0 20px 44px -26px rgba(0, 0, 0, 0.78);
-  --admin-shadow: 0 0 0 1px rgba(183, 161, 255, 0.105), 0 18px 42px -30px rgba(0, 0, 0, 0.78);
-  --admin-shadow-hover: 0 0 0 1px rgba(183, 161, 255, 0.25), 0 25px 50px -30px rgba(0, 0, 0, 0.85);
-  --admin-danger: #fb7185;
-  --admin-danger-soft: rgba(251, 113, 133, 0.16);
-  --admin-success: #34d399;
-  --admin-success-soft: rgba(52, 211, 153, 0.16);
-  --admin-warning: #fbbf24;
-  --admin-warning-soft: rgba(251, 191, 36, 0.16);
-  color-scheme: dark;
-}
-
-/* Studio keeps the operational density but borrows the calm, project-focused
-   light canvas and blue signal from a modern work board. */
-[data-theme="studio"] .admin-shell,
-[data-theme="studio"] .admin-overlay-token-scope,
-[data-theme="studio"] body.admin-dialog-open,
-[data-theme="studio"] body.admin-notifications-open {
-  --admin-canvas: #f3f6fc;
-  --admin-surface: #ffffff;
-  --admin-surface-subtle: #f5f7fd;
-  --admin-ink: #19233a;
-  --admin-muted: #67728b;
-  --admin-accent: #356df3;
-  --admin-accent-soft: rgba(53, 109, 243, 0.13);
-  --admin-sidebar: #18223b;
-  --admin-nav-ink: #f7f9ff;
-  --admin-nav-muted: rgba(226, 234, 255, 0.68);
-  --admin-nav-faint: rgba(213, 224, 255, 0.43);
-  --admin-nav-hover: rgba(115, 155, 255, 0.12);
-  --admin-nav-rule: rgba(160, 187, 255, 0.14);
-  --admin-nav-active-bg: #356df3;
-  --admin-nav-active-ink: #ffffff;
-  --admin-nav-brand-color: #78a0ff;
-  --admin-nav-accent: #5e88f5;
-  --admin-nav-badge-ring: #18223b;
-  --admin-canvas-art:
-    linear-gradient(rgba(53, 109, 243, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(53, 109, 243, 0.025) 1px, transparent 1px),
-    radial-gradient(circle at 90% 0%, rgba(53, 109, 243, 0.12), transparent 30rem);
-  --admin-action: #356df3;
-  --admin-action-ink: #ffffff;
-  --admin-surface-radius: 11px;
-  --admin-control-radius: 8px;
-  --admin-rule: rgba(25, 35, 58, 0.075);
-  --admin-border: rgba(25, 35, 58, 0.105);
-  --admin-shadow-border:
-    0 0 0 1px rgba(38, 71, 134, 0.07), 0 2px 4px -2px rgba(25, 35, 58, 0.06),
-    0 16px 34px -25px rgba(35, 72, 145, 0.19);
-  --admin-shadow-border-hover:
-    0 0 0 1px rgba(53, 109, 243, 0.16), 0 5px 10px -5px rgba(25, 35, 58, 0.09),
-    0 24px 44px -28px rgba(35, 72, 145, 0.28);
-  --admin-shadow:
-    0 0 0 1px rgba(38, 71, 134, 0.065), 0 2px 5px -2px rgba(25, 35, 58, 0.055),
-    0 18px 38px -28px rgba(35, 72, 145, 0.22);
-  --admin-shadow-hover:
-    0 0 0 1px rgba(53, 109, 243, 0.15), 0 5px 11px -5px rgba(25, 35, 58, 0.08),
-    0 26px 48px -30px rgba(35, 72, 145, 0.28);
-  --admin-danger: #e11d48;
-  --admin-danger-soft: rgba(225, 29, 72, 0.1);
-  --admin-success: #059669;
-  --admin-success-soft: rgba(5, 150, 105, 0.1);
-  --admin-warning: #d97706;
-  --admin-warning-soft: rgba(217, 119, 6, 0.1);
-  color-scheme: light;
-}
-
-/* Frost is the luminous violet system: borderless white cards float over a
-   lavender atmosphere while the navigation becomes a light, translucent rail. */
-[data-theme="frost"] .admin-shell,
-[data-theme="frost"] .admin-overlay-token-scope,
-[data-theme="frost"] body.admin-dialog-open,
-[data-theme="frost"] body.admin-notifications-open {
-  --admin-canvas: #f4f2ff;
-  --admin-surface: #ffffff;
-  --admin-surface-subtle: #f8f7ff;
-  --admin-ink: #111a36;
-  --admin-muted: #65708d;
-  --admin-accent: #6b3ff2;
-  --admin-accent-soft: rgba(107, 63, 242, 0.12);
-  --admin-sidebar: rgba(252, 251, 255, 0.88);
-  --admin-nav-ink: #141b36;
-  --admin-nav-muted: rgba(20, 27, 54, 0.66);
-  --admin-nav-faint: rgba(20, 27, 54, 0.42);
-  --admin-nav-hover: rgba(107, 63, 242, 0.075);
-  --admin-nav-rule: rgba(74, 55, 137, 0.09);
-  --admin-nav-active-bg: #6b3ff2;
-  --admin-nav-active-ink: #ffffff;
-  --admin-nav-brand-color: #6b3ff2;
-  --admin-nav-accent: #6b3ff2;
-  --admin-nav-badge-ring: #ffffff;
-  --admin-action: #6b3ff2;
-  --admin-action-ink: #ffffff;
-  --admin-surface-radius: 20px;
-  --admin-control-radius: 12px;
-  --admin-rule: rgba(69, 52, 128, 0.055);
-  --admin-border: rgba(69, 52, 128, 0.065);
-  --admin-canvas-art:
-    radial-gradient(circle at 78% 2%, rgba(127, 89, 255, 0.16), transparent 29rem),
-    radial-gradient(circle at 20% 92%, rgba(186, 172, 255, 0.22), transparent 38rem),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(244, 241, 255, 0.55));
-  --admin-shadow-border:
-    0 8px 24px -18px rgba(69, 44, 145, 0.28), 0 20px 52px -38px rgba(69, 44, 145, 0.24);
-  --admin-shadow-border-hover:
-    0 10px 28px -18px rgba(91, 53, 196, 0.34), 0 28px 64px -38px rgba(69, 44, 145, 0.3);
-  --admin-shadow:
-    0 10px 30px -22px rgba(58, 39, 124, 0.24), 0 26px 72px -48px rgba(76, 48, 168, 0.3);
-  --admin-shadow-hover:
-    0 14px 34px -22px rgba(74, 43, 164, 0.3), 0 34px 82px -48px rgba(76, 48, 168, 0.36);
-  --admin-danger: #e11d48;
-  --admin-danger-soft: rgba(225, 29, 72, 0.1);
-  --admin-success: #059669;
-  --admin-success-soft: rgba(5, 150, 105, 0.1);
-  --admin-warning: #d97706;
-  --admin-warning-soft: rgba(217, 119, 6, 0.1);
-  color-scheme: light;
 }
 
 .admin-main {
@@ -6592,7 +6351,7 @@ body.admin-app-open {
   inset-block: 0.25rem;
   left: 0.25rem;
   width: calc((100% - 0.5rem) / 5);
-  border-radius: 16px;
+  border-radius: var(--admin-control-radius);
   background: var(--admin-nav-active-bg);
   box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--admin-nav-accent) 78%, transparent);
   pointer-events: none;
@@ -6663,7 +6422,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   inset: auto 0.5rem 0.5rem;
   max-height: min(68dvh, 34rem);
   padding-bottom: env(safe-area-inset-bottom);
-  border-radius: 24px;
+  border-radius: var(--admin-surface-radius);
   box-shadow: 0 24px 68px -26px rgba(0, 0, 0, 0.58);
 }
 .admin-notification-panel[data-placement="sidebar"] .admin-notification-scroll {
@@ -6681,7 +6440,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   min-height: 3rem;
   align-items: center;
   gap: 0.75rem;
-  border-radius: 14px;
+  border-radius: var(--admin-control-radius);
   padding: 0.75rem 0.875rem;
   color: var(--admin-ink);
   box-shadow: var(--admin-shadow-border);
@@ -6695,50 +6454,49 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   border-radius: 10px;
 }
 .admin-status-message--success {
-  background: color-mix(in srgb, var(--admin-surface) 92%, #16a34a 8%);
+  --status-color: var(--admin-success);
+  background: color-mix(in srgb, var(--admin-surface) 94%, var(--status-color));
   box-shadow:
-    inset 3px 0 0 #168449,
+    inset 3px 0 0 var(--status-color),
     var(--admin-shadow-border);
 }
 .admin-status-message--success .admin-status-message-icon {
-  background: color-mix(in srgb, var(--admin-surface) 80%, #16a34a 20%);
-  color: #0b6b3a;
+  background: color-mix(in srgb, var(--admin-surface) 92%, var(--status-color));
+  color: var(--admin-ink);
 }
 .admin-status-message--warning {
-  background: color-mix(in srgb, var(--admin-surface) 90%, #f59e0b 10%);
+  --status-color: var(--admin-warning);
+  background: color-mix(in srgb, var(--admin-surface) 94%, var(--status-color));
   box-shadow:
-    inset 3px 0 0 #b96808,
+    inset 3px 0 0 var(--status-color),
     var(--admin-shadow-border);
 }
 .admin-status-message--warning .admin-status-message-icon {
-  background: color-mix(in srgb, var(--admin-surface) 78%, #f59e0b 22%);
-  color: #874604;
+  background: color-mix(in srgb, var(--admin-surface) 92%, var(--status-color));
+  color: var(--admin-ink);
 }
 .admin-status-message--error {
-  background: color-mix(in srgb, var(--admin-surface) 91%, #e11d48 9%);
+  --status-color: var(--admin-danger);
+  background: color-mix(in srgb, var(--admin-surface) 94%, var(--status-color));
   box-shadow:
-    inset 3px 0 0 #be123c,
+    inset 3px 0 0 var(--status-color),
     var(--admin-shadow-border);
 }
 .admin-status-message--error .admin-status-message-icon {
-  background: color-mix(in srgb, var(--admin-surface) 79%, #e11d48 21%);
-  color: #9f1239;
+  background: color-mix(in srgb, var(--admin-surface) 92%, var(--status-color));
+  color: var(--admin-ink);
 }
 .admin-status-message--info {
-  background: color-mix(in srgb, var(--admin-surface) 92%, #2563eb 8%);
+  --status-color: var(--admin-accent);
+  background: color-mix(in srgb, var(--admin-surface) 94%, var(--status-color));
   box-shadow:
-    inset 3px 0 0 #2563eb,
+    inset 3px 0 0 var(--status-color),
     var(--admin-shadow-border);
 }
 .admin-status-message--info .admin-status-message-icon {
-  background: color-mix(in srgb, var(--admin-surface) 80%, #2563eb 20%);
-  color: #1d4ed8;
-}
-[data-theme="dark"] .admin-status-message-icon,
-[data-theme="signal"] .admin-status-message-icon {
+  background: color-mix(in srgb, var(--admin-surface) 92%, var(--status-color));
   color: var(--admin-ink);
 }
-
 [data-theme="frost"] .admin-sidebar,
 [data-theme="frost"] .admin-mobile-header {
   -webkit-backdrop-filter: blur(24px) saturate(1.15);
@@ -7026,7 +6784,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   width: 2.75rem;
   height: 2.75rem;
   place-items: center;
-  border-radius: 12px;
+  border-radius: var(--admin-control-radius);
   background: var(--admin-action);
   color: var(--admin-action-ink);
 }
@@ -7068,53 +6826,66 @@ body.admin-mobile-nav-open .admin-mobile-dock {
    neutral Tailwind utilities from before the shared operations palette. Map
    those leftover blacks only on interactive controls so layout panels keep
    their own tokens; this intentionally excludes status colors. */
-:is(.admin-shell, body.admin-dialog-open)
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
   :is(button, a, [type="submit"], [role="button"])[class~="bg-[#0b0b0b]"],
-:is(.admin-shell, body.admin-dialog-open)
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
   :is(button, a, [type="submit"], [role="button"])[class~="bg-[#0a0a0a]"],
-:is(.admin-shell, body.admin-dialog-open)
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
   :is(button, a, [type="submit"], [role="button"])[class~="bg-black"] {
   background-color: var(--admin-action);
   color: var(--admin-action-ink);
 }
-:is(.admin-shell, body.admin-dialog-open)
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
   :is(button, a, [type="submit"], [role="button"])[class~="hover:bg-[#252525]"]:hover {
   background-color: color-mix(in srgb, var(--admin-action) 86%, var(--admin-action-ink));
 }
-:is(.admin-shell, body.admin-dialog-open) [class*="bg-black/"] {
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open) [class*="bg-black/"] {
   background-color: color-mix(in srgb, var(--admin-ink) 4.5%, transparent);
 }
-:is(.admin-shell, body.admin-dialog-open) [class*="hover:bg-black/"]:hover {
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
+  [class*="hover:bg-black/"]:hover {
   background-color: color-mix(in srgb, var(--admin-ink) 7.5%, transparent);
 }
-:is(.admin-shell, body.admin-dialog-open) [class*="border-black/"] {
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open) [class*="border-black/"] {
   border-color: color-mix(in srgb, var(--admin-ink) 12%, transparent);
 }
-:is(.admin-shell, body.admin-dialog-open) [class~="bg-[#fbfbfa]"] {
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open) [class~="bg-[#fbfbfa]"] {
   background-color: var(--admin-surface);
   color: var(--admin-ink);
 }
-:is(.admin-shell, body.admin-dialog-open) [class~="text-[#0b0b0b]"] {
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open) [class~="text-[#0b0b0b]"] {
   color: var(--admin-ink);
 }
-:is([data-theme="signal"], [data-theme="studio"], [data-theme="frost"])
-  :is(.admin-shell, body.admin-dialog-open)
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
   [class~="bg-[var(--admin-ink)]"] {
   background-color: var(--admin-action);
   color: var(--admin-action-ink);
 }
-[data-theme="signal"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"],
-[data-theme="studio"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"],
-[data-theme="frost"] :is(.admin-shell, body.admin-dialog-open) [class~="bg-[#d7ff5f]"] {
+[data-theme="signal"]
+  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
+  [class~="bg-[#d7ff5f]"],
+[data-theme="studio"]
+  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
+  [class~="bg-[#d7ff5f]"],
+[data-theme="frost"]
+  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
+  [class~="bg-[#d7ff5f]"] {
   background-color: var(--admin-accent);
 }
-[data-theme="signal"] :is(.admin-shell, body.admin-dialog-open) [class~="text-[#d7ff5f]"],
-[data-theme="studio"] :is(.admin-shell, body.admin-dialog-open) [class~="text-[#d7ff5f]"],
-[data-theme="frost"] :is(.admin-shell, body.admin-dialog-open) [class~="text-[#d7ff5f]"] {
+[data-theme="signal"]
+  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
+  [class~="text-[#d7ff5f]"],
+[data-theme="studio"]
+  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
+  [class~="text-[#d7ff5f]"],
+[data-theme="frost"]
+  :is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open)
+  [class~="text-[#d7ff5f]"] {
   color: var(--admin-accent);
 }
 
 .admin-dialog-surface {
+  border-radius: var(--admin-surface-radius);
   box-shadow:
     0 0 0 1px rgba(11, 11, 11, 0.08),
     0 30px 80px -28px rgba(0, 0, 0, 0.5);
@@ -7177,7 +6948,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: var(--admin-control-radius);
   color: var(--admin-muted);
   transition-property: color, background-color, transform;
   transition-duration: 160ms;
@@ -7207,7 +6978,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   min-height: 42px;
   width: 100%;
   border: 1px solid color-mix(in srgb, var(--admin-ink) 13%, transparent);
-  border-radius: 10px;
+  border-radius: var(--admin-control-radius);
   background: var(--admin-surface-subtle);
   padding: 0 12px;
   color: var(--admin-ink);
@@ -7258,8 +7029,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   }
 
   .admin-route-frame[data-navigation-pending="true"] > .admin-route-stage {
-    opacity: 0.9;
-    transform: translateY(-2px);
+    opacity: 0.97;
   }
 
   .admin-route-stage {
@@ -7324,9 +7094,9 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 }
 .admin-skeleton-shape {
   display: block;
-  border-radius: 10px;
+  border-radius: var(--admin-control-radius);
   background: color-mix(in srgb, var(--admin-ink) 7%, var(--admin-surface));
-  animation: admin-skeleton-breathe 1.4s ease-in-out infinite;
+  animation: admin-skeleton-breathe 2.4s ease-in-out infinite;
 }
 
 .admin-composer {
@@ -7367,7 +7137,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 }
 
 .admin-composer-field::placeholder {
-  color: color-mix(in srgb, var(--admin-muted) 74%, transparent);
+  color: var(--admin-muted);
 }
 
 .admin-composer-action {
@@ -7553,4 +7323,223 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   .ui-entrance.in[data-entrance-kind="fade"] {
     animation: public-content-fade 520ms var(--ease) var(--entry-delay, 0s) both;
   }
+}
+
+/* Async reads enter only after an actually visible placeholder. Cached reads
+   participate in the route entrance once; refreshes never animate the page. */
+@keyframes admin-async-ready {
+  from {
+    opacity: 0.65;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .admin-async-reveal {
+    animation: admin-async-ready 180ms var(--ease-out) both;
+  }
+}
+.admin-shell :is(button, a, input, select, textarea, summary):focus-visible,
+.admin-overlay-token-scope :is(button, a, input, select, textarea, summary):focus-visible {
+  outline-color: var(--admin-action);
+}
+.admin-disclosure {
+  border-radius: var(--admin-surface-radius);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-card-flat-shadow);
+}
+.admin-disclosure > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.admin-disclosure > summary::before {
+  content: "›";
+  transition: transform 150ms var(--ease-out);
+}
+.admin-disclosure[open] > summary::before {
+  transform: rotate(90deg);
+}
+.admin-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.admin-health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 1px;
+  background: var(--admin-border);
+  border-top: 1px solid var(--admin-border);
+}
+.admin-health-grid > a {
+  background: var(--admin-surface);
+}
+
+.admin-theme-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--admin-control-radius);
+  background: var(--admin-surface);
+  color: var(--admin-ink);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--admin-shadow-border);
+  transition:
+    background-color 150ms var(--ease-out),
+    transform 150ms var(--ease-out);
+}
+.admin-theme-button:hover {
+  background: var(--admin-surface-subtle);
+}
+.admin-theme-button:active {
+  transform: scale(0.96);
+}
+.admin-theme-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.admin-shell :is(.admin-page-title, .admin-page-header h1) {
+  font-family: var(--admin-font);
+}
+
+/* Board geometry belongs to its container, never to the outer app padding. */
+.kanban-workspace {
+  min-width: 0;
+  container-type: inline-size;
+}
+.kanban-scroller {
+  min-width: 0;
+  scroll-padding-inline: 1px;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--admin-border) transparent;
+}
+.kanban-scroller.is-dragging {
+  scroll-snap-type: none;
+  scroll-behavior: auto;
+}
+.kanban-column {
+  width: min(340px, calc(100cqw - 24px));
+}
+.kanban-column-body {
+  background: color-mix(in srgb, var(--admin-ink) 2.5%, var(--admin-canvas));
+}
+.kanban-column-over {
+  background: var(--admin-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--admin-accent);
+}
+.kanban-column-items {
+  overflow: visible;
+}
+.kanban-sortable[data-dragging="true"] {
+  opacity: 0.22;
+}
+.kanban-workspace[data-drag-active="true"] .kanban-business-card {
+  transition: none;
+}
+.kanban-grip {
+  cursor: grab;
+}
+.kanban-grip:hover {
+  background: var(--admin-surface-subtle);
+}
+.kanban-grip:active {
+  cursor: grabbing;
+}
+.kanban-grip:disabled {
+  cursor: default;
+}
+.kanban-slot {
+  position: relative;
+}
+.kanban-slot[data-insertion]::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  background: var(--admin-accent);
+  border-radius: 1px;
+  pointer-events: none;
+}
+.kanban-slot[data-insertion="before"]::after {
+  top: -7px;
+}
+.kanban-slot[data-insertion="after"]::after {
+  bottom: -7px;
+}
+.pipeline-toolbar {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--admin-border);
+}
+.pipeline-search-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pipeline-search-row > label {
+  flex: 1;
+  max-width: 440px;
+}
+.pipeline-search-row > [role="group"] {
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .kanban-column {
+    width: clamp(300px, calc((100cqw - 32px) / 3), 340px);
+  }
+  .kanban-column-items {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    max-height: max(320px, calc(100dvh - 280px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kanban-sortable,
+  .admin-disclosure > summary::before {
+    transition: none !important;
+  }
+}
+
+@keyframes admin-placeholder-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.admin-loading-placeholder {
+  min-width: 0;
+  animation: admin-placeholder-in 140ms ease-out 120ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-loading-placeholder {
+    animation-duration: 0ms;
+  }
+}
+
+.admin-overlay-token-scope {
+  font-family: var(--admin-font);
+  color: var(--admin-ink);
+}
+
+/* Placeholder instructions remain readable in every workspace appearance. */
+:is(.admin-shell, .admin-overlay-token-scope) :is(input, textarea)::placeholder {
+  color: var(--admin-muted);
+  opacity: 1;
 }

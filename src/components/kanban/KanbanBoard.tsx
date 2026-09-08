@@ -10,9 +10,15 @@ import {
   type Announcements,
   type CollisionDetection,
 } from "@dnd-kit/core";
-import { useKanbanDnd, type KanbanReorderUpdate } from "@/lib/kanban/useKanbanDnd";
+import {
+  useKanbanDnd,
+  type KanbanStageMoveResult,
+  type KanbanReorderUpdate,
+} from "@/lib/kanban/useKanbanDnd";
 import type { KanbanColumnMetadata, KanbanColumnRecord } from "@/lib/kanban/types";
 import { cn } from "@/lib/utils";
+import { createPortal } from "react-dom";
+import { useReducedMotion } from "framer-motion";
 import { AddColumnInline } from "./AddColumnInline";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanColumnPager } from "./KanbanColumnPager";
@@ -38,7 +44,12 @@ export interface KanbanBoardProps<T> {
   /** Optional veto for cross-column moves (e.g. Pipeline's stage-transition
    * rules). Omit it and cross-column drags behave exactly like same-column
    * ones — straight through to `onReorder`. */
-  onCrossColumnMove?: (item: T, fromColumnKey: string, toColumnKey: string) => Promise<boolean>;
+  onCrossColumnMove?: (
+    item: T,
+    fromColumnKey: string,
+    toColumnKey: string,
+  ) => Promise<KanbanStageMoveResult>;
+  onReconcile?: () => Promise<T[]>;
   dragDisabled?: boolean;
   dragDisabledReason?: string;
   emptyColumnHint?: string;
@@ -78,6 +89,7 @@ export function KanbanBoard<T>({
   renderCardOverlay,
   onReorder,
   onCrossColumnMove,
+  onReconcile,
   dragDisabled = false,
   dragDisabledReason,
   emptyColumnHint,
@@ -92,6 +104,7 @@ export function KanbanBoard<T>({
   className,
   footer,
 }: KanbanBoardProps<T>) {
+  const reducedMotion = useReducedMotion();
   const {
     getColumnItems,
     sensors,
@@ -101,6 +114,10 @@ export function KanbanBoard<T>({
     handleDragOver,
     handleDragEnd,
     cancelDrag,
+    saving,
+    saveError,
+    reconcile,
+    insertion,
   } = useKanbanDnd<T>({
     items,
     columns,
@@ -111,6 +128,7 @@ export function KanbanBoard<T>({
     onReorder,
     onCrossColumnMove,
     disabled: dragDisabled,
+    onReconcile,
   });
 
   // closestCorners alone misresolves a drag into an EMPTY column that sits
@@ -123,8 +141,22 @@ export function KanbanBoard<T>({
   // closestCorners only when the pointer isn't within any droppable (e.g.
   // a gap/padding sliver mid-drag).
   const collisionDetection: CollisionDetection = useCallback((args) => {
-    const pointerCollisions = pointerWithin(args);
-    return pointerCollisions.length > 0 ? pointerCollisions : closestCorners(args);
+    if (!args.pointerCoordinates)
+      return closestCorners({
+        ...args,
+        droppableContainers: args.droppableContainers.filter(
+          (container) =>
+            container.data.current?.type === "card" ||
+            !container.node.current?.querySelector("[data-kanban-card]"),
+        ),
+      });
+    const hits = pointerWithin(args);
+    const cards = hits.filter(
+      (hit) =>
+        args.droppableContainers.find((container) => container.id === hit.id)?.data.current
+          ?.type === "card",
+    );
+    return cards.length ? cards : hits;
   }, []);
 
   // Same stability rule as `accessibility` below: never hand DndContext a
@@ -173,9 +205,9 @@ export function KanbanBoard<T>({
         const overId = String(over.id);
         if (overId.startsWith("column:")) {
           const label = columnLabelByKey.get(overId.slice("column:".length)) ?? "the column";
-          return `${labelOf(active.id)} was dropped into ${label}.`;
+          return `${labelOf(active.id)} was dropped into ${label}. Saving position.`;
         }
-        return `${labelOf(active.id)} was dropped. The board now shows the new order.`;
+        return `${labelOf(active.id)} was dropped. Saving position.`;
       },
       onDragCancel({ active }) {
         return `${labelOf(active.id)} was not moved. No changes were made.`;
@@ -223,7 +255,10 @@ export function KanbanBoard<T>({
     const section = root?.querySelector<HTMLElement>(`[aria-labelledby="column-${columnKey}"]`);
     if (root && section) {
       const delta = section.getBoundingClientRect().left - root.getBoundingClientRect().left;
-      root.scrollTo({ left: Math.max(0, root.scrollLeft + delta - 8), behavior: "smooth" });
+      root.scrollTo({
+        left: Math.max(0, root.scrollLeft + delta - 8),
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
     }
     setActiveColumnKey(columnKey);
   }, []);
@@ -240,7 +275,27 @@ export function KanbanBoard<T>({
   );
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div
+      className={cn("kanban-workspace space-y-3", className)}
+      data-saving={saving || undefined}
+      data-drag-active={!!activeId || undefined}
+      aria-busy={saving}
+    >
+      {saveError && (
+        <div role="alert" className="rounded-lg bg-[var(--admin-warning-soft)] p-3 text-sm">
+          {saveError}{" "}
+          <button
+            type="button"
+            className="min-h-11 px-3 font-semibold underline"
+            onClick={() => void reconcile()}
+          >
+            Refresh board
+          </button>
+        </div>
+      )}
+      <span className="sr-only" role="status">
+        {saving ? "Saving card position" : ""}
+      </span>
       {dragDisabled && dragDisabledReason && (
         <p className="rounded-lg bg-[var(--admin-warning-soft)] px-3 py-2 text-xs font-medium text-[var(--admin-ink)]">
           {dragDisabledReason}
@@ -256,10 +311,11 @@ export function KanbanBoard<T>({
         sensors={sensors}
         collisionDetection={collisionDetection}
         measuring={measuring}
-        autoScroll
+        autoScroll={{ threshold: { x: 0.12, y: 0.12 }, acceleration: 5 }}
         accessibility={accessibility}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
+        onDragMove={handleDragOver}
         onDragCancel={cancelDrag}
         onDragEnd={(event) => void handleDragEnd(event)}
       >
@@ -267,16 +323,8 @@ export function KanbanBoard<T>({
           <div
             ref={scrollerRef}
             className={cn(
-              "-mx-4 flex gap-3 overflow-x-auto px-4 pb-5",
-              "sm:-mx-6 sm:px-6",
-              "lg:-mx-8 lg:px-8",
-              "xl:-mx-10 xl:px-10",
-              "scroll-smooth snap-x snap-mandatory md:snap-none overscroll-x-contain",
-              "[scrollbar-width:thin] [scrollbar-color:var(--admin-border)_transparent]",
-              "[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:bg-transparent",
-              "[&::-webkit-scrollbar-track]:bg-transparent",
-              "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--admin-border)]",
-              activeId ? "snap-none" : "",
+              "kanban-scroller flex gap-4 overflow-x-auto pb-4",
+              activeId ? "is-dragging" : "",
             )}
             role="region"
             aria-label="Kanban board"
@@ -289,7 +337,9 @@ export function KanbanBoard<T>({
                 items={getColumnItems(column.column_key)}
                 getItemId={getItemId}
                 renderCard={renderCard}
-                dragDisabled={dragDisabled}
+                dragDisabled={dragDisabled || saving || !!saveError}
+                busy={saving || !!saveError}
+                insertion={insertion}
                 emptyHint={emptyColumnHint}
                 onRename={
                   onRenameColumn ? (label) => onRenameColumn(column.column_key, label) : undefined
@@ -319,18 +369,36 @@ export function KanbanBoard<T>({
             )}
           </div>
         </div>
-        <DragOverlay adjustScale={false} dropAnimation={null}>
-          {activeItem
-            ? renderCardOverlay
-              ? renderCardOverlay(activeItem)
-              : renderCard(activeItem, {
-                  isDragging: true,
-                  isOverlay: true,
-                  disabled: true,
-                  dragHandleProps: {},
-                })
-            : null}
-        </DragOverlay>
+        {typeof document !== "undefined" &&
+          createPortal(
+            <DragOverlay
+              adjustScale={false}
+              dropAnimation={
+                reducedMotion ? null : { duration: 180, easing: "cubic-bezier(.2,0,0,1)" }
+              }
+            >
+              {activeItem ? (
+                <div
+                  className="admin-overlay-token-scope"
+                  data-kanban-overlay
+                  inert
+                  aria-hidden="true"
+                >
+                  {activeItem
+                    ? renderCardOverlay
+                      ? renderCardOverlay(activeItem)
+                      : renderCard(activeItem, {
+                          isDragging: true,
+                          isOverlay: true,
+                          disabled: true,
+                          dragHandleProps: {},
+                        })
+                    : null}
+                </div>
+              ) : null}
+            </DragOverlay>,
+            document.body,
+          )}
       </DndContext>
       {footer}
     </div>

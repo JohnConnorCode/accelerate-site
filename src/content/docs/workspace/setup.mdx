@@ -63,3 +63,9 @@ Maya wants the workspace to retain the text of an approved “Customer onboardin
 4. If the folder also contains a PDF, expect an unsupported metadata record. Do not interpret that result as the PDF's text being available to AI.
 
 If a run is incomplete, retain the run details and check its limits and access errors before retrying. This verifies source processing; test the particular search or AI workflow separately before relying on it to answer from the document.
+
+## If setup reports missing database changes
+
+Ask the installation administrator to apply the current release's migrations and record a fresh schema verification. The check must match the version of the application you are using. It now includes the fields and protected operations required for private Site Studio drafts, campaign copies, bulk enrollment and delivery handoff.
+
+For example, a workspace can still display its contacts while a missing draft revision field prevents Site Studio from saving. Keep the feature's error details, finish the named setup step, and retry the original operation after verification succeeds. A working contact list alone does not establish that every feature is ready.

@@ -1,25 +1,63 @@
 "use client";
-
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import {
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
+  type KeyboardCoordinateGetter,
 } from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+/** Keyboard movement targets cards or empty columns, never a populated column's frame. */
+const kanbanKeyboardCoordinates: KeyboardCoordinateGetter = (event, { context }) => {
+  const { collisionRect, droppableContainers, droppableRects } = context;
+  if (!collisionRect || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code))
+    return;
+  event.preventDefault();
+  const horizontal = event.code === "ArrowLeft" || event.code === "ArrowRight";
+  const forward = event.code === "ArrowRight" || event.code === "ArrowDown";
+  const candidates = droppableContainers
+    .getEnabled()
+    .flatMap((container) => {
+      const rect = droppableRects.get(container.id);
+      if (
+        !rect ||
+        (container.data.current?.type !== "card" &&
+          container.node.current?.querySelector("[data-kanban-card]"))
+      )
+        return [];
+      const delta = horizontal ? rect.left - collisionRect.left : rect.top - collisionRect.top;
+      if (forward ? delta < 2 : delta > -2) return [];
+      if (!horizontal && Math.abs(rect.left - collisionRect.left) > collisionRect.width / 2)
+        return [];
+      return [
+        {
+          rect,
+          distance:
+            Math.abs(delta) + (horizontal ? Math.abs(rect.top - collisionRect.top) * 0.1 : 0),
+        },
+      ];
+    })
+    .sort((a, b) => a.distance - b.distance);
+  const target = candidates[0]?.rect;
+  return target
+    ? { x: target.left, y: target.top + (target.height - collisionRect.height) / 2 }
+    : undefined;
+};
 import { toast } from "@/lib/admin/useToast";
 import type { KanbanColumnRecord } from "./types";
+import { moveKanbanItem } from "./position";
 
 export interface KanbanReorderUpdate {
   id: string;
   column_key: string;
   sort_order: number;
 }
-
+export type KanbanStageMoveResult = boolean | { status: "committed" | "rejected" };
 export interface UseKanbanDndOptions<T> {
   items: T[];
   columns: KanbanColumnRecord[];
@@ -28,24 +66,15 @@ export interface UseKanbanDndOptions<T> {
   getItemSortOrder: (item: T) => number;
   setItemPosition: (item: T, columnKey: string, sortOrder: number) => T;
   onReorder: (updates: KanbanReorderUpdate[]) => Promise<void>;
-  /**
-   * Optional veto for a cross-column move (Pipeline's stage-transition
-   * rules). Same-column drags always go straight to `onReorder`. A
-   * cross-column drag calls this first; a `false`/thrown result rolls the
-   * optimistic move back and never calls `onReorder`.
-   */
-  onCrossColumnMove?: (item: T, fromColumnKey: string, toColumnKey: string) => Promise<boolean>;
+  /** Boolean results validate only. `committed` means a separate stage write succeeded. */
+  onCrossColumnMove?: (
+    item: T,
+    fromColumnKey: string,
+    toColumnKey: string,
+  ) => Promise<KanbanStageMoveResult>;
+  onReconcile?: () => Promise<T[]>;
   disabled?: boolean;
 }
-
-/**
- * Generalizes the Feature Board's proven `previewMove`/sensors/rollback DnD
- * state machine (src/app/admin/features/page.tsx) so any board can plug in
- * getter/setter callbacks instead of hardcoded `.status`/`.sort_order`
- * fields. Keeps its own local mirror of `items`, kept in sync with the
- * caller's `items` prop whenever a drag isn't in flight, so optimistic
- * preview during a drag never fights a parent re-render.
- */
 export function useKanbanDnd<T>({
   items,
   columns,
@@ -55,207 +84,251 @@ export function useKanbanDnd<T>({
   setItemPosition,
   onReorder,
   onCrossColumnMove,
+  onReconcile,
   disabled = false,
 }: UseKanbanDndOptions<T>) {
-  const [localItems, setLocalItems] = useState<T[]>(items);
+  const reducedMotion = useReducedMotion();
+  const [localItems, setLocalItems] = useState(items);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const draggingRef = useRef(false);
-  const snapshotRef = useRef<T[] | null>(null);
-  const lastOverRef = useRef<string | null>(null);
-
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const working = useRef(items),
+    incoming = useRef(items),
+    snapshot = useRef<T[] | null>(null),
+    locked = useRef(false);
+  const keyboardDrag = useRef(false);
+  const placement = useRef<{ column: string; anchor: string | null; after: boolean } | null>(null);
+  const [insertion, setInsertion] = useState<{ id: string; after: boolean } | null>(null);
   useEffect(() => {
-    if (!draggingRef.current) setLocalItems(items);
+    incoming.current = items;
+    if (!locked.current) {
+      working.current = items;
+      setLocalItems(items);
+      setSaveError("");
+    }
   }, [items]);
-
-  const columnKeys = columns.map((column) => column.column_key);
-  const columnLabel = useCallback(
-    (columnKey: string) =>
-      columns.find((column) => column.column_key === columnKey)?.label ?? columnKey,
-    [columns],
-  );
-
+  const update = (next: T[]) => {
+    working.current = next;
+    setLocalItems(next);
+  };
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: kanbanKeyboardCoordinates,
+      scrollBehavior: reducedMotion ? "auto" : "smooth",
+    }),
   );
-
-  const sortByColumn = useCallback(
-    (columnKey: string, list: T[]) =>
-      [...list.filter((item) => getItemColumnKey(item) === columnKey)].sort(
-        (a, b) => getItemSortOrder(a) - getItemSortOrder(b),
-      ),
-    [getItemColumnKey, getItemSortOrder],
-  );
-
-  const previewMove = useCallback(
-    (current: T[], activeItemId: string, overId: string): T[] => {
-      const active = current.find((item) => getItemId(item) === activeItemId);
-      if (!active) return current;
-      const overItem = current.find((item) => getItemId(item) === overId);
-      const targetColumn = overId.startsWith("column:")
-        ? overId.slice("column:".length)
-        : overItem
-          ? getItemColumnKey(overItem)
-          : undefined;
-      if (!targetColumn) return current;
-      const sourceColumn = getItemColumnKey(active);
-      const source = sortByColumn(sourceColumn, current);
-      const target = sourceColumn === targetColumn ? source : sortByColumn(targetColumn, current);
-      let moved: T[];
-      if (sourceColumn === targetColumn) {
-        const from = source.findIndex((item) => getItemId(item) === activeItemId);
-        const to = overItem
-          ? source.findIndex((item) => getItemId(item) === getItemId(overItem))
-          : source.length - 1;
-        if (from < 0 || to < 0 || from === to) return current;
-        moved = arrayMove(source, from, to);
-      } else {
-        const insertion = overItem
-          ? target.findIndex((item) => getItemId(item) === getItemId(overItem))
-          : target.length;
-        const cleanSource = source.filter((item) => getItemId(item) !== activeItemId);
-        const cleanTarget = [...target];
-        cleanTarget.splice(Math.max(0, insertion), 0, setItemPosition(active, targetColumn, 0));
-        moved = [...cleanSource, ...cleanTarget];
-      }
-      const affected = new Set([sourceColumn, targetColumn]);
-      const normalized = columnKeys.flatMap((key) =>
-        affected.has(key)
-          ? moved
-              .filter((item) => getItemColumnKey(item) === key)
-              .map((item, index) => setItemPosition(item, key, (index + 1) * 1000))
-          : [],
-      );
-      const map = new Map(normalized.map((item) => [getItemId(item), item]));
-      return current.map((item) => map.get(getItemId(item)) ?? item);
-    },
-    [columnKeys, getItemColumnKey, getItemId, setItemPosition, sortByColumn],
-  );
-
-  const handleDragStart = useCallback(
-    ({ active }: DragStartEvent) => {
-      if (disabled) return;
-      draggingRef.current = true;
-      snapshotRef.current = localItems;
-      lastOverRef.current = null;
-      setActiveId(String(active.id));
-    },
-    [disabled, localItems],
-  );
-
-  const handleDragOver = useCallback(
-    ({ active, over }: DragOverEvent) => {
-      if (!over || disabled) return;
-      const overId = String(over.id);
-      if (lastOverRef.current === overId) return;
-      lastOverRef.current = overId;
-      setLocalItems((current) => previewMove(current, String(active.id), overId));
-    },
-    [disabled, previewMove],
-  );
-
-  const cancelDrag = useCallback(() => {
-    const snapshot = snapshotRef.current;
-    if (snapshot) setLocalItems(snapshot);
-    snapshotRef.current = null;
-    lastOverRef.current = null;
-    draggingRef.current = false;
+  const sort = (column: string, list: T[]) =>
+    list
+      .filter((item) => getItemColumnKey(item) === column)
+      .sort((a, b) => getItemSortOrder(a) - getItemSortOrder(b));
+  const handleDragStart = ({ active, activatorEvent }: DragStartEvent) => {
+    if (disabled || locked.current || saveError) return;
+    locked.current = true;
+    keyboardDrag.current = activatorEvent instanceof KeyboardEvent;
+    snapshot.current = working.current;
+    setActiveId(String(active.id));
+    setInsertion(null);
+    placement.current = null;
+  };
+  const handleDragOver = ({ active, over }: DragOverEvent) => {
+    if (!over) {
+      placement.current = null;
+      setInsertion(null);
+      return;
+    }
+    if (!snapshot.current || disabled) return;
+    const id = String(over.id);
+    if (id === String(active.id)) {
+      placement.current = null;
+      setInsertion(null);
+      return;
+    }
+    const target = working.current.find((item) => getItemId(item) === id);
+    const column = id.startsWith("column:")
+      ? id.slice(7)
+      : target
+        ? getItemColumnKey(target)
+        : null;
+    if (!column || !columns.some((c) => c.column_key === column)) return;
+    const rect = active.rect.current.translated;
+    const center = rect ? rect.top + rect.height / 2 : 0,
+      midpoint = over.rect.top + over.rect.height / 2;
+    const source = working.current.find((item) => getItemId(item) === String(active.id));
+    const keyboardAfter =
+      !!target &&
+      !!source &&
+      getItemColumnKey(source) === column &&
+      sort(column, working.current).findIndex((item) => getItemId(item) === id) >
+        sort(column, working.current).findIndex((item) => getItemId(item) === String(active.id));
+    const after = keyboardDrag.current
+      ? keyboardAfter
+      : !!target &&
+        !!rect &&
+        (center > midpoint + 1 ||
+          (Math.abs(center - midpoint) <= 1 &&
+            over.rect.top > (active.rect.current.initial?.top ?? over.rect.top)));
+    setInsertion((previous) =>
+      previous?.id === id && previous.after === after ? previous : { id, after },
+    );
+    placement.current = { column, anchor: target ? id : null, after };
+  };
+  const cancelDrag = () => {
+    if (snapshot.current) update(incoming.current);
+    snapshot.current = null;
+    placement.current = null;
+    locked.current = false;
     setActiveId(null);
-  }, []);
-
-  const handleDragEnd = useCallback(
-    async ({ active, over }: DragEndEvent) => {
-      setActiveId(null);
-      const snapshot = snapshotRef.current;
-      snapshotRef.current = null;
-      lastOverRef.current = null;
-      draggingRef.current = false;
-
-      if (!over || disabled || !snapshot) {
-        if (snapshot) setLocalItems(snapshot);
-        return;
-      }
-
-      const activeItemId = String(active.id);
-      const beforeItem = snapshot.find((item) => getItemId(item) === activeItemId);
-      const afterItem = localItems.find((item) => getItemId(item) === activeItemId);
-      if (!beforeItem || !afterItem) return;
-
-      const beforeColumn = getItemColumnKey(beforeItem);
-      const afterColumn = getItemColumnKey(afterItem);
-      const affected = new Set([beforeColumn, afterColumn]);
-      const normalized = columnKeys.flatMap((key) =>
-        affected.has(key)
-          ? sortByColumn(key, localItems).map((item, index) =>
-              setItemPosition(item, key, (index + 1) * 1000),
-            )
-          : [],
+    setInsertion(null);
+  };
+  const reconcile = useCallback(async () => {
+    if (!onReconcile) return;
+    setSaving(true);
+    locked.current = true;
+    try {
+      const latest = await onReconcile();
+      working.current = latest;
+      setLocalItems(latest);
+      setSaveError("");
+    } catch {
+      setSaveError(
+        "The saved position could not be checked. Refresh the board before moving another card.",
       );
-      const unchanged = normalized.every((item) => {
-        const original = snapshot.find((entry) => getItemId(entry) === getItemId(item));
+    } finally {
+      locked.current = false;
+      setSaving(false);
+    }
+  }, [onReconcile]);
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    const before = snapshot.current;
+    setActiveId(null);
+    setInsertion(null);
+    snapshot.current = null;
+    if (!before || !over || disabled) {
+      if (before) update(before);
+      locked.current = false;
+      return;
+    }
+    const fresh = incoming.current;
+    if (
+      fresh.length !== before.length ||
+      fresh.some((item) => {
+        const prior = before.find((previous) => getItemId(previous) === getItemId(item));
         return (
-          original &&
-          getItemColumnKey(original) === getItemColumnKey(item) &&
-          getItemSortOrder(original) === getItemSortOrder(item)
+          !prior ||
+          getItemColumnKey(prior) !== getItemColumnKey(item) ||
+          !Object.is(getItemSortOrder(prior), getItemSortOrder(item))
         );
-      });
-      if (unchanged) return;
-
-      const map = new Map(normalized.map((item) => [getItemId(item), item]));
-      setLocalItems((current) => current.map((item) => map.get(getItemId(item)) ?? item));
-
-      const crossColumn = beforeColumn !== afterColumn;
-      try {
-        if (crossColumn && onCrossColumnMove) {
-          const allowed = await onCrossColumnMove(afterItem, beforeColumn, afterColumn);
-          if (!allowed) throw new Error("Move was not allowed");
+      })
+    ) {
+      update(fresh);
+      locked.current = false;
+      placement.current = null;
+      toast.error(
+        "The board changed while you were dragging. Review its current position and try again.",
+      );
+      return;
+    }
+    const target = placement.current;
+    placement.current = null;
+    if (target)
+      update(
+        moveKanbanItem(before, String(active.id), target.column, target.anchor, target.after, {
+          id: getItemId,
+          column: getItemColumnKey,
+          order: getItemSortOrder,
+          position: setItemPosition,
+        }),
+      );
+    const id = String(active.id),
+      original = before.find((item) => getItemId(item) === id),
+      moved = working.current.find((item) => getItemId(item) === id);
+    if (!original || !moved) {
+      locked.current = false;
+      return;
+    }
+    const from = getItemColumnKey(original),
+      to = getItemColumnKey(moved);
+    const changed = working.current.filter((item) => {
+      const prior = before.find((p) => getItemId(p) === getItemId(item));
+      return (
+        prior &&
+        (getItemColumnKey(prior) !== getItemColumnKey(item) ||
+          !Object.is(getItemSortOrder(prior), getItemSortOrder(item)))
+      );
+    });
+    if (!changed.length) {
+      locked.current = false;
+      return;
+    }
+    const affected = new Set([from, to]);
+    const updates = columns
+      .filter((c) => affected.has(c.column_key))
+      .flatMap((c) => sort(c.column_key, working.current))
+      .map((item) => ({
+        id: getItemId(item),
+        column_key: getItemColumnKey(item),
+        sort_order: getItemSortOrder(item),
+      }));
+    let stageCommitted = false;
+    setSaving(true);
+    setSaveError("");
+    try {
+      if (from !== to && onCrossColumnMove) {
+        const result = await onCrossColumnMove(moved, from, to);
+        if (result === false || (typeof result === "object" && result.status === "rejected")) {
+          update(incoming.current);
+          return;
         }
-        await onReorder(
-          normalized.map((item) => ({
-            id: getItemId(item),
-            column_key: getItemColumnKey(item),
-            sort_order: getItemSortOrder(item),
-          })),
-        );
-        toast.success(crossColumn ? `Moved to ${columnLabel(afterColumn)}` : "Order saved");
-      } catch (error) {
-        setLocalItems(snapshot);
-        toast.error(error instanceof Error ? error.message : "Could not save the new position.");
+        stageCommitted = typeof result === "object" && result.status === "committed";
       }
-    },
-    [
-      columnKeys,
-      columnLabel,
-      disabled,
-      getItemColumnKey,
-      getItemId,
-      getItemSortOrder,
-      localItems,
-      onCrossColumnMove,
-      onReorder,
-      setItemPosition,
-      sortByColumn,
-    ],
-  );
-
-  const activeItem = activeId
-    ? (localItems.find((item) => getItemId(item) === activeId) ?? null)
-    : null;
-
-  const getColumnItems = useCallback(
-    (columnKey: string) => sortByColumn(columnKey, localItems),
-    [localItems, sortByColumn],
-  );
-
+      await onReorder(updates);
+      if (onReconcile) update(await onReconcile());
+      toast.success(
+        from === to
+          ? "Order saved"
+          : `Moved to ${columns.find((c) => c.column_key === to)?.label ?? to}`,
+      );
+    } catch (cause) {
+      if (onReconcile) {
+        try {
+          update(await onReconcile());
+        } catch {
+          setSaveError(
+            "The saved position could not be checked. Refresh the board before moving another card.",
+          );
+        }
+      } else if (!stageCommitted) update(before);
+      else
+        setSaveError(
+          "The stage changed, but the order could not be saved. Refresh before moving another card.",
+        );
+      toast.error(
+        stageCommitted
+          ? "Stage changed; order could not be saved. The board is checking the saved position."
+          : cause instanceof Error
+            ? cause.message
+            : "Could not save the new position.",
+      );
+    } finally {
+      locked.current = false;
+      setSaving(false);
+    }
+  };
   return {
     items: localItems,
     sensors,
     activeId,
-    activeItem,
-    getColumnItems,
+    activeItem: activeId ? (localItems.find((item) => getItemId(item) === activeId) ?? null) : null,
+    getColumnItems: (key: string) => sort(key, localItems),
     handleDragStart,
     handleDragOver,
     handleDragEnd,
     cancelDrag,
+    saving,
+    saveError,
+    reconcile,
+    insertion,
   };
 }

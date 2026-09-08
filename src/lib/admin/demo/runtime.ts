@@ -11,6 +11,7 @@ import {
   prepareOperatorTaskPatch,
   type OperatorTaskPatchInput,
 } from "@/lib/revenue-os/operator-task-patch";
+import { requireReopenEligibility } from "@/lib/revenue-os/pipeline-transition-policy";
 import { demoRadarProfile } from "./radar-fixtures";
 import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
@@ -117,6 +118,9 @@ export type DemoState = {
   completedTasks: string[];
   taskOverrides: Record<string, Partial<OperatorTaskPatchInput> & { completed_at?: string | null }>;
   stageOverrides: Record<string, string>;
+  opportunityOrder: Record<string, number>;
+  contentOverrides: Record<string, Record<string, unknown>>;
+  deletedContentIds: string[];
   opportunityOverrides: Record<
     string,
     {
@@ -152,6 +156,9 @@ export const initialState = (): DemoState => ({
   completedTasks: [],
   taskOverrides: {},
   stageOverrides: {},
+  opportunityOrder: {},
+  contentOverrides: {},
+  deletedContentIds: [],
   opportunityOverrides: {},
   clientOverrides: {},
   generatedAiRuns: [],
@@ -219,6 +226,7 @@ function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
       email: contact.email,
       stage,
       canonical_stage: stage,
+      sort_order: state.opportunityOrder[item.id] ?? (index + 1) * 1000,
       estimated_value: estimatedValue,
       won_value: stage === "won" ? estimatedValue : 0,
       probability:
@@ -1912,9 +1920,10 @@ function clients(pack: DemoScenarioPack, state: DemoState, requestedId?: string 
   };
 }
 
-function contentItems(pack: DemoScenarioPack) {
-  return pack.content.contentTitles.map((title, index) => ({
+function contentItems(pack: DemoScenarioPack, state: DemoState) {
+  const seeded = pack.content.contentTitles.map((title, index) => ({
     id: `content-${index}`,
+    sort_order: (index + 1) * 1000,
     title,
     slug: `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${index}`,
     status: ["idea", "outline", "draft", "review", "published"][index % 5]!,
@@ -1931,7 +1940,12 @@ function contentItems(pack: DemoScenarioPack) {
     word_count_target: 900 + index * 100,
     created_at: ago(240 + index * 24),
     updated_at: ago(index * 5 + 1),
+    ...(state.contentOverrides[`content-${index}`] ?? {}),
   }));
+  const created = Object.entries(state.contentOverrides)
+    .filter(([id]) => id.startsWith("content-new-"))
+    .map(([id, patch]) => ({ ...seeded[0]!, ...patch, id }));
+  return [...seeded, ...created].filter((item) => !state.deletedContentIds.includes(item.id));
 }
 
 function featureBoard(pack: DemoScenarioPack, state: DemoState) {
@@ -2687,7 +2701,61 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (method === "GET" && path === "/api/admin/clients")
       return jsonResponse(clients(pack, state, url.searchParams.get("id")));
     if (method === "GET" && path === "/api/admin/content")
-      return jsonResponse({ items: contentItems(pack) });
+      return jsonResponse({ items: contentItems(pack, state) });
+    if (path === "/api/admin/content" && method !== "GET") {
+      const rows = contentItems(pack, state);
+      const validStatuses = new Set(
+        KANBAN_DEFAULT_COLUMNS.content.map((column) => column.column_key),
+      );
+      if (Array.isArray(body.reorder)) {
+        const updates = body.reorder as Array<{
+          id: string;
+          column_key: string;
+          sort_order: number;
+        }>;
+        if (
+          !updates.length ||
+          updates.length > 250 ||
+          updates.some(
+            (u) =>
+              !rows.some((row) => row.id === u.id) ||
+              !validStatuses.has(u.column_key) ||
+              !Number.isFinite(u.sort_order),
+          )
+        )
+          return jsonResponse({ error: "Invalid content reorder" }, 400);
+        for (const update of updates)
+          state.contentOverrides[update.id] = {
+            ...state.contentOverrides[update.id],
+            status: update.column_key,
+            sort_order: update.sort_order,
+          };
+      } else if (method === "DELETE") {
+        const id = url.searchParams.get("id") ?? "";
+        if (!rows.some((row) => row.id === id))
+          return jsonResponse({ error: "Content not found" }, 404);
+        state.deletedContentIds.push(id);
+      } else {
+        const id = method === "POST" ? `content-new-${crypto.randomUUID()}` : String(body.id ?? "");
+        if (method !== "POST" && !rows.some((row) => row.id === id))
+          return jsonResponse({ error: "Content not found" }, 404);
+        if (
+          typeof body.title !== "string" ||
+          !body.title.trim() ||
+          !validStatuses.has(String(body.status))
+        )
+          return jsonResponse({ error: "A title and valid status are required" }, 400);
+        state.contentOverrides[id] = {
+          ...state.contentOverrides[id],
+          ...body,
+          id,
+          updated_at: new Date().toISOString(),
+        };
+      }
+      saveState(scenarioId, state);
+      window.dispatchEvent(new Event("admin:demo-state"));
+      return jsonResponse({ success: true, simulated: true });
+    }
     if (method === "GET" && path === "/api/admin/kanban/columns") {
       const board = url.searchParams.get("board_key");
       if (!isKanbanBoardKey(board)) return jsonResponse({ error: "Invalid board" }, 400);
@@ -3342,8 +3410,88 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({ simulated: true, decision: body.decision, actionId: action.id });
     }
     if (method !== "GET") {
-      if (path === "/api/admin/revenue-os/pipeline" && body.id && body.stage)
-        state.stageOverrides[String(body.id)] = String(body.stage);
+      if (path === "/api/admin/revenue-os/pipeline") {
+        const rows = opportunityRows(pack, state);
+        if (Array.isArray(body.reorder)) {
+          const updates = body.reorder as Array<{
+            id: string;
+            column_key: string;
+            sort_order: number;
+          }>;
+          if (
+            !updates.length ||
+            updates.length > 250 ||
+            new Set(updates.map((u) => u.id)).size !== updates.length ||
+            updates.some((update) => {
+              const current = rows.find((row) => row.id === update.id);
+              return (
+                !current ||
+                current.canonical_stage !== update.column_key ||
+                !Number.isFinite(update.sort_order)
+              );
+            })
+          )
+            return jsonResponse(
+              { error: "Every reordered card needs its current stage and a valid order" },
+              400,
+            );
+          for (const update of updates) state.opportunityOrder[update.id] = update.sort_order;
+        } else if (body.id && body.stage) {
+          const current = rows.find((row) => row.id === body.id);
+          const from = KANBAN_DEFAULT_COLUMNS.pipeline.find(
+            (column) => column.column_key === current?.canonical_stage,
+          );
+          const to = KANBAN_DEFAULT_COLUMNS.pipeline.find(
+            (column) => column.column_key === body.stage,
+          );
+          if (!current || !from || !to)
+            return jsonResponse({ error: "Unknown opportunity or stage" }, 400);
+          const role = (column: (typeof KANBAN_DEFAULT_COLUMNS.pipeline)[number]) =>
+            column.metadata.role === "won"
+              ? "won"
+              : column.metadata.role === "lost"
+                ? "lost"
+                : "open";
+          try {
+            requireReopenEligibility(
+              role(from),
+              role(to),
+              from.column_key,
+              to.column_key,
+              typeof body.reason === "string" ? body.reason : undefined,
+              body.allowTerminalReopen === true,
+            );
+            if (
+              role(to) === "lost" &&
+              !(typeof body.lossReason === "string" && body.lossReason.trim())
+            )
+              throw new Error("A loss reason is required when closing an opportunity as lost");
+          } catch (error) {
+            return jsonResponse(
+              { error: error instanceof Error ? error.message : "Invalid stage change" },
+              400,
+            );
+          }
+          state.stageOverrides[current.id] = to.column_key;
+          state.opportunityOrder[current.id] =
+            typeof body.sortOrder === "number" && Number.isFinite(body.sortOrder)
+              ? body.sortOrder
+              : Math.max(
+                  0,
+                  ...rows
+                    .filter((row) => row.canonical_stage === to.column_key)
+                    .map((row) => row.sort_order),
+                ) + 1000;
+          business.receipts.unshift({
+            id: crypto.randomUUID(),
+            operation: `Moved ${current.name} to ${to.label}${body.lossReason ? `: ${body.lossReason}` : ""}`,
+            at: new Date().toISOString(),
+            simulated: true,
+            sourceType: "opportunity",
+            sourceId: current.id,
+          });
+        }
+      }
       if (path === "/api/admin/revenue-os/conversations/reply") {
         const id = String(body.conversationId);
         state.sentReplies[id] = [...(state.sentReplies[id] || []), String(body.body || "")];

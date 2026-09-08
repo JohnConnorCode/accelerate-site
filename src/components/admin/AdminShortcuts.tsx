@@ -123,7 +123,7 @@ export function AdminShortcuts() {
       ariaLabel="Keyboard shortcuts"
       maxWidth="sm"
     >
-      <AdminSurface padding="lg" className="admin-dialog-surface rounded-[20px]">
+      <AdminSurface padding="lg" className="admin-dialog-surface">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-[var(--admin-ink)]">Keyboard Shortcuts</h2>
           <button onClick={closeHelp} aria-label="Close shortcuts" className="admin-icon-button">

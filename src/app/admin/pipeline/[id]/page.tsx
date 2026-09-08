@@ -151,9 +151,9 @@ function Section({
     <details
       id={id}
       open
-      className="group scroll-mt-24 rounded-[20px] bg-[var(--admin-surface)] shadow-[var(--admin-shadow-border)]"
+      className="group scroll-mt-24 rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface)] shadow-[var(--admin-shadow-border)]"
     >
-      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 rounded-[20px] px-4 text-sm font-semibold text-[var(--admin-ink)] outline-none transition-[box-shadow,transform] duration-150 focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25 active:scale-[0.99] sm:px-5 [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 rounded-[var(--admin-surface-radius)] px-4 text-sm font-semibold text-[var(--admin-ink)] outline-none transition-[box-shadow,transform] duration-150 focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25 active:scale-[0.99] sm:px-5 [&::-webkit-details-marker]:hidden">
         <span className="flex items-center gap-2">
           {title}
           {count !== undefined && (
@@ -643,7 +643,7 @@ export default function OpportunityRecordPage() {
                         defaultValue={opportunity.next_action || ""}
                         key={`action-${opportunity.next_action}`}
                         placeholder="State the concrete next commitment"
-                        className="mt-1.5 w-full resize-y rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 text-sm outline-none transition-[border-color,box-shadow] placeholder:text-[var(--admin-muted)]/70 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                        className="mt-1.5 w-full resize-y rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 text-sm outline-none transition-[border-color,box-shadow] placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
                       />
                     </label>
                     <label className="block text-xs font-semibold text-[var(--admin-ink)]">

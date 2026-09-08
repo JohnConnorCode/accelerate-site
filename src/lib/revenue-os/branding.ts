@@ -1,3 +1,4 @@
+import { validateAdminTheme } from "@/lib/admin/theme-definition";
 import "server-only";
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -78,6 +79,7 @@ export async function saveWorkspaceBrand(
 
 export function validateWorkspaceBrand(raw: unknown) {
   const brand = workspaceBrandSchema.parse(raw);
+  if (brand.adminTheme) validateAdminTheme(brand.adminTheme);
   if (
     contrastRatio(brand.inkColor, "#ffffff") < 4.5 ||
     contrastRatio(brand.inkColor, brand.backgroundColor) < 4.5

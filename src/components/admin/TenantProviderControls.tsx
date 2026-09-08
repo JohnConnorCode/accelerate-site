@@ -166,7 +166,7 @@ export function TenantProviderControls() {
             browser, and every rotation creates a new version.
           </p>
         </div>
-        <span className="w-fit rounded-[9px] bg-[var(--admin-soft)] px-2.5 py-1.5 font-mono text-[9px] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
+        <span className="w-fit rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] px-2.5 py-1.5 font-mono text-[9px] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
           {workspaceSlug}
         </span>
       </div>
@@ -192,7 +192,7 @@ export function TenantProviderControls() {
               detail="Workspace-owned AI usage and billing"
               connection={connection("openrouter")}
             >
-              <div className="mb-5 rounded-[13px] bg-sky-500/[0.07] p-3.5 shadow-[var(--admin-shadow-border)]">
+              <div className="mb-5 rounded-[var(--admin-control-radius)] bg-sky-500/[0.07] p-3.5 shadow-[var(--admin-shadow-border)]">
                 <p className="text-pretty text-xs font-semibold text-[var(--admin-ink)]">
                   Your key, your spend
                 </p>
@@ -343,7 +343,7 @@ export function TenantProviderControls() {
       >
         {disconnecting && (
           <AdminSurface padding="lg" className="shadow-2xl">
-            <span className="grid size-11 place-items-center rounded-[13px] bg-rose-500/10 text-rose-700 dark:text-rose-300">
+            <span className="grid size-11 place-items-center rounded-[var(--admin-control-radius)] bg-rose-500/10 text-rose-700 dark:text-rose-300">
               <Unplug className="size-5" />
             </span>
             <h2 className="mt-4 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
@@ -369,7 +369,7 @@ export function TenantProviderControls() {
                 type="button"
                 disabled={Boolean(busy)}
                 onClick={() => void disconnect()}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] bg-rose-700 px-4 text-xs font-semibold text-white transition-[background-color,opacity,transform] duration-150 hover:bg-rose-800 active:scale-[0.96] disabled:opacity-50"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--admin-control-radius)] bg-rose-700 px-4 text-xs font-semibold text-white transition-[background-color,opacity,transform] duration-150 hover:bg-rose-800 active:scale-[0.96] disabled:opacity-50"
               >
                 {busy === disconnecting && (
                   <RefreshCw className="size-3.5 animate-spin motion-reduce:animate-none" />
@@ -409,7 +409,7 @@ function ProviderCard({
       <div className="p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="relative grid size-11 shrink-0 place-items-center rounded-[13px] bg-[var(--admin-soft)] shadow-sm">
+            <span className="relative grid size-11 shrink-0 place-items-center rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] shadow-sm">
               <Icon className="size-[18px]" />
               <span
                 className={cn(
@@ -439,7 +439,7 @@ function ProviderCard({
           </span>
         </div>
         {endpoint && onCopy && (
-          <div className="mt-4 grid grid-cols-[1fr_auto] items-center gap-2 rounded-[13px] bg-[var(--admin-soft)] p-2 pl-3 shadow-[var(--admin-shadow-border)]">
+          <div className="mt-4 grid grid-cols-[1fr_auto] items-center gap-2 rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] p-2 pl-3 shadow-[var(--admin-shadow-border)]">
             <div className="min-w-0">
               <p className="font-mono text-[8px] font-semibold uppercase tracking-[0.11em] text-[var(--admin-muted)]">
                 Signed webhook endpoint
@@ -451,7 +451,7 @@ function ProviderCard({
             <button
               type="button"
               onClick={onCopy}
-              className="grid size-10 place-items-center rounded-[10px] text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-[var(--admin-surface)] hover:text-[var(--admin-ink)] active:scale-[0.96]"
+              className="grid size-10 place-items-center rounded-[var(--admin-control-radius)] text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-[var(--admin-surface)] hover:text-[var(--admin-ink)] active:scale-[0.96]"
               aria-label={`Copy ${name} webhook endpoint`}
             >
               <AnimatePresence initial={false} mode="popLayout">
@@ -506,7 +506,10 @@ function KeyMetadata({ connection }: { connection: ProviderConnection }) {
         ["Remaining", money(metadata.limit_remaining)],
         ["Limit cycle", metadata.limit_reset || "Not set"],
       ].map(([label, value]) => (
-        <div key={label} className="rounded-[11px] bg-[var(--admin-soft)] p-3">
+        <div
+          key={label}
+          className="rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] p-3"
+        >
           <p className="font-mono text-[8px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]">
             {label}
           </p>
@@ -558,7 +561,7 @@ function SecretField({
         <button
           type="button"
           onClick={() => setVisible((current) => !current)}
-          className="absolute right-0 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-[10px] text-[var(--admin-muted)] transition-[color,transform] duration-150 hover:text-[var(--admin-ink)] active:scale-[0.96]"
+          className="absolute right-0 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-[var(--admin-control-radius)] text-[var(--admin-muted)] transition-[color,transform] duration-150 hover:text-[var(--admin-ink)] active:scale-[0.96]"
           aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`}
         >
           {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}

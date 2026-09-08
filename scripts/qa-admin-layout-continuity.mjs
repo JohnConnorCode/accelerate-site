@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { chromium } from "playwright";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
@@ -20,7 +20,13 @@ const routes = [
   "campaigns",
 ];
 const screenshotRoutes = new Set(["analytics", "bookings", "recovery", "revenue"]);
-const appearances = ["signal", "light", "dark"];
+// Every registered appearance rides the same sweep, so a new theme cannot
+// ship visually untested. The token verifier asserts this list stays
+// inside the appearance registry.
+const themes = JSON.parse(
+  await readFile(new URL("../src/lib/admin/themes.json", import.meta.url), "utf8"),
+);
+const appearances = themes.map((theme) => theme.id);
 const viewports = [
   ["desktop", { width: 1440, height: 1000 }],
   ["mobile", { width: 390, height: 844 }],

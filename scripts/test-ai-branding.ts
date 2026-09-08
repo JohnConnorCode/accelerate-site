@@ -1,3 +1,4 @@
+import { themeFromPreset } from "../src/lib/admin/theme-definition";
 import { createAdminConfigurationFixture } from "./lib/admin-configuration-fixture";
 import { handleMcpRequest } from "../src/lib/revenue-os/mcp-server";
 import assert from "node:assert/strict";
@@ -30,12 +31,13 @@ async function main() {
     ])
       await assert.rejects(() => previewWorkspaceBrandUpdate(db, input));
     const changes = {
+      adminTheme: themeFromPreset("signal"),
       accentColor: "#234567",
       name: "Updated Studio",
       logoUrl: "https://assets.example.test/logo.svg",
     };
     const preview = await previewWorkspaceBrandUpdate(db, { changes });
-    assert.equal(preview.changes.length, 3);
+    assert.equal(preview.changes.length, 4);
     const staged = await executeRegisteredRevenueTool(context, "propose_workspace_brand_update", {
       changes,
       digest: preview.digest,
@@ -70,6 +72,7 @@ async function main() {
         brand: { name: string };
       };
       assert.equal(result.brand.name, "Updated Studio");
+      assert.deepEqual((await readWorkspaceBrand(db)).brand.adminTheme, changes.adminTheme);
       assert.equal(controls.saves, 1);
       assert.equal(mem.rows("action_queue").find((a) => a.id === action.id)?.status, "executed");
       await assert.rejects(() => approveAndExecuteAction(db, action.id, email), /already handled/);

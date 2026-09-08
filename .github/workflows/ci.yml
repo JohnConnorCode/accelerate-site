@@ -251,6 +251,11 @@ jobs:
           node scripts/qa-demo-business-workflows.mjs
           node scripts/qa-collections-workspace.mjs
           node scripts/qa-universal-work-board.mjs
+          node scripts/qa-admin-polish.mjs
+          node scripts/qa-admin-polish-interactions.mjs
+          node scripts/qa-admin-polish-touch.mjs
+          node scripts/qa-admin-polish-theme-editor.mjs
+          node scripts/qa-admin-polish-navigation.mjs
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -272,6 +277,7 @@ jobs:
             /tmp/accelerate-work-board-qa/
             /tmp/accelerate-booking-mode/
             /tmp/accelerate-first-run-server.log
+            /tmp/admin-polish-qa/
           if-no-files-found: ignore
           retention-days: 7
 

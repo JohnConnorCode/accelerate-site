@@ -101,10 +101,7 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
         labelledBy="add-lead-title"
         maxWidth="md"
       >
-        <AdminSurface
-          padding="lg"
-          className="admin-dialog-surface max-h-[92dvh] overflow-y-auto rounded-[20px]"
-        >
+        <AdminSurface padding="lg" className="admin-dialog-surface max-h-[92dvh] overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
             <h3 id="add-lead-title" className="admin-dialog-title">
               Add New Lead

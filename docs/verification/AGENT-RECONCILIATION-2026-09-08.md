@@ -16,7 +16,7 @@ The original inventory and failure reproductions below are historical observatio
 
 Public operator guides, changelog and feature descriptions accompanied these integrations. The release-completion review adds worked examples and corrects the remaining unsupported bulk-undo promise. Review the current public guides for available controls; the older pending-test statements below preserve the sequence of the audit.
 
-As of the release-completion audit, PR #64 owns the active design/theme work. Workspace Blueprint source is still an unfinished separate handoff. Site Studio public publishing and broader Architect/Harness initiatives are not established by the private-draft merge. Live-card acceptance, connected-provider checks, production schema application and production deployment need their own receipts; none is inferred from Git integration.
+PR #64 merged the reviewed design/theme work at `e16ea18` after required CI passed. Workspace Blueprint source is still an unfinished separate handoff. Site Studio public publishing and broader Architect/Harness initiatives are not established by the private-draft merge. Live-card acceptance, connected-provider checks, production schema application and production deployment need their own receipts; none is inferred from Git integration.
 
 ## Inventory and preservation
 
@@ -164,3 +164,11 @@ Twenty-two isolated supervisor/resource checks passed, including eight concurren
 ## Supervisor integration receipt
 
 PR 62 merged as `1c17e90db758d0399a201ec368bcb014222471cf` on 2026-09-08 at 14:33:03 UTC. Its tree matches tested head `7cb91d2ae61d974557ff3ea7e1e9998ba772d884`. CI `34237350451` passed all required jobs. The clean control checkout points to this merge; no global supervisor installation or production deployment was performed.
+
+## Release-completion database proof
+
+The declared production database's ledger had 74 matching migrations, six pending, no changed checksums and no unknown files. Read-only scans found no duplicate opportunity engagements or delivery task identities. The pooler connection timed out during authentication; the direct connection to the same configured Supabase project succeeded using its existing secret-manager credential.
+
+A private PostgreSQL 17 schema backup was captured before applying the six already-reviewed pending migrations through the normal ordered ledger runner: record-permission denial, Drive indexing, Site Studio drafts, campaign-copy receipts, bulk transactions and delivery convergence. All six committed successfully. Post-migration verification and a production application deployment are separate remaining steps at this point in the receipt.
+
+The release also strengthens schema verification to check the new fields, indexes, protected function signatures and service-only execution privileges, with accurate migration guidance. A regression refuses a draft table that exists but lacks its checksum column. Public Setup guidance explains how a partially upgraded workspace can display existing records while a newer workflow remains unavailable.

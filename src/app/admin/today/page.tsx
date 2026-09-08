@@ -399,7 +399,7 @@ export default function TodayPage() {
             Details
           </Link>
         </div>
-        <div className="grid divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-6">
+        <div className="admin-health-grid">
           {healthItems.map((item) => (
             <Link
               key={`${item.label}-${item.status}`}
@@ -617,11 +617,11 @@ export default function TodayPage() {
                 Open all work <ArrowRight className="size-4" />
               </Link>
 
-              <details className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4">
+              <details className="admin-disclosure">
                 <summary className="cursor-pointer text-sm font-semibold text-[var(--admin-ink)]">
                   Business snapshot and App follow-up
                 </summary>
-                <div className="mt-4 space-y-4">
+                <div className="space-y-4 px-4 pb-4">
                   <CollectionCaseLinks />
                   {!operatingSummaryHidden && (
                     <AdminSurface

@@ -270,7 +270,7 @@ export default function AdminInboxPage() {
                 type="button"
                 onClick={() => setKind(filter.key)}
                 className={cn(
-                  "flex min-h-10 shrink-0 items-center gap-2 rounded-[10px] px-3 text-xs font-medium transition-[color,background-color,box-shadow,transform] duration-150 active:scale-[0.96]",
+                  "flex min-h-10 shrink-0 items-center gap-2 rounded-[var(--admin-control-radius)] px-3 text-xs font-medium transition-[color,background-color,box-shadow,transform] duration-150 active:scale-[0.96]",
                   active
                     ? "bg-[#0b0b0b] text-white shadow-sm"
                     : "bg-[var(--admin-surface)] text-[var(--admin-muted)] shadow-[var(--admin-shadow)] hover:text-[var(--admin-ink)]",
@@ -320,7 +320,7 @@ export default function AdminInboxPage() {
                   >
                     <div
                       className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-[11px]",
+                        "flex h-10 w-10 items-center justify-center rounded-[var(--admin-control-radius)]",
                         item.priority === "urgent"
                           ? "bg-red-500/10 text-red-600 dark:text-red-400"
                           : item.priority === "important"
@@ -443,7 +443,7 @@ export default function AdminInboxPage() {
                       )}
                       <Link
                         href={item.href}
-                        className="ml-1 inline-flex min-h-10 items-center gap-1.5 rounded-[10px] bg-[#0b0b0b] px-3 text-xs font-medium text-white transition-[background-color,transform] duration-150 hover:bg-[#252525] active:scale-[0.96]"
+                        className="ml-1 inline-flex min-h-10 items-center gap-1.5 rounded-[var(--admin-control-radius)] bg-[#0b0b0b] px-3 text-xs font-medium text-white transition-[background-color,transform] duration-150 hover:bg-[#252525] active:scale-[0.96]"
                       >
                         Open <ArrowUpRight className="h-3.5 w-3.5" />
                       </Link>

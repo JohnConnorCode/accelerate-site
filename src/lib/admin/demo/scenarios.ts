@@ -1,3 +1,4 @@
+import type { AdminAppearance } from "@/lib/admin/appearances";
 import { DEMO_BUSINESS_PROFILES, type DemoBusinessProfile } from "./business-profiles";
 import type { TenantConfig } from "@/config/tenant";
 import {
@@ -17,7 +18,7 @@ export type DemoScenarioId =
   | "hearthline-realty"
   | "common-table-network"
   | "superdebate";
-export type DemoAppearance = "light" | "dark" | "signal" | "studio" | "frost";
+export type DemoAppearance = AdminAppearance;
 
 export interface DemoScenarioSummary {
   id: DemoScenarioId;

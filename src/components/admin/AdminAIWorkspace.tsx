@@ -71,7 +71,7 @@ export function AdminAIWorkspace() {
           >
             <span
               className={cn(
-                "grid size-8 shrink-0 place-items-center rounded-[10px]",
+                "grid size-8 shrink-0 place-items-center rounded-[var(--admin-control-radius)]",
                 view === id
                   ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
                   : "bg-black/[0.045] text-[var(--admin-muted)] dark:bg-white/[0.06]",

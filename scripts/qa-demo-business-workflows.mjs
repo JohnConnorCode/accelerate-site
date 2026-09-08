@@ -64,7 +64,14 @@ try {
       await page.getByRole("button", { name: "Save branding", exact: true }).focus();
       await page.keyboard.press("Enter");
       await page.getByRole("button", { name: "Save branding", exact: true }).waitFor();
-      await page.waitForFunction(() => document.querySelector("input")?.value?.endsWith("Studio"));
+      await page
+        .getByRole("button", { name: "Save branding", exact: true })
+        .and(page.locator(":disabled"))
+        .waitFor();
+      assert.equal(
+        await page.getByLabel("Display name", { exact: true }).inputValue(),
+        name + " Studio",
+      );
       await page.reload();
       await page.getByLabel("Display name", { exact: true }).waitFor();
       assert.equal(
