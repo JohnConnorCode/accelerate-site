@@ -105,6 +105,7 @@ try {
       assert.equal(proof.response.record.tasks.length, proof.before.tasks.length);
       await page.reload();
       await page.getByText(/Handoff receipt: default v1/).waitFor();
+      await page.locator("#delivery").scrollIntoViewIfNeeded();
       await page.screenshot({ path: `${output}/${scenario}-${width}-receipt.png`, fullPage: true });
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
