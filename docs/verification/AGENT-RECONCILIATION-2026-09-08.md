@@ -123,6 +123,12 @@ was created. These are preserved outside the pinned first integration. The
 inventory grew from 73 to 77 before the campaign follow-up checkout was added;
 worktree count is not a count of missing features.
 
+## Delivery handoff reconciliation candidate
+
+The `25e4b88` handoff is ported without its obsolete framework fixes. The incoming button was only rendered inside an existing engagement, preventing initial handoff; the review now works before creation. The service also allowed concurrent duplicate engagements, re-created completed tasks, dropped omitted proposal bindings on replay and refreshed existing engagements with the newest template. Those cases have focused regression coverage.
+
+This candidate uses permanent engagement/task identities, a pinned source snapshot, tenant-bound reads, database source guards and revision-checked checklist merges. Tasks remain owned by `tasks.ts`. Template publication and its audit share a transaction; the overall engagement/task handoff remains a convergent sequence with explicit partial-failure recovery. Native PostgreSQL and two-business browser acceptance are pending; it is not accepted or deployed yet.
+
 ## Bulk-contact reconciliation candidate
 
 The `02d3e94` handoff is ported onto the campaign integration without its stale board snapshot. Tag writes now use locked current rows; staging uses one shared host transaction for canonical recipient matching, suppression checks, draft-state admission and exact inserted-row outcomes. Bulk calls require draft state, while the existing single-member API retains explicit active-campaign admission. The API returns per-recipient outcomes instead of an error after silently inserting a partial set.

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "reviewed-delivery-handoff",
+    slug: "reviewed-delivery-handoff",
+    title: "Review a won opportunity's delivery plan and retain its handoff receipt",
+    description:
+      "Create one engagement with versioned source context and shared onboarding tasks. Concurrent handoffs reuse the same engagement, completed tasks stay complete, and retries preserve partial progress. A review shows the template and optional proposal before confirmation. Template publication and its audit are transactional; the fictional demo saves its own engagement and receipt.",
+    category: "feature",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "local-agent-supervisor",
     slug: "local-agent-supervisor",
     title: "Coordinate local agent jobs with durable ownership and recovery",

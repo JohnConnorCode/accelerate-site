@@ -283,6 +283,16 @@ export class MemorySupabase {
 
       if (op === "insert") {
         if (
+          table === "clients" &&
+          payload.opportunity_id &&
+          this.tables[table]!.some(
+            (row) =>
+              row.tenant_id === payload.tenant_id && row.opportunity_id === payload.opportunity_id,
+          )
+        )
+          return resolve({ data: null, error: { code: "23505", message: "Duplicate engagement" } });
+
+        if (
           table === "ai_messages" &&
           payload.client_message_id &&
           this.tables[table]!.some(
@@ -309,7 +319,9 @@ export class MemorySupabase {
                 (table === "action_queue" &&
                   payload.source_context === "plugin" &&
                   row.source_context === "plugin") ||
-                (table === "tasks" && payload.source === "plugin" && row.source === "plugin")),
+                (table === "tasks" &&
+                  ["plugin", "delivery_handoff"].includes(String(payload.source)) &&
+                  row.source === payload.source)),
           )
         ) {
           return resolve({
@@ -323,7 +335,12 @@ export class MemorySupabase {
       }
 
       let matched = this.tables[table]!.filter((row) => filters.every((keep) => keep(row)));
-      if (op === "update") for (const row of matched) Object.assign(row, payload);
+      if (op === "update")
+        for (const row of matched) {
+          const revision = Number(row.handoff_revision ?? 0);
+          Object.assign(row, payload);
+          if (table === "clients") row.handoff_revision = revision + 1;
+        }
       if (op === "delete") {
         const removing = new Set(matched);
         this.tables[table] = this.tables[table]!.filter((row) => !removing.has(row));

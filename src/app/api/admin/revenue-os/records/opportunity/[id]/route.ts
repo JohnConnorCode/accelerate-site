@@ -1,7 +1,9 @@
+import { handoffRequestSchema } from "@/lib/revenue-os/delivery-handoff-contract";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { updateOpportunityDetails } from "@/lib/revenue-os/pipeline";
+import { createHandoffFromOpportunity } from "@/lib/revenue-os/delivery-handoff";
 import { loadOpportunityRecord } from "@/lib/revenue-os/records";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -99,6 +101,53 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
           : /not found/i.test(message)
             ? 404
             : 400,
+      },
+    );
+  }
+}
+
+/**
+ * Won-to-delivery handoff. Operator-confirmed: a canonically won opportunity
+ * becomes one idempotent client engagement through the shared service. The
+ * tenant comes from the authenticated admin database, never from caller input.
+ * Returns the refreshed record so the workspace reflects the new engagement.
+ */
+export async function POST(request: NextRequest, { params }: RouteContext) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+  const { id } = await params;
+  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+  if (!body) return NextResponse.json({ error: "A valid JSON body is required" }, { status: 400 });
+  const parsed = handoffRequestSchema.safeParse(body);
+  if (!parsed.success)
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid handoff request" },
+      { status: 400 },
+    );
+  try {
+    const result = await createHandoffFromOpportunity(auth.database, {
+      tenantId: auth.tenant.id,
+      opportunityId: id,
+      actorEmail: auth.user.email || "founder",
+      ...parsed.data,
+    });
+    const record = await loadOpportunityRecord(auth.database, id);
+    return NextResponse.json({
+      schemaReady: true,
+      handoff: result.receipt,
+      record: record ?? null,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not hand off to delivery";
+    return NextResponse.json(
+      { error: message },
+      {
+        status:
+          /won opportunity/i.test(message) || /not found/i.test(message)
+            ? 400
+            : /proposal/.test(message)
+              ? 400
+              : 500,
       },
     );
   }

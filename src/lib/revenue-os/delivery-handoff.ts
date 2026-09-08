@@ -1,4 +1,6 @@
 import "server-only";
+import { tenantIdForDatabase, callDeliveryTemplateRpc } from "@/lib/supabase/server";
+import { SEED_DEFAULT_MILESTONES, onboardingMilestonesSchema } from "./delivery-handoff-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { recordActivity } from "./activities";
@@ -19,6 +21,7 @@ export interface OnboardingMilestone {
   title: string;
   description?: string | null;
   owner?: string | null;
+  owner_user_id?: string | null;
   due_offset_days?: number | null;
 }
 
@@ -43,33 +46,13 @@ export interface HandoffReceipt {
   replayed: boolean;
   created_milestones: string[];
   remainder: string[];
+  /** Originating proposal linked at handoff, when one is confirmed. */
+  proposal_id?: string | null;
 }
 
 const DEFAULT_TEMPLATE_KEY = "default";
 
-export const SEED_DEFAULT_MILESTONES: OnboardingMilestone[] = [
-  {
-    key: "kickoff",
-    title: "Kickoff call",
-    description: "Align on goals, success criteria, and cadence.",
-    owner: "founder",
-    due_offset_days: 3,
-  },
-  {
-    key: "access",
-    title: "Access and assets",
-    description: "Collect logins, brand assets, and data sources.",
-    owner: "founder",
-    due_offset_days: 7,
-  },
-  {
-    key: "first-win",
-    title: "First win",
-    description: "Deliver the first visible outcome from the proposal scope.",
-    owner: "founder",
-    due_offset_days: 14,
-  },
-];
+export { SEED_DEFAULT_MILESTONES } from "./delivery-handoff-contract";
 
 type Row = Record<string, unknown>;
 
@@ -79,9 +62,11 @@ function requireTenant(tenantId: string): string {
   return id;
 }
 
-function dueDate(offsetDays: number | null | undefined): string {
+function dueDate(offsetDays: number | null | undefined, startedAt?: string): string {
   const days = Number.isFinite(Number(offsetDays)) ? Number(offsetDays) : 7;
-  return new Date(Date.now() + Math.max(0, days) * 86_400_000).toISOString().split("T")[0]!;
+  const start =
+    startedAt && Number.isFinite(Date.parse(startedAt)) ? Date.parse(startedAt) : Date.now();
+  return new Date(start + Math.max(0, days) * 86_400_000).toISOString().split("T")[0]!;
 }
 
 /**
@@ -120,6 +105,22 @@ export async function getActiveTemplate(
     active: true,
     milestones: SEED_DEFAULT_MILESTONES,
   });
+  if (seedError?.code === "23505") {
+    const concurrent = await supabase
+      .from("onboarding_templates")
+      .select("template_key,version,milestones")
+      .eq("tenant_id", tenant)
+      .eq("template_key", key)
+      .eq("active", true)
+      .maybeSingle();
+    if (concurrent.error || !concurrent.data)
+      throw new Error("Default playbook changed; retry template resolution");
+    return {
+      key: concurrent.data.template_key,
+      version: concurrent.data.version,
+      milestones: concurrent.data.milestones,
+    };
+  }
   if (seedError) throw new Error(`Could not seed the default playbook: ${seedError.message}`);
   return { key: DEFAULT_TEMPLATE_KEY, version: 1, milestones: SEED_DEFAULT_MILESTONES };
 }
@@ -135,44 +136,17 @@ export async function createOnboardingTemplateVersion(
 ): Promise<OnboardingTemplate> {
   const tenant = requireTenant(input.tenantId);
   const key = (input.templateKey ?? DEFAULT_TEMPLATE_KEY).trim() || DEFAULT_TEMPLATE_KEY;
-  if (!Array.isArray(input.milestones) || !input.milestones.length)
-    throw new Error("A template version needs at least one milestone");
-  for (const milestone of input.milestones) {
-    if (!milestone.key?.trim() || !milestone.title?.trim())
-      throw new Error("Every milestone needs a key and a title");
-  }
-  const { data: existing } = await supabase
-    .from("onboarding_templates")
-    .select("version")
-    .eq("tenant_id", tenant)
-    .eq("template_key", key)
-    .order("version", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const version = Number((existing as Row | null)?.version ?? 0) + 1;
-  // Supersede, never mutate: prior versions stay readable for in-flight handoffs.
-  await supabase
-    .from("onboarding_templates")
-    .update({ active: false })
-    .eq("tenant_id", tenant)
-    .eq("template_key", key)
-    .eq("active", true);
-  const { error } = await supabase.from("onboarding_templates").insert({
-    tenant_id: tenant,
-    template_key: key,
-    version,
-    active: true,
-    milestones: input.milestones,
+  if (tenantIdForDatabase(supabase) !== tenant)
+    throw new Error("Template publication requires the matching tenant-bound database");
+  const milestones = onboardingMilestonesSchema.parse(input.milestones);
+  const { data, error } = await callDeliveryTemplateRpc(supabase, {
+    p_key: key,
+    p_milestones: milestones,
+    p_actor: input.actorEmail,
   });
-  if (error) throw new Error(`Could not publish template version: ${error.message}`);
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: "onboarding_template.published",
-    entityType: "onboarding_template",
-    entityId: `${key}:v${version}`,
-    metadata: { template_key: key, version },
-  });
-  return { key, version, milestones: input.milestones };
+  if (error || !data)
+    throw new Error(`Could not publish template version: ${error?.message ?? "no receipt"}`);
+  return data as unknown as OnboardingTemplate;
 }
 
 export interface HandoffInput {
@@ -183,6 +157,9 @@ export interface HandoffInput {
   /** Subset of milestone keys to hand off; omitted means the whole template. */
   milestoneKeys?: string[];
   proposalId?: string | null;
+  expectedProposalVersion?: number;
+  expectedUpdatedAt?: string;
+  expectedTemplateVersion?: number;
 }
 
 export interface HandoffResult {
@@ -205,46 +182,118 @@ export async function createHandoffFromOpportunity(
   input: HandoffInput,
 ): Promise<HandoffResult> {
   const tenantId = requireTenant(input.tenantId);
+  if (tenantIdForDatabase(supabase) !== tenantId)
+    throw new Error("Delivery handoff requires the matching tenant-bound database");
+  const workspace = await supabase
+    .from("tenants")
+    .select("status,config")
+    .eq("id", tenantId)
+    .maybeSingle();
+  if (
+    workspace.error ||
+    workspace.data?.status !== "active" ||
+    workspace.data.config?.modules?.clients === false
+  )
+    throw new Error("Client delivery is unavailable in this workspace");
   const opportunityId = input.opportunityId?.trim();
   if (!opportunityId) throw new Error("An opportunity id is required");
   if (!input.actorEmail?.trim()) throw new Error("An actor email is required");
 
   const { data: opportunity, error: oppError } = await supabase
     .from("opportunities")
-    .select("id,stage,name,estimated_value,contact_id,company_id,email")
+    .select("id,stage,name,estimated_value,contact_id,company_id,email,updated_at")
     .eq("tenant_id", tenantId)
     .eq("id", opportunityId)
     .maybeSingle();
   if (oppError) throw new Error(`Could not load opportunity: ${oppError.message}`);
   if (!opportunity) throw new Error("Opportunity not found");
+  if (input.expectedUpdatedAt && opportunity.updated_at !== input.expectedUpdatedAt)
+    throw new Error("Opportunity changed; reload and review the current record");
   const stages = await loadPipelineStages(supabase, tenantId);
   const role = stages.role(stages.canonicalStage(String(opportunity.stage)) ?? "");
   if (role !== "won")
     throw new Error(`Handoff requires a won opportunity (current stage is ${opportunity.stage})`);
 
-  const [{ data: contact }, { data: company }] = await Promise.all([
+  // An originating proposal, when confirmed, is validated against the same
+  // tenant/opportunity and carried on the handoff receipt so delivery is
+  // traceable back to the sold scope. Never guess a proposal id.
+  let proposal: Row | null = null;
+  const proposalId = input.proposalId?.trim() || null;
+  if (proposalId) {
+    const { data: proposalRow, error: proposalError } = await supabase
+      .from("proposals")
+      .select("id,opportunity_id,version")
+      .eq("tenant_id", tenantId)
+      .eq("id", proposalId)
+      .maybeSingle();
+    if (proposalError)
+      throw new Error(`Could not load the originating proposal: ${proposalError.message}`);
+    if (!proposalRow)
+      throw new Error(`Originating proposal ${JSON.stringify(proposalId)} was not found`);
+    if (String((proposalRow as Row).opportunity_id ?? "") !== opportunityId)
+      throw new Error("Originating proposal does not belong to this opportunity");
+    if (
+      input.expectedProposalVersion &&
+      Number(proposalRow.version) !== input.expectedProposalVersion
+    )
+      throw new Error("Proposal version changed; review the current proposal");
+    proposal = proposalRow as Row;
+  }
+
+  const [contactRead, companyRead] = await Promise.all([
     opportunity.contact_id
       ? supabase
           .from("contacts")
           .select("id,full_name,primary_email")
           .eq("id", opportunity.contact_id)
           .maybeSingle()
-      : Promise.resolve({ data: null }),
+      : Promise.resolve({ data: null, error: null }),
     opportunity.company_id
       ? supabase.from("companies").select("id,name").eq("id", opportunity.company_id).maybeSingle()
-      : Promise.resolve({ data: null }),
+      : Promise.resolve({ data: null, error: null }),
   ]);
+  if (contactRead.error || companyRead.error)
+    throw new Error("Could not read canonical handoff identities");
+  const contact = contactRead.data,
+    company = companyRead.data;
+  if (!contact || (opportunity.company_id && !company))
+    throw new Error("Canonical handoff identity unavailable");
   const contactEmail = (contact?.primary_email as string) || (opportunity.email as string) || null;
   if (!contactEmail) throw new Error("Handoff needs a contact email; nothing to hand off to");
 
   // One engagement per opportunity: return the existing row on replay.
-  const { data: existingClient } = await supabase
+  const { data: existingClient, error: existingError } = await supabase
     .from("clients")
     .select("*")
     .eq("tenant_id", tenantId)
     .eq("opportunity_id", opportunityId)
     .maybeSingle();
+  if (existingError) throw new Error(`Could not read engagement: ${existingError.message}`);
   let client = (existingClient ?? null) as Row | null;
+  let stored = (client?.handoff_receipt ?? {}) as Row;
+  let template = stored.template_snapshot as OnboardingTemplate | undefined;
+  if (!template) template = await getActiveTemplate(supabase, tenantId, input.templateKey);
+  if (input.expectedTemplateVersion && template.version !== input.expectedTemplateVersion)
+    throw new Error("Template version changed; review the current onboarding plan");
+  if (input.templateKey && template.key !== input.templateKey)
+    throw new Error("Engagement already uses a different onboarding template");
+  if (client && proposalId && stored.proposal_id !== proposalId)
+    throw new Error("Engagement already has a different proposal binding");
+  const unknownRequested = (input.milestoneKeys ?? []).filter(
+    (key) => !template!.milestones.some((m) => m.key === key),
+  );
+  if (unknownRequested.length)
+    throw new Error(`Unknown milestone keys: ${unknownRequested.join(", ")}`);
+  onboardingMilestonesSchema.parse(template.milestones);
+  const binding = {
+    opportunity_updated_at: opportunity.updated_at,
+    canonical_stage: stages.canonicalStage(String(opportunity.stage)),
+    template_snapshot: template,
+    proposal_id: proposal?.id ?? null,
+    proposal_version: proposal?.version ?? null,
+    contact_id: contact.id,
+    company_id: company?.id ?? null,
+  };
   let created = false;
   if (!client) {
     const businessName =
@@ -261,25 +310,45 @@ export async function createHandoffFromOpportunity(
         monthly_value: 0,
         one_time_value: Number(opportunity.estimated_value) || 0,
         onboarding_checklist: [],
-        handoff_receipt: {},
+        handoff_receipt: binding,
+        handoff_revision: 0,
       })
       .select("*")
       .single();
-    if (createError || !createdClient)
-      throw new Error(`Could not create engagement: ${createError?.message || "no row"}`);
-    client = createdClient as Row;
-    created = true;
+    if (createError?.code === "23505") {
+      const raced = await supabase
+        .from("clients")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("opportunity_id", opportunityId)
+        .maybeSingle();
+      if (raced.error || !raced.data)
+        throw new Error("Concurrent engagement could not be reconciled; retry the handoff");
+      client = raced.data as Row;
+    } else {
+      if (createError || !createdClient)
+        throw new Error(`Could not create engagement: ${createError?.message || "no row"}`);
+      client = createdClient as Row;
+      created = true;
+    }
   }
 
-  const template = await getActiveTemplate(supabase, tenantId, input.templateKey);
+  stored = (client.handoff_receipt ?? {}) as Row;
+  template = (stored.template_snapshot as OnboardingTemplate | undefined) ?? template;
+  if (
+    (input.templateKey && template.key !== input.templateKey) ||
+    (proposalId && stored.proposal_id !== proposalId)
+  )
+    throw new Error("Concurrent handoff bound different source context; review the engagement");
+  if (stored.contact_id && stored.contact_id !== contact.id)
+    throw new Error("Canonical contact changed after the handoff; review the engagement");
+  if (stored.company_id && stored.company_id !== company?.id)
+    throw new Error("Canonical company changed after the handoff; review the engagement");
+  if (input.expectedTemplateVersion && template.version !== input.expectedTemplateVersion)
+    throw new Error("Concurrent handoff bound a different template version; review the engagement");
   const requested = input.milestoneKeys?.length
     ? template.milestones.filter((m) => input.milestoneKeys!.includes(m.key))
     : template.milestones;
-  const unknownRequested = (input.milestoneKeys ?? []).filter(
-    (key) => !template.milestones.some((m) => m.key === key),
-  );
-  if (unknownRequested.length)
-    throw new Error(`Unknown milestone keys: ${unknownRequested.join(", ")}`);
 
   const checklist = Array.isArray(client.onboarding_checklist)
     ? (client.onboarding_checklist as Array<{ key: string; status: string }>)
@@ -306,7 +375,11 @@ export async function createHandoffFromOpportunity(
       description:
         `${milestone.owner ? `Owner: ${milestone.owner}. ` : ""}${milestone.description || ""}`.trim() ||
         null,
-      dueDate: dueDate(milestone.due_offset_days),
+      dueDate: dueDate(
+        milestone.due_offset_days,
+        typeof client.created_at === "string" ? client.created_at : undefined,
+      ),
+      assigneeUserId: milestone.owner_user_id ?? null,
       priority: "medium",
       relatedType: "client",
       relatedId: String(client.id),
@@ -333,40 +406,75 @@ export async function createHandoffFromOpportunity(
     });
   }
 
-  // Persist checklist state: completed stays completed, everything touched
-  // this run records its outcome. Partial handoffs keep prior progress.
-  const nextChecklist = template.milestones.map((milestone) => {
-    const prior = checklist.find((entry) => entry.key === milestone.key);
-    if (prior?.status === "complete") return { ...prior, title: milestone.title };
-    const state = milestones.find((m) => m.key === milestone.key);
-    return {
-      key: milestone.key,
-      title: milestone.title,
-      status: state
-        ? state.status === "complete"
-          ? "complete"
-          : "open"
-        : (prior?.status ?? "open"),
-      task_id: state?.task_id ?? (prior as { task_id?: string } | undefined)?.task_id ?? null,
+  let receipt!: HandoffReceipt;
+  let remainder: string[] = [];
+  let persisted = false;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const fresh = await supabase
+      .from("clients")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .eq("id", client.id)
+      .maybeSingle();
+    if (fresh.error || !fresh.data)
+      throw new Error(
+        "Could not refresh engagement; partial handoff may exist. Retry to reconcile.",
+      );
+    const current = fresh.data as Row;
+    const priorChecklist = (
+      Array.isArray(current.onboarding_checklist) ? current.onboarding_checklist : []
+    ) as Array<{ key: string; status: string; task_id?: string | null }>;
+    const nextChecklist = template.milestones.map((m) => {
+      const prior = priorChecklist.find((p) => p.key === m.key);
+      if (prior?.status === "complete") return { ...prior, title: m.title };
+      const state = milestones.find((x) => x.key === m.key);
+      return {
+        key: m.key,
+        title: m.title,
+        status: state?.status === "complete" ? "complete" : (prior?.status ?? "open"),
+        task_id: state?.task_id ?? prior?.task_id ?? null,
+      };
+    });
+    remainder = nextChecklist
+      .filter((m) => m.status !== "complete" && !m.task_id)
+      .map((m) => m.key);
+    receipt = {
+      ...stored,
+      engagement_id: String(client.id),
+      opportunity_id: opportunityId,
+      template_key: template.key,
+      template_version: template.version,
+      replayed: !created && createdKeys.length === 0,
+      created_milestones: createdKeys,
+      remainder,
+      proposal_id: (stored.proposal_id as string | null) ?? null,
     };
-  });
-  const coveredKeys = new Set([...completedKeys, ...milestones.map((m) => m.key)]);
-  const remainder = template.milestones.filter((m) => !coveredKeys.has(m.key)).map((m) => m.key);
-  const receipt: HandoffReceipt = {
-    engagement_id: String(client.id),
-    opportunity_id: opportunityId,
-    template_key: template.key,
-    template_version: template.version,
-    replayed: !created && createdKeys.length === 0,
-    created_milestones: createdKeys,
-    remainder,
-  };
-  const { error: clientError } = await supabase
-    .from("clients")
-    .update({ onboarding_checklist: nextChecklist, handoff_receipt: receipt })
-    .eq("tenant_id", tenantId)
-    .eq("id", client.id);
-  if (clientError) throw new Error(`Could not record handoff state: ${clientError.message}`);
+    const update = await supabase
+      .from("clients")
+      .update({
+        onboarding_checklist: nextChecklist,
+        handoff_receipt: receipt,
+        handoff_revision: Number(current.handoff_revision ?? 0) + 1,
+      })
+      .eq("tenant_id", tenantId)
+      .eq("id", client.id)
+      .eq("handoff_revision", current.handoff_revision ?? 0)
+      .select("*")
+      .maybeSingle();
+    if (update.error)
+      throw new Error(
+        `Could not record handoff state; partial handoff may exist. Retry to reconcile: ${update.error.message}`,
+      );
+    if (update.data) {
+      client = update.data as Row;
+      persisted = true;
+      break;
+    }
+  }
+  if (!persisted)
+    throw new Error(
+      "Engagement changed repeatedly; partial handoff may exist. Retry to reconcile.",
+    );
 
   await recordAudit(supabase, {
     actorEmail: input.actorEmail,
@@ -375,7 +483,11 @@ export async function createHandoffFromOpportunity(
     entityId: String(client.id),
     source: "admin",
     before: null,
-    after: { opportunity_id: opportunityId, template: `${template.key}:v${template.version}` },
+    after: {
+      opportunity_id: opportunityId,
+      template: `${template.key}:v${template.version}`,
+      ...(proposal ? { proposal_id: String(proposal.id) } : {}),
+    },
     metadata: { receipt },
   });
   await recordActivity(supabase, {
@@ -392,14 +504,16 @@ export async function createHandoffFromOpportunity(
     externalId: `handoff:${client.id}:${template.key}:v${template.version}:${createdKeys.length}`,
     occurredAt: new Date().toISOString(),
   });
-  const { data: refreshed } = await supabase
+  const { data: refreshed, error: refreshError } = await supabase
     .from("clients")
     .select("*")
     .eq("tenant_id", tenantId)
     .eq("id", client.id)
     .maybeSingle();
+  if (refreshError || !refreshed)
+    throw new Error("Handoff saved but refresh failed; reload the engagement");
   return {
-    client: (refreshed ?? client) as Row,
+    client: refreshed as Row,
     created,
     milestones,
     remainder,
