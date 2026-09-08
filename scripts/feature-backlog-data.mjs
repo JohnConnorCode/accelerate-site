@@ -9157,6 +9157,61 @@ export const featureBacklog = [
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-section-regenerate.ts covering scoping, grounding refusal, direction handling, and sibling invariance with controlled fixtures; npm run build; git diff --check.",
   }),
+  card({
+    key: "site-studio-ai-redesign-command",
+    title: "Add an explicit full-page redesign command with confirmation",
+    workstream: "site",
+    phase: 5,
+    status: "backlog",
+    priority: "low",
+    initiative: "Site Studio",
+    description:
+      "Patch and section regeneration deliberately cannot replace a whole page, so a stale design has no AI path forward. Add one explicit redesign command that regenerates the full tree behind a separate confirmation describing the blast radius, preserving the slug, metadata, and attached assets unless explicitly redirected. The previous tree remains recoverable as the prior revision, and the redesign records its command and scope.",
+    acceptance: [
+      "Redesign requires an explicit confirmation naming the full-tree blast radius; ordinary edit commands cannot trigger it",
+      "Slug, metadata, and attached assets carry over unless the command explicitly redirects them",
+      "The previous tree is recoverable as the immediately prior revision with its checksum",
+      "Grounding, catalog, link, and size rules apply identically to redesign output",
+      "A scoped suite proves the confirmation gate, carryover, recovery, and validation parity",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Patch-based AI page editing with claim grounding",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/site-studio/generate.ts; src/lib/site-studio/regenerate.ts; src/lib/site-studio/drafts.ts",
+    guardrails:
+      "Redesign is a distinct command with its own approval, never a flag that smaller operations can smuggle. Do not route section work through this path.",
+    labels: ["marketing", "ai"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-redesign-command.ts covering the confirmation gate, carryover, recovery, and validation parity; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-draft-search-filter",
+    title: "Search and filter the draft list as it accumulates",
+    workstream: "site",
+    phase: 3,
+    status: "backlog",
+    priority: "low",
+    initiative: "Site Studio",
+    description:
+      "The draft list is an unfiltered recency dump that degrades past a handful of pages. Add title/slug search, source filtering (template versus AI), and sort control, all server-side against the repository interface so file and Supabase adapters share the behavior. Empty search results explain themselves with a path back to the full list.",
+    acceptance: [
+      "Title and slug search returns matching drafts from either adapter with shared semantics",
+      "Source filter and sort control compose with search without resetting each other",
+      "Empty results name the active query and offer a one-action return to the full list",
+      "Filtering never exposes drafts outside the active tenant once persistence lands",
+      "A scoped suite proves search, filter composition, empty states, and adapter parity",
+    ],
+    dependencies: ["Versioned site document schema and independent renderer"],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/site-studio/store.ts; src/app/admin/site/page.tsx; src/app/api/admin/site/drafts/route.ts",
+    guardrails:
+      "Search is a read path; it never mutates drafts or bypasses authorization. Keep the list truthful: counts match the underlying store in every filter combination.",
+    labels: ["marketing", "testing"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-draft-search.ts covering search, filter composition, empty states, and adapter parity; npm run build; git diff --check.",
+  }),
 ];
 
 

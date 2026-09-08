@@ -39,6 +39,11 @@ import {
   StaleDraftError,
   reviseSiteDraft,
 } from "../src/lib/site-studio/revision";
+import {
+  buildSectionSystemPrompt,
+  buildSectionUserPrompt,
+  regenerateSection,
+} from "../src/lib/site-studio/regenerate";
 import { assertDocumentSize, MAX_SITE_DOCUMENT_BYTES } from "../src/lib/site-studio/document";
 import { siteSlugSchema } from "../src/lib/site-studio/document";
 import { AI_JOBS } from "../src/lib/ai/model-registry";
@@ -623,8 +628,123 @@ async function main() {
     "oversized creates leave no partial draft",
   );
 
+  // Section regeneration: surgical AI improvement with provable scoping.
+  const regenBase = await createSiteDraft(
+    serviceStore,
+    { brief, mode: "template", slug: "regen-page" },
+    noGenerator,
+  );
+  const systemPrompt = buildSectionSystemPrompt();
+  assert.ok(systemPrompt.includes("Never invent prices"), "regeneration carries grounding rules");
+  assert.ok(systemPrompt.includes(first.id), "regeneration exposes catalog ids");
+  const heroSection = regenBase.document.root.find((section) => section.id === "hero")!;
+  const userPrompt = buildSectionUserPrompt(heroSection, "More premium, less copy");
+  assert.ok(userPrompt.includes("hero") && userPrompt.includes("More premium"));
+  const siblingsBefore = JSON.stringify(
+    regenBase.document.root.filter((section) => section.id !== "hero"),
+  );
+  const freshHero = {
+    id: "hero-main",
+    type: "hero",
+    props: {
+      variant: "split",
+      heading: "Evenings, returned.",
+      body: "Shorter, sharper.",
+      primaryCta: { label: "Talk to us", href: "/contact" },
+    },
+  };
+  const regenerated = await regenerateSection(
+    serviceStore,
+    regenBase.id,
+    "hero",
+    { direction: "More premium", expectedChecksum: regenBase.checksum },
+    async () => ({ children: [freshHero] }),
+  );
+  assert.notEqual(regenerated.checksum, regenBase.checksum);
+  assert.equal(regenerated.source, "template", "regeneration preserves draft provenance");
+  assert.deepEqual(
+    JSON.stringify(regenerated.document.root.filter((section) => section.id !== "hero")),
+    siblingsBefore,
+    "sibling sections are byte-identical after regeneration",
+  );
+  assert.equal(
+    (regenerated.document.root.find((section) => section.id === "hero")?.children[0] as { props: { heading: string } })
+      ?.props.heading,
+    "Evenings, returned.",
+  );
+  await assert.rejects(
+    regenerateSection(serviceStore, regenerated.id, "no-such-section", {}, async () => ({
+      children: [freshHero],
+    })),
+    /Unknown section/,
+  );
+  await assert.rejects(
+    regenerateSection(serviceStore, regenerated.id, "hero", {}, async () => ({
+      children: [{ id: "bad", type: "marquee-3d", props: {} }],
+    })),
+    /invalid/,
+    "non-registry leaves are refused",
+  );
+  await assert.rejects(
+    regenerateSection(serviceStore, regenerated.id, "hero", {}, async () => ({
+      children: [freshHero, { ...freshHero }],
+    })),
+    /unique/,
+    "duplicate regenerated ids are refused",
+  );
+  await assert.rejects(
+    regenerateSection(serviceStore, regenerated.id, "hero", {}, async () => ({
+      children: [{ ...freshHero, id: "what-you-get-grid" }],
+    })),
+    /collides outside/,
+    "scoping is enforced against sibling ids",
+  );
+  await assert.rejects(
+    regenerateSection(serviceStore, regenerated.id, "hero", {}, async () => ({
+      children: [{ ...freshHero, props: { ...freshHero.props, body: "Save $5,000 today." } }],
+    })),
+    /invents a metric/,
+    "regenerated metrics are refused like generated ones",
+  );
+  await assert.rejects(
+    regenerateSection(serviceStore, regenerated.id, "hero", {}, async () => ({
+      children: [
+        {
+          id: "link-note",
+          type: "text",
+          props: { text: "Details at https://invented.example/x" },
+        },
+      ],
+    })),
+    /invents links/,
+  );
+  await assert.rejects(
+    regenerateSection(serviceStore, regenerated.id, "hero", {}, async () => ({
+      children: [{ id: "pic", type: "image", props: { assetId: "invented/missing" } }],
+    })),
+    /catalog/,
+    "regenerated images resolve to the catalog",
+  );
+  await assert.rejects(
+    regenerateSection(
+      serviceStore,
+      regenerated.id,
+      "hero",
+      { expectedChecksum: regenBase.checksum },
+      async () => ({ children: [freshHero] }),
+    ),
+    (error: unknown) => error instanceof StaleDraftError,
+    "regeneration honors optimistic concurrency",
+  );
+  await assert.rejects(
+    regenerateSection(serviceStore, regenerated.id, "hero", {}, async () => {
+      throw new Error("provider down");
+    }),
+    /failed before validation/,
+  );
+
   console.log(
-    "Site Studio v1: schema, tokens, catalog, renderer, store, template, generation contract, job registration, draft service, revision, discard, and size bound passed.",
+    "Site Studio v1: schema, tokens, catalog, renderer, store, template, generation contract, job registration, draft service, revision, discard, size bound, and regeneration passed.",
   );
 }
 

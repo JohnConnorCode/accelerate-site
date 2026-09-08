@@ -5,6 +5,7 @@ import {
   collectRawUrls,
   parseSiteDocument,
   assertDocumentSize,
+  siteLeafNodeSchema,
   siteNodeIdSchema,
   siteSlugSchema,
   siteStyleSchema,
@@ -27,15 +28,6 @@ export class StaleDraftError extends Error {
   }
 }
 
-const leafNodeSchema = z
-  .object({
-    id: siteNodeIdSchema,
-    type: z.enum(["hero", "heading", "text", "image", "button", "featureGrid", "faq", "ctaBand"]),
-    props: z.record(z.string(), z.unknown()),
-    styles: z.record(z.string(), z.unknown()).optional(),
-  })
-  .strict();
-
 export const sitePatchSchema = z.discriminatedUnion("op", [
   z
     .object({ op: z.literal("setProp"), nodeId: siteNodeIdSchema, path: z.string().min(1).max(80), value: z.unknown() })
@@ -44,7 +36,7 @@ export const sitePatchSchema = z.discriminatedUnion("op", [
     .object({ op: z.literal("setStyle"), nodeId: siteNodeIdSchema, path: z.string().min(1).max(80), value: z.unknown() })
     .strict(),
   z
-    .object({ op: z.literal("insert"), parentId: siteNodeIdSchema, index: z.number().int().min(0).max(40).optional(), node: leafNodeSchema })
+    .object({ op: z.literal("insert"), parentId: siteNodeIdSchema, index: z.number().int().min(0).max(40).optional(), node: siteLeafNodeSchema })
     .strict(),
   z.object({ op: z.literal("remove"), nodeId: siteNodeIdSchema }).strict(),
   z
@@ -56,7 +48,7 @@ export const sitePatchSchema = z.discriminatedUnion("op", [
     })
     .strict(),
   z
-    .object({ op: z.literal("replace"), nodeId: siteNodeIdSchema, node: leafNodeSchema })
+    .object({ op: z.literal("replace"), nodeId: siteNodeIdSchema, node: siteLeafNodeSchema })
     .strict(),
   z
     .object({
@@ -75,7 +67,7 @@ export interface ReviseDraftInput {
   expectedChecksum?: string;
 }
 
-type EditableDocument = {
+export type EditableDocument = {
   root: Array<{
     id: string;
     type: "section";
@@ -228,6 +220,37 @@ function validateRevised(document: EditableDocument): SiteDocument {
   return parsed;
 }
 
+/** Shared persist path for every revision source (patches, regeneration):
+ * slug ownership, validation, save, and orphan cleanup. Callers load and
+ * concurrency-check before mutating. */
+export async function persistRevisedDocument(
+  repo: SiteDraftRepository,
+  current: SiteDraft,
+  working: EditableDocument,
+): Promise<SiteDraft> {
+  const slug = working.metadata.slug;
+  siteSlugSchema.parse(slug);
+  if (
+    slug !== current.document.metadata.slug &&
+    repo.list().some((draft) => draft.slug === slug && draft.id !== current.id)
+  )
+    throw new SlugInUseError(slug);
+  const document = validateRevised(working);
+  const saved = repo.save({
+    title: document.metadata.title,
+    slug,
+    document,
+    source: current.source,
+    brief: current.brief,
+  });
+  if (saved.id !== current.id) repo.remove(current.id);
+  return repo.get(saved.id) ?? saved;
+}
+
+export function cloneDocumentForRevision(document: SiteDocument): EditableDocument {
+  return structuredClone(document) as unknown as EditableDocument;
+}
+
 export async function reviseSiteDraft(
   repo: SiteDraftRepository,
   id: string,
@@ -239,21 +262,7 @@ export async function reviseSiteDraft(
     throw new StaleDraftError();
   if (input.patches.length === 0) throw new Error("At least one patch is required");
   if (input.patches.length > 50) throw new Error("Revise in batches of at most 50 patches");
-  const working = structuredClone(current.document) as unknown as EditableDocument;
-  const previousSlug = working.metadata.slug;
+  const working = cloneDocumentForRevision(current.document);
   for (const patch of input.patches) applyPatch(working, patch);
-  const slug = working.metadata.slug;
-  siteSlugSchema.parse(slug);
-  if (slug !== previousSlug && repo.list().some((draft) => draft.slug === slug && draft.id !== id))
-    throw new SlugInUseError(slug);
-  const document = validateRevised(working);
-  const saved = repo.save({
-    title: document.metadata.title,
-    slug,
-    document,
-    source: current.source,
-    brief: current.brief,
-  });
-  if (saved.id !== id) repo.remove(id);
-  return repo.get(saved.id) ?? saved;
+  return persistRevisedDocument(repo, current, working);
 }

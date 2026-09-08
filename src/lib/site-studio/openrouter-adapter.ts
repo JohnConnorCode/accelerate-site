@@ -6,6 +6,7 @@ import {
   validateGeneratedDocument,
   type PageBrief,
 } from "./generate";
+import { regeneratedSectionJsonSchema } from "./regenerate";
 import type { SiteDocument } from "./document";
 
 /** Repository transport for AI page generation. Registered job
@@ -44,4 +45,36 @@ export async function generatePageWithOpenRouter(
     );
   }
   return validateGeneratedDocument(raw);
+}
+
+/** Raw transport for section regeneration. Validation lives in the service
+ * so provider output is never trusted; the same site-page-draft job,
+ * receipts, and budgets apply. */
+export async function regenerateSectionWithOpenRouter(
+  database: SupabaseClient,
+  system: string,
+  user: string,
+): Promise<unknown> {
+  try {
+    const result = await openRouterJson({
+      database,
+      job: "site-page-draft",
+      maxTokens: 2000,
+      temperature: 0.4,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      schemaName: "site_section_regenerate_v1",
+      schema: regeneratedSectionJsonSchema as unknown as Record<string, unknown>,
+      validate: (value: unknown) => value,
+    });
+    return result.data;
+  } catch (error) {
+    if (error instanceof OpenRouterError && error.status === 503)
+      throw new Error(
+        "AI generation is not configured for this workspace. Connect OpenRouter under Setup to regenerate sections.",
+      );
+    throw error instanceof Error ? error : new Error("Section regeneration failed");
+  }
 }

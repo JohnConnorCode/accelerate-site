@@ -72,6 +72,17 @@ export const generatedPageJsonSchema = {
 
 const INVENTED_METRIC = /(\$\s?\d|\d+\s*%)/;
 
+/** Shared AI-copy grounding: invented prices, percentages, clients, and
+ * metrics are refused before anything saves. Human-authored revisions are
+ * exempt by design; model output never is. */
+export function assertGroundedAiCopy(copy: string, scope: string): void {
+  const metric = copy.match(INVENTED_METRIC);
+  if (metric)
+    throw new Error(
+      `${scope} invents a metric (${metric[0]}); remove it or supply approved wording`,
+    );
+}
+
 export function validateGeneratedDocument(value: unknown): SiteDocument {
   if (!value || typeof value !== "object") throw new Error("Generated page must be a JSON object");
   const body = value as Record<string, unknown>;
@@ -89,8 +100,7 @@ export function validateGeneratedDocument(value: unknown): SiteDocument {
       `Generated copy invents links (${rawUrls.slice(0, 3).join(", ")}); CTA hrefs must be site-relative`,
     );
   const copy = JSON.stringify(document.root);
-  const metric = copy.match(INVENTED_METRIC);
-  if (metric) throw new Error(`Generated copy invents a metric (${metric[0]}); remove it or supply approved wording`);
+  assertGroundedAiCopy(copy, "Generated copy");
   return document;
 }
 

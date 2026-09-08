@@ -136,7 +136,9 @@ export type SiteLeafType =
 
 const baseNode = { id: nodeId, styles: siteStyleSchema.optional() };
 
-const leafNodeSchema = z.union([
+/** Canonical leaf authority. Patch validation, generation, and regeneration
+ * all share this schema so a node valid in one path is valid in all. */
+export const siteLeafNodeSchema = z.union([
   z.object({ ...baseNode, type: z.literal("hero"), props: heroSchema }),
   z.object({ ...baseNode, type: z.literal("heading"), props: headingSchema }),
   z.object({ ...baseNode, type: z.literal("text"), props: textSchema }),
@@ -146,6 +148,8 @@ const leafNodeSchema = z.union([
   z.object({ ...baseNode, type: z.literal("faq"), props: faqSchema }),
   z.object({ ...baseNode, type: z.literal("ctaBand"), props: ctaBandSchema }),
 ]);
+
+const leafNodeSchema = siteLeafNodeSchema;
 
 const sectionNodeSchema = z.object({
   id: nodeId,
