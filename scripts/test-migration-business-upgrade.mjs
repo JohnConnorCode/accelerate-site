@@ -105,3 +105,4 @@ await import("./test-radar-outreach-postgres.mjs");
 await import("./test-site-studio-postgres.mjs");
 
 await import("./test-campaign-duplicate-postgres.mjs");
+await import("./test-contact-bulk-postgres.mjs");

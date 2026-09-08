@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "reviewed-bulk-contact-operations",
+    slug: "reviewed-bulk-contact-operations",
+    title: "Tag, suppress and stage selected contacts with individual outcomes",
+    description:
+      "Lead selections resolve to distinct contacts. Concurrent tag changes preserve unrelated labels, and campaign enrollment rechecks draft status and canonical email identity inside the database transaction. Per-contact outcomes show skips and failures; retries repair partially completed suppression without restoring unsubscribed contacts. The fictional demo saves these changes across reloads.",
+    category: "feature",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "atomic-campaign-duplication",
     slug: "atomic-campaign-duplication",
     title: "Duplicate campaigns into fresh drafts with durable retry receipts",

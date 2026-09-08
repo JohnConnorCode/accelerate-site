@@ -122,3 +122,9 @@ active theme/editor/shell changes, and a stage-history reconciliation checkout
 was created. These are preserved outside the pinned first integration. The
 inventory grew from 73 to 77 before the campaign follow-up checkout was added;
 worktree count is not a count of missing features.
+
+## Bulk-contact reconciliation candidate
+
+The `02d3e94` handoff is ported onto the campaign integration without its stale board snapshot. Tag writes now use locked current rows; staging uses one shared host transaction for canonical recipient matching, suppression checks, draft-state admission and exact inserted-row outcomes. Bulk calls require draft state, while the existing single-member API retains explicit active-campaign admission. The API returns per-recipient outcomes instead of an error after silently inserting a partial set.
+
+Suppression continues through the canonical shared writer. It can still fail after persisting part of the safety change; the result describes this and retry repairs remaining stops/audits, including already-suppressed contacts. No automatic unsuppression is introduced. Native and browser proofs are added but acceptance remains pending their execution. The demo now persists tags, members and suppression instead of checking only disabled controls.

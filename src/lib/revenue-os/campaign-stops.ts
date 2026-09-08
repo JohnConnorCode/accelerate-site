@@ -14,7 +14,8 @@ export type CampaignStopReason =
   | "opportunity_converted"
   | "opportunity_progressed"
   | "manual_pause"
-  | "policy_invalidated";
+  | "policy_invalidated"
+  | "admin_suppressed";
 
 export function campaignStopStatus(reason: CampaignStopReason) {
   if (reason === "public_unsubscribe") return "unsubscribed";
@@ -23,7 +24,11 @@ export function campaignStopStatus(reason: CampaignStopReason) {
 }
 
 type EmailSuppressionReason =
-  "public_unsubscribe" | "resend_bounced" | "resend_complained" | "resend_suppressed";
+  | "admin_suppressed"
+  | "public_unsubscribe"
+  | "resend_bounced"
+  | "resend_complained"
+  | "resend_suppressed";
 
 /**
  * The only writer for contact-level campaign email eligibility. Source
@@ -49,8 +54,19 @@ export async function suppressContactFromCampaignEmail(
     .eq("id", input.contactId);
   if (communicationStatus === "suppressed")
     contactUpdate = contactUpdate.neq("communication_status", "unsubscribed");
-  const { error } = await contactUpdate;
+  const { data: changed, error } = await contactUpdate.select("id").maybeSingle();
   if (error) throw new Error(error.message);
+  if (!changed) {
+    const current = await supabase
+      .from("contacts")
+      .select("communication_status")
+      .eq("id", input.contactId)
+      .maybeSingle();
+    if (current.error) throw new Error(current.error.message);
+    if (!current.data) throw new Error("Contact unavailable; no suppression applied");
+    if (current.data.communication_status !== "unsubscribed")
+      throw new Error("Contact changed while suppressing; retry to reconcile");
+  }
 
   const stopped = await stopCampaignMemberships(supabase, input);
   await recordAudit(supabase, {

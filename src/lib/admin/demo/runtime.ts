@@ -79,6 +79,21 @@ type DemoEmailStudioDetail = {
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
 export type DemoState = {
+  contactBulkOverrides?: Record<string, { tags: string[]; communicationStatus: string }>;
+  campaignBulkMembers?: Record<
+    string,
+    Array<{
+      id: string;
+      contact_id: string;
+      email: string;
+      status: string;
+      current_step: number;
+      next_send_at: null;
+      stop_reason: string | null;
+      send_attempts: number;
+    }>
+  >;
+
   campaignCopies?: ReturnType<typeof campaignDraftCopy>[];
   campaignDuplicateReceipts?: Record<string, { fingerprint: string; copyId: string }>;
   business: DemoBusinessState | null;
@@ -1137,6 +1152,8 @@ function campaigns(pack: DemoScenarioPack) {
     })),
     campaign_members: pack.people.slice(index * 5, index * 5 + 8).map((contact, memberIndex) => ({
       id: `member-${index}-${memberIndex}`,
+      contact_id: contact.id,
+      email: contact.email,
       status: memberIndex < 5 ? "active" : "completed",
       current_step: Math.min(3, memberIndex % 4),
       next_send_at:
@@ -2025,13 +2042,16 @@ export function importBatch(pack: DemoScenarioPack) {
     rows,
   };
 }
-function legacy(pack: DemoScenarioPack, path: string) {
+function legacy(pack: DemoScenarioPack, path: string, state: DemoState) {
   const contacts = pack.people.map((item, index) => {
     const resource = pack.content.resourceTitles[index % pack.content.resourceTitles.length]!;
     return {
       id: item.id,
       name: item.name,
       email: item.email,
+      revenue_os: { contact_id: item.id, opportunity_id: null, stage: null },
+      tags: state.contactBulkOverrides?.[item.id]?.tags ?? [],
+      communication_status: state.contactBulkOverrides?.[item.id]?.communicationStatus ?? "active",
       contact_name: item.name,
       contact_email: item.email,
       phone: item.phone,
@@ -2278,7 +2298,105 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
             }),
         ),
       });
-    const allCampaigns = [...(state.campaignCopies ?? []), ...campaigns(pack)];
+    const allCampaigns = [...(state.campaignCopies ?? []), ...campaigns(pack)].map((campaign) => ({
+      ...campaign,
+      campaign_members: [
+        ...campaign.campaign_members,
+        ...(state.campaignBulkMembers?.[campaign.id] ?? []),
+      ].map((member) => ({
+        ...member,
+        ...(state.contactBulkOverrides?.[member.contact_id]?.communicationStatus === "suppressed"
+          ? { status: "stopped", next_send_at: null, stop_reason: "admin_suppressed" }
+          : {}),
+      })),
+    }));
+    if (method === "POST" && path === "/api/admin/leads/bulk") {
+      if (state.moduleOverrides["leads-capture"] === false)
+        return jsonResponse({ error: "Leads disabled" }, 403);
+      if (
+        !Array.isArray(body.contactIds) ||
+        body.contactIds.length < 1 ||
+        body.contactIds.length > 200 ||
+        body.contactIds.some((id) => typeof id !== "string")
+      )
+        return jsonResponse({ error: "Select 1–200 contacts" }, 400);
+      const ids = [...new Set(body.contactIds as string[])];
+      if (!["tag", "suppress", "enroll"].includes(String(body.action)))
+        return jsonResponse({ error: "Unknown bulk operation" }, 400);
+      const add = body.add ?? [],
+        remove = body.remove ?? [];
+      if (
+        body.action === "tag" &&
+        (!Array.isArray(add) ||
+          !Array.isArray(remove) ||
+          add.length > 25 ||
+          remove.length > 25 ||
+          add.length + remove.length === 0 ||
+          [...add, ...remove].some(
+            (tag) => typeof tag !== "string" || !/^[a-z0-9][a-z0-9_-]{0,39}$/.test(tag),
+          ))
+      )
+        return jsonResponse({ error: "Invalid contact tags" }, 400);
+      const campaign = allCampaigns.find((c) => c.id === body.campaignId);
+      if (
+        body.action === "enroll" &&
+        (state.moduleOverrides.campaigns === false || !campaign || campaign.status !== "draft")
+      )
+        return jsonResponse({ error: "Bulk enrollment requires an enabled draft campaign" }, 409);
+      const outcomes = ids.map((contactId) => {
+        const contact = pack.people.find((person) => person.id === contactId);
+        if (!contact) return { contactId, status: "skipped", reason: "Contact unavailable" };
+        const overrides = (state.contactBulkOverrides ??= {});
+        const current = overrides[contactId] ?? { tags: [], communicationStatus: "active" };
+        if (body.action === "tag") {
+          const tags = [...new Set([...current.tags, ...(add as string[])])]
+            .filter((tag) => !(remove as string[]).includes(tag))
+            .sort();
+          if (tags.length > 25)
+            return { contactId, status: "failed", reason: "Would exceed 25 tags" };
+          overrides[contactId] = { ...current, tags };
+        } else if (body.action === "suppress") {
+          overrides[contactId] = { ...current, communicationStatus: "suppressed" };
+        } else {
+          if (current.communicationStatus !== "active")
+            return { contactId, status: "skipped", reason: "Contact is not active" };
+          const memberSets = (state.campaignBulkMembers ??= {});
+          const members = (memberSets[campaign!.id] ??= []);
+          if (
+            campaign!.campaign_members.some((m) => m.contact_id === contactId) ||
+            members.some((m) => m.contact_id === contactId)
+          )
+            return { contactId, status: "skipped", reason: "Already enrolled in this campaign" };
+          members.push({
+            id: crypto.randomUUID(),
+            contact_id: contactId,
+            email: contact.email,
+            status: "queued",
+            current_step: 0,
+            next_send_at: null,
+            stop_reason: null,
+            send_attempts: 0,
+          });
+        }
+        return {
+          contactId,
+          status: "applied",
+          reason:
+            body.action === "tag"
+              ? "Tags updated"
+              : body.action === "suppress"
+                ? "Campaign email suppressed; pending memberships stopped"
+                : "Staged as a queued member",
+        };
+      });
+      saveState(scenarioId, state);
+      return jsonResponse({
+        outcomes,
+        applied: outcomes.filter((x) => x.status === "applied").length,
+        skipped: outcomes.filter((x) => x.status === "skipped").length,
+        failed: outcomes.filter((x) => x.status === "failed").length,
+      });
+    }
     if (method === "GET" && path === "/api/admin/revenue-os/campaigns")
       return jsonResponse({ schemaReady: true, campaigns: allCampaigns });
     if (
@@ -3370,7 +3488,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         ],
       });
     }
-    const legacyPayload = legacy(pack, path);
+    const legacyPayload = legacy(pack, path, state);
     if (legacyPayload) return jsonResponse(legacyPayload);
     if (["/api/admin/tasks", "/api/admin/revenue-os/tasks"].includes(path)) {
       const status = url.searchParams.get("status");
