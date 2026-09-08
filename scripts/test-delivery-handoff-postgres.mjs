@@ -61,6 +61,34 @@ const binding = () =>
 const create = () =>
   context(a) +
   `INSERT INTO clients(tenant_id,opportunity_id,business_name,contact_name,contact_email,handoff_receipt) SELECT '${a}',o.id,'Delivery customer','Customer','${contact}@example.test',${binding()} FROM opportunities o CROSS JOIN onboarding_templates t WHERE o.id='${opp}' AND o.tenant_id='${a}' AND t.tenant_id='${a}' AND t.template_key='${key}' AND t.version=2 RETURNING id;`;
+const memberContext = context(a).replace(
+  "SET ROLE service_role;",
+  "SET request.jwt.claim.sub='11111111-1111-4111-8111-111111111111'; SET request.jwt.claim.role='authenticated'; SET ROLE authenticated;",
+);
+const memberOpportunity = randomUUID();
+sql(
+  `INSERT INTO opportunities(id,tenant_id,name,stage,contact_id,email) SELECT '${memberOpportunity}',tenant_id,'Member handoff',stage,contact_id,email FROM opportunities WHERE id='${opp}';`,
+);
+const memberCreate = create().replace(context(a), memberContext).replaceAll(opp, memberOpportunity);
+const memberClient = sql(memberCreate);
+assert.ok(
+  memberClient,
+  "an authenticated workspace admin can hand off with locked source validation",
+);
+assert.equal(
+  sql(
+    memberContext +
+      `UPDATE clients SET onboarding_checklist='[]' WHERE id='${memberClient}' RETURNING handoff_revision;`,
+  ),
+  "1",
+);
+sql(
+  `UPDATE tenant_memberships SET status='revoked' WHERE tenant_id='${a}' AND user_id='11111111-1111-4111-8111-111111111111';`,
+);
+assert.match(fail(memberCreate), /tenant access forbidden|row-level security/);
+sql(
+  `UPDATE tenant_memberships SET status='active' WHERE tenant_id='${a}' AND user_id='11111111-1111-4111-8111-111111111111';`,
+);
 const creates = await Promise.all([asyncSql(create()), asyncSql(create())]);
 assert.equal(creates.filter((r) => r.code === 0).length, 1, JSON.stringify(creates));
 assert.match(creates.find((r) => r.code !== 0).err, /idx_clients_handoff_opportunity_unique/);
