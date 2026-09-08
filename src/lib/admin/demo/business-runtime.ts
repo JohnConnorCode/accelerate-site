@@ -1,3 +1,4 @@
+import { getLayoutScope } from "@/lib/admin/layout-scopes";
 import { validateAdminTheme } from "@/lib/admin/theme-definition";
 import {
   prepareOperatorTaskPatch,
@@ -262,6 +263,13 @@ export async function handleDemoBusinessRequest(
   );
   if (collectionResponse) return collectionResponse;
   const path = url.pathname;
+  if (method === "GET" && path === "/api/admin/revenue-os/layout") {
+    const scope = url.searchParams.get("scope");
+    if (!scope || !getLayoutScope(scope)) {
+      return Response.json({ error: "Unknown layout scope" }, { status: 400 });
+    }
+    return Response.json({ scope, doc: null, history: [] });
+  }
   const enabled = (id: string) => modules[id] ?? false;
   const requireEnabled = (id: string) => {
     if (!enabled(id))

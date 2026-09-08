@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "demo-layout-settings-read",
+    slug: "demo-layout-settings-read",
+    title: "Inspect default layout settings in fictional workspaces",
+    description:
+      "Demo Settings now loads the default sidebar and Today page layouts without an error notification. The layouts have no saved override or change history, so reverting remains unavailable. The settings guide explains these states with an example.",
+    category: "fix",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "site-studio-provider-output-contract",
     slug: "site-studio-provider-output-contract",
     title: "Generate Site Studio drafts with the configured structured-output provider",

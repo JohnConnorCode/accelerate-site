@@ -269,6 +269,15 @@ for (const scenario of scenarios) {
         { timeout: 30_000 },
       );
       await page.waitForTimeout(350);
+      if (route === "settings") {
+        await page
+          .getByText("Using the default order. No override applied.", { exact: true })
+          .nth(1)
+          .waitFor();
+        if (await page.getByText(/Failed to load .* layout/).count()) {
+          failures.push(`${scenario} ${label}: layout settings failed to load`);
+        }
+      }
       const state = await readStablePageState(page);
       if (state.width > state.viewport + 2)
         failures.push(`${scenario} ${label} ${route}: overflow ${state.width} > ${state.viewport}`);
