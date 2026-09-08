@@ -67,7 +67,7 @@ Campaigns, email templates, and reactivation of past demand.
 
 - [Outreach](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-09-06): Controlled outbound that stops on reply and refuses contacts who asked to be left alone.
 - [Review collection reminders](https://www.acceleratewith.us/docs/outreach/collections) (updated 2026-09-06): Track verified invoice balances, payment promises, and disputes before approving a reminder.
-- [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-09-04): Approve a version once, then automation runs inside sender, audience, cadence, limit, and stop rules.
+- [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-09-08): Approve a version once, then automation runs inside sender, audience, cadence, limit, and stop rules.
 - [Email Studio](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-09-04): Edit live copy, inspect what was sent, and compose a direct follow-up.
 - [Review recovery outreach](https://www.acceleratewith.us/docs/outreach/recovery) (updated 2026-09-05): Check eligibility and the proposed playbook before contacting a past lead.
 
@@ -92,20 +92,20 @@ The assistant, run traces, knowledge, and source-to-revenue analytics.
 - [Put AI to work with your business context](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-06): Ask questions, inspect the evidence, and turn supported requests into reviewed actions.
 - [Review opportunities with Radar](https://www.acceleratewith.us/docs/intelligence/opportunity-radar) (updated 2026-09-06): Review sources, relationship context, estimates, and drafts with explicit approvals and model budgets.
 - [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-05): Registered tools, connection requirements, and input schemas.
-- [Use the AI Workspace](https://www.acceleratewith.us/docs/intelligence/workspace) (updated 2026-09-05): Ask a specific question, check its sources and inspect the result of an action.
+- [Use the AI Workspace](https://www.acceleratewith.us/docs/intelligence/workspace) (updated 2026-09-08): Ask a specific question, check its sources and inspect the result of an action.
 
 ## Sources
 Inbound leads, chat, subscribers, partners, and website grades.
 
 - [Sources](https://www.acceleratewith.us/docs/sources/overview) (updated 2026-09-04): Where new people enter, before they become contacts, conversations, or deals.
-- [Review leads and chat handoffs](https://www.acceleratewith.us/docs/sources/leads) (updated 2026-09-05): Qualify an inquiry, check for an existing person and record the next action.
+- [Review leads and chat handoffs](https://www.acceleratewith.us/docs/sources/leads) (updated 2026-09-08): Qualify an inquiry, check for an existing person and record the next action.
 
 ## Workspace
 Tenants, setup, settings, integrations, and the Feature Board.
 
 - [Workspace](https://www.acceleratewith.us/docs/workspace/overview) (updated 2026-09-04): How a tenant is provisioned, connected, and kept ready.
 - [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-06): Bring external context into the workspace and make supported actions available to your team and AI.
-- [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-05): Verify access and the connections needed for your first real workflow.
+- [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-08): Verify access and the connections needed for your first real workflow.
 - [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-05): Update notifications and configuration, then confirm the saved result.
 
 ## Customize

@@ -1,7 +1,7 @@
 ---
 title: "Campaigns"
 description: "Approve a version once, then automation runs inside sender, audience, cadence, limit, and stop rules."
-updated: "2026-09-04"
+updated: "2026-09-08"
 ---
 
 Open `/admin/campaigns`. Each campaign has a name, a status, a version, and an approved version. Copy that has not been approved does not send.
@@ -27,3 +27,15 @@ Stop rules are re-read before every send: reply, unsubscribe, suppression, exhau
 `/admin/email-sequences` is sequence and delivery status for the same memberships. Use it for the receipt trail. Campaigns is the editor.
 
 If the source changes before a copy is saved, the request is refused and the list refreshes. Review the current source, then choose Duplicate again. An interrupted response keeps the original request so a retry checks for the existing draft.
+
+## Example: reuse a seasonal campaign
+
+Northline wants to reuse “Spring estimate follow-up” for an autumn audience.
+
+1. Find the existing campaign and choose **Duplicate**.
+2. Open “Spring estimate follow-up (copy)”. Confirm it is a draft with an empty recipient list.
+3. Review the copied message steps, sender, schedule, limits and stop rules. Update the seasonal wording before seeking approval.
+4. Stage the intended contacts into the draft from [Leads](/docs/sources/leads). Check skipped or failed contacts before activating the campaign.
+5. Review and approve the version you intend to run. Copying and enrollment do not approve it for sending.
+
+If the connection drops after Duplicate, reload and retry the pending request. Check for the existing copy before deliberately starting another copy request. If the source campaign changed, review its current version before trying again.

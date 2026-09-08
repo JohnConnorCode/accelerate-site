@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "workflow-guides-with-examples",
+    slug: "workflow-guides-with-examples",
+    title: "Follow worked examples for the new workspace workflows",
+    description:
+      "The public guides now walk through tagging and draft enrollment, campaign copying, won-to-delivery handoff, Drive indexing, and private Site Studio drafts. Each example explains its saved result and recovery. Feature descriptions and FAQ clarify that bulk changes have individual outcomes, successful changes remain saved, and suppression is not automatically reversed.",
+    category: "improvement",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "reviewed-delivery-handoff",
     slug: "reviewed-delivery-handoff",
     title: "Review a won opportunity's delivery plan and retain its handoff receipt",

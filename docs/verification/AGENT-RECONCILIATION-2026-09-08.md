@@ -2,6 +2,22 @@
 
 This audit is owned by the integration branch `integration/agent-reconciliation-20260908`, based on published main `269c610cdb217a7268c6cf0482be49466ade4c70`. The operator requested evaluation and completion of recent agent work; focus is the 24 hours ending 2026-09-08 11:58 UTC. This is an evidence receipt, not a second backlog or a deployment claim.
 
+## Current integration status — supersedes the initial findings below
+
+The original inventory and failure reproductions below are historical observations of the source handoffs. Their wording does not describe the repaired main tree.
+
+| Integration                                                    | Merged commit | Verification and disposition                                                                                                                                                  |
+| -------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime, Drive indexing and Site Studio private drafts, PR #59 | `b409b39`     | Required CI passed; source handoffs adapted and repaired. Connected-provider proof remains separate.                                                                          |
+| Atomic campaign duplication, PR #60                            | `0ae18bf`     | Required CI passed; merged tree matches the tested candidate. Original partial-copy/retry defect repaired.                                                                    |
+| Transactional supervisor ownership, PR #62                     | `1c17e90`     | Required CI passed; merged tree matches the tested candidate. Original concurrent-state and stale-owner defects repaired. Installation remains optional and was not enabled.  |
+| Bulk contacts, PR #61                                          | `9276b40`     | Required CI passed, including native database and browser journeys; merged tree matches the tested candidate. Lost tag updates and enrollment outside draft state repaired.   |
+| Reviewed delivery handoff, PR #63                              | `02acb52`     | Candidate `7d2f3be` passed CI run `34246859717`, including native role/concurrency/replay tests and desktop/mobile journeys for two businesses. Merge tree matches candidate. |
+
+Public operator guides, changelog and feature descriptions accompanied these integrations. The release-completion review adds worked examples and corrects the remaining unsupported bulk-undo promise. Review the current public guides for available controls; the older pending-test statements below preserve the sequence of the audit.
+
+As of the release-completion audit, PR #64 owns the active design/theme work. Workspace Blueprint source is still an unfinished separate handoff. Site Studio public publishing and broader Architect/Harness initiatives are not established by the private-draft merge. Live-card acceptance, connected-provider checks, production schema application and production deployment need their own receipts; none is inferred from Git integration.
+
 ## Inventory and preservation
 
 - Initial inventory: 73 worktrees, five dirty, zero open PRs. All local/remote refs and four stashes were inspected; the two recent stashes concern Site Studio/Agent Harness specifications.

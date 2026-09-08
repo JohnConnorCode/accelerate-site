@@ -47,3 +47,14 @@ Use it only when you administer the installation and have verified which databas
 | The host cannot be reached    | The domain resolves and the deployment is reachable from the client      |
 
 An endpoint responding to a health request does not prove an authenticated tool call will work. Verify a read before trying to stage a change.
+
+## Example: connect a daily operations assistant
+
+Maya wants an external assistant to inspect Northline's current priorities without changing records.
+
+1. Generate the MCP key in Northline's **Integrations** screen and configure the tenant HTTP endpoint in the client. Use `?profile=ops` for the Daily tool list.
+2. Ask: “Read this workspace's Today queue. Show the linked records and explain which entries need a decision. Do not prepare or apply changes.”
+3. Check that the returned business and record links belong to Northline. If they do not, disconnect and check the workspace URL and key before continuing.
+4. For a later supported change, request a proposal and review it inside Command Center's **Approvals**. Inspect the execution result after your approval.
+
+For example, an assistant saying “I prepared the update” means you should look for its pending proposal. It does not mean the record changed. If the smaller tool list omits a needed operation, ask the assistant to discover it; your permissions and module settings still decide whether it is available.
