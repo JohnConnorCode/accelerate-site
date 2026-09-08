@@ -528,7 +528,7 @@ export const CURRENT_SURFACES = [
     n: "07",
     label: "Automate safely",
     title: "Campaigns, proposals, and recovery",
-    body: "Drafts, sends, campaign stops, proposal versions, task generation, and failed work all use confirmation, idempotency, receipts, and recovery paths.",
+    body: "Campaign copies start as unsent drafts and retain the same copy when an interrupted request is retried. Sends, campaign stops, proposal versions, task generation, and failed work use confirmation, idempotency, receipts, and recovery paths.",
   },
   {
     n: "08",

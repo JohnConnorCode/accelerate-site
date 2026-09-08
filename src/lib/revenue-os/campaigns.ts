@@ -1,4 +1,10 @@
 import "server-only";
+import { z } from "zod";
+import { callCampaignDuplicateRpc } from "@/lib/supabase/server";
+import {
+  campaignDuplicateOptions,
+  type CampaignDuplicateOptions,
+} from "./campaign-duplicate-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendRecordedEmail } from "./communications";
 import { recordAudit } from "./audit";
@@ -187,6 +193,29 @@ export async function pauseCampaign(supabase: SupabaseClient, id: string, actorE
     before,
     after: data,
   });
+  return data;
+}
+
+/** One canonical transaction binds a copy to its reviewed source version and retry identity. */
+export async function duplicateCampaign(
+  supabase: SupabaseClient,
+  id: string,
+  actorEmail: string,
+  raw: CampaignDuplicateOptions,
+) {
+  const sourceId = z.uuid().parse(id);
+  const options = campaignDuplicateOptions.parse(raw);
+  const actor = z.string().trim().min(1).max(320).parse(actorEmail);
+  const { data, error } = await callCampaignDuplicateRpc(supabase, {
+    p_source: sourceId,
+    p_expected_version: options.expectedVersion,
+    p_request: options.requestId,
+    p_name: options.name ?? null,
+    p_actor: actor,
+  });
+  if (error) throw new Error(error.message);
+  if (!data || typeof data !== "object" || typeof data.id !== "string")
+    throw new Error("Campaign duplication returned no durable receipt; retry the same request.");
   return data;
 }
 

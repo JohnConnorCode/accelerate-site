@@ -70,3 +70,55 @@ profile isolation, invalid scopes and private diagnostics.
 | Failed draft reads    | Empty state or indefinite loading             | Visible failure and retry                                              |
 | Photo choices         | Internal catalog identifiers                  | Readable photo descriptions                                            |
 | Draft changes         | File replacement and unchecked discard        | Stable database identity, viewed-checksum guards and immutable history |
+
+## First integration receipt
+
+PR 59 merged on 2026-09-08 at 13:23:40 UTC as
+`b409b39bff1a24ee00613a861b9c1dd25a637be0`. Its tree exactly matches candidate
+`edc43a20d18a1b3e05168e4f725bc440a5de1dbd`. CI run `34230046586` passed all
+three required jobs, including production build, typing, lint, core contracts,
+native migration/upgrade checks and the full browser suite. Retained Site Studio
+screenshots at 1440/390 were inspected. The clean control checkout now runs this
+published version and its read-only board diagnostic passes using the existing
+private local profile. No card was claimed by the diagnostic.
+
+The first run exposed a browser-fixture type shadow, older formatting, and an
+old generic-failure expectation for an autonomy denial; these were corrected
+before the passing run. The lifecycle dispatcher also compared local claim
+identities with a null HTTP URL, making subsequent heartbeats/submission fail.
+It now checks the exact selected transport. The runner emits lifecycle commands
+from the current control checkout for tickets with older approved worker bases.
+
+The Vercel GitHub check links to an account-blocked error. Read-only CLI access
+nevertheless confirms the declared project and team; an older production
+release is READY. Those facts do not establish deployment of this candidate.
+
+## Reproduced remaining handoff defects
+
+Controlled tests against the preserved source handoffs reproduced these gaps;
+no production records or real process-control state was changed:
+
+- `f4f59e1`: force an audit failure after campaign duplication, then retry. The
+  failed call leaves one copy and the retry creates a second. The follow-up
+  integration replaces this sequence with an atomic, version-checked transaction
+  and a durable request receipt.
+- `02d3e94`: concurrently add two different tags to one contact. Both operations
+  report success but only one tag remains. A campaign in `review` also accepts
+  bulk enrollment despite the card's draft-only AC-4. Native atomic tag updates,
+  exact affected-row outcomes and admission under a draft-state lock remain
+  required before integration.
+- `7cbf633`: replace a synthetic slot's owner record, then release the older
+  queue ticket. The newer owner directory is removed. Recovery also gives an
+  older superseded session precedence over its live replacement. Concurrent
+  queue/session read-modify-write lacks serialization. Do not enable either
+  competing supervisor implementation from its existing test claims alone.
+- Dirty workspace blueprints save the parent, version, latest-version pointer
+  and audit in separate writes; a zero-row version bump is not detected. Their
+  useful compiler/review structures remain preserved, but durable save/replay
+  and current approval/installation proof are unfinished.
+
+New activity appeared during the audit: `agent/admin-polish-themes` contains
+active theme/editor/shell changes, and a stage-history reconciliation checkout
+was created. These are preserved outside the pinned first integration. The
+inventory grew from 73 to 77 before the campaign follow-up checkout was added;
+worktree count is not a count of missing features.

@@ -18,7 +18,7 @@ import { recordAudit } from "./audit";
 import { reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
 import { transitionOpportunity } from "./pipeline";
-import { activateCampaign } from "./campaigns";
+import { activateCampaign, duplicateCampaign } from "./campaigns";
 import { sendGmailReply } from "./google";
 import {
   createRevenueTask,
@@ -61,6 +61,7 @@ export const APPROVABLE_ACTIONS = [
   "update_task",
   "update_next_action",
   "activate_campaign",
+  "duplicate_campaign",
   "admin_layout_change",
   "create_founder_note",
   "identity_review",
@@ -404,6 +405,15 @@ export async function approveAndExecuteAction(
           );
         }
         result = await activateCampaign(supabase, campaignId, actorEmail);
+        break;
+      }
+      case "duplicate_campaign": {
+        const campaignId = stringValue(payload, "campaignId")!;
+        result = await duplicateCampaign(supabase, campaignId, actorEmail, {
+          requestId: id,
+          expectedVersion: payload.expectedVersion as number,
+          ...(typeof payload.name === "string" ? { name: payload.name } : {}),
+        });
         break;
       }
       case "admin_layout_change":

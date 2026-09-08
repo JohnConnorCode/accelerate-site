@@ -85,6 +85,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260914-message-upsert-conflict-targets.sql",
   "migrations/20260916-drive-content-indexing.sql",
   "migrations/20260917-site-studio-drafts.sql",
+  "migrations/20260918-campaign-duplicate-receipts.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

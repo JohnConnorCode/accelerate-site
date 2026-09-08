@@ -238,6 +238,7 @@ jobs:
           node scripts/check-internal-demo-rewrites.mjs
           node scripts/qa-turnkey.mjs
           npx tsx scripts/qa-site-studio.ts
+          node scripts/qa-campaign-duplicate.mjs
           node scripts/qa-radar-workspace.mjs
           node scripts/qa-operator-workspace.mjs
           node scripts/qa-booking-mode.mjs
@@ -255,6 +256,7 @@ jobs:
           name: credential-free-browser-evidence
           path: |
             /tmp/accelerate-site-studio-qa/
+            /tmp/accelerate-campaign-duplicate/
             /tmp/accelerate-turnkey-qa/
             /tmp/accelerate-work-completion/
             /tmp/accelerate-demo-business/

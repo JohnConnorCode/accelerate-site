@@ -259,7 +259,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["campaigns", "delivery-runs"],
     routes: ["/admin/campaigns", "/admin/email-sequences"],
-    aiToolNames: ["propose_campaign_activation"],
+    aiToolNames: ["propose_campaign_activation", "propose_campaign_duplicate"],
     setupChecks: ["email", "campaigns"],
   },
   {

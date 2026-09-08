@@ -68,6 +68,7 @@ export const TENANT_SCOPED_TABLES = [
   "campaign_members",
   "campaign_steps",
   "campaigns",
+  "campaign_duplicate_receipts",
   "chat_leads",
   "clients",
   "companies",

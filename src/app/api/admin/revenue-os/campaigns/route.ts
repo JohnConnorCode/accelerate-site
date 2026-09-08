@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import {
   activateCampaign,
+  duplicateCampaign,
   executeDueCampaignMembers,
   normalizeCampaignPolicy,
   pauseCampaign,
@@ -102,6 +103,14 @@ export async function PATCH(request: NextRequest) {
     if (action === "run")
       return NextResponse.json({
         result: await executeDueCampaignMembers(supabase, new Date(), id),
+      });
+    if (action === "duplicate")
+      return NextResponse.json({
+        campaign: await duplicateCampaign(supabase, id, auth.user.email || "founder", {
+          requestId: body.requestId as string,
+          expectedVersion: body.expectedVersion as number,
+          ...(typeof body.name === "string" ? { name: body.name } : {}),
+        }),
       });
 
     const { data: current, error: currentError } = await supabase

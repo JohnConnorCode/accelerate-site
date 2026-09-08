@@ -103,3 +103,5 @@ if (process.env.COLLECTIONS_REMINDER_POSTGRES_PROOF === "1")
 await import("./test-radar-outreach-postgres.mjs");
 
 await import("./test-site-studio-postgres.mjs");
+
+await import("./test-campaign-duplicate-postgres.mjs");

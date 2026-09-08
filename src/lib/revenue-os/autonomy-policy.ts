@@ -65,6 +65,7 @@ const ACTION_CAPABILITIES: Record<string, string> = {
   send_email: "email.send",
   send_gmail_reply: "email.send",
   activate_campaign: "email.send",
+  duplicate_campaign: "crm.write",
   transition_opportunity: "crm.write",
   update_next_action: "crm.write",
   create_task: "tasks.create",

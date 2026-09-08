@@ -12,6 +12,12 @@ New campaign starts as a draft. Edit audience, cadence, send limits, and stop ru
 
 A later edit bumps `version`. Sends keep using `approved_version` until you approve again.
 
+## Duplicate a campaign
+
+Any campaign card has a Duplicate action. It copies name, audience, steps, sender, schedule, limits, and stop rules into a fresh draft named `<name> (copy)`. No members, sends, receipts, or approvals carry over, so the copy cannot send until it is enrolled and approved. The assistant can propose the same copy for approval through the shared action queue.
+
+The source version is checked before copying. The draft, steps, provenance and audit save together. If the response is interrupted, retry Duplicate: the pending request survives a reload and returns the same copy. A changed source needs a fresh review. The fictional workspace also saves the copied draft, opens its dry run and keeps its recipient list empty.
+
 ## What stops a send
 
 Stop rules are re-read before every send: reply, unsubscribe, suppression, exhausted retries. A member who is already stopped is not mailed because the cron woke up. Each send has an idempotency key and a provider receipt. Uncertain provider outcomes refuse blind retry.

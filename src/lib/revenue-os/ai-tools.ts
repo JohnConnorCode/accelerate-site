@@ -1341,6 +1341,51 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "propose_campaign_duplicate",
+    description:
+      "Stage duplication of a campaign into a new draft for founder approval. The copy carries audience, copy, sender, schedule, limits and stops, but no members, sends, or approvals.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        campaignId: { type: "string" },
+        name: { type: "string" },
+        reasoning: { type: "string" },
+      },
+      required: ["campaignId", "reasoning"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const campaignId = value(input, "campaignId");
+      const { data: currentCamp, error } = await supabase
+        .from("campaigns")
+        .select("version")
+        .eq("id", campaignId)
+        .maybeSingle();
+      if (error || !currentCamp || !Number.isInteger(currentCamp.version))
+        throw new Error("Campaign source is unavailable; no duplication proposed.");
+      const expectedVersion = currentCamp.version;
+      return proposeAction(supabase, {
+        actionType: "duplicate_campaign",
+        title: "Duplicate campaign into a new draft",
+        description: value(input, "reasoning") || "",
+        urgency: "normal",
+        payload: { ...input, expectedVersion },
+        reasoning: value(input, "reasoning") || "",
+        sourceContext: "admin_ai",
+        entityType: "campaign",
+        entityId: campaignId,
+        dedupeKey: `ai-campaign-duplicate:${campaignId}:${expectedVersion}:${value(input, "name") ?? ""}`,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
+  {
     name: "propose_layout_change",
     description:
       "Stage a reorder or show/hide change to a bounded admin layout region (sidebar navigation or the Today page) for founder approval. Only known ids for the given scope may be referenced; required regions can never be hidden.",

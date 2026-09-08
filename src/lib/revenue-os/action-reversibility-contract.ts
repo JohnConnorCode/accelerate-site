@@ -125,6 +125,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     rationale: "Activation starts real sends; traffic already emitted cannot be recalled.",
   },
   {
+    actionType: "duplicate_campaign",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "The copy is an unsent draft that can be revised separately; provenance and audit remain. No automatic inverse is promised.",
+  },
+  {
     actionType: "admin_layout_change",
     impact: "internal_write",
     reversibility: "reversible",

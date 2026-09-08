@@ -405,6 +405,10 @@
       "module": "campaigns"
     },
     {
+      "tool": "propose_campaign_duplicate",
+      "module": "campaigns"
+    },
+    {
       "tool": "run_business_pulse",
       "module": "business-pulse"
     },
