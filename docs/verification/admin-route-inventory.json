@@ -223,7 +223,7 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "ebe3e6569d1c8e6ddfd3923353d3e004406e6ab669d448aafce422191bc8ed95",
+    "src/lib/revenue-os/README.md": "1fe624619b17e854a56fd3de5768c26a4bfbae1634d86e8f7000fa6765f1b874",
     "src/lib/revenue-os/action-executor.ts": "7f1db3b871253797b25195beb4a27bbabc6448d4af2fac2b88db9efd327199ee",
     "src/lib/revenue-os/actions.ts": "4b8f06cdbdf696ac3e7aa61799073f49302f9b3ce377983e043daef74c535a8b",
     "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
