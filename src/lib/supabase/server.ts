@@ -223,6 +223,13 @@ export async function callCampaignDuplicateRpc(
   return callVerifiedHostRpc(database, "duplicate_campaign_draft", args);
 }
 
+export async function callDeliveryTemplateRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+) {
+  return callVerifiedHostRpc(database, "publish_onboarding_template", args);
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

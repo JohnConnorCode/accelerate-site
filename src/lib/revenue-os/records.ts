@@ -1,4 +1,6 @@
 import "server-only";
+import { SEED_DEFAULT_MILESTONES } from "./delivery-handoff-contract";
+import type { OnboardingTemplate } from "./delivery-handoff";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   ACTIVITY_LEDGER_CONTRACT,
@@ -30,6 +32,7 @@ export interface OpportunityRecord {
    * milestone and overdue handoff commitments surfaced as blockers.
    * Null when nothing has handed off yet — the sales record stands alone.
    */
+  handoff_templates: OnboardingTemplate[];
   engagement: {
     id: string;
     business_name: string | null;
@@ -37,6 +40,15 @@ export interface OpportunityRecord {
     next_milestone: { key: string; title: string | null } | null;
     blockers: Array<{ title: string; due_date: string | null }>;
     handed_off_at: string | null;
+    /** Exact handoff receipt: template, replay/remainder, originating proposal. */
+    receipt: {
+      template_key: string;
+      template_version: number;
+      replayed: boolean;
+      created_milestones: string[];
+      remainder: string[];
+      proposal_id: string | null;
+    } | null;
   } | null;
 }
 
@@ -153,6 +165,7 @@ export async function loadOpportunityRecord(
     (task) => typeof task.dedupe_key === "string" && task.dedupe_key.startsWith("handoff:"),
   );
   const nextMilestoneEntry = checklist.find((entry) => entry.status !== "complete");
+  const storedReceipt = (engagementRow?.handoff_receipt ?? {}) as Record<string, unknown>;
   const engagement = engagementRow
     ? {
         id: String(engagementRow.id),
@@ -176,8 +189,47 @@ export async function loadOpportunityRecord(
             due_date: String(task.due_date),
           })),
         handed_off_at: (engagementRow.created_at as string) ?? null,
+        // The exact handoff receipt is returned so delivery traceability is
+        // visible: template/version, replay, remainder and originating proposal.
+        receipt:
+          typeof storedReceipt.engagement_id === "string"
+            ? {
+                template_key: String(storedReceipt.template_key ?? ""),
+                template_version: Number(storedReceipt.template_version ?? 0),
+                replayed: storedReceipt.replayed === true,
+                created_milestones: Array.isArray(storedReceipt.created_milestones)
+                  ? (storedReceipt.created_milestones as unknown[]).map(String)
+                  : [],
+                remainder: Array.isArray(storedReceipt.remainder)
+                  ? (storedReceipt.remainder as unknown[]).map(String)
+                  : [],
+                proposal_id:
+                  typeof storedReceipt.proposal_id === "string" ? storedReceipt.proposal_id : null,
+              }
+            : null,
       }
     : null;
+
+  const templatesRead = await supabase
+    .from("onboarding_templates")
+    .select("template_key,version,milestones")
+    .eq("active", true)
+    .order("template_key")
+    .limit(50);
+  assertQuery(templatesRead, "onboarding templates");
+  const templates: OnboardingTemplate[] = (templatesRead.data ?? []).map((t) => ({
+    key: t.template_key,
+    version: t.version,
+    milestones: t.milestones,
+  }));
+  if (!templates.some((t) => t.key === "default"))
+    templates.unshift({ key: "default", version: 1, milestones: SEED_DEFAULT_MILESTONES });
+  if (storedReceipt.template_snapshot) {
+    const pinned = storedReceipt.template_snapshot as OnboardingTemplate;
+    const index = templates.findIndex((t) => t.key === pinned.key);
+    if (index >= 0) templates[index] = pinned;
+    else templates.unshift(pinned);
+  }
 
   return {
     contract: OPPORTUNITY_RECORD_CONTRACT,
@@ -191,5 +243,6 @@ export async function loadOpportunityRecord(
     proposals: proposalsResult.data ?? [],
     activity,
     engagement,
+    handoff_templates: templates,
   };
 }

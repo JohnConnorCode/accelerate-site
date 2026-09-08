@@ -283,7 +283,8 @@
     "test:agent-profile": "node scripts/test-agent-profile.mjs",
     "qa:site-studio": "node scripts/resource-run.mjs tsx scripts/qa-site-studio.ts",
     "test:campaign-duplicate-clone": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-duplicate-clone.ts",
-    "qa:campaign-duplicate": "node scripts/qa-campaign-duplicate.mjs"
+    "qa:campaign-duplicate": "node scripts/qa-campaign-duplicate.mjs",
+    "qa:delivery-handoff": "node scripts/qa-delivery-handoff.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

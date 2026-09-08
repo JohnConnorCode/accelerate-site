@@ -14,6 +14,7 @@ import {
   CircleDollarSign,
   Clock3,
   FileText,
+  Handshake,
   Loader2,
   Mail,
   MessageSquareText,
@@ -23,6 +24,8 @@ import {
   TriangleAlert,
   UserRound,
 } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
+import type { OnboardingTemplate } from "@/lib/revenue-os/delivery-handoff";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -78,6 +81,7 @@ interface RecordModel {
   conversations: Item[];
   meetings: Item[];
   proposals: Item[];
+  handoff_templates?: OnboardingTemplate[];
   engagement: {
     id: string;
     business_name: string | null;
@@ -85,6 +89,14 @@ interface RecordModel {
     next_milestone: { key: string; title: string | null } | null;
     blockers: Array<{ title: string; due_date: string | null }>;
     handed_off_at: string | null;
+    receipt: {
+      template_key: string;
+      template_version: number;
+      replayed: boolean;
+      created_milestones: string[];
+      remainder: string[];
+      proposal_id: string | null;
+    } | null;
   } | null;
   activity: Array<
     Item & {
@@ -168,6 +180,10 @@ export default function OpportunityRecordPage() {
   const schemaReady = recordQuery.data?.schemaReady ?? true;
   const loading = recordQuery.isPending;
   const [saving, setSaving] = useState(false);
+  const [handingOff, setHandingOff] = useState(false);
+  const [handoffReview, setHandoffReview] = useState(false);
+  const [handoffTemplateKey, setHandoffTemplateKey] = useState("default");
+  const [handoffProposalId, setHandoffProposalId] = useState("");
   const [actionError, setActionError] = useState("");
   const [saved, setSaved] = useState("");
 
@@ -214,12 +230,138 @@ export default function OpportunityRecordPage() {
     }
   }
 
+  async function handOffToDelivery() {
+    setHandingOff(true);
+    setActionError("");
+    setSaved("");
+    try {
+      await fetchJson<{ record: RecordModel }>(
+        `/api/admin/revenue-os/records/opportunity/${encodeURIComponent(id)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            expectedUpdatedAt: record?.opportunity.updated_at,
+            templateKey: handoffTemplateKey,
+            expectedTemplateVersion: record?.handoff_templates?.find(
+              (t) => t.key === handoffTemplateKey,
+            )?.version,
+            proposalId: handoffProposalId || undefined,
+            expectedProposalVersion: handoffProposalId
+              ? Number(record?.proposals.find((p) => p.id === handoffProposalId)?.version)
+              : undefined,
+          }),
+        },
+      );
+      await recordQuery.refetch();
+      setHandoffReview(false);
+      setSaved("Delivery handoff saved. Review the engagement receipt and commitments below.");
+    } catch (handoffError) {
+      setActionError(
+        handoffError instanceof Error ? handoffError.message : "Could not hand off to delivery.",
+      );
+    } finally {
+      setHandingOff(false);
+    }
+  }
+
   const { columns: pipelineColumns } = useKanbanColumns("pipeline");
   const opportunity = record?.opportunity;
   const stage = opportunity?.canonical_stage ?? "new";
   const stageLabel = pipelineColumns.find((column) => column.column_key === stage)?.label ?? stage;
   return (
     <div className="space-y-5 pb-12">
+      <AdminDialog
+        open={handoffReview}
+        onClose={() => {
+          if (!handingOff) setHandoffReview(false);
+        }}
+        title="Review delivery handoff"
+      >
+        <AdminSurface padding="lg" className="admin-dialog-surface space-y-4">
+          <h2 className="admin-dialog-title">Review delivery handoff</h2>
+          <p className="admin-copy text-sm">
+            {record?.opportunity.name} · {record?.contact?.full_name}
+          </p>
+          <label className="block text-sm">
+            Onboarding template
+            <select
+              aria-label="Onboarding template"
+              value={handoffTemplateKey}
+              disabled={handingOff || Boolean(record?.engagement?.receipt)}
+              onChange={(e) => setHandoffTemplateKey(e.target.value)}
+              className="mt-1 min-h-11 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-[var(--admin-ink)]"
+            >
+              {(record?.handoff_templates ?? []).map((t) => (
+                <option key={t.key} value={t.key}>
+                  {t.key} · version {t.version}
+                </option>
+              ))}
+            </select>
+          </label>
+          {!record?.engagement && (
+            <label className="block text-sm">
+              Originating proposal
+              <select
+                aria-label="Originating proposal"
+                value={handoffProposalId}
+                disabled={handingOff}
+                onChange={(e) => setHandoffProposalId(e.target.value)}
+                className="mt-1 min-h-11 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-[var(--admin-ink)]"
+              >
+                <option value="">Use opportunity context without a proposal</option>
+                {(record?.proposals ?? []).map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {String(p.title ?? p.id)} · v{String(p.version)} · {String(p.status)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <ul className="max-h-64 space-y-2 overflow-y-auto text-sm">
+            {record?.handoff_templates
+              ?.find((t) => t.key === handoffTemplateKey)
+              ?.milestones.map((m) => (
+                <li key={m.key}>
+                  <span className="font-semibold">{m.title}</span>
+                  <p className="text-[var(--admin-muted)]">
+                    {m.owner ?? "Unassigned"} · due in {m.due_offset_days ?? 7} days
+                    {m.description ? ` · ${m.description}` : ""}
+                  </p>
+                </li>
+              ))}
+          </ul>
+          <p className="admin-copy text-sm">
+            Existing commitments keep their progress. Confirming creates internal tasks; it sends no
+            client message.
+          </p>
+          {actionError && (
+            <p role="alert" className="text-sm">
+              {actionError}
+            </p>
+          )}
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              disabled={handingOff}
+              onClick={() => setHandoffReview(false)}
+              className="min-h-11 px-3"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={
+                handingOff || !record?.handoff_templates?.some((t) => t.key === handoffTemplateKey)
+              }
+              onClick={() => void handOffToDelivery()}
+              className="min-h-11 rounded-xl bg-[var(--admin-ink)] px-4 text-sm font-semibold text-[var(--admin-surface)]"
+            >
+              {handingOff ? "Saving…" : "Confirm handoff"}
+            </button>
+          </div>
+        </AdminSurface>
+      </AdminDialog>
       <Link
         href="/admin/pipeline"
         className="inline-flex min-h-10 items-center gap-2 rounded-xl pr-3 text-xs font-semibold text-[var(--admin-muted)] transition-[color,transform] duration-150 hover:text-[var(--admin-ink)] active:scale-[0.96]"
@@ -529,6 +671,22 @@ export default function OpportunityRecordPage() {
                   </form>
                 </Section>
 
+                {!record.engagement &&
+                  pipelineColumns.find((c) => c.column_key === stage)?.metadata?.role === "won" && (
+                    <Section id="delivery" title="Delivery">
+                      <p className="admin-copy mb-3 text-sm">
+                        Create an engagement using the linked identities and reviewed onboarding
+                        plan.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setHandoffReview(true)}
+                        className="min-h-11 rounded-xl bg-[var(--admin-ink)] px-4 text-sm font-semibold text-[var(--admin-surface)]"
+                      >
+                        Hand off to delivery
+                      </button>
+                    </Section>
+                  )}
                 {record.engagement && (
                   <Section
                     id="delivery"
@@ -566,6 +724,42 @@ export default function OpportunityRecordPage() {
                             </li>
                           ))}
                         </ul>
+                      )}
+                      {record.engagement.receipt && (
+                        <p className="admin-copy text-xs text-[var(--admin-muted)]">
+                          Handoff receipt: {record.engagement.receipt.template_key} v
+                          {record.engagement.receipt.template_version}
+                          {record.engagement.receipt.proposal_id
+                            ? ` · proposal ${record.engagement.receipt.proposal_id}`
+                            : ""}
+                          {record.engagement.receipt.replayed
+                            ? " · replayed (no new commitments)"
+                            : record.engagement.receipt.remainder.length
+                              ? ` · ${record.engagement.receipt.remainder.length} remaining`
+                              : " · complete"}
+                        </p>
+                      )}
+                      {(!record.engagement.receipt ||
+                        record.engagement.receipt.remainder.length > 0) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setHandoffTemplateKey(
+                              record.engagement?.receipt?.template_key ?? "default",
+                            );
+                            setHandoffProposalId("");
+                            setHandoffReview(true);
+                          }}
+                          disabled={handingOff}
+                          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
+                        >
+                          {handingOff ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Handshake className="size-4" />
+                          )}{" "}
+                          Hand off to delivery
+                        </button>
                       )}
                     </div>
                   </Section>

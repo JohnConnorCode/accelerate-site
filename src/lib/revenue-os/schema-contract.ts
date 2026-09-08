@@ -570,6 +570,8 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_onboarding_templates_tenant_id_id",
   "idx_onboarding_templates_active_key",
   "idx_clients_opportunity",
+  "idx_clients_handoff_opportunity_unique",
+  "idx_tasks_delivery_handoff_unique",
 ] as const;
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
