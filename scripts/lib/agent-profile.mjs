@@ -47,3 +47,11 @@ export function loadAgentConfiguration(
   }
   return profile;
 }
+
+/** A lifecycle command must return to the transport that created its claim. */
+export function assertClaimTransport(session, transport) {
+  if (session.endpoint !== transport)
+    throw new Error(
+      "Claim session belongs to another transport; use its original configured board and project.",
+    );
+}

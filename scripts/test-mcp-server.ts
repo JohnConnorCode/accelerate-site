@@ -87,10 +87,9 @@ async function main() {
     // presents after authentication.
     tenants: [{ id: "tenant-1", status: "active", config: {} }],
   });
-  const stubDb = bindTenantDatabaseForTest(
-    mem.client,
-    "tenant-1",
-  ) as unknown as Parameters<typeof handleMcpRequest>[1]["supabase"];
+  const stubDb = bindTenantDatabaseForTest(mem.client, "tenant-1") as unknown as Parameters<
+    typeof handleMcpRequest
+  >[1]["supabase"];
 
   const context = {
     supabase: stubDb,

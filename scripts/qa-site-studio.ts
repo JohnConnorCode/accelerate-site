@@ -145,7 +145,9 @@ async function main() {
       await page.getByLabel("Draft title", { exact: true }).fill("Reviewed roof inspection");
       await page.getByRole("button", { name: "Save title", exact: true }).click();
       await page.getByRole("heading", { name: "Reviewed roof inspection", exact: true }).waitFor();
-      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      assert.ok(
+        await page.evaluate(() => window.document.documentElement.scrollWidth <= innerWidth),
+      );
       await page.screenshot({ path: `${output}/${width}-detail.png`, fullPage: true });
       await page.getByRole("button", { name: "Discard draft", exact: true }).click();
       await page

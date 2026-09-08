@@ -88,10 +88,13 @@ async function journeyForPack(pack: DemoScenarioPack) {
     for (const row of batch.rows) {
       assert.ok(row.reviewed_data.email?.includes("@"), "every row carries a contact email");
       assert.ok(
-        typeof row.reviewed_data.companyName === "string" && row.reviewed_data.companyName.length > 0,
+        typeof row.reviewed_data.companyName === "string" &&
+          row.reviewed_data.companyName.length > 0,
         "every row carries a company link",
       );
-      assert.ok(typeof row.reviewed_data.fullName === "string" && row.reviewed_data.fullName.length > 0);
+      assert.ok(
+        typeof row.reviewed_data.fullName === "string" && row.reviewed_data.fullName.length > 0,
+      );
     }
     const matched = batch.rows.find((row) => row.matched_contact_id);
     assert.ok(matched, "an update row links to its canonical contact");
@@ -167,7 +170,11 @@ async function journeyForPack(pack: DemoScenarioPack) {
     if (open) {
       await request(
         "/api/admin/plugins/workflow",
-        { pluginId: "client-onboarding", mode: "preview", input: { opportunityId: open.id, tasks } },
+        {
+          pluginId: "client-onboarding",
+          mode: "preview",
+          input: { opportunityId: open.id, tasks },
+        },
         "POST",
         422,
       );
@@ -179,8 +186,7 @@ async function journeyForPack(pack: DemoScenarioPack) {
         mode: "preview",
         input: {
           opportunityId: won.id,
-          tasks: [{ ...tasks[0], assigneeUserId: "00000000-0000-4000-8000-000000000000" },
-          ],
+          tasks: [{ ...tasks[0], assigneeUserId: "00000000-0000-4000-8000-000000000000" }],
         },
       },
       "POST",
@@ -188,7 +194,11 @@ async function journeyForPack(pack: DemoScenarioPack) {
     );
     await request(
       "/api/admin/plugins/workflow",
-      { pluginId: "client-onboarding", mode: "preview", input: { opportunityId: won.id, tasks: [] } },
+      {
+        pluginId: "client-onboarding",
+        mode: "preview",
+        input: { opportunityId: won.id, tasks: [] },
+      },
       "POST",
       422,
     );
@@ -235,9 +245,16 @@ async function journeyForPack(pack: DemoScenarioPack) {
     assert.ok(Array.isArray(executed.result.tasks) && executed.result.tasks.length === 1);
     createdTaskIds = executed.result.tasks.map((task: { id: string }) => task.id);
     assert.ok(
-      (await request("/api/admin/plugins/tasks?pluginId=client-onboarding")).taskStates[createdTaskIds[0]!] !== undefined,
+      (await request("/api/admin/plugins/tasks?pluginId=client-onboarding")).taskStates[
+        createdTaskIds[0]!
+      ] !== undefined,
     );
-    await request("/api/admin/revenue-os/actions", { id: actionId, decision: "approve" }, "PATCH", 422);
+    await request(
+      "/api/admin/revenue-os/actions",
+      { id: actionId, decision: "approve" },
+      "PATCH",
+      422,
+    );
   });
 
   // AC03: review an invoice for the same customer, approve draft creation,
@@ -297,7 +314,12 @@ async function journeyForPack(pack: DemoScenarioPack) {
     assert.equal(approved.result.testMode, true);
     assert.equal(approved.result.status, "draft");
     assert.equal(approved.result.hostedInvoiceUrl, null);
-    await request("/api/admin/revenue-os/actions", { id: draftActionId, decision: "approve" }, "PATCH", 422);
+    await request(
+      "/api/admin/revenue-os/actions",
+      { id: draftActionId, decision: "approve" },
+      "PATCH",
+      422,
+    );
     const send = await request("/api/admin/invoicing", { creationActionId: draftActionId });
     assert.ok(send.action.id !== draftActionId, "sending is a separate approval");
     const sendActionId = send.action.id as string;
@@ -324,7 +346,11 @@ async function journeyForPack(pack: DemoScenarioPack) {
     assert.equal(today.status, "ready");
     const queueItems = queue(graphPack, demoState);
     const queueIds = queueItems.map((item) => item.id);
-    assert.equal(new Set(queueIds).size, queueIds.length, "Today queue carries no duplicate entries");
+    assert.equal(
+      new Set(queueIds).size,
+      queueIds.length,
+      "Today queue carries no duplicate entries",
+    );
     const pendingBusiness = state.actions.filter((action) => action.status === "pending");
     assert.equal(pendingBusiness.length, 0, "every journey approval was handled");
     for (const id of createdTaskIds) {
@@ -355,11 +381,16 @@ async function journeyForPack(pack: DemoScenarioPack) {
       !afterComplete.some((item) => item.id === `task:${createdTaskIds[0]}`),
       "completed work leaves the Today queue",
     );
-    const completedRecord = opportunityRecord(graphPackFor(pack, state), demoStateFor(state), won.id);
+    const completedRecord = opportunityRecord(
+      graphPackFor(pack, state),
+      demoStateFor(state),
+      won.id,
+    );
     assert.ok(completedRecord, "record details resolve after completion");
     assert.ok(
       completedRecord.tasks.some(
-        (task: { id: string; status: string }) => task.id === createdTaskIds[0] && task.status === "completed",
+        (task: { id: string; status: string }) =>
+          task.id === createdTaskIds[0] && task.status === "completed",
       ),
       "record details retain the completed task",
     );
@@ -389,7 +420,11 @@ async function journeyForPack(pack: DemoScenarioPack) {
       );
     }
     const businessTaskIds = state.tasks.map((task) => task.id);
-    assert.equal(new Set(businessTaskIds).size, businessTaskIds.length, "no duplicate task records");
+    assert.equal(
+      new Set(businessTaskIds).size,
+      businessTaskIds.length,
+      "no duplicate task records",
+    );
     const wonPerson = pack.people.find((person) => person.id === won.personId);
     assert.ok(wonPerson, "won opportunity links a canonical person");
     assert.equal(record.contact.id, wonPerson.id);
@@ -459,15 +494,27 @@ async function journeyForPack(pack: DemoScenarioPack) {
     assert.match(failed.error, /disabled/i);
     const stored = state.actions.find((action) => action.id === retryActionId);
     assert.equal(stored?.status, "failed");
-    await request("/api/admin/revenue-os/actions", { id: retryActionId, decision: "retry" }, "PATCH");
+    await request(
+      "/api/admin/revenue-os/actions",
+      { id: retryActionId, decision: "retry" },
+      "PATCH",
+    );
     assert.equal(stored?.status, "pending");
     const disabledPreview = await request(
       "/api/admin/plugins/workflow",
-      { pluginId: "client-onboarding", mode: "preview", input: { opportunityId: won.id, tasks: retryTasks } },
+      {
+        pluginId: "client-onboarding",
+        mode: "preview",
+        input: { opportunityId: won.id, tasks: retryTasks },
+      },
       "POST",
       422,
     );
-    assert.match(disabledPreview.error, /Enable it from Plugins/, "disabled capability names its recovery");
+    assert.match(
+      disabledPreview.error,
+      /Enable it from Plugins/,
+      "disabled capability names its recovery",
+    );
     modules["client-onboarding"] = true;
     const recovered = await request(
       "/api/admin/revenue-os/actions",
@@ -476,7 +523,12 @@ async function journeyForPack(pack: DemoScenarioPack) {
     );
     assert.ok(Array.isArray(recovered.result.tasks));
     assert.equal(stored?.status, "executed");
-    await request("/api/admin/revenue-os/actions", { id: retryActionId, decision: "retry" }, "PATCH", 422);
+    await request(
+      "/api/admin/revenue-os/actions",
+      { id: retryActionId, decision: "retry" },
+      "PATCH",
+      422,
+    );
   });
 
   // Journey-wide invariants: every receipt is simulated, nothing points at a

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadAgentConfiguration } from "./lib/agent-profile.mjs";
+import { loadAgentConfiguration, assertClaimTransport } from "./lib/agent-profile.mjs";
 const base = mkdtempSync(join(tmpdir(), "accelerate-profile-"));
 try {
   const common = join(base, "common");
@@ -63,3 +63,20 @@ try {
 } finally {
   rmSync(base, { recursive: true, force: true });
 }
+
+assert.doesNotThrow(() =>
+  assertClaimTransport({ endpoint: "local-operator:accelerate" }, "local-operator:accelerate"),
+);
+assert.doesNotThrow(() =>
+  assertClaimTransport(
+    { endpoint: "https://board.example.test/api/work" },
+    "https://board.example.test/api/work",
+  ),
+);
+for (const transport of ["null", "local-operator:other", "https://board.example.test/api/work"])
+  assert.throws(
+    () => assertClaimTransport({ endpoint: "local-operator:accelerate" }, transport),
+    /another transport/,
+  );
+assert.throws(() => assertClaimTransport({}, "local-operator:accelerate"), /another transport/);
+console.log("PASS: local and remote claim continuation retains exact transport and named project.");

@@ -32,13 +32,16 @@ edit shared work.
 
 1. Run the repository's internal `agent:go` entrypoint immediately. The user
    should not need to type or understand that command.
-2. Accept the selected card, worktree, approved base, lease and packet returned
+2. Keep board lifecycle commands in the printed control checkout, even when a
+   worker’s approved base predates the current runner. The emitted lifecycle
+   packet supplies the command arguments and working directory.
+3. Accept the selected card, worktree, approved base, lease and packet returned
    by the runner. Work only in that isolated worktree.
-3. Implement every acceptance item and preserve the packet's exclusions,
+4. Implement every acceptance item and preserve the packet's exclusions,
    dependencies, canonical services, plugin boundaries and tenant rules.
-4. Run the packet's checks, repair failures, create the exact commit, write
+5. Run the packet's checks, repair failures, create the exact commit, write
    acceptance-linked evidence and submit it with `agent:complete`.
-5. Continue until the work is submitted for review or a precise
+6. Continue until the work is submitted for review or a precise
    `BLOCKED_REQUIRES_OPERATOR` state is reached. A stale dated generated report
    is repairable setup drift and must not end the session.
 

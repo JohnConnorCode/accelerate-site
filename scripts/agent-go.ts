@@ -210,8 +210,32 @@ function main() {
     status: "READY_FOR_WORK" as const,
     packet,
     repair,
+    lifecycle: {
+      cwd: appRoot,
+      card: rawPacket.seed_key ?? rawPacket.id,
+      heartbeat: [
+        "npm",
+        "run",
+        "agent:heartbeat",
+        "--",
+        "--card",
+        rawPacket.seed_key ?? rawPacket.id,
+      ],
+      submit: [
+        "npm",
+        "run",
+        "agent:complete",
+        "--",
+        "--card",
+        rawPacket.seed_key ?? rawPacket.id,
+        "--evidence-file",
+        "<absolute evidence file path>",
+      ],
+      instruction:
+        "Run board lifecycle commands from this control checkout, including for worker bases that predate profile support. Edit and verify source only in the worker checkout.",
+    },
     instruction:
-      "Continue in the printed worktree. Implement every acceptance item, run the packet checks, repair failures, commit the exact result, create evidence, and submit it. Stop only after HANDOFF_SUBMITTED or an explicit operator-required block. Review, merge, and deployment are separate.",
+      "Continue in the printed worktree. Implement every acceptance item, run the packet checks, repair failures, commit the exact result, create evidence, and submit it using the printed control-checkout lifecycle commands. Stop only after HANDOFF_SUBMITTED or an explicit operator-required block. Review, merge, and deployment are separate.",
   };
   if (json) console.log(JSON.stringify(result, null, 2));
   else {
