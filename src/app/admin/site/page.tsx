@@ -24,6 +24,7 @@ export default function AdminSiteStudioPage() {
   const [serviceName, setServiceName] = useState("");
   const [audience, setAudience] = useState("");
   const [outcome, setOutcome] = useState("");
+  const [slug, setSlug] = useState("");
   const [mode, setMode] = useState<"template" | "ai">("template");
   const [assetIds, setAssetIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
@@ -62,6 +63,7 @@ export default function AdminSiteStudioPage() {
           brief: { serviceName, audience, outcome },
           mode,
           assetIds,
+          ...(slug.trim() ? { slug: slug.trim().toLowerCase() } : {}),
         }),
       });
       const data = await res.json();
@@ -112,6 +114,15 @@ export default function AdminSiteStudioPage() {
               value={outcome}
               onChange={(event) => setOutcome(event.target.value)}
               placeholder="The office runs while the crew builds"
+              style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
+            />
+          </label>
+          <label>
+            URL slug (optional, derived from the service name when blank)
+            <input
+              value={slug}
+              onChange={(event) => setSlug(event.target.value)}
+              placeholder="bookkeeping-automation"
               style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
             />
           </label>
