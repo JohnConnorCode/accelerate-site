@@ -315,7 +315,7 @@ export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: 
     .filter((item) => item.related_id === contact.id)
     .slice(0, 4);
   const relatedProposals = proposals(pack)
-    .filter((item) => item.lead_id === contact.id)
+    .filter((item) => item.opportunity_id === id)
     .map((item) => ({ ...item, subject: item.title }));
   const conversationRows = relatedConversation
     ? [
@@ -1819,10 +1819,12 @@ function setup(pack: DemoScenarioPack) {
 }
 
 function proposals(pack: DemoScenarioPack) {
-  return pack.opportunities.slice(0, 7).map((opportunity, index) => {
+  return pack.opportunities.map((opportunity, index) => {
     const contact = person(pack, opportunity.personId);
     return {
-      id: `proposal-${index + 1}`,
+      id: `de100000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+      opportunity_id: opportunity.id,
+      version: 1,
       lead_id: contact.id,
       client_name: opportunity.company,
       share_token: `fictional-${index + 1}`,

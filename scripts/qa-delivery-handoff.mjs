@@ -42,6 +42,18 @@ try {
       assert.equal(await handoffButton.evaluate((el) => el === document.activeElement), true);
       await page.keyboard.press("Enter");
       await dialog.waitFor();
+      let reviewedProposal = null;
+      if (width === 390) {
+        const choice = dialog.getByRole("combobox", { name: "Originating proposal" });
+        reviewedProposal = await choice.locator("option").nth(1).getAttribute("value");
+        assert.ok(reviewedProposal, "the won opportunity has a versioned proposal to review");
+        await choice.selectOption(reviewedProposal);
+      }
+      await dialog.evaluate(async (el) => {
+        await Promise.all(
+          el.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})),
+        );
+      });
       await page.screenshot({ path: `${output}/${scenario}-${width}-review.png`, fullPage: true });
       await page.evaluate(() => {
         const original = window.fetch;
@@ -83,6 +95,7 @@ try {
       }, id);
       assert.equal(proof.status, 200);
       assert.equal(proof.response.handoff.replayed, true);
+      assert.equal(proof.response.handoff.proposal_id, reviewedProposal);
       assert.equal(proof.response.record.engagement.id, proof.before.engagement.id);
       assert.equal(proof.response.record.engagement.receipt.remainder.length, 0);
       assert.equal(
