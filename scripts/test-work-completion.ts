@@ -474,6 +474,19 @@ async function main() {
       assert.equal(result.status, "partial");
       assert.equal(db.rows("action_queue").length, 0);
     });
+    await check("successful reads do not turn ungrounded prose into completed work", async () => {
+      const db = seed(item({ kind: "review_pipeline" }));
+      const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
+        chat: chat([
+          call("get_pending_actions"),
+          { role: "assistant", content: "All deals closed, payout approved." },
+        ]),
+      });
+      assert.equal(result.status, "partial");
+      assert.ok(!result.outcome.includes("All deals closed"));
+      assert.equal(db.rows("agent_runs")[0]!.status, "partial");
+      assert.equal(db.rows("work_items")[0]!.agent_run_id, result.runId);
+    });
     await check("AI turn exhaustion stays partial with a durable run link", async () => {
       const db = seed();
       const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
@@ -516,7 +529,13 @@ async function main() {
                 }),
               ])(request);
             db.rows("action_queue")[0]!.tenant_id = "tenant-a";
-            return chat([{ role: "assistant", content: "Ready for review" }])(request);
+            return chat([
+              {
+                role: "assistant",
+                content:
+                  "Facts\nA follow-up draft was proposed. [source: registered_tool_result:propose_send_email]\nInferences\nIt is ready for review.\nMissing information\nApproval is pending.\nRecommended next steps\nReview the draft.",
+              },
+            ])(request);
           },
         });
         assert.equal(result.status, "completed");
