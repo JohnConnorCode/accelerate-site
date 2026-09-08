@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "site-studio-provider-output-contract",
+    slug: "site-studio-provider-output-contract",
+    title: "Generate Site Studio drafts with the configured structured-output provider",
+    description:
+      "Page generation and section regeneration now send a complete output schema derived from the same document rules used by the renderer. Strict providers can accept the request; optional fields are normalized before validation. Catalog, link and claim checks still apply. The user guide includes a worked draft example and explains recovery and provider costs.",
+    category: "fix",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "workflow-guides-with-examples",
     slug: "workflow-guides-with-examples",
     title: "Follow worked examples for the new workspace workflows",

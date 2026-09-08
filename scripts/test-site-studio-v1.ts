@@ -24,6 +24,8 @@ import {
   buildPageSystemPrompt,
   buildPageUserPrompt,
   generatePageDocument,
+  generatedPageJsonSchema,
+  validateGeneratedDocument,
 } from "../src/lib/site-studio/generate";
 import {
   createSiteDraft,
@@ -37,12 +39,49 @@ import {
   buildSectionSystemPrompt,
   buildSectionUserPrompt,
   regenerateSection,
+  regeneratedSectionJsonSchema,
 } from "../src/lib/site-studio/regenerate";
 import { assertDocumentSize, MAX_SITE_DOCUMENT_BYTES } from "../src/lib/site-studio/document";
 import { siteSlugSchema } from "../src/lib/site-studio/document";
 import { AI_JOBS } from "../src/lib/ai/model-registry";
 
 async function main() {
+  // Reproduces OpenAI's strict-schema refusal before any model generation.
+  function assertProviderObjects(value: unknown): void {
+    if (!value || typeof value !== "object") return;
+    if (Array.isArray(value)) {
+      value.forEach(assertProviderObjects);
+      return;
+    }
+    const schema = value as Record<string, unknown>;
+    if (schema.type === "object") {
+      assert.equal(
+        schema.additionalProperties,
+        false,
+        "Provider objects must close unknown properties",
+      );
+      assert.deepEqual(
+        [...(schema.required as string[])].sort(),
+        Object.keys(schema.properties as object).sort(),
+        "Provider fields must all be required; optional fields use null",
+      );
+    }
+    Object.values(schema).forEach(assertProviderObjects);
+  }
+  assertProviderObjects(generatedPageJsonSchema);
+  assertProviderObjects(regeneratedSectionJsonSchema);
+  const fixture = servicePageTemplate({
+    serviceName: "Bookkeeping",
+    audience: "Owners",
+    outcome: "Prepare the weekly review",
+  });
+  const providerPage = { ...fixture.metadata, root: structuredClone(fixture.root) };
+  (providerPage.root[0] as unknown as Record<string, unknown>).props = null;
+  const normalized = validateGeneratedDocument(providerPage);
+  assert.equal(normalized.root[0]?.props, undefined);
+  assert.throws(() => validateGeneratedDocument({ ...providerPage, title: null }));
+  assert.throws(() => validateGeneratedDocument({ ...providerPage, root: [null] }));
+
   // Document schema: valid parses, invalid is refused with named errors.
   const template = servicePageTemplate({
     serviceName: "Bookkeeping automation",

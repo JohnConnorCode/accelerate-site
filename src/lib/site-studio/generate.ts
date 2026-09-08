@@ -1,8 +1,11 @@
 import "server-only";
+import { z } from "zod";
+import { strictSiteOutputSchema, omitProviderNullFields } from "./structured-output";
 import {
   collectAssetIds,
   collectRawUrls,
   parseSiteDocument,
+  siteDocumentSchema,
   SITE_DOCUMENT_ENGINE,
   SITE_DOCUMENT_ENGINE_VERSION,
   SITE_DOCUMENT_SCHEMA_VERSION,
@@ -58,17 +61,14 @@ export function buildPageUserPrompt(brief: PageBrief): string {
 
 /** Model output shape: metadata plus the section tree. The envelope is added
  * by us after validation, so the model can never spoof schema versions. */
-export const generatedPageJsonSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["title", "slug", "description", "root"],
-  properties: {
-    title: { type: "string", minLength: 1, maxLength: 120 },
-    slug: { type: "string", minLength: 1, maxLength: 120 },
-    description: { type: "string", minLength: 1, maxLength: 300 },
-    root: { type: "array", minItems: 1, maxItems: 40, items: { type: "object" } },
-  },
-} as const;
+export const generatedPageJsonSchema = strictSiteOutputSchema(
+  z
+    .object({
+      ...siteDocumentSchema.shape.metadata.shape,
+      root: siteDocumentSchema.shape.root,
+    })
+    .strict(),
+);
 
 const INVENTED_METRIC = /(\$\s?\d|\d+\s*%)/;
 
@@ -85,7 +85,7 @@ export function assertGroundedAiCopy(copy: string, scope: string): void {
 
 export function validateGeneratedDocument(value: unknown): SiteDocument {
   if (!value || typeof value !== "object") throw new Error("Generated page must be a JSON object");
-  const body = value as Record<string, unknown>;
+  const body = omitProviderNullFields(value) as Record<string, unknown>;
   const document = parseSiteDocument({
     schemaVersion: SITE_DOCUMENT_SCHEMA_VERSION,
     engine: SITE_DOCUMENT_ENGINE,
