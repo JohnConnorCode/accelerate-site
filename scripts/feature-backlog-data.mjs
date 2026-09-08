@@ -8322,7 +8322,361 @@ export const featureBacklog = [
     verification:
       "npm run verify:docs with the allow-missing flag removed; npm run test:house-style-copy; npm run test:no-fabricated-claims; npm run verify:public-prerender; npm run build.",
   }),
+  card({
+    key: "site-studio-document-schema",
+    title: "Versioned site document schema and independent renderer",
+    workstream: "site",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Define the canonical SiteDocument model that makes the public site AI-editable without storing executable code: a versioned envelope (schema version plus engine name and version) around a tree of typed nodes with props, tokenized styles, and children. Ship Zod validators plus a small independent React renderer that turns a published document into output using only registered components. The renderer must have no dependency path to any editor package, so published pages survive any future editor change. Styles use named design tokens and bounded literal values; stored Tailwind class strings are rejected because build-time utilities cannot cover runtime-invented classes.",
+    acceptance: [
+      "A versioned envelope schema exists with JSON Schema plus Zod validators, and unknown node types or arbitrary class strings fail validation with a named error",
+      "The independent renderer outputs the registered semantic sections (hero, feature grid, testimonials, FAQ, CTA, lead form, rich text, and equivalents) with zero imports from editor packages",
+      "Node IDs are stable across edits so patches, versions, and QA can address the same node over time",
+      "A unit suite proves valid documents render, invalid documents are refused before render, and the renderer bundle contains no editor code",
+      "The schema contract registers every new table and the migration is additive, ordered, and idempotent",
+    ],
+    dependencies: [
+      "Adopt shared-database multi-tenancy as the Command Center product shape",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/components/layout/MarketingChrome.tsx:11-33; src/components/v2/studio/Studio.tsx:21-43; src/lib/revenue-os/schema-contract.ts; migrations/20260904-action-reversibility.sql as migration shape reference",
+    guardrails:
+      "Do not store JSX, executable code, event handlers, or raw CSS strings as the canonical page format. Do not add editor dependencies to any public route bundle. Every new row carries non-null tenant_id with tenant-composite uniqueness; never weaken RLS or membership checks for preview convenience. Do not invent public factual claims in fixtures.",
+    labels: ["marketing", "testing"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-document-schema.ts covering valid render, invalid refusal, token resolution, and bundle independence; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-version-publish",
+    title: "Draft, version, preview, publish, and rollback substrate",
+    workstream: "site",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Build the persistence and lifecycle behind Site Studio: site_documents with draft and published version pointers, immutable site_document_versions recording body, metadata, style guide version, source, command, agent run, parent, and checksum, plus site_routes, site_navigation, and site_redirects. Publishing moves the pointer atomically and revalidates affected routes; rollback clones an old version into a new version and moves the pointer, never mutating published rows. Draft previews render through the same public renderer behind founder-only auth or a signed single-use token. Publish, unpublish, and destination changes enter the existing action queue as new allowlisted action types with dedupe keys and expiry.",
+    acceptance: [
+      "Draft, preview, publish, schedule-free rollback, and redirect-on-slug-change all execute against fixtures with receipts, and published rows are never updated in place",
+      "Preview URLs are unreachable without founder auth or a valid single-use token, and guessed tokens fail closed",
+      "Publish approval is a separate queue item from draft approval with its own dedupe key, expiry, and terminal receipt",
+      "Two-tenant fixtures prove identical slugs, drafts, and idempotency keys stay independent and cross-tenant reads fail",
+      "Duplicate publish requests replay to the same receipt without a second publish effect",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Route every write through one executor with reversibility and compensators",
+      "Adopt shared-database multi-tenancy as the Command Center product shape",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/revenue-os/actions.ts:54-126; src/lib/revenue-os/action-executor.ts:42-67; src/lib/revenue-os/schema-contract.ts; src/app/api/revalidate/route.ts:25-26",
+    guardrails:
+      "Do not create a second approval system beside action_queue. Do not expose draft content on public routes or in sitemaps. Do not add scheduled publishing in this card; manual publish only. Never mutate a published version row; rollback is a new version plus a pointer move.",
+    labels: ["marketing", "automation"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-publish.ts covering happy path, replay, expiry, cross-tenant refusal, and preview-auth failure; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-style-guide",
+    title: "Versioned site style guide with voice and token rules",
+    workstream: "site",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Create the versioned SiteStyleGuide that AI page design reasons against: identity, color tokens, typography and type scale, spacing scale, widths, radii, borders, shadows, imagery rules, component defaults and variants, responsive and motion rules, plus voice, tone, preferred and forbidden language, CTA style, editorial rules, and accessibility and SEO rules. Every page version records the guide version that produced it so output is reproducible. The guide is data the renderer and validators read, not documentation prose.",
+    acceptance: [
+      "A versioned style guide model exists with token tables and editorial rules, and page versions reference the exact guide version used",
+      "Forbidden language and invented-metric rules are enforced by validation before publish, reusing the existing fabricated-claims posture for runtime content",
+      "Changing the guide never rewrites existing page versions; pages opt into newer guide versions explicitly",
+      "The renderer resolves every token used by registered components with no unstyled fallback in output",
+      "A unit suite proves guide versioning, token resolution, and voice-rule enforcement",
+    ],
+    dependencies: ["Versioned site document schema and independent renderer"],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/content/marketing-positioning.ts; docs/contracts/MARKETING-POSITIONING-CONTRACT.md; scripts/test-no-fabricated-claims.ts",
+    guardrails:
+      "Do not restyle the admin or the existing static marketing site in this card. Do not store free-form CSS as the design language. Keep the existing Workspace Brand object untouched; the style guide is a separate versioned model.",
+    labels: ["marketing", "config"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-style-guide.ts covering versioning, token resolution, and forbidden-language refusal; npm run test:no-fabricated-claims; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-component-registry",
+    title: "Semantic component registry with business components",
+    workstream: "site",
+    phase: 5,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Build the SiteComponentRegistry that determines what editors and AI can place on a page: semantic sections with controlled variants and JSON prop schemas (hero, logo cloud, feature grid, process, stats, testimonials, case studies, pricing, FAQ, CTA, image-text, gallery, rich text section), plus business components wired to existing infrastructure (LeadForm into the inbound pipeline with identity resolution and attribution, BookingCTA, ContactForm, ChatCTA, PostGrid, NewsletterForm). Plugins declare additional site components through their manifests. A CustomMarkup escape hatch accepts sanitized HTML with scoped CSS and no JavaScript for unusual static designs; the sanitizer library and CSP posture are chosen with a recorded evaluation, and scripts, event handlers, and dangerous URLs are rejected at save time.",
+    acceptance: [
+      "Every registered component has a JSON prop schema, controlled variants, and server-side validation, and unknown props are refused",
+      "LeadForm submissions flow through the existing inbound pipeline with identity resolution and attribution rather than any bespoke form endpoint",
+      "A plugin-declared component becomes available to the editor and AI without core code changes",
+      "CustomMarkup renders sanitized, scoped, script-free output, and malicious input is refused with a named error",
+      "The registry exposes a bounded discovery surface so generation calls receive relevant components, not hundreds of definitions",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Define a plugin/module contract for optional business capabilities",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/revenue-os/ai-tools.ts:100; src/lib/revenue-os/plugins.ts; extensions/module-manifest.schema.json; extensions/example-inventory.module.json; src/components/v2/studio as section source material",
+    guardrails:
+      "Do not expose hundreds of low-level atoms as the default AI vocabulary. Do not let AI generate raw form actions or provider calls. Untrusted content stays data; only reviewed registered code ships functionality. Do not bypass domain services from component adapters.",
+    labels: ["marketing", "clonable"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-component-registry.ts covering schema validation, business-component pipeline wiring, plugin declaration, sanitizer refusal cases, and bounded discovery; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-puck-editor",
+    title: "Admin-only Puck editing canvas with preview",
+    workstream: "site",
+    phase: 5,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Integrate Puck as the visual editing canvas under /admin/site/* only, dynamically imported so no editor code reaches public bundles. The editor reads and writes draft versions through the version substrate, shows the draft in an iframe at 390, 768, and 1440 pixels using the exact production renderer, and exposes tree, properties, template insertion, and version history. The editor ships as an extension module with nav links, route guards, and AI-tool gating inherited from the module system. Puck licenses are re-verified at integration time and the OSS core is pinned rather than any hosted AI product.",
+    acceptance: [
+      "An operator can open a page draft, drag sections, edit props, insert a template, and save a new version with no console errors",
+      "Preview at all three widths renders through the production renderer inside the iframe, and editor-only chrome never leaks into preview output",
+      "Public marketing bundles contain no Puck editor code, proven by bundle inspection in the scoped test",
+      "Routes are module-guarded, nav hides the surface when the module is disabled, and Puck license evidence is recorded in the implementation notes",
+      "Desktop and mobile QA covers keyboard operation, reduced motion, overflow, and error states with opened screenshots",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Draft, version, preview, publish, and rollback substrate",
+      "Semantic component registry with business components",
+      "Complete the shared professional admin system",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/app/admin/layout.tsx module gating; src/lib/admin/module-guard.ts; src/lib/revenue-os/modules.ts:112-120; docs/contributing/EXTENDING.md",
+    guardrails:
+      "Puck is the editor, not the architecture: wrap its data in the Accelerate envelope and never let its internal schema become the stored contract. Do not import editor code from public routes. Do not rebuild versions, publishing, or approvals inside editor code.",
+    labels: ["marketing", "testing"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; node scripts/qa-site-studio-editor.mjs covering draft edit, template insert, three-width preview parity, bundle independence, keyboard, reduced motion, console errors, and opened screenshots; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-ai-patches",
+    title: "Patch-based AI page editing with claim grounding",
+    workstream: "site",
+    phase: 5,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Give OpenRouter a governed page-editing contract: site.read_page, site.read_style_guide, site.list_components, site.read_component_schema, site.search_templates, site.propose_patch, site.render_preview, site.publish, and site.rollback as registered tools with impact tiers. The model edits through typed patch operations (set prop, set style, insert, remove, move, replace, update metadata) against node IDs; full-tree replacement requires an explicit redesign command. Generation is template-first: search the template library, then patch. Every public factual claim must resolve to approved content, a verified claim, or explicit user instruction, or the patch is refused. Patches validate server-side against component schemas inside the bounded AI context, and publishing stays an explicit approval through the existing queue.",
+    acceptance: [
+      "A natural-language command produces a draft version through patches only, with a reviewable diff and no full-tree rewrite unless redesign was requested",
+      "Invented metrics, clients, or business history in generated copy are refused before draft save, with the refusal naming the missing approval",
+      "Model output that violates a component schema is rejected server-side and never reaches a version row",
+      "Publish and rollback requests enter the approval queue with receipts, and unapproved publishes never move the pointer",
+      "A scoped suite proves patch ops, template-first selection, grounding refusal, replay safety, and approval gating, including failure receipts",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Semantic component registry with business components",
+      "Enforce bounded AI context and grounding rules",
+      "Complete AI tool registry and impact tiers",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/revenue-os/ai-tools.ts; src/lib/revenue-os/ai-context.ts; src/lib/revenue-os/claims.ts; src/lib/revenue-os/actions.ts",
+    guardrails:
+      "AI understands the Accelerate patch contract, never Puck internals. Do not generate full pages when a patch suffices. Never let model output bypass schema validation, claim grounding, or the approval queue. No real provider sends from fixtures; test-mode only.",
+    labels: ["marketing", "ai"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-ai-patches.ts covering all patch ops, grounding refusal, schema refusal, replay, and approval gating with controlled fixtures; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-collections-posts",
+    title: "Collections, posts, Tiptap bodies, MDX migration, navigation",
+    workstream: "site",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Generalize beyond pages: collections with field schemas, detail templates, index pages, SEO rules, and URL patterns (blog, case studies, services, locations, team, jobs), so new content types are data rather than new engines. Long-form bodies use Tiptap core with a minimal extension set, loaded only when editing rich text. Migrate the MDX Learning Hub into the learn collection preserving every URL, feed entry, sitemap entry, and metadata field, with redirects for anything that moves. Navigation becomes data the existing Header component reads, so adding a page under Services needs no code.",
+    acceptance: [
+      "A new collection (fields, detail template, index page, URL pattern) is creatable without code changes and renders list plus detail routes",
+      "Tiptap bodies support paragraph, heading, bold, italic, link, lists, blockquote, and asset references only, and serialize to the stored document model",
+      "Every existing /learn slug, category, tag, feed item, and sitemap entry survives migration byte-identical in URL and metadata, with redirect rows for any move",
+      "Header navigation renders from the data model including nested placement, and unlisted or draft entries never appear publicly",
+      "RSS, sitemap, and revalidation hooks cover collection content with passing verifiers",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Draft, version, preview, publish, and rollback substrate",
+      "Admin-only Puck editing canvas with preview",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/mdx.ts; src/app/learn/[slug]/page.tsx:96-159; src/app/sitemap.ts:16-136; src/app/learn/feed.xml/route.ts:1-44; src/app/api/revalidate/route.ts:25-26; src/components/layout/MarketingChrome.tsx:11-33",
+    guardrails:
+      "Do not break a single existing public URL, feed, or sitemap entry. Do not install the full Tiptap extension catalog; minimal set only, lazy-loaded. Do not make the Header itself document-editable in this card; it stays a controlled component reading data.",
+    labels: ["marketing", "indexing"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-collections.ts covering collection CRUD, Tiptap round-trip, URL/feed/sitemap preservation diff, and nav rendering; npm run verify:articles; npm run test:search; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-assets",
+    title: "Supabase-backed asset library with accessibility gates",
+    workstream: "site",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Give runtime-editable pages runtime assets: a site_assets library on Supabase Storage recording file, type, dimensions, alt text, attribution, uploader, tags, focal point, usage references, and public URL. This is the repository's first Storage-bucket usage, so it sets the bucket policy, tenant isolation, and signed-versus-public URL precedent explicitly. Publishing refuses images without appropriate alt behavior through deterministic checks, and AI asset search draws only from approved library content.",
+    acceptance: [
+      "Upload, tag, search, reference, and replace work from the editor with usage tracking that names every page using an asset",
+      "Bucket policy and tenant isolation are documented and proven with cross-tenant refusal fixtures",
+      "Publish validation rejects missing or placeholder alt text with a named, recoverable error",
+      "Replacing an asset updates all referencing drafts explicitly and never silently rewrites published output",
+      "AI asset selection resolves library references only and cannot invent URLs",
+    ],
+    dependencies: ["Versioned site document schema and independent renderer"],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/content/industry-visuals.ts:23-78; src/app/api/og/route.ts; src/lib/revenue-os/schema-contract.ts",
+    guardrails:
+      "Do not store binary blobs in Postgres rows; Storage holds bytes, the database holds references. Do not make library assets world-writable. Do not copy production or customer content into fixtures; use approved or generated placeholders with attribution.",
+    labels: ["marketing", "testing"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-assets.ts covering upload, isolation refusal, alt-text gating, replacement semantics, and reference-only AI selection with controlled fixtures; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-publish-qa",
+    title: "Pre-publish validation and Playwright visual QA",
+    workstream: "site",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Make publishing safe by default: every publish runs component schema validation, broken-link detection, SEO and metadata checks, accessibility checks, responsive renders at 390, 768, and 1440 pixels, and a public-data safety scan proving no private CRM facts leak into public claims. Reuse the existing Playwright infrastructure for screenshots and interaction checks rather than building another browser QA system. Failures block the publish with named, recoverable errors and keep the previous published version live.",
+    acceptance: [
+      "A publish with a broken link, missing metadata, overflow at any width, or an ungrounded business claim is refused with the exact failing check named",
+      "Screenshots at all three widths are captured, opened, and inspected for the reference publish, with console-error and reduced-motion coverage",
+      "A failed publish leaves the previous published version live and records the refusal receipt",
+      "Checks run from the same renderer production uses, so QA cannot pass on output the public site will not serve",
+      "The reference QA run evidence names commands, results, and screenshot locations without secrets",
+    ],
+    dependencies: [
+      "Draft, version, preview, publish, and rollback substrate",
+      "Admin-only Puck editing canvas with preview",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; scripts/qa-demo-business-workflows.mjs as harness shape reference; docs/contributing/VERIFICATION-WORKFLOW.md",
+    guardrails:
+      "Do not build a second screenshot or browser-QA framework. Do not treat source presence as visual evidence; screenshots must be opened and inspected. Never claim local QA proves production delivery.",
+    labels: ["marketing", "playwright"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; node scripts/qa-site-publish.mjs covering schema, links, SEO, accessibility, three-width renders, data-safety scan, and refusal receipts with opened screenshots; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-page-outcomes",
+    title: "Page goals measured through canonical attribution",
+    workstream: "site",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Close the loop between pages and revenue: pages declare primary and secondary goals (book call, lead capture, demo view), and existing first-party analytics plus canonical attribution measure viewed, CTA clicked, form started, lead created, meeting booked, opportunity created, and revenue won per page. Command Center surfaces per-page outcomes so optimization prompts like improve conversion rate optimize against business results rather than design taste.",
+    acceptance: [
+      "Page goal declarations validate against a fixed goal vocabulary and attach to the published version",
+      "The full event chain from page view to won revenue is queryable per page using existing analytics and attribution tables only",
+      "Command Center shows visitors, inquiries, meetings, opportunities, and influenced pipeline per page with the same numbers the underlying queries return",
+      "No parallel funnel, metric definition, or analytics table is introduced; reconciliation with canonical reporting passes",
+      "Unknown attribution stays visible rather than silently dropped",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Consolidate analytics on canonical source-to-revenue data",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/revenue-os/analytics.ts; src/components/layout/MarketingChrome.tsx:11-33 for tracker placement",
+    guardrails:
+      "Screens do not calculate competing funnels; analytics.ts owns formulas. Do not equate views, agreements, proposals, invoices, and collected payment. Never present model-estimated outcomes as measured results.",
+    labels: ["marketing", "automation"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-page-outcomes.ts covering goal vocabulary, event chain fixtures, report reconciliation, and unknown-attribution visibility; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-export-import",
+    title: "Portable site export and import with bundled snapshot",
+    workstream: "site",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Keep Site Studio forkable: npm run site:export writes the site, style guide, pages, collections, and posts to versioned JSON under site/, and npm run site:import restores them with validation. Fresh clones render from the bundled snapshot immediately; connected installs treat Supabase as runtime truth; operators can export admin edits back into the repo. The format is documented and round-trip tested so distributions and vertical packs can ship as data.",
+    acceptance: [
+      "Export then import reproduces every page, collection entry, navigation node, redirect, style guide version, and asset reference byte-identical in structure",
+      "Import validates the envelope schema version and refuses unknown future versions with a named error rather than partial application",
+      "A fresh clone with no database serves the bundled snapshot correctly",
+      "Round-trip preserves version history and publish pointers, not just current bodies",
+      "Tenant isolation holds: imports scope to one tenant and refuse cross-tenant references",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Draft, version, preview, publish, and rollback substrate",
+      "Prove client-instance export and restore portability",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; scripts/work-board-import.ts as reviewed-plan shape reference; docs/planning/SITE-STUDIO.md export layout",
+    guardrails:
+      "Opaque database content must never replace forkable code as the primary distribution story. Do not export secrets, provider payloads, customer records, or AI prompts. Never overwrite newer live content on import without an explicit reviewed plan.",
+    labels: ["marketing", "clonable"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; node scripts/test-site-export-import.mjs covering round-trip fidelity, future-version refusal, fresh-clone render, history preservation, and tenant scoping; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-homepage-migration",
+    title: "Migrate the marketing site onto Site Studio",
+    workstream: "site",
+    phase: 6,
+    status: "backlog",
+    priority: "high",
+    initiative: "Site Studio",
+    description:
+      "Execute the staged migration with zero public regression: register the existing home sections as site components without changing production rendering; import the current section order as Homepage Version 1; add props and schemas until section content is editable; render database and legacy versions side-by-side until screenshot parity passes; switch / to the renderer while retaining Studio as fallback; migrate MDX articles into the learn collection preserving URLs, feeds, and sitemap; migrate remaining static routes; then enable the editor, AI commands, collections, and portable export in that order. Each step keeps the previous rendering reachable until its parity proof lands.",
+    acceptance: [
+      "Homepage Version 1 matches current production pixel-equivalent at desktop and mobile widths with opened screenshot evidence before any traffic switches",
+      "The / switch retains Studio as an instantly restorable fallback, and rollback is exercised once against fixtures",
+      "Every migrated route keeps its URL, metadata, and search behavior with passing route-coverage checks",
+      "Articles migration preserves feeds, sitemap, scheduling semantics, and frontmatter guarantees with verify:articles green",
+      "Positioning, fabricated-claims, and house-style guards stay green across the migration with no new allowlist entries",
+      "Typecheck, lint, scoped tests, production build, and diff check pass",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Draft, version, preview, publish, and rollback substrate",
+      "Semantic component registry with business components",
+      "Admin-only Puck editing canvas with preview",
+      "Collections, posts, Tiptap bodies, MDX migration, navigation",
+      "Pre-publish validation and Playwright visual QA",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/components/v2/studio/Studio.tsx:21-43; src/app/(marketing)/page.tsx:56-73; docs/contracts/MARKETING-POSITIONING-CONTRACT.md; scripts/test-no-fabricated-claims.ts",
+    guardrails:
+      "Do not rewrite public copy as part of the migration; move it byte-identical and let positioning work happen in its own cards. Do not remove the Studio fallback until parity plus one successful rollback drill. Do not push or deploy unless asked.",
+    labels: ["marketing", "testing"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run test:no-fabricated-claims; npm run test:house-style-copy; npm run verify:guardrails; npm run test:route-coverage; node scripts/qa-site-migration.mjs covering parity screenshots, fallback restore, and rollback drill with opened screenshots; npm run build; git diff --check.",
+  }),
 ];
+
 
 const countsByStatus = new Map();
 for (const feature of featureBacklog) {
