@@ -230,6 +230,8 @@
     "test:verification-workflow": "node scripts/test-verification-workflow.mjs",
     "resources:run": "node scripts/resource-run.mjs",
     "test:resources": "node --test scripts/test-resource-run.mjs",
+    "test:resource-supervisor": "node --test scripts/test-resource-supervisor.mjs",
+    "supervisor": "node scripts/supervisor/supervisor.mjs",
     "test:public-roadmap": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-public-roadmap-availability.ts",
     "verify:migrations": "node scripts/run-all-migrations.mjs --check",
     "test:migration-ledger": "node scripts/test-migration-ledger-postgres.mjs",

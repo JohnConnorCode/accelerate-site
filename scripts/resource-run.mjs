@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync, readFileSync, rmSync, statfsSync } from "node
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { releaseAdmission, validateAdmission } from "./supervisor/policy.mjs";
 
 // Shared across this user's worktrees, not just one checkout.
 export const lockPath = join(tmpdir(), `accelerate-heavy-job-${process.getuid?.() ?? "user"}`);
@@ -95,7 +96,16 @@ export async function runHeavyJob(
   } = {},
 ) {
   if (!command) throw new Error("Usage: npm run resources:run -- <command> [args...]");
-  const release = acquireLock(directory);
+  // A supervisor admission replaces the local lock, never duplicates it: a
+  // job already holding the machine-wide slot must not take a second gate.
+  // Absence of a token keeps the legacy lock path exactly as before.
+  const token = process.env.ACCELERATE_ADMISSION_ID;
+  const release = token
+    ? (() => {
+        validateAdmission(token);
+        return () => releaseAdmission(token);
+      })()
+    : acquireLock(directory);
   let child;
   let timer;
   let killTimer;
