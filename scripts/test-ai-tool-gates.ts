@@ -21,10 +21,24 @@ import {
   assertImpactHonoured,
   executeRegisteredRevenueTool,
   getRevenueAiTools,
+  getRevenueAiToolsForProfile,
+  listRevenueAiCapabilities,
+  listRevenueAiCapabilitiesForProfile,
+  projectTaskToolProfile,
+  taskToolProfileToolNames,
+  toOpenRouterToolsForProfile,
   validateToolInput,
   validateToolOutput,
   AI_TOOL_REGISTRY_VERSION,
 } from "../src/lib/revenue-os/ai-tools";
+import {
+  DEFAULT_TASK_TOOL_PROFILE,
+  PROFILE_ALIASES,
+  TASK_TOOL_PROFILE_META,
+  mcpEndpointUrl,
+  parseTaskToolProfile,
+  type TaskToolProfile,
+} from "../src/lib/revenue-os/tool-profiles";
 
 import { REVENUE_OS_MODULES } from "../src/lib/revenue-os/modules";
 import {
@@ -357,6 +371,84 @@ async function main() {
       `${tool.name} is ${tool.impact} but confirmationRequired is ${tool.confirmationRequired}; mutating tools must require confirmation`,
     );
   }
+
+  // ---- Task-focused tool profiles are bounded registry projections -------
+
+  // Every profile advertises a bounded subset of registered tools and the
+  // always-present discovery path (AC1), membership never grants access (AC2),
+  // UI/AI/MCP share one availability read (AC3), and the projected surface is
+  // measurably smaller without dropping tools merely to hit a count (AC4).
+  const registeredNames = registry.map((tool) => tool.name);
+  for (const profile of ["core", "ops", "full"] as const) {
+    const advertised = taskToolProfileToolNames(profile);
+    assert.ok(advertised.length > 0, `${profile} profile advertises no tools`);
+    for (const name of advertised)
+      assert.ok(
+        registeredNames.includes(name),
+        `${profile} profile advertises an unregistered tool "${name}"`,
+      );
+    assert.ok(
+      ["discover_tool_bundles", "activate_tool_bundle", "get_workspace_capabilities"].every(
+        (name) => advertised.includes(name),
+      ),
+      `${profile} profile must always advertise the discovery path`,
+    );
+    // Membership is a bounded projection: core ⊂ ops ⊂ full, never full for a
+    // bounded profile, and full is exactly the registry.
+    if (profile === "full") assert.deepEqual([...advertised].sort(), [...registeredNames].sort());
+    else assert.ok(advertised.length < registeredNames.length, `${profile} is not bounded`);
+    assert.deepEqual(
+      listRevenueAiCapabilitiesForProfile(profile).map((capability) => capability.name),
+      listRevenueAiCapabilities()
+        .filter((capability) => advertised.includes(capability.name))
+        .map((capability) => capability.name),
+      `${profile} capability projection must agree with the shared registry read`,
+    );
+    assert.deepEqual(
+      projectTaskToolProfile(profile).discoveryPath,
+      ["discover_tool_bundles", "activate_tool_bundle", "get_workspace_capabilities"],
+      `${profile} projection must expose the discovery path`,
+    );
+    // OpenRouter conversion keeps the same availability gate as the AI path.
+    assert.deepEqual(
+      toOpenRouterToolsForProfile(profile).map((tool) => tool.function.name),
+      getRevenueAiToolsForProfile(profile).map((tool) => tool.name),
+      `${profile} OpenRouter surface must equal the available registered tools`,
+    );
+  }
+  assert.ok(
+    taskToolProfileToolNames("core").length < taskToolProfileToolNames("ops").length,
+    "core must be strictly smaller than ops",
+  );
+  assert.ok(
+    taskToolProfileToolNames("ops").length < taskToolProfileToolNames("full").length,
+    "ops must be strictly smaller than full",
+  );
+  // AC4: the projected surface is measurably smaller, not an arbitrary count.
+  const fullSize = JSON.stringify(taskToolProfileToolNames("full")).length;
+  for (const profile of ["core", "ops"] as TaskToolProfile[]) {
+    const size = JSON.stringify(taskToolProfileToolNames(profile)).length;
+    assert.ok(size < fullSize, `${profile} tool-name projection must be measurably smaller`);
+  }
+
+  // AC1/AC3: omitted and unknown profile values resolve to full, never to a
+  // silently empty or guessed surface; aliases map to their canonical profile.
+  assert.equal(parseTaskToolProfile(undefined), "full");
+  assert.equal(parseTaskToolProfile(null), "full");
+  assert.equal(parseTaskToolProfile(""), "full");
+  assert.equal(parseTaskToolProfile("bogus-profile"), "full");
+  assert.equal(parseTaskToolProfile("daily"), "ops");
+  assert.equal(parseTaskToolProfile("minimal"), "core");
+  assert.equal(parseTaskToolProfile("power"), "full");
+  for (const [alias, canonical] of Object.entries(PROFILE_ALIASES))
+    assert.equal(parseTaskToolProfile(alias), canonical);
+  assert.equal(DEFAULT_TASK_TOOL_PROFILE, "ops");
+  assert.ok(TASK_TOOL_PROFILE_META.ops.recommended);
+  assert.match(
+    mcpEndpointUrl("https://example.com", "ops"),
+    /^https:\/\/example\.com\/api\/mcp\?profile=ops$/,
+  );
+  assert.equal(mcpEndpointUrl("https://example.com", "full"), "https://example.com/api/mcp");
 
   // A read tool that stages an action is mislabelled, and vice versa. Both
   // directions are checkable from the result, which is why the gate exists.

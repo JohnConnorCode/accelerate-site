@@ -9,6 +9,7 @@ import {
   MCP_SUPPORTED_PROTOCOL_VERSIONS,
   type McpJsonRpcRequest,
 } from "@/lib/revenue-os/mcp-server";
+import { parseTaskToolProfile } from "@/lib/revenue-os/tool-profiles";
 import { tenant } from "@/config/tenant";
 import { accelerateSystemContext } from "@/lib/tenancy/context";
 
@@ -162,6 +163,7 @@ export async function POST(request: NextRequest) {
     actorEmail: auth.actorEmail,
     tenantSlug: auth.tenantSlug,
     tenantConfig: auth.tenantConfig,
+    toolProfile: parseTaskToolProfile(new URL(request.url).searchParams.get("profile")),
   });
 
   if (response === null) return withCors(new NextResponse(null, { status: 204 }));

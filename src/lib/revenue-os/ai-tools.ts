@@ -117,8 +117,11 @@ import {
 import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
 
 export { AI_TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
+import { AI_TOOL_REGISTRY_VERSION as TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
 export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
 export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
+export type { TaskToolProfile } from "./tool-profiles";
+import { parseTaskToolProfile, type TaskToolProfile } from "./tool-profiles";
 
 /** How many rows any single snapshot query may read. */
 const SNAPSHOT_ROW_LIMIT = 50;
@@ -2452,4 +2455,116 @@ export function toActivatedOpenRouterTools(
       type: "function",
       function: { name, description, parameters: inputSchema },
     }));
+}
+
+// ---------------------------------------------------------------------------
+// Task-focused tool profiles
+//
+// A profile is a bounded registry projection: which registered tools a client
+// should load for a task, plus an always-present discovery path so it can find
+// every other authorized capability it lacks. Profile membership is
+// advertising only — it never grants access, and every call still runs the
+// normal tenant/capability/impact checks in `executeRegisteredRevenueTool`.
+// ---------------------------------------------------------------------------
+
+/** Tools every profile advertises so a client can discover other authorized capabilities. */
+export const PROFILE_DISCOVERY_TOOLS = [
+  "discover_tool_bundles",
+  "activate_tool_bundle",
+  "get_workspace_capabilities",
+] as const;
+
+const CORE_PROFILE_TOOL_NAMES = [
+  ...PROFILE_DISCOVERY_TOOLS,
+  "get_today_snapshot",
+  "search_pipeline",
+  "search_contacts",
+  "get_pending_actions",
+  "propose_task",
+] as const;
+
+const OPS_PROFILE_TOOL_NAMES = [
+  ...CORE_PROFILE_TOOL_NAMES,
+  "search_conversations",
+  "get_claimable_work",
+  "get_claims_for_entity",
+  "get_record_timeline",
+  "search_knowledge_base",
+  "query_memory",
+  "get_agent_memory",
+  "get_learned_policies",
+  "get_autonomy_policies",
+  "get_coworkers",
+  "get_agent_activity_for_entity",
+  "check_budgets",
+  "get_budget_limits",
+  "propose_task_update",
+  "propose_stage_change",
+  "propose_send_email",
+  "propose_conversation_reply",
+  "propose_founder_note",
+] as const;
+
+/** The bounded set of registered tool names a profile advertises. */
+export function taskToolProfileToolNames(profile: TaskToolProfile): string[] {
+  const registered = new Set(registry.map((tool) => tool.name));
+  if (profile === "full") return [...registered];
+  const allow = profile === "core" ? CORE_PROFILE_TOOL_NAMES : OPS_PROFILE_TOOL_NAMES;
+  return allow.filter((name) => registered.has(name));
+}
+
+/** Registered tools for a profile, filtered to the tools currently available. */
+export function getRevenueAiToolsForProfile(
+  profile: TaskToolProfile,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
+): AiToolRegistration[] {
+  const names = new Set(taskToolProfileToolNames(profile));
+  return registry.filter(
+    (tool) => names.has(tool.name) && availabilityFor(tool, context).available,
+  );
+}
+
+/** Capability descriptors scoped to a profile, so UI, AI and MCP agree. */
+export function listRevenueAiCapabilitiesForProfile(
+  profile: TaskToolProfile,
+  context?: Pick<AiToolContext, "toolPack" | "tenantConfig">,
+): RevenueAiCapabilityDescriptor[] {
+  const names = new Set(taskToolProfileToolNames(profile));
+  return listRevenueAiCapabilities(context).filter((capability) => names.has(capability.name));
+}
+
+/** OpenRouter function tools for a profile, filtered to available tools. */
+export function toOpenRouterToolsForProfile(
+  profile: TaskToolProfile,
+  tenantConfig?: AiToolContext["tenantConfig"],
+): OpenRouterTool[] {
+  return getRevenueAiToolsForProfile(profile, { tenantConfig }).map(
+    ({ name, description, inputSchema }) => ({
+      type: "function",
+      function: { name, description, parameters: inputSchema },
+    }),
+  );
+}
+
+export interface TaskToolProfileProjection {
+  profile: TaskToolProfile;
+  toolNames: string[];
+  discoveryPath: string[];
+  registryVersion: string;
+}
+
+/**
+ * The projection MCP/AI surfaces advertise for a profile: a bounded subset of
+ * registered tool names plus the discovery path to every other authorized
+ * capability. Parsing is lenient — omitted or unknown values fall back to
+ * `full`, never to a silently empty or guessed surface.
+ */
+export function projectTaskToolProfile(profile?: TaskToolProfile): TaskToolProfileProjection {
+  const resolved = parseTaskToolProfile(profile);
+  return {
+    profile: resolved,
+    toolNames: taskToolProfileToolNames(resolved),
+    discoveryPath: [...PROFILE_DISCOVERY_TOOLS],
+    registryVersion: TOOL_REGISTRY_VERSION,
+  };
 }

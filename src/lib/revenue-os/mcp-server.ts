@@ -1,11 +1,13 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  getRevenueAiTools,
+  getRevenueAiToolsForProfile,
   listRevenueAiCapabilities,
+  projectTaskToolProfile,
   executeRegisteredRevenueTool,
   AI_TOOL_REGISTRY_VERSION,
   type RevenueToolPackId,
+  type TaskToolProfile,
 } from "./ai-tools";
 import { loadOperatorQueue } from "./queue";
 import { getActiveModules } from "./modules";
@@ -59,6 +61,8 @@ export interface McpServerContext {
   tenantSlug?: string;
   tenantConfig?: typeof defaultTenant | null;
   toolPack?: RevenueToolPackId;
+  /** Task-focused registry profile; omitted or unknown values fall back to full. */
+  toolProfile?: TaskToolProfile;
 }
 
 /**
@@ -214,13 +218,22 @@ export async function handleMcpRequest(
       }
 
       case "tools/list": {
+        // A task-focused profile advertises a bounded subset of registered
+        // tools plus the discovery path to every other authorized capability.
+        // Profile membership is advertising only: it never grants access, and
+        // `tools/call` still runs the normal tenant/capability checks.
+        const projection = projectTaskToolProfile(context.toolProfile);
+        const advertised = new Set(projection.toolNames);
         const available = new Set(
           listRevenueAiCapabilities(context)
             .filter((tool) => tool.available)
             .map((tool) => tool.name),
         );
-        const tools = getRevenueAiTools(context.toolPack)
-          .filter((tool) => available.has(tool.name))
+        const tools = getRevenueAiToolsForProfile(projection.profile, {
+          toolPack: context.toolPack,
+          tenantConfig: context.tenantConfig ?? undefined,
+        })
+          .filter((tool) => advertised.has(tool.name) && available.has(tool.name))
           .map((tool) => ({
             name: tool.name,
             description: tool.description,
@@ -232,7 +245,12 @@ export async function handleMcpRequest(
         return {
           jsonrpc: "2.0",
           id,
-          result: { tools, registryVersion: AI_TOOL_REGISTRY_VERSION },
+          result: {
+            tools,
+            registryVersion: AI_TOOL_REGISTRY_VERSION,
+            profile: projection.profile,
+            discoveryPath: projection.discoveryPath,
+          },
         };
       }
 
