@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
 import { siteDrafts } from "@/lib/site-studio/store";
-import { SlugInUseError } from "@/lib/site-studio/drafts";
+import { discardSiteDraft, DraftNotFoundError, SlugInUseError } from "@/lib/site-studio/drafts";
 import {
-  DraftNotFoundError,
   StaleDraftError,
   reviseSiteDraft,
   sitePatchSchema,
@@ -54,6 +53,24 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (error instanceof SlugInUseError)
       return NextResponse.json({ error: error.message }, { status: 409 });
     const message = error instanceof Error ? error.message : "Draft revision failed";
+    return NextResponse.json({ error: message }, { status: 422 });
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+  const { id } = await params;
+  try {
+    const discarded = await discardSiteDraft(siteDrafts(), id);
+    return NextResponse.json({ discarded });
+  } catch (error) {
+    if (error instanceof DraftNotFoundError)
+      return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+    const message = error instanceof Error ? error.message : "Draft discard failed";
     return NextResponse.json({ error: message }, { status: 422 });
   }
 }

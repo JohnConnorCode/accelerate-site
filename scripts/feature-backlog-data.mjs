@@ -9101,6 +9101,62 @@ export const featureBacklog = [
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-version-history.ts covering history, diffs, rollback, and rename continuity; npm run build; git diff --check.",
   }),
+  card({
+    key: "site-studio-scheduled-publish",
+    title: "Schedule publishing for a future time with review",
+    workstream: "site",
+    phase: 6,
+    status: "backlog",
+    priority: "low",
+    initiative: "Site Studio",
+    description:
+      "Publishing is manual-only by design in the first releases. When operators ask for timed launches, add scheduled publishing: a draft version with an approved publish action carries a not-before timestamp, the scheduler flips the published pointer inside the due window, and missed or failed windows surface as explicit failures with safe retry. Scheduling never bypasses approval, validation, or the publish QA gate.",
+    acceptance: [
+      "A scheduled publish executes inside its due window with the same validation and receipts as a manual publish",
+      "Cancelling before the window leaves the published pointer untouched with a cancellation receipt",
+      "Missed windows fail explicitly and retry only by operator decision, never silently",
+      "Schedule, execution, and failure all appear in version history with actor and timestamp",
+      "A scoped suite proves on-time execution, cancellation, missed-window failure, and retry gating",
+    ],
+    dependencies: ["Draft, version, preview, publish, and rollback substrate"],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/revenue-os/scheduler.ts; src/lib/revenue-os/runs.ts for claim and receipt patterns",
+    guardrails:
+      "Manual publish stays the default; scheduling is opt-in per publish. Never auto-publish on validation drift; a changed draft needs fresh approval before its window.",
+    labels: ["marketing", "automation"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-scheduled-publish.ts covering on-time execution, cancellation, missed windows, and retry gating; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-ai-section-regenerate",
+    title: "Regenerate one page section with AI under the same grounding",
+    workstream: "site",
+    phase: 5,
+    status: "backlog",
+    priority: "medium",
+    initiative: "Site Studio",
+    description:
+      "Full-page generation cannot surgically improve one weak section. Add section-scoped regeneration: the operator selects a section, optionally adds direction, and the model returns replacement leaves that validate against component schemas, resolve catalog assets, and pass the same grounding rules (no invented links, metrics, or images) before becoming a draft revision. Blast radius stays inside the section; the rest of the page is untouched and the diff names the section.",
+    acceptance: [
+      "Regenerating a section produces a draft revision touching only that section's nodes",
+      "Invented links, metrics, clients, or non-catalog assets are refused before save with the reason named",
+      "Direction-free regeneration still satisfies schema, grounding, and catalog rules",
+      "Repeated regeneration of one section never alters sibling sections (proven by checksum scoping)",
+      "A scoped suite proves scoping, grounding refusal, direction handling, and sibling invariance",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Patch-based AI page editing with claim grounding",
+      "Revise page drafts through validated patch operations",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/site-studio/generate.ts; src/lib/site-studio/revision.ts; src/lib/site-studio/openrouter-adapter.ts",
+    guardrails:
+      "Scoping is enforced server-side by node id, not requested politely in prose. Never regenerate the full tree through this path; full redesign keeps its explicit command and confirmation.",
+    labels: ["marketing", "ai"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-section-regenerate.ts covering scoping, grounding refusal, direction handling, and sibling invariance with controlled fixtures; npm run build; git diff --check.",
+  }),
 ];
 
 

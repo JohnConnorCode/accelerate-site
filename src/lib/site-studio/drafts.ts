@@ -3,6 +3,7 @@ import { servicePageSlug, servicePageTemplate } from "./templates";
 import { assertCatalogAsset } from "./assets";
 import {
   parseSiteDocument,
+  assertDocumentSize,
   siteSlugSchema,
   type SiteDocument,
   type SiteDraft,
@@ -35,6 +36,13 @@ export class SlugInUseError extends Error {
     super(`A draft already uses the slug ${slug}; choose another slug`);
     this.name = "SlugInUseError";
     this.slug = slug;
+  }
+}
+
+export class DraftNotFoundError extends Error {
+  constructor(id: string) {
+    super(`Draft ${id} does not exist`);
+    this.name = "DraftNotFoundError";
   }
 }
 
@@ -87,6 +95,7 @@ export async function createSiteDraft(
     },
     input.assetIds ?? [],
   );
+  assertDocumentSize(document);
   return repo.save({
     title: document.metadata.title,
     slug,
@@ -94,4 +103,23 @@ export async function createSiteDraft(
     source: input.mode,
     brief: buildPageUserPrompt(input.brief),
   });
+}
+
+export interface DiscardedDraft {
+  id: string;
+  slug: string;
+  title: string;
+}
+
+/** Explicit, confirmed removal. Drafts are private working copies, so
+ * discard touches no published output; the returned summary is the
+ * receipt the caller surfaces. Double discard fails honestly. */
+export async function discardSiteDraft(
+  repo: SiteDraftRepository,
+  id: string,
+): Promise<DiscardedDraft> {
+  const current = repo.get(id);
+  if (!current) throw new DraftNotFoundError(id);
+  if (!repo.remove(id)) throw new DraftNotFoundError(id);
+  return { id: current.id, slug: current.slug, title: current.title };
 }

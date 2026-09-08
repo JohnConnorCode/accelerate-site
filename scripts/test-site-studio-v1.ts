@@ -30,14 +30,16 @@ import {
 } from "../src/lib/site-studio/generate";
 import {
   createSiteDraft,
+  discardSiteDraft,
+  DraftNotFoundError,
   MAX_ATTACHED_ASSETS,
   SlugInUseError,
 } from "../src/lib/site-studio/drafts";
 import {
-  DraftNotFoundError,
   StaleDraftError,
   reviseSiteDraft,
 } from "../src/lib/site-studio/revision";
+import { assertDocumentSize, MAX_SITE_DOCUMENT_BYTES } from "../src/lib/site-studio/document";
 import { siteSlugSchema } from "../src/lib/site-studio/document";
 import { AI_JOBS } from "../src/lib/ai/model-registry";
 
@@ -565,8 +567,64 @@ async function main() {
     "remove deletes and move reorders",
   );
 
+  // Discard removes exactly one draft with a receipt summary behind.
+  const doomed = await createSiteDraft(
+    serviceStore,
+    { brief, mode: "template", slug: "doomed-page" },
+    noGenerator,
+  );
+  const receipt = await discardSiteDraft(serviceStore, doomed.id);
+  assert.deepEqual(
+    receipt,
+    { id: doomed.id, slug: "doomed-page", title: doomed.title },
+    "discard returns the removed identity as its receipt",
+  );
+  assert.equal(serviceStore.get(doomed.id), null);
+  assert.ok(
+    serviceStore.list().some((draft) => draft.slug === "renamed-page"),
+    "discard leaves neighboring drafts untouched",
+  );
+  await assert.rejects(
+    discardSiteDraft(serviceStore, doomed.id),
+    (error: unknown) => error instanceof DraftNotFoundError,
+    "double discard fails honestly",
+  );
+
+  // Stored documents stay transferable: maximal schema-valid payloads stop
+  // at the byte bound on the create path. Leaf edits cannot reach it (prop
+  // lengths cap far below), so revision re-checks as defense in depth.
+  const bulkSections = Array.from({ length: 40 }, (_, section) => ({
+    id: `bulk-${section}`,
+    type: "section" as const,
+    children: Array.from({ length: 20 }, (_, child) => ({
+      id: `bulk-${section}-${child}`,
+      type: "text" as const,
+      props: { text: "x".repeat(2000) },
+    })),
+  }));
+  const bulkDoc = { ...template, root: bulkSections } as unknown as SiteDocument;
+  assert.throws(
+    () => assertDocumentSize(bulkDoc),
+    /limit is 500 KB/,
+    "oversized documents are refused with the bound named",
+  );
+  assert.ok(
+    new TextEncoder().encode(JSON.stringify(template)).length < MAX_SITE_DOCUMENT_BYTES,
+    "ordinary pages sit far below the bound",
+  );
+  await assert.rejects(
+    createSiteDraft(serviceStore, { brief, mode: "ai", slug: "too-big" }, async () => bulkDoc),
+    /limit is 500 KB/,
+    "creation enforces the bound before anything saves",
+  );
+  assert.equal(
+    serviceStore.list().filter((draft) => draft.slug === "too-big").length,
+    0,
+    "oversized creates leave no partial draft",
+  );
+
   console.log(
-    "Site Studio v1: schema, tokens, catalog, renderer, store, template, generation contract, job registration, draft service, and revision passed.",
+    "Site Studio v1: schema, tokens, catalog, renderer, store, template, generation contract, job registration, draft service, revision, discard, and size bound passed.",
   );
 }
 

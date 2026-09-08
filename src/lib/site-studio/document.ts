@@ -7,6 +7,20 @@ export const SITE_DOCUMENT_SCHEMA_VERSION = 1 as const;
 export const SITE_DOCUMENT_ENGINE = "site-studio" as const;
 export const SITE_DOCUMENT_ENGINE_VERSION = 1 as const;
 
+/** Stored-document bound. Schemas cap counts and string lengths, but a
+ * maximal document still approaches two megabytes; drafts must stay
+ * comfortably storable and transferable. Client-safe on purpose: this
+ * module ships to preview components, so no Node APIs. */
+export const MAX_SITE_DOCUMENT_BYTES = 512_000;
+
+export function assertDocumentSize(document: SiteDocument): void {
+  const bytes = new TextEncoder().encode(JSON.stringify(document)).length;
+  if (bytes > MAX_SITE_DOCUMENT_BYTES)
+    throw new Error(
+      `Page document is ${(bytes / 1024).toFixed(0)} KB; the limit is ${(MAX_SITE_DOCUMENT_BYTES / 1024).toFixed(0)} KB. Split the page or shorten copy.`,
+    );
+}
+
 const nodeId = z
   .string()
   .min(1)

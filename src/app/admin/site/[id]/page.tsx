@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminSurface } from "@/components/admin/AdminSurface";
@@ -31,12 +32,16 @@ const WIDTHS = [
 
 export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const [draft, setDraft] = useState<DraftDetail | null>(null);
   const [missing, setMissing] = useState(false);
   const [width, setWidth] = useState<(typeof WIDTHS)[number]>(WIDTHS[0]!);
   const [titleInput, setTitleInput] = useState<string | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [renameError, setRenameError] = useState<string | null>(null);
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
+  const [discardError, setDiscardError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/admin/site/drafts/${id}`)
@@ -59,6 +64,31 @@ export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: s
     }
     const data = await res.json();
     setDraft(data.draft ?? null);
+  };
+
+  const discard = async () => {
+    if (!draft || discarding) return;
+    if (!confirmingDiscard) {
+      setConfirmingDiscard(true);
+      setDiscardError(null);
+      return;
+    }
+    setDiscarding(true);
+    try {
+      const res = await fetch(`/api/admin/site/drafts/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        setDiscardError(data.error ?? "Discard failed");
+        setConfirmingDiscard(false);
+        return;
+      }
+      router.push("/admin/site");
+    } catch {
+      setDiscardError("Discard failed");
+      setConfirmingDiscard(false);
+    } finally {
+      setDiscarding(false);
+    }
   };
 
   const rename = async () => {
@@ -199,6 +229,34 @@ export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: s
             </ul>
           </AdminSurface>
         )}
+      </section>
+      <section aria-label="Discard draft">
+        <h2 className="admin-section-title">Discard draft</h2>
+        <AdminSurface padding="sm">
+          <p className="admin-copy max-w-2xl text-sm">
+            Discard removes this private working copy. Published output is
+            untouched because drafts never publish in this release.
+          </p>
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => void discard()}
+              disabled={discarding}
+              className="min-h-11 rounded-[var(--admin-control-radius)] px-4 text-sm font-semibold text-[var(--admin-danger)] hover:bg-[var(--admin-danger-soft)] disabled:opacity-50"
+            >
+              {discarding
+                ? "Discarding"
+                : confirmingDiscard
+                  ? `Click again to discard ${draft.title}`
+                  : "Discard draft"}
+            </button>
+          </div>
+          {discardError ? (
+            <p role="alert" className="admin-copy mt-2 text-sm text-[var(--admin-danger)]">
+              {discardError}
+            </p>
+          ) : null}
+        </AdminSurface>
       </section>
     </div>
   );

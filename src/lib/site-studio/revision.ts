@@ -4,6 +4,7 @@ import {
   collectAssetIds,
   collectRawUrls,
   parseSiteDocument,
+  assertDocumentSize,
   siteNodeIdSchema,
   siteSlugSchema,
   siteStyleSchema,
@@ -11,20 +12,13 @@ import {
   type SiteDraft,
 } from "./document";
 import { assertCatalogAsset } from "./assets";
-import { SlugInUseError } from "./drafts";
+import { DraftNotFoundError, SlugInUseError } from "./drafts";
 import type { SiteDraftRepository } from "./store";
 
 /** Draft revision through typed patch operations. Creation accepts AI
  * output; revision accepts human intent. Both validate server-side, but
  * only AI output is refused for invented metrics — a founder editing
  * their own draft owns the words, the same as static site copy today. */
-
-export class DraftNotFoundError extends Error {
-  constructor(id: string) {
-    super(`Draft ${id} does not exist`);
-    this.name = "DraftNotFoundError";
-  }
-}
 
 export class StaleDraftError extends Error {
   constructor() {
@@ -224,6 +218,7 @@ function applyPatch(document: EditableDocument, patch: SitePatch): void {
 
 function validateRevised(document: EditableDocument): SiteDocument {
   const parsed = parseSiteDocument(document);
+  assertDocumentSize(parsed);
   for (const assetId of collectAssetIds(parsed)) assertCatalogAsset(assetId);
   const rawUrls = collectRawUrls(parsed);
   if (rawUrls.length > 0)
