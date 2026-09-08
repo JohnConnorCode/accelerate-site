@@ -26,11 +26,12 @@ try {
     throw new Error("Usage: npm run dev:doctor -- [--board | --maintainer] [--json]");
   if (flags.has("--board") && flags.has("--maintainer"))
     throw new Error("Check board and maintainer readiness separately.");
-  const major = Number(process.versions.node.split(".")[0]);
+  const [major, minor] = process.versions.node.split(".").map(Number);
+  const supportedNode = major > 22 || (major === 22 && minor >= 16);
   check(
     "node",
-    major >= 22 ? "pass" : "blocked",
-    major >= 22 ? `Node ${major}` : "Install Node 22 or newer.",
+    supportedNode ? "pass" : "blocked",
+    supportedNode ? `Node ${major}` : "Install Node 22.16 or newer.",
   );
   const { root } = repositoryContext(process.cwd());
   check(
