@@ -74,6 +74,16 @@ The remote profile contains `version: 1`, `transport: "https"`, and an absolute
 ignored `envFile` containing the scoped board URL and token. The agent selects
 the profile; the user never has to repeat its setup in a work request.
 
+The same profile resolver is used by `agent:go`, `agent:status`, lease and
+submission commands, and `dev:doctor -- --board`. The doctor checks the connection
+without claiming work. It distinguishes a local canonical-service check from a
+remote strict-write deployment check.
+
+If a parent directory contains a dirty feature checkout, leave it intact and
+start new sessions from a clean checkout of published main. A reusable parent
+entrypoint is in [Parent agent entrypoint](PARENT-AGENT-ENTRYPOINT.md). Existing
+claimed tasks continue in their retained worker checkout.
+
 ## Provider compatibility
 
 This contract is written for coding agents that can read repository Markdown

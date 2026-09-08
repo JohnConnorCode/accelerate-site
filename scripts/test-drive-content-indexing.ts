@@ -319,6 +319,54 @@ async function main() {
     check("duplicate-of-unchanged-source-uses-text-hash");
   }
 
+  {
+    const mem = seed();
+    const db = bound(mem);
+    const base = {
+      ...row(),
+      id: "owned",
+      tenant_id: TENANT,
+      indexed_status: "indexed",
+      provider_revision: "v1",
+      extracted_text: "owned content",
+      content_hash: driveContentHash("owned content"),
+    };
+    mem.tables.drive_documents = [
+      base,
+      {
+        ...base,
+        id: "foreign",
+        tenant_id: "tenant-b",
+        extracted_text: "foreign secret",
+        content_hash: driveContentHash("foreign secret"),
+      },
+    ];
+    await indexDriveFolder(db, {
+      folderId: "folder-a",
+      rows: [row({ provider_revision: "v1" })] as never,
+      listedIds: new Set(["file-1"]),
+      listingComplete: true,
+      extract: async () => {
+        throw new Error("unchanged");
+      },
+    });
+    assert.equal(
+      mem.rows("drive_documents").find((row) => row.id === "owned")!.extracted_text,
+      "owned content",
+    );
+    await indexDriveFolder(db, {
+      folderId: "folder-a",
+      rows: [],
+      listedIds: new Set(),
+      listingComplete: true,
+      extract: async () => null,
+    });
+    assert.equal(
+      mem.rows("drive_documents").find((row) => row.id === "foreign")!.indexed_status,
+      "indexed",
+    );
+    check("foreign-identical-file-id-never-supplies-or-retires-content");
+  }
   console.log(JSON.stringify({ result: "passed", checks }));
 }
 

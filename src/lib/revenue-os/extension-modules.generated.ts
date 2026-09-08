@@ -879,6 +879,20 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     ],
   },
   {
+    id: "site-studio",
+    name: "Site Studio",
+    description:
+      "Create and revise private structured page drafts. Publishing and arbitrary-code editing are not included.",
+    category: "delivery",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["site-studio"],
+    aiToolNames: [],
+    routes: ["/admin/site"],
+    setupChecks: [],
+    docsUrl: "/docs/plugins/site-studio",
+  },
+  {
     id: "stripe-invoicing",
     name: "Stripe invoicing",
     description:
@@ -1324,6 +1338,15 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     icon: "Wallet",
     description: "Resolve overdue balances and review reminders",
     moreGroup: "Revenue",
+  },
+  {
+    moduleId: "site-studio",
+    id: "site-studio",
+    label: "Site Studio",
+    href: "/admin/site",
+    icon: "Globe2",
+    description: "Private page drafts and previews",
+    moreGroup: "Delivery",
   },
   {
     moduleId: "stripe-invoicing",

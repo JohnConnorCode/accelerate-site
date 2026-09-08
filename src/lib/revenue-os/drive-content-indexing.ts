@@ -105,8 +105,8 @@ export async function indexDriveFolder(
     extract: DriveTextExtractor;
   },
 ): Promise<DriveIndexSummary> {
-  if (!tenantIdForDatabase(supabase))
-    throw new Error("Drive indexing requires a tenant-bound database");
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Drive indexing requires a tenant-bound database");
   const { folderId, rows, listedIds, extract } = input;
   if (
     rows.some(
@@ -123,6 +123,7 @@ export async function indexDriveFolder(
   const { data: prior, error: priorError } = await supabase
     .from("drive_documents")
     .select("external_id,content_hash,indexed_status,provider_revision,extracted_text,metadata")
+    .eq("tenant_id", tenantId)
     .eq("provider", "google")
     .eq("folder_id", folderId);
   if (priorError) throw new Error(`Could not load prior Drive index: ${priorError.message}`);
@@ -203,6 +204,7 @@ export async function indexDriveFolder(
         content_duplicate_of: null,
         synced_at: new Date().toISOString(),
       })
+      .eq("tenant_id", tenantId)
       .eq("provider", "google")
       .eq("folder_id", folderId)
       .eq("external_id", externalId);

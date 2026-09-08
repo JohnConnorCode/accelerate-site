@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "tenant-site-studio-drafts",
+    slug: "tenant-site-studio-drafts",
+    title: "Site Studio prepares private, versioned page drafts",
+    description:
+      "Enable Site Studio to create a structured page from a built-in template or configured AI, preview responsive widths, rename it or discard it. Tenant-owned database storage preserves identity through renames, checks concurrent edits, and records immutable revisions atomically with audit entries. Publishing remains separate. The guide covers setup, costs, supported controls and recovery.",
+    category: "feature",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "reviewed-agent-runtime-integration",
     slug: "reviewed-agent-runtime-integration",
     title: "Grounded coworker outcomes and focused MCP tool lists",
@@ -33,7 +42,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "natural-language-agent-pickup",
     title: "Any coding agent can pick up the next backlog task from plain language",
     description:
-      "A request such as “pick up work from the backlog and go until it is completed and committed; follow protocol” now starts the governed developer workflow without a ticket key or provider-specific command. The entrypoint selects one eligible card, preserves claim ownership, creates the approved isolated worktree, supplies the full packet, repairs dated report drift, and continues through verification, commit and evidence submission. An owner-authorized local operator profile is detected across worktrees and uses the canonical local board without a credential prompt; remote workers keep scoped HTTPS transport. Review, merge and deployment remain separate recorded steps.",
+      "A request such as “pick up work from the backlog and go until it is completed and committed; follow protocol” now starts the governed developer workflow without a ticket key or provider-specific command. The entrypoint selects one eligible card, preserves claim ownership, creates the approved isolated worktree, supplies the full packet, repairs dated report drift, and continues through verification, commit and evidence submission. An owner-authorized local operator profile is detected across worktrees and uses the canonical local board without a credential prompt; remote workers keep scoped HTTPS transport. Diagnostics, pickup, heartbeat and submission now resolve the same private profile; a clean main control checkout avoids starting from an older dirty feature branch. Review, merge and deployment remain separate recorded steps.",
     category: "improvement",
     publishedAt: "2026-09-08",
   },

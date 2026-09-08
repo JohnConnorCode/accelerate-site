@@ -39,7 +39,7 @@ This audit is owned by the integration branch `integration/agent-reconciliation-
 - Adapted coworker `test-work-completion`: passed, including successful-tool/ungrounded-prose rejection and qualification/draft receipts.
 
 - Combined candidate TypeScript check: passed.
-- Hardened Drive indexing: six fixture groups passed, including partial listing, revoked download access, binary-format refusal, unchanged revisions, duplicates and tenant separation. Connected Google execution remains unverified. Export formats were checked against [Google's current format reference](https://developers.google.com/workspace/drive/api/guides/ref-export-formats).
+- Hardened Drive indexing: seven fixture groups passed, including partial listing, revoked download access, binary-format refusal, unchanged revisions, duplicates and tenant separation. Connected Google execution remains unverified. Export formats were checked against [Google's current format reference](https://developers.google.com/workspace/drive/api/guides/ref-export-formats).
 - Public source/setup and MCP client guides, product changelog and Command Center MCP description updated alongside the integration. Docs rendering and full release checks remain pending.
 
 - Deadline integration: work completion suite passed, 58 cases. Timeout/abort paths preserve a terminal reconciliation hold; late completion and former one-hour retry regression covered. Circuit accounting uses a recent window and one recovery probe; its process-local scope is documented.
@@ -47,4 +47,26 @@ This audit is owned by the integration branch `integration/agent-reconciliation-
 
 - Combined deadline candidate TypeScript: passed. Denial audit failure fixture: passed; a missing audit is surfaced while the already durable denied action stays terminal.
 
+- Site Studio domain battery passed (schema, tokens, assets, renderer, generation contract, revision, discard and section regeneration). Production storage ported to tenant-owned database records with atomic revision/audit writes and checksum concurrency checks. Module disabled by default; publishing remains separate backlog work.
+- Full local migration ledger/upgrade battery passed, including existing Radar/proposal/outreach proofs and the new native Site Studio tenant/concurrency/immutable-history/audit-rollback/disable checks. No production database changed.
+- UI review changes: failed Site Studio loads show errors/retry; discard binds the viewed checksum; renames preserve identity. Controlled API browser fixtures passed at 1440 and 390 px: create, scoped navigation, rename with the viewed checksum, discard, and empty list. Screenshots inspected at both widths. This is not a connected provider or ordinary demo-adapter proof.
+- A second capacity pause required removing the remaining 14 ignored Next caches from confirmed inactive Accelerate worktrees. The exact paths are retained in the private audit snapshot; active unrelated Next processes were not modified.
+
 Integration remains in progress. No feature is accepted from source presence or historical test claims alone. The final candidate must pass required CI, migration and affected browser checks before merge; production readiness remains a separate receipt.
+
+### Startup consistency and UI review
+
+The primary checkout is retained on the dirty Site Studio branch, where `agent:go`
+is absent. A clean detached control checkout now points at published main; the
+parent entrypoint selects it for new backlog sessions. The integration's runner,
+dispatch lifecycle commands and doctor share one profile resolver. Read-only
+local board verification passes using the existing profile without claiming a
+card. Fixture checks cover worktree reuse, remote profile precedence, explicit
+profile isolation, invalid scopes and private diagnostics.
+
+| Area                  | Before review                                 | Integrated behavior                                                    |
+| --------------------- | --------------------------------------------- | ---------------------------------------------------------------------- |
+| Site draft navigation | Absolute admin links escape demo/tenant scope | Shared admin navigation retains workspace scope                        |
+| Failed draft reads    | Empty state or indefinite loading             | Visible failure and retry                                              |
+| Photo choices         | Internal catalog identifiers                  | Readable photo descriptions                                            |
+| Draft changes         | File replacement and unchecked discard        | Stable database identity, viewed-checksum guards and immutable history |

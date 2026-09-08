@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 88,
-  "mutationHandlerCount": 77,
+  "routeCount": 91,
+  "mutationHandlerCount": 81,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -817,9 +817,10 @@
         "@/lib/admin/auth",
         "@/lib/revenue-os/ai-operations-contract",
         "@/lib/revenue-os/ai-tools",
+        "@/lib/revenue-os/tool-profiles",
         "next/server"
       ],
-      "sourceSha256": "60fda6c693b3d8564bb12d20b207b890aacb54230b74a3e0ffb5ab9a5de5c7f9"
+      "sourceSha256": "6f7ac4fefdbf00690a036eba905643d7406beb4cb3bba458e703236b73a64655"
     },
     {
       "source": "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts",
@@ -1286,6 +1287,71 @@
         "next/server"
       ],
       "sourceSha256": "5216a5815e962c53e4ae9214953ecbc56f3c3b37159663ded2a749a1fe2b9f67"
+    },
+    {
+      "source": "src/app/api/admin/site/drafts/[id]/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/site-studio/database-store",
+        "@/lib/site-studio/drafts",
+        "@/lib/site-studio/revision",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "21df6c6c4a8bc45cf244189199c249fd6930dbe68c3f97b79362086a1eede884"
+    },
+    {
+      "source": "src/app/api/admin/site/drafts/[id]/sections/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/rate-limit",
+        "@/lib/site-studio/database-store",
+        "@/lib/site-studio/document",
+        "@/lib/site-studio/drafts",
+        "@/lib/site-studio/openrouter-adapter",
+        "@/lib/site-studio/regenerate",
+        "@/lib/site-studio/revision",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "38dcaf0ffda728893bc942947253c8231a8a04cd759b58a1adf6f1a9ed09e476"
+    },
+    {
+      "source": "src/app/api/admin/site/drafts/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/rate-limit",
+        "@/lib/site-studio/database-store",
+        "@/lib/site-studio/document",
+        "@/lib/site-studio/drafts",
+        "@/lib/site-studio/generate",
+        "@/lib/site-studio/openrouter-adapter",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "b3d53d356a2629f5a57dc52ca1c4429109e053f2182bb090ea17898244a65d87"
     },
     {
       "source": "src/app/api/admin/subscribers/export/route.ts",

@@ -158,6 +158,15 @@ export const AI_JOBS: readonly JobRegistration[] = [
     minContextWindow: 4_000,
     defaultModel: BUILT_IN_MODEL_ID,
   },
+  {
+    key: "site-page-draft",
+    label: "Site Studio page draft generation",
+    consequential: false,
+    requiresTools: false,
+    requiresJson: true,
+    minContextWindow: 32_000,
+    defaultModel: BUILT_IN_MODEL_ID,
+  },
 ];
 
 function settingKey(modelId: string): string {

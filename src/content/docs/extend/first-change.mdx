@@ -84,7 +84,7 @@ creates its isolated worktree, follows the live packet, verifies the result,
 commits the exact change and submits evidence for review. Internally this uses
 `agent:go`, but you do not need to provide a ticket key or command name.
 
-Run `npm run dev:doctor` to check local readiness. To join coordinated work, obtain a project-scoped work token from the project owner, configure `WORK_BOARD_URL` and `WORK_BOARD_TOKEN`, and run `npm run dev:doctor -- --board`. Contributors do not need the owner’s database credentials.
+Run `npm run dev:doctor` to check local readiness and `npm run dev:doctor -- --board` for a read-only board connection check. Pickup, diagnostics, heartbeat and submission reuse the configured private profile across worktrees. An owner-authorized local profile uses the existing named-project configuration. A remote contributor configures project-scoped HTTPS access once through the setup workflow and does not need the owner’s database credentials. Agents never ask you to paste secrets into chat. If a feature checkout has unfinished work, preserve it and start a new session from a clean published-main control checkout.
 
 The internal runner handles status, selection and claim for the natural-language
 request. For explicit diagnostics, `npm run agent:status` and

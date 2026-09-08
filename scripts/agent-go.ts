@@ -9,23 +9,12 @@
  * continuation packet. It never reviews, merges, deploys, or prints secrets.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync, mkdirSync, chmodSync } from "node:fs";
+import { existsSync, writeFileSync, mkdirSync, chmodSync } from "node:fs";
 import { resolve, isAbsolute } from "node:path";
 import { repositoryContext } from "./lib/developer-workspace.mjs";
 import { taskPacket } from "./lib/task-context";
 
-type HttpProfile = {
-  version: 1;
-  transport: "https";
-  envFile: string;
-};
-type LocalOperatorProfile = {
-  version: 1;
-  transport: "local-operator";
-  project: string;
-  envFile: string;
-};
-type Profile = HttpProfile | LocalOperatorProfile;
+import { loadAgentConfiguration, type AgentProfile as Profile } from "./lib/agent-profile.mjs";
 
 type RunnerStatus = "SETUP_REQUIRED" | "PREFLIGHT_BLOCKED" | "NO_READY_WORK" | "READY_FOR_WORK";
 
@@ -54,46 +43,8 @@ function setupInstructions() {
   return "Use the already configured private board profile when present. For a remote board, run `npm run agent:setup -- --env-file /absolute/path/to/.env.agent.local`; for an owner-authorized local board, run `npm run agent:setup -- --local-operator --project <project-key> --env-file /absolute/path/to/.env.local`. Credentials remain in the private env file and are never stored in the profile.";
 }
 
-function readProfile(): Profile | null {
-  const selectedPath =
-    process.env.ACCELERATE_AGENT_NO_PROFILE === "1"
-      ? null
-      : existsSync(profilePath)
-        ? profilePath
-        : existsSync(localOperatorProfilePath)
-          ? localOperatorProfilePath
-          : null;
-  if (!selectedPath) return null;
-  let value: unknown;
-  try {
-    value = JSON.parse(readFileSync(selectedPath, "utf8"));
-  } catch {
-    fail(`The private agent profile at ${selectedPath} is not valid JSON.`);
-  }
-  if (
-    !value ||
-    typeof value !== "object" ||
-    (value as Record<string, unknown>).version !== 1 ||
-    typeof (value as Record<string, unknown>).envFile !== "string" ||
-    !isAbsolute((value as Record<string, unknown>).envFile as string) ||
-    !["https", "local-operator"].includes((value as Record<string, unknown>).transport as string) ||
-    ((value as Record<string, unknown>).transport === "local-operator" &&
-      (typeof (value as Record<string, unknown>).project !== "string" ||
-        !/^[a-z0-9-]{1,80}$/.test((value as Record<string, unknown>).project as string)))
-  )
-    fail(`The private agent profile at ${selectedPath} has an unsupported shape.`);
-  return value as Profile;
-}
-
 function loadConfiguration() {
-  if (existsSync(resolve(appRoot, ".env.agent.local")))
-    process.loadEnvFile(resolve(appRoot, ".env.agent.local"));
-  const profile = readProfile();
-  if (profile) {
-    if (!existsSync(profile.envFile))
-      fail(`Configured env file does not exist: ${profile.envFile}`);
-    process.loadEnvFile(profile.envFile);
-  }
+  const profile = loadAgentConfiguration(context);
   if (profile?.transport === "local-operator") {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY)
       fail(

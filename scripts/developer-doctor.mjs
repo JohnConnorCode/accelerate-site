@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 /** Read-only first-run diagnostics. No migrations, claims, token issuance or file writes. */
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { loadAgentConfiguration } from "./lib/agent-profile.mjs";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
@@ -66,9 +69,32 @@ try {
   );
   if (flags.has("--maintainer")) checks.push(...maintainerPreflight(root));
   if (flags.has("--board")) {
-    if (existsSync(".env.agent.local")) process.loadEnvFile(".env.agent.local");
-    const endpoint = boardEndpoint(process.env);
-    const result = await requestBoard(endpoint, process.env.WORK_BOARD_TOKEN, "?connection=1");
+    const profile = loadAgentConfiguration(repositoryContext(root));
+    let result;
+    if (profile?.transport === "local-operator") {
+      const probe = spawnSync(
+        process.execPath,
+        [
+          "--conditions=react-server",
+          "--import",
+          "tsx",
+          fileURLToPath(new URL("./check-local-board.ts", import.meta.url)),
+          profile.project,
+        ],
+        { cwd: root, env: process.env, encoding: "utf8", timeout: 30_000, maxBuffer: 1024 * 1024 },
+      );
+      if (probe.status !== 0)
+        throw new Error(
+          "The configured local board did not pass its read-only connection check; no card was claimed.",
+        );
+      result = JSON.parse(probe.stdout);
+    } else {
+      result = await requestBoard(
+        boardEndpoint(process.env),
+        process.env.WORK_BOARD_TOKEN,
+        "?connection=1",
+      );
+    }
     requireBoardProtocol(result);
     check(
       "board-protocol",
@@ -87,16 +113,18 @@ try {
     );
     check(
       "shared-write-enforcement",
-      result.strictWrites === true ? "pass" : "blocked",
-      result.strictWrites === true
-        ? "Strict canonical writes are enabled."
-        : "The shared board rollout is incomplete. Maintainer must finish the authorized adapter release and verify strict writes before unattended team dispatch.",
+      result.canonicalWrites === true || result.strictWrites === true ? "pass" : "blocked",
+      result.canonicalWrites === true
+        ? "Configured local transport calls the canonical lifecycle directly; this read-only probe does not certify a remote HTTP deployment."
+        : result.strictWrites === true
+          ? "Strict canonical writes are enabled."
+          : "The shared board rollout is incomplete. Maintainer must finish the authorized adapter release and verify strict writes before unattended team dispatch.",
     );
   } else
     check(
       "shared-board",
       "not-checked",
-      "For assigned work, configure .env.agent.local or exported WORK_BOARD_URL/WORK_BOARD_TOKEN, then run npm run dev:doctor -- --board. Offline success does not prove shared dispatch readiness.",
+      "Run npm run dev:doctor -- --board to verify the existing private board profile. It uses the same configuration as agent:go and lifecycle commands; offline success does not prove shared dispatch readiness.",
     );
 } catch (error) {
   check("preflight", "blocked", error instanceof Error ? error.message : "Readiness check failed");

@@ -215,6 +215,12 @@
       "defaultEnabled": false
     },
     {
+      "id": "site-studio",
+      "name": "Site Studio",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
       "id": "stripe-invoicing",
       "name": "Stripe invoicing",
       "core": false,

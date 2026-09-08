@@ -50,6 +50,8 @@
     "src/app/admin/revenue/page.tsx": "0b227716c45115f532179e652c05e967dacc1c50286e7edbccbdc11c089a3a44",
     "src/app/admin/settings/page.tsx": "5e9484e916c950f0a787bdee06c7cfbeb5931934287335650a9b3e1f98869b9c",
     "src/app/admin/setup/page.tsx": "06fba50c8c02b85516eec1b7f062809b4557a60bf430bd09f6cb724e3e5a39e0",
+    "src/app/admin/site/[id]/page.tsx": "a92b04aacce46a5669c48f4d5736e7aba7b3ed35eeaa34b4743793018532c125",
+    "src/app/admin/site/page.tsx": "fb175b0de0290c01653ddcdef3714f8faf3432c48f8fd2979aa07e379b60fe08",
     "src/app/admin/subscribers/page.tsx": "d30c46d9d8ae8d624df5b3cb9d18a91f948933a3fe1003e0b43238bde7c7564e",
     "src/app/admin/tenants/page.tsx": "bddcfc6144318ff4fa0841de2d37b7b7c3da50852ae160d1ee755b8c50a602e3",
     "src/app/admin/today/page.tsx": "bae6f4d1a08999b333d8dfe26f8d127a54bc7005a8825633b8d230e93bae4ad5",
@@ -91,7 +93,7 @@
     "src/app/api/admin/radar/workspace/route.ts": "2dd44773ded01b396cefe982db2bf2d327fb96b6c4e29b09c1080b30330eff00",
     "src/app/api/admin/resources/route.ts": "d78eadde6bce745c27b8853065f36b42d8947b467fd52952c4c6a0e7277102aa",
     "src/app/api/admin/revenue-os/actions/route.ts": "d00621269c6885c8e78ad906024f635b602b39ece01a9e9ff2ec7bef9d4e11e6",
-    "src/app/api/admin/revenue-os/ai/capabilities/route.ts": "60fda6c693b3d8564bb12d20b207b890aacb54230b74a3e0ffb5ab9a5de5c7f9",
+    "src/app/api/admin/revenue-os/ai/capabilities/route.ts": "6f7ac4fefdbf00690a036eba905643d7406beb4cb3bba458e703236b73a64655",
     "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts": "d4f346d8e2454a5306244ab76b2d79e167c0e7146d422161daf27257770198fd",
     "src/app/api/admin/revenue-os/ai/conversations/route.ts": "f0f9c5e3eaeec896d10c7c19ab3c2264e8d947a498f2e4492eaf08ba93ebd5ed",
     "src/app/api/admin/revenue-os/ai/feedback/route.ts": "3577fe8fb268c642639e83c4f5e8711c7b91fe54244957db42cee0f69fac1f82",
@@ -117,6 +119,9 @@
     "src/app/api/admin/settings/route.ts": "7f2356ae469f754ec265ab3f64e759533f39d7b86c462c08b05f6f7794caa62e",
     "src/app/api/admin/settings/test/route.ts": "f6b83ed5979d5187b406f402308d12b982370adb735a2664717cf5770ea013bc",
     "src/app/api/admin/setup/route.ts": "5216a5815e962c53e4ae9214953ecbc56f3c3b37159663ded2a749a1fe2b9f67",
+    "src/app/api/admin/site/drafts/[id]/route.ts": "21df6c6c4a8bc45cf244189199c249fd6930dbe68c3f97b79362086a1eede884",
+    "src/app/api/admin/site/drafts/[id]/sections/route.ts": "38dcaf0ffda728893bc942947253c8231a8a04cd759b58a1adf6f1a9ed09e476",
+    "src/app/api/admin/site/drafts/route.ts": "b3d53d356a2629f5a57dc52ca1c4429109e053f2182bb090ea17898244a65d87",
     "src/app/api/admin/subscribers/export/route.ts": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63",
     "src/app/api/admin/subscribers/route.ts": "dadb0fc001e5ecc9e1340a1d363e0c24771f492e7e88650aa8e78f2d5a6a18e0",
     "src/app/api/admin/tasks/route.ts": "6482ce152c7f1d849703fb24d63f9cff97d94058ab4968efd64a6ef50f356804",
@@ -218,18 +223,18 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "0aa6dbe9c38eef636b9747bd7222b53b94ba5cd6b8cac5b62302f580a6ed6948",
-    "src/lib/revenue-os/action-executor.ts": "9e6ac1e837e8e76b0a686268f15ae9c5b2e8b74674573c9e1acd1b266a2d646f",
-    "src/lib/revenue-os/actions.ts": "e3ab076c45a1e52631888859369477140cfd61e6fdf6ac5d8d1661781497e6d2",
+    "src/lib/revenue-os/README.md": "ebe3e6569d1c8e6ddfd3923353d3e004406e6ab669d448aafce422191bc8ed95",
+    "src/lib/revenue-os/action-executor.ts": "7f1db3b871253797b25195beb4a27bbabc6448d4af2fac2b88db9efd327199ee",
+    "src/lib/revenue-os/actions.ts": "4b8f06cdbdf696ac3e7aa61799073f49302f9b3ce377983e043daef74c535a8b",
     "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
     "src/lib/revenue-os/ai-agent.ts": "30498c8786cf3a49f3b8b6ef3d05ca49f56d6b8c2ff954e99af1fd9287dabc26",
     "src/lib/revenue-os/ai-conversations.ts": "8e4be3df653134b373db518e1dbc4d92532dd9994606610037f679174aee6f22",
-    "src/lib/revenue-os/ai-operations-contract.ts": "2183bcb12ab45d484ec3c6a21e6d67ab84bc0b5f0e9cde1500a4d1c1ad2d6a5f",
+    "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
     "src/lib/revenue-os/ai-operations.ts": "ae39bc1112700f7af976bdf68a1308d7c720747ed82191d589817ba78b4aa945",
     "src/lib/revenue-os/ai-stream-contract.ts": "813ce466f99ba479b50cfee912921003a8e21bf812dba9e16494a4df3b5d00c7",
-    "src/lib/revenue-os/ai-tools.ts": "65403681b621afaebcaae218efdb5346914bb7a5a1597ff47ab773908d0cbf0f",
+    "src/lib/revenue-os/ai-tools.ts": "2d079dc6020855c7637c8efd09223331e3ec75846baf098256859ce6ab14e4bb",
     "src/lib/revenue-os/analytics.ts": "d57c3a867c3926e1fed1a64c110f0f28c8569e96a3c177b033e4eb11967764fb",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
     "src/lib/revenue-os/branding-contract.ts": "6d4fdd9837bacc633ddd78bbaa1c5d77a497d7d5ecd7842fc9e18fdfbb3ae914",
@@ -245,7 +250,7 @@
     "src/lib/revenue-os/drive-sync-plan.ts": "21ee095a4de699ddb85b3056ded69a6e929ddfcb051b15d6c2862101d7f6834a",
     "src/lib/revenue-os/encryption.ts": "68748b621a25f182ba20a5b5f362220b4ac59b93103b6a81c202f0e34e09c405",
     "src/lib/revenue-os/google-oauth.ts": "2d9c5c5464096402cfdd3ceac244835ddbd4da4677bfeda58508051efcfa68bc",
-    "src/lib/revenue-os/google.ts": "0bbd24fa3792bc2fc0396496122c89d065cd37edcfef12212b414f2904027a13",
+    "src/lib/revenue-os/google.ts": "7b9dfc2b18baf5b973a93f36b2d977d342c8e74d9fc5ebcf35102ec27096b209",
     "src/lib/revenue-os/health.ts": "d2aec6b40a32001b1a6f89d07fb29d00f5fca19d051ca301cdecd3fac3220d92",
     "src/lib/revenue-os/identity-review.ts": "3e488e1925758428bbf97f9f5cf70bdd88877e4fcb944a40acd353fa1a10e8f4",
     "src/lib/revenue-os/identity.ts": "c8fa3f4da1ab6a24c6258cce7fdb19cbdd3047060b10f30f4204baa48441ea69",
@@ -255,7 +260,7 @@
     "src/lib/revenue-os/invoice-page-contract.ts": "350da047e7317f8e8e6d73cbce19749be9dd40bda82f180f8f0b8bd037da8baa",
     "src/lib/revenue-os/invoice-pages.ts": "4013847e70cc17d744cea8ef8392c4e3b4c87fc7720c6f35c1dbec2774f6c428",
     "src/lib/revenue-os/legacy-adapter.ts": "3f370c91fa4557508c6af3b98cc063c5d9ac6e47da41a169f9f2f7e2b4642e89",
-    "src/lib/revenue-os/mcp-server.ts": "e49f945e3a3c54846e6b9a0128a1f79c2961baf479885fccc55e5e00f59002e1",
+    "src/lib/revenue-os/mcp-server.ts": "7cd566363b9f78c7c6d1a881134275bdee935651cacb8f457094974cca8549a0",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
     "src/lib/revenue-os/module-configuration.ts": "49dc143f9117ac8dcb9554f077ccd7cd108ca4f5c4f81196104ba536cd91004b",
     "src/lib/revenue-os/modules.ts": "0c520a3de827ceb9191656e412b7294b0391881f4f4809cf15089d7c4a9adcd1",
@@ -268,14 +273,22 @@
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/runs.ts": "94ea4fe446cc959aaf90cb4ab968f9b0baf0c165f3c393081b9fd6e4d8015fdd",
-    "src/lib/revenue-os/schema-contract.ts": "969b4e93aee65bb9e842440141be002237e6f22582c04163e4791a7119c85fc2",
+    "src/lib/revenue-os/schema-contract.ts": "75dbb1ee54443385359d18ef4c4e357cabcfc8d0a606f7714be460ec3277e688",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/tasks.ts": "d459ec979e101a0bdd6fbc0ab70e69e87504cc0c16d640fbf59510e83e47474b",
+    "src/lib/revenue-os/tool-profiles.ts": "c72d9e318dc7b157af57b7e34adef41fa9153fda94a5f09116fe1b5debb8c1ce",
     "src/lib/revenue-os/types.ts": "c1882ae767c77274e489979fc5520dbfb9f5e80e298fa60a83e57e02a362729e",
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
     "src/lib/revenue-os/work-board.ts": "3c59b5bf3a403b554b05675beeb44c3d985f9fea67a29f63e3a56428000e5e0e",
     "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
+    "src/lib/site-studio/database-store.ts": "4db7724ecea8c3148c8c7bda344c3292d71c6256afa3825fff17668dfc49494f",
+    "src/lib/site-studio/document.ts": "9e934b395420bbcca46932c0e28d28a2118cea2018aaa721a626447224de88e5",
+    "src/lib/site-studio/drafts.ts": "eb016af336fa9d0efa3e7f3e628de3414f22486017b3cf8682658c4076eb6d42",
+    "src/lib/site-studio/generate.ts": "d1b7e689331aa73fa961128c17828be1aedff50e57509af624cc7c28289cb53d",
+    "src/lib/site-studio/openrouter-adapter.ts": "1013486644a7a5f9b473c450db3af04c0878447c161e702dc957f2d399bb237a",
+    "src/lib/site-studio/regenerate.ts": "a0966e88d66162e3effdd5b6cab8012a901c96c0ada89c57006b1ee2c41f0e93",
+    "src/lib/site-studio/revision.ts": "3a945fd87c2524a81bbd3b321ecefa97a0a5a3764a39fde3f8a3764313cafb20",
     "src/lib/tenancy/context.ts": "980fc542bbc744ffa66bc58cd463ef0c7508ac1d847c560f0de7a9cfefd38c7d",
     "src/lib/tenancy/lifecycle.ts": "2b2ca947757d4ff3595062f918734b1b765f89352a834e440ae28ae140de8b53",
     "src/lib/tenancy/system.ts": "28e241c788fba9c5793536d0bcf6db076c0d56f6513976f9ae387acc4b222911"
@@ -315,7 +328,11 @@
       "adapters": [
         {
           "path": "src/app/api/admin/revenue-os/ai/capabilities/route.ts",
-          "domainImports": ["@/lib/revenue-os/ai-operations-contract", "@/lib/revenue-os/ai-tools"],
+          "domainImports": [
+            "@/lib/revenue-os/ai-operations-contract",
+            "@/lib/revenue-os/ai-tools",
+            "@/lib/revenue-os/tool-profiles"
+          ],
           "directTables": []
         },
         {
@@ -1575,6 +1592,58 @@
         }
       ],
       "boundary": "Read-only owner/status/source filters; writes reuse task domain validation and the same approval executor and inspector as Today. No new work lifecycle. Existing governed task update/completion and action decision paths retain AI parity.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/site",
+      "page": "src/app/admin/site/page.tsx",
+      "primaryAction": "Create and list private structured page drafts",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/site/drafts/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/database-store",
+            "@/lib/site-studio/document",
+            "@/lib/site-studio/drafts",
+            "@/lib/site-studio/generate",
+            "@/lib/site-studio/openrouter-adapter"
+          ],
+          "directTables": []
+        }
+      ],
+      "boundary": "Disabled-by-default Site Studio module. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. No operation publishes public content. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/site/[id]",
+      "page": "src/app/admin/site/[id]/page.tsx",
+      "primaryAction": "Preview, rename and discard one private page draft",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/site/drafts/[id]/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/database-store",
+            "@/lib/site-studio/drafts",
+            "@/lib/site-studio/revision"
+          ],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/site/drafts/[id]/sections/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/database-store",
+            "@/lib/site-studio/document",
+            "@/lib/site-studio/drafts",
+            "@/lib/site-studio/openrouter-adapter",
+            "@/lib/site-studio/regenerate",
+            "@/lib/site-studio/revision"
+          ],
+          "directTables": []
+        }
+      ],
+      "boundary": "Disabled-by-default Site Studio module. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. No operation publishes public content. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work.",
       "followUp": null,
       "specialBoundary": null
     }
