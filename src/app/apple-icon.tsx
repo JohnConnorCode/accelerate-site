@@ -1,8 +1,9 @@
 import { ImageResponse } from "next/og";
 
-// Apple touch icon — the chevron mark on a near-black rounded tile, generated
+// Apple touch icon — paper chevrons on an ink tile, generated
 // at build time so it stays in sync with the SVG favicon (src/app/icon.svg) and
-// the in-page LogoMark.
+// the in-page LogoMark. Ink tile (#0B0B0B) matches --ink; the old lime
+// (#C6FF3D) was retired with the editorial system.
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
@@ -16,7 +17,7 @@ function Chevron({ x, opacity }: { x: number; opacity: number }) {
       viewBox="0 0 22 32"
       style={{ position: "absolute", left: x, top: 50 }}
     >
-      <path d="M 0 0 L 14 0 L 22 16 L 14 32 L 0 32 L 8 16 Z" fill="#C6FF3D" fillOpacity={opacity} />
+      <path d="M 0 0 L 14 0 L 22 16 L 14 32 L 0 32 L 8 16 Z" fill="#FBFBFA" fillOpacity={opacity} />
     </svg>
   );
 }
@@ -29,7 +30,7 @@ export default function AppleIcon() {
         position: "relative",
         width: 180,
         height: 180,
-        background: "#07080A",
+        background: "#0B0B0B",
       }}
     >
       <Chevron x={22} opacity={0.3} />
