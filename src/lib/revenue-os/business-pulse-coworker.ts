@@ -178,9 +178,9 @@ export async function createDetectVelocityChangeWork(
 // Work kind handlers
 // ---------------------------------------------------------------------------
 
-const dailyDigestHandler: WorkKindHandler = async (supabase, wi) => {
+const dailyDigestHandler: WorkKindHandler = async (supabase, wi, signal) => {
   // AI-first: let the model produce an interpreted pipeline summary.
-  const aiResult = await tryAiExecution(supabase, wi);
+  const aiResult = await tryAiExecution(supabase, wi, signal);
   if (aiResult) {
     if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {

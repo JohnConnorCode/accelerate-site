@@ -292,9 +292,9 @@ export async function createProactiveIntelBriefWork(
 // Work kind handler
 // ---------------------------------------------------------------------------
 
-const proactiveIntelBriefHandler: WorkKindHandler = async (supabase, wi) => {
+const proactiveIntelBriefHandler: WorkKindHandler = async (supabase, wi, signal) => {
   // AI-first: let the model synthesize a richer brief from available data.
-  const aiResult = await tryAiExecution(supabase, wi);
+  const aiResult = await tryAiExecution(supabase, wi, signal);
   if (aiResult) {
     if (aiResult.status !== "completed") return aiResult;
     await storeAgentMemory(supabase, {

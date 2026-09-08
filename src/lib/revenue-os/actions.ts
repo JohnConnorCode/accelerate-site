@@ -244,11 +244,7 @@ export interface ActionDenial {
  * terminal `denied` status, the deny code, and an `action.denied` audit entry
  * carrying the policy reference. Requires the `denied` status migration.
  */
-export async function denyAction(
-  supabase: SupabaseClient,
-  id: string,
-  denial: ActionDenial,
-) {
+export async function denyAction(supabase: SupabaseClient, id: string, denial: ActionDenial) {
   const { data, error } = await supabase
     .from("action_queue")
     .update({
@@ -262,18 +258,29 @@ export async function denyAction(
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Action denial receipt was superseded");
-  await recordAudit(supabase, {
-    actorEmail: "system",
-    action: "action.denied",
-    entityType: "action_queue",
-    entityId: id,
-    metadata: {
-      code: denial.code,
-      reason: denial.reason,
-      action_type: (data as { action_type?: string }).action_type,
-      ...(denial.policy ?? {}),
-    },
-  });
+  try {
+    await recordAudit(supabase, {
+      actorEmail: "system",
+      action: "action.denied",
+      entityType: "action_queue",
+      entityId: id,
+      metadata: {
+        code: denial.code,
+        reason: denial.reason,
+        action_type: (data as { action_type?: string }).action_type,
+        ...(denial.policy ?? {}),
+      },
+    });
+  } catch (error) {
+    // The terminal row is already durable. Preserve its denial if the separate
+    // audit sink fails, and surface the missing audit without attempting the effect.
+    const failure = new Error(`Action denied: ${denial.reason}; denial audit unavailable`, {
+      cause: error,
+    });
+    (failure as Error & { actionDenied?: boolean }).actionDenied = true;
+    console.error("[actions] denial audit unavailable; terminal denial retained");
+    throw failure;
+  }
   return data;
 }
 

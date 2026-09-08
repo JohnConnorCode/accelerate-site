@@ -59,7 +59,7 @@ export type CoworkerAgentResult = WorkResult & { runId: string };
 export async function runCoworkerAgentTask(
   supabase: SupabaseClient,
   workItem: WorkItem,
-  options: { chat?: typeof openRouterChat } = {},
+  options: { chat?: typeof openRouterChat; signal?: AbortSignal } = {},
 ): Promise<CoworkerAgentResult> {
   if (!process.env.OPENROUTER_AGENT_MODEL)
     return { ...deferWork("AI model is not configured"), runId: "" };
@@ -173,6 +173,7 @@ export async function runCoworkerAgentTask(
     const today = `Today is ${now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} (${now.toISOString().slice(0, 10)}).`;
 
     for (let turn = 0; turn < MAX_COWORKER_TOOL_TURNS; turn++) {
+      options.signal?.throwIfAborted();
       const grounding = buildCoworkerGroundingContract({
         today,
         capabilitySummary,
@@ -194,6 +195,7 @@ export async function runCoworkerAgentTask(
         job: "coworker-task",
         model,
         maxTokens: 800,
+        signal: options.signal,
         messages: [
           {
             role: "system",
@@ -270,7 +272,9 @@ export async function runCoworkerAgentTask(
       }
 
       // Execute tool calls.
+      options.signal?.throwIfAborted();
       for (const use of uses) {
+        options.signal?.throwIfAborted();
         const name = use.function.name;
         toolNames.push(name);
         let toolInput: Record<string, unknown> = {};
@@ -287,6 +291,7 @@ export async function runCoworkerAgentTask(
             !["propose_send_email", "propose_conversation_reply"].includes(name)
           )
             throw new Error("Draft work may only propose its email or conversation reply");
+          options.signal?.throwIfAborted();
           const { output, tool } = await executeRegisteredRevenueTool(
             {
               supabase,
@@ -388,7 +393,8 @@ export async function runCoworkerAgentTask(
 export async function tryCoworkerAgentTask(
   supabase: SupabaseClient,
   item: WorkItem,
+  signal?: AbortSignal,
 ): Promise<CoworkerAgentResult | null> {
   if (!process.env.OPENROUTER_AGENT_MODEL) return null;
-  return runCoworkerAgentTask(supabase, item);
+  return runCoworkerAgentTask(supabase, item, { signal });
 }

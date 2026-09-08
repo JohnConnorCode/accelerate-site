@@ -278,7 +278,7 @@ export async function scheduleFollowupCheckWork(
 // the coworker execution loop is connected to ai-agent.ts.
 // ---------------------------------------------------------------------------
 
-const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
+const qualifyLeadHandler: WorkKindHandler = async (supabase, wi, signal) => {
   if (wi.entity_type !== "contact" || !wi.entity_id)
     return { status: "failed", outcome: "Lead qualification requires a contact work item" };
 
@@ -298,7 +298,7 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
     };
   }
 
-  const aiResult = await tryAiExecution(supabase, wi);
+  const aiResult = await tryAiExecution(supabase, wi, signal);
   if (aiResult && aiResult.status !== "completed") return aiResult;
 
   // Re-read after AI execution: the opportunity may have changed while it ran.
@@ -355,7 +355,7 @@ const qualifyLeadHandler: WorkKindHandler = async (supabase, wi) => {
   return { ...aiResult, status: "completed", outcome, artifacts };
 };
 
-const draftFollowupHandler: WorkKindHandler = async (supabase, wi) => {
+const draftFollowupHandler: WorkKindHandler = async (supabase, wi, signal) => {
   const { data: opportunity, error } = await supabase
     .from("opportunities")
     .select("id,stage")
@@ -376,7 +376,7 @@ const draftFollowupHandler: WorkKindHandler = async (supabase, wi) => {
       outcome: "Follow-up proposal already prepared",
       artifacts: [existing],
     };
-  const result = await tryAiExecution(supabase, wi);
+  const result = await tryAiExecution(supabase, wi, signal);
   if (!result) return deferWork("AI model is unavailable; follow-up draft still needs preparation");
   if (result.status !== "completed") return result;
   const draft = await findWorkDraft(supabase, wi);

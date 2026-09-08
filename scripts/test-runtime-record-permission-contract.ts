@@ -462,6 +462,28 @@ async function main() {
         .rows("audit_log")
         .some((r) => r.action === "action.denied" && r.entity_id === "action-2"),
     );
+    mem2.tables.action_queue!.push({ ...execRow, id: "denied-audit-failure", status: "pending" });
+    mem2.rpc("check_autonomy", () => {
+      mem2.fail("audit_log", { message: "controlled audit outage" });
+      return {
+        action_key: "update_task",
+        allowed: false,
+        level: "prohibited",
+        requires_approval: true,
+        policy_id: "policy-revoked",
+        hard_floor: false,
+        reason: "Standing permission revoked after approval",
+      };
+    });
+    await assert.rejects(
+      () => approveAndExecuteAction(db2, "denied-audit-failure", "founder@example.com"),
+      /denial audit unavailable/,
+    );
+    assert.equal(
+      mem2.rows("action_queue").find((row) => row.id === "denied-audit-failure")!.status,
+      "denied",
+    );
+    check("denied-receipt-survives-audit-outage");
     check("executor-revocation-denies");
   }
 

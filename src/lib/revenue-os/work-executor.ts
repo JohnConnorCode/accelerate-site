@@ -1,13 +1,22 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { withWorkItem, recoverStaleWorkItemClaims, type WorkItem } from "./work-items";
+import {
+  withWorkItem,
+  recoverStaleWorkItemClaims,
+  listClaimableWork,
+  type WorkItem,
+} from "./work-items";
 import { deferWork, workResultText, type WorkResult } from "./work-result";
+import { ProviderCircuit } from "./bounded-execution";
 import { getCoworkerManifest } from "./coworkers";
 import { storeAgentMemory } from "./memory";
 import { checkBudgets } from "./budgets";
 import { recordAudit } from "./audit";
 import { safeErrorMessage } from "./db";
 import { checkAutonomy } from "./autonomy-policy";
+
+/** Default per-item wall-clock cap. A hung provider cannot stall the batch tail. */
+export const DEFAULT_WORK_ITEM_DEADLINE_MS = 30_000;
 
 export interface WorkExecutionSummary {
   claimed: number;
@@ -18,11 +27,19 @@ export interface WorkExecutionSummary {
   deferred: number;
   awaitingApproval: number;
   partial: number;
+  reconciliationRequired: number;
+  timedOut: number;
+  unattempted: number;
   staleRecovered: number;
+  circuitOpen: string[];
   errors: string[];
 }
 
-export type WorkKindHandler = (supabase: SupabaseClient, workItem: WorkItem) => Promise<WorkResult>;
+export type WorkKindHandler = (
+  supabase: SupabaseClient,
+  workItem: WorkItem,
+  signal?: AbortSignal,
+) => Promise<WorkResult>;
 const WORK_KIND_HANDLERS = new Map<string, WorkKindHandler>();
 export function registerWorkKindHandler(kind: string, handler: WorkKindHandler): void {
   WORK_KIND_HANDLERS.set(kind, handler);
@@ -35,22 +52,55 @@ export function getWorkKindHandler(kind: string): WorkKindHandler | undefined {
 export function workExecutionStatus(
   summary: WorkExecutionSummary,
 ): "success" | "partial" | "skipped" | "failed" {
-  if (summary.errors.length || summary.failed || summary.partial) {
-    return summary.completed || summary.deferred || summary.awaitingApproval || summary.partial
-      ? "partial"
-      : "failed";
+  const incomplete =
+    summary.deferred ||
+    summary.awaitingApproval ||
+    summary.reconciliationRequired ||
+    summary.unattempted;
+  if (summary.errors.length || summary.failed || summary.partial || summary.timedOut) {
+    return summary.completed || summary.partial || incomplete ? "partial" : "failed";
   }
-  if (summary.deferred || summary.awaitingApproval) return "partial";
+  if (incomplete) return "partial";
   return summary.completed ? "success" : "skipped";
 }
 
 export const workExecutionJobStatus = workExecutionStatus;
 
+/** Bounded claimable count used only to report unattempted work in the receipt. */
+async function countClaimable(supabase: SupabaseClient, kind: string): Promise<number> {
+  try {
+    const rows = await listClaimableWork(supabase, { kind, limit: 500 });
+    return rows.length;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[work-executor] unattempted count unavailable for ${kind}: ${message}`);
+    return 0;
+  }
+}
+
 export async function executeClaimableWork(
   supabase: SupabaseClient,
-  input?: { maxItems?: number; kinds?: string[] },
+  input?: {
+    maxItems?: number;
+    kinds?: string[];
+    deadlineMs?: number;
+    circuit?: ProviderCircuit;
+    signal?: AbortSignal;
+    batchDeadlineMs?: number;
+  },
 ): Promise<WorkExecutionSummary> {
+  const started = Date.now();
+  const batchDeadlineMs = input?.batchDeadlineMs ?? 45_000;
   const maxItems = input?.maxItems ?? 10;
+  const deadlineMs = input?.deadlineMs ?? DEFAULT_WORK_ITEM_DEADLINE_MS;
+  const circuit = input?.circuit ?? new ProviderCircuit();
+  if (
+    !Number.isFinite(deadlineMs) ||
+    deadlineMs <= 0 ||
+    !Number.isFinite(batchDeadlineMs) ||
+    batchDeadlineMs <= 0
+  )
+    throw new Error("Work deadlines must be positive durations");
   if (!Number.isInteger(maxItems) || maxItems < 1 || maxItems > 100)
     throw new Error("maxItems must be between 1 and 100");
   const summary: WorkExecutionSummary = {
@@ -62,85 +112,114 @@ export async function executeClaimableWork(
     deferred: 0,
     awaitingApproval: 0,
     partial: 0,
+    reconciliationRequired: 0,
+    timedOut: 0,
+    unattempted: 0,
     staleRecovered: 0,
+    circuitOpen: [],
     errors: [],
   };
   summary.staleRecovered = await recoverStaleWorkItemClaims(supabase);
   for (const kind of input?.kinds ?? Array.from(WORK_KIND_HANDLERS.keys())) {
-    if (summary.claimed >= (input?.maxItems ?? 10)) break;
+    if (
+      summary.claimed >= maxItems ||
+      input?.signal?.aborted ||
+      Date.now() - started >= batchDeadlineMs
+    ) {
+      // The cap left claimable work behind; report it as unattempted so the
+      // receipt is truthful about what was and was not attempted.
+      summary.unattempted += await countClaimable(supabase, kind);
+      continue;
+    }
     const handler = WORK_KIND_HANDLERS.get(kind);
     if (!handler) {
       summary.errors.push(`No handler registered for kind: ${kind}`);
       continue;
     }
+    // Per-kind circuit: a failing handler stops admitting more of its
+    // work for the recovery window while unrelated kinds continue.
+    if (!circuit.allow(kind)) {
+      summary.circuitOpen.push(kind);
+      summary.unattempted += await countClaimable(supabase, kind);
+      continue;
+    }
     let executedItem: WorkItem | undefined;
-    const result = await withWorkItem(supabase, kind, async (item) => {
-      // Draft preparation completes on a saved proposal; action execution work waits for execution receipts.
-      if (kind !== "draft_followup") {
-        // The action stores its work link in the original insert. This survives
-        // interruption between proposal creation and updating the work/run trace.
-        const { data: linkedActions, error: linkedError } = await supabase
-          .from("action_queue")
-          .select("id,status")
-          .eq("work_item_id", item.id);
-        if (linkedError) throw new Error(`Work approval lookup failed: ${linkedError.message}`);
-        if (linkedActions?.length) item.action_ids = linkedActions.map((action) => action.id);
-        if (item.action_ids?.length) {
-          const { data: actions, error } = await supabase
+    const result = await withWorkItem(
+      supabase,
+      kind,
+      async (item, signal) => {
+        // Draft preparation completes on a saved proposal; action execution work waits for execution receipts.
+        if (kind !== "draft_followup") {
+          // The action stores its work link in the original insert. This survives
+          // interruption between proposal creation and updating the work/run trace.
+          const { data: linkedActions, error: linkedError } = await supabase
             .from("action_queue")
             .select("id,status")
-            .in("id", item.action_ids);
-          if (error || actions?.length !== new Set(item.action_ids).size)
-            throw new Error("Work approval receipts are unavailable");
-          if (
-            actions.some((action) =>
-              ["failed", "rejected", "expired", "denied"].includes(action.status),
+            .eq("work_item_id", item.id);
+          if (linkedError) throw new Error(`Work approval lookup failed: ${linkedError.message}`);
+          if (linkedActions?.length) item.action_ids = linkedActions.map((action) => action.id);
+          if (item.action_ids?.length) {
+            const { data: actions, error } = await supabase
+              .from("action_queue")
+              .select("id,status")
+              .in("id", item.action_ids);
+            if (error || actions?.length !== new Set(item.action_ids).size)
+              throw new Error("Work approval receipts are unavailable");
+            if (
+              actions.some((action) =>
+                ["failed", "rejected", "expired", "denied"].includes(action.status),
+              )
             )
-          )
+              return {
+                status: "failed" as const,
+                value: null,
+                outcome:
+                  "A required action was denied, rejected, expired, or failed; operator review is required",
+              };
+            if (actions.every((action) => action.status === "executed"))
+              return {
+                status: "completed" as const,
+                value: null,
+                outcome: "All linked action receipts confirm execution",
+              };
             return {
-              status: "failed" as const,
-              value: null,
-              outcome:
-                "A required action was denied, rejected, expired, or failed; operator review is required",
+              ...deferWork("Waiting for linked action approval or execution"),
+              status: "awaiting_approval" as const,
             };
-          if (actions.every((action) => action.status === "executed"))
-            return {
-              status: "completed" as const,
-              value: null,
-              outcome: "All linked action receipts confirm execution",
-            };
-          return {
-            ...deferWork("Waiting for linked action approval or execution"),
-            status: "awaiting_approval" as const,
-          };
+          }
         }
-      }
-      // Gate failures throw into the bounded retry path; absent prerequisites defer.
-      if (item.coworker_id) {
-        const manifest = await getCoworkerManifest(supabase, item.coworker_id);
-        if (!manifest.readyToWork)
-          return deferWork(`Coworker not ready: ${manifest.capabilityGaps.join(", ")}`);
-      }
-      // Work orchestration is not permission to execute business actions. An
-      // explicit work policy can stop it; every consequential action is gated
-      // independently in the canonical action executor.
-      const policy = await checkAutonomy(supabase, `work:${kind}`, item.coworker_id);
-      if (policy.hardFloor || policy.level === "prohibited") return deferWork(policy.reason);
-      if (policy.policyId && policy.requiresApproval)
-        return deferWork(`Work requires policy review: ${policy.reason}`);
-      const budgetResults = await checkBudgets(supabase, {
-        coworkerId: item.coworker_id ?? "*",
-        workItemId: item.id,
-      });
-      const exhausted = budgetResults.find((b) => !b.allowed);
-      if (exhausted)
-        return deferWork(exhausted.reason ?? `Budget exhausted: ${exhausted.budgetKind}`);
+        // Gate failures throw into the bounded retry path; absent prerequisites defer.
+        if (item.coworker_id) {
+          const manifest = await getCoworkerManifest(supabase, item.coworker_id);
+          if (!manifest.readyToWork)
+            return deferWork(`Coworker not ready: ${manifest.capabilityGaps.join(", ")}`);
+        }
+        // Work orchestration is not permission to execute business actions. An
+        // explicit work policy can stop it; every consequential action is gated
+        // independently in the canonical action executor.
+        const policy = await checkAutonomy(supabase, `work:${kind}`, item.coworker_id);
+        if (policy.hardFloor || policy.level === "prohibited") return deferWork(policy.reason);
+        if (policy.policyId && policy.requiresApproval)
+          return deferWork(`Work requires policy review: ${policy.reason}`);
+        const budgetResults = await checkBudgets(supabase, {
+          coworkerId: item.coworker_id ?? "*",
+          workItemId: item.id,
+        });
+        const exhausted = budgetResults.find((b) => !b.allowed);
+        if (exhausted)
+          return deferWork(exhausted.reason ?? `Budget exhausted: ${exhausted.budgetKind}`);
 
-      executedItem = item;
-      summary.executed++;
-      const outcome = await handler(supabase, item);
-      return outcome;
-    });
+        signal?.throwIfAborted();
+        executedItem = item;
+        summary.executed++;
+        const outcome = await handler(supabase, item, signal);
+        return outcome;
+      },
+      {
+        deadlineMs: Math.min(deadlineMs, Math.max(1, batchDeadlineMs - (Date.now() - started))),
+        signal: input?.signal,
+      },
+    );
     if (!result.claimed) continue;
     summary.claimed++;
     summary.errors.push(...result.errors.map((error) => `${kind}:${error}`));
@@ -165,9 +244,20 @@ export async function executeClaimableWork(
       }
     }
     if (result.persisted && result.value) {
+      if (result.timedOut) summary.timedOut++;
       if (result.value.status === "awaiting_approval") summary.awaitingApproval++;
+      else if (result.value.status === "reconciliation_required") summary.reconciliationRequired++;
       else summary[result.value.status]++;
     } else summary.failed++;
+    // Circuit keys are work kinds. Failures and unknown effects contribute to
+    // the recent failure window; ordinary waits and skips are clean outcomes.
+    const providerOk =
+      result.persisted &&
+      (result.value?.status === "completed" ||
+        result.value?.status === "skipped" ||
+        result.value?.status === "deferred" ||
+        result.value?.status === "awaiting_approval");
+    circuit.record(kind, providerOk);
   }
   await recordAudit(supabase, {
     actorEmail: "system",

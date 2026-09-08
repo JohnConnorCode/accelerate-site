@@ -42,4 +42,9 @@ This audit is owned by the integration branch `integration/agent-reconciliation-
 - Hardened Drive indexing: six fixture groups passed, including partial listing, revoked download access, binary-format refusal, unchanged revisions, duplicates and tenant separation. Connected Google execution remains unverified. Export formats were checked against [Google's current format reference](https://developers.google.com/workspace/drive/api/guides/ref-export-formats).
 - Public source/setup and MCP client guides, product changelog and Command Center MCP description updated alongside the integration. Docs rendering and full release checks remain pending.
 
+- Deadline integration: work completion suite passed, 58 cases. Timeout/abort paths preserve a terminal reconciliation hold; late completion and former one-hour retry regression covered. Circuit accounting uses a recent window and one recovery probe; its process-local scope is documented.
+- Resource gate paused a verification run at 4.5 GiB free. Removed only ignored `.next/cache` directories from inactive product-redesign and Drive worktrees, then reran through the unchanged gate. No source or verification artifacts removed.
+
+- Combined deadline candidate TypeScript: passed. Denial audit failure fixture: passed; a missing audit is surfaced while the already durable denied action stays terminal.
+
 Integration remains in progress. No feature is accepted from source presence or historical test claims alone. The final candidate must pass required CI, migration and affected browser checks before merge; production readiness remains a separate receipt.

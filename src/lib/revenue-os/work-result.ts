@@ -8,6 +8,7 @@ type WorkResultBase = { outcome: string; value?: unknown; artifacts?: WorkArtifa
 export type WorkResult = WorkResultBase &
   (
     | { status: "completed" | "skipped" | "partial" | "failed" }
+    | { status: "reconciliation_required" }
     | { status: "deferred" | "awaiting_approval"; nextCheckAt: string }
   );
 
@@ -16,6 +17,13 @@ export function deferWork(
   nextCheckAt = new Date(Date.now() + 3_600_000).toISOString(),
 ): WorkResultBase & { status: "deferred"; nextCheckAt: string } {
   return { status: "deferred", outcome, nextCheckAt };
+}
+
+/** Unknown effects require an explicit receipt review before any retry. */
+export function reconcileWork(
+  outcome: string,
+): WorkResultBase & { status: "reconciliation_required" } {
+  return { status: "reconciliation_required", outcome };
 }
 
 export function workResultText(result: WorkResult): string {

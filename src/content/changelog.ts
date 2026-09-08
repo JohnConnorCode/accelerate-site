@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "reviewed-agent-runtime-integration",
     title: "Grounded coworker outcomes and focused MCP tool lists",
     description:
-      "Headless coworkers now bound their context and validate final answers against successful tool receipts, retaining partial work and proposed actions when grounding fails. MCP clients can load Daily, Minimal or full tool lists with discovery and execution permissions preserved. Revoked action authority records a denied result that work recovery treats as terminal.",
+      "Headless coworkers now bound their context and validate final answers against successful tool receipts, retaining partial work and proposed actions when grounding fails. MCP clients can load Daily, Minimal or full tool lists with discovery and execution permissions preserved. Revoked action authority records a denied result that work recovery treats as terminal. Timed-out work remains held for receipt reconciliation instead of silently retrying; work batches have explicit deadlines and recent-failure admission controls.",
     category: "improvement",
     publishedAt: "2026-09-08",
   },

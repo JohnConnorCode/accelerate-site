@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { runWithDeadline, ProviderCircuit } from "../src/lib/revenue-os/bounded-execution";
 import { verifySalesQualificationHandoff } from "./test-sales-qualification-handoff";
 import { writeFileSync } from "node:fs";
 import { type Row } from "./lib/memory-supabase";
@@ -178,6 +179,84 @@ async function main() {
   const savedModel = process.env.OPENROUTER_AGENT_MODEL;
   try {
     for (const status of ["completed", "skipped", "partial", "failed"] as const) {
+      await check("deadline settlement, cancellation and synchronous failure", async () => {
+        const completed = await runWithDeadline(async () => 42, 1000);
+        assert.equal(completed.completed, true);
+        assert.equal(typeof completed.elapsedMs, "number");
+        await assert.rejects(
+          runWithDeadline(() => {
+            throw new Error("sync failure");
+          }, 1000),
+          /sync failure/,
+        );
+        const aborted = new AbortController();
+        aborted.abort();
+        let invoked = false;
+        const prior = await runWithDeadline(
+          async () => {
+            invoked = true;
+            return 1;
+          },
+          1000,
+          aborted.signal,
+        );
+        assert.equal(invoked, false);
+        assert.equal(prior.completed, false);
+        const cooperative = await runWithDeadline(
+          (signal) =>
+            new Promise((_resolve, reject) => {
+              signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+            }),
+          5,
+        );
+        assert.equal(cooperative.completed, false);
+        if (!cooperative.completed) assert.equal(cooperative.timedOut, true);
+      });
+      await check(
+        "uncertain effects remain terminal after the former one-hour retry window",
+        async () => {
+          let calls = 0;
+          registerWorkKindHandler("deadline-hold", async () => {
+            calls++;
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            return { status: "completed", outcome: "Late provider effect" };
+          });
+          const db = seed(item({ kind: "deadline-hold", status: "pending", attempt_count: 0 }));
+          const first = await executeClaimableWork(db.client as never, {
+            kinds: ["deadline-hold"],
+            deadlineMs: 5,
+          });
+          assert.equal(first.reconciliationRequired, 1);
+          assert.equal(first.timedOut, 1);
+          const row = db.rows("work_items")[0]!;
+          assert.equal(row.status, "failed");
+          assert.equal(row.next_check_at, null);
+          assert.match(String(row.next_check_reason), /reconciliation/i);
+          await new Promise((resolve) => setTimeout(resolve, 70));
+          assert.equal(row.status, "failed");
+          // Even a scheduler observing a due timestamp must not claim this terminal hold.
+          row.next_check_at = "2000-01-01T00:00:00Z";
+          const second = await executeClaimableWork(db.client as never, {
+            kinds: ["deadline-hold"],
+            deadlineMs: 5,
+          });
+          assert.equal(second.claimed, 0);
+          assert.equal(calls, 1);
+        },
+      );
+      await check("circuit uses a recent error window and one recovery probe", async () => {
+        const circuit = new ProviderCircuit({ minItemsBeforeTrip: 3, cooldownMs: 10 });
+        for (let i = 0; i < 100; i++) circuit.record("provider", true, 0);
+        circuit.record("provider", false, 0);
+        circuit.record("provider", false, 0);
+        assert.equal(circuit.state("provider"), "open");
+        assert.equal(circuit.allow("provider", 1), false);
+        assert.equal(circuit.allow("other", 1), true);
+        assert.equal(circuit.allow("provider", 10), true);
+        assert.equal(circuit.allow("provider", 10), false);
+        circuit.record("provider", true, 10);
+        assert.equal(circuit.state("provider"), "closed");
+      });
       await check(`${status} persists its lifecycle and truthful activity`, async () => {
         const wi = item();
         const db = seed(wi);
