@@ -97,7 +97,7 @@ const COLOR_BUDGET = {
   "src/components/admin/AdminAIChat.tsx": 16,
   "src/components/admin/AdminErrorBoundary.tsx": 3,
   "src/components/admin/AdminReadBody.tsx": 4,
-  "src/components/admin/AdminShell.tsx": 4,
+  "src/components/admin/AdminShell.tsx": 2,
   "src/components/admin/ChannelBreakdown.tsx": 5,
   "src/components/admin/ClientDetail.tsx": 1,
   "src/components/admin/ContactTimeline.tsx": 3,
