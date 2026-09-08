@@ -1,14 +1,21 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  getRevenueAiTools,
+  getRevenueAiToolsForProfile,
   listRevenueAiCapabilities,
+  projectTaskToolProfile,
   executeRegisteredRevenueTool,
   AI_TOOL_REGISTRY_VERSION,
   type RevenueToolPackId,
+  type TaskToolProfile,
 } from "./ai-tools";
 import { loadOperatorQueue } from "./queue";
 import { getActiveModules } from "./modules";
+import {
+  authorizeMcpResource,
+  moduleForMcpResource,
+  type RecordPermissionPrincipalKind,
+} from "./record-permissions";
 import { listPlugins } from "./plugins";
 import { listClaimableWork } from "./work-items";
 import { listWorkspaceCapabilities } from "./capabilities";
@@ -59,6 +66,40 @@ export interface McpServerContext {
   tenantSlug?: string;
   tenantConfig?: typeof defaultTenant | null;
   toolPack?: RevenueToolPackId;
+  /** Task-focused registry profile; omitted or unknown values fall back to full. */
+  toolProfile?: TaskToolProfile;
+  /**
+   * Session callers pass "workspace_member" so resource reads re-verify the
+   * membership row through the shared evaluator. Bearer/static-key callers
+   * carry no membership and default to "integration": still bound to the
+   * tenant, module, and grant checks, with no ambient cross-tenant access.
+   */
+  principalKind?: RecordPermissionPrincipalKind;
+}
+
+/**
+ * Shared record-permission gate for MCP resource reads. Denials return a
+ * JSON-RPC error carrying the machine-readable deny code and policy
+ * reference; the message states the denial truthfully.
+ */
+async function gateMcpResource(
+  context: McpServerContext,
+  uri: string,
+): Promise<null | { code: number; message: string; data: unknown }> {
+  if (!moduleForMcpResource(uri)) return null; // unknown URIs keep their existing error
+  const decision = await authorizeMcpResource(context.supabase, {
+    principal: {
+      kind: context.principalKind ?? "integration",
+      email: context.actorEmail,
+    },
+    uri,
+  });
+  if (decision.allowed) return null;
+  return {
+    code: MCP_ERROR_CODES.INVALID_PARAMS,
+    message: `Access denied [${decision.code}]: ${decision.reason}`,
+    data: { denyCode: decision.code, policy: decision.policy, uri },
+  };
 }
 
 /**
@@ -214,13 +255,22 @@ export async function handleMcpRequest(
       }
 
       case "tools/list": {
+        // A task-focused profile advertises a bounded subset of registered
+        // tools plus the discovery path to every other authorized capability.
+        // Profile membership is advertising only: it never grants access, and
+        // `tools/call` still runs the normal tenant/capability checks.
+        const projection = projectTaskToolProfile(context.toolProfile);
+        const advertised = new Set(projection.toolNames);
         const available = new Set(
           listRevenueAiCapabilities(context)
             .filter((tool) => tool.available)
             .map((tool) => tool.name),
         );
-        const tools = getRevenueAiTools(context.toolPack)
-          .filter((tool) => available.has(tool.name))
+        const tools = getRevenueAiToolsForProfile(projection.profile, {
+          toolPack: context.toolPack,
+          tenantConfig: context.tenantConfig ?? undefined,
+        })
+          .filter((tool) => advertised.has(tool.name) && available.has(tool.name))
           .map((tool) => ({
             name: tool.name,
             description: tool.description,
@@ -232,7 +282,12 @@ export async function handleMcpRequest(
         return {
           jsonrpc: "2.0",
           id,
-          result: { tools, registryVersion: AI_TOOL_REGISTRY_VERSION },
+          result: {
+            tools,
+            registryVersion: AI_TOOL_REGISTRY_VERSION,
+            profile: projection.profile,
+            discoveryPath: projection.discoveryPath,
+          },
         };
       }
 
@@ -301,15 +356,27 @@ export async function handleMcpRequest(
       }
 
       case "resources/list": {
+        // Advertise only what this caller may actually read: same gate as
+        // resources/read, so a disabled module or suspended workspace hides
+        // its resources instead of failing on open.
+        const visible = [];
+        for (const resource of MCP_REVENUE_OS_RESOURCES) {
+          const denial = await gateMcpResource(context, resource.uri);
+          if (!denial) visible.push(resource);
+        }
         return {
           jsonrpc: "2.0",
           id,
-          result: { resources: MCP_REVENUE_OS_RESOURCES },
+          result: { resources: visible },
         };
       }
 
       case "resources/read": {
         const uri = String(params.uri || "");
+        const denial = await gateMcpResource(context, uri);
+        if (denial) {
+          return { jsonrpc: "2.0", id, error: denial };
+        }
         if (uri === "revenue-os://today/snapshot") {
           const queue = await loadOperatorQueue(context.supabase);
           return {

@@ -1,0 +1,576 @@
+{
+  "contract": "revenue-os-record-permissions.v1",
+  "generatedFrom": {
+    "modules": "src/lib/revenue-os/modules.ts REVENUE_OS_MODULES",
+    "toolGrants": "src/lib/revenue-os/modules.ts AI_TOOL_TO_MODULE_MAP",
+    "hardFloors": "src/lib/revenue-os/autonomy-policy.ts HARD_FLOOR_ACTION_KEYS",
+    "autonomyLevels": "src/lib/revenue-os/autonomy-policy.ts AUTONOMY_LEVELS",
+    "denyCodes": "src/lib/revenue-os/record-permissions.ts RECORD_DENY_CODES",
+    "mcpResources": "src/lib/revenue-os/record-permissions.ts MCP_RESOURCE_MODULES"
+  },
+  "denyCodes": [
+    "tenant_unknown_or_suspended",
+    "membership_revoked",
+    "role_insufficient",
+    "module_disabled",
+    "entity_unknown",
+    "entity_not_granted",
+    "field_not_readable",
+    "autonomy_denied"
+  ],
+  "autonomyLevels": [
+    "prohibited",
+    "always_ask",
+    "ask_until_trusted",
+    "standing_permission",
+    "autonomous"
+  ],
+  "hardFloors": [
+    "account.delete",
+    "credential.change",
+    "financial_history.delete",
+    "customer_database.export",
+    "refund.high_value",
+    "financial_transfer.major"
+  ],
+  "modules": [
+    {
+      "id": "core-command",
+      "name": "Command Center & Inbox",
+      "core": true,
+      "defaultEnabled": true
+    },
+    {
+      "id": "core-pipeline",
+      "name": "Opportunity Pipeline",
+      "core": true,
+      "defaultEnabled": true
+    },
+    {
+      "id": "core-conversations",
+      "name": "Omnichannel Conversations",
+      "core": true,
+      "defaultEnabled": true
+    },
+    {
+      "id": "core-contacts",
+      "name": "Contact Intake & Identity",
+      "core": true,
+      "defaultEnabled": true
+    },
+    {
+      "id": "core-intelligence",
+      "name": "AI Grounding & Knowledge",
+      "core": true,
+      "defaultEnabled": true
+    },
+    {
+      "id": "core-system",
+      "name": "System Settings & Tenancy",
+      "core": true,
+      "defaultEnabled": true
+    },
+    {
+      "id": "proposals",
+      "name": "Proposals & Estimates",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "campaigns",
+      "name": "Outbound Campaigns",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "email-studio",
+      "name": "Email Studio",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "recovery",
+      "name": "Revenue Recovery",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "revenue",
+      "name": "Revenue Analytics & Valuation",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "bookings",
+      "name": "Meeting Bookings & Scheduling",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "clients",
+      "name": "Client Delivery & Retainers",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "content",
+      "name": "Content Operations",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "resources",
+      "name": "Resource Library",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "leads-capture",
+      "name": "Direct Leads & Chat Intake",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "subscribers",
+      "name": "Subscriber Audiences",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "partners",
+      "name": "Partner Management",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "website-grades",
+      "name": "Website Grader",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "analytics",
+      "name": "Funnel & Traffic Analytics",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "integrations",
+      "name": "Integrations Hub",
+      "core": false,
+      "defaultEnabled": true
+    },
+    {
+      "id": "business-pulse",
+      "name": "Business pulse",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "client-onboarding",
+      "name": "Client onboarding",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "commitment-watch",
+      "name": "Overdue commitments",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "example-inventory",
+      "name": "Inventory (example)",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "meeting-commitments",
+      "name": "Meeting commitments",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "meeting-prep",
+      "name": "Meeting preparation",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "opportunity-radar",
+      "name": "Opportunity Radar",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "pipeline-watch",
+      "name": "Pipeline follow-up",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "receivables-collections",
+      "name": "Collections Action Desk",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "site-studio",
+      "name": "Site Studio",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "stripe-invoicing",
+      "name": "Stripe invoicing",
+      "core": false,
+      "defaultEnabled": false
+    }
+  ],
+  "toolGrants": [
+    {
+      "tool": "get_today_snapshot",
+      "module": "core-command"
+    },
+    {
+      "tool": "get_record_timeline",
+      "module": "core-command"
+    },
+    {
+      "tool": "get_pending_actions",
+      "module": "core-command"
+    },
+    {
+      "tool": "propose_task",
+      "module": "core-command"
+    },
+    {
+      "tool": "propose_task_update",
+      "module": "core-command"
+    },
+    {
+      "tool": "propose_layout_change",
+      "module": "core-command"
+    },
+    {
+      "tool": "propose_founder_note",
+      "module": "core-command"
+    },
+    {
+      "tool": "search_pipeline",
+      "module": "core-pipeline"
+    },
+    {
+      "tool": "propose_stage_change",
+      "module": "core-pipeline"
+    },
+    {
+      "tool": "propose_send_email",
+      "module": "core-conversations"
+    },
+    {
+      "tool": "search_conversations",
+      "module": "core-conversations"
+    },
+    {
+      "tool": "propose_conversation_reply",
+      "module": "core-conversations"
+    },
+    {
+      "tool": "get_radar_outreach_history",
+      "module": "core-conversations"
+    },
+    {
+      "tool": "reconcile_radar_outreach",
+      "module": "core-conversations"
+    },
+    {
+      "tool": "search_contacts",
+      "module": "core-contacts"
+    },
+    {
+      "tool": "search_knowledge_base",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "query_memory",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "store_agent_memory",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "get_agent_memory",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "get_learned_policies",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "record_learned_policy",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "get_claims_for_entity",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "get_agent_activity_for_entity",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "discover_tool_bundles",
+      "module": "core-system"
+    },
+    {
+      "tool": "activate_tool_bundle",
+      "module": "core-system"
+    },
+    {
+      "tool": "get_module_configuration",
+      "module": "core-system"
+    },
+    {
+      "tool": "preview_module_configuration",
+      "module": "core-system"
+    },
+    {
+      "tool": "propose_module_configuration",
+      "module": "core-system"
+    },
+    {
+      "tool": "get_workspace_brand",
+      "module": "core-system"
+    },
+    {
+      "tool": "preview_workspace_brand_update",
+      "module": "core-system"
+    },
+    {
+      "tool": "propose_workspace_brand_update",
+      "module": "core-system"
+    },
+    {
+      "tool": "get_claimable_work",
+      "module": "core-system"
+    },
+    {
+      "tool": "get_workspace_capabilities",
+      "module": "core-system"
+    },
+    {
+      "tool": "get_autonomy_policies",
+      "module": "core-system"
+    },
+    {
+      "tool": "get_coworkers",
+      "module": "core-system"
+    },
+    {
+      "tool": "get_plugins",
+      "module": "core-system"
+    },
+    {
+      "tool": "bootstrap_sales_coworker",
+      "module": "core-system"
+    },
+    {
+      "tool": "bootstrap_business_pulse_coworker",
+      "module": "core-system"
+    },
+    {
+      "tool": "bootstrap_meeting_intel_coworker",
+      "module": "core-system"
+    },
+    {
+      "tool": "bootstrap_finance_coworker",
+      "module": "core-system"
+    },
+    {
+      "tool": "bootstrap_operations_coworker",
+      "module": "core-system"
+    },
+    {
+      "tool": "check_budgets",
+      "module": "core-system"
+    },
+    {
+      "tool": "get_budget_limits",
+      "module": "core-system"
+    },
+    {
+      "tool": "propose_campaign_activation",
+      "module": "campaigns"
+    },
+    {
+      "tool": "run_business_pulse",
+      "module": "business-pulse"
+    },
+    {
+      "tool": "prepare_client_onboarding",
+      "module": "client-onboarding"
+    },
+    {
+      "tool": "propose_client_onboarding",
+      "module": "client-onboarding"
+    },
+    {
+      "tool": "run_commitment_watch",
+      "module": "commitment-watch"
+    },
+    {
+      "tool": "prepare_meeting_commitments",
+      "module": "meeting-commitments"
+    },
+    {
+      "tool": "propose_meeting_commitments",
+      "module": "meeting-commitments"
+    },
+    {
+      "tool": "run_meeting_prep",
+      "module": "meeting-prep"
+    },
+    {
+      "tool": "get_radar_workspace",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "prepare_radar_opportunity_brief",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "prepare_radar_brief",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "get_radar_model_status",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "reconcile_radar_model_call",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "get_radar_store",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "preview_radar_store_change",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "propose_radar_store_change",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "get_radar_selection",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "preview_radar_assessment",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "propose_radar_assessment",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "get_radar_relationship_context",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "preview_radar_relationship",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "propose_radar_relationship",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "prepare_radar_outreach",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "preview_radar_outreach",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "propose_radar_outreach",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "run_pipeline_watch",
+      "module": "pipeline-watch"
+    },
+    {
+      "tool": "get_collection_cases",
+      "module": "receivables-collections"
+    },
+    {
+      "tool": "preview_collection_reminder",
+      "module": "receivables-collections"
+    },
+    {
+      "tool": "propose_collection_reminder",
+      "module": "receivables-collections"
+    },
+    {
+      "tool": "prepare_stripe_invoicing",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "propose_stripe_invoicing",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "propose_stripe_invoice_send",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "preview_invoice_page",
+      "module": "stripe-invoicing"
+    },
+    {
+      "tool": "propose_invoice_page",
+      "module": "stripe-invoicing"
+    }
+  ],
+  "mcpResources": [
+    {
+      "uri": "revenue-os://today/snapshot",
+      "module": "core-command"
+    },
+    {
+      "uri": "revenue-os://system/modules",
+      "module": "core-system"
+    },
+    {
+      "uri": "revenue-os://knowledge/registry",
+      "module": "core-intelligence"
+    },
+    {
+      "uri": "revenue-os://plugins/registry",
+      "module": "core-system"
+    },
+    {
+      "uri": "revenue-os://work-engine/queue",
+      "module": "core-command"
+    },
+    {
+      "uri": "revenue-os://capabilities/graph",
+      "module": "core-system"
+    },
+    {
+      "uri": "revenue-os://memory/overview",
+      "module": "core-intelligence"
+    }
+  ],
+  "boundaries": [
+    "platform_admin: founder email match only; bound to one explicit tenant per check.",
+    "workspace_member: active tenant_memberships row required; writes/exports/actions require the admin role.",
+    "integration: explicit tenant-bound system identity; no membership row, still tenant/module/grant bound.",
+    "default-deny: unbound clients, unknown tenants, suspended workspaces, revoked memberships, disabled modules, ungranted entities, and unreadable fields all deny with a named code."
+  ]
+}

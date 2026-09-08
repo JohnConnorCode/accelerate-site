@@ -5,7 +5,8 @@ import { recordActivity } from "./activities";
 import { recordStaleClaimRecovery } from "./runs";
 import { safeErrorMessage } from "./db";
 import { createRevenueTask } from "./tasks";
-import { workResultText, type WorkResult } from "./work-result";
+import { workResultText, reconcileWork, type WorkResult } from "./work-result";
+import { runWithDeadline } from "./bounded-execution";
 import { randomUUID } from "node:crypto";
 
 // ---------------------------------------------------------------------------
@@ -66,6 +67,7 @@ export interface WorkItemOutcome {
   workItemId: string;
   existingStatus?: string;
   recoveredStale?: boolean;
+  timedOut?: boolean;
   errors: string[];
 }
 
@@ -293,7 +295,7 @@ export async function settleWorkItem(
       changes.finished_at = now;
       break;
     case "deferred":
-    case "awaiting_approval":
+    case "awaiting_approval": {
       if (
         !Number.isFinite(Date.parse(result.nextCheckAt)) ||
         Date.parse(result.nextCheckAt) <= Date.parse(now)
@@ -306,6 +308,15 @@ export async function settleWorkItem(
         next_check_reason: outcome,
         attempt_count: Math.max(0, item.attempt_count - 1),
       });
+      break;
+    }
+    case "reconciliation_required":
+      // `failed` is terminal in the canonical queue. No scheduled retry or
+      // stale-lease recovery may re-execute an effect whose outcome is unknown.
+      changes.status = "failed";
+      changes.error = outcome;
+      changes.next_check_reason = "Receipt reconciliation required before an explicit retry";
+      changes.finished_at = now;
       break;
     case "partial":
     case "failed": {
@@ -381,9 +392,27 @@ export async function settleWorkItem(
 export async function withWorkItem(
   supabase: SupabaseClient,
   kind: string,
-  work: (item: WorkItem) => Promise<WorkResult>,
-  input?: { leaseOwner?: string; leaseDurationMs?: number },
+  work: (item: WorkItem, signal?: AbortSignal) => Promise<WorkResult>,
+  input?: {
+    leaseOwner?: string;
+    leaseDurationMs?: number;
+    deadlineMs?: number;
+    signal?: AbortSignal;
+  },
 ): Promise<WorkItemOutcome> {
+  if (input?.signal?.aborted)
+    return {
+      claimed: false,
+      persisted: false,
+      workItemId: "",
+      value: null,
+      errors: ["Work batch stopped before claim"],
+    };
+  if (
+    input?.deadlineMs !== undefined &&
+    (!Number.isFinite(input.deadlineMs) || input.deadlineMs <= 0)
+  )
+    throw new Error("Work deadline must be a positive duration");
   const leaseOwner = input?.leaseOwner ?? `work:${randomUUID()}`;
   const claim = await claimWorkItem(supabase, {
     kind,
@@ -411,12 +440,33 @@ export async function withWorkItem(
   if (item.lease_owner !== leaseOwner)
     return { ...base, value: null, errors: ["Work claim superseded before start"] };
   let result: WorkResult;
+  let timedOut = false;
   try {
     await transitionOwnedWorkItem(supabase, item, {
       status: "in_progress",
       started_at: new Date().toISOString(),
     });
-    result = await work(item);
+    if (input?.deadlineMs && input.deadlineMs > 0) {
+      const deadline = await runWithDeadline(
+        (signal) => work(item, signal),
+        input.deadlineMs,
+        input.signal,
+      );
+      if (deadline.completed) {
+        result = deadline.value;
+      } else {
+        // A non-cancellable or uncertain effect enters reconciliation. The
+        // deadline aborts cooperative providers, but the underlying effect may
+        // still complete late, so the receipt never claims cancellation and the
+        // item is not blindly retried.
+        timedOut = deadline.timedOut;
+        result = reconcileWork(
+          `${deadline.timedOut ? `Timed out after ${input.deadlineMs}ms` : "Execution stopped by the caller"}; the effect outcome is unknown and must be verified before retrying`,
+        );
+      }
+    } else {
+      result = await work(item, input?.signal);
+    }
   } catch (error) {
     if (error instanceof WorkClaimLostError)
       return { ...base, value: null, errors: [error.message] };
@@ -424,7 +474,7 @@ export async function withWorkItem(
   }
   try {
     const errors = await settleWorkItem(supabase, item, result);
-    return { ...base, value: result, status: result.status, persisted: true, errors };
+    return { ...base, value: result, status: result.status, timedOut, persisted: true, errors };
   } catch (error) {
     // An unknown write outcome is not permission to attempt a second transition.
     return { ...base, value: null, errors: [safeErrorMessage(error)] };

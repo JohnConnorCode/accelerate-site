@@ -63,6 +63,13 @@ export interface Capability {
 }
 
 export const capabilities: Capability[] = [
+  {
+    id: "site-studio",
+    category: "act",
+    title: "Prepare a private page draft",
+    detail:
+      "Enable Site Studio to create a structured template or AI-assisted page, preview it at different widths, rename it and discard it. Database revisions preserve each business's drafts and refuse stale edits. Public publishing is still separate work.",
+  },
   // Capture
   {
     id: "transcripts",
@@ -334,7 +341,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "Your own assistant, connected over MCP",
     detail:
-      "Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity connect over the Model Context Protocol and reach the same registered tools the workspace uses. Reads return bounded queries with their sources; anything that would change a record or send a message becomes a staged proposal in the same approval queue.",
+      "Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity connect over the Model Context Protocol and reach the same registered tools the workspace uses. Daily, Minimal and full tool lists keep discovery available without changing permissions. Reads return bounded queries with their sources; anything that would change a record or send a message becomes a staged proposal in the same approval queue.",
   },
   {
     id: "agent-workflow",
@@ -527,6 +534,6 @@ export const CURRENT_SURFACES = [
     n: "08",
     label: "Run per tenant",
     title: "Shared infrastructure, isolated workspaces",
-    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Ten bundled plugin examples have public guides covering setup, approvals, costs, and recovery.",
+    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Eleven bundled plugin examples have public guides covering setup, approvals, costs, and recovery.",
   },
 ];

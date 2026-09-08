@@ -1,6 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { AI_TOOL_REGISTRY_VERSION, listRevenueAiCapabilities } from "@/lib/revenue-os/ai-tools";
+import {
+  AI_TOOL_REGISTRY_VERSION,
+  listRevenueAiCapabilities,
+  listRevenueAiCapabilitiesForProfile,
+} from "@/lib/revenue-os/ai-tools";
+import { parseTaskToolProfile } from "@/lib/revenue-os/tool-profiles";
 import type { AiCapabilitiesPayload } from "@/lib/revenue-os/ai-operations-contract";
 
 function label(name: string): string {
@@ -11,13 +16,20 @@ function label(name: string): string {
     .replace(/_/g, " ");
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const capabilities = listRevenueAiCapabilities({ tenantConfig: auth.tenant.config });
+  // A task-focused profile scopes the same capability read that AI and MCP
+  // use, so the UI, AI and MCP agree on available, missing and disabled tools.
+  const profile = parseTaskToolProfile(new URL(request.url).searchParams.get("profile"));
+  const capabilities =
+    profile === "full"
+      ? listRevenueAiCapabilities({ tenantConfig: auth.tenant.config })
+      : listRevenueAiCapabilitiesForProfile(profile, { tenantConfig: auth.tenant.config });
   const payload: AiCapabilitiesPayload = {
     registryVersion: AI_TOOL_REGISTRY_VERSION,
     scope: "runtime_registry",
+    profile,
     readinessEvaluated: true,
     capabilities: capabilities.map((capability) => ({
       ...capability,

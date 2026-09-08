@@ -210,7 +210,7 @@ async function main() {
         assert.equal(f.controls.saves, count);
         assert.equal(
           f.mem.rows("action_queue").find((a) => a.id === pending.action.id)?.status,
-          "failed",
+          scenario === "autonomous" ? "denied" : "failed",
         );
         f.mem.rows("tenant_memberships")[0]!.status = "active";
         f.mem.rows("tenants")[0]!.status = "active";

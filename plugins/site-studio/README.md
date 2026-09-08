@@ -1,0 +1,11 @@
+# Site Studio
+
+Enable Site Studio in Plugins, then open Site Studio to create a private structured page draft. Apply the ordered database migrations before enabling it. Start with the built-in service template: no model or provider is needed. The [operator guide](/docs/plugins/site-studio) covers the exact controls and recovery.
+
+For example, enter Bookkeeping automation for Home service owners and a concrete desired result, create the template draft, rename it, and inspect the preview at each available width. Your tenant owns the durable draft, and edits retain its ID, version, checksum and immutable revision history. Discard requires confirmation of the version being viewed. A stale edit or discard is refused; reload before deciding again.
+
+Optional AI generation and section-regeneration API calls use the shared OpenRouter model job and budget receipts. Model calls incur the configured provider's charges; template creation and editing make none. AI output must pass document, asset, link and size validation before saving. Check copy yourself: pattern-based grounding checks cannot establish every factual claim. This release has no public publishing, scheduling, arbitrary-code execution or general AI/MCP draft-mutation tool. The section regeneration service currently has an authenticated API; the preview screen provides rename and discard controls.
+
+The module is disabled by default. Disablement closes its routes and refuses database writes; historical drafts and revision receipts remain stored. Restore access by enabling the module. Missing migrations or database errors are shown as failures, never an empty successful workspace. AI unavailable errors name Setup and the template alternative. The demo does not enable this module by default.
+
+Implementation: `src/lib/site-studio`, the shared module guard, tenant-bound database host and `20260917-site-studio-drafts.sql`. Tests: `test:site-studio` validates the document/renderer/domain contracts; native migration tests verify database isolation, stale edits, atomic audit rollback and revision history. Local fixtures do not prove connected model output or deployment. Publishing and general-purpose AI editing remain separate backlog work.

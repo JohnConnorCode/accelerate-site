@@ -74,7 +74,7 @@ type DemoEmailStudioDetail = {
   html: string;
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
-type DemoState = {
+export type DemoState = {
   business: DemoBusinessState | null;
   completedActions: string[];
   completedTasks: string[];
@@ -104,7 +104,7 @@ type DemoState = {
   moduleOverrides: Partial<Record<string, boolean>>;
   moduleSettings: Record<string, Record<string, unknown>>;
 };
-const initialState = (): DemoState => ({
+export const initialState = (): DemoState => ({
   business: null,
   completedActions: [],
   completedTasks: [],
@@ -239,7 +239,7 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
   });
 }
 
-function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string) {
+export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string) {
   const row = opportunityRows(pack, state).find((item) => item.id === id);
   const source = pack.opportunities.find((item) => item.id === id);
   if (!row || !source) return null;
@@ -320,7 +320,7 @@ function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string)
     ],
   };
 }
-function auditHistory(
+export function auditHistory(
   pack: DemoScenarioPack,
   params: URLSearchParams,
   business?: DemoBusinessState,
@@ -442,7 +442,7 @@ function auditHistory(
   };
 }
 
-function queue(pack: DemoScenarioPack, state: DemoState) {
+export function queue(pack: DemoScenarioPack, state: DemoState) {
   const approvals = pack.actions
     .slice(0, 2)
     .filter((item) => !state.completedActions.includes(item.id))
@@ -536,7 +536,7 @@ function queue(pack: DemoScenarioPack, state: DemoState) {
     }));
   return [...approvals, ...replies, ...proposals, ...commitments];
 }
-function priority(pack: DemoScenarioPack, state: DemoState) {
+export function priority(pack: DemoScenarioPack, state: DemoState) {
   const items = queue(pack, state);
   return {
     status: "ready",
@@ -1765,7 +1765,7 @@ function emailSequences(pack: DemoScenarioPack) {
   };
 }
 
-function clientRows(pack: DemoScenarioPack, state: DemoState) {
+export function clientRows(pack: DemoScenarioPack, state: DemoState) {
   return pack.people.slice(0, 9).map((contact, index) => ({
     id: `client-${index}`,
     lead_id: contact.id,
@@ -1964,7 +1964,7 @@ function settings(pack: DemoScenarioPack) {
   };
 }
 
-function importBatch(pack: DemoScenarioPack) {
+export function importBatch(pack: DemoScenarioPack) {
   const rows = pack.people.slice(0, 5).map((contact, index) => ({
     id: `import-row-${index}`,
     row_index: index + 1,

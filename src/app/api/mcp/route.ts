@@ -9,6 +9,7 @@ import {
   MCP_SUPPORTED_PROTOCOL_VERSIONS,
   type McpJsonRpcRequest,
 } from "@/lib/revenue-os/mcp-server";
+import { parseTaskToolProfile } from "@/lib/revenue-os/tool-profiles";
 import { tenant } from "@/config/tenant";
 import { accelerateSystemContext } from "@/lib/tenancy/context";
 
@@ -69,6 +70,9 @@ async function resolveMcpAuth(request: NextRequest) {
         actorEmail: process.env.ADMIN_EMAIL || tenant.founder.email,
         tenantSlug: "accelerate",
         tenantConfig: tenant,
+        // Static-key callers carry no membership row; the shared evaluator
+        // still binds them to the tenant, module, and grant checks.
+        principalKind: "integration" as const,
       };
     }
   }
@@ -84,6 +88,7 @@ async function resolveMcpAuth(request: NextRequest) {
     actorEmail: sessionAuth.user.email || tenant.founder.email,
     tenantSlug: sessionAuth.tenant.slug,
     tenantConfig: tenant,
+    principalKind: "workspace_member" as const,
   };
 }
 
@@ -162,6 +167,8 @@ export async function POST(request: NextRequest) {
     actorEmail: auth.actorEmail,
     tenantSlug: auth.tenantSlug,
     tenantConfig: auth.tenantConfig,
+    toolProfile: parseTaskToolProfile(new URL(request.url).searchParams.get("profile")),
+    principalKind: auth.principalKind,
   });
 
   if (response === null) return withCors(new NextResponse(null, { status: 204 }));

@@ -211,6 +211,11 @@ export async function callProposalHostRpc(database: SupabaseClient, args: Record
   return callVerifiedHostRpc(database, "apply_proposal_lifecycle", args);
 }
 
+/** Private Site Studio draft writes, validated by the shared domain before this boundary. */
+export async function callSiteDraftRpc(database: SupabaseClient, args: Record<string, unknown>) {
+  return callVerifiedHostRpc(database, "write_site_draft", args);
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

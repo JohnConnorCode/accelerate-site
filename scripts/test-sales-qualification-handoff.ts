@@ -122,7 +122,11 @@ export async function verifySalesQualificationHandoff() {
               },
             ],
           }
-        : { role: "assistant", content: "Lead reviewed and ready for a follow-up draft." };
+        : {
+            role: "assistant",
+            content:
+              "Facts\nPending actions were reviewed. [source: registered_tool_result:get_pending_actions]\nInferences\nA follow-up draft may help.\nMissing information\nNo message has been sent.\nRecommended next steps\nPrepare a draft for review.",
+          };
       return Response.json({
         id: "fixture",
         model: "fixture-model",

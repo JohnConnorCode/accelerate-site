@@ -98,7 +98,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "overview"],
         title: "Plugin examples",
         description:
-          "Explore ten bundled examples, from focused reports to complete business workspaces.",
+          "Explore eleven bundled examples, from focused reports to complete business workspaces.",
       },
       {
         slug: ["plugins", "business-pulse"],
@@ -152,6 +152,12 @@ export const docsManifest: DocsSection[] = [
         title: "Stripe invoicing",
         description:
           "Prepare an invoice from a customer record, review it, and follow its provider result.",
+      },
+      {
+        slug: ["plugins", "site-studio"],
+        title: "Draft public pages with Site Studio",
+        description:
+          "Create a private AI-assisted page draft from approved components and photography.",
       },
     ],
   },

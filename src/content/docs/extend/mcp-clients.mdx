@@ -1,7 +1,7 @@
 ---
 title: "Connect an MCP client"
 description: "Connect an external assistant to the intended workspace and verify a read first."
-updated: "2026-09-05"
+updated: "2026-09-08"
 ---
 
 The recommended workspace connection is the tenant HTTP endpoint. It authenticates with the MCP key issued for that workspace. The local stdio runner is a separate self-hosting path with different credentials and scope.
@@ -18,6 +18,12 @@ https://<your-domain>/api/public/<tenantSlug>/mcp
 ```
 
 Client configuration screens differ. Use your client's current MCP instructions for its connection fields. The endpoint and workspace credential above are the Command Center settings it needs.
+
+## Choose a tool list
+
+Append `?profile=ops` to the workspace endpoint for the Daily profile, or `?profile=core` for a smaller set of daily reads and discovery tools. Use `?profile=full` or the bare endpoint for the complete registered list. Existing bare endpoints retain the full list.
+
+Profiles change what the client loads initially. They do not grant permissions or disable other registered operations. Each profile retains tool discovery so an assistant can find the schema of an omitted operation; execution still checks the workspace, module, connection and approval rules. If a client cannot load the full list, reconnect using the smaller profile and verify the same bounded read.
 
 ## Understand what the connection permits
 

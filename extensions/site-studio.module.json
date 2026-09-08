@@ -1,0 +1,23 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "site-studio",
+  "name": "Site Studio",
+  "description": "Create and revise private structured page drafts. Publishing and arbitrary-code editing are not included.",
+  "category": "delivery",
+  "defaultEnabled": false,
+  "navLinks": [
+    {
+      "id": "site-studio",
+      "label": "Site Studio",
+      "href": "/admin/site",
+      "icon": "Globe2",
+      "description": "Private page drafts and previews",
+      "moreGroup": "Delivery"
+    }
+  ],
+  "routes": ["/admin/site"],
+  "aiToolNames": [],
+  "setupChecks": [],
+  "docsUrl": "/docs/plugins/site-studio",
+  "settings": []
+}

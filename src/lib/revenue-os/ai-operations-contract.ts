@@ -93,6 +93,8 @@ export interface AiCapability {
 export interface AiCapabilitiesPayload {
   registryVersion: string;
   scope: "runtime_registry";
+  /** Task-focused registry profile this payload is scoped to. */
+  profile: "core" | "ops" | "full";
   readinessEvaluated: true;
   capabilities: AiCapability[];
   safety: {

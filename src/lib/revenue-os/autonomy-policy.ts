@@ -9,6 +9,15 @@ import { recordAudit } from "./audit";
 export type AutonomyLevel =
   "prohibited" | "always_ask" | "ask_until_trusted" | "standing_permission" | "autonomous";
 
+/** Ordered ladder, exported read-only for permission references and audits. */
+export const AUTONOMY_LEVELS: readonly AutonomyLevel[] = [
+  "prohibited",
+  "always_ask",
+  "ask_until_trusted",
+  "standing_permission",
+  "autonomous",
+];
+
 export interface AutonomyPolicy {
   id: string;
   tenant_id: string;
@@ -70,6 +79,10 @@ const HARD_FLOOR_KEYS = new Set([
   "refund.high_value",
   "financial_transfer.major",
 ]);
+
+/** In-code safety floors, exported read-only for the permission reference
+ * generator and policy audits. Tenant hard-floor rows extend these. */
+export const HARD_FLOOR_ACTION_KEYS: readonly string[] = [...HARD_FLOOR_KEYS];
 
 export async function checkAutonomy(
   supabase: SupabaseClient,

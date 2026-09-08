@@ -27,3 +27,9 @@ Start with the action or conversation where you did the work. Check its result, 
 Today can retain the last successfully loaded queue when a refresh fails. Check the last-success time and refresh status. An old row is not proof that the action needs to run again.
 
 If an action's result is uncertain, inspect the original request before submitting another one. Retries should preserve its identity so the same intended effect does not happen twice. Share the action identifier and visible error with your workspace administrator when you need help.
+
+## Work that times out
+
+A time limit stops the worker from waiting; it does not prove that an external service cancelled its request. The work engine records an uncertain result as failed work with a receipt-reconciliation reason and no automatic retry. Late completion cannot change that work record into a successful result.
+
+Inspect the linked action and provider receipt before explicitly retrying. If the provider confirms completion, retain that receipt instead of sending again. If the outcome is still unknown, keep the item held for review. The engine's temporary failure circuit can pause additional work of the same kind in a warm process; the saved work record is what preserves the hold across restarts.

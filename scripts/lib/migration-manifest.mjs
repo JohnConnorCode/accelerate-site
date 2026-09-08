@@ -76,12 +76,15 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260906-collections-reminders.sql",
   "migrations/20260907-work-packet-quality.sql",
   "migrations/20260908-model-call-reservations.sql",
+  "migrations/20260908-runtime-record-permission-denied.sql",
   "migrations/20260909-radar-evidence-store.sql",
   "migrations/20260910-radar-assessments.sql",
   "migrations/20260911-radar-relationships.sql",
   "migrations/20260912-proposal-lifecycle.sql",
   "migrations/20260913-radar-outreach.sql",
   "migrations/20260914-message-upsert-conflict-targets.sql",
+  "migrations/20260916-drive-content-indexing.sql",
+  "migrations/20260917-site-studio-drafts.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

@@ -42,3 +42,13 @@ Record the check name, its visible error, and the time of the last successful ve
 Read the latest execution evidence and the pending work counts together. A successful Gmail incremental sync with zero changed threads is quiet, not broken. A Drive source with no selected folders is not configured. A configured source without a run is never run; listed items that have not been stored or remain deferred indicate incomplete processing.
 
 Today links source and job status to the operational receipts. Live failed work and outbound messages still awaiting resolution can require attention even when the most recent sync succeeded. Pending counts describe work to inspect; they are not a count of successfully delivered results.
+
+### Read Drive indexing results
+
+Select approved Google Drive folders in the Google connection settings, then inspect the next Drive run in Setup Center. The run reports stored files, extracted text, unchanged files, unsupported formats, inaccessible files and incomplete listings. Indexing uses the connected Google account and makes no model request.
+
+Google Docs and Slides export as text. Sheets export the first sheet as CSV; other sheets are not included. Plain text, Markdown, CSV and JSON files are read directly. Binary Office files and PDFs remain unsupported metadata records. A file larger than the 2 MB text limit or an unreadable file is reported as inaccessible rather than indexed successfully.
+
+A complete listing can retire a missing file from the selected folder's index. A capped or incomplete listing retains absent files until a complete listing proves their absence. Revoked download access removes the stored searchable text on the next sync. Removing a folder stops future synchronization while retaining its previous source records. Indexed text is a stored source; it does not by itself establish that every search or AI workflow retrieves Drive content.
+
+If a run is partial, inspect its counts before retrying. Check folder access and supported formats in the connected Google account. An unchanged file can skip extraction only when its provider revision matches an already indexed version.

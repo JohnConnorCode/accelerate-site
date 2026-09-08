@@ -22,9 +22,11 @@ function adapterEvidence(path, root) {
     path,
     domainImports: [
       ...new Set(
-        [...source.matchAll(/from ["'](@\/lib\/(?:revenue-os|tenancy|email|ai)\/[^"']+)/g)].map(
-          (match) => match[1],
-        ),
+        [
+          ...source.matchAll(
+            /from ["'](@\/lib\/(?:revenue-os|tenancy|email|ai|site-studio)\/[^"']+)/g,
+          ),
+        ].map((match) => match[1]),
       ),
     ].sort(),
     directTables: [

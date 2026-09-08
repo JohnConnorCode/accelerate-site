@@ -20,7 +20,10 @@ import {
   type McpJsonRpcRequest,
 } from "../src/lib/revenue-os/mcp-server";
 import { tenant } from "../src/config/tenant";
+import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { MemorySupabase } from "./lib/memory-supabase";
+import { taskToolProfileToolNames } from "../src/lib/revenue-os/ai-tools";
+import type { TaskToolProfile } from "../src/lib/revenue-os/tool-profiles";
 
 interface ToolItem {
   name: string;
@@ -68,7 +71,7 @@ interface PromptGetResult {
 
 async function main() {
   console.log("Starting MCP Server tests...");
-  const stubDb = new MemorySupabase({
+  const mem = new MemorySupabase({
     tasks: [
       {
         id: "task-1",
@@ -79,7 +82,14 @@ async function main() {
       },
     ],
     action_queue: [],
-  }).client as unknown as Parameters<typeof handleMcpRequest>[1]["supabase"];
+    // Resource reads pass the shared record-permission gate, so the fixture
+    // carries the bound tenant scope and active workspace row a real caller
+    // presents after authentication.
+    tenants: [{ id: "tenant-1", status: "active", config: {} }],
+  });
+  const stubDb = bindTenantDatabaseForTest(mem.client, "tenant-1") as unknown as Parameters<
+    typeof handleMcpRequest
+  >[1]["supabase"];
 
   const context = {
     supabase: stubDb,
@@ -155,6 +165,70 @@ async function main() {
   assert.ok(toolsResult.tools.some((t) => t.name === "propose_task"));
   assert.ok(toolsResult.tools.some((t) => t.name === "propose_task_update"));
   assert.ok(toolsResult.registryVersion, "tools/list must report the registry version it served");
+
+  // Task-focused profiles bound what a client is told about, and always carry
+  // a discovery path to the rest of the authorized registry. An omitted or
+  // unknown profile falls back to full, never to an empty or guessed surface.
+  interface ProfileListResult {
+    tools: ToolItem[];
+    registryVersion: string;
+    profile: string;
+    discoveryPath: string[];
+  }
+  for (const profile of ["core", "ops"] as TaskToolProfile[]) {
+    const profiled = (await handleMcpRequest(
+      { jsonrpc: "2.0", id: 11, method: "tools/list" },
+      { ...context, toolProfile: profile },
+    ))!.result as ProfileListResult;
+    assert.equal(profiled.profile, profile);
+    const expected = taskToolProfileToolNames(profile);
+    assert.ok(
+      profiled.tools.length <= expected.length,
+      `${profile} must advertise no more tools than its projection`,
+    );
+    assert.ok(
+      ["discover_tool_bundles", "activate_tool_bundle", "get_workspace_capabilities"].every(
+        (name) => profiled.discoveryPath.includes(name),
+      ),
+      `${profile} tools/list must advertise the discovery path`,
+    );
+    assert.ok(
+      profiled.tools.every((tool) => expected.includes(tool.name)),
+      `${profile} must only advertise tools in its bounded projection`,
+    );
+  }
+  const omittedProfile = (await handleMcpRequest(
+    { jsonrpc: "2.0", id: 12, method: "tools/list" },
+    context,
+  ))!.result as ProfileListResult;
+  assert.equal(omittedProfile.profile, "full", "an omitted profile must fall back to full");
+  const unknownProfile = (await handleMcpRequest(
+    { jsonrpc: "2.0", id: 13, method: "tools/list" },
+    { ...context, toolProfile: "not-a-profile" as never },
+  ))!.result as ProfileListResult;
+  assert.equal(unknownProfile.profile, "full", "an unknown profile must fall back to full");
+  assert.equal(omittedProfile.tools.length, unknownProfile.tools.length);
+
+  // Profile membership is advertising only: it never grants access, and a
+  // `tools/call` for a tool inside the profile still runs the normal
+  // tenant/capability validation (and fails here for a disabled module).
+  const gated = (await handleMcpRequest(
+    {
+      jsonrpc: "2.0",
+      id: 14,
+      method: "tools/call",
+      params: {
+        name: "propose_campaign_activation",
+        arguments: {},
+      },
+    },
+    {
+      ...context,
+      toolProfile: "full",
+      tenantConfig: { ...tenant, modules: { ...tenant.modules, campaigns: false } },
+    },
+  ))!.result as { content: Array<{ text: string }>; isError: boolean };
+  assert.equal(gated.isError, true, "a disabled module tool must still be rejected at call time");
 
   // 2b. tools/call actually executes a tool and returns MCP content, not just
   // a bare JSON-RPC result. propose_task_update is the case that matters here:

@@ -8,6 +8,7 @@ import {
   MCP_SUPPORTED_PROTOCOL_VERSIONS,
   type McpJsonRpcRequest,
 } from "@/lib/revenue-os/mcp-server";
+import { parseTaskToolProfile } from "@/lib/revenue-os/tool-profiles";
 import { tenant as defaultTenant } from "@/config/tenant";
 import { resolveTenantProviderSecrets } from "@/lib/tenancy/providers";
 import { runWithTenantRequestContext, type TenantSystemContext } from "@/lib/tenancy/context";
@@ -196,6 +197,9 @@ export async function POST(
       actorEmail: auth.actorEmail,
       tenantSlug: auth.context.tenantSlug,
       tenantConfig: defaultTenant,
+      toolProfile: parseTaskToolProfile(new URL(request.url).searchParams.get("profile")),
+      // Per-tenant bearer key: no membership row, still tenant/module/grant bound.
+      principalKind: "integration",
     });
     // handleMcpRequest returns null for a true notification (no id member),
     // which per JSON-RPC 2.0 must not receive a response body at all.

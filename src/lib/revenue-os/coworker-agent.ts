@@ -12,7 +12,15 @@ import {
   type RevenueToolPackId,
 } from "./ai-tools";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
-import { AI_CONTEXT_VERSION, boundToolResult } from "./ai-context";
+import {
+  AI_CONTEXT_VERSION,
+  boundToolResult,
+  boundCoworkerText,
+  buildCoworkerGroundingContract,
+  MAX_COWORKER_OBJECTIVE_CHARS,
+  validateGroundedRevenueAnswer,
+  groundedAnswerFailure,
+} from "./ai-context";
 import { linkWorkItemRun, transitionOwnedWorkItem, type WorkItem } from "./work-items";
 
 import { deferWork, type WorkResult, type WorkArtifact } from "./work-result";
@@ -51,7 +59,7 @@ export type CoworkerAgentResult = WorkResult & { runId: string };
 export async function runCoworkerAgentTask(
   supabase: SupabaseClient,
   workItem: WorkItem,
-  options: { chat?: typeof openRouterChat } = {},
+  options: { chat?: typeof openRouterChat; signal?: AbortSignal } = {},
 ): Promise<CoworkerAgentResult> {
   if (!process.env.OPENROUTER_AGENT_MODEL)
     return { ...deferWork("AI model is not configured"), runId: "" };
@@ -90,7 +98,8 @@ export async function runCoworkerAgentTask(
   const role = coworker.role ?? coworkerId;
 
   const model = getOpenRouterModel(process.env.OPENROUTER_AGENT_MODEL);
-  const objective = workItem.objective?.slice(0, 4000) || "No objective specified";
+  const objective =
+    boundCoworkerText(workItem.objective, MAX_COWORKER_OBJECTIVE_CHARS) || "No objective specified";
 
   // Start an agent run trace.
   const run = await startAgentRun(supabase, {
@@ -115,7 +124,9 @@ export async function runCoworkerAgentTask(
         `Work kind: ${workItem.kind}`,
         `Objective: ${objective}`,
         workItem.entity_type ? `Entity: ${workItem.entity_type}/${workItem.entity_id}` : "",
-        workItem.reason ? `Reason: ${workItem.reason}` : "",
+        workItem.reason
+          ? `Reason: ${boundCoworkerText(workItem.reason, MAX_COWORKER_OBJECTIVE_CHARS)}`
+          : "",
         "Execute this work item. Use your tools to gather context, analyze, and take action as needed. Provide a concise outcome when done.",
       ]
         .filter(Boolean)
@@ -124,6 +135,7 @@ export async function runCoworkerAgentTask(
   ];
 
   const toolNames: string[] = [];
+  const successfulToolNames: string[] = [];
   let inputTokens = 0;
   let outputTokens = 0;
   let toolErrors = 0;
@@ -161,7 +173,13 @@ export async function runCoworkerAgentTask(
     const today = `Today is ${now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} (${now.toISOString().slice(0, 10)}).`;
 
     for (let turn = 0; turn < MAX_COWORKER_TOOL_TURNS; turn++) {
-      const grounding = [today, capabilitySummary, memorySummary].filter(Boolean).join("\n");
+      options.signal?.throwIfAborted();
+      const grounding = buildCoworkerGroundingContract({
+        today,
+        capabilitySummary,
+        memorySummary,
+        toolPack,
+      });
 
       const response = await (options.chat ?? openRouterChat)({
         database: supabase,
@@ -177,6 +195,7 @@ export async function runCoworkerAgentTask(
         job: "coworker-task",
         model,
         maxTokens: 800,
+        signal: options.signal,
         messages: [
           {
             role: "system",
@@ -214,10 +233,15 @@ export async function runCoworkerAgentTask(
 
       const uses = assistant.tool_calls ?? [];
       if (!uses.length) {
-        const text = assistant.content?.trim() || "No result produced";
+        const candidate = assistant.content?.trim() || "No result produced";
+        const grounding = validateGroundedRevenueAnswer(candidate, successfulToolNames);
+        const text = grounding.valid
+          ? candidate
+          : groundedAnswerFailure(
+              grounding.reason ?? "The coworker outcome has no verified source",
+            );
         let result: WorkResult = {
-          status:
-            toolErrors || !successfulTools || !assistant.content?.trim() ? "partial" : "completed",
+          status: toolErrors || !successfulTools || !grounding.valid ? "partial" : "completed",
           outcome: text,
           artifacts,
         };
@@ -248,7 +272,9 @@ export async function runCoworkerAgentTask(
       }
 
       // Execute tool calls.
+      options.signal?.throwIfAborted();
       for (const use of uses) {
+        options.signal?.throwIfAborted();
         const name = use.function.name;
         toolNames.push(name);
         let toolInput: Record<string, unknown> = {};
@@ -265,6 +291,7 @@ export async function runCoworkerAgentTask(
             !["propose_send_email", "propose_conversation_reply"].includes(name)
           )
             throw new Error("Draft work may only propose its email or conversation reply");
+          options.signal?.throwIfAborted();
           const { output, tool } = await executeRegisteredRevenueTool(
             {
               supabase,
@@ -278,6 +305,7 @@ export async function runCoworkerAgentTask(
             toolInput,
           );
           successfulTools++;
+          successfulToolNames.push(name);
           if (tool.impact !== "read") {
             const id = (output as { id?: unknown })?.id;
             if (typeof id !== "string")
@@ -316,12 +344,17 @@ export async function runCoworkerAgentTask(
     }
 
     // Turn exhaustion — return what was gathered.
-    const partial =
+    const gathered =
       transcript
         .filter((entry) => entry.role === "assistant")
         .map((entry) => entry.content?.trim())
         .filter(Boolean)
         .join("\n\n") || `Stopped after ${MAX_COWORKER_TOOL_TURNS} tool turns`;
+
+    const exhaustedGrounding = validateGroundedRevenueAnswer(gathered, successfulToolNames);
+    const partial = exhaustedGrounding.valid
+      ? gathered
+      : groundedAnswerFailure(exhaustedGrounding.reason ?? "Coworker turn limit reached");
 
     await finishAgentRun(supabase, run, "partial", {
       toolNames,
@@ -360,7 +393,8 @@ export async function runCoworkerAgentTask(
 export async function tryCoworkerAgentTask(
   supabase: SupabaseClient,
   item: WorkItem,
+  signal?: AbortSignal,
 ): Promise<CoworkerAgentResult | null> {
   if (!process.env.OPENROUTER_AGENT_MODEL) return null;
-  return runCoworkerAgentTask(supabase, item);
+  return runCoworkerAgentTask(supabase, item, { signal });
 }

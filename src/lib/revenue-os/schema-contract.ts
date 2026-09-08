@@ -14,6 +14,8 @@ export const TENANT_SCOPED_TABLES = [
   "radar_current_relationships",
   "message_evidence_context",
   "radar_assessments",
+  "site_drafts",
+  "site_draft_revisions",
   "radar_current_assessments",
   "radar_current_evidence_links",
   "radar_sources",

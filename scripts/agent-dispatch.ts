@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 /** Scoped HTTP by default; an explicitly configured local operator uses the same canonical service. */
 import { compareWorkOrder, formatWorkPacket, workPacket } from "../src/lib/work-packet";
+import { loadAgentConfiguration, assertClaimTransport } from "./lib/agent-profile.mjs";
 import type { FeatureRequest } from "../src/lib/feature-board";
 import { randomBytes, randomUUID } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, chmodSync } from "node:fs";
@@ -60,7 +61,11 @@ async function main() {
 
   if (flags["request-key"] && !/^[a-f0-9-]{36}$/i.test(flags["request-key"]))
     throw new Error("--request-key must be a UUID");
-  if (existsSync(".env.agent.local")) process.loadEnvFile(".env.agent.local");
+  const configuration = loadAgentConfiguration(repositoryContext(process.cwd()));
+  if (!flags["local-operator"] && configuration?.transport === "local-operator") {
+    flags["local-operator"] = "true";
+    flags.project ??= configuration.project;
+  }
   const localOperator = flags["local-operator"] === "true";
   if (localOperator && !flags.project)
     throw new Error("--local-operator requires --project <project-key>");
@@ -198,8 +203,7 @@ async function main() {
         "No local claim session exists for this card. Ask the maintainer to inspect ownership; never invent or replace another worker's token.",
       );
     const session = JSON.parse(readFileSync(sessionPath, "utf8"));
-    if (session.endpoint && session.endpoint !== String(endpoint))
-      throw new Error("Claim session belongs to another endpoint; use its original board URL.");
+    assertClaimTransport(session, transport);
     const operation = command === "complete" ? "submit" : command;
     const payload: Record<string, unknown> = { claimToken: session.claimToken };
     if (["progress", "block"].includes(operation)) payload.message = flags.message;
