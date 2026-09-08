@@ -17,8 +17,8 @@ export default function GlobalError({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#0a0a0a",
-          color: "#fff",
+          backgroundColor: "#FBFBFA",
+          color: "#0B0B0B",
           fontFamily: "system-ui, -apple-system, sans-serif",
         }}
       >
@@ -27,9 +27,7 @@ export default function GlobalError({
             style={{
               fontSize: "3.5rem",
               fontWeight: 700,
-              background: "linear-gradient(135deg, #d4af37, #f5d77a)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              color: "#0B0B0B",
               marginBottom: "1rem",
             }}
           >
@@ -38,7 +36,7 @@ export default function GlobalError({
           <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "0.75rem" }}>
             Something Went Wrong
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.6)", marginBottom: "2rem" }}>
+          <p style={{ color: "rgba(11,11,11,0.6)", marginBottom: "2rem" }}>
             An unexpected error occurred. Please try again or return to the home page.
           </p>
           <div
@@ -48,10 +46,10 @@ export default function GlobalError({
               onClick={reset}
               style={{
                 padding: "0.75rem 1.5rem",
-                borderRadius: "0.5rem",
+                borderRadius: 0,
                 border: "none",
-                background: "linear-gradient(135deg, #d4af37, #f5d77a)",
-                color: "#000",
+                background: "#0B0B0B",
+                color: "#FBFBFA",
                 fontWeight: 600,
                 fontSize: "0.875rem",
                 cursor: "pointer",
@@ -63,10 +61,10 @@ export default function GlobalError({
               href="/"
               style={{
                 padding: "0.75rem 1.5rem",
-                borderRadius: "0.5rem",
-                border: "1px solid rgba(255,255,255,0.15)",
-                background: "rgba(255,255,255,0.05)",
-                color: "#fff",
+                borderRadius: 0,
+                border: "1px solid rgba(11,11,11,0.2)",
+                background: "transparent",
+                color: "#0B0B0B",
                 fontWeight: 600,
                 fontSize: "0.875rem",
                 textDecoration: "none",

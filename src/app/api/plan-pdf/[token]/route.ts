@@ -105,10 +105,10 @@ function generatePlanHTML(
       text-align: center;
       margin-bottom: 40px;
       padding-bottom: 24px;
-      border-bottom: 3px solid #D4AF37;
+      border-bottom: 3px solid #0B0B0B;
     }
 
-    .logo { font-size: 28px; font-weight: 700; color: #D4AF37; margin-bottom: 4px; }
+    .logo { font-size: 28px; font-weight: 700; color: #0B0B0B; margin-bottom: 4px; }
     .subtitle { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 2px; }
 
     .plan-for {
@@ -122,7 +122,7 @@ function generatePlanHTML(
     .section-title {
       font-size: 18px;
       font-weight: 700;
-      color: #D4AF37;
+      color: #0B0B0B;
       margin-bottom: 12px;
       padding-bottom: 8px;
       border-bottom: 1px solid #eee;
@@ -132,7 +132,7 @@ function generatePlanHTML(
 
     .solution {
       background: #f9f9f7;
-      border-left: 3px solid #D4AF37;
+      border-left: 3px solid #0B0B0B;
       padding: 16px 20px;
       margin-bottom: 16px;
       border-radius: 0 8px 8px 0;
@@ -142,7 +142,7 @@ function generatePlanHTML(
     .solution .features { padding-left: 20px; }
     .solution .features li { font-size: 13px; color: #555; margin-bottom: 4px; }
     .solution .meta { display: flex; gap: 24px; margin-top: 8px; font-size: 13px; color: #666; }
-    .solution .meta strong { color: #D4AF37; }
+    .solution .meta strong { color: #0B0B0B; }
 
     .roadmap-phase {
       display: flex;
@@ -153,8 +153,8 @@ function generatePlanHTML(
     .phase-num {
       width: 32px;
       height: 32px;
-      background: #D4AF37;
-      color: white;
+      background: #0B0B0B;
+      color: #FBFBFA;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -168,14 +168,14 @@ function generatePlanHTML(
 
     .roi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .roi-col { background: #f9f9f7; padding: 16px; border-radius: 8px; }
-    .roi-col h4 { font-size: 14px; color: #D4AF37; margin-bottom: 8px; }
+    .roi-col h4 { font-size: 14px; color: #0B0B0B; margin-bottom: 8px; }
     .roi-col p { font-size: 13px; color: #444; margin-bottom: 4px; }
     .disclaimer { font-size: 11px; color: #999; font-style: italic; margin-top: 8px; }
 
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th { text-align: left; padding: 8px 12px; background: #f5f0e0; color: #333; font-weight: 600; }
+    th { text-align: left; padding: 8px 12px; background: #ececea; color: #333; font-weight: 600; }
     td { padding: 8px 12px; border-bottom: 1px solid #eee; }
-    .total td { font-weight: 700; border-top: 2px solid #D4AF37; }
+    .total td { font-weight: 700; border-top: 2px solid #0B0B0B; }
 
     .next-steps ol { padding-left: 20px; }
     .next-steps li { font-size: 14px; color: #333; margin-bottom: 8px; }
@@ -183,12 +183,12 @@ function generatePlanHTML(
     .footer {
       margin-top: 40px;
       padding-top: 20px;
-      border-top: 2px solid #D4AF37;
+      border-top: 2px solid #0B0B0B;
       text-align: center;
       font-size: 13px;
       color: #666;
     }
-    .footer a { color: #D4AF37; text-decoration: none; }
+    .footer a { color: #0B0B0B; text-decoration: none; }
 
     @media print {
       body { padding: 20px; }
