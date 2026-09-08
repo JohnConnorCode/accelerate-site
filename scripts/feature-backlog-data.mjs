@@ -9046,6 +9046,61 @@ export const featureBacklog = [
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-image-placement.ts covering overrides, fallback, refusal, and ledger accuracy; npm run build; git diff --check.",
   }),
+  card({
+    key: "site-studio-preview-share",
+    title: "Share draft previews through signed single-use links",
+    workstream: "site",
+    phase: 3,
+    status: "backlog",
+    priority: "medium",
+    initiative: "Site Studio",
+    description:
+      "Draft previews require a founder login today, so stakeholders cannot review work. Add signed single-use preview links that render one draft version through the production renderer with no admin session, expiring after first use or a short window. Guessed, reused, or expired tokens fail closed; previews stay out of sitemaps and carry no-index headers; every issuance and access writes an audit receipt.",
+    acceptance: [
+      "A signed link renders the exact draft version with no session, and reuse or expiry fails closed with a named error",
+      "Preview URLs never appear in sitemaps, feeds, or search indexes and carry no-index headers",
+      "Issuance, access, expiry, and refusal each leave an audit receipt without leaking token material",
+      "Revoking a link before use blocks access with a truthful receipt",
+      "A scoped suite proves issuance, single-use, expiry, guessing refusal, and audit coverage",
+    ],
+    dependencies: ["Versioned site document schema and independent renderer"],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/app/admin/site/[id]/page.tsx; src/lib/site-studio/renderer.tsx; src/lib/revenue-os/invoice-pages.ts as signed-token precedent",
+    guardrails:
+      "Tokens are unguessable, single-purpose, and short-lived. Never expose draft content on public routes or in sitemaps. Never log or return token material.",
+    labels: ["marketing", "security"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-preview-share.ts covering issuance, single-use, expiry, guessing refusal, and audit receipts; npm run build; git diff --check.",
+  }),
+  card({
+    key: "site-studio-version-history",
+    title: "Browse draft version history with diffs and rollback",
+    workstream: "site",
+    phase: 3,
+    status: "backlog",
+    priority: "medium",
+    initiative: "Site Studio",
+    description:
+      "Revisions overwrite silently today: operators cannot see what changed or return to an earlier draft. Add a version history surface listing every revision with its checksum, timestamp, and patch summary, a readable diff between any two versions, and one-action rollback that clones an old version into a new revision (never mutating history). History survives slug renames through stable draft identity.",
+    acceptance: [
+      "Every revision appears with checksum, timestamp, and a human-readable summary of applied patches",
+      "Diffing two versions shows changed nodes with before/after values and no raw document dump",
+      "Rollback creates a new revision cloned from the chosen version and moves no pointers destructively",
+      "History follows the draft across renames and slug changes without gaps",
+      "A scoped suite proves history completeness, diff accuracy, rollback semantics, and rename continuity",
+    ],
+    dependencies: [
+      "Versioned site document schema and independent renderer",
+      "Revise page drafts through validated patch operations",
+    ],
+    start:
+      "docs/planning/SITE-STUDIO.md; src/lib/site-studio/revision.ts; src/lib/site-studio/store.ts; src/app/admin/site/[id]/page.tsx",
+    guardrails:
+      "History is append-only; rollback is a new revision, never an edit of the past. Diffs explain changes in operator language, not JSON patches.",
+    labels: ["marketing", "testing"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-version-history.ts covering history, diffs, rollback, and rename continuity; npm run build; git diff --check.",
+  }),
 ];
 
 

@@ -33,6 +33,11 @@ import {
   MAX_ATTACHED_ASSETS,
   SlugInUseError,
 } from "../src/lib/site-studio/drafts";
+import {
+  DraftNotFoundError,
+  StaleDraftError,
+  reviseSiteDraft,
+} from "../src/lib/site-studio/revision";
 import { siteSlugSchema } from "../src/lib/site-studio/document";
 import { AI_JOBS } from "../src/lib/ai/model-registry";
 
@@ -421,8 +426,147 @@ async function main() {
   );
   assert.equal(serviceStore.get("corrupt"), null);
 
+  // Revision: typed patches against stable ids, validated server-side.
+  const revisable = await createSiteDraft(
+    serviceStore,
+    { brief, mode: "template", slug: "revisable-page" },
+    noGenerator,
+  );
+  const heroId = "hero-main";
+  const revised = await reviseSiteDraft(serviceStore, revisable.id, {
+    patches: [
+      { op: "setProp", nodeId: heroId, path: "heading", value: "Evenings, returned." },
+      { op: "setStyle", nodeId: "hero", path: "background", value: "surfaceDark" },
+    ],
+    expectedChecksum: revisable.checksum,
+  });
+  assert.notEqual(revised.checksum, revisable.checksum, "accepted patches refresh the checksum");
+  assert.equal(
+    (revised.document.root[0]?.children.find((node) => node.id === heroId) as { props: { heading: string } })
+      .props.heading,
+    "Evenings, returned.",
+  );
+  assert.equal(revised.document.root[0]?.styles?.background, "surfaceDark");
+  await assert.rejects(
+    reviseSiteDraft(serviceStore, revisable.id, {
+      patches: [{ op: "setProp", nodeId: heroId, path: "heading", value: "Stale attempt" }],
+      expectedChecksum: revisable.checksum,
+    }),
+    (error: unknown) => error instanceof StaleDraftError,
+    "stale checksums refuse instead of overwriting newer work",
+  );
+  await assert.rejects(
+    reviseSiteDraft(serviceStore, "00000000-0000-4000-8000-000000000000", {
+      patches: [{ op: "setProp", nodeId: heroId, path: "heading", value: "X" }],
+    }),
+    (error: unknown) => error instanceof DraftNotFoundError,
+    "unknown drafts fail honestly",
+  );
+  await assert.rejects(
+    reviseSiteDraft(serviceStore, revised.id, {
+      patches: [{ op: "setProp", nodeId: "no-such-node", path: "heading", value: "X" }],
+    }),
+    /Unknown node/,
+  );
+  await assert.rejects(
+    reviseSiteDraft(serviceStore, revised.id, {
+      patches: [{ op: "setProp", nodeId: heroId, path: "inventedProp", value: "X" }],
+    }),
+    /has no prop/,
+    "patches cannot invent props",
+  );
+  await assert.rejects(
+    reviseSiteDraft(serviceStore, revised.id, {
+      patches: [{ op: "setStyle", nodeId: heroId, path: "fontFamily", value: "Comic Sans" }],
+    }),
+    /Unknown style token/,
+  );
+  await assert.rejects(
+    reviseSiteDraft(serviceStore, revised.id, {
+      patches: [{ op: "setProp", nodeId: heroId, path: "heading", value: "See https://invented.example/x" }],
+    }),
+    /invents links/,
+    "human revisions get structural validation, including link honesty",
+  );
+  const moved = await reviseSiteDraft(serviceStore, revised.id, {
+    patches: [
+      {
+        op: "insert",
+        parentId: "what-you-get",
+        node: { id: "extra-note", type: "text", props: { text: "Inserted note." } },
+      },
+    ],
+  });
+  assert.ok(
+    moved.document.root.some((section) =>
+      section.children.some((node) => node.id === "extra-note"),
+    ),
+    "inserted nodes land in the named section",
+  );
+  await assert.rejects(
+    reviseSiteDraft(serviceStore, moved.id, {
+      patches: [
+        {
+          op: "insert",
+          parentId: "what-you-get",
+          node: { id: "extra-note", type: "text", props: { text: "Duplicate." } },
+        },
+      ],
+    }),
+    /already in use/,
+    "node ids stay unambiguous",
+  );
+  const replaced = await reviseSiteDraft(serviceStore, moved.id, {
+    patches: [
+      {
+        op: "replace",
+        nodeId: "extra-note",
+        node: { id: "extra-note", type: "text", props: { text: "Replaced note." } },
+      },
+    ],
+  });
+  await assert.rejects(
+    reviseSiteDraft(serviceStore, replaced.id, {
+      patches: [
+        {
+          op: "replace",
+          nodeId: "extra-note",
+          node: { id: "different-id", type: "text", props: { text: "Sneaky." } },
+        },
+      ],
+    }),
+    /stable addresses/,
+    "replacement keeps the original node id",
+  );
+  const renamed = await reviseSiteDraft(serviceStore, replaced.id, {
+    patches: [{ op: "updateMetadata", title: "New title", slug: "renamed-page" }],
+  });
+  assert.equal(renamed.title, "New title");
+  assert.equal(renamed.slug, "renamed-page");
+  assert.equal(
+    serviceStore.list().filter((draft) => draft.slug === "revisable-page").length,
+    0,
+    "a slug change leaves no orphan behind",
+  );
+  await assert.rejects(
+    reviseSiteDraft(serviceStore, renamed.id, {
+      patches: [{ op: "updateMetadata", slug: "custom-slug" }],
+    }),
+    (error: unknown) => error instanceof SlugInUseError,
+    "metadata slug changes respect slug ownership",
+  );
+  const pruned = await reviseSiteDraft(serviceStore, renamed.id, {
+    patches: [{ op: "remove", nodeId: "extra-note" }, { op: "move", nodeId: "questions", toIndex: 0 }],
+  });
+  assert.ok(
+    !pruned.document.root.some((section) =>
+      section.children.some((node) => node.id === "extra-note"),
+    ) && pruned.document.root[0]?.id === "questions",
+    "remove deletes and move reorders",
+  );
+
   console.log(
-    "Site Studio v1: schema, tokens, catalog, renderer, store, template, generation contract, job registration, and draft service passed.",
+    "Site Studio v1: schema, tokens, catalog, renderer, store, template, generation contract, job registration, draft service, and revision passed.",
   );
 }
 

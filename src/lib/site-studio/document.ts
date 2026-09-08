@@ -13,6 +13,9 @@ const nodeId = z
   .max(80)
   .regex(/^[a-z0-9-]+$/, "Node ids use lowercase letters, digits, and hyphens");
 
+/** Shared with entrypoints so transport validation and the domain agree. */
+export const siteNodeIdSchema = nodeId;
+
 const href = z
   .string()
   .min(1)

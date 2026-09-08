@@ -34,6 +34,9 @@ export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: s
   const [draft, setDraft] = useState<DraftDetail | null>(null);
   const [missing, setMissing] = useState(false);
   const [width, setWidth] = useState<(typeof WIDTHS)[number]>(WIDTHS[0]!);
+  const [titleInput, setTitleInput] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState(false);
+  const [renameError, setRenameError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/admin/site/drafts/${id}`)
@@ -47,6 +50,47 @@ export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: s
       })
       .catch(() => setDraft(null));
   }, [id]);
+
+  const reload = async () => {
+    const res = await fetch(`/api/admin/site/drafts/${id}`);
+    if (res.status === 404) {
+      setMissing(true);
+      return;
+    }
+    const data = await res.json();
+    setDraft(data.draft ?? null);
+  };
+
+  const rename = async () => {
+    if (!draft || !titleInput?.trim() || renaming) return;
+    setRenaming(true);
+    setRenameError(null);
+    try {
+      const res = await fetch(`/api/admin/site/drafts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patches: [{ op: "updateMetadata", title: titleInput.trim() }],
+          expectedChecksum: draft.checksum,
+        }),
+      });
+      const data = await res.json();
+      if (res.status === 409) {
+        await reload();
+        setRenameError(`${data.error ?? "Draft changed elsewhere."} Reloaded the latest copy.`);
+        return;
+      }
+      if (!res.ok) {
+        setRenameError(data.error ?? "Rename failed");
+        return;
+      }
+      setDraft(data.draft);
+    } catch {
+      setRenameError("Rename failed");
+    } finally {
+      setRenaming(false);
+    }
+  };
 
   if (missing) {
     return (
@@ -111,6 +155,32 @@ export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: s
           <SitePageRenderer document={document} />
         </AdminSurface>
       )}
+      <section aria-label="Rename draft">
+        <h2 className="admin-section-title">Rename draft</h2>
+        <AdminSurface padding="sm">
+          <div className="flex max-w-2xl flex-col gap-2 sm:flex-row">
+            <input
+              value={titleInput ?? draft.title}
+              onChange={(event) => setTitleInput(event.target.value)}
+              aria-label="Draft title"
+              className="min-w-0 flex-1 rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 text-sm text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
+            />
+            <button
+              type="button"
+              onClick={() => void rename()}
+              disabled={renaming || !(titleInput ?? draft.title).trim()}
+              className="min-h-11 shrink-0 rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-4 text-sm font-semibold text-[var(--admin-surface)] disabled:opacity-50"
+            >
+              {renaming ? "Saving" : "Save title"}
+            </button>
+          </div>
+          {renameError ? (
+            <p role="alert" className="admin-copy mt-2 text-sm text-[var(--admin-danger)]">
+              {renameError}
+            </p>
+          ) : null}
+        </AdminSurface>
+      </section>
       <section aria-label="Attached images">
         <h2 className="admin-section-title">Attached images</h2>
         {attached.length === 0 ? (

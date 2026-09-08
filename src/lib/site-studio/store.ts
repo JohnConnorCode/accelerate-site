@@ -1,6 +1,13 @@
 import "server-only";
 import { createHash, randomUUID } from "node:crypto";
-import { mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { siteDraftSchema, type SiteDocument, type SiteDraft } from "./document";
 
@@ -21,6 +28,8 @@ export interface SiteDraftRepository {
   list(): SiteDraft[];
   get(id: string): SiteDraft | null;
   save(input: SiteDraftInput): SiteDraft;
+  /** Removes one draft by id. Returns true when a draft was removed. */
+  remove(id: string): boolean;
 }
 
 export function draftChecksum(document: SiteDocument): string {
@@ -85,6 +94,16 @@ export class FileSiteDraftRepository implements SiteDraftRepository {
     writeFileSync(staging, JSON.stringify(draft, null, 2) + "\n");
     renameSync(staging, target);
     return draft;
+  }
+
+  remove(id: string): boolean {
+    if (!/^[a-f0-9-]{1,80}$/.test(id)) return false;
+    try {
+      unlinkSync(join(this.root, `${id}.json`));
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 
