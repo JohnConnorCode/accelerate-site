@@ -4,7 +4,7 @@ export function DemoWorkspacePreview({ scenarioId }: { scenarioId: DemoScenarioI
   const scenario = DEMO_SCENARIOS[scenarioId];
   return (
     <div
-      className="demo-workspace-preview mt-5 overflow-hidden rounded-[12px] shadow-[var(--demo-preview-shadow)]"
+      className="demo-workspace-preview mt-5 overflow-hidden rounded-[var(--admin-control-radius)] shadow-[var(--demo-preview-shadow)]"
       aria-hidden="true"
     >
       <div className="demo-workspace-preview-header flex items-center justify-between px-3 py-2">

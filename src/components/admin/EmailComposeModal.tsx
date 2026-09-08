@@ -156,10 +156,7 @@ export function EmailComposeModal({
         labelledBy="email-compose-title"
         maxWidth="md"
       >
-        <AdminSurface
-          padding="lg"
-          className="admin-dialog-surface max-h-[92dvh] overflow-y-auto rounded-[20px]"
-        >
+        <AdminSurface padding="lg" className="admin-dialog-surface max-h-[92dvh] overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="admin-eyebrow">Direct follow-up</p>
@@ -180,7 +177,7 @@ export function EmailComposeModal({
               onChange={(event) => setRecipient(event.target.value)}
               disabled={Boolean(recipientEmail)}
               placeholder="name@company.com"
-              autoFocus={!recipientEmail}
+              data-admin-autofocus={!recipientEmail}
             />
 
             {/* Template selector */}

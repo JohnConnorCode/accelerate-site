@@ -8,6 +8,9 @@ interface LoadingSkeletonProps {
   variant?: "table" | "cards" | "page" | "today" | "board" | "detail" | "form";
   rows?: number;
   count?: number;
+  metrics?: 0 | 3 | 4;
+  controls?: "compact" | "filters";
+  cardSize?: "compact" | "detailed";
 }
 
 function Rows({ count }: { count: number }) {
@@ -29,7 +32,10 @@ function Rows({ count }: { count: number }) {
 
 function Metrics({ count = 4 }: { count?: number }) {
   return (
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-hidden="true">
+    <section
+      className={cn("grid gap-3", count === 3 ? "grid-cols-3" : "grid-cols-2 xl:grid-cols-4")}
+      aria-hidden="true"
+    >
       {Array.from({ length: count }, (_, index) => (
         <div className="admin-skeleton-surface min-h-32 p-5" key={index}>
           <SkeletonBar className="h-2.5 w-24" />
@@ -41,50 +47,32 @@ function Metrics({ count = 4 }: { count?: number }) {
   );
 }
 
-export function LoadingSkeleton({
+function LoadingSkeletonContent({
   variant = "table",
   rows: rowsProp,
   count,
+  metrics = 0,
+  controls = "compact",
+  cardSize = "compact",
 }: LoadingSkeletonProps) {
   const rows = rowsProp ?? count ?? 5;
   if (variant === "cards") return <Metrics count={Math.min(4, Math.max(1, count ?? 4))} />;
   if (variant === "today")
     return (
-      <div className="space-y-4" aria-hidden="true">
-        <section className="admin-skeleton-surface grid grid-cols-2 overflow-hidden xl:grid-cols-4">
-          {Array.from({ length: 4 }, (_, index) => (
-            <div
-              className={cn(
-                "min-h-[96px] border-[var(--admin-border)] p-4 xl:border-b-0",
-                index < 2 && "border-b",
-                index % 2 === 0 && "border-r",
-                index < 3 && "xl:border-r",
-              )}
-              key={index}
-            >
-              <SkeletonBar className="h-2.5 w-20" />
-              <SkeletonBar className="mt-3 h-7 w-24" />
-              <SkeletonBar className="mt-2 h-2.5 w-28" />
+      <div className="space-y-6" aria-hidden="true">
+        <div className="flex gap-3">
+          <SkeletonBar className="h-11 w-20" />
+          <SkeletonBar className="h-11 w-24" />
+          <SkeletonBar className="h-11 w-24" />
+        </div>
+        {[2, 4].map((count, index) => (
+          <section key={index}>
+            <SkeletonBar className="mb-3 h-4 w-28" />
+            <div className="admin-skeleton-surface overflow-hidden">
+              <Rows count={count} />
             </div>
-          ))}
-        </section>
-        <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="admin-skeleton-surface overflow-hidden">
-            <div className="px-5 py-4 sm:px-6">
-              <SkeletonBar className="h-2.5 w-24" />
-              <SkeletonBar className="mt-3 h-5 w-56" />
-              <div className="mt-4 flex gap-2">
-                <SkeletonBar className="h-10 w-20" />
-                <SkeletonBar className="h-10 w-20" />
-                <SkeletonBar className="h-10 w-28" />
-              </div>
-            </div>
-            <Rows count={rows} />
-          </div>
-          <div className="admin-skeleton-surface hidden overflow-hidden xl:block">
-            <Rows count={3} />
-          </div>
-        </section>
+          </section>
+        ))}
       </div>
     );
   if (variant === "page")
@@ -103,24 +91,51 @@ export function LoadingSkeleton({
     );
   if (variant === "board")
     return (
-      <div className="space-y-4">
-        <Metrics />
-        <section
-          className="grid grid-cols-[repeat(3,minmax(230px,1fr))] gap-3 overflow-hidden"
-          aria-hidden="true"
-        >
-          {Array.from({ length: 3 }, (_, column) => (
-            <div className="admin-skeleton-surface min-h-80 p-4" key={column}>
-              <SkeletonBar className="h-3 w-24" />
-              {Array.from({ length: 3 }, (_, row) => (
-                <div className="mt-3 rounded-[14px] bg-[var(--admin-surface-subtle)] p-4" key={row}>
-                  <SkeletonBar className="h-3 w-3/5" />
-                  <SkeletonBar className="mt-3 h-2.5 w-4/5" />
-                  <SkeletonBar className="mt-5 h-8 w-full" />
-                </div>
-              ))}
+      <div className="space-y-4" aria-hidden="true">
+        {metrics > 0 && <Metrics count={metrics} />}
+        {controls === "filters" ? (
+          <div className="admin-skeleton-surface space-y-5 p-5">
+            <SkeletonBar className="h-3 w-24" />
+            <div className="flex gap-3">
+              <SkeletonBar className="h-10 w-20" />
+              <SkeletonBar className="h-10 w-32" />
+              <SkeletonBar className="h-10 w-24" />
             </div>
-          ))}
+            <div className="flex flex-wrap gap-3">
+              <SkeletonBar className="h-11 w-72" />
+              <SkeletonBar className="h-11 w-32" />
+              <SkeletonBar className="h-11 w-32" />
+            </div>
+          </div>
+        ) : (
+          <div className="flex h-11 justify-end">
+            <SkeletonBar className="h-11 w-20" />
+          </div>
+        )}
+        <section className="kanban-workspace overflow-hidden">
+          <div className="flex gap-4">
+            {Array.from({ length: 4 }, (_, column) => (
+              <div className="kanban-column shrink-0" key={column}>
+                <div className="flex h-14 items-center px-3">
+                  <SkeletonBar className="h-3 w-24" />
+                </div>
+                <div className="kanban-column-body min-h-80 space-y-3 rounded-2xl p-2">
+                  {Array.from({ length: 2 }, (_, row) => (
+                    <div className="admin-skeleton-surface p-4" key={row}>
+                      <SkeletonBar className="h-3 w-3/5" />
+                      <SkeletonBar className="mt-3 h-2.5 w-4/5" />
+                      {cardSize === "detailed" && (
+                        <>
+                          <SkeletonBar className="mt-5 h-20 w-full" />
+                          <SkeletonBar className="mt-3 ml-auto h-9 w-28" />
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
       </div>
     );
@@ -176,5 +191,14 @@ export function LoadingSkeleton({
       </div>
       <Rows count={rows} />
     </section>
+  );
+}
+
+/** The delayed reveal also covers retained routes that render this directly. */
+export function LoadingSkeleton(props: LoadingSkeletonProps) {
+  return (
+    <div className="admin-loading-placeholder">
+      <LoadingSkeletonContent {...props} />
+    </div>
   );
 }

@@ -79,7 +79,7 @@ export function AdminCreateTaskModal() {
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             placeholder="Call back, send proposal, review submission…"
-            autoFocus
+            data-admin-autofocus
           />
           <div className="grid grid-cols-2 gap-3">
             <label className="admin-field-label">

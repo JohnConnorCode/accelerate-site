@@ -297,7 +297,7 @@ export function NotificationBell({ placement = "sidebar" }: { placement?: "sideb
         type="button"
         onClick={togglePanel}
         className={cn(
-          "admin-notification-trigger relative inline-flex items-center justify-center rounded-[10px] text-white-muted transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-white-primary active:scale-[0.96]",
+          "admin-notification-trigger relative inline-flex items-center justify-center rounded-[var(--admin-control-radius)] text-white-muted transition-[color,background-color,transform] duration-150 hover:bg-black/5 hover:text-white-primary active:scale-[0.96]",
           placement === "mobile" ? "size-11" : "size-10",
         )}
         aria-label={

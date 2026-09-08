@@ -20,7 +20,7 @@ export const BRANDING_TOOLS = [
   {
     name: "get_workspace_brand",
     description:
-      "Read current workspace logo, colors, public identity and brand revision. These are non-secret presentation settings.",
+      "Read current workspace logo, colors, public identity, adminTheme definition and brand revision. These are non-secret presentation settings.",
     impact: "read",
     confirmationRequired: false,
     connectionRequirement: "none",
@@ -29,7 +29,7 @@ export const BRANDING_TOOLS = [
   {
     name: "preview_workspace_brand_update",
     description:
-      "Preview exact branding changes without saving. Supply only changed logo, color or business identity fields. Returns before/after and a digest required to propose; do not claim changes are applied.",
+      "Preview exact branding changes without saving. Supply only changed fields. To generate an admin appearance, supply adminTheme: a version 1 definition with name, description, mode, font, seven-color palette (canvas, surface, ink, muted, accent, sidebar, sidebarInk), geometry (surfaceRadius 0–24, controlRadius 0–16), and depth (flat, soft, elevated). Text contrast must be at least 4.5:1. Preserve unrelated brand values. Returns before/after and a digest required to propose; do not claim changes are applied.",
     impact: "read",
     confirmationRequired: false,
     connectionRequirement: "none",

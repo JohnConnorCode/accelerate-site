@@ -1,4 +1,8 @@
 "use client";
+import { useTheme } from "next-themes";
+import { AdminThemeEditor } from "@/components/admin/AdminThemeEditor";
+import { saveDemoAppearance } from "@/lib/admin/demo/appearance-state";
+import { validateAdminTheme } from "@/lib/admin/theme-definition";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -27,6 +31,8 @@ type BrandResponse = {
 };
 function BrandEditor({ initial, onSaved }: { initial: BrandResponse; onSaved: () => void }) {
   const demo = useAdminDemo();
+  const queryClient = useQueryClient();
+  const { setTheme } = useTheme();
   const [brand, setBrand] = useState(initial.brand),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -43,15 +49,21 @@ function BrandEditor({ initial, onSaved }: { initial: BrandResponse; onSaved: ()
     setBrand((previous) => ({ ...previous, [key]: value }));
     setNotice("");
   }
-  async function save() {
+  async function save(applyTheme = false) {
     setBusy(true);
     setError("");
     try {
-      await fetchJson("/api/admin/tenant/branding", {
+      if (brand.adminTheme) validateAdminTheme(brand.adminTheme);
+      const saved = await fetchJson<BrandResponse>("/api/admin/tenant/branding", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ brand, revision: initial.revision }),
       });
+      queryClient.setQueryData(["admin", "workspace-branding"], saved);
+      if (applyTheme && brand.adminTheme) {
+        setTheme("workspace");
+        if (demo) saveDemoAppearance(demo.scenarioId, "workspace");
+      }
       setNotice("Workspace branding saved.");
       onSaved();
     } catch (cause) {
@@ -79,6 +91,12 @@ function BrandEditor({ initial, onSaved }: { initial: BrandResponse; onSaved: ()
   );
   return (
     <>
+      <AdminThemeEditor
+        value={brand.adminTheme ?? null}
+        onChange={(theme) => edit("adminTheme", theme)}
+        onApply={() => void save(true)}
+        busy={busy}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="admin-copy text-sm" role="status">
           {notice ||
@@ -279,7 +297,7 @@ export default function BrandingPage() {
     <div className="space-y-6 pb-10">
       <PageHeader
         title="Branding"
-        subtitle="Make every customer document feel like your business."
+        subtitle="Your workspace appearance and customer-facing identity."
       />
       <DemoBusinessNotice />
       {query.error ? (

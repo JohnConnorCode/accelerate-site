@@ -131,7 +131,7 @@ export default function ContactTimelinePage() {
             {canonical?.opportunities?.length ? (
               <Link
                 href={`/admin/pipeline?search=${encodeURIComponent(email)}`}
-                className="inline-flex min-h-10 items-center gap-1.5 rounded-[10px] bg-white px-3 text-xs font-semibold text-black transition-[opacity,transform] hover:opacity-85 active:scale-[0.97]"
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--admin-control-radius)] bg-white px-3 text-xs font-semibold text-black transition-[opacity,transform] hover:opacity-85 active:scale-[0.97]"
               >
                 Open in Pipeline <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>

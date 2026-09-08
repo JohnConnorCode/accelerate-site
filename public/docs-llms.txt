@@ -48,7 +48,7 @@ Opportunities, stages, value, and closed revenue in one operating view.
 
 - [Pipeline](https://www.acceleratewith.us/docs/pipeline/overview) (updated 2026-09-04): Move work that produces revenue, then review every opportunity from one board.
 - [Understand revenue figures](https://www.acceleratewith.us/docs/pipeline/revenue) (updated 2026-09-05): Read client and proposal totals and investigate differences from pipeline or payment records.
-- [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-05): Move an opportunity forward and keep its next action clear.
+- [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-08): Move an opportunity forward and keep its next action clear.
 
 ## Conversations
 The reply-ready inbox for Gmail, forms, chat, and transcripts.
@@ -106,12 +106,12 @@ Tenants, setup, settings, integrations, and the Feature Board.
 - [Workspace](https://www.acceleratewith.us/docs/workspace/overview) (updated 2026-09-04): How a tenant is provisioned, connected, and kept ready.
 - [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-06): Bring external context into the workspace and make supported actions available to your team and AI.
 - [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-05): Verify access and the connections needed for your first real workflow.
-- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-05): Update notifications and configuration, then confirm the saved result.
+- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-08): Update notifications and configuration, then confirm the saved result.
 
 ## Customize
 Configure your workspace or build around a different business process.
 
-- [Make Command Center fit your business](https://www.acceleratewith.us/docs/customize/overview) (updated 2026-09-07): Configure the defaults, adapt a workflow, or build an App with its own records and screens.
+- [Make Command Center fit your business](https://www.acceleratewith.us/docs/customize/overview) (updated 2026-09-08): Configure the defaults, adapt a workflow, or build an App with its own records and screens.
 
 ## Build on it
 For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.

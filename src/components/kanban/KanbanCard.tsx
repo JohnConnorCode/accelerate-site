@@ -8,6 +8,7 @@ export interface KanbanCardRenderOpts {
   isDragging: boolean;
   isOverlay: boolean;
   disabled: boolean;
+  busy?: boolean;
   /** Spread onto whatever element should act as the drag handle (a grip
    * button, or the whole card). Empty while disabled/overlay. */
   dragHandleProps: Record<string, unknown>;
@@ -18,6 +19,7 @@ interface KanbanCardProps<T> {
   id: string;
   columnKey: string;
   disabled?: boolean;
+  busy?: boolean;
   renderCard: (item: T, opts: KanbanCardRenderOpts) => ReactNode;
 }
 
@@ -34,22 +36,38 @@ export function KanbanCard<T>({
   id,
   columnKey,
   disabled = false,
+  busy = false,
   renderCard,
 }: KanbanCardProps<T>) {
-  const { setNodeRef, transform, transition, isDragging, attributes, listeners } = useSortable({
+  const {
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+    attributes,
+    listeners,
+    setActivatorNodeRef,
+  } = useSortable({
     id,
     disabled,
     data: { type: "card", columnKey },
+    transition: { duration: 180, easing: "cubic-bezier(.2,0,0,1)" },
   });
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Translate.toString(transform),
     transition,
   };
-  const dragHandleProps = disabled ? {} : { ...attributes, ...listeners };
+  const dragHandleProps = disabled ? {} : { ...attributes, ...listeners, ref: setActivatorNodeRef };
 
   return (
-    <div ref={setNodeRef} style={style}>
-      {renderCard(item, { isDragging, isOverlay: false, disabled, dragHandleProps })}
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="kanban-sortable"
+      data-kanban-card={id}
+      data-dragging={isDragging || undefined}
+    >
+      {renderCard(item, { isDragging, isOverlay: false, disabled, busy, dragHandleProps })}
     </div>
   );
 }

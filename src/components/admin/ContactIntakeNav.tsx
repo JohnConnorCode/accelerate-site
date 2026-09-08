@@ -12,7 +12,7 @@ const views = [
 export function ContactIntakeNav({ active }: { active: (typeof views)[number]["id"] }) {
   return (
     <nav
-      className="scrollbar-hide mb-5 flex w-fit max-w-full gap-1 overflow-x-auto rounded-[14px] bg-[var(--admin-surface)] p-1 shadow-[var(--admin-shadow-border)]"
+      className="scrollbar-hide mb-5 flex w-fit max-w-full gap-1 overflow-x-auto rounded-[var(--admin-control-radius)] bg-[var(--admin-surface)] p-1 shadow-[var(--admin-shadow-border)]"
       aria-label="Contact intake views"
     >
       {views.map((view) => {
@@ -24,7 +24,7 @@ export function ContactIntakeNav({ active }: { active: (typeof views)[number]["i
             href={view.href}
             aria-current={selected ? "page" : undefined}
             className={cn(
-              "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-[10px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]",
+              "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]",
               selected
                 ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
                 : "text-[var(--admin-muted)] hover:bg-[var(--admin-surface-subtle)] hover:text-[var(--admin-ink)]",

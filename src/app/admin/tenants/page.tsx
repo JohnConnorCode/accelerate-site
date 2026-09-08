@@ -336,7 +336,7 @@ export default function TenantDirectoryPage() {
                         onClick={() => setFilter(id)}
                         aria-pressed={filter === id}
                         className={cn(
-                          "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-[10px] px-3 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.96]",
+                          "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.96]",
                           filter === id
                             ? "bg-[var(--admin-ink)] text-[var(--admin-surface)] shadow-sm"
                             : "text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)]",
@@ -368,7 +368,7 @@ export default function TenantDirectoryPage() {
                         <div className="p-4 sm:p-5">
                           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                             <div className="flex min-w-0 items-start gap-3.5">
-                              <span className="relative grid size-11 shrink-0 place-items-center rounded-[13px] bg-[var(--admin-soft)] shadow-sm">
+                              <span className="relative grid size-11 shrink-0 place-items-center rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] shadow-sm">
                                 <Building2 className="size-[18px]" />
                                 <span
                                   className={cn(
@@ -497,7 +497,7 @@ export default function TenantDirectoryPage() {
                               {members.map((membership) => (
                                 <div
                                   key={membership.id}
-                                  className="flex min-h-11 items-center justify-between gap-3 rounded-[12px] bg-[var(--admin-surface)] py-1 pl-3 pr-1 shadow-[var(--admin-shadow-border)]"
+                                  className="flex min-h-11 items-center justify-between gap-3 rounded-[var(--admin-control-radius)] bg-[var(--admin-surface)] py-1 pl-3 pr-1 shadow-[var(--admin-shadow-border)]"
                                 >
                                   <span className="min-w-0 truncate text-xs font-medium">
                                     {membership.invited_email}
@@ -522,7 +522,7 @@ export default function TenantDirectoryPage() {
                                             `Invitation sent to ${membership.invited_email}`,
                                           )
                                         }
-                                        className="grid size-10 place-items-center rounded-[10px] text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-[var(--admin-soft)] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:opacity-50"
+                                        className="grid size-10 place-items-center rounded-[var(--admin-control-radius)] text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-[var(--admin-soft)] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:opacity-50"
                                         aria-label={`Resend invitation to ${membership.invited_email}`}
                                       >
                                         {busy === `resend-${membership.id}` ? (
@@ -551,7 +551,7 @@ export default function TenantDirectoryPage() {
                                               successMessage: `Access revoked for ${membership.invited_email}`,
                                             })
                                           }
-                                          className="grid size-10 place-items-center rounded-[10px] text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-rose-500/10 hover:text-rose-600 active:scale-[0.96]"
+                                          className="grid size-10 place-items-center rounded-[var(--admin-control-radius)] text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-rose-500/10 hover:text-rose-600 active:scale-[0.96]"
                                           aria-label={`Revoke ${membership.invited_email}`}
                                         >
                                           <UserMinus className="size-3.5" />
@@ -647,7 +647,7 @@ export default function TenantDirectoryPage() {
 
                 <AdminSurface padding="lg" className="h-fit xl:sticky xl:top-5">
                   <div className="mb-5 flex items-start gap-3">
-                    <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-[var(--admin-soft)] shadow-sm">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] shadow-sm">
                       <Plus className="size-[18px]" />
                     </span>
                     <div>
@@ -718,7 +718,7 @@ export default function TenantDirectoryPage() {
                       Create workspace
                     </button>
                   </form>
-                  <div className="mt-5 rounded-[14px] bg-[var(--admin-soft)] p-3.5 shadow-[var(--admin-shadow-border)]">
+                  <div className="mt-5 rounded-[var(--admin-control-radius)] bg-[var(--admin-soft)] p-3.5 shadow-[var(--admin-shadow-border)]">
                     <div className="flex gap-2.5">
                       <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-700 dark:text-emerald-300" />
                       <p className="text-pretty text-xs leading-5 text-[var(--admin-muted)]">
@@ -745,7 +745,7 @@ export default function TenantDirectoryPage() {
           <AdminSurface padding="lg" className="shadow-2xl">
             <span
               className={cn(
-                "grid size-11 place-items-center rounded-[13px]",
+                "grid size-11 place-items-center rounded-[var(--admin-control-radius)]",
                 confirmation.tone === "danger"
                   ? "bg-rose-500/10 text-rose-700 dark:text-rose-300"
                   : "bg-amber-500/12 text-amber-800 dark:text-amber-300",
@@ -771,7 +771,7 @@ export default function TenantDirectoryPage() {
                 disabled={Boolean(busy)}
                 onClick={() => void confirmAction()}
                 className={cn(
-                  "inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-4 text-xs font-semibold text-white transition-[background-color,opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-50",
+                  "inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--admin-control-radius)] px-4 text-xs font-semibold text-white transition-[background-color,opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-50",
                   confirmation.tone === "danger"
                     ? "bg-rose-700 hover:bg-rose-800"
                     : "bg-amber-700 hover:bg-amber-800",
