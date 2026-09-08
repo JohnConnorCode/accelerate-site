@@ -1,17 +1,19 @@
 # Runtime record permission contract
 
-One shared evaluator — `src/lib/revenue-os/record-permissions.ts`
-(`authorizeRecordAccess`) — decides record and action permissions for UI,
-API, AI, MCP, and plugins. Surfaces delegate to it instead of redefining
-the rules, so the same fixture decides identically everywhere.
+The shared evaluator — `src/lib/revenue-os/record-permissions.ts`
+(`authorizeRecordAccess`) — checks bound tenant, membership, module and entity authority. MCP resource
+reads and discovery call it; existing UI/API and plugin paths retain their
+authentication and capability boundaries. A helper test is not proof that all
+entrypoints have migrated to this evaluator. The universal parity card remains
+open until its affected surfaces are verified.
 
 ## Authority boundaries
 
-| Principal | How it authenticates | What it may touch |
-|---|---|---|
-| `platform_admin` | `ADMIN_EMAIL` exact match (`src/lib/admin/access.ts`) | Any record inside one explicit tenant; still module- and grant-bound. Never ambient cross-tenant reads. |
-| `workspace_member` | Active `tenant_memberships` row for the tenant | Reads and relates with any active membership. Writes, exports, and actions require the `admin` role. |
-| `integration` | Explicit tenant-bound system identity (`TenantSystemContext`, MCP bearer key, cron allowlist) | Tenant-active, module, and grant checks still apply. No membership row exists, so none is consulted. |
+| Principal          | How it authenticates                                                                          | What it may touch                                                                                       |
+| ------------------ | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `platform_admin`   | `ADMIN_EMAIL` exact match (`src/lib/admin/access.ts`)                                         | Any record inside one explicit tenant; still module- and grant-bound. Never ambient cross-tenant reads. |
+| `workspace_member` | Active `tenant_memberships` row for the tenant                                                | Reads and relates with any active membership. Writes, exports, and actions require the `admin` role.    |
+| `integration`      | Explicit tenant-bound system identity (`TenantSystemContext`, MCP bearer key, cron allowlist) | Tenant-active, module, and grant checks still apply. No membership row exists, so none is consulted.    |
 
 Tenant workspaces additionally require an active `tenants` row and explicit
 tenant context in middleware and API authorization (`MULTI-TENANCY-CONTRACT.md`).
@@ -29,13 +31,14 @@ tenant context in middleware and API authorization (`MULTI-TENANCY-CONTRACT.md`)
    — the same helper admin navigation, `requireAdminForModule`, and AI tool
    availability use.
 4. **Entity and field.** Registered custom types inherit the host checks above
-   and additionally require an explicit capability grant (`entity_not_granted`
+   and additionally require a host-supplied structured capability grant for the
+   same tenant that names the exact entity (`entity_not_granted`
    otherwise). Field reads are limited to the type's `readable_columns`
    (`field_not_readable` otherwise), so a manifest can never widen its own
-   authority. Host-canonical tables are governed by the tenant-bound client,
-   membership, and module checks; they carry no field ACLs.
-5. **Autonomy.** Writes and actions honor a caller-supplied `checkAutonomy`
-   verdict; a refused or hard-floor verdict denies with `autonomy_denied`.
+   authority. Unknown entity types deny. The explicit MCP resource adapter is a read-only
+   host projection; it cannot authorize arbitrary entity operations.
+5. **Autonomy.** Writes, actions and exports require a host-supplied `checkAutonomy`
+   verdict; an absent, refused or hard-floor verdict denies with `autonomy_denied`.
 
 Every denial carries a machine-readable code from `RECORD_DENY_CODES` and a
 policy reference (`tenantId`, `moduleId`, `entityType`, `grant`,

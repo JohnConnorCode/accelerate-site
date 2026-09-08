@@ -197,8 +197,20 @@
       "defaultEnabled": false
     },
     {
+      "id": "opportunity-radar",
+      "name": "Opportunity Radar",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
       "id": "pipeline-watch",
       "name": "Pipeline follow-up",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
+      "id": "receivables-collections",
+      "name": "Collections Action Desk",
       "core": false,
       "defaultEnabled": false
     },
@@ -259,6 +271,14 @@
       "module": "core-conversations"
     },
     {
+      "tool": "get_radar_outreach_history",
+      "module": "core-conversations"
+    },
+    {
+      "tool": "reconcile_radar_outreach",
+      "module": "core-conversations"
+    },
+    {
       "tool": "search_contacts",
       "module": "core-contacts"
     },
@@ -293,6 +313,38 @@
     {
       "tool": "get_agent_activity_for_entity",
       "module": "core-intelligence"
+    },
+    {
+      "tool": "discover_tool_bundles",
+      "module": "core-system"
+    },
+    {
+      "tool": "activate_tool_bundle",
+      "module": "core-system"
+    },
+    {
+      "tool": "get_module_configuration",
+      "module": "core-system"
+    },
+    {
+      "tool": "preview_module_configuration",
+      "module": "core-system"
+    },
+    {
+      "tool": "propose_module_configuration",
+      "module": "core-system"
+    },
+    {
+      "tool": "get_workspace_brand",
+      "module": "core-system"
+    },
+    {
+      "tool": "preview_workspace_brand_update",
+      "module": "core-system"
+    },
+    {
+      "tool": "propose_workspace_brand_update",
+      "module": "core-system"
     },
     {
       "tool": "get_claimable_work",
@@ -375,8 +427,88 @@
       "module": "meeting-prep"
     },
     {
+      "tool": "get_radar_workspace",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "prepare_radar_opportunity_brief",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "prepare_radar_brief",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "get_radar_model_status",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "reconcile_radar_model_call",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "get_radar_store",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "preview_radar_store_change",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "propose_radar_store_change",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "get_radar_selection",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "preview_radar_assessment",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "propose_radar_assessment",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "get_radar_relationship_context",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "preview_radar_relationship",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "propose_radar_relationship",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "prepare_radar_outreach",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "preview_radar_outreach",
+      "module": "opportunity-radar"
+    },
+    {
+      "tool": "propose_radar_outreach",
+      "module": "opportunity-radar"
+    },
+    {
       "tool": "run_pipeline_watch",
       "module": "pipeline-watch"
+    },
+    {
+      "tool": "get_collection_cases",
+      "module": "receivables-collections"
+    },
+    {
+      "tool": "preview_collection_reminder",
+      "module": "receivables-collections"
+    },
+    {
+      "tool": "propose_collection_reminder",
+      "module": "receivables-collections"
     },
     {
       "tool": "prepare_stripe_invoicing",

@@ -337,7 +337,21 @@ async function main() {
     /Revoked/,
   );
   assert.equal(denied.rows("opportunities")[0]?.next_action, undefined);
-  assert.equal(denied.rows("action_queue")[0]?.status, "failed");
+  // Authority revoked after approval now writes a truthful `denied` terminal
+  // receipt (denyAction), not a generic `failed` that looks like an outage.
+  assert.equal(denied.rows("action_queue")[0]?.status, "denied");
+  assert.deepEqual((denied.rows("action_queue")[0]?.result as Record<string, unknown>)?.policy, {
+    policy_id: "p1",
+    action_key: "update_next_action",
+    level: "prohibited",
+    mode: "approved",
+  });
+  assert.ok(
+    denied
+      .rows("audit_log")
+      .some((row) => row.action === "action.denied" && row.entity_id === "a1"),
+    "a revocation after approval must leave an action.denied audit entry",
+  );
   const automatic = new AuthorizedMemorySupabase({
     action_queue: [{ id: "auto", status: "pending", action_type: "create_task" }],
     agent_memory: [],

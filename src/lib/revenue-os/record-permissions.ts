@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { getEntityType } from "./entity-registry";
 import { isModuleEnabled } from "./modules";
+import type { CapabilityGrant } from "./capability-data-api";
 
 export const RECORD_PERMISSION_VERSION = "revenue-os-record-permissions.v1";
 
@@ -10,10 +11,7 @@ export const RECORD_PERMISSION_VERSION = "revenue-os-record-permissions.v1";
  * writes and actions must additionally pass autonomy and approval upstream. */
 export type RecordPermissionOperation = "read" | "relate" | "export" | "write" | "action";
 
-export type RecordPermissionPrincipalKind =
-  | "platform_admin"
-  | "workspace_member"
-  | "integration";
+export type RecordPermissionPrincipalKind = "platform_admin" | "workspace_member" | "integration";
 
 export interface RecordPermissionPrincipal {
   kind: RecordPermissionPrincipalKind;
@@ -64,9 +62,14 @@ export interface AuthorizeRecordAccessInput {
   /** Single field being read or written, when the check is field-scoped. */
   field?: string;
   /** Grant the caller acts under for registered custom types. */
-  grant?: string;
+  grant?: CapabilityGrant;
   /** Precomputed autonomy verdict from checkAutonomy (no duplicate RPC here). */
-  autonomy?: { allowed: boolean; hardFloor?: boolean; level?: string | null; reason?: string | null };
+  autonomy?: {
+    allowed: boolean;
+    hardFloor?: boolean;
+    level?: string | null;
+    reason?: string | null;
+  };
 }
 
 function deny(
@@ -97,12 +100,20 @@ export async function authorizeRecordAccess(
   input: AuthorizeRecordAccessInput,
 ): Promise<RecordPermissionDecision> {
   const { principal, operation, entityType, moduleId } = input;
+  // Snapshot the host's approved grant before any asynchronous read.
+  const grant =
+    input.grant && typeof input.grant === "object"
+      ? {
+          ...input.grant,
+          entities: Array.isArray(input.grant.entities) ? [...input.grant.entities] : [],
+        }
+      : undefined;
   const tenantId = tenantIdForDatabase(db);
   const policy: RecordPermissionPolicyRef = {
     tenantId: tenantId ?? "unbound",
     moduleId,
     entityType,
-    grant: input.grant ?? null,
+    grant: input.grant?.capabilityId ?? null,
     autonomyLevel: input.autonomy?.level ?? null,
   };
   if (!tenantId)
@@ -177,21 +188,29 @@ export async function authorizeRecordAccess(
     // Registered custom types inherit the host access policy above AND
     // require an explicit grant: a manifest can never widen its own
     // authority beyond the grant the host approved.
-    if (!input.grant)
+    if (
+      !grant ||
+      grant.tenantId !== tenantId ||
+      !grant.capabilityId ||
+      !grant.entities.includes(entityType)
+    )
       return deny(
         "entity_not_granted",
         `Entity type ${entityType} requires an explicit capability grant`,
         policy,
       );
     const readable = (registered.metadata as Record<string, unknown> | null)?.readable_columns;
-    if (input.field && input.field !== "id" && (!Array.isArray(readable) || !readable.includes(input.field)))
-      return deny(
-        "field_not_readable",
-        `Field ${input.field} is not readable on ${entityType}`,
-        { ...policy, grant: input.grant },
-      );
-    policy.grant = input.grant;
-  } else if (input.field && operation !== "read" && operation !== "relate") {
+    if (
+      input.field &&
+      input.field !== "id" &&
+      (!Array.isArray(readable) || !readable.includes(input.field))
+    )
+      return deny("field_not_readable", `Field ${input.field} is not readable on ${entityType}`, {
+        ...policy,
+        grant: grant.capabilityId,
+      });
+    policy.grant = grant.capabilityId;
+  } else if (entityType !== "mcp_resource" || operation !== "read" || input.field) {
     // Host-canonical tables have no field ACLs; the tenant-bound client and
     // membership checks above govern them. Field scoping for writes on
     // unregistered types fails closed rather than guessing.
@@ -203,13 +222,12 @@ export async function authorizeRecordAccess(
   }
 
   if (
-    (operation === "write" || operation === "action") &&
-    input.autonomy &&
-    (!input.autonomy.allowed || input.autonomy.hardFloor)
+    (operation === "write" || operation === "action" || operation === "export") &&
+    (!input.autonomy || !input.autonomy.allowed || input.autonomy.hardFloor)
   )
     return deny(
       "autonomy_denied",
-      input.autonomy.reason || `Autonomy policy denies ${operation} on ${entityType}`,
+      input.autonomy?.reason || `Autonomy policy denies ${operation} on ${entityType}`,
       policy,
     );
 
@@ -242,17 +260,13 @@ export async function authorizeMcpResource(
 ): Promise<RecordPermissionDecision> {
   const moduleId = moduleForMcpResource(input.uri);
   if (!moduleId)
-    return deny(
-      "entity_unknown",
-      `Unknown MCP resource ${input.uri}`,
-      {
-        tenantId: "unbound",
-        moduleId: null,
-        entityType: input.uri,
-        grant: null,
-        autonomyLevel: null,
-      },
-    );
+    return deny("entity_unknown", `Unknown MCP resource ${input.uri}`, {
+      tenantId: "unbound",
+      moduleId: null,
+      entityType: input.uri,
+      grant: null,
+      autonomyLevel: null,
+    });
   return authorizeRecordAccess(db, {
     principal: input.principal,
     operation: "read",

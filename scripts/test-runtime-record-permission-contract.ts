@@ -106,9 +106,19 @@ async function main() {
         operation,
         entityType: "webinar",
         moduleId: "core-command",
-        grant: "webinar-pack",
+        grant: {
+          capabilityId: "webinar-pack",
+          tenantId: TENANT_A,
+          entities: ["webinar"],
+          recipes: [],
+          namespace: false,
+        },
       });
-      assert.equal(decision.allowed, true, `${operation} must allow with grant+module+membership`);
+      assert.equal(
+        decision.allowed,
+        ["read", "relate"].includes(operation),
+        `${operation} must require an explicit policy for mutation or export`,
+      );
     }
     check("one-policy-all-operations");
 
@@ -158,7 +168,13 @@ async function main() {
       operation: "read",
       entityType: "webinar",
       moduleId: "core-command",
-      grant: "webinar-pack",
+      grant: {
+        capabilityId: "webinar-pack",
+        tenantId: TENANT_A,
+        entities: ["webinar"],
+        recipes: [],
+        namespace: false,
+      },
     });
     assert.equal(revoked.allowed, false);
     assert.equal((revoked as { code: string }).code, "membership_revoked");
@@ -169,7 +185,13 @@ async function main() {
       operation: "read",
       entityType: "webinar",
       moduleId: "core-command",
-      grant: "webinar-pack",
+      grant: {
+        capabilityId: "webinar-pack",
+        tenantId: TENANT_A,
+        entities: ["webinar"],
+        recipes: [],
+        namespace: false,
+      },
     });
     assert.equal(invited.allowed, false);
     assert.equal((invited as { code: string }).code, "membership_revoked");
@@ -186,7 +208,13 @@ async function main() {
         operation: "read",
         entityType: "webinar",
         moduleId: "core-command",
-        grant: "webinar-pack",
+        grant: {
+          capabilityId: "webinar-pack",
+          tenantId: TENANT_A,
+          entities: ["webinar"],
+          recipes: [],
+          namespace: false,
+        },
       });
       assert.equal(denied.allowed, false, `${label} workspace must deny`);
       assert.equal((denied as { code: string }).code, "tenant_unknown_or_suspended");
@@ -253,7 +281,13 @@ async function main() {
       operation: "read",
       entityType: "webinar",
       moduleId: "core-command",
-      grant: "webinar-pack",
+      grant: {
+        capabilityId: "webinar-pack",
+        tenantId: TENANT_A,
+        entities: ["webinar"],
+        recipes: [],
+        namespace: false,
+      },
       field: "secret_note",
     });
     assert.equal(secretField.allowed, false);
@@ -269,40 +303,93 @@ async function main() {
     assert.equal(noGrant.allowed, false);
     assert.equal((noGrant as { code: string }).code, "entity_not_granted");
     check("grant-required");
+    for (const grant of [
+      {
+        capabilityId: "unrelated",
+        tenantId: TENANT_A,
+        entities: ["other"],
+        recipes: [],
+        namespace: false,
+      },
+      {
+        capabilityId: "foreign",
+        tenantId: TENANT_B,
+        entities: ["webinar"],
+        recipes: [],
+        namespace: false,
+      },
+    ]) {
+      assert.equal(
+        (
+          await authorizeRecordAccess(db, {
+            principal,
+            operation: "read",
+            entityType: "webinar",
+            moduleId: "core-command",
+            grant,
+          })
+        ).allowed,
+        false,
+      );
+    }
+    assert.equal(
+      (
+        await authorizeRecordAccess(db, {
+          principal,
+          operation: "read",
+          entityType: "not_registered",
+          moduleId: "core-command",
+        })
+      ).allowed,
+      false,
+    );
+    check("unknown-entity-and-unrelated-or-foreign-grants-denied");
 
     // The capability layer enforces the same rule on real reads: secrets are
     // projected out, unreadable filters throw, ungranted types throw.
-    const rows = await queryCapabilityEntities(db, {
-      capabilityId: "webinar-pack",
-      tenantId: TENANT_A,
-      entities: ["webinar"],
-      recipes: [],
-      namespace: false,
-    }, { type: "webinar" });
+    const rows = await queryCapabilityEntities(
+      db,
+      {
+        capabilityId: "webinar-pack",
+        tenantId: TENANT_A,
+        entities: ["webinar"],
+        recipes: [],
+        namespace: false,
+      },
+      { type: "webinar" },
+    );
     assert.equal(rows.rows.length, 1);
     assert.ok(!("secret_note" in rows.rows[0]!), "secret columns must not leave the host");
     check("capability-projection-strips-secrets");
     await assert.rejects(
       () =>
-        queryCapabilityEntities(db, {
-          capabilityId: "webinar-pack",
-          tenantId: TENANT_A,
-          entities: ["webinar"],
-          recipes: [],
-          namespace: false,
-        }, { type: "webinar", filters: [{ column: "secret_note", op: "eq", value: "a" }] }),
+        queryCapabilityEntities(
+          db,
+          {
+            capabilityId: "webinar-pack",
+            tenantId: TENANT_A,
+            entities: ["webinar"],
+            recipes: [],
+            namespace: false,
+          },
+          { type: "webinar", filters: [{ column: "secret_note", op: "eq", value: "a" }] },
+        ),
       /not readable/,
     );
     check("capability-filter-escalation-refused");
     await assert.rejects(
       () =>
-        queryCapabilityEntities(db, {
-          capabilityId: "webinar-pack",
-          tenantId: TENANT_A,
-          entities: ["webinar"],
-          recipes: [],
-          namespace: false,
-        }, { type: "othertype" }),
+        queryCapabilityEntities(
+          db,
+          {
+            capabilityId: "webinar-pack",
+            tenantId: TENANT_A,
+            entities: ["webinar"],
+            recipes: [],
+            namespace: false,
+          },
+          { type: "othertype" },
+        ),
       /not granted/,
     );
     check("capability-grant-required");
@@ -369,14 +456,11 @@ async function main() {
     );
     const execRow = mem2.rows("action_queue").find((r) => r.id === "action-2");
     assert.equal(execRow?.status, "denied", "revocation must deny, not fail generically");
-    assert.equal(
-      (execRow?.result as { code?: string })?.code,
-      "autonomy_denied",
-    );
+    assert.equal((execRow?.result as { code?: string })?.code, "autonomy_denied");
     assert.ok(
-      mem2.rows("audit_log").some(
-        (r) => r.action === "action.denied" && r.entity_id === "action-2",
-      ),
+      mem2
+        .rows("audit_log")
+        .some((r) => r.action === "action.denied" && r.entity_id === "action-2"),
     );
     check("executor-revocation-denies");
   }

@@ -92,12 +92,16 @@ export async function executeClaimableWork(
             .in("id", item.action_ids);
           if (error || actions?.length !== new Set(item.action_ids).size)
             throw new Error("Work approval receipts are unavailable");
-          if (actions.some((action) => ["failed", "rejected", "expired"].includes(action.status)))
+          if (
+            actions.some((action) =>
+              ["failed", "rejected", "expired", "denied"].includes(action.status),
+            )
+          )
             return {
               status: "failed" as const,
               value: null,
               outcome:
-                "A required action was rejected, expired, or failed; operator review is required",
+                "A required action was denied, rejected, expired, or failed; operator review is required",
             };
           if (actions.every((action) => action.status === "executed"))
             return {
