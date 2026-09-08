@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "release-feature-schema-verification",
+    slug: "release-feature-schema-verification",
+    title: "Check the database requirements of newly integrated workflows",
+    description:
+      "Setup verification now checks draft version and checksum fields, Drive indexing state, campaign-copy receipts, delivery revisions, and the protected operations used by bulk and handoff actions. Missing requirements point to their owning migrations. A previous successful check must match the new schema contract before setup is considered ready.",
+    category: "fix",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "admin-appearance-and-kanban-polish",
     slug: "admin-appearance-and-kanban-polish",
     title: "Workspace themes and Kanban share a more consistent interface",
