@@ -27,7 +27,7 @@ For an unexpected total, use [Revenue](/docs/pipeline/revenue) to identify which
 
 Open a won opportunity in [Pipeline](/docs/pipeline/board), then choose **Hand off to delivery**. The review shows the linked customer, a versioned onboarding template, optional originating proposal and the milestones to create. Choose the source you actually reviewed, then confirm. No client message is sent.
 
-The handoff creates one client engagement for that opportunity. Milestones use the shared task service, with due dates relative to the engagement's start. A template can name a responsible role or supply an explicit workspace member ID for task assignment; a role label alone does not assign a person. Review and assign unassigned tasks through normal task controls.
+The handoff creates one client engagement for that opportunity. Milestones use the shared task service, with due dates relative to the engagement's start. A template can name a responsible role or supply an explicit workspace member ID for task assignment; a role label alone does not assign a person. Review the recorded assignees with your team. The current Work inspector edits a task's title, due date and priority; it does not include an assignment control. An installation administrator can configure explicit member assignments in the template for future handoffs.
 
 The opportunity's **Delivery** section shows engagement status, the next milestone, overdue commitments and the handoff receipt. “Complete” on the handoff receipt means its task creation is complete, not that the customer work has been delivered. Complete the tasks separately as their work is done.
 
@@ -40,3 +40,14 @@ The engagement retains its original template and proposal context. Publishing a 
 Template publication is available through the shared onboarding service; a template editor is not included in this screen. Version publication and its audit commit together. The [Client onboarding plugin](/docs/plugins/client-onboarding) also offers an explicitly approved, individually assigned task plan. Use it for additional work you intend to create; it is not an automatic second execution of this engagement's template.
 
 The fictional [demo](/demo/command-center) saves its engagement and receipt in the browser session. That demonstrates the workflow; it is not a receipt from a real customer or provider.
+
+## Example: start a new client's agreed work
+
+Northline has won an opportunity for an office automation project. Maya is preparing the delivery handoff.
+
+1. Open the won opportunity and select **Hand off to delivery**.
+2. Check the customer, select the onboarding template, and choose the originating proposal when one applies. Read the milestones in the review before confirming.
+3. After confirmation, inspect **Delivery** for the engagement and handoff receipt. Open the created tasks, check their recorded assignees, and compare each due date with the agreed start. Agree responsibility with your team for any task that remains unassigned.
+4. Complete each task when that work is done. A complete handoff receipt only confirms that the handoff created its tasks.
+
+Suppose the engagement and first task save, but the next task fails. Reload the opportunity, inspect the partial receipt, and repeat the handoff to finish its remaining milestones. The existing engagement and completed tasks are retained. Do not create another client account to work around a partial handoff.

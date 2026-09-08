@@ -239,8 +239,9 @@ export const capabilities: Capability[] = [
   {
     id: "bulk",
     category: "act",
-    title: "Bulk changes with an undo",
-    detail: "Retag two hundred records at once. One click puts it all back.",
+    title: "Bulk contact changes with clear results",
+    detail:
+      "Tag up to two hundred contacts, stage them into a draft campaign, or suppress campaign email. Review each result and retry unfinished changes.",
   },
   {
     id: "automations",

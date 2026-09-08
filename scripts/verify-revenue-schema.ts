@@ -4,6 +4,7 @@ import {
   REVENUE_SCHEMA_CONSTRAINTS,
   REVENUE_SCHEMA_CONTRACT_VERSION,
   REVENUE_SCHEMA_FUNCTIONS,
+  REVENUE_SCHEMA_SERVICE_FUNCTIONS,
   REVENUE_SCHEMA_INDEXES,
   REVENUE_SCHEMA_POLICIES,
   REVENUE_SCHEMA_TABLES,
@@ -13,7 +14,7 @@ import {
 import { PROJECT_REF, runPsql } from "./lib/accelerate-database.mjs";
 
 type Requirement = {
-  kind: "table" | "column" | "constraint" | "index" | "function" | "policy";
+  kind: "table" | "column" | "constraint" | "index" | "function" | "policy" | "privilege";
   label: string;
   sql: string;
   migration?: string;
@@ -25,8 +26,23 @@ const checkedAt = new Date().toISOString();
 const tenantScopedTableSet = new Set<string>(TENANT_SCOPED_TABLES);
 const ENTITY_REGISTRY_MIGRATION = "migrations/20260904-entity-registry-link-graph.sql";
 const DELIVERY_HANDOFF_MIGRATION = "migrations/20260905-delivery-handoff.sql";
-const migrationFor = (table: string, column?: string) =>
-  table === "entity_types" || table === "entity_links"
+const releaseMigration = (table: string, column?: string) => {
+  if (["site_drafts", "site_draft_revisions"].includes(table))
+    return "migrations/20260917-site-studio-drafts.sql";
+  if (table === "campaign_duplicate_receipts")
+    return "migrations/20260918-campaign-duplicate-receipts.sql";
+  if (
+    table === "drive_documents" &&
+    ["indexed_status", "content_duplicate_of", "provider_revision"].includes(column ?? "")
+  )
+    return "migrations/20260916-drive-content-indexing.sql";
+  if (table === "clients" && column === "handoff_revision")
+    return "migrations/20260920-delivery-handoff-convergence.sql";
+  return null;
+};
+const migrationFor = (table: string, column?: string): string =>
+  releaseMigration(table, column) ??
+  (table === "entity_types" || table === "entity_links"
     ? ENTITY_REGISTRY_MIGRATION
     : table === "onboarding_templates"
       ? DELIVERY_HANDOFF_MIGRATION
@@ -51,17 +67,25 @@ const migrationFor = (table: string, column?: string) =>
                           "platform_audit_log",
                         ].includes(table)
                       ? "migrations/20260830-shared-database-tenancy.sql"
-                      : "migrations/20260816-revenue-os.sql";
+                      : "migrations/20260816-revenue-os.sql");
 const migrationForIndex = (name: string) =>
-  name.startsWith("idx_entity_")
-    ? ENTITY_REGISTRY_MIGRATION
-    : name.startsWith("idx_onboarding_templates") || name === "idx_clients_opportunity"
-      ? DELIVERY_HANDOFF_MIGRATION
-      : name.includes("tenant")
-        ? "migrations/20260830-shared-database-tenancy.sql"
-        : name.includes("ai_") || name === "idx_agent_runs_conversation"
-          ? "migrations/20260824-ai-command-runtime.sql"
-          : "migrations/20260816-revenue-os.sql";
+  name.startsWith("site_drafts_")
+    ? "migrations/20260917-site-studio-drafts.sql"
+    : name === "idx_drive_documents_content_hash"
+      ? "migrations/20260916-drive-content-indexing.sql"
+      : ["idx_clients_handoff_opportunity_unique", "idx_tasks_delivery_handoff_unique"].includes(
+            name,
+          )
+        ? "migrations/20260920-delivery-handoff-convergence.sql"
+        : name.startsWith("idx_entity_")
+          ? ENTITY_REGISTRY_MIGRATION
+          : name.startsWith("idx_onboarding_templates") || name === "idx_clients_opportunity"
+            ? DELIVERY_HANDOFF_MIGRATION
+            : name.includes("tenant")
+              ? "migrations/20260830-shared-database-tenancy.sql"
+              : name.includes("ai_") || name === "idx_agent_runs_conversation"
+                ? "migrations/20260824-ai-command-runtime.sql"
+                : "migrations/20260816-revenue-os.sql";
 const migrationForPolicy = (table: string, name: string) =>
   table === "entity_types" || table === "entity_links"
     ? ENTITY_REGISTRY_MIGRATION
@@ -82,7 +106,7 @@ const requirements: Requirement[] = [
       kind: "column" as const,
       label: `public.${table}.${column}`,
       migration: migrationFor(table, column),
-      sql: `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '${table}' AND column_name = '${column}')`,
+      sql: `SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_attribute WHERE attrelid = to_regclass('public.${table}') AND attname = '${column}' AND attnum > 0 AND NOT attisdropped)`,
     })),
   ]),
   ...REVENUE_SCHEMA_CONSTRAINTS.map(({ table, name }) => ({
@@ -100,18 +124,28 @@ const requirements: Requirement[] = [
   ...REVENUE_SCHEMA_FUNCTIONS.map((name) => ({
     kind: "function" as const,
     label: name,
-    migration: name.includes("authorized_request_tenant")
-      ? "migrations/20260830-tenant-context-authorization.sql"
-      : name.includes("tenant")
-        ? "migrations/20260830-shared-database-tenancy.sql"
-        : name.includes("stop_campaign")
+    migration:
+      REVENUE_SCHEMA_SERVICE_FUNCTIONS.find((item) => item.name === name)?.migration ??
+      (name.includes("client_handoff") || name.includes("delivery_source_binding")
+        ? "migrations/20260920-delivery-handoff-convergence.sql"
+        : name.includes("authorized_request_tenant")
           ? "migrations/20260830-tenant-context-authorization.sql"
-          : name.includes("claim_campaign_member")
-            ? "migrations/20260830-tenant-context-authorization.sql"
-            : name.includes("claim_revenue_job")
+          : name.includes("tenant")
+            ? "migrations/20260830-shared-database-tenancy.sql"
+            : name.includes("stop_campaign")
               ? "migrations/20260830-tenant-context-authorization.sql"
-              : "migrations/20260816-revenue-os.sql",
+              : name.includes("claim_campaign_member")
+                ? "migrations/20260830-tenant-context-authorization.sql"
+                : name.includes("claim_revenue_job")
+                  ? "migrations/20260830-tenant-context-authorization.sql"
+                  : "migrations/20260816-revenue-os.sql"),
     sql: `SELECT to_regprocedure('${name}') IS NOT NULL`,
+  })),
+  ...REVENUE_SCHEMA_SERVICE_FUNCTIONS.map(({ name, migration }) => ({
+    kind: "privilege" as const,
+    label: `${name} service-only execution`,
+    migration,
+    sql: `SELECT coalesce(has_function_privilege('service_role', to_regprocedure('${name}'), 'EXECUTE') AND NOT has_function_privilege('anon', to_regprocedure('${name}'), 'EXECUTE') AND NOT has_function_privilege('authenticated', to_regprocedure('${name}'), 'EXECUTE'), false)`,
   })),
   ...REVENUE_SCHEMA_POLICIES.map(({ table, name }) => ({
     kind: "policy" as const,

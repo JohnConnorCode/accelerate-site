@@ -1,7 +1,7 @@
 ---
 title: "Set up a working workspace"
 description: "Verify access and the connections needed for your first real workflow."
-updated: "2026-09-05"
+updated: "2026-09-08"
 ---
 
 Setup Center shows whether the workspace is ready for the work you want to do. Start with one workflow, such as replying to customers, and verify its requirements before adding more integrations.
@@ -52,3 +52,20 @@ Google Docs and Slides export as text. Sheets export the first sheet as CSV; oth
 A complete listing can retire a missing file from the selected folder's index. A capped or incomplete listing retains absent files until a complete listing proves their absence. Revoked download access removes the stored searchable text on the next sync. Removing a folder stops future synchronization while retaining its previous source records. Indexed text is a stored source; it does not by itself establish that every search or AI workflow retrieves Drive content.
 
 If a run is partial, inspect its counts before retrying. Check folder access and supported formats in the connected Google account. An unchanged file can skip extraction only when its provider revision matches an already indexed version.
+
+### Example: verify an approved reference folder
+
+Maya wants the workspace to retain the text of an approved “Customer onboarding” Google Doc.
+
+1. In the Google connection settings, select only the folder approved for this workspace. Confirm that the connected Google account can open and download the document.
+2. Inspect the next Drive run in Setup Center. Look for an extracted-text result for the supported document, rather than relying only on a successful connection check.
+3. Inspect a later run after an edit. A matching indexed revision may be reported as unchanged; a changed revision needs extraction again.
+4. If the folder also contains a PDF, expect an unsupported metadata record. Do not interpret that result as the PDF's text being available to AI.
+
+If a run is incomplete, retain the run details and check its limits and access errors before retrying. This verifies source processing; test the particular search or AI workflow separately before relying on it to answer from the document.
+
+## If setup reports missing database changes
+
+Ask the installation administrator to apply the current release's migrations and record a fresh schema verification. The check must match the version of the application you are using. It now includes the fields and protected operations required for private Site Studio drafts, campaign copies, bulk enrollment and delivery handoff.
+
+For example, a workspace can still display its contacts while a missing draft revision field prevents Site Studio from saving. Keep the feature's error details, finish the named setup step, and retry the original operation after verification succeeds. A working contact list alone does not establish that every feature is ready.

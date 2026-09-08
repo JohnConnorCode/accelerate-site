@@ -1,4 +1,6 @@
 import "server-only";
+import { z } from "zod";
+import { strictSiteOutputSchema, omitProviderNullFields } from "./structured-output";
 import {
   SITE_NODE_TYPES,
   siteLeafNodeSchema,
@@ -56,14 +58,13 @@ export function buildSectionUserPrompt(section: SiteSectionNode, direction?: str
     .join("\n");
 }
 
-export const regeneratedSectionJsonSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["children"],
-  properties: {
-    children: { type: "array", minItems: 1, maxItems: 20, items: { type: "object" } },
-  },
-} as const;
+export const regeneratedSectionJsonSchema = strictSiteOutputSchema(
+  z
+    .object({
+      children: z.array(siteLeafNodeSchema).min(1).max(20),
+    })
+    .strict(),
+);
 
 function parseRegeneratedChildren(value: unknown): SiteLeafNode[] {
   if (!value || typeof value !== "object")
@@ -72,7 +73,7 @@ function parseRegeneratedChildren(value: unknown): SiteLeafNode[] {
   if (!Array.isArray(children) || children.length < 1 || children.length > 20)
     throw new Error("Regenerated section must carry 1 to 20 leaf nodes");
   return children.map((child, index) => {
-    const parsed = siteLeafNodeSchema.safeParse(child);
+    const parsed = siteLeafNodeSchema.safeParse(omitProviderNullFields(child));
     if (!parsed.success)
       throw new Error(
         `Regenerated node ${index + 1} is invalid: ${parsed.error.issues[0]?.message ?? "schema refusal"}`,

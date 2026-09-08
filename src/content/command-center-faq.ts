@@ -12,6 +12,21 @@ export const commandCenterFaqs: FAQ[] = [
       "Accelerate moves business context from source data to canonical records, attention signals, reviewed work, validated execution, and recorded results. The Command Center, AI assistant, MCP clients, integrations, scheduled jobs, and coding agents reach that same runtime through different interfaces. Read the public How Accelerate works guide for the five layers, object model, approval boundary, plugin and App extension paths, and failure recovery.",
   },
   {
+    question: "Can I undo a bulk contact change?",
+    answer:
+      "Bulk actions report each contact's result. Successful changes stay saved if another contact fails. You can deliberately remove a tag with Untag, but there is no one-click restoration of a whole batch. Suppression is not automatically reversed. For example, retry a failed draft enrollment after correcting the problem; contacts already enrolled are skipped. The Leads guide includes a worked example.",
+  },
+  {
+    question: "Does Site Studio publish a page when I create a draft?",
+    answer:
+      "No. Site Studio currently creates private, versioned drafts. For example, use the built-in template for a bookkeeping service page, review it at desktop and mobile widths, then reopen the saved draft. Template creation makes no model request; AI generation uses your configured provider and budget. Publishing, scheduling and rollback are still being built. The Site Studio guide explains the available controls and recovery steps.",
+  },
+  {
+    question: "What does a complete delivery handoff mean?",
+    answer:
+      "It means the handoff created its onboarding tasks, not that the customer work is finished. Review the customer, template and optional proposal before confirming a won opportunity's handoff. Then assign and complete the resulting tasks as work happens. If creation stops partway through, inspect the receipt and retry: the same engagement and existing tasks are retained. The client accounts guide walks through an example.",
+  },
+  {
     question: "How do Today and Work fit together?",
     answer:
       "Today shows decisions, tasks, signals and upcoming context that deserve attention. Work lets you filter and edit tasks or review pending approvals. Both use the same saved records and approval service: editing a task keeps its status, snoozing postpones it, and completing it records the result. Custom Apps can keep their own domain workspaces and lifecycles.",

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   classifyRevenueSchemaContractStatus,
+  verifyRevenueSchemaDataAccess,
   computeSchemaCenterStatus,
   REVENUE_SCHEMA_CONTRACT_VERSION,
   type RevenueSchemaIssue,
@@ -191,3 +192,37 @@ assert.equal(
 console.log(
   JSON.stringify({ result: "schema contract terminal-state and Setup mapping covered", checks: 9 }),
 );
+
+// Regression: a tenant_id-only probe used to accept a half-installed draft table.
+async function proveIncompleteFeatureSchema() {
+  const database = {
+    from(table: string) {
+      return {
+        select(columns: string) {
+          return {
+            async limit() {
+              return {
+                error:
+                  table === "site_drafts" && columns.split(",").includes("checksum")
+                    ? { code: "42703", message: "column site_drafts.checksum does not exist" }
+                    : null,
+              };
+            },
+          };
+        },
+      };
+    },
+  } as unknown as Parameters<typeof verifyRevenueSchemaDataAccess>[0];
+  const result = await verifyRevenueSchemaDataAccess(database);
+  assert.equal(
+    result.status,
+    "drift",
+    "An existing draft table without concurrency fields is not ready",
+  );
+  assert.ok(result.issues.some((issue) => issue.table === "site_drafts"));
+  console.log("Incomplete Site Studio schema is refused even when its tenant column exists.");
+}
+proveIncompleteFeatureSchema().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

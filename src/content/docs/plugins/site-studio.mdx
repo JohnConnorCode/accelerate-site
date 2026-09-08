@@ -28,3 +28,18 @@ Template creation, preview, rename and discard make no model request. AI generat
 The list shows the 200 most recently updated active drafts. A failed load shows an error and Retry instead of a successful empty list. A stale edit or discard is refused: reload, inspect the changed content, and decide again. Disabling the plugin closes its routes and refuses writes while retaining stored drafts and history. The default fictional demos leave Site Studio disabled; their business workflows do not establish a connected Site Studio proof.
 
 The section regeneration service is available through the authenticated API with a required checksum and the same model budget. It currently has no preview-screen control. General-purpose AI/MCP editing tools, publishing, scheduling and rollback remain separate work; no draft operation publishes a page.
+
+## Example: draft a bookkeeping service page
+
+Maya is preparing a page for the fictional Northline business.
+
+1. Enter “Bookkeeping automation” as the service, “Home service owners” as the audience, and “Keep the office work moving while the crew is on site” as the outcome.
+2. Choose **Built-in service template**, leave the slug blank, and select **Create draft**. This path makes no model request.
+3. Review the heading and calls to action at Desktop, Tablet and Mobile widths. Check that the page makes no claim about a price, customer or result that your business has not approved.
+4. Rename the draft if needed, then return to the list and reopen it to confirm the saved version.
+
+For AI-written copy, use **AI generated** after your administrator has configured OpenRouter. For example, add “Use plain language; do not invent prices or customer results” to Additional direction. Review the result even if validation accepts it. If validation refuses a claim or link, revise the brief and try again; provider usage can still incur a charge.
+
+This exercise produces a private draft. There is no Publish control in this release, and creating a draft does not change the public website.
+
+If AI generation fails before a preview opens, read the displayed reason. Ask your administrator to verify the configured model and current application release for a provider or configuration error. You can select **Built-in service template** to continue without a model call. If the error names the generated content, such as an unsupported image or invented claim, revise the brief before another AI attempt. A failed attempt may still incur provider usage; do not repeatedly submit an unchanged brief without checking the cause.

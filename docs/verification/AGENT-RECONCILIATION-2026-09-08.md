@@ -2,6 +2,22 @@
 
 This audit is owned by the integration branch `integration/agent-reconciliation-20260908`, based on published main `269c610cdb217a7268c6cf0482be49466ade4c70`. The operator requested evaluation and completion of recent agent work; focus is the 24 hours ending 2026-09-08 11:58 UTC. This is an evidence receipt, not a second backlog or a deployment claim.
 
+## Current integration status — supersedes the initial findings below
+
+The original inventory and failure reproductions below are historical observations of the source handoffs. Their wording does not describe the repaired main tree.
+
+| Integration                                                    | Merged commit | Verification and disposition                                                                                                                                                  |
+| -------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime, Drive indexing and Site Studio private drafts, PR #59 | `b409b39`     | Required CI passed; source handoffs adapted and repaired. Connected-provider proof remains separate.                                                                          |
+| Atomic campaign duplication, PR #60                            | `0ae18bf`     | Required CI passed; merged tree matches the tested candidate. Original partial-copy/retry defect repaired.                                                                    |
+| Transactional supervisor ownership, PR #62                     | `1c17e90`     | Required CI passed; merged tree matches the tested candidate. Original concurrent-state and stale-owner defects repaired. Installation remains optional and was not enabled.  |
+| Bulk contacts, PR #61                                          | `9276b40`     | Required CI passed, including native database and browser journeys; merged tree matches the tested candidate. Lost tag updates and enrollment outside draft state repaired.   |
+| Reviewed delivery handoff, PR #63                              | `02acb52`     | Candidate `7d2f3be` passed CI run `34246859717`, including native role/concurrency/replay tests and desktop/mobile journeys for two businesses. Merge tree matches candidate. |
+
+Public operator guides, changelog and feature descriptions accompanied these integrations. The release-completion review adds worked examples and corrects the remaining unsupported bulk-undo promise. Review the current public guides for available controls; the older pending-test statements below preserve the sequence of the audit.
+
+PR #64 merged the reviewed design/theme work at `e16ea18` after required CI passed. Workspace Blueprint source is still an unfinished separate handoff. Site Studio public publishing and broader Architect/Harness initiatives are not established by the private-draft merge. Live-card acceptance, connected-provider checks, production schema application and production deployment need their own receipts; none is inferred from Git integration.
+
 ## Inventory and preservation
 
 - Initial inventory: 73 worktrees, five dirty, zero open PRs. All local/remote refs and four stashes were inspected; the two recent stashes concern Site Studio/Agent Harness specifications.
@@ -148,3 +164,19 @@ Twenty-two isolated supervisor/resource checks passed, including eight concurren
 ## Supervisor integration receipt
 
 PR 62 merged as `1c17e90db758d0399a201ec368bcb014222471cf` on 2026-09-08 at 14:33:03 UTC. Its tree matches tested head `7cb91d2ae61d974557ff3ea7e1e9998ba772d884`. CI `34237350451` passed all required jobs. The clean control checkout points to this merge; no global supervisor installation or production deployment was performed.
+
+## Release-completion database proof
+
+The declared production database's ledger had 74 matching migrations, six pending, no changed checksums and no unknown files. Read-only scans found no duplicate opportunity engagements or delivery task identities. The pooler connection timed out during authentication; the direct connection to the same configured Supabase project succeeded using its existing secret-manager credential.
+
+A private PostgreSQL 17 schema backup was captured before applying the six already-reviewed pending migrations through the normal ordered ledger runner: record-permission denial, Drive indexing, Site Studio drafts, campaign-copy receipts, bulk transactions and delivery convergence. All six committed successfully. Post-migration verification passed all 661 requirements for `revenue-os.2026-09-08.1`, including service-only execution privileges. Recorded receipt: `acb77cb5-14c7-4622-afc6-21239336659f`, 2026-09-08 16:32:24 UTC. The verifier now uses direct PostgreSQL column metadata to avoid the repeated information-schema expansion that exceeded its statement timeout. A production application deployment remains separate.
+
+The release also strengthens schema verification to check the new fields, indexes, protected function signatures and service-only execution privileges, with accurate migration guidance. A regression refuses a draft table that exists but lacks its checksum column. Public Setup guidance explains how a partially upgraded workspace can display existing records while a newer workflow remains unavailable.
+
+Production hosting access and the exact project/team link passed preflight. The production configuration has no Google OAuth client ID, client secret or token-encryption key; a real connected Drive sync cannot be verified until installation setup and Google consent are completed. No Google credential was invented or requested in chat. The configured AI path is evaluated separately with fictional input.
+
+## Connected Site Studio provider correction
+
+A bounded live call using only a fictional bookkeeping brief reproduced an OpenAI HTTP 400 through the configured OpenRouter gateway: the page schema left nested objects unspecified, which strict structured output refuses. Section regeneration used the same incomplete pattern. Both now derive their complete schemas from the canonical Zod document rules, require closed object properties, carry optional values as nullable provider fields and normalize them before domain validation. A regression checks every nested object and proves required-null/invalid-node refusal. No provider credential, arbitrary model fallback or public page was introduced.
+
+The corrected page-generation call passed against the configured production model gateway and canonical document validation. A second bounded connected call passed the shared section-regeneration path against a disposable in-memory draft, preserved every sibling section and produced version 2. This establishes connected generation with fictional input, not authenticated browser editing, persisted production drafts or publication. Feature descriptions and the FAQ still accurately describe private drafting; the Site Studio guide adds a worked example and actionable generation recovery. The schema conversion follows the [OpenRouter structured-output contract](https://openrouter.ai/docs/guides/features/structured-outputs) and [Zod JSON Schema conversion](https://zod.dev/json-schema).

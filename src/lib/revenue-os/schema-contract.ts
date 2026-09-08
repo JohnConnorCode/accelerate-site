@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-07.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-08.1";
 
 export const TENANT_SCOPED_TABLES = [
   "proposal_lifecycle_receipts",
@@ -115,6 +115,38 @@ export const TENANT_SCOPED_TABLES = [
 const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 
 const BASE_REVENUE_SCHEMA_TABLES = [
+  {
+    table: "site_drafts",
+    columns: [
+      "id",
+      "slug",
+      "draft",
+      "version",
+      "checksum",
+      "created_at",
+      "updated_at",
+      "discarded_at",
+    ],
+  },
+  {
+    table: "site_draft_revisions",
+    columns: ["id", "draft_id", "version", "operation", "draft", "actor_email", "created_at"],
+  },
+  {
+    table: "campaign_duplicate_receipts",
+    columns: ["request_id", "request_hash", "source_id", "source_version", "copy_id", "created_at"],
+  },
+  {
+    table: "drive_documents",
+    columns: [
+      "indexed_status",
+      "content_duplicate_of",
+      "content_hash",
+      "extracted_text",
+      "provider_revision",
+    ],
+  },
+  { table: "clients", columns: ["id", "opportunity_id", "handoff_receipt", "handoff_revision"] },
   {
     table: "work_items",
     columns: [
@@ -544,6 +576,9 @@ export const REVENUE_SCHEMA_CONSTRAINTS = [
 ] as const;
 
 export const REVENUE_SCHEMA_INDEXES = [
+  "site_drafts_live_slug",
+  "site_drafts_recent",
+  "idx_drive_documents_content_hash",
   "idx_conversations_tenant_upsert",
   "idx_messages_tenant_external_upsert",
   "idx_contacts_tenant_primary_email_unique",
@@ -575,7 +610,33 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_tasks_delivery_handoff_unique",
 ] as const;
 
+export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
+  {
+    name: "public.write_site_draft(text,uuid,text,jsonb,text)",
+    migration: "migrations/20260917-site-studio-drafts.sql",
+  },
+  {
+    name: "public.duplicate_campaign_draft(uuid,integer,uuid,text,text)",
+    migration: "migrations/20260918-campaign-duplicate-receipts.sql",
+  },
+  {
+    name: "public.bulk_tag_contacts(uuid[],text[],text[],text)",
+    migration: "migrations/20260919-contact-bulk-transactions.sql",
+  },
+  {
+    name: "public.stage_campaign_members(uuid,jsonb,boolean,text)",
+    migration: "migrations/20260919-contact-bulk-transactions.sql",
+  },
+  {
+    name: "public.publish_onboarding_template(text,jsonb,text)",
+    migration: "migrations/20260920-delivery-handoff-convergence.sql",
+  },
+] as const;
+
 export const REVENUE_SCHEMA_FUNCTIONS = [
+  ...REVENUE_SCHEMA_SERVICE_FUNCTIONS.map(({ name }) => name),
+  "private.advance_client_handoff_revision()",
+  "private.check_delivery_source_binding()",
   "public.reserve_collection_reminder(uuid)",
   "public.reconcile_collection_reminder(uuid)",
   "public.sync_collection_observations(uuid,jsonb,text)",
@@ -596,6 +657,9 @@ export const REVENUE_SCHEMA_FUNCTIONS = [
 ] as const;
 
 export const REVENUE_SCHEMA_POLICIES = [
+  { table: "site_drafts", name: "site_draft_read" },
+  { table: "site_draft_revisions", name: "site_revision_read" },
+  { table: "campaign_duplicate_receipts", name: "campaign_duplicate_receipt_read" },
   { table: "contacts", name: "Service role full access" },
   { table: "opportunities", name: "Service role full access" },
   { table: "messages", name: "Service role full access" },

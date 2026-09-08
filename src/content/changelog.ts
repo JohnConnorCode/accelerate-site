@@ -2,6 +2,33 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "site-studio-provider-output-contract",
+    slug: "site-studio-provider-output-contract",
+    title: "Generate Site Studio drafts with the configured structured-output provider",
+    description:
+      "Page generation and section regeneration now send a complete output schema derived from the same document rules used by the renderer. Strict providers can accept the request; optional fields are normalized before validation. Catalog, link and claim checks still apply. The user guide includes a worked draft example and explains recovery and provider costs.",
+    category: "fix",
+    publishedAt: "2026-09-08",
+  },
+  {
+    id: "workflow-guides-with-examples",
+    slug: "workflow-guides-with-examples",
+    title: "Follow worked examples for the new workspace workflows",
+    description:
+      "The public guides now walk through tagging and draft enrollment, campaign copying, won-to-delivery handoff, Drive indexing, and private Site Studio drafts. Each example explains its saved result and recovery. Feature descriptions and FAQ clarify that bulk changes have individual outcomes, successful changes remain saved, and suppression is not automatically reversed.",
+    category: "improvement",
+    publishedAt: "2026-09-08",
+  },
+  {
+    id: "release-feature-schema-verification",
+    slug: "release-feature-schema-verification",
+    title: "Check the database requirements of newly integrated workflows",
+    description:
+      "Setup verification now checks draft version and checksum fields, Drive indexing state, campaign-copy receipts, delivery revisions, and the protected operations used by bulk and handoff actions. Missing requirements point to their owning migrations. A previous successful check must match the new schema contract before setup is considered ready.",
+    category: "fix",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "admin-appearance-and-kanban-polish",
     slug: "admin-appearance-and-kanban-polish",
     title: "Workspace themes and Kanban share a more consistent interface",

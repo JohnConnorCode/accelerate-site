@@ -1,7 +1,7 @@
 ---
 title: "Review leads and chat handoffs"
 description: "Qualify an inquiry, check for an existing person and record the next action."
-updated: "2026-09-05"
+updated: "2026-09-08"
 ---
 
 Open `/admin/leads` for website and form inquiries, or `/admin/chat-leads` for handoffs from the public assistant.
@@ -31,3 +31,16 @@ Select leads to tag their linked contacts, suppress campaign email, or stage the
 Tags use up to 25 short lowercase labels per contact. Concurrent changes preserve unrelated tags. Enrollment checks the current draft status, canonical email identity and suppression before saving queued members; it does not activate a campaign or send email. Repeating enrollment skips existing members.
 
 Suppression uses the same service as unsubscribe and delivery feedback. It never restores an unsubscribed contact. If part of suppression fails, the result says so; retry repairs outstanding campaign stops and receipts. Successful contacts in a batch remain changed. AI tools propose these operations through the shared approval queue.
+
+### Example: prepare estimate follow-ups
+
+Maya at the fictional Northline business wants to group three estimate inquiries before preparing a campaign.
+
+1. In **Leads**, select the three inquiries and check whether any selected lead has no linked contact. Contact actions skip those unlinked leads.
+2. Choose **Add tags**, enter `estimate-follow-up`, and select **Tag**. Read the result for each contact.
+3. Select the intended leads again, choose **Enroll…**, and select an existing draft campaign. Confirm the contact count and enrollment.
+4. Open [Campaigns](/docs/outreach/campaigns) and inspect the draft's audience before any activation. Enrollment alone sends no email.
+
+If two selected leads refer to the same contact, the contact is changed once. A contact already enrolled is skipped. If one contact fails, the successful changes remain saved: inspect the failure, correct its cause, and retry the intended operation.
+
+To remove a tag deliberately, select the contacts, choose **Remove tags**, enter the label, and select **Untag**. This is a new change to the current tags, not a one-click restoration of the entire batch. **Suppress** asks you to confirm that the selected contacts should stop receiving campaign email; do not use it as a temporary list filter.
