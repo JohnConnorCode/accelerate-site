@@ -132,6 +132,27 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "The copy is an unsent draft that can be revised separately; provenance and audit remain. No automatic inverse is promised.",
   },
   {
+    actionType: "bulk_tag_contacts",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Tags can be changed by another reviewed operation; removing an already-existing tag is not an automatic inverse.",
+  },
+  {
+    actionType: "bulk_suppress_contacts",
+    impact: "internal_write",
+    reversibility: "irreversible",
+    rationale:
+      "Suppression stops pending memberships immediately and no service restores them automatically.",
+  },
+  {
+    actionType: "bulk_enroll_contacts",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Members remain queued until activation. Later delivery and audit history cannot be automatically undone.",
+  },
+  {
     actionType: "admin_layout_change",
     impact: "internal_write",
     reversibility: "reversible",

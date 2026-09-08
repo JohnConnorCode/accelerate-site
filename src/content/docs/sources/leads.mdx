@@ -23,3 +23,11 @@ Keep the inquiry available for review and compare email, company and conversatio
 ## Export a list
 
 Where export is offered, treat the CSV as a dated copy. Later changes in the app will not update the file. Apply your team's access and retention rules when sharing it.
+
+## Work on several contacts
+
+Select leads to tag their linked contacts, suppress campaign email, or stage them into a draft campaign. Each operation handles up to 200 distinct contacts. The confirmation shows the contact count; leads without a linked contact are identified before the operation. The result lists each contact and whether the change applied, was skipped, or failed.
+
+Tags use up to 25 short lowercase labels per contact. Concurrent changes preserve unrelated tags. Enrollment checks the current draft status, canonical email identity and suppression before saving queued members; it does not activate a campaign or send email. Repeating enrollment skips existing members.
+
+Suppression uses the same service as unsubscribe and delivery feedback. It never restores an unsubscribed contact. If part of suppression fails, the result says so; retry repairs outstanding campaign stops and receipts. Successful contacts in a batch remain changed. AI tools propose these operations through the shared approval queue.

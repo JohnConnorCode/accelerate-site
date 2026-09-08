@@ -30,6 +30,11 @@ const ACTION_CONSEQUENCE: Record<string, string> = {
     "Starts this campaign. Enrolled contacts begin receiving email on the next run.",
   duplicate_campaign:
     "Creates a new draft copy of this campaign with no members enrolled. Nothing sends until the copy is enrolled and activated.",
+  bulk_tag_contacts: "Adds or removes tags on the selected contacts. No email sends.",
+  bulk_suppress_contacts:
+    "Stops all pending campaign email to the selected contacts and marks them suppressed. Suppression cannot be undone automatically.",
+  bulk_enroll_contacts:
+    "Stages the selected contacts as queued members of a draft campaign. Nothing sends until the campaign is activated.",
   transition_opportunity:
     "Moves this opportunity to a new stage and records an immutable stage event.",
   create_task: "Creates a task on your queue.",

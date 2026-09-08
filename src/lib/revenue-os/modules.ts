@@ -173,7 +173,12 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["contacts", "identity-review"],
     routes: ["/admin/contacts", "/admin/contact-imports", "/admin/identity-review"],
-    aiToolNames: ["search_contacts"],
+    aiToolNames: [
+      "search_contacts",
+      "propose_bulk_tag_contacts",
+      "propose_bulk_suppress_contacts",
+      "propose_bulk_enroll_contacts",
+    ],
   },
   {
     id: "core-intelligence",

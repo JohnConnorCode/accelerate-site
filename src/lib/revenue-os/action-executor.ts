@@ -1,3 +1,4 @@
+import { bulkEnrollContacts, bulkSuppressContacts, bulkTagContacts } from "./contact-bulk";
 import { executeRadarOutreach } from "./radar-outreach";
 import "server-only";
 import { executeRadarRelationship } from "./radar-relationships";
@@ -62,6 +63,9 @@ export const APPROVABLE_ACTIONS = [
   "update_next_action",
   "activate_campaign",
   "duplicate_campaign",
+  "bulk_tag_contacts",
+  "bulk_suppress_contacts",
+  "bulk_enroll_contacts",
   "admin_layout_change",
   "create_founder_note",
   "identity_review",
@@ -405,6 +409,30 @@ export async function approveAndExecuteAction(
           );
         }
         result = await activateCampaign(supabase, campaignId, actorEmail);
+        break;
+      }
+      case "bulk_tag_contacts": {
+        result = await bulkTagContacts(supabase, {
+          contactIds: payload.contactIds,
+          add: payload.add,
+          remove: payload.remove,
+          actorEmail,
+        });
+        break;
+      }
+      case "bulk_suppress_contacts": {
+        result = await bulkSuppressContacts(supabase, {
+          contactIds: payload.contactIds,
+          actorEmail,
+        });
+        break;
+      }
+      case "bulk_enroll_contacts": {
+        result = await bulkEnrollContacts(supabase, {
+          campaignId: stringValue(payload, "campaignId")!,
+          contactIds: payload.contactIds,
+          actorEmail,
+        });
         break;
       }
       case "duplicate_campaign": {

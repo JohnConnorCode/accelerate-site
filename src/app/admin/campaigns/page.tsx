@@ -227,8 +227,11 @@ export default function CampaignsPage() {
         await load();
         return;
       }
-      if (recipients.length)
-        await fetchJson("/api/admin/revenue-os/campaigns/members", {
+      if (recipients.length) {
+        const staged = await fetchJson<{
+          added: number;
+          outcomes: Array<{ email: string; status: string; reason: string }>;
+        }>("/api/admin/revenue-os/campaigns/members", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -236,6 +239,12 @@ export default function CampaignsPage() {
             members: recipients.map((email) => ({ email })),
           }),
         });
+        const skipped = staged.outcomes.filter((row) => row.status !== "applied");
+        if (skipped.length)
+          setActionError(
+            `Draft saved; ${staged.added} recipients added. ${skipped.map((row) => `${row.email || "Unknown recipient"}: ${row.reason}`).join("; ")}`,
+          );
+      }
       setShowCreate(false);
       await load();
       await loadPreview(result.campaign.id);

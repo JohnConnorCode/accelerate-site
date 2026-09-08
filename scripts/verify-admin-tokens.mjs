@@ -102,7 +102,7 @@ const COLOR_BUDGET = {
   "src/components/admin/ContentItemForm.tsx": 2,
   "src/components/admin/ConversionFunnel.tsx": 3,
   "src/components/admin/EmailBlockComposer.tsx": 4,
-  "src/components/admin/LeadsTable.tsx": 6,
+  "src/components/admin/LeadsTable.tsx": 0,
   "src/components/admin/NotificationBell.tsx": 1,
   "src/components/admin/PlausibleWidget.tsx": 1,
   "src/components/admin/ProposalEditor.tsx": 1,

@@ -1,3 +1,4 @@
+import { callContactBulkRpc } from "../supabase/server";
 import { CampaignSourceChangedError } from "./campaign-duplicate-contract";
 import "server-only";
 import { z } from "zod";
@@ -421,4 +422,44 @@ export async function executeDueCampaignMembers(
     }
   }
   return { sent, failed, stopped, unclaimed, recoveredSends, campaigns: campaigns?.length ?? 0 };
+}
+
+/** Host-owned staging validates canonical identity and current campaign state in one transaction. */
+export async function stageCampaignMembers(
+  db: SupabaseClient,
+  campaignId: string,
+  members: unknown,
+  actorEmail: string,
+) {
+  const parsed = z
+    .array(
+      z
+        .object({
+          email: z.string().max(320).optional(),
+          contactId: z.uuid().optional(),
+          opportunityId: z.uuid().optional(),
+        })
+        .strict(),
+    )
+    .min(1)
+    .max(500)
+    .parse(members);
+  const { data, error } = await callContactBulkRpc(db, "stage_campaign_members", {
+    p_campaign: z.uuid().parse(campaignId),
+    p_members: parsed,
+    p_draft_only: false,
+    p_actor: z.string().trim().min(1).max(320).parse(actorEmail),
+  });
+  if (error) throw new Error(error.message);
+  return z
+    .array(
+      z.object({
+        contactId: z.string(),
+        email: z.string(),
+        memberId: z.uuid().nullable(),
+        status: z.enum(["applied", "skipped", "failed"]),
+        reason: z.string(),
+      }),
+    )
+    .parse(data);
 }

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Plus, X, Save } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
-import { LeadsTable } from "@/components/admin/LeadsTable";
+import { LeadsTable, type BulkContactResult } from "@/components/admin/LeadsTable";
 import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
 import { AddLeadModal } from "@/components/admin/AddLeadModal";
 import { Button } from "@/components/ui/Button";
@@ -203,6 +203,30 @@ export default function AdminLeadsPage() {
     }
   };
 
+  const runBulkContacts = async (body: Record<string, unknown>) => {
+    try {
+      const result = await fetchJson<BulkContactResult>("/api/admin/leads/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      await fetchLeads();
+      return result;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Bulk operation failed");
+      return null;
+    }
+  };
+
+  const handleBulkTag = (contactIds: string[], tags: { add: string[]; remove: string[] }) =>
+    runBulkContacts({ action: "tag", contactIds, ...tags });
+
+  const handleBulkSuppress = (contactIds: string[]) =>
+    runBulkContacts({ action: "suppress", contactIds });
+
+  const handleBulkEnroll = (contactIds: string[], campaignId: string) =>
+    runBulkContacts({ action: "enroll", contactIds, campaignId });
+
   const handleSort = (field: string) => {
     if (sortField === field) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -394,6 +418,9 @@ export default function AdminLeadsPage() {
         onUpdateLead={handleUpdateLead}
         onBulkStatus={handleBulkStatus}
         onBulkDelete={handleBulkDelete}
+        onBulkTag={handleBulkTag}
+        onBulkSuppress={handleBulkSuppress}
+        onBulkEnroll={handleBulkEnroll}
         onPageChange={setPage}
         onSort={handleSort}
         sortField={sortField}

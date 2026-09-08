@@ -289,6 +289,18 @@
       "module": "core-contacts"
     },
     {
+      "tool": "propose_bulk_tag_contacts",
+      "module": "core-contacts"
+    },
+    {
+      "tool": "propose_bulk_suppress_contacts",
+      "module": "core-contacts"
+    },
+    {
+      "tool": "propose_bulk_enroll_contacts",
+      "module": "core-contacts"
+    },
+    {
       "tool": "search_knowledge_base",
       "module": "core-intelligence"
     },
