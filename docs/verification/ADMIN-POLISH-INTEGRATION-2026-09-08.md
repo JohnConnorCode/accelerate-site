@@ -44,4 +44,11 @@ and changed route boundaries, retained the existing Content parity follow-up,
 and refreshed the fingerprints. The inventory covers 51 pages and 288 sources.
 Public counts now reflect 226 checks, 788 TypeScript files and 150K lines.
 
+The first remote run (`34244895629`) passed production compilation, TypeScript,
+prerender coverage and plugin packaging. Its broader browser step exposed an old
+Branding assertion that selected the first input, now the theme name. The journey
+now targets Display name by its accessible label and waits for the named save
+control to return disabled before verifying the value and reloading. No product
+behavior or approval checks were weakened.
+
 No production deployment is included.
