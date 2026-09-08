@@ -599,6 +599,7 @@ export default function TodayPage() {
               </div>
               <AttentionList
                 items={projectOperatorAttention(visibleQueue)}
+                hideEmptySections={focus !== "all"}
                 busyTask={taskActioning}
                 onTask={(id, action) => void updateTask(id, action)}
                 onReview={(id, trigger) => {

@@ -158,7 +158,7 @@ export function EmailComposeModal({
       >
         <AdminSurface
           padding="lg"
-          className="admin-dialog-surface max-h-[92dvh] overflow-y-auto rounded-[20px]"
+          className="admin-dialog-surface max-h-[92dvh] overflow-y-auto"
         >
           <div className="flex items-center justify-between mb-4">
             <div>

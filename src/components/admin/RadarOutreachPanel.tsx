@@ -463,7 +463,7 @@ export function RadarOutreachPanel({
         maxWidth="lg"
       >
         {preview && (
-          <div className="max-h-[85dvh] overflow-y-auto rounded-2xl bg-[var(--admin-surface)] p-5 sm:p-6">
+          <div className="admin-dialog-surface max-h-[85dvh] overflow-y-auto bg-[var(--admin-surface)] p-5 sm:p-6">
             <h2 className="text-lg font-semibold">Review outreach before sending</h2>
             <dl className="mt-4 space-y-3 text-sm">
               <div>

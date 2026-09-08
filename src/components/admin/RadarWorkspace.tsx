@@ -517,7 +517,7 @@ export function RadarWorkspace({
         title={reader?.title ?? "Source text"}
         maxWidth="lg"
       >
-        <div className="max-h-[85dvh] overflow-y-auto rounded-2xl bg-[var(--admin-surface)] p-5 sm:p-6">
+        <div className="admin-dialog-surface max-h-[85dvh] overflow-y-auto bg-[var(--admin-surface)] p-5 sm:p-6">
           <div className="flex items-start justify-between gap-4">
             <h2 className="text-base font-semibold">{reader?.title}</h2>
             <button className={button} aria-label="Close source" onClick={() => setReader(null)}>

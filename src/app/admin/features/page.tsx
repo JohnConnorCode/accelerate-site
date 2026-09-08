@@ -486,7 +486,7 @@ function FeatureDialog({
     >
       <form
         onSubmit={(event) => void submit(event)}
-        className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[24px]"
+        className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[var(--admin-surface-radius)] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[var(--admin-surface-radius)]"
       >
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
           <div>

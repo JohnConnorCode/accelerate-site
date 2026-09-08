@@ -50,7 +50,7 @@ try {
         );
       await go("today");
       await page.locator("[data-attention-kind=work]").waitFor();
-      for (const title of ["Needs your decision", "Your work", "Watch", "Upcoming"])
+      for (const title of ["Approvals", "Your work", "Watch", "Upcoming"])
         await page.getByRole("heading", { name: title, exact: true }).waitFor();
       const read = await request("/api/admin/tasks?status=pending");
       assert.equal(read.status, 200);

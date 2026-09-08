@@ -351,7 +351,7 @@ export default function WorkPage() {
           </ul>
           {!actions.length && (
             <p className="p-5 text-sm text-[var(--admin-muted)]">
-              {actionsQuery.isPending ? "Loading approvals…" : "No decisions waiting."}
+              {actionsQuery.isPending ? "Loading approvals…" : "No approvals waiting."}
             </p>
           )}
         </AdminSurface>

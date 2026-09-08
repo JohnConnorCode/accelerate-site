@@ -331,7 +331,7 @@ export default function ContactsPage() {
         maxWidth="lg"
       >
         {displayedContact && (
-          <div className="admin-dialog-surface max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[24px]">
+          <div className="admin-dialog-surface max-h-[92dvh] w-full overflow-y-auto rounded-t-[var(--admin-surface-radius)] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[var(--admin-surface-radius)]">
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">

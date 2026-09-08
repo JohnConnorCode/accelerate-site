@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import { SitePageRenderer } from "@/lib/site-studio/renderer";
 import {
   collectAssetIds,
@@ -49,9 +50,14 @@ export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: s
 
   if (missing) {
     return (
-      <div>
+      <div className="space-y-7 pb-10">
         <PageHeader title="Draft not found" subtitle="This draft id does not exist." />
-        <Link href="/admin/site">Back to Site Studio</Link>
+        <Link
+          href="/admin/site"
+          className="text-sm font-semibold text-[var(--admin-ink)] hover:underline"
+        >
+          Back to Site Studio
+        </Link>
       </div>
     );
   }
@@ -61,49 +67,67 @@ export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: s
   const attached = document ? collectAssetIds(document) : [];
 
   return (
-    <div>
+    <div className="space-y-7 pb-10">
       <PageHeader
         title={draft.title}
         subtitle={`/${draft.slug} - ${draft.source} draft - checksum ${draft.checksum.slice(0, 12)} - updated ${draft.updatedAt.slice(0, 10)}`}
       />
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }} role="group" aria-label="Preview width">
+      <div
+        className="flex items-center gap-2"
+        role="group"
+        aria-label="Preview width"
+      >
         {WIDTHS.map((option) => (
           <button
             key={option.label}
             type="button"
             onClick={() => setWidth(option)}
             aria-pressed={width.label === option.label}
-            style={{ fontWeight: width.label === option.label ? 700 : 400 }}
+            className="min-h-11 rounded-[var(--admin-control-radius)] px-3 text-sm font-medium text-[var(--admin-muted)] aria-pressed:bg-[var(--admin-ink)] aria-pressed:text-[var(--admin-surface)] hover:bg-[var(--admin-surface-subtle)]"
           >
             {option.label}
           </button>
         ))}
-        <Link href="/admin/site" style={{ marginLeft: "auto" }}>
+        <Link
+          href="/admin/site"
+          className="ml-auto text-sm font-semibold text-[var(--admin-ink)] hover:underline"
+        >
           All drafts
         </Link>
       </div>
       {!document ? (
-        <p role="alert">This draft failed validation and cannot render.</p>
+        <p role="alert" className="admin-copy text-sm text-[var(--admin-danger)]">
+          This draft failed validation and cannot render.
+        </p>
       ) : (
-        <div style={{ maxWidth: width.px, margin: width.px === "100%" ? "0" : "0 auto", border: "1px solid currentColor" }}>
+        <AdminSurface
+          padding="none"
+          className="overflow-hidden"
+          style={{
+            maxWidth: width.px,
+            margin: width.px === "100%" ? "0" : "0 auto",
+          }}
+        >
           <SitePageRenderer document={document} />
-        </div>
+        </AdminSurface>
       )}
-      <section aria-label="Attached images" style={{ marginTop: "2rem" }}>
+      <section aria-label="Attached images">
         <h2 className="admin-section-title">Attached images</h2>
         {attached.length === 0 ? (
-          <p>No catalog images attached.</p>
+          <p className="admin-copy text-sm">No catalog images attached.</p>
         ) : (
-          <ul>
-            {attached.map((assetId) => {
-              const asset = resolveSiteAsset(assetId);
-              return (
-                <li key={assetId}>
-                  {assetId} - {asset ? asset.alt : "unresolved reference"}
-                </li>
-              );
-            })}
-          </ul>
+          <AdminSurface padding="sm">
+            <ul className="admin-copy grid gap-1.5 text-sm">
+              {attached.map((assetId) => {
+                const asset = resolveSiteAsset(assetId);
+                return (
+                  <li key={assetId}>
+                    {assetId} - {asset ? asset.alt : "unresolved reference"}
+                  </li>
+                );
+              })}
+            </ul>
+          </AdminSurface>
         )}
       </section>
     </div>

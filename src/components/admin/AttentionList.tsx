@@ -28,16 +28,29 @@ export function AttentionList({
   busyTask,
   onTask,
   onReview,
+  hideEmptySections = false,
 }: {
   items: OperatorAttentionItem[];
   busyTask: string | null;
   onTask: (id: string, action: "complete" | "snooze") => void;
   onReview: (id: string, trigger: HTMLElement) => void;
+  /** When the queue is already filtered (e.g. a Today focus tab), omit
+   * empty sections instead of stacking "nothing here" boxes. If every
+   * section is empty the full set still renders, so a cleared filter
+   * confirms itself ("No approvals waiting.") instead of going blank. */
+  hideEmptySections?: boolean;
 }) {
+  const sectionRows = ATTENTION_SECTIONS.map((section) => ({
+    section,
+    rows: items.filter((item) => item.attentionKind === section.kind),
+  }));
+  const visible =
+    hideEmptySections && sectionRows.some(({ rows }) => rows.length > 0)
+      ? sectionRows.filter(({ rows }) => rows.length > 0)
+      : sectionRows;
   return (
     <div className="space-y-5" data-today-workspace>
-      {ATTENTION_SECTIONS.map((section) => {
-        const rows = items.filter((item) => item.attentionKind === section.kind);
+      {visible.map(({ section, rows }) => {
         const Icon = icons[section.kind];
         return (
           <section
@@ -57,7 +70,7 @@ export function AttentionList({
             </div>
             <AdminSurface
               padding="none"
-              className="overflow-hidden !rounded-lg !shadow-none border border-[var(--admin-border)]"
+              className="overflow-hidden !shadow-none border border-[var(--admin-border)]"
             >
               <ul className="divide-y divide-[var(--admin-border)]">
                 {rows.map((item) => (
@@ -145,7 +158,7 @@ export function AttentionList({
               {!rows.length && (
                 <p className="px-4 py-4 text-sm text-[var(--admin-muted)]">
                   {section.kind === "decision"
-                    ? "No decisions waiting."
+                    ? "No approvals waiting."
                     : section.kind === "work"
                       ? "No work due in this view."
                       : section.kind === "watch"

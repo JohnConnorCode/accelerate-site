@@ -487,7 +487,7 @@ await approvalDialog.waitFor({ state: "detached" });
 if (await desktop.page.getByText("Approve follow-up to Summit Mechanical", { exact: true }).count())
   throw new Error("Approved action remained in the shared operator queue");
 await desktop.page.getByRole("button", { name: "Reject", exact: true }).click();
-await desktop.page.getByText("No decisions waiting", { exact: true }).waitFor();
+await desktop.page.getByText("No approvals waiting", { exact: true }).waitFor();
 if (await desktop.page.getByText("Review campaign activation", { exact: true }).count())
   throw new Error("Rejected action remained in the shared operator queue");
 

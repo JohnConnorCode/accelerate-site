@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
 import { SITE_ASSET_CATALOG } from "@/lib/site-studio/assets";
 
@@ -16,6 +17,9 @@ interface DraftSummary {
   updatedAt: string;
   checksum: string;
 }
+
+const fieldClass =
+  "mt-1 block w-full rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 text-sm text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]";
 
 export default function AdminSiteStudioPage() {
   const router = useRouter();
@@ -88,111 +92,125 @@ export default function AdminSiteStudioPage() {
   const valid = serviceName.trim() && audience.trim() && outcome.trim();
 
   return (
-    <div>
+    <div className="space-y-7 pb-10">
       <PageHeader
         title="Site Studio"
         subtitle="Create AI-assisted page drafts from approved components and photography. Drafts stay private until a future publish step."
       />
-      <section aria-label="Create a page draft" style={{ marginBottom: "2rem" }}>
+      <section aria-label="Create a page draft">
         <h2 className="admin-section-title">New page draft</h2>
-        <div style={{ display: "grid", gap: "0.75rem", maxWidth: "44rem" }}>
-          <label>
-            Service name
-            <input
-              value={serviceName}
-              onChange={(event) => setServiceName(event.target.value)}
-              placeholder="Bookkeeping automation"
-              style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
-            />
-          </label>
-          <label>
-            Audience
-            <input
-              value={audience}
-              onChange={(event) => setAudience(event.target.value)}
-              placeholder="Home service owners"
-              style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
-            />
-          </label>
-          <label>
-            Outcome
-            <input
-              value={outcome}
-              onChange={(event) => setOutcome(event.target.value)}
-              placeholder="The office runs while the crew builds"
-              style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
-            />
-          </label>
-          <label>
-            URL slug (optional, derived from the service name when blank)
-            <input
-              value={slug}
-              onChange={(event) => setSlug(event.target.value)}
-              placeholder="bookkeeping-automation"
-              style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
-            />
-          </label>
-          <label>
-            Additional direction (optional, guides AI mode and the recorded brief)
-            <input
-              value={extra}
-              onChange={(event) => setExtra(event.target.value)}
-              placeholder="Emphasize evening admin relief; keep three sections"
-              style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
-            />
-          </label>
-          <label>
-            Creation mode
-            <select
-              value={mode}
-              onChange={(event) => setMode(event.target.value as "template" | "ai")}
-              style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
-            >
-              <option value="template">Built-in service template</option>
-              <option value="ai">AI generated (needs OpenRouter)</option>
-            </select>
-          </label>
-          <fieldset>
-            <legend>Attach photography (optional, approved catalog only)</legend>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-              {SITE_ASSET_CATALOG.map((asset) => (
-                <label key={asset.id} style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}>
-                  <input
-                    type="checkbox"
-                    checked={assetIds.includes(asset.id)}
-                    onChange={() => toggleAsset(asset.id)}
-                  />
-                  {asset.id}
-                </label>
-              ))}
+        <AdminSurface>
+          <div className="grid max-w-2xl gap-4">
+            <label className="block text-sm font-medium text-[var(--admin-ink)]">
+              Service name
+              <input
+                value={serviceName}
+                onChange={(event) => setServiceName(event.target.value)}
+                placeholder="Bookkeeping automation"
+                className={fieldClass}
+              />
+            </label>
+            <label className="block text-sm font-medium text-[var(--admin-ink)]">
+              Audience
+              <input
+                value={audience}
+                onChange={(event) => setAudience(event.target.value)}
+                placeholder="Home service owners"
+                className={fieldClass}
+              />
+            </label>
+            <label className="block text-sm font-medium text-[var(--admin-ink)]">
+              Outcome
+              <input
+                value={outcome}
+                onChange={(event) => setOutcome(event.target.value)}
+                placeholder="The office runs while the crew builds"
+                className={fieldClass}
+              />
+            </label>
+            <label className="block text-sm font-medium text-[var(--admin-ink)]">
+              URL slug (optional, derived from the service name when blank)
+              <input
+                value={slug}
+                onChange={(event) => setSlug(event.target.value)}
+                placeholder="bookkeeping-automation"
+                className={fieldClass}
+              />
+            </label>
+            <label className="block text-sm font-medium text-[var(--admin-ink)]">
+              Additional direction (optional, guides AI mode and the recorded brief)
+              <input
+                value={extra}
+                onChange={(event) => setExtra(event.target.value)}
+                placeholder="Emphasize evening admin relief; keep three sections"
+                className={fieldClass}
+              />
+            </label>
+            <label className="block text-sm font-medium text-[var(--admin-ink)]">
+              Creation mode
+              <select
+                value={mode}
+                onChange={(event) => setMode(event.target.value as "template" | "ai")}
+                className={fieldClass}
+              >
+                <option value="template">Built-in service template</option>
+                <option value="ai">AI generated (needs OpenRouter)</option>
+              </select>
+            </label>
+            <fieldset>
+              <legend className="text-sm font-medium text-[var(--admin-ink)]">
+                Attach photography (optional, approved catalog only)
+              </legend>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {SITE_ASSET_CATALOG.map((asset) => (
+                  <label
+                    key={asset.id}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] px-2.5 py-1.5 text-xs text-[var(--admin-muted)] has-checked:border-[var(--admin-ink)] has-checked:text-[var(--admin-ink)]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={assetIds.includes(asset.id)}
+                      onChange={() => toggleAsset(asset.id)}
+                    />
+                    {asset.id}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            {error ? (
+              <p role="alert" className="admin-copy text-sm text-[var(--admin-danger)]">
+                {error}
+              </p>
+            ) : null}
+            <div>
+              <Button onClick={create} disabled={!valid || creating}>
+                {creating ? "Creating draft" : "Create draft"}
+              </Button>
             </div>
-          </fieldset>
-          {error ? (
-            <p role="alert" style={{ color: "var(--site-muted, #6b6259)" }}>
-              {error}
-            </p>
-          ) : null}
-          <div>
-            <Button onClick={create} disabled={!valid || creating}>
-              {creating ? "Creating draft" : "Create draft"}
-            </Button>
           </div>
-        </div>
+        </AdminSurface>
       </section>
       <section aria-label="Page drafts">
         <h2 className="admin-section-title">Drafts</h2>
         {loading ? (
           <LoadingSkeleton />
         ) : drafts.length === 0 ? (
-          <p>No drafts yet. Create the first one above.</p>
+          <p className="admin-copy text-sm">No drafts yet. Create the first one above.</p>
         ) : (
-          <ul style={{ display: "grid", gap: "0.75rem", listStyle: "none", padding: 0 }}>
+          <ul className="grid list-none gap-3 p-0">
             {drafts.map((draft) => (
-              <li key={draft.id} style={{ border: "1px solid currentColor", borderRadius: "0.5rem", padding: "1rem" }}>
-                <Link href={`/admin/site/${draft.id}`}>{draft.title}</Link>
-                <p style={{ margin: "0.25rem 0 0" }}>
-                  /{draft.slug} - {draft.source} - updated {draft.updatedAt.slice(0, 10)}
-                </p>
+              <li key={draft.id}>
+                <AdminSurface padding="sm">
+                  <Link
+                    href={`/admin/site/${draft.id}`}
+                    className="text-sm font-semibold text-[var(--admin-ink)] hover:underline"
+                  >
+                    {draft.title}
+                  </Link>
+                  <p className="admin-copy mt-0.5 text-xs">
+                    /{draft.slug} - {draft.source} - updated {draft.updatedAt.slice(0, 10)}
+                  </p>
+                </AdminSurface>
               </li>
             ))}
           </ul>

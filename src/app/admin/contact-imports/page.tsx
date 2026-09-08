@@ -576,7 +576,7 @@ export default function ContactImportsPage() {
         title="Approve contact import"
         maxWidth="md"
       >
-        <AdminSurface padding="none" className="admin-dialog-surface overflow-hidden rounded-2xl">
+        <AdminSurface padding="none" className="admin-dialog-surface overflow-hidden">
           <div className="p-5 sm:p-6">
             <span className="grid size-11 place-items-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300">
               <ShieldCheck className="size-5" />

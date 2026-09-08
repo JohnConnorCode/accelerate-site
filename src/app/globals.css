@@ -7115,6 +7115,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 }
 
 .admin-dialog-surface {
+  border-radius: var(--admin-surface-radius);
   box-shadow:
     0 0 0 1px rgba(11, 11, 11, 0.08),
     0 30px 80px -28px rgba(0, 0, 0, 0.5);

@@ -496,9 +496,9 @@ export default function CampaignsPage() {
       >
         <form
           onSubmit={(event) => void create(event)}
-          className="admin-dialog-surface max-h-[92dvh] w-full overflow-y-auto rounded-[24px] bg-[var(--admin-surface)] p-2"
+          className="admin-dialog-surface max-h-[92dvh] w-full overflow-y-auto bg-[var(--admin-surface)] p-2"
         >
-          <div className="rounded-[20px] p-5 sm:p-6">
+          <div className="rounded-[calc(var(--admin-surface-radius)-4px)] p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="admin-eyebrow">Controlled outbound</p>

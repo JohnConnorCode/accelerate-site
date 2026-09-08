@@ -69,7 +69,7 @@ export const ATTENTION_SECTIONS: ReadonlyArray<{
 }> = [
   {
     kind: "decision",
-    title: "Needs your decision",
+    title: "Approvals",
     description: "Review the exact change before approving.",
   },
   {
