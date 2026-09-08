@@ -188,3 +188,111 @@ for (const file of adminFiles) {
 if (radiusFailures.length) throw new Error(radiusFailures.join("\n"));
 
 console.log("Admin radius ban passed: no fixed dialog radii or token overrides.");
+
+// -----------------------------------------------------------------------
+// Appearance registry + theme token completeness contract.
+//
+// Theme ids live in exactly one place (src/lib/admin/appearances.ts). Every
+// other list is derived or checked: the picker, session persistence, and
+// scenario defaults import the registry, while this verifier proves the
+// CSS and the browser QA matrix agree with it. A new theme is one registry
+// entry plus one token block, and forgetting either fails here.
+//
+// A theme block must define every base token except deliberate globals
+// (aliases that resolve per-theme through var(), or primitives that are
+// intentionally constant). Anything with a literal per-theme value belongs
+// in every block, or one appearance silently inherits another's colors.
+const GLOBAL_THEME_TOKENS = new Set([
+  "--admin-soft", // alias of --admin-surface-subtle
+  "--admin-line", // alias of --admin-border
+  "--admin-mobile-dock-index", // deliberately constant stacking primitive
+  "--admin-card-flat-shadow", // resolves per-theme through var(--admin-ink)
+  "--admin-card-raised-shadow", // resolves per-theme through var(--admin-shadow)
+  "--admin-card-outline-shadow", // resolves per-theme through var(--admin-shadow)
+]);
+
+function collectCssRules(text) {
+  const rules = [];
+  const ruleRe = /([^{}]+)\{/g;
+  let match;
+  while ((match = ruleRe.exec(text))) {
+    const selector = match[1];
+    let depth = 1;
+    let index = ruleRe.lastIndex;
+    while (index < text.length && depth > 0) {
+      if (text[index] === "{") depth++;
+      else if (text[index] === "}") depth--;
+      index++;
+    }
+    const body = text.slice(ruleRe.lastIndex, index - 1);
+    ruleRe.lastIndex = index;
+    rules.push({ selector, body });
+    if (/^\s*@/.test(selector)) rules.push(...collectCssRules(body));
+  }
+  return rules;
+}
+
+const themeFailures = [];
+const registrySource = readFileSync(join(root, "lib/admin/appearances.ts"), "utf8");
+const registryIds = [...registrySource.matchAll(/\{\s*id:\s*"([^"]+)"/g)].map((match) => match[1]);
+if (!registryIds.length) themeFailures.push("Appearance registry defines no theme ids.");
+const cssSource = readFileSync(join(root, "app/globals.css"), "utf8");
+const baseTokens = new Set();
+const themeTokens = new Map();
+for (const { selector, body } of collectCssRules(cssSource)) {
+  const tokens = [...body.matchAll(/(--admin-[a-z0-9-]+)\s*:/g)].map((match) => match[1]);
+  if (!tokens.length) continue;
+  const themeMatch = selector.match(/\[data-theme="([^"]+)"\]/);
+  if (themeMatch) {
+    const defined = themeTokens.get(themeMatch[1]) ?? new Set();
+    tokens.forEach((token) => defined.add(token));
+    themeTokens.set(themeMatch[1], defined);
+  } else if (/\.admin-shell|\.admin-overlay-token-scope/.test(selector)) {
+    tokens.forEach((token) => baseTokens.add(token));
+  }
+}
+const requiredTokens = [...baseTokens].filter((token) => !GLOBAL_THEME_TOKENS.has(token));
+const cssThemeIds = [...themeTokens.keys()];
+for (const id of registryIds) {
+  if (id === "light") continue;
+  if (!themeTokens.has(id)) {
+    themeFailures.push(`Registry appearance "${id}" has no [data-theme="${id}"] token block.`);
+    continue;
+  }
+  const missing = requiredTokens.filter((token) => !themeTokens.get(id).has(token));
+  if (missing.length) {
+    themeFailures.push(
+      `[data-theme="${id}"] is missing ${missing.length} required token(s): ${missing.join(", ")}.`,
+    );
+  }
+}
+for (const id of cssThemeIds) {
+  if (id === "light") {
+    themeFailures.push(
+      'Found a [data-theme="light"] block. Paper is the base scope; do not split it.',
+    );
+  } else if (!registryIds.includes(id)) {
+    themeFailures.push(`[data-theme="${id}"] has no registry entry and ships no picker label.`);
+  }
+}
+const qaSource = readFileSync(
+  new URL("../scripts/qa-admin-layout-continuity.mjs", import.meta.url).pathname,
+  "utf8",
+);
+const qaMatch = qaSource.match(/const appearances = \[([^\]]*)\]/);
+const qaAppearances = qaMatch
+  ? [...qaMatch[1].matchAll(/"([^"]+)"/g)].map((match) => match[1])
+  : [];
+if (!qaAppearances.length) {
+  themeFailures.push("Browser QA defines no appearance matrix.");
+}
+for (const id of qaAppearances) {
+  if (!registryIds.includes(id)) {
+    themeFailures.push(`Browser QA covers unknown appearance "${id}".`);
+  }
+}
+if (themeFailures.length) throw new Error(themeFailures.join("\n"));
+
+console.log(
+  `Admin theme contract passed: ${registryIds.length} registered appearances, ${requiredTokens.length} required tokens each, ${qaAppearances.length} in the browser matrix.`,
+);

@@ -20,7 +20,10 @@ const routes = [
   "campaigns",
 ];
 const screenshotRoutes = new Set(["analytics", "bookings", "recovery", "revenue"]);
-const appearances = ["signal", "light", "dark"];
+// Every registered appearance rides the same sweep, so a new theme cannot
+// ship visually untested. The token verifier asserts this list stays
+// inside the appearance registry.
+const appearances = ["signal", "light", "dark", "studio", "frost"];
 const viewports = [
   ["desktop", { width: 1440, height: 1000 }],
   ["mobile", { width: 390, height: 844 }],

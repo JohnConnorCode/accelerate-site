@@ -7,56 +7,33 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { saveDemoAppearance } from "@/lib/admin/demo/appearance-state";
 import type { DemoScenarioId } from "@/lib/admin/demo/scenarios";
+import {
+  ADMIN_APPEARANCES,
+  isAdminAppearance,
+  type AdminAppearance,
+} from "@/lib/admin/appearances";
 
-type AdminAppearance = "light" | "dark" | "signal" | "studio" | "frost";
+const appearanceIcons = {
+  light: Sun,
+  dark: Moon,
+  signal: Sparkles,
+  studio: Palette,
+  frost: Snowflake,
+} as const satisfies Record<AdminAppearance, typeof Sun>;
 
-const appearances: Array<{
-  id: AdminAppearance;
-  label: string;
-  description: string;
-  icon: typeof Sun;
-  previewClass: string;
-}> = [
-  {
-    id: "light",
-    label: "Paper",
-    description: "Clear editorial workspace",
-    icon: Sun,
-    previewClass: "bg-[#f3f3f0] text-[#0b0b0b]",
-  },
-  {
-    id: "dark",
-    label: "Night",
-    description: "Low-light operating view",
-    icon: Moon,
-    previewClass: "bg-[#10100f] text-[#fbfbfa]",
-  },
-  {
-    id: "signal",
-    label: "Signal",
-    description: "Focused violet operations",
-    icon: Sparkles,
-    previewClass: "bg-[#171225] text-[#f3edff]",
-  },
-  {
-    id: "studio",
-    label: "Studio",
-    description: "Bright project workspace",
-    icon: Palette,
-    previewClass: "bg-[#f4f7fc] text-[#18233c]",
-  },
-  {
-    id: "frost",
-    label: "Frost",
-    description: "Luminous violet workspace",
-    icon: Snowflake,
-    previewClass: "bg-gradient-to-br from-white to-[#ece7ff] text-[#6b3ff2]",
-  },
-];
+const appearancePreviews = {
+  light: "bg-[#f3f3f0] text-[#0b0b0b]",
+  dark: "bg-[#10100f] text-[#fbfbfa]",
+  signal: "bg-[#171225] text-[#f3edff]",
+  studio: "bg-[#f4f7fc] text-[#18233c]",
+  frost: "bg-gradient-to-br from-white to-[#ece7ff] text-[#6b3ff2]",
+} as const satisfies Record<AdminAppearance, string>;
 
-function isAdminAppearance(theme: string | undefined): theme is AdminAppearance {
-  return appearances.some((appearance) => appearance.id === theme);
-}
+const appearances = ADMIN_APPEARANCES.map((appearance) => ({
+  ...appearance,
+  icon: appearanceIcons[appearance.id] ?? Palette,
+  previewClass: appearancePreviews[appearance.id] ?? "bg-[#f3f3f0] text-[#0b0b0b]",
+}));
 
 export function AdminAppearancePicker({
   collapsed = false,
