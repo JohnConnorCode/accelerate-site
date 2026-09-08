@@ -137,6 +137,7 @@ const BASE_REVENUE_SCHEMA_TABLES = [
       "company_id",
       "communication_status",
       "unsubscribe_token",
+      "tags",
     ],
   },
   {

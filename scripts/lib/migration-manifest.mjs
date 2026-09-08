@@ -86,6 +86,8 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260916-drive-content-indexing.sql",
   "migrations/20260917-site-studio-drafts.sql",
   "migrations/20260918-campaign-duplicate-receipts.sql",
+  "migrations/20260915-contact-tags.sql",
+  "migrations/20260919-contact-bulk-transactions.sql",
   "migrations/20260920-delivery-handoff-convergence.sql",
 ];
 

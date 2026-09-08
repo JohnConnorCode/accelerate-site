@@ -86,7 +86,7 @@ This repository ships with automatic Git deployments off (`git.deploymentEnabled
 
 Or run it locally instead:
 
-Requirements: Node.js 22+, npm 10+, and Git.
+Requirements: Node.js 22.16+, npm 10+, and Git.
 
 ```bash
 git clone https://github.com/JohnConnorCode/accelerate-site.git

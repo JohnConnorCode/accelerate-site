@@ -11,6 +11,24 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-08",
   },
   {
+    id: "local-agent-supervisor",
+    slug: "local-agent-supervisor",
+    title: "Coordinate local agent jobs with durable ownership and recovery",
+    description:
+      "Optional developer supervision adds a shared queue and process identity registry. Cross-process state updates are transactional; stale releases preserve replacement owners and recovery keeps paused agents paused. Cancellation requires an explicitly registered disposable child and enabled policy. Management starts off; provider hooks and OS isolation remain separate.",
+    category: "feature",
+    publishedAt: "2026-09-08",
+  },
+  {
+    id: "reviewed-bulk-contact-operations",
+    slug: "reviewed-bulk-contact-operations",
+    title: "Tag, suppress and stage selected contacts with individual outcomes",
+    description:
+      "Lead selections resolve to distinct contacts. Concurrent tag changes preserve unrelated labels, and campaign enrollment rechecks draft status and canonical email identity inside the database transaction. Per-contact outcomes show skips and failures; retries repair partially completed suppression without restoring unsubscribed contacts. The fictional demo saves these changes across reloads.",
+    category: "feature",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "atomic-campaign-duplication",
     slug: "atomic-campaign-duplication",
     title: "Duplicate campaigns into fresh drafts with durable retry receipts",

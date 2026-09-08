@@ -128,3 +128,23 @@ worktree count is not a count of missing features.
 The `25e4b88` handoff is ported without its obsolete framework fixes. The incoming button was only rendered inside an existing engagement, preventing initial handoff; the review now works before creation. The service also allowed concurrent duplicate engagements, re-created completed tasks, dropped omitted proposal bindings on replay and refreshed existing engagements with the newest template. Those cases have focused regression coverage.
 
 This candidate uses permanent engagement/task identities, a pinned source snapshot, tenant-bound reads, database source guards and revision-checked checklist merges. Tasks remain owned by `tasks.ts`. Template publication and its audit share a transaction; the overall engagement/task handoff remains a convergent sequence with explicit partial-failure recovery. Native PostgreSQL and two-business browser acceptance are pending; it is not accepted or deployed yet.
+
+## Bulk-contact reconciliation candidate
+
+The `02d3e94` handoff is ported onto the campaign integration without its stale board snapshot. Tag writes now use locked current rows; staging uses one shared host transaction for canonical recipient matching, suppression checks, draft-state admission and exact inserted-row outcomes. Bulk calls require draft state, while the existing single-member API retains explicit active-campaign admission. The API returns per-recipient outcomes instead of an error after silently inserting a partial set.
+
+Suppression continues through the canonical shared writer. It can still fail after persisting part of the safety change; the result describes this and retry repairs remaining stops/audits, including already-suppressed contacts. No automatic unsuppression is introduced. Native and browser proofs are added but acceptance remains pending their execution. The demo now persists tags, members and suppression instead of checking only disabled controls.
+
+## Campaign integration receipt
+
+PR 60 merged as `0ae18bf590ca204f2cc57480a290bfdcd068bc7e` on 2026-09-08 at 13:57:41 UTC. Its tree matches tested head `0b394628e3ece01545b3fb4d86b8163abd5403f2`. CI `34233603360` passed all required jobs, including native concurrent replay and audit rollback, plus the full browser suite. All four campaign screenshots were inspected at 1440/390 px for SuperDebate and Northline Roofing. Lost-response recovery across reload and confirmed stale-source recovery passed. The clean detached control checkout now points to this merge. No production deployment is asserted.
+
+## Supervisor reconciliation candidate
+
+The `7cbf633` API is retained instead of combining two competing session stores. SQLite transactions replace racy JSON read/modify/write; original JSON is imported once and preserved. Resource-slot transitions share the same transaction boundary, compare current owner identity on release, and refuse replacement-owner removal. Recovery skips superseded records, revalidates the plan and records paused processes as paused without claiming a resume. Disposable cancellation requires persisted registration, current child/parent identities, enabled policy and exclusion of registered agents. PATH detection no longer invokes the nonexistent external `command` program.
+
+Twenty-two isolated supervisor/resource checks passed, including eight concurrent writers, duplicate session admission, crash rollback, replacement holders, current paused recovery, and synthetic process control. No real session was signaled and management was not installed. Node 22.16+ is explicit in the package engine, doctor and setup guide. Full CI and integration remain pending.
+
+## Supervisor integration receipt
+
+PR 62 merged as `1c17e90db758d0399a201ec368bcb014222471cf` on 2026-09-08 at 14:33:03 UTC. Its tree matches tested head `7cb91d2ae61d974557ff3ea7e1e9998ba772d884`. CI `34237350451` passed all required jobs. The clean control checkout points to this merge; no global supervisor installation or production deployment was performed.

@@ -216,6 +216,14 @@ export async function callSiteDraftRpc(database: SupabaseClient, args: Record<st
   return callVerifiedHostRpc(database, "write_site_draft", args);
 }
 
+export async function callContactBulkRpc(
+  database: SupabaseClient,
+  name: "bulk_tag_contacts" | "stage_campaign_members",
+  args: Record<string, unknown>,
+) {
+  return callVerifiedHostRpc(database, name, args);
+}
+
 export async function callCampaignDuplicateRpc(
   database: SupabaseClient,
   args: Record<string, unknown>,

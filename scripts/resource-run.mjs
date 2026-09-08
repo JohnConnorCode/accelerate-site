@@ -1,14 +1,18 @@
+import { withStateTransaction } from "./supervisor/state.mjs";
+import { randomUUID } from "node:crypto";
 import { spawn, execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync, readFileSync, rmSync, statfsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { processStartTime } from "./supervisor/identity.mjs";
 
 // Shared across this user's worktrees, not just one checkout.
 export const lockPath = join(tmpdir(), `accelerate-heavy-job-${process.getuid?.() ?? "user"}`);
 const GiB = 1024 ** 3;
 
-export function acquireLock(directory = lockPath) {
+function acquireLockLocked(directory = lockPath) {
+  const ownerToken = randomUUID();
   try {
     mkdirSync(directory, { mode: 0o700 });
   } catch (error) {
@@ -26,14 +30,41 @@ export function acquireLock(directory = lockPath) {
   try {
     writeFileSync(
       join(directory, "owner.json"),
-      JSON.stringify({ pid: process.pid, cwd: process.cwd(), started: new Date().toISOString() }),
+      JSON.stringify({
+        ownerToken,
+        pid: process.pid,
+        cwd: process.cwd(),
+        started: new Date().toISOString(),
+        // Supervisor-visible identity fields. Extra fields are ignored by
+        // older readers and let the machine-wide queue judge liveness
+        // without relying on a bare PID, which the kernel recycles.
+        kind: "heavy",
+        repo: process.cwd(),
+        startTime: processStartTime(process.pid),
+      }),
       { mode: 0o600 },
     );
   } catch (error) {
     rmSync(directory, { recursive: true, force: true });
     throw error;
   }
-  return () => rmSync(directory, { recursive: true, force: true });
+  return () =>
+    withStateTransaction(() => {
+      let current;
+      try {
+        current = JSON.parse(readFileSync(join(directory, "owner.json"), "utf8"));
+      } catch (error) {
+        if (error.code === "ENOENT") return;
+        throw error;
+      }
+      if (current.ownerToken !== ownerToken)
+        throw new Error("Resource slot owner changed; replacement holder preserved");
+      rmSync(directory, { recursive: true, force: true });
+    });
+}
+
+export function acquireLock(directory = lockPath) {
+  return withStateTransaction(() => acquireLockLocked(directory));
 }
 
 export function checkCapacity({ availableBytes, freePercent }, starting = true) {
@@ -84,6 +115,42 @@ function readProcessGroups() {
   return execFileSync("ps", ["-axo", "pgid="], { encoding: "utf8", timeout: 5000 });
 }
 
+// Supervisor delegation: when installed and enabled, the machine-wide queue
+// replaces the repository-scoped lock instead of stacking under it, so one
+// admission point governs every enrolled repository. Callers passing an
+// explicit directory (tests, special cases) keep the legacy lock. Admission
+// refuses under pressure and waits FIFO; tickets from dead requesters are
+// pruned by the queue, never taken over by force.
+async function acquireGate({ directory, supervise }) {
+  const { installed, loadConfig } = await import("./supervisor/state.mjs");
+  const enabled =
+    process.env.ACCELERATE_SUPERVISOR_DISABLE !== "1" &&
+    (supervise === true ||
+      (supervise === undefined && installed() && loadConfig().manageHeavyJobs));
+  if (!enabled || (supervise === undefined && directory !== lockPath))
+    return acquireLock(directory);
+  const { requestTicket, admitTicket, releaseTicket } = await import("./supervisor/queue.mjs");
+  const { ticket } = requestTicket({ repo: process.cwd(), kind: "heavy" });
+  const requestedPoll = Number(process.env.ACCELERATE_SUPERVISOR_POLL_MS || 1000);
+  const pollMs = Number.isFinite(requestedPoll)
+    ? Math.max(250, Math.min(10000, requestedPoll))
+    : 1000;
+  for (;;) {
+    const decision = admitTicket(ticket);
+    if (decision.admitted) return () => releaseTicket(ticket);
+    // A stale lock needs an explicit operator recovery; spinning on it would
+    // hide the exact failure this supervisor exists to surface.
+    if (decision.stale) {
+      releaseTicket(ticket);
+      throw new Error(`${decision.reason} ${decision.recovery || ""}`.trim());
+    }
+    console.log(
+      `Heavy queue: not admitted (${decision.reason}${decision.recovery ? `; ${decision.recovery}` : ""}). Waiting.`,
+    );
+    await new Promise((r) => setTimeout(r, pollMs));
+  }
+}
+
 export async function runHeavyJob(
   command,
   args,
@@ -92,10 +159,11 @@ export async function runHeavyJob(
     readCapacity = capacity,
     monitorInterval = 10000,
     readGroups = readProcessGroups,
+    supervise,
   } = {},
 ) {
   if (!command) throw new Error("Usage: npm run resources:run -- <command> [args...]");
-  const release = acquireLock(directory);
+  const release = await acquireGate({ directory, supervise });
   let child;
   let timer;
   let killTimer;

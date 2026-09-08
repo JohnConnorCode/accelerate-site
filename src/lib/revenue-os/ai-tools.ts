@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { prepareRadarOutreachDraft } from "./radar-outreach-drafting";
 import {
   previewRadarOutreach,
@@ -1341,6 +1342,149 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "propose_bulk_tag_contacts",
+    description:
+      "Stage adding or removing tags on selected canonical contacts for founder approval. Set semantics make retries converge; nothing sends.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contactIds: {
+          type: "array",
+          minItems: 1,
+          maxItems: 200,
+          items: { type: "string", format: "uuid" },
+        },
+        add: { type: "array", items: { type: "string" } },
+        remove: { type: "array", items: { type: "string" } },
+        reasoning: { type: "string" },
+      },
+      required: ["contactIds", "reasoning"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const contactIds = Array.isArray(input.contactIds) ? input.contactIds : [];
+      const fingerprint = createHash("sha256")
+        .update(
+          JSON.stringify({
+            contactIds: [...contactIds].sort(),
+            add: input.add ?? [],
+            remove: input.remove ?? [],
+          }),
+        )
+        .digest("hex")
+        .slice(0, 16);
+      return proposeAction(supabase, {
+        actionType: "bulk_tag_contacts",
+        title: "Bulk tag contacts",
+        description: value(input, "reasoning") || "",
+        urgency: "normal",
+        payload: { ...input },
+        reasoning: value(input, "reasoning") || "",
+        sourceContext: "admin_ai",
+        entityType: "contact",
+        dedupeKey: `ai-bulk-tag:${fingerprint}`,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
+  {
+    name: "propose_bulk_suppress_contacts",
+    description:
+      "Stage suppression of selected canonical contacts from campaign email for founder approval. Pending memberships stop; suppression cannot be undone automatically.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contactIds: {
+          type: "array",
+          minItems: 1,
+          maxItems: 200,
+          items: { type: "string", format: "uuid" },
+        },
+        reasoning: { type: "string" },
+      },
+      required: ["contactIds", "reasoning"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const contactIds = Array.isArray(input.contactIds) ? input.contactIds : [];
+      const fingerprint = createHash("sha256")
+        .update([...contactIds].sort().join(","))
+        .digest("hex")
+        .slice(0, 16);
+      return proposeAction(supabase, {
+        actionType: "bulk_suppress_contacts",
+        title: "Bulk suppress contacts",
+        description: value(input, "reasoning") || "",
+        urgency: "normal",
+        payload: { ...input },
+        reasoning: value(input, "reasoning") || "",
+        sourceContext: "admin_ai",
+        entityType: "contact",
+        dedupeKey: `ai-bulk-suppress:${fingerprint}`,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
+  {
+    name: "propose_bulk_enroll_contacts",
+    description:
+      "Stage enrollment of selected canonical contacts into a draft campaign for founder approval. Staging only: it never approves, activates, or sends.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        campaignId: { type: "string" },
+        contactIds: {
+          type: "array",
+          minItems: 1,
+          maxItems: 200,
+          items: { type: "string", format: "uuid" },
+        },
+        reasoning: { type: "string" },
+      },
+      required: ["campaignId", "contactIds", "reasoning"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const campaignId = value(input, "campaignId");
+      const contactIds = Array.isArray(input.contactIds) ? input.contactIds : [];
+      const fingerprint = createHash("sha256")
+        .update(`${campaignId}:${[...contactIds].sort().join(",")}`)
+        .digest("hex")
+        .slice(0, 16);
+      return proposeAction(supabase, {
+        actionType: "bulk_enroll_contacts",
+        title: "Bulk enroll contacts into a draft campaign",
+        description: value(input, "reasoning") || "",
+        urgency: "normal",
+        payload: { ...input },
+        reasoning: value(input, "reasoning") || "",
+        sourceContext: "admin_ai",
+        entityType: "campaign",
+        entityId: campaignId,
+        dedupeKey: `ai-bulk-enroll:${fingerprint}`,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+    },
+  },
+  {
     name: "propose_campaign_duplicate",
     description:
       "Stage duplication of a campaign into a new draft for founder approval. The copy carries audience, copy, sender, schedule, limits and stops, but no members, sends, or approvals.",
@@ -2383,6 +2527,9 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_conversation_reply",
     "propose_campaign_activation",
     "propose_campaign_duplicate",
+    "propose_bulk_tag_contacts",
+    "propose_bulk_suppress_contacts",
+    "propose_bulk_enroll_contacts",
   ],
 };
 
