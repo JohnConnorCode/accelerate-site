@@ -68,6 +68,12 @@ export default function DocsLandingPage() {
         >
           Explore plugin examples
         </Link>
+        <Link
+          href="/docs/start/how-it-works"
+          className="inline-flex min-h-11 items-center rounded-xl border border-[var(--rule)] px-5 py-3 text-sm font-medium"
+        >
+          See how it works
+        </Link>
       </div>
       <DocsFigure
         src="/images/open-source/slide-today-paper.png"

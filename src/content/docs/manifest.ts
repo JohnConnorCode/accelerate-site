@@ -39,6 +39,12 @@ export const docsManifest: DocsSection[] = [
           "Connect your business, work with AI, and build on an open-source foundation you control.",
       },
       {
+        slug: ["start", "how-it-works"],
+        title: "How Accelerate works",
+        description:
+          "Follow business context from its source to a reviewed action, recorded result, and reusable extension.",
+      },
+      {
         slug: ["start", "business-owners"],
         title: "For business owners",
         description:
