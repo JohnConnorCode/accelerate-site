@@ -334,7 +334,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "Your own assistant, connected over MCP",
     detail:
-      "Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity connect over the Model Context Protocol and reach the same registered tools the workspace uses. Reads return bounded queries with their sources; anything that would change a record or send a message becomes a staged proposal in the same approval queue.",
+      "Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity connect over the Model Context Protocol and reach the same registered tools the workspace uses. Daily, Minimal and full tool lists keep discovery available without changing permissions. Reads return bounded queries with their sources; anything that would change a record or send a message becomes a staged proposal in the same approval queue.",
   },
   {
     id: "agent-workflow",

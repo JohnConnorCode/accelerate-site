@@ -1,3 +1,8 @@
+import {
+  indexDriveFolder,
+  emptyDriveIndexSummary,
+  type DriveDocumentRow,
+} from "./drive-content-indexing";
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenant } from "@/config/tenant";
@@ -743,40 +748,86 @@ export async function syncDrive(supabase: SupabaseClient) {
   }
   let stored = 0;
   let quarantined = 0;
+  const indexSummary = await emptyDriveIndexSummary();
   for (const folderId of folders) {
-    const params = new URLSearchParams({
-      q: `'${folderId.replace(/'/g, "")}' in parents and trashed = false`,
-      fields: "files(id,name,mimeType,webViewLink,modifiedTime,md5Checksum,parents)",
-      pageSize: "200",
-      orderBy: "modifiedTime desc",
+    const rows: DriveDocumentRow[] = [];
+    let pageToken: string | undefined;
+    let listingComplete = false;
+    const visitedPages = new Set<string>();
+    for (let page = 0; page < 20; page++) {
+      const params = new URLSearchParams({
+        q: `'${folderId.replace(/'/g, "")}' in parents and trashed = false`,
+        fields:
+          "nextPageToken,incompleteSearch,files(id,name,mimeType,webViewLink,modifiedTime,md5Checksum,version,parents,capabilities(canDownload))",
+        pageSize: "200",
+        orderBy: "modifiedTime desc",
+        ...(pageToken ? { pageToken } : {}),
+      });
+      const data = await googleFetch<{
+        files?: Array<Record<string, unknown>>;
+        nextPageToken?: string;
+        incompleteSearch?: boolean;
+      }>(`https://www.googleapis.com/drive/v3/files?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(30_000),
+      });
+      for (const file of data.files ?? []) {
+        if (typeof file.id !== "string" || !isWithinAllowlist(file.parents, [folderId])) {
+          quarantined++;
+          continue;
+        }
+        rows.push({
+          provider: "google",
+          external_id: file.id,
+          name: String(file.name || "Untitled file"),
+          mime_type: typeof file.mimeType === "string" ? file.mimeType : null,
+          web_view_link: typeof file.webViewLink === "string" ? file.webViewLink : null,
+          modified_at: typeof file.modifiedTime === "string" ? file.modifiedTime : null,
+          folder_id: folderId,
+          content_hash: null,
+          provider_revision: typeof file.version === "string" ? file.version : null,
+          metadata: {
+            parents: file.parents ?? [],
+            canDownload:
+              (file.capabilities as { canDownload?: boolean } | undefined)?.canDownload ?? false,
+            extractionScope:
+              file.mimeType === "application/vnd.google-apps.spreadsheet"
+                ? "first-sheet-only"
+                : "document",
+          },
+        });
+      }
+      if (data.incompleteSearch) break;
+      if (!data.nextPageToken) {
+        listingComplete = true;
+        break;
+      }
+      if (visitedPages.has(data.nextPageToken)) break;
+      visitedPages.add(data.nextPageToken);
+      pageToken = data.nextPageToken;
+    }
+    const summary = await indexDriveFolder(supabase, {
+      folderId,
+      rows,
+      listedIds: new Set(rows.map((row) => row.external_id)),
+      listingComplete,
+      extract: (row) => fetchDriveDocumentText(token, row),
     });
-    const data = await googleFetch<{ files?: Array<Record<string, unknown>> }>(
-      `https://www.googleapis.com/drive/v3/files?${params}`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-    const rows = (data.files ?? []).map((file) => ({
-      provider: "google",
-      external_id: String(file.id),
-      name: String(file.name || "Untitled file"),
-      mime_type: typeof file.mimeType === "string" ? file.mimeType : null,
-      web_view_link: typeof file.webViewLink === "string" ? file.webViewLink : null,
-      modified_at: typeof file.modifiedTime === "string" ? file.modifiedTime : null,
-      folder_id: folderId,
-      content_hash: typeof file.md5Checksum === "string" ? file.md5Checksum : null,
-      metadata: { parents: file.parents ?? [] },
-      synced_at: new Date().toISOString(),
-    }));
-    // The Drive query is folder-scoped, and this proves the results stayed
-    // inside the allowlist before anything is stored.
-    const inScope = rows.filter((row) => isWithinAllowlist(row.metadata.parents, folders));
-    quarantined += rows.length - inScope.length;
-    const { error } = inScope.length
-      ? await supabase
-          .from("drive_documents")
-          .upsert(inScope, { onConflict: "tenant_id,provider,external_id" })
-      : { error: null };
-    if (error) throw new Error(error.message);
-    stored += inScope.length;
+    for (const key of [
+      "listed",
+      "indexed",
+      "unchanged",
+      "unsupported",
+      "deleted",
+      "inaccessible",
+      "duplicates",
+      "failed",
+    ] as const)
+      indexSummary[key] += summary[key];
+    indexSummary.errors.push(...summary.errors);
+    if (!listingComplete)
+      indexSummary.errors.push("Drive folder listing incomplete; absent files retained");
+    stored += summary.listed;
   }
   // Removing a folder stops future reads; its already-synced documents stay.
   // Report which stored folders left the allowlist so that provenance is
@@ -791,8 +842,9 @@ export async function syncDrive(supabase: SupabaseClient) {
   );
   await recordSourceRun(supabase, {
     sourceKey: "google_drive",
-    status: "success",
+    status: indexSummary.errors.length || indexSummary.inaccessible ? "partial" : "success",
     summary: {
+      indexing: indexSummary,
       stored,
       folders: folders.length,
       rejected: rejected.length,
@@ -800,7 +852,50 @@ export async function syncDrive(supabase: SupabaseClient) {
       stale_folders: staleFolders.length,
     },
   });
-  return { stored, folders: folders.length, rejected: rejected.length, quarantined, staleFolders };
+  return {
+    indexing: indexSummary,
+    stored,
+    folders: folders.length,
+    rejected: rejected.length,
+    quarantined,
+    staleFolders,
+  };
+}
+
+/** Only decoded text formats are accepted. CSV export covers the first sheet. */
+async function fetchDriveDocumentText(
+  token: string,
+  row: DriveDocumentRow,
+): Promise<string | null> {
+  if (row.metadata?.canDownload === false) return null;
+  const native = row.mime_type?.startsWith("application/vnd.google-apps.");
+  const mime =
+    row.mime_type === "application/vnd.google-apps.spreadsheet" ? "text/csv" : "text/plain";
+  const url = native
+    ? `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(row.external_id)}/export?mimeType=${encodeURIComponent(mime)}`
+    : `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(row.external_id)}?alt=media`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) throw new Error(`Drive text read failed (${response.status})`);
+  const reader = response.body?.getReader();
+  if (!reader) return null;
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  let bytes = 0;
+  let text = "";
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      bytes += chunk.value.byteLength;
+      if (bytes > 2_000_000) throw new Error("Drive text exceeds the 2 MB indexing limit");
+      text += decoder.decode(chunk.value, { stream: true });
+    }
+    return text + decoder.decode();
+  } finally {
+    await reader.cancel();
+  }
 }
 
 export async function sendGmailReply(

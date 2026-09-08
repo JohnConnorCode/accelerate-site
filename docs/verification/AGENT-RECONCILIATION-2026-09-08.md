@@ -22,7 +22,7 @@ This audit is owned by the integration branch `integration/agent-reconciliation-
 | Bulk contacts                  | `02d3e94`                               | Review lost-update handling, exact per-record outcomes, draft-only staging, canonical contact identity, tenant isolation and production migration receipt.                                                                                                 |
 | Campaign duplication           | `f4f59e1`                               | Review atomic draft/step/audit creation, replay key, source-version concurrency and demo persistence.                                                                                                                                                      |
 | Won-to-delivery handoff        | `25e4b88`                               | Validate proposal ownership and replay semantics on current shared services; complete shared approval/UI/demo proof.                                                                                                                                       |
-| Drive content indexing         | `8c6df7a`                               | Repair tenant-composite upsert, complete-list deletion evidence, searchable-state filtering, supported export formats and unchanged/duplicate handling.                                                                                                    |
+| Drive content indexing         | `8c6df7a`                               | Bound client already rewrites tenant-composite upsert; require that binding explicitly. Repair complete-list retirement, supported exports, access revocation and unchanged/duplicate handling.                                                            |
 | Site Studio and themes         | `097f932` through `36e2909`             | Useful validated document/patch/rendering work; filesystem draft storage is not tenant-scoped durable serverless persistence. Complete shared persistence, authorization, receipts and bounded generation before release. Review theme changes separately. |
 | Workspace blueprints           | dirty primary checkout                  | Preserve additive migration, service, review UI and demo; inspect completeness and missing packet fields before integration.                                                                                                                               |
 | Services redesign              | dirty `agent/services-strategy-rebuild` | Preserve current source; inspect responsive rendering, copy and unfinished styling.                                                                                                                                                                        |
@@ -34,6 +34,12 @@ This audit is owned by the integration branch `integration/agent-reconciliation-
 - Main baseline `verify:agent-contract`: passed.
 - Maintainer preflight: passed after resolving existing compatible dependency location.
 - Adapted coworker `test:ai-context`: passed, 14 checks.
+- Integrated `test:mcp-server`, `test:ai-tool-gates`, `test:first-value-business-journey`: passed.
+- Hardened runtime record permission contract: passed, 18 checks.
 - Adapted coworker `test-work-completion`: passed, including successful-tool/ungrounded-prose rejection and qualification/draft receipts.
+
+- Combined candidate TypeScript check: passed.
+- Hardened Drive indexing: six fixture groups passed, including partial listing, revoked download access, binary-format refusal, unchanged revisions, duplicates and tenant separation. Connected Google execution remains unverified. Export formats were checked against [Google's current format reference](https://developers.google.com/workspace/drive/api/guides/ref-export-formats).
+- Public source/setup and MCP client guides, product changelog and Command Center MCP description updated alongside the integration. Docs rendering and full release checks remain pending.
 
 Integration remains in progress. No feature is accepted from source presence or historical test claims alone. The final candidate must pass required CI, migration and affected browser checks before merge; production readiness remains a separate receipt.

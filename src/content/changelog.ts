@@ -2,6 +2,24 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "reviewed-agent-runtime-integration",
+    slug: "reviewed-agent-runtime-integration",
+    title: "Grounded coworker outcomes and focused MCP tool lists",
+    description:
+      "Headless coworkers now bound their context and validate final answers against successful tool receipts, retaining partial work and proposed actions when grounding fails. MCP clients can load Daily, Minimal or full tool lists with discovery and execution permissions preserved. Revoked action authority records a denied result that work recovery treats as terminal.",
+    category: "improvement",
+    publishedAt: "2026-09-08",
+  },
+  {
+    id: "drive-content-indexing",
+    slug: "drive-content-indexing",
+    title: "Drive sync records extracted text and explicit indexing outcomes",
+    description:
+      "Approved folders now index supported text formats with provider revisions, content hashes and duplicate-source hints. Paginated listings retain absent files when incomplete. Revoked download access clears indexed text on the next sync; unsupported formats and failed reads remain explicit. Google Sheets export covers the first sheet, and text extraction is limited to 2 MB per file. The setup guide explains results and recovery without equating stored text with universal AI retrieval.",
+    category: "improvement",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "platform-how-it-works-guide",
     slug: "platform-how-it-works-guide",
     title: "A single guide explains how the Accelerate runtime fits together",

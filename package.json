@@ -277,7 +277,8 @@
     "verify:agent-entrypoints": "node scripts/verify-agent-entrypoints.mjs",
     "test:agent-go": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-go.ts",
     "test:agent-task-context": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-task-context.ts",
-    "test:local-work-board": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-local-work-board.ts"
+    "test:local-work-board": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-local-work-board.ts",
+    "test:drive-content-indexing": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-drive-content-indexing.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
