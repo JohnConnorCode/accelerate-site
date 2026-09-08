@@ -85,7 +85,13 @@ assert.equal(
 sql(
   `UPDATE tenant_memberships SET status='revoked' WHERE tenant_id='${a}' AND user_id='11111111-1111-4111-8111-111111111111';`,
 );
-assert.match(fail(memberCreate), /tenant access forbidden|row-level security/);
+assert.match(
+  fail(
+    memberContext +
+      `INSERT INTO clients(tenant_id,business_name,contact_name,contact_email,handoff_receipt) VALUES('${a}','Revoked handoff','Customer','revoked@example.test','{"template_snapshot":{}}');`,
+  ),
+  /tenant access forbidden|row-level security/,
+);
 sql(
   `UPDATE tenant_memberships SET status='active' WHERE tenant_id='${a}' AND user_id='11111111-1111-4111-8111-111111111111';`,
 );

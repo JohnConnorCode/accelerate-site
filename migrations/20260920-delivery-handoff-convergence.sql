@@ -24,8 +24,9 @@ CREATE OR REPLACE FUNCTION private.check_delivery_source_binding() RETURNS trigg
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE o public.opportunities; p public.proposals; playbook public.onboarding_templates; binding jsonb; k text; role text;
 BEGIN
- IF NEW.tenant_id IS DISTINCT FROM private.authorized_request_tenant_id() THEN RAISE EXCEPTION 'Handoff tenant context mismatch'; END IF;
  binding:=NEW.handoff_receipt;
+ IF binding->'template_snapshot' IS NULL AND (TG_OP='INSERT' OR OLD.handoff_receipt->'template_snapshot' IS NULL) THEN RETURN NEW; END IF;
+ IF NEW.tenant_id IS DISTINCT FROM private.authorized_request_tenant_id() THEN RAISE EXCEPTION 'Handoff tenant context mismatch'; END IF;
  PERFORM id FROM public.tenants WHERE id=NEW.tenant_id AND status='active' AND coalesce(config->'modules'->>'clients','true')='true' FOR SHARE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Client delivery unavailable'; END IF;
  IF TG_OP='UPDATE' AND OLD.handoff_receipt->'template_snapshot' IS NOT NULL THEN
