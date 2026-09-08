@@ -61,8 +61,8 @@ export interface OpenSourceStat {
     against the repo before changing a number here. */
 export const OPEN_SOURCE_STATS: OpenSourceStat[] = [
   { value: "79", label: "Ordered migrations", detail: "Every schema change, in sequence" },
-  { value: "223", label: "Automated checks", detail: "Test and verification scripts" },
-  { value: "149K", label: "Lines of TypeScript", detail: "Across 781 source files" },
+  { value: "226", label: "Automated checks", detail: "Test and verification scripts" },
+  { value: "150K", label: "Lines of TypeScript", detail: "Across 788 source files" },
 
   { value: "MIT", label: "Fully open license", detail: "No seat limits, no usage tiers" },
 ];

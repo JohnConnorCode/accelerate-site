@@ -27,4 +27,21 @@ This attempt is a failure, not a passing build. Its log is retained at
 `/tmp/admin-polish-integration-build.log`. Production build and browser verification
 run on the PR's GitHub runner; their exact outcome will be added before handoff.
 
+The integrated local browser suite passes all five appearances at 1440×1000 and
+390×844, including 20 zero-violation contrast audits. Mouse/keyboard order,
+Escape cancellation, stage/order partial failure, reload, native touch and
+card-body swipe, edit/discard/focus, custom theme import/export/save/isolation,
+and normal/reduced-motion slow/cached/error navigation all pass. Desktop and
+phone captures for every appearance, the feature editor, custom theme dialog,
+touch overlay and slow navigation capture were opened and inspected. Artifacts:
+`/tmp/admin-polish-integration-qa/`; log: `/tmp/admin-polish-integration-browser.log`.
+The dev server logged an early closed stream during navigation; the browser
+suite reported no page or console errors. Its owned server and browsers exited.
+
+Initial CI surfaced the source review inventory and public repository counts
+that predated these additions. Reviewed the new theme/confirmation components
+and changed route boundaries, retained the existing Content parity follow-up,
+and refreshed the fingerprints. The inventory covers 51 pages and 288 sources.
+Public counts now reflect 226 checks, 788 TypeScript files and 150K lines.
+
 No production deployment is included.

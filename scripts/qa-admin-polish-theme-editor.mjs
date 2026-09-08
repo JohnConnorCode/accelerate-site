@@ -75,6 +75,14 @@ try {
     await dialog.evaluate((e) => getComputedStyle(e).getPropertyValue("--admin-canvas").trim()),
     palette.canvas,
   );
+  const surfaceRadius = await dialog.locator(".admin-dialog-surface").evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      actual: style.borderTopLeftRadius,
+      token: style.getPropertyValue("--admin-surface-radius").trim(),
+    };
+  });
+  assert.equal(surfaceRadius.actual, surfaceRadius.token, "Portal corners follow the saved theme");
   await page.screenshot({ path: `${output}/custom-theme-dialog.png` });
   await page.keyboard.press("Escape");
   await dialog.waitFor({ state: "hidden" });
