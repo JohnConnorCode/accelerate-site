@@ -6,6 +6,7 @@ const base = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3018",
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 const results = [];
+let currentPage;
 try {
   for (const scenario of ["superdebate", "northline-roofing"])
     for (const width of [1440, 390]) {
@@ -14,6 +15,7 @@ try {
           reducedMotion: "reduce",
         }),
         page = await context.newPage();
+      currentPage = page;
       page.setDefaultTimeout(20000);
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
@@ -70,7 +72,12 @@ try {
         staged.campaign_members.every((m) => m.status === "queued" && m.next_send_at === null),
       );
       await all.check();
-      await page.getByRole("button", { name: "Suppress", exact: true }).click();
+      await page
+        .getByRole("button", {
+          name: "Suppress selected contacts from campaign email",
+          exact: true,
+        })
+        .click();
       await page.getByRole("button", { name: "Confirm", exact: true }).click();
       await page.getByRole("dialog", { name: "Contacts suppressed", exact: true }).waitFor();
       await page.screenshot({
@@ -113,6 +120,19 @@ try {
   console.log(
     "PASS: two-business desktop/mobile bulk tags, enrollment, suppression, per-contact receipts and reload persistence through the shared demo UI.",
   );
+} catch (error) {
+  if (currentPage && !currentPage.isClosed()) {
+    await currentPage.screenshot({ path: `${output}/failure.png`, fullPage: true });
+    await writeFile(
+      `${output}/failure.json`,
+      JSON.stringify(
+        { error: String(error), text: await currentPage.locator("body").innerText() },
+        null,
+        2,
+      ),
+    );
+  }
+  throw error;
 } finally {
   await browser.close();
 }
