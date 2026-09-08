@@ -1,0 +1,89 @@
+import "server-only";
+import { servicePageSlug, servicePageTemplate } from "./templates";
+import { assertCatalogAsset } from "./assets";
+import {
+  parseSiteDocument,
+  siteSlugSchema,
+  type SiteDocument,
+  type SiteDraft,
+} from "./document";
+import { buildPageUserPrompt, type PageBrief } from "./generate";
+import type { SiteDraftRepository } from "./store";
+
+/** Draft creation owns the business rules; route handlers only authenticate,
+ * validate the transport envelope, rate-limit, and map results to HTTP. */
+
+export interface CreateDraftInput {
+  title?: string;
+  slug?: string;
+  brief: PageBrief;
+  mode: "template" | "ai";
+  assetIds?: string[];
+}
+
+/** Produces the base document for AI mode. Injected so tests never touch a
+ * provider; production passes the OpenRouter adapter. */
+export type DraftGenerator = (brief: PageBrief) => Promise<SiteDocument>;
+
+export class SlugInUseError extends Error {
+  readonly slug: string;
+  constructor(slug: string) {
+    super(`A draft already uses the slug ${slug}; choose another slug`);
+    this.name = "SlugInUseError";
+    this.slug = slug;
+  }
+}
+
+function appendGallery(document: SiteDocument, assetIds: string[]): SiteDocument {
+  if (assetIds.length === 0) return document;
+  for (const assetId of assetIds) assertCatalogAsset(assetId);
+  return parseSiteDocument({
+    ...document,
+    root: [
+      ...document.root,
+      {
+        id: "attached-images",
+        type: "section",
+        styles: { paddingTop: "md", paddingBottom: "md" },
+        children: assetIds.map((assetId, index) => ({
+          id: `attached-image-${index + 1}`,
+          type: "image",
+          props: { assetId },
+        })),
+      },
+    ],
+  });
+}
+
+export async function createSiteDraft(
+  repo: SiteDraftRepository,
+  input: CreateDraftInput,
+  generate: DraftGenerator,
+): Promise<SiteDraft> {
+  const slug = input.slug ?? servicePageSlug(input.brief.serviceName);
+  siteSlugSchema.parse(slug);
+  if (repo.list().some((draft) => draft.slug === slug)) throw new SlugInUseError(slug);
+  // Validate before touching the payload: generator output is untrusted and
+  // must fail as a named validation error, never a TypeError mid-spread.
+  const base = parseSiteDocument(
+    input.mode === "ai" ? await generate(input.brief) : servicePageTemplate(input.brief),
+  );
+  const document = appendGallery(
+    {
+      ...base,
+      metadata: {
+        ...base.metadata,
+        title: input.title ?? base.metadata.title,
+        slug,
+      },
+    },
+    input.assetIds ?? [],
+  );
+  return repo.save({
+    title: document.metadata.title,
+    slug,
+    document,
+    source: input.mode,
+    brief: buildPageUserPrompt(input.brief),
+  });
+}

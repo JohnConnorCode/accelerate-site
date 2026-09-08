@@ -159,6 +159,9 @@ const slugSchema = z
   .max(120)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slugs use lowercase letters, digits, and hyphens");
 
+/** Shared with entrypoints so transport validation and the domain agree. */
+export const siteSlugSchema = slugSchema;
+
 export const siteDocumentSchema = z
   .object({
     schemaVersion: z.literal(SITE_DOCUMENT_SCHEMA_VERSION),

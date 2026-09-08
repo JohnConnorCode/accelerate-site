@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
 import { rateLimit } from "@/lib/rate-limit";
-import { servicePageSlug, servicePageTemplate } from "@/lib/site-studio/templates";
+import { siteSlugSchema } from "@/lib/site-studio/document";
 import { siteDrafts } from "@/lib/site-studio/store";
-import { assertCatalogAsset } from "@/lib/site-studio/assets";
-import { parseSiteDocument, type SiteDocument } from "@/lib/site-studio/document";
+import { createSiteDraft, SlugInUseError } from "@/lib/site-studio/drafts";
 import {
   buildPageSystemPrompt,
   buildPageUserPrompt,
@@ -25,37 +24,12 @@ const briefSchema = z
 const createSchema = z
   .object({
     title: z.string().trim().min(1).max(120).optional(),
-    slug: z
-      .string()
-      .trim()
-      .min(1)
-      .max(120)
-      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
-      .optional(),
+    slug: siteSlugSchema.optional(),
     brief: briefSchema,
     mode: z.enum(["template", "ai"]),
     assetIds: z.array(z.string().min(1).max(120)).max(8).optional(),
   })
   .strict();
-
-function appendGallery(document: SiteDocument, assetIds: string[]): SiteDocument {
-  if (assetIds.length === 0) return document;
-  for (const assetId of assetIds) assertCatalogAsset(assetId);
-  const gallery = {
-    id: "attached-images",
-    type: "section",
-    styles: { paddingTop: "md", paddingBottom: "md" },
-    children: assetIds.map((assetId, index) => ({
-      id: `attached-image-${index + 1}`,
-      type: "image",
-      props: { assetId },
-    })),
-  } as const;
-  return parseSiteDocument({
-    ...document,
-    root: [...document.root, gallery],
-  });
-}
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -93,47 +67,37 @@ export async function POST(request: NextRequest) {
     outcome: input.brief.outcome,
     extra: input.brief.extra,
   };
-  const slug = input.slug ?? servicePageSlug(brief.serviceName);
-  if (siteDrafts().list().some((draft) => draft.slug === slug))
-    return NextResponse.json(
-      { error: `A draft already uses the slug ${slug}; choose another slug` },
-      { status: 409 },
-    );
-  try {
-    let document: SiteDocument;
-    if (input.mode === "ai") {
-      const adminKey = auth.user.email ?? auth.user.id;
-      const { success } = rateLimit(`site-studio-generate:${adminKey}`, 20, 60 * 60 * 1000);
-      if (!success)
-        return NextResponse.json(
-          { error: "Generation limit reached. Try again in an hour." },
-          { status: 429 },
-        );
-      document = await generatePageWithOpenRouter(
-        auth.database,
-        brief,
-        buildPageSystemPrompt(),
-        buildPageUserPrompt(brief),
+  if (input.mode === "ai") {
+    const adminKey = auth.user.email ?? auth.user.id;
+    const { success } = rateLimit(`site-studio-generate:${adminKey}`, 20, 60 * 60 * 1000);
+    if (!success)
+      return NextResponse.json(
+        { error: "Generation limit reached. Try again in an hour." },
+        { status: 429 },
       );
-    } else {
-      document = servicePageTemplate(brief);
-    }
-    const withImages = appendGallery(
+  }
+  try {
+    const draft = await createSiteDraft(
+      siteDrafts(),
       {
-        ...document,
-        metadata: { ...document.metadata, title: input.title ?? document.metadata.title, slug },
+        title: input.title,
+        slug: input.slug,
+        brief,
+        mode: input.mode,
+        assetIds: input.assetIds ?? [],
       },
-      input.assetIds ?? [],
+      (candidate) =>
+        generatePageWithOpenRouter(
+          auth.database,
+          candidate,
+          buildPageSystemPrompt(),
+          buildPageUserPrompt(candidate),
+        ),
     );
-    const draft = siteDrafts().save({
-      title: withImages.metadata.title,
-      slug,
-      document: withImages,
-      source: input.mode,
-      brief: buildPageUserPrompt(brief),
-    });
     return NextResponse.json({ draft }, { status: 201 });
   } catch (error) {
+    if (error instanceof SlugInUseError)
+      return NextResponse.json({ error: error.message }, { status: 409 });
     const message = error instanceof Error ? error.message : "Draft creation failed";
     const status = /not configured|limit reached/i.test(message) ? 503 : 422;
     return NextResponse.json({ error: message }, { status });

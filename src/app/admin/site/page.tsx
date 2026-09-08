@@ -24,6 +24,7 @@ export default function AdminSiteStudioPage() {
   const [serviceName, setServiceName] = useState("");
   const [audience, setAudience] = useState("");
   const [outcome, setOutcome] = useState("");
+  const [extra, setExtra] = useState("");
   const [slug, setSlug] = useState("");
   const [mode, setMode] = useState<"template" | "ai">("template");
   const [assetIds, setAssetIds] = useState<string[]>([]);
@@ -60,7 +61,12 @@ export default function AdminSiteStudioPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          brief: { serviceName, audience, outcome },
+          brief: {
+            serviceName,
+            audience,
+            outcome,
+            ...(extra.trim() ? { extra: extra.trim() } : {}),
+          },
           mode,
           assetIds,
           ...(slug.trim() ? { slug: slug.trim().toLowerCase() } : {}),
@@ -123,6 +129,15 @@ export default function AdminSiteStudioPage() {
               value={slug}
               onChange={(event) => setSlug(event.target.value)}
               placeholder="bookkeeping-automation"
+              style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
+            />
+          </label>
+          <label>
+            Additional direction (optional, guides AI mode and the recorded brief)
+            <input
+              value={extra}
+              onChange={(event) => setExtra(event.target.value)}
+              placeholder="Emphasize evening admin relief; keep three sections"
               style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
             />
           </label>

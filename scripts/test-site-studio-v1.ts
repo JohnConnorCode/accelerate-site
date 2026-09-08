@@ -8,6 +8,7 @@ import {
   collectAssetIds,
   collectRawUrls,
   SITE_DOCUMENT_SCHEMA_VERSION,
+  type SiteDocument,
 } from "../src/lib/site-studio/document";
 import { resolveSectionStyle, resolveContainerStyle } from "../src/lib/site-studio/tokens";
 import {
@@ -27,6 +28,11 @@ import {
   buildPageUserPrompt,
   generatePageDocument,
 } from "../src/lib/site-studio/generate";
+import {
+  createSiteDraft,
+  SlugInUseError,
+} from "../src/lib/site-studio/drafts";
+import { siteSlugSchema } from "../src/lib/site-studio/document";
 import { AI_JOBS } from "../src/lib/ai/model-registry";
 
 async function main() {
@@ -275,8 +281,110 @@ async function main() {
   assert.equal(job.consequential, false);
   assert.equal(job.requiresJson, true);
 
+  // Draft service: creation rules live in the domain, not the route.
+  const serviceDir = mkdtempSync(join(tmpdir(), "site-studio-service-"));
+  const serviceStore = new FileSiteDraftRepository(serviceDir);
+  const brief = {
+    serviceName: "Bookkeeping automation",
+    audience: "Owners",
+    outcome: "Evenings back.",
+  };
+  const noGenerator = async () => {
+    throw new Error("generator must not run in template mode");
+  };
+  const created = await createSiteDraft(
+    serviceStore,
+    { brief, mode: "template" },
+    noGenerator,
+  );
+  assert.equal(created.slug, "bookkeeping-automation");
+  assert.equal(created.source, "template");
+  assert.ok(
+    (created.brief ?? "").includes("Bookkeeping automation"),
+    "brief is recorded for review",
+  );
+  await assert.rejects(
+    createSiteDraft(serviceStore, { brief, mode: "template" }, noGenerator),
+    (error: unknown) =>
+      error instanceof SlugInUseError && /choose another slug/.test(error.message),
+    "duplicate slugs are refused with recovery guidance",
+  );
+  assert.throws(() => siteSlugSchema.parse("Bad Slug!"), /Slugs use/);
+  await assert.rejects(
+    createSiteDraft(serviceStore, { brief, mode: "template", slug: "nope--bad" }, noGenerator),
+    /Slugs use/,
+    "the service enforces slug shape even for direct callers",
+  );
+
+  // Explicit title, slug, and attached gallery.
+  const galleryAsset = SITE_ASSET_CATALOG[1]!;
+  const withGallery = await createSiteDraft(
+    serviceStore,
+    {
+      title: "Custom title",
+      slug: "custom-slug",
+      brief,
+      mode: "template",
+      assetIds: [first.id, galleryAsset.id],
+    },
+    noGenerator,
+  );
+  assert.equal(withGallery.title, "Custom title");
+  const gallerySection = withGallery.document.root.find(
+    (section) => section.id === "attached-images",
+  );
+  assert.ok(gallerySection, "attached images land in their own section");
+  assert.equal(gallerySection.children.length, 2);
+  assert.ok(
+    gallerySection.children.every(
+      (child) => child.type === "image" && resolveSiteAsset(child.props.assetId),
+    ),
+    "every attached image resolves to the catalog",
+  );
+  await assert.rejects(
+    createSiteDraft(
+      serviceStore,
+      { brief, mode: "template", slug: "bad-asset", assetIds: ["invented/missing"] },
+      noGenerator,
+    ),
+    /catalog id/,
+    "non-catalog images are refused before anything saves",
+  );
+  assert.equal(
+    serviceStore.list().filter((draft) => draft.slug === "bad-asset").length,
+    0,
+    "refused creates leave no partial draft",
+  );
+
+  // AI mode uses the injected generator; failures propagate untouched.
+  const aiMade = await createSiteDraft(
+    serviceStore,
+    { brief, mode: "ai", slug: "ai-page" },
+    async () => template,
+  );
+  assert.equal(aiMade.source, "ai");
+  assert.equal(aiMade.document.metadata.slug, "ai-page");
+  await assert.rejects(
+    createSiteDraft(
+      serviceStore,
+      { brief, mode: "ai", slug: "ai-broken" },
+      // Deliberately runtime-invalid output; the cast models a misbehaving
+      // generator that type-checking cannot catch for us.
+      async () => ({ ...validBody, root: [] }) as unknown as SiteDocument,
+    ),
+    /"root"/,
+    "invalid generator output fails validation before save",
+  );
+  await assert.rejects(
+    createSiteDraft(serviceStore, { brief, mode: "ai", slug: "ai-down" }, async () => {
+      throw new Error("AI generation is not configured for this workspace.");
+    }),
+    /not configured/,
+    "provider failures propagate with the setup message intact",
+  );
+
   console.log(
-    "Site Studio v1: schema, tokens, catalog, renderer, store, template, generation contract, and job registration passed.",
+    "Site Studio v1: schema, tokens, catalog, renderer, store, template, generation contract, job registration, and draft service passed.",
   );
 }
 
