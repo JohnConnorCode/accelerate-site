@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "admin-appearance-and-kanban-polish",
+    slug: "admin-appearance-and-kanban-polish",
+    title: "Workspace themes and Kanban share a more consistent interface",
+    description:
+      "Admin surfaces, controls and dialogs now follow the selected appearance, with improved dark-theme contrast and shorter regional loading transitions. Branding adds a theme preview, palette and geometry controls, portable import/export and governed AI proposals. Kanban uses readable swipeable columns, mouse, touch and keyboard dragging, clear insertion feedback and saved-position recovery.",
+    category: "improvement",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "local-agent-supervisor",
     slug: "local-agent-supervisor",
     title: "Coordinate local agent jobs with durable ownership and recovery",

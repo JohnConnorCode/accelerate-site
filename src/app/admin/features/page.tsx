@@ -26,8 +26,9 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { useAdminConfirm } from "@/components/admin/AdminConfirmationProvider";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
-import { AdminDialog } from "@/components/admin/AdminDialog";
+import { AdminDialog, useAdminDialogState } from "@/components/admin/AdminDialog";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { KanbanBoard, type KanbanCardRenderOpts } from "@/components/kanban/KanbanBoard";
@@ -209,7 +210,7 @@ function FeatureCard({
   assignees?: string[];
   columns?: KanbanColumnRecord[];
 }) {
-  const { isDragging, isOverlay, disabled, dragHandleProps } = opts;
+  const { isOverlay, disabled, busy, dragHandleProps } = opts;
   const subtasks = hydrateSubtasks(feature);
   const progress = subtaskProgress(subtasks);
   const overdue = isFeatureOverdue(feature);
@@ -221,11 +222,7 @@ function FeatureCard({
       className={cn(
         "group rounded-2xl bg-[var(--admin-surface)] p-3.5 shadow-[var(--admin-shadow-border)] transition-[box-shadow,opacity,scale] duration-150",
         !isOverlay && "hover:-translate-y-px hover:shadow-[var(--admin-shadow-border-hover)]",
-        isDragging &&
-          !isOverlay &&
-          "opacity-20 shadow-none ring-1 ring-dashed ring-[var(--admin-ink)]/20",
-        isOverlay &&
-          "w-[286px] scale-[1.015] cursor-grabbing shadow-[0_24px_60px_-22px_rgba(0,0,0,0.42)] ring-1 ring-black/8",
+        isOverlay && "cursor-grabbing shadow-[var(--admin-shadow-hover)]",
       )}
     >
       <div className="flex items-start gap-2.5">
@@ -237,7 +234,7 @@ function FeatureCard({
               : `Drag ${feature.title}`
           }
           disabled={disabled || isOverlay}
-          className="hidden size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30 dark:hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/40 sm:grid"
+          className="kanban-grip grid size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30 dark:hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/40"
           {...(!isOverlay ? dragHandleProps : {})}
         >
           <GripVertical className="size-4" />
@@ -245,7 +242,7 @@ function FeatureCard({
         <button
           type="button"
           onClick={onOpen}
-          disabled={isOverlay}
+          disabled={isOverlay || busy}
           className="min-w-0 flex-1 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/30"
         >
           <h3 className="text-pretty text-sm font-semibold leading-5 break-words text-[var(--admin-ink)]">
@@ -257,16 +254,17 @@ function FeatureCard({
             </p>
           )}
         </button>
-        {!isOverlay && (
+        {
           <button
             type="button"
+            disabled={isOverlay || busy}
             onClick={onOpen}
             aria-label={`Edit ${feature.title}`}
             className="grid size-10 shrink-0 place-items-center rounded-xl text-[var(--admin-muted)] opacity-70 transition-[background-color,color,opacity,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.96] group-hover:opacity-100 dark:hover:bg-white/[0.05]"
           >
             <Pencil className="size-3.5" />
           </button>
-        )}
+        }
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:pl-[50px]">
         <span
@@ -288,7 +286,7 @@ function FeatureCard({
           </span>
         )}
         {feature.status === "blocked" && (
-          <span className="inline-flex min-h-6 items-center rounded-full bg-rose-500/10 px-2 text-[10px] font-semibold text-rose-700 dark:text-rose-300">
+          <span className="inline-flex min-h-6 items-center rounded-full bg-[var(--admin-danger-soft)] px-2 text-[10px] font-semibold text-[var(--admin-danger)]">
             Blocked
           </span>
         )}
@@ -305,13 +303,14 @@ function FeatureCard({
           ))}
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--admin-border)] pt-2.5 sm:pl-[50px]">
-        {!isOverlay && onAssign ? (
+        {onAssign || isOverlay ? (
           <label className="inline-flex min-h-9 min-w-0 items-center gap-1.5 text-[10px] text-[var(--admin-muted)]">
             <UserRound className="size-3 shrink-0" />
             <select
               aria-label={`Assign ${feature.title}`}
               value={feature.owner ?? ""}
-              onChange={(event) => onAssign(event.target.value || null)}
+              disabled={isOverlay || busy}
+              onChange={(event) => onAssign?.(event.target.value || null)}
               className="max-w-[11rem] rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-1.5 py-1 text-[11px] font-medium text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
             >
               <option value="">Unassigned</option>
@@ -328,11 +327,12 @@ function FeatureCard({
             {feature.owner}
           </span>
         ) : null}
-        {!isOverlay && onMove && columns && columns.length > 0 && (
+        {columns && columns.length > 0 && (
           <select
             aria-label={`Move ${feature.title}`}
             value={feature.status}
-            onChange={(event) => onMove(event.target.value)}
+            disabled={isOverlay || busy}
+            onChange={(event) => onMove?.(event.target.value)}
             className="min-h-9 max-w-[10rem] rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-1.5 py-1 text-[11px] font-medium text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:hidden"
           >
             {columns.map((column) => (
@@ -346,7 +346,7 @@ function FeatureCard({
           <span
             className={cn(
               "inline-flex items-center gap-1.5 font-mono text-[10px] tabular-nums text-[var(--admin-muted)]",
-              overdue && "font-semibold text-rose-700 dark:text-rose-300",
+              overdue && "font-semibold text-[var(--admin-danger)]",
             )}
           >
             <CalendarDays className="size-3" />
@@ -376,7 +376,7 @@ function FeatureCard({
               style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }}
             />
           </div>
-          {!isOverlay && remainingSubtasks(subtasks).length > 0 && (
+          {remainingSubtasks(subtasks).length > 0 && (
             <KanbanChecklist
               compact
               compactLimit={2}
@@ -416,6 +416,7 @@ function FeatureDialog({
   onArchive: (feature: FeatureRequest) => Promise<void>;
   onPersistSubtasks?: (feature: FeatureRequest, subtasks: FeatureSubtask[]) => Promise<void>;
 }) {
+  const confirm = useAdminConfirm();
   const buildInitialForm = () => ({
     ...featureForm(feature),
     status: feature?.status ?? defaultStatus,
@@ -433,11 +434,20 @@ function FeatureDialog({
   const comparable = (value: typeof form) =>
     onPersistSubtasks ? { ...value, subtasks: [] } : value;
   const dirty = JSON.stringify(comparable(form)) !== JSON.stringify(comparable(snapshot));
-  const requestClose = () => {
-    if (!dirty || window.confirm("Discard unsaved changes to this card?")) onClose();
+  const requestClose = async () => {
+    if (
+      !saving &&
+      (!dirty ||
+        (await confirm({
+          title: "Discard card edits?",
+          description: "Your unsaved changes will be lost. The saved card stays as it was.",
+          confirmLabel: "Discard edits",
+        })))
+    )
+      onClose();
   };
   const inputClass =
-    "mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)]/65 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10";
+    "mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10";
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const initial = snapshot;
@@ -516,7 +526,7 @@ function FeatureDialog({
           <label className="text-xs font-semibold text-[var(--admin-ink)] sm:col-span-2">
             Title
             <input
-              autoFocus
+              data-admin-autofocus
               required
               maxLength={180}
               value={form.title}
@@ -740,6 +750,7 @@ function FeatureDialog({
 const FEATURES_QUERY_KEY = ["admin", "features"] as const;
 
 export default function FeaturesPage() {
+  const confirm = useAdminConfirm();
   const [pageOffset, setPageOffset] = useState(0);
   const queryClient = useQueryClient();
   const featuresQuery = useAdminQuery<BoardResponse>(
@@ -808,7 +819,11 @@ export default function FeaturesPage() {
     }
   }, [applyFilters]);
   const [openFeature, setOpenFeature] = useState<FeatureRequest | null>(null);
-  const [featureDialogOpen, setFeatureDialogOpen] = useState(false);
+  const {
+    open: featureDialogOpen,
+    setOpen: setFeatureDialogOpen,
+    session: featureDialogSession,
+  } = useAdminDialogState();
   const [newStatus, setNewStatus] = useState<string>("backlog");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -878,7 +893,7 @@ export default function FeaturesPage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [featureDialogOpen]);
+  }, [featureDialogOpen, setFeatureDialogOpen]);
 
   // Never open onto an empty board: if neither Now nor Next is in use, show everything.
   useEffect(() => {
@@ -1103,9 +1118,11 @@ export default function FeaturesPage() {
 
   const archiveFeature = async (feature: FeatureRequest) => {
     if (
-      !window.confirm(
-        `Archive “${feature.title}”? It will leave the active board but remain in the audit history.`,
-      )
+      !(await confirm({
+        title: "Archive this card?",
+        description: `“${feature.title}” will leave the active board and remain in its history.`,
+        confirmLabel: "Archive card",
+      }))
     )
       return;
     setSaving(true);
@@ -1185,7 +1202,9 @@ export default function FeaturesPage() {
         error={error}
         onRetry={() => void load()}
         refreshing={featuresQuery.isFetching}
-        loadingFallback={<LoadingSkeleton variant="board" />}
+        loadingFallback={
+          <LoadingSkeleton variant="board" metrics={3} controls="filters" cardSize="detailed" />
+        }
         label="Loading feature board"
       >
         {data && !data.schemaReady ? (
@@ -1253,7 +1272,7 @@ export default function FeaturesPage() {
                         </p>
                         <p className="admin-copy mt-1 hidden text-xs sm:block">{note}</p>
                       </div>
-                      <span className="hidden size-9 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06] sm:grid">
+                      <span className="hidden size-9 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]">
                         <Icon className="size-4" />
                       </span>
                     </div>
@@ -1288,7 +1307,7 @@ export default function FeaturesPage() {
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Search title, outcome, owner, subtask, or capability"
-                      className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)]/70 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                      className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center">
@@ -1422,6 +1441,8 @@ export default function FeaturesPage() {
                     renderCardOverlay={(feature) => (
                       <FeatureCard
                         feature={feature}
+                        assignees={owners}
+                        columns={columns}
                         opts={{
                           isDragging: true,
                           isOverlay: true,
@@ -1431,6 +1452,14 @@ export default function FeaturesPage() {
                       />
                     )}
                     onReorder={commitReorder}
+                    onReconcile={async () => {
+                      const result = await featuresQuery.refetch();
+                      if (result.error || !result.data)
+                        throw result.error ?? new Error("Feature board unavailable");
+                      return result.data.features.filter((feature) =>
+                        filtered.some((shown) => shown.id === feature.id),
+                      );
+                    }}
                     onCrossColumnMove={async (_item, _from, to) => {
                       const column = columns.find((entry) => entry.column_key === to);
                       const limit = parseWipLimit(column?.metadata);
@@ -1528,7 +1557,7 @@ export default function FeaturesPage() {
                             <span
                               className={cn(
                                 isFeatureOverdue(feature) &&
-                                  "font-semibold text-rose-700 dark:text-rose-300",
+                                  "font-semibold text-[var(--admin-danger)]",
                               )}
                             >
                               {feature.target_date}
@@ -1542,7 +1571,12 @@ export default function FeaturesPage() {
                   />
                 )
               ) : (
-                <LoadingSkeleton variant="board" />
+                <LoadingSkeleton
+                  variant="board"
+                  metrics={3}
+                  controls="filters"
+                  cardSize="detailed"
+                />
               )}
               <div className="flex flex-col gap-2 rounded-2xl bg-black/[0.025] px-4 py-3 text-xs text-[var(--admin-muted)] dark:bg-white/[0.025] sm:flex-row sm:items-center sm:justify-between">
                 <p>
@@ -1563,7 +1597,7 @@ export default function FeaturesPage() {
           applyFeatureUpdate(card, false);
           void load();
         }}
-        key={openFeature?.id ?? `new-${newStatus}`}
+        key={`${openFeature?.id ?? `new-${newStatus}`}:${featureDialogSession}`}
         open={featureDialogOpen}
         feature={openFeature}
         defaultStatus={newStatus}

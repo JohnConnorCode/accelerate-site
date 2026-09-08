@@ -12,7 +12,9 @@ function walk(directory) {
 }
 walk(root);
 
-const css = readFileSync(join(root, "app/globals.css"), "utf8");
+const css =
+  readFileSync(join(root, "app/globals.css"), "utf8") +
+  readFileSync(join(root, "app/admin-themes.css"), "utf8");
 const defined = new Set([...css.matchAll(/(--admin-[a-z0-9-]+)\s*:/g)].map((match) => match[1]));
 const used = new Set();
 for (const file of files) {
@@ -76,7 +78,7 @@ const COLOR_BUDGET = {
   "src/app/admin/contacts/page.tsx": 3,
   "src/app/admin/conversations/page.tsx": 33,
   "src/app/admin/emails/page.tsx": 17,
-  "src/app/admin/features/page.tsx": 23,
+  "src/app/admin/features/page.tsx": 16,
   "src/app/admin/inbox/page.tsx": 12,
   "src/app/admin/integrations/page.tsx": 44,
   "src/app/admin/leads/page.tsx": 1,
@@ -157,3 +159,79 @@ for (const [file, budget] of Object.entries(COLOR_BUDGET)) {
 if (colorFailures.length) throw new Error(colorFailures.join("\n"));
 
 console.log(`Admin color ratchet passed: ${colorCounts.size} files within their raw-color budget.`);
+
+// -----------------------------------------------------------------------
+// Fixed dialog-radius ban for admin surfaces.
+//
+// Dialogs and list surfaces once carried hardcoded rounded-[24px],
+// rounded-[20px], rounded-2xl and !rounded-lg overrides that fought the
+// per-appearance --admin-surface-radius token, so the same card rendered
+// at a different radius than its siblings in every theme. The token owner
+// is .admin-dialog-surface (dialogs) and AdminSurface (lists); nested
+// content derives via calc(var(--admin-surface-radius) - Npx). There are
+// zero remaining violations, so this is a ban, not a budget: any hit
+// fails with the fix spelled out.
+const radiusBanned = [/rounded-\[\d+px\]/g, /!rounded-[a-z]/g];
+
+const radiusFailures = [];
+for (const file of adminFiles) {
+  const relPath = "src/" + relative(root, file).replace(/\\/g, "/");
+  const content = readFileSync(file, "utf8");
+  for (const pattern of radiusBanned) {
+    pattern.lastIndex = 0;
+    const hits = content.match(pattern) || [];
+    if (hits.length) {
+      radiusFailures.push(
+        `${relPath} uses ${hits[0]}. Route dialog panels through .admin-dialog-surface and list surfaces through AdminSurface so corners follow --admin-surface-radius; never override the token radius with a fixed class.`,
+      );
+    }
+  }
+}
+if (radiusFailures.length) throw new Error(radiusFailures.join("\n"));
+
+console.log("Admin radius ban passed: no fixed dialog radii or token overrides.");
+
+// -----------------------------------------------------------------------
+// Appearance registry + theme token completeness contract.
+//
+// Theme ids live in exactly one place (src/lib/admin/appearances.ts). Every
+// other list is derived or checked: the picker, session persistence, and
+// scenario defaults import the registry, while this verifier proves the
+// CSS and the browser QA matrix agree with it. A new theme is one registry
+// entry plus one token block, and forgetting either fails here.
+//
+// A theme block must define every base token except deliberate globals
+// (aliases that resolve per-theme through var(), or primitives that are
+// intentionally constant). Anything with a literal per-theme value belongs
+// in every block, or one appearance silently inherits another's colors.
+const GLOBAL_THEME_TOKENS = new Set([
+  "--admin-soft", // alias of --admin-surface-subtle
+  "--admin-line", // alias of --admin-border
+  "--admin-mobile-dock-index", // deliberately constant stacking primitive
+  "--admin-card-flat-shadow", // resolves per-theme through var(--admin-ink)
+  "--admin-card-raised-shadow", // resolves per-theme through var(--admin-shadow)
+  "--admin-card-outline-shadow", // resolves per-theme through var(--admin-shadow)
+]);
+
+const themes = JSON.parse(readFileSync(join(root, "lib/admin/themes.json"), "utf8"));
+const registryIds = themes.map((theme) => theme.id);
+if (new Set(registryIds).size !== registryIds.length || registryIds[0] !== "light")
+  throw new Error("Theme ids must be unique; Paper owns the base scope.");
+const requiredTokens = Object.keys(themes[0].tokens).filter(
+  (token) => !GLOBAL_THEME_TOKENS.has(token),
+);
+for (const theme of themes) {
+  const missing = requiredTokens.filter((token) => !theme.tokens[token]);
+  if (missing.length) throw new Error(`${theme.id} is missing ${missing.join(", ")}`);
+}
+const qaSource = readFileSync(new URL("./qa-admin-layout-continuity.mjs", import.meta.url), "utf8");
+if (!/themes\.map\(\(?theme\)? => theme\.id\)/.test(qaSource))
+  throw new Error("Browser matrix must derive all registered themes.");
+const { execFileSync } = await import("node:child_process");
+execFileSync(process.execPath, [
+  new URL("./generate-admin-themes.mjs", import.meta.url).pathname,
+  "--check",
+]);
+console.log(
+  `Admin theme contract passed: ${registryIds.length} appearances, ${requiredTokens.length} required tokens each.`,
+);

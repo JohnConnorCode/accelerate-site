@@ -586,7 +586,7 @@ export default function ConversationsPage() {
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Search inbox..."
-                      className="min-h-9 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-9 pr-3 text-xs text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)]/70 focus:border-[var(--admin-ink)] focus:ring-1 focus:ring-[var(--admin-ink)]"
+                      className="min-h-9 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-9 pr-3 text-xs text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-1 focus:ring-[var(--admin-ink)]"
                     />
                   </div>
                 </div>
@@ -982,7 +982,7 @@ export default function ConversationsPage() {
                               onChange={(event) => setAssigneeEmail(event.target.value)}
                               placeholder="name@company.com"
                               aria-label="Assignee email"
-                              className="min-h-9 min-w-0 flex-1 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2.5 text-xs text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)]/70 focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                              className="min-h-9 min-w-0 flex-1 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2.5 text-xs text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                             />
                             <button
                               type="button"

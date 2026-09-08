@@ -1,3 +1,4 @@
+import { adminThemeDefinitionSchema, validateAdminTheme } from "@/lib/admin/theme-definition";
 import { z } from "zod";
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a six-digit hex color");
 const publicUrl = z
@@ -24,6 +25,7 @@ export const workspaceBrandSchema = z
     supportEmail: z.union([z.email().max(254), z.literal("")]),
     siteUrl: z.union([publicUrl, z.literal("")]),
     font: z.enum(["sans", "serif"]),
+    adminTheme: adminThemeDefinitionSchema.nullable().optional(),
   })
   .strict();
 export type WorkspaceBrand = z.infer<typeof workspaceBrandSchema>;
@@ -69,6 +71,13 @@ export function resolveWorkspaceBrand(
   for (const key of Object.keys(defaults) as (keyof WorkspaceBrand)[]) {
     const parsed = workspaceBrandSchema.shape[key].safeParse(raw[key]);
     if (parsed.success) Object.assign(defaults, { [key]: parsed.data });
+  }
+  if (raw.adminTheme) {
+    try {
+      defaults.adminTheme = validateAdminTheme(raw.adminTheme);
+    } catch {
+      console.warn("[branding] Invalid stored admin theme; using the built-in appearance.");
+    }
   }
   return defaults;
 }

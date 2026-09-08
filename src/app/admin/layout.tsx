@@ -1,3 +1,4 @@
+import type { AdminThemeDefinition } from "@/lib/admin/theme-definition";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import AdminShell from "@/components/admin/AdminShell";
@@ -34,6 +35,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // Best-effort: the nav layout override is a presentation nicety, never a
   // reason to fail the shell. Demo scenarios never read or write real tenant
   // admin_settings, keeping the live/demo boundary untouched.
+  let workspaceTheme: AdminThemeDefinition | null = null;
   let navLayoutOverride: LayoutDoc | null = null;
   // The real tenant row's config.modules, not the static compile-time default.
   // Previously nothing ever supplied this, so every module resolved to
@@ -43,7 +45,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     try {
       const auth = await requireAdmin();
       if (!(auth instanceof NextResponse)) {
-        workspaceName = resolveWorkspaceBrand(auth.tenant.config, auth.tenant.name).name;
+        const brand = resolveWorkspaceBrand(auth.tenant.config, auth.tenant.name);
+        workspaceName = brand.name;
+        workspaceTheme = brand.adminTheme ?? null;
         navLayoutOverride = await getCurrentLayout(auth.database, "nav.sidebar", auth.tenant.id);
         moduleConfig = {
           modules: (auth.tenant.config?.modules as Partial<Record<string, boolean>>) ?? {},
@@ -76,6 +80,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         demoScenarioId={demoScenarioId}
         demoRoute={demoRoute}
         workspaceSlug={workspaceSlug}
+        workspaceTheme={workspaceTheme}
         workspaceName={workspaceName}
         isPlatformAdmin={isPlatformAdmin}
         navLayoutOverride={navLayoutOverride}

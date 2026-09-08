@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
 import {
   ArrowUpRight,
@@ -36,7 +36,6 @@ import {
   SYSTEM_PIPELINE_VIEWS,
   applyPipelineView,
   countPipelineSystemViews,
-  hasLastPipelineView,
   loadLastPipelineView,
   loadSavedPipelineViews,
   removePipelineView,
@@ -103,6 +102,20 @@ export default function PipelinePage() {
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState("");
   const [dialog, setDialog] = useState<"create" | "customize" | "save" | "add-stage" | null>(null);
+  const [lossRequest, setLossRequest] = useState<Opportunity | null>(null);
+  const [lossReasonDraft, setLossReasonDraft] = useState("");
+  const lossResolve = useRef<((reason: string | null) => void) | null>(null);
+  const closeLoss = useCallback((reason: string | null) => {
+    lossResolve.current?.(reason);
+    lossResolve.current = null;
+    setLossRequest(null);
+  }, []);
+  useEffect(
+    () => () => {
+      lossResolve.current?.(null);
+    },
+    [],
+  );
   const [stageLabel, setStageLabel] = useState("");
   const [stageRole, setStageRole] = useState<"open" | "won" | "lost">("open");
   const [stageProbability, setStageProbability] = useState(20);
@@ -128,10 +141,7 @@ export default function PipelinePage() {
   }, [refetchPipeline]);
   useEffect(() => {
     const restored = loadLastPipelineView();
-    const deviceDefault =
-      !hasLastPipelineView() && window.matchMedia("(max-width: 767px)").matches
-        ? { ...restored, layout: "list" as const }
-        : restored;
+    const deviceDefault = restored;
     const params = new URLSearchParams(window.location.search);
     const query = params.get("opportunity")?.trim() || params.get("search")?.trim();
     setState(
@@ -207,11 +217,17 @@ export default function PipelinePage() {
   const moveToStage = useCallback(
     async (item: Opportunity, columnKey: string, sortOrder?: number): Promise<boolean> => {
       const role = roleOf(columnKey);
-      const lossReason =
-        role === "lost" ? window.prompt("Why was this opportunity lost?")?.trim() : undefined;
-      if (role === "lost" && !lossReason) return false;
       setSaving(true);
       try {
+        const lossReason =
+          role === "lost"
+            ? await new Promise<string | null>((resolve) => {
+                lossResolve.current = resolve;
+                setLossReasonDraft("");
+                setLossRequest(item);
+              })
+            : undefined;
+        if (role === "lost" && !lossReason) return false;
         await fetchJson("/api/admin/revenue-os/pipeline", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -223,11 +239,11 @@ export default function PipelinePage() {
             reason: "Founder pipeline update",
           }),
         });
-        await load();
+        if (sortOrder === undefined) await load();
         return true;
       } catch (reason) {
         setActionError(reason instanceof Error ? reason.message : "Could not move opportunity.");
-        return false;
+        throw reason;
       } finally {
         setSaving(false);
       }
@@ -237,19 +253,22 @@ export default function PipelinePage() {
   // Kept for the plain <select> dropdown (Card/ListView/StageSelect), which
   // doesn't need a drag position — always appends to the end of the target
   // column server-side by omitting sortOrder.
-  const updateStage = (item: Opportunity, stage: string) => moveToStage(item, stage);
-
-  const commitReorder = useCallback(
-    async (updates: KanbanReorderUpdate[]) => {
-      await fetchJson("/api/admin/revenue-os/pipeline", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reorder: updates }),
-      });
+  const updateStage = async (item: Opportunity, stage: string) => {
+    try {
+      return await moveToStage(item, stage);
+    } catch {
       await load();
-    },
-    [load],
-  );
+      return false;
+    }
+  };
+
+  const commitReorder = useCallback(async (updates: KanbanReorderUpdate[]) => {
+    await fetchJson("/api/admin/revenue-os/pipeline", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reorder: updates }),
+    });
+  }, []);
   const create = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
@@ -282,7 +301,7 @@ export default function PipelinePage() {
     <div className="space-y-6 pb-10">
       <PageHeader
         title="Pipeline"
-        subtitle="Prioritize the work that moves revenue, then review every opportunity from one operating view."
+        subtitle="Keep every opportunity moving with a clear next step."
         utilityActions={
           <button
             type="button"
@@ -309,7 +328,9 @@ export default function PipelinePage() {
         error={error}
         onRetry={() => void load()}
         refreshing={refreshing}
-        loadingFallback={<LoadingSkeleton variant="board" />}
+        loadingFallback={
+          <LoadingSkeleton variant="board" metrics={4} controls="filters" cardSize="detailed" />
+        }
         label="Loading pipeline"
       >
         {data && !data.schemaReady ? (
@@ -329,7 +350,7 @@ export default function PipelinePage() {
                     <p className="mt-2 truncate text-[clamp(1.35rem,6vw,1.85rem)] font-semibold tabular-nums tracking-[-0.045em] sm:mt-3 sm:text-3xl">
                       {String(value)}
                     </p>
-                    <p className="admin-copy mt-1 truncate text-[10px] sm:text-xs">
+                    <p className="admin-copy mt-1 hidden truncate text-xs sm:block">
                       {String(note)}
                     </p>
                   </AdminSurface>
@@ -369,13 +390,11 @@ export default function PipelinePage() {
                           "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.96]",
                           state.systemView === view.id && !activeSaved
                             ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
-                            : "text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-border-hover)]",
+                            : "text-[var(--admin-muted)] hover:bg-[var(--admin-surface-subtle)] hover:text-[var(--admin-ink)]",
                         )}
                       >
                         <span>{view.label}</span>
-                        <span className="font-mono text-[9px] tabular-nums opacity-70">
-                          {counts[view.id]}
-                        </span>
+                        <span className="font-mono text-[9px] tabular-nums">{counts[view.id]}</span>
                       </button>
                     ))}
                   </div>
@@ -416,17 +435,37 @@ export default function PipelinePage() {
                     </div>
                   )}
                 </div>
-                <div className="grid gap-3 p-4 sm:p-5 lg:grid-cols-[minmax(240px,1fr)_auto] lg:items-center">
-                  <label className="relative min-w-0">
-                    <span className="sr-only">Search pipeline</span>
-                    <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" />
-                    <input
-                      value={state.search}
-                      onChange={(event) => patchState({ search: event.target.value })}
-                      placeholder="Search company, person, or email"
-                      className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm outline-none focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
-                    />
-                  </label>
+                <div className="pipeline-toolbar p-4 sm:p-5">
+                  <div className="pipeline-search-row">
+                    <label className="relative min-w-0">
+                      <span className="sr-only">Search pipeline</span>
+                      <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" />
+                      <input
+                        value={state.search}
+                        onChange={(event) => patchState({ search: event.target.value })}
+                        placeholder="Search company, person, or email"
+                        className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm outline-none focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                      />
+                    </label>{" "}
+                    <div
+                      className="flex rounded-xl p-1 shadow-[var(--admin-shadow-border)]"
+                      role="group"
+                      aria-label="Pipeline layout"
+                    >
+                      <IconButton
+                        label="Board view"
+                        active={state.layout === "board"}
+                        onClick={() => patchState({ layout: "board" })}
+                        icon={Columns3}
+                      />
+                      <IconButton
+                        label="List view"
+                        active={state.layout === "list"}
+                        onClick={() => patchState({ layout: "list" })}
+                        icon={List}
+                      />
+                    </div>
+                  </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Select
                       value={state.stage}
@@ -474,24 +513,6 @@ export default function PipelinePage() {
                         setDialog("add-stage");
                       }}
                     />
-                    <div
-                      className="flex rounded-xl p-1 shadow-[var(--admin-shadow-border)]"
-                      role="group"
-                      aria-label="Pipeline layout"
-                    >
-                      <IconButton
-                        label="Board view"
-                        active={state.layout === "board"}
-                        onClick={() => patchState({ layout: "board" })}
-                        icon={Columns3}
-                      />
-                      <IconButton
-                        label="List view"
-                        active={state.layout === "list"}
-                        onClick={() => patchState({ layout: "list" })}
-                        icon={List}
-                      />
-                    </div>
                   </div>
                 </div>
                 {state.layout === "board" ? (
@@ -502,7 +523,7 @@ export default function PipelinePage() {
                         items={shown}
                         getItemId={(item) => item.id}
                         getItemColumnKey={(item) => item.canonical_stage ?? item.stage}
-                        getItemSortOrder={(item) => Number(item.sort_order)}
+                        getItemSortOrder={(item) => Number(item.sort_order) || 0}
                         getItemLabel={(item) => item.name || item.company?.name || "Opportunity"}
                         setItemPosition={(item, columnKey, sortOrder) => ({
                           ...item,
@@ -521,14 +542,35 @@ export default function PipelinePage() {
                           />
                         )}
                         onReorder={commitReorder}
-                        onCrossColumnMove={(item, _from, to) => moveToStage(item, to)}
+                        onCrossColumnMove={async (item, _from, to) => ({
+                          status: (await moveToStage(item, to, Number(item.sort_order)))
+                            ? "committed"
+                            : "rejected",
+                        })}
+                        onReconcile={async () => {
+                          const result = await refetchPipeline();
+                          if (result.error || !result.data)
+                            throw result.error ?? new Error("Pipeline unavailable");
+                          return applyPipelineView(result.data.opportunities, state, referenceNow);
+                        }}
+                        dragDisabled={saving || shown.length !== items.length}
+                        dragDisabledReason={
+                          shown.length !== items.length
+                            ? "Clear filters to reorder the full pipeline. You can still move an opportunity with its stage menu."
+                            : undefined
+                        }
                         emptyColumnHint="No opportunities in this stage."
                         onRenameColumn={(columnKey, label) => renameColumn(columnKey, { label })}
                         onDeleteColumn={(columnKey, options) => deleteColumn(columnKey, options)}
                       />
                     </div>
                   ) : (
-                    <LoadingSkeleton variant="board" />
+                    <LoadingSkeleton
+                      variant="board"
+                      metrics={4}
+                      controls="filters"
+                      cardSize="detailed"
+                    />
                   )
                 ) : (
                   <ListView
@@ -545,6 +587,43 @@ export default function PipelinePage() {
         )}
       </AdminReadBody>
 
+      <AdminDialog
+        open={!!lossRequest}
+        onClose={() => closeLoss(null)}
+        title="Record a lost opportunity"
+      >
+        <form
+          className="admin-dialog-surface p-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (lossReasonDraft.trim()) closeLoss(lossReasonDraft.trim());
+          }}
+        >
+          <h2 className="text-lg font-semibold">Why was this opportunity lost?</h2>
+          <p className="admin-copy mt-2 text-sm">
+            {lossRequest?.name}. The stage changes after you confirm.
+          </p>
+          <label className="admin-field-label mt-5">
+            Loss reason
+            <textarea
+              data-admin-autofocus
+              required
+              maxLength={2000}
+              value={lossReasonDraft}
+              onChange={(e) => setLossReasonDraft(e.target.value)}
+              className="admin-field min-h-28 py-3"
+            />
+          </label>
+          <div className="mt-5 flex justify-end gap-2">
+            <button type="button" className="admin-theme-button" onClick={() => closeLoss(null)}>
+              Cancel
+            </button>
+            <button type="submit" disabled={!lossReasonDraft.trim()} className="admin-theme-button">
+              Confirm move
+            </button>
+          </div>
+        </form>
+      </AdminDialog>
       <AdminDialog
         open={dialog === "customize"}
         onClose={() => setDialog(null)}
@@ -657,7 +736,7 @@ export default function PipelinePage() {
           <label className="mt-6 block text-xs font-semibold">
             View name
             <input
-              autoFocus
+              data-admin-autofocus
               required
               maxLength={60}
               value={viewName}
@@ -720,7 +799,7 @@ export default function PipelinePage() {
           <label className="mt-6 block text-xs font-semibold">
             Stage name
             <input
-              autoFocus
+              data-admin-autofocus
               required
               maxLength={60}
               value={stageLabel}
@@ -860,7 +939,7 @@ function Select({
       value={value}
       aria-label={label}
       onChange={(event) => onChange(event.target.value)}
-      className="min-h-11 min-w-0 flex-1 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold outline-none sm:flex-none"
+      className="min-h-11 min-w-[130px] flex-1 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold outline-none sm:flex-none"
     >
       {children}
     </select>
@@ -1009,7 +1088,9 @@ function Card({
   columns,
   saving,
   updateStage,
+  drag,
 }: {
+  drag?: KanbanCardRenderOpts;
   item: Opportunity;
   state: PipelineViewState;
   columns: KanbanColumnRecord[];
@@ -1019,18 +1100,29 @@ function Card({
   return (
     <article
       data-opportunity-id={item.id}
-      className="rounded-2xl bg-[var(--admin-surface)] p-4 shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:-translate-y-px hover:shadow-[var(--admin-shadow-border-hover)] motion-reduce:transform-none"
+      className="kanban-business-card rounded-2xl bg-[var(--admin-surface)] p-4 shadow-[var(--admin-shadow-border)]"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="flex items-start justify-between gap-2">
+        {drag && (
+          <button
+            type="button"
+            aria-label={`Drag ${item.name || item.company?.name || "opportunity"}`}
+            disabled={drag.disabled}
+            {...drag.dragHandleProps}
+            className="kanban-grip -ml-2 -mt-1 grid size-10 shrink-0 touch-none place-items-center rounded-lg text-[var(--admin-muted)]"
+          >
+            <GripVertical className="size-4" />
+          </button>
+        )}
+        <div className="min-w-0 flex-1">
           <Link
             href={`/admin/pipeline/${item.id}`}
             className="inline-flex min-h-10 max-w-full items-start gap-1.5 rounded-lg py-1 text-sm font-semibold hover:opacity-70 active:scale-[0.96]"
           >
-            <span className="truncate">
+            <span className="line-clamp-2 break-words">
               {item.name || item.company?.name || "Untitled opportunity"}
             </span>
-            <ArrowUpRight className="mt-0.5 size-3.5 shrink-0" />
+            <ArrowUpRight className="mt-0.5 hidden size-3.5 shrink-0" />
           </Link>
           {has(state, "contact") && (
             <p className="admin-copy truncate text-xs">
@@ -1097,30 +1189,15 @@ function PipelineKanbanCard({
   saving: boolean;
   updateStage: (item: Opportunity, stage: string) => Promise<boolean>;
 }) {
-  const label = item.name || item.company?.name || "Untitled opportunity";
   return (
-    <div className={cn("group flex items-start gap-1.5", opts.isDragging && "opacity-60")}>
-      {!opts.isOverlay && (
-        <button
-          type="button"
-          aria-label={opts.disabled ? "Reordering is unavailable" : `Drag ${label}`}
-          disabled={opts.disabled}
-          {...opts.dragHandleProps}
-          className="grid size-10 shrink-0 touch-none cursor-grab place-items-center rounded-xl text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:cursor-grabbing active:scale-[0.96] disabled:cursor-default disabled:opacity-30 dark:hover:bg-white/[0.05]"
-        >
-          <GripVertical className="size-4" />
-        </button>
-      )}
-      <div className="min-w-0 flex-1">
-        <Card
-          item={item}
-          state={state}
-          columns={columns}
-          saving={saving}
-          updateStage={updateStage}
-        />
-      </div>
-    </div>
+    <Card
+      item={item}
+      state={state}
+      columns={columns}
+      saving={saving || opts.isOverlay || !!opts.busy}
+      updateStage={updateStage}
+      drag={opts}
+    />
   );
 }
 function ListView({

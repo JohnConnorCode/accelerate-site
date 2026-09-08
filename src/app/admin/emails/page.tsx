@@ -731,7 +731,7 @@ function PreviewPanel({
         <iframe
           srcDoc={detail.html}
           sandbox=""
-          className="h-[560px] w-full rounded-[12px] border-0 bg-[#0a0a0a] outline outline-1 -outline-offset-1 outline-white/10"
+          className="h-[560px] w-full rounded-[var(--admin-control-radius)] border-0 bg-[#0a0a0a] outline outline-1 -outline-offset-1 outline-white/10"
           title={`Email preview: ${detail.name}`}
         />
       </div>

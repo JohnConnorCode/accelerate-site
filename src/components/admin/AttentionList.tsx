@@ -55,10 +55,7 @@ export function AttentionList({
               </h2>
               <span className="text-xs tabular-nums text-[var(--admin-muted)]">{rows.length}</span>
             </div>
-            <AdminSurface
-              padding="none"
-              className="overflow-hidden !rounded-lg !shadow-none border border-[var(--admin-border)]"
-            >
+            <AdminSurface padding="none" elevation="flat" className="overflow-hidden">
               <ul className="divide-y divide-[var(--admin-border)]">
                 {rows.map((item) => (
                   <li

@@ -22,15 +22,20 @@ export function KanbanColumnPager({
 }) {
   const listRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const selected = listRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
-    selected?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    const selected = listRef.current?.querySelector<HTMLElement>('[data-selected="true"]');
+    const root = listRef.current;
+    if (root && selected)
+      root.scrollTo({
+        left: selected.offsetLeft - root.offsetLeft - (root.clientWidth - selected.clientWidth) / 2,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
   }, [activeKey]);
   if (!columns.length) return null;
   return (
     <div className="md:hidden">
       <div
         ref={listRef}
-        role="tablist"
+        role="group"
         aria-label="Board columns"
         className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
@@ -41,8 +46,8 @@ export function KanbanColumnPager({
             <button
               key={column.column_key}
               type="button"
-              role="tab"
-              aria-selected={selected}
+              aria-pressed={selected}
+              data-selected={selected}
               onClick={() => onSelect(column.column_key)}
               className={cn(
                 "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold",
@@ -57,7 +62,7 @@ export function KanbanColumnPager({
                 aria-hidden="true"
               />
               {column.label}
-              <span className="font-mono text-[10px] tabular-nums opacity-70">{count}</span>
+              <span className="font-mono text-[10px] tabular-nums">{count}</span>
             </button>
           );
         })}

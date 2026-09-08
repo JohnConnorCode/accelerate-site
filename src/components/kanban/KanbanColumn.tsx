@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CircleDot, Gauge, Loader2, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { useAdminConfirm } from "@/components/admin/AdminConfirmationProvider";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { toast } from "@/lib/admin/useToast";
 import { cn } from "@/lib/utils";
@@ -16,12 +17,14 @@ import {
 import { KanbanCard, type KanbanCardRenderOpts } from "./KanbanCard";
 
 interface KanbanColumnProps<T> {
+  insertion?: { id: string; after: boolean } | null;
   column: KanbanColumnRecord;
   otherColumns: KanbanColumnRecord[];
   items: T[];
   getItemId: (item: T) => string;
   renderCard: (item: T, opts: KanbanCardRenderOpts) => React.ReactNode;
   dragDisabled: boolean;
+  busy?: boolean;
   emptyHint?: string;
   onRename?: (label: string) => Promise<unknown>;
   onDelete?: (options?: { reassignTo?: string }) => Promise<void>;
@@ -47,6 +50,7 @@ function ColumnMenu({
   onDelete,
   onSetWipLimit,
 }: ColumnMenuProps) {
+  const confirm = useAdminConfirm();
   const [open, setOpen] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [wipOpen, setWipOpen] = useState(false);
@@ -91,7 +95,7 @@ function ColumnMenu({
     }
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = async () => {
     if (!onDelete) return;
     if (hasCards) {
       setReassignTo(otherColumns[0]?.column_key ?? "");
@@ -99,7 +103,14 @@ function ColumnMenu({
       setOpen(false);
       return;
     }
-    if (!window.confirm("Delete this empty column? This cannot be undone.")) return;
+    if (
+      !(await confirm({
+        title: "Delete this column?",
+        description: `“${columnLabel}” is empty. Deleting it cannot be undone.`,
+        confirmLabel: "Delete column",
+      }))
+    )
+      return;
     void runDelete();
   };
 
@@ -168,7 +179,7 @@ function ColumnMenu({
         labelledBy="kanban-wip-title"
         maxWidth="sm"
       >
-        <div className="w-full rounded-[20px] bg-[var(--admin-surface)] p-5 shadow-2xl">
+        <div className="w-full rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface)] p-5 shadow-2xl">
           <h2 id="kanban-wip-title" className="text-base font-semibold text-[var(--admin-ink)]">
             Work-in-progress limit
           </h2>
@@ -225,7 +236,7 @@ function ColumnMenu({
         labelledBy="kanban-reassign-title"
         maxWidth="sm"
       >
-        <div className="w-full rounded-[20px] bg-[var(--admin-surface)] p-5 shadow-2xl">
+        <div className="w-full rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface)] p-5 shadow-2xl">
           <h2
             id="kanban-reassign-title"
             className="text-base font-semibold text-[var(--admin-ink)]"
@@ -363,6 +374,8 @@ export function KanbanColumn<T>({
   getItemId,
   renderCard,
   dragDisabled,
+  busy,
+  insertion,
   emptyHint = "Drop a card here",
   onRename,
   onDelete,
@@ -402,11 +415,7 @@ export function KanbanColumn<T>({
 
   return (
     <section
-      className={cn(
-        "min-w-0 shrink-0 snap-center",
-        "w-[calc(100cqw-1.5rem)]",
-        "md:w-80 md:snap-start",
-      )}
+      className={cn("kanban-column min-w-0 shrink-0 snap-start")}
       aria-labelledby={`column-${column.column_key}`}
     >
       <div className="mb-2.5 flex items-start justify-between gap-2 px-1">
@@ -509,21 +518,18 @@ export function KanbanColumn<T>({
       <div
         ref={setNodeRef}
         className={cn(
-          "flex min-h-[240px] flex-col rounded-2xl bg-black/[0.018] p-2.5",
+          "kanban-column-body flex min-h-[240px] flex-col rounded-2xl p-2",
           "shadow-[inset_0_0_0_1px_var(--admin-border)]",
           "transition-[background-color,box-shadow] duration-150",
-          "dark:bg-white/[0.018]",
-          isOver &&
-            !dragDisabled &&
-            "bg-amber-500/[0.055] shadow-[inset_0_0_0_1px_rgba(184,134,11,0.38),0_12px_30px_-24px_rgba(90,60,0,0.5)] dark:bg-amber-300/[0.045]",
+
+          isOver && !dragDisabled && "kanban-column-over",
         )}
         aria-label={`Column: ${column.label}. Drop zone`}
       >
         <div
           className={cn(
-            "min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain",
+            "kanban-column-items min-h-0 flex-1 space-y-3",
             "[scrollbar-width:thin] [scrollbar-color:var(--admin-border)_transparent]",
-            "max-h-[min(62dvh,calc(100dvh-18rem))]",
           )}
         >
           <SortableContext
@@ -531,14 +537,27 @@ export function KanbanColumn<T>({
             strategy={verticalListSortingStrategy}
           >
             {items.map((item) => (
-              <KanbanCard
+              <div
                 key={getItemId(item)}
-                item={item}
-                id={getItemId(item)}
-                columnKey={column.column_key}
-                disabled={dragDisabled}
-                renderCard={renderCard}
-              />
+                data-insertion={
+                  insertion?.id === getItemId(item)
+                    ? insertion.after
+                      ? "after"
+                      : "before"
+                    : undefined
+                }
+                className="kanban-slot"
+              >
+                <KanbanCard
+                  key={getItemId(item)}
+                  item={item}
+                  id={getItemId(item)}
+                  columnKey={column.column_key}
+                  disabled={dragDisabled}
+                  busy={busy}
+                  renderCard={renderCard}
+                />
+              </div>
             ))}
           </SortableContext>
 

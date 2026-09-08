@@ -36,7 +36,7 @@ export class AdminErrorBoundary extends Component<Props, State> {
 
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-4 sm:px-6">
-        <div className="w-full max-w-md rounded-[20px] bg-[var(--admin-surface)] p-5 text-center shadow-[var(--admin-shadow-border),0_28px_64px_-38px_rgba(0,0,0,0.42)] sm:p-6">
+        <div className="w-full max-w-md rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface)] p-5 text-center shadow-[var(--admin-shadow-border),0_28px_64px_-38px_rgba(0,0,0,0.42)] sm:p-6">
           <div className="mx-auto grid size-11 place-items-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300">
             <AlertTriangle className="size-5" />
           </div>

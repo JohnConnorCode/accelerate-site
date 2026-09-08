@@ -13,6 +13,9 @@ import {
 } from "react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { usePathname } from "next/navigation";
+import { AdminConfirmationProvider } from "@/components/admin/AdminConfirmationProvider";
+import { AdminThemeProvider } from "@/components/admin/AdminThemeProvider";
+import type { AdminThemeDefinition } from "@/lib/admin/theme-definition";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   ArrowUpRight,
@@ -126,6 +129,7 @@ export default function AdminShell({
   workspaceSlug,
   workspaceName,
   isPlatformAdmin,
+  workspaceTheme = null,
   navLayoutOverride = null,
   moduleConfig = null,
 }: {
@@ -135,6 +139,7 @@ export default function AdminShell({
   workspaceSlug: string;
   workspaceName: string;
   isPlatformAdmin: boolean;
+  workspaceTheme?: AdminThemeDefinition | null;
   navLayoutOverride?: LayoutDoc | null;
   /** The request-scoped tenant's real module configuration. Falls back to the
    * static compile-time default (every optional module enabled) only when
@@ -614,127 +619,35 @@ export default function AdminShell({
   const breadcrumbs = getAdminBreadcrumbs(effectivePathname);
 
   return (
-    <AdminQueryProvider scope={scenarioId || "live"}>
-      <AdminAIProvider>
-        <MotionConfig reducedMotion="user">
-          <div className="admin-shell flex h-dvh min-h-0 overflow-hidden">
-            {/* First tab stop for keyboard users: jump past the sidebar nav
+    <AdminQueryProvider key={scenarioId || workspaceSlug} scope={scenarioId || workspaceSlug}>
+      <AdminThemeProvider initialTheme={workspaceTheme}>
+        <AdminAIProvider>
+          <MotionConfig reducedMotion="user">
+            <AdminConfirmationProvider>
+              <div className="admin-shell flex h-dvh min-h-0 overflow-hidden">
+                {/* First tab stop for keyboard users: jump past the sidebar nav
               straight to the route content. Revealed only on keyboard focus. */}
-            <a
-              href="#main-content"
-              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[400] focus:rounded-xl focus:bg-[var(--admin-ink)] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-[var(--admin-surface)]"
-            >
-              Skip to content
-            </a>
-            <aside
-              inert={mobileOpen}
-              className={cn(
-                "admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block",
-                sidebarCollapsed ? "w-[80px]" : "w-[272px]",
-              )}
-              data-admin-sidebar
-            >
-              <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
-                <SidebarContent
-                  idPrefix="admin-desktop"
-                  isActive={isActive}
-                  onSignOut={handleSignOut}
-                  collapsed={sidebarCollapsed}
-                  onToggleCollapse={toggleSidebar}
-                  priorityCount={priorityCount}
-                  demoScenarioId={scenarioId}
-                  navigationSections={visibleNavSections}
-                  workspaceSlug={workspaceSlug}
-                  workspaceName={workspaceName}
-                  workspaces={workspaces}
-                  onSwitchWorkspace={switchWorkspace}
-                />
-              </div>
-            </aside>
-
-            <header
-              inert={mobileOpen}
-              className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex min-h-16 items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)] lg:hidden"
-            >
-              {scenarioId ? (
-                <Link
-                  href="/admin/today"
-                  className="admin-nav-brand flex min-w-0 items-center gap-2.5 font-semibold"
-                  aria-label={`${DEMO_SCENARIOS[scenarioId].name} demo home`}
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[400] focus:rounded-xl focus:bg-[var(--admin-ink)] focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-[var(--admin-surface)]"
                 >
-                  <DemoScenarioMark scenarioId={scenarioId} className="size-8 shrink-0" />
-                  <span className="min-w-0">
-                    <span className="block max-w-40 truncate text-sm">
-                      {DEMO_SCENARIO_SHELL_NAMES[scenarioId]}
-                    </span>
-                    <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.13em] opacity-50">
-                      Demo
-                    </span>
-                  </span>
-                </Link>
-              ) : (
-                <Logo
-                  href="/admin/today"
-                  ariaLabel={`${tenant.brand.name} Revenue OS home`}
-                  size="sm"
-                  className="admin-nav-brand shrink-0"
-                />
-              )}
-              <div className="flex items-center gap-1">
-                <NotificationBell placement="mobile" />
-                <button
-                  type="button"
-                  onClick={() => setSearchOpen(true)}
-                  className="admin-nav-control inline-flex size-11 items-center justify-center rounded-[10px] transition-[color,background-color,transform] duration-150 active:scale-[0.96]"
-                  aria-label="Open command palette"
+                  Skip to content
+                </a>
+                <aside
+                  inert={mobileOpen}
+                  className={cn(
+                    "admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block",
+                    sidebarCollapsed ? "w-[80px]" : "w-[272px]",
+                  )}
+                  data-admin-sidebar
                 >
-                  <Search className="h-4.5 w-4.5" />
-                </button>
-              </div>
-            </header>
-
-            <AnimatePresence initial={false}>
-              {mobileOpen && (
-                <div className="fixed inset-0 z-50 lg:hidden">
-                  <motion.button
-                    type="button"
-                    aria-label="Dismiss navigation"
-                    className="admin-overlay-backdrop absolute inset-0"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => setMobileOpen(false)}
-                  />
-                  <motion.aside
-                    ref={mobileDrawerRef}
-                    id="admin-mobile-navigation"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Admin navigation"
-                    className="admin-mobile-sheet admin-sidebar absolute bottom-2 right-2 top-2 flex w-[min(22rem,calc(100vw-1rem))] flex-col rounded-[28px] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
-                    initial={{ opacity: 0, x: 30, scale: 0.985 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: 22, scale: 0.99 }}
-                    transition={{ type: "spring", duration: 0.34, bounce: 0 }}
-                  >
+                  <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
                     <SidebarContent
-                      idPrefix="admin-mobile"
+                      idPrefix="admin-desktop"
                       isActive={isActive}
                       onSignOut={handleSignOut}
-                      onNavigate={() => setMobileOpen(false)}
-                      onClose={() => setMobileOpen(false)}
-                      closeButtonRef={mobileCloseButtonRef}
-                      onOpenSearch={() => {
-                        setMobileOpen(false);
-                        window.setTimeout(() => setSearchOpen(true), 220);
-                      }}
-                      onOpenAI={() => {
-                        setMobileOpen(false);
-                        window.setTimeout(
-                          () => window.dispatchEvent(new CustomEvent("admin:open-ai")),
-                          220,
-                        );
-                      }}
+                      collapsed={sidebarCollapsed}
+                      onToggleCollapse={toggleSidebar}
                       priorityCount={priorityCount}
                       demoScenarioId={scenarioId}
                       navigationSections={visibleNavSections}
@@ -743,163 +656,259 @@ export default function AdminShell({
                       workspaces={workspaces}
                       onSwitchWorkspace={switchWorkspace}
                     />
-                  </motion.aside>
-                </div>
-              )}
-            </AnimatePresence>
+                  </div>
+                </aside>
 
-            <CmdKSearch
-              open={searchOpen}
-              onClose={closeSearch}
-              query={searchQuery}
-              onQueryChange={handleSearchChange}
-              actions={filteredActions}
-              pageResults={filteredLinks}
-              peopleResults={searchPeople}
-              searchingPeople={searchingPeople}
-              onSelectPage={(href) => {
-                router.push(href);
-                closeSearch();
-              }}
-              onSelectPerson={(email) => {
-                router.push(`/admin/contacts/${encodeURIComponent(email)}`);
-                closeSearch();
-              }}
-              onSelectAction={(action) => {
-                closeSearch();
-                window.requestAnimationFrame(action.run);
-              }}
-              inputRef={searchInputRef}
-            />
-
-            <main
-              id="main-content"
-              ref={mainRef}
-              tabIndex={-1}
-              inert={mobileOpen}
-              className="admin-main min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10"
-            >
-              <div
-                className="admin-route-frame"
-                data-navigation-pending={routeIsPending ? "true" : "false"}
-              >
-                <div className="mb-5 hidden min-h-10 items-center justify-between gap-4 sm:flex">
-                  {breadcrumbs.length > 1 && (
-                    <nav
-                      className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]"
-                      aria-label="Breadcrumb"
+                <header
+                  inert={mobileOpen}
+                  className="admin-mobile-header fixed inset-x-0 top-0 z-40 flex min-h-16 items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)] lg:hidden"
+                >
+                  {scenarioId ? (
+                    <Link
+                      href="/admin/today"
+                      className="admin-nav-brand flex min-w-0 items-center gap-2.5 font-semibold"
+                      aria-label={`${DEMO_SCENARIOS[scenarioId].name} demo home`}
                     >
-                      {breadcrumbs.map((crumb, index) => (
-                        <span
-                          key={`${crumb.href}-${index}`}
-                          className="flex min-w-0 items-center gap-1.5"
-                        >
-                          {index > 0 && <span className="opacity-45">/</span>}
-                          <Link
-                            href={crumb.href}
-                            className={cn(
-                              "truncate transition-colors duration-150 hover:text-[var(--admin-ink)]",
-                              index === breadcrumbs.length - 1 && "text-[var(--admin-ink)]",
-                            )}
-                            aria-current={index === breadcrumbs.length - 1 ? "page" : undefined}
-                          >
-                            {crumb.label}
-                          </Link>
+                      <DemoScenarioMark scenarioId={scenarioId} className="size-8 shrink-0" />
+                      <span className="min-w-0">
+                        <span className="block max-w-40 truncate text-sm">
+                          {DEMO_SCENARIO_SHELL_NAMES[scenarioId]}
                         </span>
-                      ))}
-                    </nav>
+                        <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.13em] opacity-50">
+                          Demo
+                        </span>
+                      </span>
+                    </Link>
+                  ) : (
+                    <Logo
+                      href="/admin/today"
+                      ariaLabel={`${tenant.brand.name} Revenue OS home`}
+                      size="sm"
+                      className="admin-nav-brand shrink-0"
+                    />
                   )}
-                  <div className="hidden items-center gap-2 sm:flex">
-                    <button
-                      type="button"
-                      onClick={() => window.dispatchEvent(new CustomEvent("admin:open-ai"))}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-[11px] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow)] transition-[box-shadow,transform] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"
-                    >
-                      <Bot className="size-3.5" />
-                      Ask AI
-                      <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--admin-muted)]">
-                        ⌘J
-                      </kbd>
-                    </button>
+                  <div className="flex items-center gap-1">
+                    <NotificationBell placement="mobile" />
                     <button
                       type="button"
                       onClick={() => setSearchOpen(true)}
-                      className="inline-flex min-h-10 items-center gap-3 rounded-[11px] bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-muted)] shadow-[var(--admin-shadow)] transition-[box-shadow,color,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"
+                      className="admin-nav-control inline-flex size-11 items-center justify-center rounded-[var(--admin-control-radius)] transition-[color,background-color,transform] duration-150 active:scale-[0.96]"
+                      aria-label="Open command palette"
                     >
-                      <Search className="h-3.5 w-3.5" />
-                      Search
-                      <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px]">
-                        ⌘K
-                      </kbd>
+                      <Search className="h-4.5 w-4.5" />
                     </button>
                   </div>
-                </div>
+                </header>
 
-                <AdminRouteStage routeKey={routeKey}>
-                  <AdminErrorBoundary key={routeKey}>{children}</AdminErrorBoundary>
-                </AdminRouteStage>
-              </div>
-            </main>
+                <AnimatePresence initial={false}>
+                  {mobileOpen && (
+                    <div className="fixed inset-0 z-50 lg:hidden">
+                      <motion.button
+                        type="button"
+                        aria-label="Dismiss navigation"
+                        className="admin-overlay-backdrop absolute inset-0"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setMobileOpen(false)}
+                      />
+                      <motion.aside
+                        ref={mobileDrawerRef}
+                        id="admin-mobile-navigation"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Admin navigation"
+                        className="admin-mobile-sheet admin-sidebar absolute bottom-2 right-2 top-2 flex w-[min(22rem,calc(100vw-1rem))] flex-col rounded-[var(--admin-surface-radius)] px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
+                        initial={{ opacity: 0, x: 30, scale: 0.985 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 22, scale: 0.99 }}
+                        transition={{ type: "spring", duration: 0.34, bounce: 0 }}
+                      >
+                        <SidebarContent
+                          idPrefix="admin-mobile"
+                          isActive={isActive}
+                          onSignOut={handleSignOut}
+                          onNavigate={() => setMobileOpen(false)}
+                          onClose={() => setMobileOpen(false)}
+                          closeButtonRef={mobileCloseButtonRef}
+                          onOpenSearch={() => {
+                            setMobileOpen(false);
+                            window.setTimeout(() => setSearchOpen(true), 220);
+                          }}
+                          onOpenAI={() => {
+                            setMobileOpen(false);
+                            window.setTimeout(
+                              () => window.dispatchEvent(new CustomEvent("admin:open-ai")),
+                              220,
+                            );
+                          }}
+                          priorityCount={priorityCount}
+                          demoScenarioId={scenarioId}
+                          navigationSections={visibleNavSections}
+                          workspaceSlug={workspaceSlug}
+                          workspaceName={workspaceName}
+                          workspaces={workspaces}
+                          onSwitchWorkspace={switchWorkspace}
+                        />
+                      </motion.aside>
+                    </div>
+                  )}
+                </AnimatePresence>
 
-            <nav
-              inert={mobileOpen}
-              style={{ "--admin-mobile-dock-index": mobileDockIndex } as CSSProperties}
-              className="admin-mobile-dock fixed inset-x-4 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-5 items-stretch rounded-[20px] p-1 lg:hidden"
-              aria-label="Primary navigation"
-            >
-              <span className="admin-mobile-dock-active" aria-hidden="true" />
-              {adminMobileLinks.map((link) => {
-                const committed = isActive(link.href);
-                const active = isPendingActive(link.href) || (!pendingAdminPath && committed);
-                return (
-                  <Link
-                    key={link.id}
-                    href={link.href}
-                    prefetch
-                    aria-current={committed ? "page" : undefined}
-                    data-pending={isPendingActive(link.href) ? "true" : undefined}
-                    className={cn(
-                      "admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[16px] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]",
-                      active && "is-active",
-                    )}
+                <CmdKSearch
+                  open={searchOpen}
+                  onClose={closeSearch}
+                  query={searchQuery}
+                  onQueryChange={handleSearchChange}
+                  actions={filteredActions}
+                  pageResults={filteredLinks}
+                  peopleResults={searchPeople}
+                  searchingPeople={searchingPeople}
+                  onSelectPage={(href) => {
+                    router.push(href);
+                    closeSearch();
+                  }}
+                  onSelectPerson={(email) => {
+                    router.push(`/admin/contacts/${encodeURIComponent(email)}`);
+                    closeSearch();
+                  }}
+                  onSelectAction={(action) => {
+                    closeSearch();
+                    window.requestAnimationFrame(action.run);
+                  }}
+                  inputRef={searchInputRef}
+                />
+
+                <main
+                  id="main-content"
+                  ref={mainRef}
+                  tabIndex={-1}
+                  inert={mobileOpen}
+                  className="admin-main min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(8rem,calc(7rem+env(safe-area-inset-bottom)))] pt-[calc(76px+env(safe-area-inset-top))] sm:px-6 lg:px-8 lg:pb-12 lg:pt-6 xl:px-10"
+                >
+                  <div
+                    className="admin-route-frame"
+                    data-navigation-pending={routeIsPending ? "true" : "false"}
                   >
-                    <link.icon className="relative z-10 size-[17px]" aria-hidden="true" />
-                    <span className="relative z-10 max-w-full truncate">{link.label}</span>
-                  </Link>
-                );
-              })}
-              <button
-                ref={mobileMenuButtonRef}
-                type="button"
-                onClick={() => setMobileOpen(true)}
-                className={cn(
-                  "admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[16px] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]",
-                  mobileDockIndex === adminMobileLinks.length && "is-active",
-                )}
-                aria-label="Open More"
-                aria-expanded={mobileOpen}
-                aria-controls="admin-mobile-navigation"
-              >
-                <MoreHorizontal className="relative z-10 size-[18px]" aria-hidden="true" />
-                <span className="relative z-10">More</span>
-              </button>
-            </nav>
+                    <div className="mb-5 hidden min-h-10 items-center justify-between gap-4 sm:flex">
+                      {breadcrumbs.length > 1 && (
+                        <nav
+                          className="flex min-w-0 items-center gap-1.5 text-xs text-[var(--admin-muted)]"
+                          aria-label="Breadcrumb"
+                        >
+                          {breadcrumbs.map((crumb, index) => (
+                            <span
+                              key={`${crumb.href}-${index}`}
+                              className="flex min-w-0 items-center gap-1.5"
+                            >
+                              {index > 0 && <span className="opacity-45">/</span>}
+                              <Link
+                                href={crumb.href}
+                                className={cn(
+                                  "truncate transition-colors duration-150 hover:text-[var(--admin-ink)]",
+                                  index === breadcrumbs.length - 1 && "text-[var(--admin-ink)]",
+                                )}
+                                aria-current={index === breadcrumbs.length - 1 ? "page" : undefined}
+                              >
+                                {crumb.label}
+                              </Link>
+                            </span>
+                          ))}
+                        </nav>
+                      )}
+                      <div className="hidden items-center gap-2 sm:flex">
+                        <button
+                          type="button"
+                          onClick={() => window.dispatchEvent(new CustomEvent("admin:open-ai"))}
+                          className="inline-flex min-h-10 items-center gap-2 rounded-[var(--admin-control-radius)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow)] transition-[box-shadow,transform] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"
+                        >
+                          <Bot className="size-3.5" />
+                          Ask AI
+                          <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--admin-muted)]">
+                            ⌘J
+                          </kbd>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSearchOpen(true)}
+                          className="inline-flex min-h-10 items-center gap-3 rounded-[var(--admin-control-radius)] bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-muted)] shadow-[var(--admin-shadow)] transition-[box-shadow,color,transform] duration-150 hover:text-[var(--admin-ink)] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"
+                        >
+                          <Search className="h-3.5 w-3.5" />
+                          Search
+                          <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px]">
+                            ⌘K
+                          </kbd>
+                        </button>
+                      </div>
+                    </div>
 
-            <EmailComposeModal
-              isOpen={composeOpen}
-              onClose={() => setComposeOpen(false)}
-              recipientEmail=""
-              initialSubject={composeDraft.subject}
-              initialBody={composeDraft.body}
-            />
-            <AdminCreateTaskModal />
-            <AdminFounderNoteModal />
-            <AdminAIPanel />
-            <Toaster />
-            <AdminShortcuts />
-          </div>
-        </MotionConfig>
-      </AdminAIProvider>
+                    <AdminRouteStage routeKey={routeKey}>
+                      <AdminErrorBoundary key={routeKey}>{children}</AdminErrorBoundary>
+                    </AdminRouteStage>
+                  </div>
+                </main>
+
+                <nav
+                  inert={mobileOpen}
+                  style={{ "--admin-mobile-dock-index": mobileDockIndex } as CSSProperties}
+                  className="admin-mobile-dock fixed inset-x-4 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-5 items-stretch rounded-[var(--admin-surface-radius)] p-1 lg:hidden"
+                  aria-label="Primary navigation"
+                >
+                  <span className="admin-mobile-dock-active" aria-hidden="true" />
+                  {adminMobileLinks.map((link) => {
+                    const committed = isActive(link.href);
+                    const active = isPendingActive(link.href) || (!pendingAdminPath && committed);
+                    return (
+                      <Link
+                        key={link.id}
+                        href={link.href}
+                        prefetch
+                        aria-current={committed ? "page" : undefined}
+                        data-pending={isPendingActive(link.href) ? "true" : undefined}
+                        className={cn(
+                          "admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--admin-surface-radius)] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]",
+                          active && "is-active",
+                        )}
+                      >
+                        <link.icon className="relative z-10 size-[17px]" aria-hidden="true" />
+                        <span className="relative z-10 max-w-full truncate">{link.label}</span>
+                      </Link>
+                    );
+                  })}
+                  <button
+                    ref={mobileMenuButtonRef}
+                    type="button"
+                    onClick={() => setMobileOpen(true)}
+                    className={cn(
+                      "admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--admin-surface-radius)] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]",
+                      mobileDockIndex === adminMobileLinks.length && "is-active",
+                    )}
+                    aria-label="Open More"
+                    aria-expanded={mobileOpen}
+                    aria-controls="admin-mobile-navigation"
+                  >
+                    <MoreHorizontal className="relative z-10 size-[18px]" aria-hidden="true" />
+                    <span className="relative z-10">More</span>
+                  </button>
+                </nav>
+
+                <EmailComposeModal
+                  isOpen={composeOpen}
+                  onClose={() => setComposeOpen(false)}
+                  recipientEmail=""
+                  initialSubject={composeDraft.subject}
+                  initialBody={composeDraft.body}
+                />
+                <AdminCreateTaskModal />
+                <AdminFounderNoteModal />
+                <AdminAIPanel />
+                <Toaster />
+                <AdminShortcuts />
+              </div>
+            </AdminConfirmationProvider>
+          </MotionConfig>
+        </AdminAIProvider>
+      </AdminThemeProvider>
     </AdminQueryProvider>
   );
 }
@@ -978,7 +987,7 @@ function SidebarContent({
             <button
               type="button"
               onClick={onOpenSearch}
-              className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
+              className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
             >
               <Search className="size-4" />
               Search
@@ -986,7 +995,7 @@ function SidebarContent({
             <button
               type="button"
               onClick={onOpenAI}
-              className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
+              className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
             >
               <Bot className="size-4" />
               Ask AI
@@ -1001,7 +1010,7 @@ function SidebarContent({
                 ? `${demoScenario.name} demo home`
                 : `${tenant.brand.name} Revenue OS home`
             }
-            className="admin-nav-brand admin-nav-control logo-link grid size-10 place-items-center rounded-[10px] transition-[background-color,transform] duration-150 active:scale-[0.96]"
+            className="admin-nav-brand admin-nav-control logo-link grid size-10 place-items-center rounded-[var(--admin-control-radius)] transition-[background-color,transform] duration-150 active:scale-[0.96]"
           >
             {demoScenarioId ? (
               <DemoScenarioMark scenarioId={demoScenarioId} className="size-8" />
@@ -1014,7 +1023,7 @@ function SidebarContent({
             href="/admin/today"
             onClick={onNavigate}
             aria-label={`${demoScenario.name} demo home`}
-            className="admin-nav-brand flex min-w-0 items-center gap-2.5 rounded-[10px] py-1 pr-1 transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.98]"
+            className="admin-nav-brand flex min-w-0 items-center gap-2.5 rounded-[var(--admin-control-radius)] py-1 pr-1 transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.98]"
           >
             <DemoScenarioMark scenarioId={demoScenarioId} className="size-9 shrink-0" />
             <span className="min-w-0">
@@ -1044,7 +1053,7 @@ function SidebarContent({
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="admin-nav-control grid size-10 shrink-0 place-items-center rounded-[10px] transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
+              className="admin-nav-control grid size-10 shrink-0 place-items-center rounded-[var(--admin-control-radius)] transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
               title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
@@ -1060,7 +1069,7 @@ function SidebarContent({
               ref={closeButtonRef}
               type="button"
               onClick={onClose}
-              className="admin-nav-control grid size-11 shrink-0 place-items-center rounded-[11px] transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
+              className="admin-nav-control grid size-11 shrink-0 place-items-center rounded-[var(--admin-control-radius)] transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
               aria-label="Close navigation"
             >
               <X className="size-5" />
@@ -1089,7 +1098,7 @@ function SidebarContent({
                     <button
                       type="button"
                       onClick={() => toggleSection(section.label)}
-                      className="admin-nav-section-button group flex min-h-11 w-full items-center justify-between rounded-[10px] px-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.12em] transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
+                      className="admin-nav-section-button group flex min-h-11 w-full items-center justify-between rounded-[var(--admin-control-radius)] px-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.12em] transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
                       aria-expanded={expanded}
                       aria-controls={panelId}
                     >
@@ -1133,7 +1142,7 @@ function SidebarContent({
                               onClick={onNavigate}
                               title={collapsed ? link.label : undefined}
                               className={cn(
-                                "admin-nav-link group relative flex min-h-10 items-center rounded-[10px] text-[13.5px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.96]",
+                                "admin-nav-link group relative flex min-h-10 items-center rounded-[var(--admin-control-radius)] text-[13.5px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.96]",
                                 collapsed ? "justify-center px-0" : "gap-3 px-2.5",
                               )}
                               aria-current={active ? "page" : undefined}
@@ -1155,8 +1164,8 @@ function SidebarContent({
                                     className={cn(
                                       "ml-auto min-w-5 rounded-full px-1.5 py-0.5 text-center font-mono text-[9px] font-semibold tabular-nums",
                                       active
-                                        ? "bg-black/8 text-black"
-                                        : "bg-rose-500/18 text-rose-200",
+                                        ? "bg-black/10 text-[var(--admin-nav-active-ink)]"
+                                        : "bg-[var(--admin-nav-hover)] text-[var(--admin-nav-ink)]",
                                     )}
                                     aria-label={`${priorityCount} urgent priorities`}
                                   >
@@ -1192,12 +1201,12 @@ function SidebarContent({
             >
               Workspace
             </label>
-            <div className="admin-nav-utility relative rounded-[11px] shadow-sm">
+            <div className="admin-nav-utility relative rounded-[var(--admin-control-radius)] shadow-sm">
               <select
                 id={`${idPrefix}-workspace`}
                 value={workspaceSlug}
                 onChange={(event) => onSwitchWorkspace(event.target.value)}
-                className="min-h-11 w-full appearance-none cursor-pointer rounded-[11px] bg-transparent py-2 pl-3 pr-9 text-xs font-semibold outline-none transition-[background-color,color,box-shadow,transform] duration-150 focus-visible:ring-2 focus-visible:ring-white/45 active:scale-[0.98]"
+                className="min-h-11 w-full appearance-none cursor-pointer rounded-[var(--admin-control-radius)] bg-transparent py-2 pl-3 pr-9 text-xs font-semibold outline-none transition-[background-color,color,box-shadow,transform] duration-150 focus-visible:ring-2 focus-visible:ring-white/45 active:scale-[0.98]"
                 aria-label="Switch workspace"
               >
                 {(workspaces.length
@@ -1237,7 +1246,7 @@ function SidebarContent({
             title={collapsed ? "Open demo workspace" : undefined}
             data-admin-demo-link
             className={cn(
-              "admin-nav-demo-link mb-1 flex min-h-10 items-center rounded-[10px] text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]",
+              "admin-nav-demo-link mb-1 flex min-h-10 items-center rounded-[var(--admin-control-radius)] text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]",
               collapsed ? "justify-center" : "gap-3 px-2.5",
             )}
           >
@@ -1264,7 +1273,7 @@ function SidebarContent({
               onClick={onNavigate}
               title={collapsed ? "View live site" : undefined}
               className={cn(
-                "admin-nav-utility flex min-h-10 items-center rounded-[10px] text-xs transition-[color,background-color,transform] duration-150 active:scale-[0.96]",
+                "admin-nav-utility flex min-h-10 items-center rounded-[var(--admin-control-radius)] text-xs transition-[color,background-color,transform] duration-150 active:scale-[0.96]",
                 collapsed ? "justify-center" : "gap-3 px-2.5",
               )}
             >
@@ -1278,7 +1287,7 @@ function SidebarContent({
               }}
               title={collapsed ? "Sign out" : undefined}
               className={cn(
-                "admin-nav-utility flex min-h-10 w-full items-center rounded-[10px] text-xs transition-[color,background-color,transform] duration-150 active:scale-[0.96]",
+                "admin-nav-utility flex min-h-10 w-full items-center rounded-[var(--admin-control-radius)] text-xs transition-[color,background-color,transform] duration-150 active:scale-[0.96]",
                 collapsed ? "justify-center" : "gap-3 px-2.5",
               )}
             >
@@ -1497,7 +1506,7 @@ function CommandRow({
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClick}
       className={cn(
-        "flex min-h-14 w-full items-center gap-3 rounded-[11px] px-3 text-left transition-[background-color,color,transform] duration-100 active:scale-[0.985] sm:min-h-12",
+        "flex min-h-14 w-full items-center gap-3 rounded-[var(--admin-control-radius)] px-3 text-left transition-[background-color,color,transform] duration-100 active:scale-[0.985] sm:min-h-12",
         selected
           ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
           : "text-[var(--admin-ink)] hover:bg-[var(--admin-surface-subtle)]",
@@ -1505,7 +1514,7 @@ function CommandRow({
     >
       <span
         className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px]",
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--admin-control-radius)]",
           selected ? "bg-white/12" : "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]",
         )}
       >

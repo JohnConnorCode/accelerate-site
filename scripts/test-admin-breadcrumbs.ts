@@ -39,12 +39,12 @@ assert.match(
 );
 assert.match(
   adminSwitch,
-  /h-7 w-12 rounded-\[14px\]/,
+  /h-7 w-12 rounded-full/,
   "The visible switch track must remain a 48 by 28 pill",
 );
 assert.match(
   adminSwitch,
-  /size-5 rounded-\[10px\]/,
+  /size-5 rounded-full/,
   "The switch thumb must remain a concentric 20px circle",
 );
 assert.match(

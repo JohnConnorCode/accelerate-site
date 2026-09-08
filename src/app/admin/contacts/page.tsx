@@ -172,7 +172,7 @@ export default function ContactsPage() {
           <button
             type="button"
             onClick={() => window.open("/api/admin/contacts/export", "_blank")}
-            className="inline-flex min-h-10 items-center gap-2 rounded-[10px] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
+            className="inline-flex min-h-10 items-center gap-2 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
           >
             <Download className="size-3.5" /> Export
           </button>
@@ -308,7 +308,7 @@ export default function ContactsPage() {
               type="button"
               disabled={page <= 1}
               onClick={() => setPage((current) => current - 1)}
-              className="min-h-10 rounded-[10px] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] disabled:opacity-40"
+              className="min-h-10 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] disabled:opacity-40"
             >
               Previous
             </button>
@@ -316,7 +316,7 @@ export default function ContactsPage() {
               type="button"
               disabled={page >= totalPages}
               onClick={() => setPage((current) => current + 1)}
-              className="min-h-10 rounded-[10px] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] disabled:opacity-40"
+              className="min-h-10 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] disabled:opacity-40"
             >
               Next
             </button>
@@ -334,7 +334,7 @@ export default function ContactsPage() {
           <div className="admin-dialog-surface max-h-[92dvh] w-full overflow-y-auto rounded-t-[24px] bg-[var(--admin-surface)] shadow-2xl sm:rounded-[24px]">
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
+                <span className="grid size-11 shrink-0 place-items-center rounded-[var(--admin-control-radius)] bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
                   <UserRound className="size-5" />
                 </span>
                 <div className="min-w-0">
@@ -360,7 +360,7 @@ export default function ContactsPage() {
               </button>
             </div>
             <div className="grid gap-5 px-5 py-5 sm:px-6">
-              <dl className="grid gap-3 rounded-[16px] bg-[var(--admin-surface-subtle)] p-4 shadow-[var(--admin-shadow-border)] sm:grid-cols-2">
+              <dl className="grid gap-3 rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface-subtle)] p-4 shadow-[var(--admin-shadow-border)] sm:grid-cols-2">
                 <div>
                   <dt className="admin-eyebrow">Email</dt>
                   <dd className="mt-1 break-all text-sm font-medium text-[var(--admin-ink)]">
@@ -385,7 +385,7 @@ export default function ContactsPage() {
               </dl>
               <div>
                 <p className="admin-eyebrow">Full message</p>
-                <p className="mt-2 whitespace-pre-wrap text-pretty rounded-[16px] bg-[var(--admin-surface-subtle)] p-4 text-sm leading-6 text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">
+                <p className="mt-2 whitespace-pre-wrap text-pretty rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface-subtle)] p-4 text-sm leading-6 text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">
                   {displayedContact.message || "No message was supplied with this submission."}
                 </p>
               </div>

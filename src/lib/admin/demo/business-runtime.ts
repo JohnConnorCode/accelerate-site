@@ -1,3 +1,4 @@
+import { validateAdminTheme } from "@/lib/admin/theme-definition";
 import {
   prepareOperatorTaskPatch,
   type OperatorTaskPatchInput,
@@ -347,6 +348,7 @@ export async function handleDemoBusinessRequest(
       if (body.revision !== revision(state))
         throw new Error("Branding changed. Reload before saving.");
       const brand = workspaceBrandSchema.parse(body.brand);
+      if (brand.adminTheme) validateAdminTheme(brand.adminTheme);
       if (
         contrastRatio(brand.inkColor, "#ffffff") < 4.5 ||
         contrastRatio(brand.inkColor, brand.backgroundColor) < 4.5

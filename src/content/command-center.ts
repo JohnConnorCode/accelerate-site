@@ -355,7 +355,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "A mobile-ready workspace",
     detail:
-      "Use the same Today queue, inbox, pipeline, records, and setup controls from a responsive browser surface with no separate mobile app to maintain.",
+      "Use Today, inbox, pipeline, records and setup from a responsive browser. Kanban offers swipeable columns, touch and keyboard dragging, and a stage control for moving a card.",
   },
   {
     id: "api",
@@ -379,6 +379,13 @@ export const capabilities: Capability[] = [
       "Extend the open-source platform with custom records, lifecycles, workflows, integrations, AI tools and working screens. Reuse shared customer context and execution services. Current customization uses workspace settings and source development; a general-purpose in-app AI App builder is planned.",
   },
 
+  {
+    id: "workspace-themes",
+    category: "connect",
+    title: "Make the workspace your own",
+    detail:
+      "Choose a built-in appearance or preview a custom palette, typography and corner style in Branding. Import and export portable themes, or ask the connected assistant to prepare a theme for approval. Saved themes use the same workspace permissions and revision checks as branding.",
+  },
   // Govern
   {
     id: "audit",

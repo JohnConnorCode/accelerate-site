@@ -153,7 +153,7 @@ export function AdminDemoControls({
         type="button"
         onClick={() => (open ? closeControls() : setOpen(true))}
         className={cn(
-          "admin-nav-demo-control flex min-h-11 items-center rounded-[12px] text-left transition-[background-color,color,transform,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-nav-accent)] active:scale-[0.96]",
+          "admin-nav-demo-control flex min-h-11 items-center rounded-[var(--admin-control-radius)] text-left transition-[background-color,color,transform,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-nav-accent)] active:scale-[0.96]",
           collapsed ? "size-11 justify-center" : "w-full gap-2.5 px-2",
         )}
         aria-expanded={open}
@@ -162,7 +162,7 @@ export function AdminDemoControls({
         title={collapsed ? "Demo controls" : undefined}
       >
         <span
-          className="grid size-8 shrink-0 place-items-center rounded-[9px] text-white shadow-[0_8px_20px_-12px_rgba(0,0,0,.7)]"
+          className="grid size-8 shrink-0 place-items-center rounded-[var(--admin-control-radius)] text-white shadow-[0_8px_20px_-12px_rgba(0,0,0,.7)]"
           style={{ backgroundColor: scenario.accent }}
         >
           <DemoScenarioMark scenarioId={demo.scenarioId} className="size-6" />
@@ -199,11 +199,11 @@ export function AdminDemoControls({
             className={cn(
               "overflow-hidden",
               collapsed &&
-                "admin-demo-rail-popover absolute bottom-0 left-[calc(100%+0.65rem)] w-[17rem] rounded-[18px] p-2 shadow-[0_24px_70px_-30px_rgba(0,0,0,.72)]",
+                "admin-demo-rail-popover absolute bottom-0 left-[calc(100%+0.65rem)] w-[17rem] rounded-[var(--admin-surface-radius)] p-2 shadow-[0_24px_70px_-30px_rgba(0,0,0,.72)]",
             )}
           >
             <div className={cn("space-y-2", !collapsed && "pt-2")}>
-              <div className="admin-demo-control-panel rounded-[14px] p-2 shadow-[inset_0_0_0_1px_var(--admin-nav-rule)]">
+              <div className="admin-demo-control-panel rounded-[var(--admin-control-radius)] p-2 shadow-[inset_0_0_0_1px_var(--admin-nav-rule)]">
                 <label className="block">
                   <span className="px-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--admin-nav-faint)]">
                     Demo business
@@ -222,7 +222,7 @@ export function AdminDemoControls({
                         scroll: false,
                       });
                     }}
-                    className="mt-1 min-h-11 w-full rounded-[10px] bg-[var(--admin-nav-hover)] px-3 text-xs font-semibold text-[var(--admin-nav-ink)] outline-none ring-1 ring-[var(--admin-nav-rule)] focus:ring-2 focus:ring-[var(--admin-nav-accent)]"
+                    className="mt-1 min-h-11 w-full rounded-[var(--admin-control-radius)] bg-[var(--admin-nav-hover)] px-3 text-xs font-semibold text-[var(--admin-nav-ink)] outline-none ring-1 ring-[var(--admin-nav-rule)] focus:ring-2 focus:ring-[var(--admin-nav-accent)]"
                   >
                     {DEMO_SCENARIO_SUMMARIES.map((item) => (
                       <option key={item.id} value={item.id}>
@@ -236,7 +236,7 @@ export function AdminDemoControls({
                   <button
                     type="button"
                     onClick={demo.reset}
-                    className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] px-2 text-[11px] font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
+                    className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--admin-control-radius)] px-2 text-[11px] font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
                     aria-label="Reset this demo"
                   >
                     <RotateCcw className="size-3.5" />
@@ -244,7 +244,7 @@ export function AdminDemoControls({
                   </button>
                   <Link
                     href="/demo/command-center"
-                    className="admin-nav-utility inline-flex min-h-11 items-center justify-center rounded-[10px] px-2 text-[11px] font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
+                    className="admin-nav-utility inline-flex min-h-11 items-center justify-center rounded-[var(--admin-control-radius)] px-2 text-[11px] font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
                   >
                     All demos
                   </Link>

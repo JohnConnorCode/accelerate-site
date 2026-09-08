@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Sparkles, Trash2, Loader2 } from "lucide-react";
+import { useAdminConfirm } from "@/components/admin/AdminConfirmationProvider";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
@@ -19,8 +20,8 @@ import type {
 interface ContentItemFormProps {
   open: boolean;
   item?: ContentCalendarItem | null;
-  onSave: (data: Partial<ContentCalendarItem>) => void;
-  onDelete?: (id: string) => void;
+  onSave: (data: Partial<ContentCalendarItem>) => void | Promise<void>;
+  onDelete?: (id: string) => void | Promise<void>;
   onClose: () => void;
   /** Board's current columns (admin-defined, renamable) as {value, label}
    * options. Falls back to the pre-kanban-unification defaults if the
@@ -95,31 +96,70 @@ export function ContentItemForm({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  const confirm = useAdminConfirm();
+  const formValues = {
+    title,
+    slug,
+    status,
+    category,
+    pillar,
+    funnelStage,
+    targetPublishDate,
+    actualPublishDate,
+    author,
+    keywords,
+    notes,
+    seoTitle,
+    seoDescription,
+    wordCountTarget,
+  };
+  const [initialValues] = useState(() => JSON.stringify(formValues));
+  const requestClose = async () => {
+    if (saving) return;
+    if (
+      JSON.stringify(formValues) === initialValues ||
+      (await confirm({
+        title: "Discard content edits?",
+        description: "Your unsaved changes will be lost.",
+        confirmLabel: "Discard edits",
+        cancelLabel: "Keep editing",
+      }))
+    )
+      onClose();
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    await onSave({
-      ...(item?.id ? { id: item.id } : {}),
-      title,
-      slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      status,
-      category: category || undefined,
-      pillar: (pillar as ArticlePillar) || undefined,
-      funnel_stage: (funnelStage as "awareness" | "consideration" | "decision") || undefined,
-      target_publish_date: targetPublishDate || undefined,
-      actual_publish_date: actualPublishDate || undefined,
-      author: author || undefined,
-      target_keywords: keywords
-        .split(",")
-        .map((k) => k.trim())
-        .filter(Boolean),
-      notes: notes || undefined,
-      seo_title: seoTitle || undefined,
-      seo_description: seoDescription || undefined,
-      word_count_target: parseInt(wordCountTarget) || undefined,
-    });
-    setSaving(false);
-    onClose();
+    try {
+      await onSave({
+        ...(item?.id ? { id: item.id } : {}),
+        title,
+        slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        status,
+        category: category || undefined,
+        pillar: (pillar as ArticlePillar) || undefined,
+        funnel_stage: (funnelStage as "awareness" | "consideration" | "decision") || undefined,
+        target_publish_date: targetPublishDate || undefined,
+        actual_publish_date: actualPublishDate || undefined,
+        author: author || undefined,
+        target_keywords: keywords
+          .split(",")
+          .map((k) => k.trim())
+          .filter(Boolean),
+        notes: notes || undefined,
+        seo_title: seoTitle || undefined,
+        seo_description: seoDescription || undefined,
+        word_count_target: parseInt(wordCountTarget) || undefined,
+      });
+      onClose();
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "Content could not be saved",
+        type: "error",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleGenerateBrief = async () => {
@@ -159,17 +199,27 @@ export function ContentItemForm({
     }
   };
 
-  const handleDelete = () => {
-    if (item?.id && onDelete) {
-      onDelete(item.id);
+  const handleDelete = async () => {
+    if (!item?.id || !onDelete || saving) return;
+    setSaving(true);
+    try {
+      await onDelete(item.id);
       onClose();
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "Content could not be deleted",
+        type: "error",
+      });
+    } finally {
+      setSaving(false);
+      setShowDeleteConfirm(false);
     }
   };
 
   return (
     <AdminDialog
       open={open}
-      onClose={onClose}
+      onClose={() => void requestClose()}
       title={item ? "Edit content" : "New content"}
       align="right"
       maxWidth="md"
@@ -192,9 +242,9 @@ export function ContentItemForm({
               </button>
             )}
             <button
-              onClick={onClose}
+              onClick={() => void requestClose()}
               aria-label="Close content editor"
-              className="grid min-h-10 min-w-10 place-items-center rounded-lg text-white-muted transition-colors hover:text-white-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2"
+              className="grid min-h-10 min-w-10 place-items-center rounded-lg text-white-muted transition-colors hover:text-white-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)] focus-visible:ring-offset-2"
             >
               <X className="h-5 w-5" />
             </button>

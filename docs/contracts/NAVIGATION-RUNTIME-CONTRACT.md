@@ -52,8 +52,8 @@ routing or creating surface-specific history systems.
 - Route entry and data entry are separate lifecycles. The shell owns the route
   transition; the shared async-region primitive owns delayed loading, retained
   data, error, and ready transitions close to the data that changes.
-- Fresh async content enters with opacity, a small vertical offset, and
-  restrained blur. A placeholder may appear only after a short delay and only
+- Fresh async content enters with opacity and a small vertical offset.
+  Ready content replaces its placeholder immediately, with no blur or exit wait. A placeholder may appear only after a short delay and only
   in the region whose geometry it preserves. Cached data remains visible during
   refetch.
 
