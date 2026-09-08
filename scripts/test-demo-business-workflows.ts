@@ -32,6 +32,16 @@ async function main() {
       assert.equal(r.status, status, JSON.stringify(data));
       return data;
     };
+    for (const scope of ["nav.sidebar", "page.today"]) {
+      assert.deepEqual(await request(`/api/admin/revenue-os/layout?scope=${scope}`), {
+        scope,
+        doc: null,
+        history: [],
+      });
+    }
+    await request("/api/admin/revenue-os/layout?scope=unknown", undefined, "GET", 400);
+    await request("/api/admin/revenue-os/layout", undefined, "GET", 400);
+    assert.equal(saves, 0, "Reading default layouts must not create a saved override");
     workspaceBrandSchema.parse(state.brand);
     assert.equal(state.invoices.length, 3);
     assert.ok(state.tasks.length >= 4);
