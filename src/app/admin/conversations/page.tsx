@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -377,8 +379,8 @@ export default function ConversationsPage() {
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
-        title="Conversations"
-        subtitle="Omnichannel inbox unifying Gmail, inbound forms, chat leads, and voice transcripts into one reply-ready cockpit."
+        title={adminPageName("conversations")}
+        subtitle="Read customer messages, review the conversation history, and prepare your next reply."
         utilityActions={
           <div className="flex items-center gap-2">
             <button

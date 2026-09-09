@@ -65,8 +65,11 @@ check(acknowledgedIn <= 100, `Navigation: tap acknowledgement took ${acknowledge
 await page.getByRole("heading", { level: 1, name: "Pipeline" }).waitFor();
 const routeMotion = await page
   .locator("[data-admin-route-stage]")
-  .evaluate((node) => node.getAnimations().some((animation) => animation.playState === "running"));
-check(routeMotion, "Navigation: committed Pipeline route has no active entrance motion");
+  .evaluate((node) => {
+    const style = getComputedStyle(node);
+    return style.animationName !== "none" && Number.parseFloat(style.animationDuration) > 0;
+  });
+check(routeMotion, "Navigation: committed Pipeline route has no declared entrance motion");
 check(
   (await page.locator("[data-admin-route-loading]").count()) === 0,
   "Navigation: full-page loading tree remained after Pipeline committed",

@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useMemo, useState } from "react";
 import { CheckCircle2, Clock, Loader2, ShieldQuestion, UserPlus, UserX } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -86,8 +88,8 @@ export default function IdentityReviewPage() {
   return (
     <>
       <PageHeader
-        title="Contact review"
-        subtitle="Match unfamiliar senders to your contacts so each conversation reaches the right person."
+        title={adminPageName("identity-review")}
+        subtitle="Match unfamiliar senders to the right contact so their messages appear with the right history."
       />
       <AdminReadBody
         loading={reviewQuery.isPending}

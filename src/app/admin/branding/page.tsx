@@ -1,4 +1,6 @@
 "use client";
+
+import { adminPageName } from "@/lib/admin/navigation";
 import { useTheme } from "next-themes";
 import { AdminThemeEditor } from "@/components/admin/AdminThemeEditor";
 import { saveDemoAppearance } from "@/lib/admin/demo/appearance-state";
@@ -296,8 +298,8 @@ export default function BrandingPage() {
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
-        title="Branding"
-        subtitle="Your workspace appearance and customer-facing identity."
+        title={adminPageName("branding")}
+        subtitle="Set the logo, colors, and business identity used in customer documents."
       />
       <DemoBusinessNotice />
       {query.error ? (

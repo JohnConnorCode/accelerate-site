@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useEffect, useState, useCallback } from "react";
 import Link from "@/components/admin/AdminLink";
 import { Search } from "lucide-react";
@@ -67,7 +69,7 @@ export default function ClientsPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Clients" />
+        <PageHeader title={adminPageName("clients")} />
         <LoadingSkeleton variant="table" count={6} />
       </div>
     );
@@ -76,7 +78,7 @@ export default function ClientsPage() {
   return (
     <div>
       <PageHeader
-        title="Clients"
+        title={adminPageName("clients")}
         subtitle={`${activeCount} active · $${totalMRR.toLocaleString()}/mo MRR`}
       />
 

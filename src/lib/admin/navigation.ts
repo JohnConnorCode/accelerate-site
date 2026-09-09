@@ -45,6 +45,7 @@ export interface AdminNavLink {
 
 export interface AdminNavSection {
   label: string;
+  title?: string;
   links: AdminNavLink[];
 }
 
@@ -57,15 +58,15 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Today",
         href: "/admin/today",
         icon: LayoutDashboard,
-        description: "What needs you now",
+        description: "See urgent priorities, upcoming commitments, and the next steps that need your attention.",
         mobilePrimary: true,
       },
       {
         id: "work",
-        label: "Work",
+        label: "Tasks & approvals",
         href: "/admin/work",
         icon: ListChecks,
-        description: "Tasks and approvals linked to their source records",
+        description: "Track assigned tasks and review actions waiting for your approval.",
         keywords: "tasks approvals commitments team assigned work",
       },
       {
@@ -73,7 +74,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Pipeline",
         href: "/admin/pipeline",
         icon: Target,
-        description: "Opportunities and next actions",
+        description: "See where each opportunity stands and decide how to move it forward.",
         mobilePrimary: true,
       },
       {
@@ -81,15 +82,15 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Conversations",
         href: "/admin/conversations",
         icon: MessageSquareText,
-        description: "Ongoing customer communication",
+        description: "Read customer messages, review the conversation history, and prepare your next reply.",
         mobilePrimary: true,
       },
       {
         id: "inbox",
-        label: "Inbox",
+        label: "Review queue",
         href: "/admin/inbox",
         icon: Inbox,
-        description: "New work requiring triage",
+        description: "Review incoming items and follow-ups that need a decision.",
         mobilePrimary: true,
       },
       {
@@ -97,7 +98,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Contact review",
         href: "/admin/identity-review",
         icon: UserPlus,
-        description: "Match unfamiliar senders to your contacts",
+        description: "Match unfamiliar senders to the right contact so their messages appear with the right history.",
         keywords: "identity review ambiguous unknown link contact",
       },
     ],
@@ -110,16 +111,16 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Contact intake",
         href: "/admin/contacts",
         icon: UsersRound,
-        description: "Website submissions and reviewed list imports",
+        description: "Review website submissions and import contact lists for your team to follow up.",
         keywords: "contacts submissions csv json paste ai dedupe import",
         moreGroup: "Revenue",
       },
       {
         id: "emails",
-        label: "Email Studio",
+        label: "Email Templates",
         href: "/admin/emails",
         icon: MessageSquareText,
-        description: "View and edit live email copy",
+        description: "Edit reusable email copy and review messages your business has sent.",
         keywords: "templates preview editor",
         moreGroup: "Revenue",
       },
@@ -128,7 +129,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Campaigns",
         href: "/admin/campaigns",
         icon: Mail,
-        description: "Controlled outbound",
+        description: "Prepare outreach campaigns, review recipients, and track their progress.",
         moreGroup: "Revenue",
       },
       {
@@ -136,7 +137,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Revenue Recovery",
         href: "/admin/recovery",
         icon: RotateCcw,
-        description: "Recover past demand",
+        description: "Reconnect with past enquiries and customers who may be ready for a follow-up.",
         keywords: "reactivation stale leads no shows estimates recovery",
         moreGroup: "Revenue",
       },
@@ -145,16 +146,16 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Proposals",
         href: "/admin/proposals",
         icon: FileCheck,
-        description: "Drafts, decisions, and follow-up",
+        description: "Prepare customer proposals and follow their progress from draft to decision.",
         moreGroup: "Revenue",
       },
       {
         id: "delivery-runs",
-        label: "Delivery Runs",
+        label: "Email Sequences",
         href: "/admin/email-sequences",
         icon: MailCheck,
-        description: "Sequence and delivery status",
-        keywords: "email sequences sends",
+        description: "Check scheduled follow-ups, delivered messages, and the next email in each sequence.",
+        keywords: "email sequences sends delivery runs nurture enrollment follow up",
         moreGroup: "Revenue",
       },
       {
@@ -162,7 +163,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Revenue",
         href: "/admin/revenue",
         icon: BriefcaseBusiness,
-        description: "Revenue and client value",
+        description: "Review revenue and customer value to understand where your business is growing.",
         moreGroup: "Revenue",
       },
     ],
@@ -175,7 +176,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Clients",
         href: "/admin/clients",
         icon: BriefcaseBusiness,
-        description: "Client delivery records",
+        description: "Keep customer details, delivery progress, and related work together.",
         moreGroup: "Delivery",
       },
       {
@@ -183,23 +184,23 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Bookings",
         href: "/admin/bookings",
         icon: CalendarCheck,
-        description: "Meeting and booking records",
+        description: "Review meeting requests, scheduled appointments, and booking details.",
         moreGroup: "Delivery",
       },
       {
         id: "content",
-        label: "Content",
+        label: "Content Calendar",
         href: "/admin/content",
         icon: FileText,
-        description: "Content operations",
+        description: "Plan content, track its progress, and keep upcoming publishing work visible.",
         moreGroup: "Delivery",
       },
       {
         id: "resources",
-        label: "Resources",
+        label: "Resource Downloads",
         href: "/admin/resources",
         icon: Library,
-        description: "Downloadable resources",
+        description: "Manage downloadable resources and review how people access them.",
         moreGroup: "Delivery",
       },
     ],
@@ -212,7 +213,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "AI Workspace",
         href: "/admin/ai",
         icon: Bot,
-        description: "Ask, inspect runs, and review capabilities",
+        description: "Ask about your business, review AI activity, and understand the tools available to it.",
         keywords: "assistant copilot command chat operations traces capabilities",
         moreGroup: "Intelligence",
       },
@@ -221,7 +222,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Analytics",
         href: "/admin/analytics",
         icon: BarChart3,
-        description: "Source-to-revenue funnel",
+        description: "Understand which sources bring enquiries and how those enquiries become customers.",
         moreGroup: "Intelligence",
       },
       {
@@ -229,7 +230,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Activity",
         href: "/admin/activity",
         icon: Activity,
-        description: "Audit history for material changes",
+        description: "Review recorded changes and action results across your business.",
         moreGroup: "Intelligence",
       },
     ],
@@ -239,10 +240,10 @@ export const adminNavSections: AdminNavSection[] = [
     links: [
       {
         id: "tenants",
-        label: "Tenants",
+        label: "Workspaces",
         href: "/admin/tenants",
         icon: UsersRound,
-        description: "Workspace provisioning and access",
+        description: "Manage business workspaces and the people who can access them.",
         moreGroup: "System",
       },
       {
@@ -250,15 +251,15 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Integrations",
         href: "/admin/integrations",
         icon: PlugZap,
-        description: "Capabilities, evidence, and roadmap",
+        description: "Manage connected services and the business tools available in your workspace.",
         moreGroup: "System",
       },
       {
         id: "setup",
-        label: "Setup Center",
+        label: "Setup",
         href: "/admin/setup",
         icon: ListChecks,
-        description: "Connections and readiness",
+        description: "Connect your services and check what is ready or still needs attention.",
         moreGroup: "System",
       },
       {
@@ -266,7 +267,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Feature Board",
         href: "/admin/features",
         icon: KanbanSquare,
-        description: "Managed delivery backlog",
+        description: "Plan product improvements, follow implementation progress, and review completed work.",
         moreGroup: "System",
       },
       {
@@ -274,7 +275,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Branding",
         href: "/admin/branding",
         icon: Palette,
-        description: "Logo, colors, and customer document identity",
+        description: "Set the logo, colors, and business identity used in customer documents.",
         moreGroup: "System",
       },
       {
@@ -282,7 +283,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Settings",
         href: "/admin/settings",
         icon: Settings,
-        description: "Operating preferences",
+        description: "Adjust workspace preferences and how your team uses Command Center.",
         moreGroup: "System",
       },
     ],
@@ -295,15 +296,15 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Leads",
         href: "/admin/leads",
         icon: UserRound,
-        description: "Inquiry capture and qualification",
+        description: "Review enquiries, qualify potential customers, and decide who needs follow-up.",
         moreGroup: "Sources",
       },
       {
         id: "chat-leads",
-        label: "Chat inquiries",
+        label: "Chat enquiries",
         href: "/admin/chat-leads",
         icon: MessageCircleMore,
-        description: "Website chat submissions",
+        description: "Review enquiries submitted through your website chat.",
         moreGroup: "Sources",
       },
       {
@@ -311,15 +312,15 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Subscribers",
         href: "/admin/subscribers",
         icon: UserPlus,
-        description: "Resource and email subscribers",
+        description: "Review people who subscribed to your emails or requested a resource.",
         moreGroup: "Sources",
       },
       {
         id: "partners",
-        label: "Partners",
+        label: "Partner Applications",
         href: "/admin/partners",
         icon: Handshake,
-        description: "Partner applications",
+        description: "Review partnership enquiries and decide who to follow up with.",
         moreGroup: "Sources",
       },
       {
@@ -327,7 +328,7 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Website Grades",
         href: "/admin/website-grades",
         icon: Globe2,
-        description: "Website grader submissions",
+        description: "Review website assessment submissions and their results.",
         moreGroup: "Sources",
       },
     ],
@@ -360,6 +361,43 @@ for (const link of EXTENSION_NAV_LINKS) {
     ...(link.moreGroup ? { moreGroup: link.moreGroup } : {}),
   });
 }
+
+// Stable section keys preserve saved expansion state and extension group contracts.
+// Display names explain the operator task rather than implementation terminology.
+const sectionTitles: Record<string, string> = {
+  Command: "Daily work",
+  Revenue: "Sales",
+  Delivery: "Client work",
+  Intelligence: "Insights & AI",
+  System: "Administration",
+  "More tools": "Other tools",
+};
+const marketingIds = new Set([
+  "emails",
+  "campaigns",
+  "delivery-runs",
+  "content",
+  "resources",
+  "subscribers",
+]);
+const marketingLinks = adminNavSections
+  .flatMap((section) => section.links)
+  .filter((link) => marketingIds.has(link.id));
+for (const section of adminNavSections) {
+  section.title = sectionTitles[section.label] ?? section.label;
+  section.links = section.links.filter((link) => !marketingIds.has(link.id));
+}
+adminNavSections.splice(2, 0, { label: "Marketing", title: "Marketing", links: marketingLinks });
+// Unknown extension groups remain discoverable under Other tools; they are not
+// mislabeled as lead sources. The existing Sources manifest group is explicit.
+const fallback = adminNavSections.find((section) => section.label === "More tools")!;
+const sourceLinks = fallback.links.filter((link) => link.moreGroup === "Sources");
+fallback.links = fallback.links.filter((link) => link.moreGroup !== "Sources");
+adminNavSections.splice(adminNavSections.indexOf(fallback), 0, {
+  label: "Sources",
+  title: "Lead sources",
+  links: sourceLinks,
+});
 
 export const adminNavLinks = adminNavSections.flatMap((section) => section.links);
 export const adminMobileLinks = adminNavLinks.filter((link) => link.mobilePrimary);
@@ -413,4 +451,11 @@ export function resolveAdminNavLink(pathname: string) {
   return [...adminNavLinks]
     .sort((left, right) => right.href.length - left.href.length)
     .find((link) => pathname === link.href || pathname.startsWith(`${link.href}/`));
+}
+
+/** Root page identity comes from the same registry as sidebar and search. */
+export function adminPageName(id: string): string {
+  const link = adminNavLinks.find((entry) => entry.id === id);
+  if (!link) throw new Error(`Unknown admin destination: ${id}`);
+  return link.label;
 }

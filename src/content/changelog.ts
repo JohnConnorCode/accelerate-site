@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "clearer-core-admin",
+    slug: "clearer-core-admin",
+    title: "Navigate a clearer, more responsive Command Center",
+    description:
+      "Core admin navigation now uses task-based names, each destination explains its purpose and offers concise in-context guidance, and the sidebar responds smoothly while keeping your open groups in place. Errors provide a practical recovery step before optional details.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
     id: "demo-marketing-contact-review",
     slug: "demo-marketing-contact-review",
     title: "Explore the business demos and clearer contact reviews",

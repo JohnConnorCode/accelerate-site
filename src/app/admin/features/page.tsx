@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { WorkAgents } from "@/components/admin/work-board/WorkAgents";
 import { needsSpecification } from "@/lib/work-packet";
 import { WorkViews, type WorkFilters } from "@/components/admin/work-board/WorkViews";
@@ -1168,8 +1170,8 @@ export default function FeaturesPage() {
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
-        title="Feature Board"
-        subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes."
+        title={adminPageName("features")}
+        subtitle="Plan product improvements, follow implementation progress, and review completed work."
         utilityActions={
           <button
             type="button"

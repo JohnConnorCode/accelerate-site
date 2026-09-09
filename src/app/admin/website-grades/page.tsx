@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useState, useMemo, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
@@ -84,7 +86,7 @@ export default function WebsiteGradesPage() {
 
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <PageHeader title="Website Grades" subtitle={`${total} total`} />
+      <PageHeader title={adminPageName("website-grades")} subtitle={`${total} total`} />
       <AdminReadBody
         loading={loading}
         hasData={Boolean(gradesQuery.data)}

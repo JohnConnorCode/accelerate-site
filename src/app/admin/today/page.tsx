@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { AttentionList } from "@/components/admin/AttentionList";
 import { projectOperatorAttention } from "@/lib/revenue-os/operator-attention";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
@@ -346,7 +348,7 @@ export default function TodayPage() {
   if (!overview && error)
     return (
       <div className="space-y-7 pb-10">
-        <PageHeader title="Today" subtitle="The founder queue could not be assembled yet." />
+        <PageHeader title={adminPageName("today")} subtitle="The founder queue could not be assembled yet." />
         <AdminSurface
           tone="attention"
           className="mx-auto flex max-w-2xl flex-col items-start gap-4 p-6 sm:flex-row sm:items-center"
@@ -458,8 +460,8 @@ export default function TodayPage() {
   return (
     <div className="space-y-4 pb-10 sm:space-y-7">
       <PageHeader
-        title="Today"
-        subtitle="Decisions, work, signals and upcoming commitments."
+        title={adminPageName("today")}
+        subtitle="See urgent priorities, upcoming commitments, and the next steps that need your attention."
         actions={
           <button
             type="button"

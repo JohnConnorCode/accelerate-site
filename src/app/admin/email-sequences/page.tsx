@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Mail, Play, AlertCircle, CheckCircle2, PauseCircle } from "lucide-react";
@@ -74,7 +76,7 @@ export default function EmailSequencesPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Email Sequences" />
+        <PageHeader title={adminPageName("delivery-runs")} />
         <LoadingSkeleton variant="page" />
       </div>
     );
@@ -83,8 +85,8 @@ export default function EmailSequencesPage() {
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
-        title="Email Sequences"
-        subtitle="Monitor every active nurture path and its delivery lifecycle."
+        title={adminPageName("delivery-runs")}
+        subtitle="Check scheduled follow-ups, delivered messages, and the next email in each sequence."
       />
 
       {/* Stats */}

@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
@@ -244,8 +246,8 @@ export default function EmailsPage() {
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
-        title="Email Studio"
-        subtitle="Edit live email copy safely, inspect what was sent, and compose a direct follow-up from one workspace."
+        title={adminPageName("emails")}
+        subtitle="Edit reusable email copy and review messages your business has sent."
         utilityActions={
           <button
             type="button"
