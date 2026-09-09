@@ -1,12 +1,12 @@
 ---
 title: "Connect your tools and data"
-description: "Bring external context into the workspace and make supported actions available to your team and AI."
-updated: "2026-09-06"
+description: "Turn a message, calendar event, or invoice sitting in another app into usable context here."
+updated: "2026-09-09"
 ---
 
-Connections make Command Center useful alongside the tools your business already relies on. A customer message, calendar event or invoice can become part of the context you use to make a decision, instead of remaining an isolated fact in another application.
+A customer's calendar invite, sitting inside Google Calendar and nowhere else, is not part of the decision your team makes about them until something connects it. Connections are what make Command Center useful alongside the tools your business already relies on, turning an isolated fact in another application into part of the context you actually use to decide something.
 
-Open **Integrations** in your workspace to inspect provider connections, module controls and the MCP connection key. Your available providers depend on the adapters included in your installation. A listed or planned provider is not necessarily a working connection.
+Open **Integrations** in your workspace to inspect provider connections, module controls, and the MCP connection key. Which providers you actually have available depends on the adapters included in your installation, so a listed or planned provider is worth checking, not assuming, before you build a workflow around it.
 
 ## Make your first connection useful
 
@@ -16,11 +16,11 @@ For a supported provider, follow its setup controls, verify the connection and i
 
 After setup, test the intended workflow with a controlled record. Saving credentials establishes configuration, while a successful verified operation establishes that the connection works for that task. If the connection becomes degraded, inspect its failure and correct access or provider settings before retrying.
 
-## Connect a service that is not built in
+## Connecting a service that is not built in
 
-The open-source adapter interface is the route for adding another service or data source. A developer or coding assistant can implement authentication, map incoming data to the right business records, and expose the supported actions. Start with [integration adapters](/docs/extend/adapters) and [inbound webhooks](/docs/extend/webhooks).
+The open-source adapter interface is the route for adding another service or data source: a developer or coding assistant implements the authentication, maps incoming data to the right business records, and exposes whichever actions make sense to support. Start with [integration adapters](/docs/extend/adapters) and [inbound webhooks](/docs/extend/webhooks).
 
-“Extensible” means you can build that connection. It does not mean every service already has an adapter, or that any API can be connected without implementation work. The provider's API, permissions, rate limits and terms determine what is possible.
+Being extensible means you genuinely can build that connection yourself, using the same interface every built-in adapter uses. It is a different claim than every service already having one ready to go, or any API being connectable with zero implementation work; the provider's own API, permissions, rate limits, and terms are what actually determine how much work that is.
 
 ## Choose the capabilities available to a workspace
 

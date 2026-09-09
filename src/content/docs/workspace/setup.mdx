@@ -1,10 +1,10 @@
 ---
 title: "Set up a working workspace"
-description: "Verify access and the connections needed for your first real workflow."
-updated: "2026-09-08"
+description: "Verify the connections one real workflow needs, before layering on more."
+updated: "2026-09-09"
 ---
 
-Setup Center shows whether the workspace is ready for the work you want to do. Start with one workflow, such as replying to customers, and verify its requirements before adding more integrations.
+A workspace can look fully connected and still fail the first time someone actually tries to send an email through it, because a saved credential and a verified connection are not the same thing. Setup Center exists to close that gap: it shows whether your workspace is genuinely ready for the work you want to do. Start with one workflow, replying to customers is a good first choice, and verify its exact requirements before you add more integrations on top.
 
 ## 1. Confirm your workspace
 
@@ -23,15 +23,11 @@ Open `/admin/setup` in the workspace. Review the status and action attached to e
 
 ## 3. Connect what you need
 
-Use [Integrations](/docs/workspace/integrations) for the relevant provider. AI work needs an available model configuration; real email needs a verified send path. You can explore the fictional demo without either.
+Use [Integrations](/docs/workspace/integrations) for the relevant provider. AI work needs an available model configuration; real email needs a verified send path, though you can explore the fictional demo without either. A stored API key only tells you it was saved, not that the connection actually works, so return to Setup Center and inspect the verification result once you've configured it.
 
-A stored API key is configuration, not proof of a working connection. Return to Setup Center and inspect the verification result after configuration.
+## 4. Prove it with a small, controlled test
 
-## 4. Prove a small workflow
-
-Use controlled test data. Review a proposed action, confirm its target, and inspect its outcome. For email, use a recipient you control and check the send and delivery results available from the provider.
-
-Do not treat a successful demo action as proof of live delivery. The demo never contacts a real provider.
+Use test data you control throughout. Review a proposed action, confirm its target, and inspect the actual outcome; for email specifically, use a recipient you own and check both the send and delivery results the provider reports back. A successful demo action is a good sign, but the demo never contacts a real provider, so treat it as a rehearsal, not proof that live delivery works.
 
 ## If a check stays degraded
 

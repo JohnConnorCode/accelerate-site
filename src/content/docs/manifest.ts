@@ -292,29 +292,31 @@ export const docsManifest: DocsSection[] = [
         slug: ["outreach", "overview"],
         title: "Outreach",
         description:
-          "Controlled outbound that stops on reply and refuses contacts who asked to be left alone.",
+          "Outbound that stops the moment someone replies or asks to be left alone, no exceptions.",
       },
       {
         slug: ["outreach", "collections"],
         title: "Review collection reminders",
         description:
-          "Track verified invoice balances, payment promises, and disputes before approving a reminder.",
+          "Chase what invoicing actually confirms is owed, with every reminder requiring your approval.",
       },
       {
         slug: ["outreach", "campaigns"],
         title: "Campaigns",
         description:
-          "Approve a version once, then automation runs inside sender, audience, cadence, limit, and stop rules.",
+          "Approve one version, then automation runs entirely inside the rules you set for it.",
       },
       {
         slug: ["outreach", "email-studio"],
         title: "Email Studio",
-        description: "Edit live copy, inspect what was sent, and compose a direct follow-up.",
+        description:
+          "Edit the actual live copy, check what really sent, and write a direct one-off follow-up.",
       },
       {
         slug: ["outreach", "recovery"],
         title: "Review recovery outreach",
-        description: "Check eligibility and the proposed playbook before contacting a past lead.",
+        description:
+          "Check who actually qualifies and the proposed playbook before reopening a past lead.",
       },
     ],
   },
@@ -329,29 +331,30 @@ export const docsManifest: DocsSection[] = [
         slug: ["delivery", "overview"],
         title: "Delivery",
         description:
-          "The workspace past the won stage: retainers, meetings, publishing, and downloads.",
+          "The workspace for what happens after a deal is won: retainers, meetings, publishing, downloads.",
       },
       {
         slug: ["delivery", "clients"],
         title: "Review client accounts",
         description:
-          "Find an account, check its status and monthly value, and open its delivery record.",
+          "Find an account, check what it's actually worth, and open its delivery record.",
       },
       {
         slug: ["delivery", "bookings"],
         title: "Review bookings",
-        description:
-          "Check qualification, call status and the next step for a booked conversation.",
+        description: "Prep for the call, then record what actually happened once it's over.",
       },
       {
         slug: ["delivery", "content"],
         title: "Manage editorial work",
-        description: "Create a content item, track its status and confirm changes were saved.",
+        description:
+          "Track a brief from idea to published, and verify a review actually caught what mattered.",
       },
       {
         slug: ["delivery", "resources"],
         title: "Review resource downloads",
-        description: "Find who requested a resource and check the recorded download time.",
+        description:
+          "Find who requested a resource, when, and whether that's worth a real follow-up.",
       },
     ],
   },
@@ -418,23 +421,24 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["workspace", "overview"],
         title: "Workspace",
-        description: "How a tenant is provisioned, connected, and kept ready.",
+        description: "How your business gets provisioned, connected, verified, and kept running.",
       },
       {
         slug: ["workspace", "integrations"],
         title: "Connect your tools and data",
         description:
-          "Bring external context into the workspace and make supported actions available to your team and AI.",
+          "Turn a message, calendar event, or invoice sitting in another app into usable context here.",
       },
       {
         slug: ["workspace", "setup"],
         title: "Set up a working workspace",
-        description: "Verify access and the connections needed for your first real workflow.",
+        description: "Verify the connections one real workflow needs, before layering on more.",
       },
       {
         slug: ["workspace", "settings"],
         title: "Change workspace settings",
-        description: "Update notifications and configuration, then confirm the saved result.",
+        description:
+          "Change a notification or your workspace's look, then confirm the change actually saved.",
       },
     ],
   },
@@ -448,7 +452,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["customize", "overview"],
         title: "Make Command Center fit your business",
         description:
-          "Configure the defaults, adapt a workflow, or build an App with its own records and screens.",
+          "Five levels of change, from flipping a setting to building your own domain-specific App.",
       },
     ],
   },

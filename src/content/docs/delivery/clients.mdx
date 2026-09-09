@@ -1,10 +1,10 @@
 ---
 title: "Review client accounts"
-description: "Find an account, check its status and monthly value, and open its delivery record."
-updated: "2026-09-08"
+description: "Find an account, check what it's actually worth, and open its delivery record."
+updated: "2026-09-09"
 ---
 
-Open `/admin/clients` to review existing client accounts. The table shows business, contact, industry, monthly recurring value, status and start date.
+An account that has quietly stalled in onboarding for six weeks looks the same as one running smoothly, right up until you actually check it. Open `/admin/clients` to review your existing accounts; the table shows business, contact, industry, monthly recurring value, status, and start date, so a stalled account is visible the moment you scan the list.
 
 ## Find and inspect an account
 
@@ -23,13 +23,13 @@ If the business exists twice, ask the workspace owner to review the matching rec
 
 For an unexpected total, use [Revenue](/docs/pipeline/revenue) to identify which client values contribute to the summary.
 
-## Hand a won opportunity to delivery
+## Handing a won opportunity to delivery
 
-Open a won opportunity in [Pipeline](/docs/pipeline/board), then choose **Hand off to delivery**. The review shows the linked customer, a versioned onboarding template, optional originating proposal and the milestones to create. Choose the source you actually reviewed, then confirm. No client message is sent.
+Open a won opportunity in [Pipeline](/docs/pipeline/board), then choose **Hand off to delivery**. The review shows the linked customer, a versioned onboarding template, an optional originating proposal, and the milestones it would create; choose the source you actually reviewed and confirm, and note that this step never sends a message to the client on its own.
 
-The handoff creates one client engagement for that opportunity. Milestones use the shared task service, with due dates relative to the engagement's start. A template can name a responsible role or supply an explicit workspace member ID for task assignment; a role label alone does not assign a person. Review the recorded assignees with your team. The current Work inspector edits a task's title, due date and priority; it does not include an assignment control. An installation administrator can configure explicit member assignments in the template for future handoffs.
+That handoff creates exactly one client engagement for the opportunity. Its milestones use the shared task service, with due dates set relative to when the engagement starts. A template can name a responsible role or supply an explicit workspace member ID for assignment, though a role label alone is a placeholder rather than an actual person, so review the recorded assignees with your team afterward. The current Work inspector edits a task's title, due date, and priority, but does not include an assignment control itself; an installation administrator can configure explicit member assignments in the template for future handoffs instead.
 
-The opportunity's **Delivery** section shows engagement status, the next milestone, overdue commitments and the handoff receipt. “Complete” on the handoff receipt means its task creation is complete, not that the customer work has been delivered. Complete the tasks separately as their work is done.
+The opportunity's **Delivery** section shows engagement status, the next milestone, overdue commitments, and the handoff receipt. "Complete" on that receipt means task creation finished, which is a meaningfully smaller claim than the customer's actual work being delivered, so complete each task separately as its real work gets done.
 
 ### Partial results and retries
 

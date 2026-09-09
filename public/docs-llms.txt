@@ -60,20 +60,20 @@ The discipline that decides most inquiries: respond first, follow through, and l
 ## Outreach
 Campaigns, email templates, and reactivation of past demand.
 
-- [Outreach](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-09-06): Controlled outbound that stops on reply and refuses contacts who asked to be left alone.
-- [Review collection reminders](https://www.acceleratewith.us/docs/outreach/collections) (updated 2026-09-06): Track verified invoice balances, payment promises, and disputes before approving a reminder.
-- [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-09-08): Approve a version once, then automation runs inside sender, audience, cadence, limit, and stop rules.
-- [Email Studio](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-09-04): Edit live copy, inspect what was sent, and compose a direct follow-up.
-- [Review recovery outreach](https://www.acceleratewith.us/docs/outreach/recovery) (updated 2026-09-05): Check eligibility and the proposed playbook before contacting a past lead.
+- [Outreach](https://www.acceleratewith.us/docs/outreach/overview) (updated 2026-09-09): Outbound that stops the moment someone replies or asks to be left alone, no exceptions.
+- [Review collection reminders](https://www.acceleratewith.us/docs/outreach/collections) (updated 2026-09-09): Chase what invoicing actually confirms is owed, with every reminder requiring your approval.
+- [Campaigns](https://www.acceleratewith.us/docs/outreach/campaigns) (updated 2026-09-09): Approve one version, then automation runs entirely inside the rules you set for it.
+- [Email Studio](https://www.acceleratewith.us/docs/outreach/email-studio) (updated 2026-09-09): Edit the actual live copy, check what really sent, and write a direct one-off follow-up.
+- [Review recovery outreach](https://www.acceleratewith.us/docs/outreach/recovery) (updated 2026-09-09): Check who actually qualifies and the proposed playbook before reopening a past lead.
 
 ## Delivery
 Clients, bookings, content, and resources after the sale.
 
-- [Delivery](https://www.acceleratewith.us/docs/delivery/overview) (updated 2026-09-04): The workspace past the won stage: retainers, meetings, publishing, and downloads.
-- [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-09-08): Find an account, check its status and monthly value, and open its delivery record.
-- [Review bookings](https://www.acceleratewith.us/docs/delivery/bookings) (updated 2026-09-05): Check qualification, call status and the next step for a booked conversation.
-- [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-05): Create a content item, track its status and confirm changes were saved.
-- [Review resource downloads](https://www.acceleratewith.us/docs/delivery/resources) (updated 2026-09-05): Find who requested a resource and check the recorded download time.
+- [Delivery](https://www.acceleratewith.us/docs/delivery/overview) (updated 2026-09-09): The workspace for what happens after a deal is won: retainers, meetings, publishing, downloads.
+- [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-09-09): Find an account, check what it's actually worth, and open its delivery record.
+- [Review bookings](https://www.acceleratewith.us/docs/delivery/bookings) (updated 2026-09-09): Prep for the call, then record what actually happened once it's over.
+- [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-09): Track a brief from idea to published, and verify a review actually caught what mattered.
+- [Review resource downloads](https://www.acceleratewith.us/docs/delivery/resources) (updated 2026-09-09): Find who requested a resource, when, and whether that's worth a real follow-up.
 
 ## Sources
 Inbound leads, chat, subscribers, partners, and website grades.
@@ -92,15 +92,15 @@ The assistant, run traces, knowledge, and source-to-revenue analytics.
 ## Workspace
 Tenants, setup, settings, integrations, and the Feature Board.
 
-- [Workspace](https://www.acceleratewith.us/docs/workspace/overview) (updated 2026-09-04): How a tenant is provisioned, connected, and kept ready.
-- [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-06): Bring external context into the workspace and make supported actions available to your team and AI.
-- [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-08): Verify access and the connections needed for your first real workflow.
-- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-08): Update notifications and configuration, then confirm the saved result.
+- [Workspace](https://www.acceleratewith.us/docs/workspace/overview) (updated 2026-09-09): How your business gets provisioned, connected, verified, and kept running.
+- [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-09): Turn a message, calendar event, or invoice sitting in another app into usable context here.
+- [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-09): Verify the connections one real workflow needs, before layering on more.
+- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-09): Change a notification or your workspace's look, then confirm the change actually saved.
 
 ## Customize
 Configure your workspace or build around a different business process.
 
-- [Make Command Center fit your business](https://www.acceleratewith.us/docs/customize/overview) (updated 2026-09-08): Configure the defaults, adapt a workflow, or build an App with its own records and screens.
+- [Make Command Center fit your business](https://www.acceleratewith.us/docs/customize/overview) (updated 2026-09-09): Five levels of change, from flipping a setting to building your own domain-specific App.
 
 ## Plugin examples
 See what you can build: reports, reviewed workflows and dedicated business workspaces.
