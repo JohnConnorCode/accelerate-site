@@ -1,7 +1,7 @@
 ---
 title: "Client onboarding"
 description: "Turn a won opportunity into a reviewed, assigned kickoff checklist."
-updated: "2026-09-06"
+updated: "2026-09-09"
 ---
 
 Winning the work is the beginning of delivery. This plugin helps a team carry the customer’s context into the tasks needed to start the project, without copying the deal into another system.
@@ -29,7 +29,7 @@ For a fictional example, prepare two tasks: confirm the kickoff meeting and requ
 
 The registered tools `prepare_client_onboarding` and `propose_client_onboarding` use the same workflow as the interface. Preparation returns a reviewable plan; proposing uses that plan's digest and a stable request identity. The assistant cannot approve its own task creation.
 
-At execution, the host checks the workspace, enabled plugin, source, assignments and approved plan again. If those facts have changed, prepare and review a new plan. This keeps the task list attached to the decision you actually made.
+At execution, the host checks the workspace, the enabled plugin, the source, the assignments, and the approved plan all over again, right before it commits anything. If any of those facts changed since you reviewed the plan, it asks for a fresh one rather than running a stale decision, which is what keeps the created tasks attached to the decision you actually made, not one that has since gone out of date.
 
 ## What this example teaches you to build
 
@@ -39,10 +39,10 @@ The [workflow source](https://github.com/JohnConnorCode/accelerate-site/blob/mai
 
 ## Costs, disabling and recovery
 
-Checklist preparation and task creation are deterministic and make no paid model or provider request. Hosting and database costs still apply; surrounding AI chat uses the configured model.
+Checklist preparation and task creation are both deterministic and make no paid model or provider request on their own. Hosting and database costs still apply as usual, and any AI chat you have around the workflow uses your workspace's configured model.
 
-Disable the plugin in **Plugins** to block later execution, including pending approvals. Existing tasks and receipts remain. Use normal task controls to edit or complete work already created.
+Disabling the plugin in **Plugins** blocks any later execution, including approvals that are already pending, while existing tasks and receipts stay exactly where they are. Use the normal task controls to edit or complete whatever work was already created before you disabled it.
 
-If the source or an assignee is missing, correct the input and preview again. After an uncertain result, inspect the original receipt and reuse its request identity for a retry; do not submit a fresh request just to bypass the uncertainty. Code or policy upgrades can invalidate previews, which need a fresh review.
+If the source or an assignee is missing, correct the input and preview it again. When a result comes back genuinely uncertain, inspect the original receipt and reuse its request identity for a retry, rather than submitting a fresh request just to route around the uncertainty. A code or policy upgrade can invalidate an existing preview too, in which case it simply needs a fresh review.
 
 The [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/client-onboarding/README.md) covers the contracts and `npm run test:business-workflows`. Controlled tests and fictional demo behavior are distinct from verification of your own workspace permissions and database.

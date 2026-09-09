@@ -105,18 +105,18 @@ Configure your workspace or build around a different business process.
 ## Plugin examples
 See what you can build: reports, reviewed workflows and dedicated business workspaces.
 
-- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-07): Explore eleven bundled examples, from focused reports to complete business workspaces.
-- [Business Pulse](https://www.acceleratewith.us/docs/plugins/business-pulse) (updated 2026-09-06): See pipeline risks, overdue commitments and upcoming meetings in one report.
-- [Client onboarding](https://www.acceleratewith.us/docs/plugins/client-onboarding) (updated 2026-09-06): Turn a won opportunity into a reviewed, assigned kickoff checklist.
-- [Overdue commitments](https://www.acceleratewith.us/docs/plugins/commitment-watch) (updated 2026-09-06): Find overdue tasks and return to the work behind each commitment.
-- [Inventory registration example](https://www.acceleratewith.us/docs/plugins/example-inventory) (updated 2026-09-06): Learn how a module adds a page, navigation and settings to a workspace.
-- [Meeting commitments](https://www.acceleratewith.us/docs/plugins/meeting-commitments) (updated 2026-09-06): Turn an existing meeting into assigned tasks with dates and a reviewed plan.
-- [Meeting preparation](https://www.acceleratewith.us/docs/plugins/meeting-prep) (updated 2026-09-06): See which meetings are approaching so you can plan preparation time.
-- [Opportunity Radar](https://www.acceleratewith.us/docs/plugins/opportunity-radar) (updated 2026-09-06): Explore a business-specific workspace for source-backed growth opportunities and relationship reviews.
-- [Pipeline follow-up](https://www.acceleratewith.us/docs/plugins/pipeline-watch) (updated 2026-09-06): Find open opportunities whose next action or update needs attention.
-- [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-09-06): Bring invoice evidence, customer commitments and reviewed reminders into one workspace.
-- [Stripe invoicing](https://www.acceleratewith.us/docs/plugins/stripe-invoicing) (updated 2026-09-06): Prepare an invoice from a customer record, review it, and follow its provider result.
-- [Draft public pages with Site Studio](https://www.acceleratewith.us/docs/plugins/site-studio) (updated 2026-09-08): Create a private AI-assisted page draft from approved components and photography.
+- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-09): Eleven working examples, from a read-only report to a full business workspace, all shipped disabled.
+- [Business Pulse](https://www.acceleratewith.us/docs/plugins/business-pulse) (updated 2026-09-09): See pipeline risks, overdue commitments and upcoming meetings in one report.
+- [Client onboarding](https://www.acceleratewith.us/docs/plugins/client-onboarding) (updated 2026-09-09): Turn a won opportunity into a reviewed, assigned kickoff checklist.
+- [Overdue commitments](https://www.acceleratewith.us/docs/plugins/commitment-watch) (updated 2026-09-09): Find overdue tasks and return to the work behind each commitment.
+- [Inventory registration example](https://www.acceleratewith.us/docs/plugins/example-inventory) (updated 2026-09-09): The smallest possible extension: a manifest, a page, and a setting, with nothing else.
+- [Meeting commitments](https://www.acceleratewith.us/docs/plugins/meeting-commitments) (updated 2026-09-09): Turn what got agreed in a meeting into assigned, dated tasks someone actually owns.
+- [Meeting preparation](https://www.acceleratewith.us/docs/plugins/meeting-prep) (updated 2026-09-09): See which meetings are approaching so you can plan preparation time.
+- [Opportunity Radar](https://www.acceleratewith.us/docs/plugins/opportunity-radar) (updated 2026-09-09): A business-specific workspace for source-backed growth opportunities and relationship reviews.
+- [Pipeline follow-up](https://www.acceleratewith.us/docs/plugins/pipeline-watch) (updated 2026-09-09): Find open opportunities whose next action or update needs attention.
+- [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-09-09): Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.
+- [Stripe invoicing](https://www.acceleratewith.us/docs/plugins/stripe-invoicing) (updated 2026-09-09): Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.
+- [Draft public pages with Site Studio](https://www.acceleratewith.us/docs/plugins/site-studio) (updated 2026-09-09): Draft a public-site page from your approved components and photography, entirely privately.
 
 ## Build on it
 For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.

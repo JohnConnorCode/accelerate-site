@@ -1,10 +1,10 @@
 ---
 title: "Stripe invoicing"
-description: "Prepare an invoice from a customer record, review it, and follow its provider result."
-updated: "2026-09-06"
+description: "Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted."
+updated: "2026-09-09"
 ---
 
-Invoicing connects a business decision to a real financial document. This example shows how an extension can use existing customer records, a connected provider and the shared approval flow, with a separate record of what Stripe actually accepted.
+An invoice is where a business decision turns into a real financial document, and getting the amount, the recipient, or the terms wrong there is costlier than almost any other mistake in the product. This example shows how an extension can use your existing customer records, a connected provider, and the shared approval flow together, while keeping a separate, honest record of what Stripe actually accepted versus what you merely asked it to do.
 
 ## Try a complete invoice
 
@@ -33,4 +33,4 @@ Draft preparation is deterministic. Stripe usage, hosting and any AI design or c
 
 If the contact has no matching Stripe customer, correct or add the billing customer and refresh the choices. After a timeout, inspect the original action and provider invoice before retrying with its existing identity. A changed draft needs a new preview and approval.
 
-Disabling the plugin blocks later plugin execution. Existing invoices, payments and published pages remain; revoke a public page using its explicit controls. Disabling does not reverse a provider effect. Controlled tests in the developer guide do not prove a live connection or payment.
+Disabling the plugin blocks any later plugin execution, while existing invoices, payments, and published pages all stay exactly as they were; revoke a public page through its own explicit control if you need to. Disabling never reverses a provider effect that already happened, and the controlled tests in the developer guide are a check on the code, not proof that your specific live connection or payment actually works.

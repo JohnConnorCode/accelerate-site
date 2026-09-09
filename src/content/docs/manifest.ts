@@ -468,7 +468,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "overview"],
         title: "Plugin examples",
         description:
-          "Explore eleven bundled examples, from focused reports to complete business workspaces.",
+          "Eleven working examples, from a read-only report to a full business workspace, all shipped disabled.",
       },
       {
         slug: ["plugins", "business-pulse"],
@@ -488,12 +488,14 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["plugins", "example-inventory"],
         title: "Inventory registration example",
-        description: "Learn how a module adds a page, navigation and settings to a workspace.",
+        description:
+          "The smallest possible extension: a manifest, a page, and a setting, with nothing else.",
       },
       {
         slug: ["plugins", "meeting-commitments"],
         title: "Meeting commitments",
-        description: "Turn an existing meeting into assigned tasks with dates and a reviewed plan.",
+        description:
+          "Turn what got agreed in a meeting into assigned, dated tasks someone actually owns.",
       },
       {
         slug: ["plugins", "meeting-prep"],
@@ -504,7 +506,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "opportunity-radar"],
         title: "Opportunity Radar",
         description:
-          "Explore a business-specific workspace for source-backed growth opportunities and relationship reviews.",
+          "A business-specific workspace for source-backed growth opportunities and relationship reviews.",
       },
       {
         slug: ["plugins", "pipeline-watch"],
@@ -515,19 +517,19 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "receivables-collections"],
         title: "Receivables Collections",
         description:
-          "Bring invoice evidence, customer commitments and reviewed reminders into one workspace.",
+          "Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.",
       },
       {
         slug: ["plugins", "stripe-invoicing"],
         title: "Stripe invoicing",
         description:
-          "Prepare an invoice from a customer record, review it, and follow its provider result.",
+          "Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.",
       },
       {
         slug: ["plugins", "site-studio"],
         title: "Draft public pages with Site Studio",
         description:
-          "Create a private AI-assisted page draft from approved components and photography.",
+          "Draft a public-site page from your approved components and photography, entirely privately.",
       },
     ],
   },
