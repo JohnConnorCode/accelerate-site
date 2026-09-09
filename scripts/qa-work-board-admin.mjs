@@ -67,9 +67,9 @@ const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 await page.goto("/admin/features", { waitUntil: "domcontentloaded" });
-await page.getByRole("button", { name: "All work", exact: true }).click();
+await page.getByRole("combobox", { name: "Work view", exact: true }).selectOption("all");
 await page
-  .getByPlaceholder("Search title, outcome, owner, subtask, or capability")
+  .getByRole("textbox", { name: "Search work", exact: true })
   .fill("Receivables and dispute resolution");
 await page
   .getByRole("button", { name: "Edit Receivables and dispute resolution plugin", exact: true })
