@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsFigure } from "@/components/docs/DocsFigure";
 import { ArrowRight, Database, Sparkles, CheckCircle2 } from "lucide-react";
-import { docsManifest } from "@/content/docs/manifest";
+import { docsManifest, docsTracks } from "@/content/docs/manifest";
 import { seoMetadata } from "@/lib/og";
 import { DocsSectionIcon } from "@/components/docs/docs-section-icon";
 
@@ -196,33 +196,44 @@ export default function DocsLandingPage() {
         ))}
       </ul>
 
-      <h2 className="mt-14 font-display text-lg font-semibold tracking-[-0.02em] text-heading">
-        Find a guide by area
-      </h2>
-      <ul className="mt-4 divide-y divide-[var(--rule)] border-y border-[var(--rule)]">
-        {docsManifest.map((section) => (
-          <li key={section.id}>
-            <Link
-              href={`/docs/${section.id}`}
-              className="group flex items-start gap-3 py-4 transition-colors hover:text-heading"
-            >
-              <DocsSectionIcon
-                sectionId={section.id}
-                className="mt-0.5 h-4 w-4 shrink-0 text-white-muted group-hover:text-heading"
-              />
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-heading">{section.title}</span>
-                <span className="mt-0.5 block text-sm leading-relaxed text-white-secondary">
-                  {section.description}
-                </span>
-              </span>
-              <span className="shrink-0 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-white-muted">
-                {section.pages.length}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {docsTracks.map((track) => (
+        <div key={track.id}>
+          <h2 className="mt-14 font-display text-lg font-semibold tracking-[-0.02em] text-heading">
+            {track.title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white-secondary">
+            {track.description}
+          </p>
+          <ul className="mt-4 divide-y divide-[var(--rule)] border-y border-[var(--rule)]">
+            {docsManifest
+              .filter((section) => section.track === track.id)
+              .map((section) => (
+                <li key={section.id}>
+                  <Link
+                    href={`/docs/${section.id}`}
+                    className="group flex items-start gap-3 py-4 transition-colors hover:text-heading"
+                  >
+                    <DocsSectionIcon
+                      sectionId={section.id}
+                      className="mt-0.5 h-4 w-4 shrink-0 text-white-muted group-hover:text-heading"
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-semibold text-heading">
+                        {section.title}
+                      </span>
+                      <span className="mt-0.5 block text-sm leading-relaxed text-white-secondary">
+                        {section.description}
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-white-muted">
+                      {section.pages.length}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+          </ul>
+        </div>
+      ))}
     </>
   );
 }

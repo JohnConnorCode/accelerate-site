@@ -13,6 +13,7 @@ import {
   Puzzle,
   RotateCcw,
   Settings,
+  SlidersHorizontal,
   UserPlus,
   UsersRound,
 } from "lucide-react";
@@ -31,6 +32,7 @@ export const DOCS_SECTION_ICONS: Record<string, LucideIcon> = {
   intelligence: Bot,
   sources: UserPlus,
   workspace: Settings,
+  customize: SlidersHorizontal,
   extend: PlugZap,
   "follow-up": RotateCcw,
   "self-hosting": Globe2,

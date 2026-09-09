@@ -75,6 +75,7 @@ export function inspectDocs(input: DocsInspectionInput = {}) {
   // 1. Manifest shape: unique slugs, non-empty sections, overview-first.
   {
     const seen = new Set<string>();
+    let sawBuilder = false;
     for (const section of docsManifest) {
       if (!section.pages.length) failures.push(`Section "${section.id}" has no pages.`);
       const first = section.pages[0];
@@ -82,6 +83,18 @@ export function inspectDocs(input: DocsInspectionInput = {}) {
         failures.push(
           `Section "${section.id}" must start with its overview page (directory collapse target).`,
         );
+      }
+      if (!section.track) {
+        failures.push(`Section "${section.id}" needs a track ("operator" or "builder").`);
+      } else {
+        if (section.track === "operator" && sawBuilder) {
+          failures.push(
+            `Section "${section.id}" is an operator section listed after a builder section; ` +
+              `every operator section must come before every builder section so the pager and ` +
+              `sidebar can treat each track as one contiguous run.`,
+          );
+        }
+        if (section.track === "builder") sawBuilder = true;
       }
       for (const page of section.pages) {
         const key = page.slug.join("/");
