@@ -45,13 +45,40 @@ try {
     .click();
   const ai = page.getByRole("dialog");
   assert.equal(
-    await ai.getByRole("combobox", { name: /Model/ }).inputValue(),
+    await ai.getByRole("combobox", { name: "Model", exact: true }).inputValue(),
     "meta/muse-spark-1.3",
   );
-  assert.equal(await ai.getByRole("combobox", { name: /Model/ }).locator("option").count(), 5);
-  await ai.getByRole("combobox", { name: /Model/ }).selectOption("nex-agi/nex-n2.5-mini:free");
+  assert.ok(
+    (await ai.getByRole("combobox", { name: "Model", exact: true }).locator("option").count()) >=
+      10,
+  );
+  await ai.getByRole("button", { name: "Browse all models", exact: true }).click();
+  await ai.getByRole("textbox", { name: "Search models", exact: true }).fill("opus");
+  await ai.getByRole("combobox", { name: "Model provider", exact: true }).selectOption("anthropic");
+  await ai.getByRole("combobox", { name: "Model cost", exact: true }).selectOption("premium");
+  await ai
+    .getByRole("combobox", { name: "Model", exact: true })
+    .selectOption("anthropic/claude-opus-5");
+  assert.equal(
+    await ai.getByRole("combobox", { name: "Model", exact: true }).inputValue(),
+    "anthropic/claude-opus-5",
+  );
+  await page.screenshot({ path: `${output}/model-browser-desktop.png` });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  await page.screenshot({ path: `${output}/model-browser-mobile.png` });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await ai.getByRole("textbox", { name: "Search models", exact: true }).fill("does-not-exist-qa");
+  await ai.getByText("0 matching models", { exact: true }).waitFor();
+  await ai.getByRole("button", { name: "Recommended models", exact: true }).click();
+  await ai.getByRole("button", { name: "Refresh models", exact: true }).click();
+  await ai
+    .getByRole("combobox", { name: "Model", exact: true })
+    .selectOption("nex-agi/nex-n2.5-mini:free");
   await ai.getByRole("textbox").fill("Explain how this reduces evening admin work.");
   await ai.getByRole("button", { name: "Prepare suggestion", exact: true }).click();
+  await ai.getByRole("region", { name: "AI suggestion review" }).waitFor();
+  await ai.getByRole("button", { name: "Refresh models", exact: true }).click();
   await ai.getByRole("region", { name: "AI suggestion review" }).waitFor();
   await page.screenshot({ path: `${output}/ai-review-desktop.png` });
   await ai.getByRole("button", { name: "Apply to draft", exact: true }).click();
@@ -146,7 +173,7 @@ try {
     status: "passed",
     checks: [
       "Create page and live preview",
-      "Five model tiers; Muse default and explicit free selection",
+      "Live-compatible model catalogue; Muse default, latest Opus, search/provider/cost filters, empty results, refresh, and explicit free selection",
       "Review AI suggestion before local apply; undo and redo",
       "Save remains private; publish exact draft; rollback preserves newer draft",
       "Collection entry rich content preview",

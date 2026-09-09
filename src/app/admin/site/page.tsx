@@ -1,7 +1,7 @@
 "use client";
 
 import { WebsiteModelPicker } from "@/components/admin/site/WebsiteModelPicker";
-import { DEFAULT_SITE_MODEL } from "@/lib/site-studio/models";
+import { DEFAULT_SITE_MODEL, siteModel, modelPriceCeiling } from "@/lib/site-studio/models";
 import { useCallback, useEffect, useState } from "react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -33,7 +33,7 @@ export default function AdminSiteStudioPage() {
   const [extra, setExtra] = useState("");
   const [slug, setSlug] = useState("");
   const [mode, setMode] = useState<"template" | "ai">("template");
-  const [model, setModel] = useState(DEFAULT_SITE_MODEL);
+  const [model, setModel] = useState(() => siteModel(DEFAULT_SITE_MODEL));
   const [assetIds, setAssetIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +78,8 @@ export default function AdminSiteStudioPage() {
             ...(extra.trim() ? { extra: extra.trim() } : {}),
           },
           mode,
-          model,
+          model: model.id,
+          priceCeiling: modelPriceCeiling(model),
           assetIds,
           ...(slug.trim() ? { slug: slug.trim().toLowerCase() } : {}),
         }),

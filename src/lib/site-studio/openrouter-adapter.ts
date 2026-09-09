@@ -1,9 +1,14 @@
 import "server-only";
-import { DEFAULT_SITE_MODEL, siteModel } from "./models";
+import { DEFAULT_SITE_MODEL, SiteModelSelectionError, type SitePriceCeiling } from "./models";
+import { resolveSiteModel } from "./model-catalog";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { openRouterJson, OpenRouterError } from "@/lib/ai/openrouter";
-import { generatedPageJsonSchema, validateGeneratedDocument, type PageBrief } from "./generate";
-import { regeneratedSectionJsonSchema } from "./regenerate";
+import { validateGeneratedDocument, type PageBrief } from "./generate";
+import {
+  siteJsonEnvelopeSchema,
+  siteJsonEnvelopePrompt,
+  decodeSiteJsonEnvelope,
+} from "./structured-output";
 import type { SiteDocument } from "./document";
 
 /** Repository transport for AI page generation. Registered job
@@ -16,6 +21,7 @@ export async function generatePageWithOpenRouter(
   system: string,
   user: string,
   model = DEFAULT_SITE_MODEL,
+  priceCeiling?: SitePriceCeiling,
 ): Promise<SiteDocument> {
   let raw: unknown;
   try {
@@ -23,25 +29,19 @@ export async function generatePageWithOpenRouter(
       database,
       job: "site-page-draft",
       timeoutMs: 150_000,
-      reasoning: { effort: siteModel(model).reasoningEffort, exclude: true },
-      model,
-      strictPricing: {
-        prompt: siteModel(model).prompt,
-        completion: siteModel(model).completion,
-        request: 0,
-      },
+      ...(await resolveSiteModel(model, priceCeiling)),
       maxTokens: 8000,
-      temperature: 0.4,
       messages: [
-        { role: "system", content: system },
+        { role: "system", content: siteJsonEnvelopePrompt(system) },
         { role: "user", content: user },
       ],
       schemaName: "site_page_draft_v1",
-      schema: generatedPageJsonSchema as unknown as Record<string, unknown>,
-      validate: (value: unknown) => value,
+      schema: siteJsonEnvelopeSchema,
+      validate: decodeSiteJsonEnvelope,
     });
     raw = result.data;
   } catch (error) {
+    if (error instanceof SiteModelSelectionError) throw error;
     if (error instanceof OpenRouterError && error.status === 503)
       throw new Error(
         "AI generation is not configured for this workspace. Connect OpenRouter under Setup, or create the page from the built-in template.",
@@ -62,31 +62,26 @@ export async function regenerateSectionWithOpenRouter(
   system: string,
   user: string,
   model = DEFAULT_SITE_MODEL,
+  priceCeiling?: SitePriceCeiling,
 ): Promise<unknown> {
   try {
     const result = await openRouterJson({
       database,
       job: "site-page-draft",
       timeoutMs: 150_000,
-      reasoning: { effort: siteModel(model).reasoningEffort, exclude: true },
-      model,
-      strictPricing: {
-        prompt: siteModel(model).prompt,
-        completion: siteModel(model).completion,
-        request: 0,
-      },
+      ...(await resolveSiteModel(model, priceCeiling)),
       maxTokens: 4000,
-      temperature: 0.4,
       messages: [
-        { role: "system", content: system },
+        { role: "system", content: siteJsonEnvelopePrompt(system) },
         { role: "user", content: user },
       ],
       schemaName: "site_section_regenerate_v1",
-      schema: regeneratedSectionJsonSchema as unknown as Record<string, unknown>,
-      validate: (value: unknown) => value,
+      schema: siteJsonEnvelopeSchema,
+      validate: decodeSiteJsonEnvelope,
     });
     return result.data;
   } catch (error) {
+    if (error instanceof SiteModelSelectionError) throw error;
     if (error instanceof OpenRouterError && error.status === 503)
       throw new Error(
         "AI generation is not configured for this workspace. Connect OpenRouter under Setup to regenerate sections.",

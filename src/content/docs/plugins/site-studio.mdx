@@ -21,7 +21,11 @@ The bundled homepage exposes its existing sections. Other bundled routes retain 
 
 ## Choose a model and control cost
 
-**Muse Spark 1.3** is the default. The selector also offers free Nex N2.5 Mini, very low-cost Mercury 2.5, Claude Sonnet 4.6 and premium Claude Opus 4.6. The displayed input and output rates are price ceilings per million tokens, verified against the provider catalogue on September 9, 2026. Availability may vary; a free model can be rate limited.
+**Muse Spark 1.3** is the default. Recommended choices include free Nex models, very low-cost Mercury and DeepSeek, GPT-5.6 Luna, Gemini 3.8 Flash, Claude Sonnet 5, Opus 5, Fable 5.1 and GPT-6 Astra. Choose **Browse all models** to search names or model IDs, filter by provider and cost, and sort by newest or lowest token price. You can return to **Recommended models** at any time. Recommendations follow the newest compatible members of these model families; refreshing never changes your selected model ID.
+
+**Refresh models** reads the current OpenRouter catalogue without making a paid generation request. Compatible new models appear without a code release. The list includes text models with structured-output support and known pricing; batch, Contributor and incompatible variants are excluded. The catalogue status shows when it was checked. If refresh fails, a dated saved catalogue remains available. A removed model is never silently replaced.
+
+The displayed input and output rates are per million tokens. Generation rechecks compatibility and uses the prices you reviewed as ceilings. If prices rise, refresh and review before retrying. Availability may vary, especially for free models.
 
 Connect OpenRouter under Setup to make real model calls. Requests use the shared model gateway, usage receipts and workspace budget. The chosen model does not silently switch to a more expensive one. Provider costs can apply even when output fails validation. Built-in starters, manual editing and previews make no model request.
 

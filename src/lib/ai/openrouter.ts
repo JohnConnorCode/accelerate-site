@@ -86,7 +86,7 @@ export interface OpenRouterRequest {
   messages: OpenRouterMessage[];
   model?: string;
   maxTokens?: number;
-  temperature?: number;
+  temperature?: number | null;
   tools?: OpenRouterTool[];
   responseFormat?: {
     type: "json_schema";
@@ -217,7 +217,7 @@ async function attemptChat(
         messages: input.messages,
         ...(input.reasoning ? { reasoning: input.reasoning } : {}),
         max_tokens: Math.min(Math.max(input.maxTokens ?? 1200, 1), 8000),
-        temperature: input.temperature ?? 0.2,
+        ...(input.temperature === null ? {} : { temperature: input.temperature ?? 0.2 }),
         ...(input.tools?.length ? { tools: input.tools, tool_choice: "auto" } : {}),
         ...(input.responseFormat
           ? {
@@ -456,7 +456,7 @@ export async function openRouterChatStream(
           : {}),
         messages: input.messages,
         max_tokens: Math.min(Math.max(input.maxTokens ?? 1200, 1), 8000),
-        temperature: input.temperature ?? 0.2,
+        ...(input.temperature === null ? {} : { temperature: input.temperature ?? 0.2 }),
         ...(input.tools?.length ? { tools: input.tools, tool_choice: "auto" } : {}),
         stream: true,
         stream_options: { include_usage: true },
@@ -650,7 +650,7 @@ export async function openRouterTextStream(
           : {}),
         messages: input.messages,
         max_tokens: Math.min(Math.max(input.maxTokens ?? 500, 1), 2000),
-        temperature: input.temperature ?? 0.6,
+        ...(input.temperature === null ? {} : { temperature: input.temperature ?? 0.6 }),
         stream: true,
         stream_options: { include_usage: true },
       }),

@@ -1,6 +1,6 @@
 "use client";
 import { WebsiteModelPicker } from "./WebsiteModelPicker";
-import { DEFAULT_SITE_MODEL } from "@/lib/site-studio/models";
+import { DEFAULT_SITE_MODEL, siteModel, modelPriceCeiling } from "@/lib/site-studio/models";
 import { useState } from "react";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import {
@@ -36,7 +36,7 @@ export function WebsitePageTools({
   const [aiOpen, setAiOpen] = useState(false);
   const [instruction, setInstruction] = useState("");
   const [mode, setMode] = useState<"edit" | "generate">("edit");
-  const [model, setModel] = useState(DEFAULT_SITE_MODEL);
+  const [model, setModel] = useState(() => siteModel(DEFAULT_SITE_MODEL));
   const [busy, setBusy] = useState(false);
   const [proposal, setProposal] = useState<{
     page: WebsitePage;
@@ -243,7 +243,7 @@ export function WebsitePageTools({
             disabled={busy}
             onChange={(value) => {
               setModel(value);
-              setProposal(null);
+              if (value.id !== model.id) setProposal(null);
             }}
           />
           {error && (
@@ -267,7 +267,8 @@ export function WebsitePageTools({
                     page,
                     instruction,
                     mode,
-                    model,
+                    model: model.id,
+                    priceCeiling: modelPriceCeiling(model),
                     business: website.identity.name,
                   }),
                 });

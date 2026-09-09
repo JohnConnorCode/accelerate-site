@@ -42,3 +42,23 @@ export function omitProviderNullFields(value: unknown): unknown {
       .map(([key, item]) => [key, omitProviderNullFields(item)]),
   );
 }
+
+/** Some current providers cap the number of union/nullable schema parameters.
+ * Keep the wire envelope simple; the decoded document still passes the complete
+ * canonical schema, grounding and asset checks before it can become a draft. */
+export const siteJsonEnvelopeSchema = {
+  type: "object",
+  properties: { documentJson: { type: "string" } },
+  required: ["documentJson"],
+  additionalProperties: false,
+};
+export function siteJsonEnvelopePrompt(system: string): string {
+  return `${system}\n\nTransport envelope: return one JSON object with exactly one property, documentJson. Its value must be a JSON-encoded string containing the complete document described above. The inner document, not the envelope, follows the document schema above. Escape the string correctly; do not use Markdown fences.`;
+}
+export function decodeSiteJsonEnvelope(value: unknown): unknown {
+  const envelope = z
+    .object({ documentJson: z.string().min(1).max(120000) })
+    .strict()
+    .parse(value);
+  return JSON.parse(envelope.documentJson);
+}

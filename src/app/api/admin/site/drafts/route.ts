@@ -1,4 +1,8 @@
-import { DEFAULT_SITE_MODEL, SITE_STUDIO_MODELS } from "@/lib/site-studio/models";
+import {
+  DEFAULT_SITE_MODEL,
+  siteModelIdSchema,
+  sitePriceCeilingSchema,
+} from "@/lib/site-studio/models";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
@@ -28,13 +32,8 @@ const createSchema = z
     slug: siteSlugSchema.optional(),
     brief: briefSchema,
     mode: z.enum(["template", "ai"]),
-    model: z
-      .string()
-      .refine(
-        (value) => SITE_STUDIO_MODELS.some((model) => model.id === value),
-        "Choose a supported model",
-      )
-      .default(DEFAULT_SITE_MODEL),
+    model: siteModelIdSchema.default(DEFAULT_SITE_MODEL),
+    priceCeiling: sitePriceCeilingSchema.optional(),
     assetIds: z.array(z.string().min(1).max(120)).max(MAX_ATTACHED_ASSETS).optional(),
   })
   .strict();
@@ -103,6 +102,7 @@ export async function POST(request: NextRequest) {
           buildPageSystemPrompt(),
           buildPageUserPrompt(candidate),
           input.model,
+          input.priceCeiling,
         ),
     );
     return NextResponse.json({ draft }, { status: 201 });

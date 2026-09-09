@@ -26,7 +26,7 @@ export interface PageBrief {
 }
 
 const HOUSE_RULES = [
-  "Use 4 to 10 semantic sections (hero, featureGrid, faq, ctaBand, text, image, button, heading).",
+  "Use 3 to 5 section containers, holding semantic leaf nodes (hero, featureGrid, faq, ctaBand, text, image, button, heading).",
   "Every section has a unique kebab-case id; every node has a unique kebab-case id.",
   "Images may only use catalog asset ids listed below; never invent image URLs.",
   "Copy fields must not contain raw URLs. CTA hrefs must be site-relative paths.",
@@ -39,9 +39,14 @@ export function buildPageSystemPrompt(): string {
     "You design marketing pages as structured JSON for the site renderer.",
     "Output a single JSON object with title, slug, description, and root (an array of section nodes).",
     `Available node types: ${SITE_NODE_TYPES.join(", ")}.`,
-    "Section nodes hold children; all other nodes are leaves.",
+    "Every root item must have type section and a children array. Hero, text, featureGrid and other leaf types may appear only inside a section's children.",
+    "Every leaf has id, type and props. Put heading, body, items, variant and other content fields inside props, never directly on the node. Use only the exact keys and enum values in the supplied JSON Schema.",
+    'Structural example only: {"root":[{"id":"intro","type":"section","children":[{"id":"intro-hero","type":"hero","props":{"variant":"editorial","heading":"Service title"}}]}]}. Fill the required metadata and nullable fields according to the supplied schema.',
     "Unless the brief asks otherwise, use three to five concise sections. Complete the JSON object; do not use Markdown fences.",
+    "Styling belongs in the sibling styles object, never in props. Section props is empty or null. CTA objects use label and href; never invent ctaLabel, ctaHref or image fields.",
     "Style with tokens only (background, paddingTop, paddingBottom, maxWidth, gap, align, tone).",
+    "Exact output JSON Schema (also enforced after generation):",
+    JSON.stringify(generatedPageJsonSchema),
     "House rules:",
     HOUSE_RULES,
     "Approved image catalog (id: description):",

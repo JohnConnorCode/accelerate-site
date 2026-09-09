@@ -23,7 +23,8 @@ AI suggestions support copy editing that preserves identity, addresses and layou
 or generation of a new registered layout and copy. Preparation makes no website
 write. The owner reviews the candidate before adopting local edits and explicitly
 saving. Muse Spark 1.3 is the default, with Nex N2.5 Mini free, Mercury 2.5 low-cost,
-Claude Sonnet 4.6 and Claude Opus 4.6 premium choices. IDs, structured-output
+current Claude Sonnet 5, Opus 5, Fable 5.1, GPT-5.6 Luna, GPT-6 Astra, Gemini
+and DeepSeek choices. IDs, structured-output
 capabilities and price ceilings were checked against
 https://openrouter.ai/api/v1/models on 2026-09-09. No Contributor/data-sharing tier
 is selected. Requests use the shared tenant-bound gateway, registry and usage
@@ -101,7 +102,7 @@ Browser journeys are `scripts/qa-website-editor.mjs` and
 `/tmp/accelerate-website-editor/` and `/tmp/accelerate-website-authoring/` and are
 included in CI artifact upload. They prove interrupted-save replay, conflict
 preservation, export/reload/import, scenario isolation, actual 390px saved preview,
-creation and live preview, five models/Muse default/free selection, AI review and
+creation and live preview, Muse default/free selection, AI review and
 local apply, undo/redo, exact saved publication, rollback retaining the draft,
 collection entry preview, mobile frame bounds, and advanced-filter keyboard/
 Escape behavior. Screenshots were opened at desktop/mobile widths and in the
@@ -160,3 +161,59 @@ Exact-commit CI and acceptance-linked completion submission remain necessary.
 This PR must not be marked as completing the broad card solely because the scoped
 builder and recovery journeys pass. Production release retains its separate
 founder-controlled deployment requirements.
+
+## Model catalogue follow-up, 2026-09-09
+
+Replaced the fixed five-choice selector with a current, refreshable catalogue.
+The bundled fallback contains 219 compatible text/structured-output models.
+Search accepts names or IDs; filters cover provider and cost, with newest/price
+sorting and a small recommended menu. Recommendations follow the latest compatible
+members of the supported model families. Muse Spark 1.3 remains the explicit
+default; refresh never changes a selected ID. The fictional demo uses only its
+bundled catalogue and never requests the external provider catalogue.
+
+Public metadata reads have a five-minute cache, deduplicated refresh, short retry
+cooldown, five-second timeout and a four-megabyte bound. Offline refresh retains a
+dated snapshot. Expired/incompatible, batch, Contributor, image-output and unknown-
+price entries are excluded. New live entries can serve only the existing private
+page preparation job, with tenant registrations still authoritative. No model is
+implicitly registered for another job.
+
+The UI submits the price it displays. The adapter rechecks compatibility and
+refuses a price increase before inference; provider routing still pins one model,
+price ceiling and attempt. Models without temperature support omit that parameter.
+Reasoning configuration follows the model's declared supported efforts.
+
+Catalogue, job-isolation, tenant restriction, retired-model, price-increase,
+malformed/oversized response, offline and refresh-deduplication regressions pass.
+The gateway's temperature omission and existing recovery tests pass. Full lint
+passed. The expanded browser journey covers search, provider/cost filters, newest
+Opus selection, empty results, refresh and desktop/mobile catalogue screenshots.
+The local typecheck was refused by the resource guard at 2.5 GiB free disk; that
+receipt is retained in `/tmp/accelerate-model-catalog-typecheck.log`. Final build,
+TypeScript and browser proof use the exact-ref CI runner rather than bypassing the
+guard.
+
+A live Opus 5 request initially produced invalid page structure. Adding explicit
+canonical schema and container/props/styles instructions produced five validated
+sections (`/tmp/accelerate-opus5-schema-smoke.log`). Earlier failures remain retained
+and did not write or publish a website. Validation was not relaxed and there is no
+automatic paid retry. The other three earlier live-model proofs remain historical
+checks of their preceding prompt/configuration, not a claim that every catalogue
+entry has been exercised live.
+
+Fable 5.1 exposed a provider limit of 16 union/nullable schema parameters. The
+page schema exceeded that limit, so generation/section transport now uses a strict
+single-string JSON envelope. The complete canonical schema is supplied as model
+context, and the decoded document still passes every existing validation before
+any domain write. No unsafe property or invalid document is normalized into a pass.
+Fable 5.1 then returned five validated sections
+(`/tmp/accelerate-fable51-envelope-smoke.log`); no website was saved or published.
+Envelope tests reject malformed JSON, extra keys and oversized inner documents.
+Catalogue refresh also preserves an existing suggestion review for the same model.
+
+Final transport rechecks passed with Muse Spark 1.3 (four sections) and Opus 5
+(five sections), alongside the Fable 5.1 proof above. Receipts are
+`/tmp/accelerate-muse-catalog-final-smoke.log` and
+`/tmp/accelerate-opus5-catalog-final-smoke.log`. All used a fictional brief and
+made no website write or publication.

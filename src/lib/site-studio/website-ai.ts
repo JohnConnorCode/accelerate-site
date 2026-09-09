@@ -1,5 +1,6 @@
 import "server-only";
-import { DEFAULT_SITE_MODEL, siteModel } from "./models";
+import { DEFAULT_SITE_MODEL, siteModelIdSchema, sitePriceCeilingSchema } from "./models";
+import { resolveSiteModel } from "./model-catalog";
 import { z } from "zod";
 import type { AdminAuthorization } from "@/lib/admin/auth";
 import { openRouterJson } from "@/lib/ai/openrouter";
@@ -15,18 +16,8 @@ export const websiteAiInput = z
     instruction: z.string().trim().min(3).max(2000),
     page: websitePageSchema,
     mode: z.enum(["generate", "edit"]),
-    model: z
-      .string()
-      .max(200)
-      .refine((value) => {
-        try {
-          siteModel(value);
-          return true;
-        } catch {
-          return false;
-        }
-      }, "Choose a supported model")
-      .default(DEFAULT_SITE_MODEL),
+    model: siteModelIdSchema.default(DEFAULT_SITE_MODEL),
+    priceCeiling: sitePriceCeilingSchema.optional(),
     business: z.string().trim().min(1).max(160),
   })
   .strict();
@@ -46,7 +37,6 @@ export async function proposeWebsitePage(
   input: z.infer<typeof websiteAiInput>,
 ) {
   assertWebsiteOwner(auth);
-  const selected = siteModel(input.model);
   if (input.mode === "generate") {
     const brief = {
       serviceName: input.page.metadata.title,
@@ -58,7 +48,8 @@ export async function proposeWebsitePage(
       brief,
       buildPageSystemPrompt(),
       buildPageUserPrompt(brief),
-      selected.id,
+      input.model,
+      input.priceCeiling,
     );
     return {
       page: websitePageSchema.parse({ ...input.page, content: { kind: "document", document } }),
@@ -78,11 +69,8 @@ export async function proposeWebsitePage(
     database: auth.database,
     job: "site-page-draft",
     timeoutMs: 150_000,
-    reasoning: { effort: selected.reasoningEffort, exclude: true },
-    model: selected.id,
-    strictPricing: { prompt: selected.prompt, completion: selected.completion, request: 0 },
+    ...(await resolveSiteModel(input.model, input.priceCeiling)),
     maxTokens: 8000,
-    temperature: 0.3,
     messages: [
       {
         role: "system",

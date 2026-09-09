@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { DEFAULT_SITE_MODEL, SITE_STUDIO_MODELS } from "../src/lib/site-studio/models";
+import {
+  DEFAULT_SITE_MODEL,
+  SITE_STUDIO_MODELS,
+  SITE_MODEL_RECOMMENDATIONS,
+} from "../src/lib/site-studio/models";
 import {
   AI_JOBS,
   getModelRegistration,
@@ -29,7 +33,9 @@ async function main() {
     (await resolveModelForJob(siteDb, TENANT, "site-page-draft")).resolved,
     DEFAULT_SITE_MODEL,
   );
-  for (const choice of SITE_STUDIO_MODELS) {
+  for (const choice of SITE_STUDIO_MODELS.filter((model) =>
+    SITE_MODEL_RECOMMENDATIONS.includes(model.id),
+  )) {
     assert.equal(
       (await resolveModelForJob(siteDb, TENANT, "site-page-draft", choice.id)).resolved,
       choice.id,

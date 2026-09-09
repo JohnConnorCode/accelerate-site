@@ -1,3 +1,4 @@
+import { SITE_STUDIO_MODELS, SITE_MODELS_OBSERVED_AT } from "@/lib/site-studio/models";
 import {
   createDemoWebsiteState,
   handleDemoWebsite,
@@ -2299,6 +2300,18 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    if (path === "/api/admin/site/models" && method === "GET") {
+      if (state.moduleOverrides["site-studio"] === false)
+        return jsonResponse(
+          { error: "Site Studio is disabled for this fictional workspace." },
+          403,
+        );
+      return jsonResponse({
+        models: SITE_STUDIO_MODELS,
+        observedAt: SITE_MODELS_OBSERVED_AT,
+        source: "bundled",
+      });
+    }
     if (path === "/api/admin/site/drafts" && method === "GET") return jsonResponse({ drafts: [] });
     if (path === "/api/admin/site/website" || path === "/api/admin/site/website/suggest") {
       if (state.moduleOverrides["site-studio"] === false)

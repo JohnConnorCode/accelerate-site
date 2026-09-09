@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "website-authoring-model-choice",
     title: "Create and edit website pages with a choice of AI models",
     description:
-      "Installation owners can create and clone pages, review AI copy or layout suggestions, undo edits, preview phone and desktop widths, and explicitly publish or roll back saved revisions. Muse Spark 1.3 is the default, with free, low-cost and premium alternatives. Shared content, image references, collections and portable snapshots use the same versioned website document. The Work board moves advanced filters and saved views into a compact dialog. Existing source pages retain their layouts until deliberately replaced; automatic import of all existing page content remains separate work.",
+      "Installation owners can create and clone pages, review AI copy or layout suggestions, undo edits, preview phone and desktop widths, and explicitly publish or roll back saved revisions. Muse Spark 1.3 is the default. A refreshable model catalogue offers current recommendations, search, provider/cost filters and price sorting, with explicit price ceilings. Shared content, image references, collections and portable snapshots use the same versioned website document. The Work board moves advanced filters and saved views into a compact dialog. Existing source pages retain their layouts until deliberately replaced; automatic import of all existing page content remains separate work.",
     category: "improvement",
     publishedAt: "2026-09-09",
   },

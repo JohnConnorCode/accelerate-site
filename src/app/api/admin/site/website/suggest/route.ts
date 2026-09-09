@@ -1,3 +1,4 @@
+import { SiteModelSelectionError } from "@/lib/site-studio/models";
 import { NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { readBoundedJson } from "@/lib/http/bounded-json";
@@ -43,12 +44,14 @@ export async function POST(request: Request) {
     return NextResponse.json(await proposeWebsitePage(auth, input), {
       headers: { "Cache-Control": "private, no-store" },
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof SiteModelSelectionError)
+      return NextResponse.json({ error: error.message }, { status: 409 });
     console.warn("[site-studio] Website AI provider suggestion failed; no content written");
     return NextResponse.json(
       {
         error:
-          "AI could not prepare this change. Check the workspace AI connection and budget in Setup, or continue with manual editing. Your page is unchanged.",
+          "AI could not prepare this change. Try a shorter request or another model; check Setup if AI is not connected. Your page is unchanged.",
       },
       { status: 503 },
     );

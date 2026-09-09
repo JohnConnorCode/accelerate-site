@@ -1,5 +1,6 @@
+import { cachedSiteModel } from "@/lib/site-studio/model-catalog";
 import "server-only";
-import { SITE_STUDIO_MODELS, DEFAULT_SITE_MODEL } from "@/lib/site-studio/models";
+import { DEFAULT_SITE_MODEL } from "@/lib/site-studio/models";
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DEFAULT_OPENROUTER_MODEL } from "./openrouter-models";
@@ -10,8 +11,10 @@ import { DEFAULT_OPENROUTER_MODEL } from "./openrouter-models";
  * model changes are never silent.
  *
  * Models are operator-registered rows (admin_settings KV), never invented
- * IDs: the only built-in entry is the repository default already serving
- * traffic. Jobs declare typed workload requirements (tools, JSON mode,
+ * IDs. Site Studio preparation can also use its validated provider catalogue;
+ * that does not register models for other jobs or override tenant restrictions.
+ * Other jobs retain the repository default and explicit registrations.
+ * Jobs declare typed workload requirements (tools, JSON mode,
  * context floor); compatibility is MATCHED against model capabilities, so
  * operator choices are limited without hardcoding provider lineups.
  * Free/low-cost models stay visible but cannot run consequential jobs until
@@ -375,10 +378,7 @@ export async function resolveModelForJob(
   const job = AI_JOBS.find((candidate) => candidate.key === jobKey);
   if (!job) throw new Error(`Unknown AI job ${JSON.stringify(jobKey)}`);
   const requested = preferred?.trim() || job.defaultModel;
-  const siteDefault =
-    jobKey === "site-page-draft"
-      ? SITE_STUDIO_MODELS.find((model) => model.id === requested)
-      : undefined;
+  const siteDefault = jobKey === "site-page-draft" ? cachedSiteModel(requested) : undefined;
   const model =
     (await getModelRegistration(supabase, tenant, requested)) ??
     (siteDefault

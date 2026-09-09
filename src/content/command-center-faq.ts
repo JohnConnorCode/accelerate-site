@@ -19,7 +19,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Does Site Studio publish a page when I create a draft?",
     answer:
-      "No. Creating, applying an AI suggestion and saving all keep the work private. The installation owner separately reviews and publishes a saved website revision. For example, create a bookkeeping page, choose Muse Spark 1.3 or a free or premium alternative, review the copy and phone preview, save, then review publication. History supports rollback. Private tenant drafts remain separate. The Site Studio guide explains costs, recovery and importing content into your own installation.",
+      "No. Creating, applying an AI suggestion and saving all keep the work private. The installation owner separately reviews and publishes a saved website revision. For example, create a bookkeeping page, choose Muse Spark 1.3 or browse current models by provider and price, review the copy and phone preview, save, then review publication. History supports rollback. Private tenant drafts remain separate. The Site Studio guide explains costs, recovery and importing content into your own installation.",
   },
   {
     question: "What does a complete delivery handoff mean?",

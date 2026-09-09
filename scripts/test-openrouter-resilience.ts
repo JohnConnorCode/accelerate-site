@@ -222,6 +222,14 @@ async function main() {
   });
 
   const strictPricing = { prompt: 0, completion: 0, request: 0 };
+  await scenario("models that forbid temperature receive no temperature parameter", async () => {
+    stubFetch([{ status: 200, body: okBody }]);
+    await openRouterChat({ ...ask, temperature: null });
+    assert.equal(Object.hasOwn(calls[0].body, "temperature"), false);
+    stubFetch([{ status: 200, body: okBody }]);
+    await openRouterChat({ ...ask });
+    assert.equal(calls.at(-1)?.body.temperature, 0.2);
+  });
   await scenario(
     "structured generation forwards bounded reasoning and rejects truncated output",
     async () => {
