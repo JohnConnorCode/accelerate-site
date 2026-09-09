@@ -126,3 +126,16 @@ terminology in setup diagnostics or developer references. Show setup warnings
 only for an observed missing requirement; a successful empty read describes
 the queue, never a claim that every business record is resolved. Keep the page
 heading visible while data loads or fails.
+
+## Appearance lifecycle
+
+The root theme provider keeps the existing live/public `theme` preference and
+a separate storage channel for each demo business. Entering or leaving a demo
+business reinitializes that provider scope; navigation within the business
+retains it. The demo boundary restores its session appearance only when the
+active business changes. A theme setter identity or storage event must never
+restart the fictional runtime or publish the demo default to live tabs.
+
+Install the fictional request handler in the committed layout effect, after the
+previous business has cleaned up. Render-time installation races with the old
+cleanup during a provider scope change and can expose native fetch afterward.

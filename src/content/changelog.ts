@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-09",
   },
   {
+    id: "appearance-cross-tab-persistence",
+    slug: "appearance-cross-tab-persistence",
+    title: "Keep demo tabs from resetting your workspace appearance",
+    description:
+      "An open demo could immediately overwrite a theme selected in the live workspace. Demo businesses now use separate theme preferences, and their saved appearance is restored only when entering that business. Changing an appearance no longer restarts the demo runtime.",
+    category: "fix",
+    publishedAt: "2026-09-09",
+  },
+  {
     id: "demo-layout-settings-read",
     slug: "demo-layout-settings-read",
     title: "Inspect default layout settings in fictional workspaces",
