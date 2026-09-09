@@ -53,9 +53,9 @@ someone standing next to you at the screen, rewrite it.
    fictional. See `scripts/capture-docs-screenshots.mjs` for how the image
    was made and how to remake it.
 8. **Tables hold data, not links.** A reference table of fields, defaults, or
-   limits is good docs. A table whose only content is `[Page](url) |
-description` is a list dressed as a table; write it as prose with inline
-   links instead.
+   limits is good docs. A table whose only content is a link and a
+   one-line description in each row is a list dressed as a table; write
+   it as prose with inline links instead.
 9. **Use the components already in the docs MDX map** (`Callout`,
    `StepByStep`/`Step`, `CodeBlock`, `ComparisonTable`, `QuoteBlock`, in
    addition to `DocsFigure`) to break up a long page instead of running six

@@ -35,31 +35,156 @@ const only = onlyArg ? process.argv[process.argv.indexOf(onlyArg) + 1] : null;
  * actually loaded its content before the shot is taken.
  */
 const SHOTS = [
-  { id: "command-center/today", scenario: "northline-roofing", route: "today", wait: { role: "heading", name: "Today" } },
-  { id: "command-center/inbox", scenario: "northline-roofing", route: "inbox", wait: { role: "heading", name: "Inbox" } },
-  { id: "command-center/work", scenario: "northline-roofing", route: "work", wait: { role: "heading", name: "Work" } },
-  { id: "command-center/activity", scenario: "northline-roofing", route: "activity", wait: { role: "heading", name: "Activity" } },
-  { id: "contacts/overview", scenario: "northline-roofing", route: "contacts", wait: { role: "heading", name: /contact/i } },
-  { id: "contacts/import", scenario: "northline-roofing", route: "contact-imports", wait: { role: "heading", name: /import/i } },
-  { id: "conversations/overview", scenario: "northline-roofing", route: "conversations", wait: { role: "heading", name: "Conversations" } },
-  { id: "pipeline/overview", scenario: "northline-roofing", route: "pipeline", wait: { role: "heading", name: "Pipeline" } },
-  { id: "pipeline/revenue", scenario: "northline-roofing", route: "revenue", wait: { role: "heading", name: /revenue/i } },
-  { id: "proposals/overview", scenario: "northline-roofing", route: "proposals", wait: { role: "heading", name: "Proposals" } },
-  { id: "outreach/campaigns", scenario: "northline-roofing", route: "campaigns", wait: { role: "heading", name: "Campaigns" } },
-  { id: "outreach/email-studio", scenario: "northline-roofing", route: "emails", wait: { role: "heading", name: /email/i } },
-  { id: "outreach/recovery", scenario: "northline-roofing", route: "recovery", wait: { role: "heading", name: /recovery/i } },
-  { id: "delivery/clients", scenario: "northline-roofing", route: "clients", wait: { role: "heading", name: /client/i } },
-  { id: "delivery/bookings", scenario: "northline-roofing", route: "bookings", wait: { role: "heading", name: /booking/i } },
-  { id: "delivery/content", scenario: "northline-roofing", route: "content", wait: { role: "heading", name: /content/i } },
-  { id: "delivery/resources", scenario: "northline-roofing", route: "resources", wait: { role: "heading", name: /resource/i } },
-  { id: "sources/leads", scenario: "northline-roofing", route: "leads", wait: { role: "heading", name: /lead/i } },
-  { id: "workspace/settings", scenario: "northline-roofing", route: "settings", wait: { role: "heading", name: /setting/i } },
-  { id: "workspace/setup", scenario: "northline-roofing", route: "setup", wait: { role: "heading", name: /setup/i } },
-  { id: "workspace/integrations", scenario: "northline-roofing", route: "integrations", wait: { role: "heading", name: /integration/i } },
-  { id: "intelligence/workspace", scenario: "northline-roofing", route: "ai", wait: { role: "heading", name: /ai|ask/i } },
-  { id: "plugins/stripe-invoicing", scenario: "northline-roofing", route: "invoicing", wait: { role: "heading", name: /invoic/i } },
-  { id: "plugins/example-inventory", scenario: "northline-roofing", route: "example-inventory", wait: { role: "heading", name: /inventory/i } },
-  { id: "start/agencies", scenario: "northline-roofing", route: "tenants", wait: { role: "heading", name: /workspace|tenant/i } },
+  {
+    id: "command-center/today",
+    scenario: "northline-roofing",
+    route: "today",
+    wait: { role: "heading", name: "Today" },
+  },
+  {
+    id: "command-center/inbox",
+    scenario: "northline-roofing",
+    route: "inbox",
+    wait: { role: "heading", name: "Inbox" },
+  },
+  {
+    id: "command-center/work",
+    scenario: "northline-roofing",
+    route: "work",
+    wait: { role: "heading", name: "Work" },
+  },
+  {
+    id: "command-center/activity",
+    scenario: "northline-roofing",
+    route: "activity",
+    wait: { role: "heading", name: "Activity" },
+  },
+  {
+    id: "contacts/overview",
+    scenario: "northline-roofing",
+    route: "contacts",
+    wait: { role: "heading", name: /contact/i },
+  },
+  {
+    id: "contacts/import",
+    scenario: "northline-roofing",
+    route: "contact-imports",
+    wait: { role: "heading", name: /import/i },
+  },
+  {
+    id: "conversations/overview",
+    scenario: "northline-roofing",
+    route: "conversations",
+    wait: { role: "heading", name: "Conversations" },
+  },
+  {
+    id: "pipeline/overview",
+    scenario: "northline-roofing",
+    route: "pipeline",
+    wait: { role: "heading", name: "Pipeline" },
+  },
+  {
+    id: "pipeline/revenue",
+    scenario: "northline-roofing",
+    route: "revenue",
+    wait: { role: "heading", name: /revenue/i },
+  },
+  {
+    id: "proposals/overview",
+    scenario: "northline-roofing",
+    route: "proposals",
+    wait: { role: "heading", name: "Proposals" },
+  },
+  {
+    id: "outreach/campaigns",
+    scenario: "northline-roofing",
+    route: "campaigns",
+    wait: { role: "heading", name: "Campaigns" },
+  },
+  {
+    id: "outreach/email-studio",
+    scenario: "northline-roofing",
+    route: "emails",
+    wait: { role: "heading", name: /email/i },
+  },
+  {
+    id: "outreach/recovery",
+    scenario: "northline-roofing",
+    route: "recovery",
+    wait: { role: "heading", name: /recovery/i },
+  },
+  {
+    id: "delivery/clients",
+    scenario: "northline-roofing",
+    route: "clients",
+    wait: { role: "heading", name: /client/i },
+  },
+  {
+    id: "delivery/bookings",
+    scenario: "northline-roofing",
+    route: "bookings",
+    wait: { role: "heading", name: /booking/i },
+  },
+  {
+    id: "delivery/content",
+    scenario: "northline-roofing",
+    route: "content",
+    wait: { role: "heading", name: /content/i },
+  },
+  {
+    id: "delivery/resources",
+    scenario: "northline-roofing",
+    route: "resources",
+    wait: { role: "heading", name: /resource/i },
+  },
+  {
+    id: "sources/leads",
+    scenario: "northline-roofing",
+    route: "leads",
+    wait: { role: "heading", name: /lead/i },
+  },
+  {
+    id: "workspace/settings",
+    scenario: "northline-roofing",
+    route: "settings",
+    wait: { role: "heading", name: /setting/i },
+  },
+  {
+    id: "workspace/setup",
+    scenario: "northline-roofing",
+    route: "setup",
+    wait: { role: "heading", name: /setup/i },
+  },
+  {
+    id: "workspace/integrations",
+    scenario: "northline-roofing",
+    route: "integrations",
+    wait: { role: "heading", name: /integration/i },
+  },
+  {
+    id: "intelligence/workspace",
+    scenario: "northline-roofing",
+    route: "ai",
+    wait: { role: "heading", name: /ai|ask/i },
+  },
+  {
+    id: "plugins/stripe-invoicing",
+    scenario: "northline-roofing",
+    route: "invoicing",
+    wait: { role: "heading", name: /invoic/i },
+  },
+  {
+    id: "plugins/example-inventory",
+    scenario: "northline-roofing",
+    route: "example-inventory",
+    wait: { role: "heading", name: /inventory/i },
+  },
+  {
+    id: "start/agencies",
+    scenario: "northline-roofing",
+    route: "tenants",
+    wait: { role: "heading", name: /workspace|tenant/i },
+  },
 ];
 
 async function main() {
@@ -103,7 +228,10 @@ async function main() {
           timeout: 10_000,
         })
         .catch(() => {});
-      await page.getByRole(shot.wait.role, { name: shot.wait.name }).first().waitFor({ timeout: 15_000 });
+      await page
+        .getByRole(shot.wait.role, { name: shot.wait.name })
+        .first()
+        .waitFor({ timeout: 15_000 });
       await page.waitForTimeout(400);
 
       const outPath = path.join(OUT_ROOT, `${shot.id}.png`);
