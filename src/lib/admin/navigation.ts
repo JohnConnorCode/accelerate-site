@@ -94,10 +94,10 @@ export const adminNavSections: AdminNavSection[] = [
       },
       {
         id: "identity-review",
-        label: "Identity review",
+        label: "Contact review",
         href: "/admin/identity-review",
         icon: UserPlus,
-        description: "Ambiguous senders waiting for a decision",
+        description: "Match unfamiliar senders to your contacts",
         keywords: "identity review ambiguous unknown link contact",
       },
     ],

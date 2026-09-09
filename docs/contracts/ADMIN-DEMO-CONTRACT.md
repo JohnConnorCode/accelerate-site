@@ -112,3 +112,17 @@ Scenario QA covers desktop and mobile, all admin appearances, keyboard and focus
 reduced motion, overflow, console errors, refresh persistence, exact reset,
 cross-scenario isolation, and a founder-authenticated run proving zero protected
 or provider requests.
+
+## Launcher and product language
+
+The public launcher leads with the business outcome and a bounded interactive
+illustration, followed by the six real demo entry links. Illustrations identify
+themselves and never act as a second workspace or claim real provider results.
+User-controlled story changes support keyboard and reduced motion.
+
+Shared admin copy names the object, explains the current state and offers a
+clear next step. Keep SQL paths, migrations, idempotency and canonical-record
+terminology in setup diagnostics or developer references. Show setup warnings
+only for an observed missing requirement; a successful empty read describes
+the queue, never a claim that every business record is resolved. Keep the page
+heading visible while data loads or fails.

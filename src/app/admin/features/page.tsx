@@ -1209,9 +1209,8 @@ export default function FeaturesPage() {
       >
         {data && !data.schemaReady ? (
           <RevenueSetupGate
-            title="Activate the Feature Board"
-            migration="migrations/20260816-feature-board.sql"
-            detail="The migration seeds the known Revenue OS roadmap without overwriting future edits."
+            title="The Feature Board needs setup"
+            detail="Open Setup Center to check the requirements for planning and tracking product work."
           />
         ) : (
           data && (

@@ -38,9 +38,9 @@ export function AdminReadBody({
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-[var(--admin-ink)]">
-            This workspace could not be loaded
+            We couldn’t load this information
           </h2>
-          <p className="admin-copy mt-1 text-sm">{error} Filters and drafts were not discarded.</p>
+          <p className="admin-copy mt-1 text-sm">{error}</p>
           {onRetry && (
             <button
               type="button"

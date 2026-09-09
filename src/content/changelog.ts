@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "demo-marketing-contact-review",
+    slug: "demo-marketing-contact-review",
+    title: "Explore the business demos and clearer contact reviews",
+    description:
+      "The demo launcher now introduces Command Center with an interactive inquiry-to-result illustration and six business workspaces. Contact review explains matching decisions in plain language, preserves its heading during loading and errors, and no longer displays a setup warning after a successful read. Shared setup messages explain the next step without database instructions.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
     id: "demo-layout-settings-read",
     slug: "demo-layout-settings-read",
     title: "Inspect default layout settings in fictional workspaces",

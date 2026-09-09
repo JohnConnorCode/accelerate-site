@@ -111,7 +111,7 @@ export const capabilities: Capability[] = [
     category: "capture",
     title: "AI-assisted contact import",
     detail:
-      "Bring in a CSV or pasted list, let the system normalize and resolve identity, then review the proposed records before anything is written.",
+      "Bring in a CSV or pasted list, check for existing contacts, then review the proposed records before saving. Contact review helps you match unfamiliar conversation senders to the right person.",
   },
 
   // Organize
