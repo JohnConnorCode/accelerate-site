@@ -6,21 +6,33 @@ updated: "2026-09-09"
 
 A proposal looks different than it did last week, and nobody on your team remembers changing it. Activity at `/admin/activity` is where you go to answer that question with evidence instead of a guess: who changed a record, what action was recorded, and exactly when it happened.
 
+<DocsFigure
+  src="/images/docs/command-center/activity.png"
+  alt="The Activity screen in the fictional Northline Roofing workspace, showing a recorded history of changes."
+  width={1440}
+  height={1000}
+  caption="Activity in the fictional Northline Roofing workspace. This is the real interface with fictional demo data."
+/>
+
 ## Finding a change
 
 <StepByStep>
-<Step number={1} title="Narrow the time range">
-Set the window to roughly when you think the event occurred; a tight range surfaces the right event faster than scrolling a long list.
-</Step>
-<Step number={2} title="Filter it down">
-Filter by actor, action, source, or entity type where those filters are available for what you're looking for.
-</Step>
-<Step number={3} title="Open the linked record">
-Find the matching event and open the record it points to, rather than trusting the event summary alone.
-</Step>
-<Step number={4} title="Compare against current state">
-Check the recorded action against the record's current state and any related execution or provider receipt to see whether they actually agree.
-</Step>
+  <Step number={1} title="Narrow the time range">
+    Set the window to roughly when you think the event occurred; a tight range surfaces the right
+    event faster than scrolling a long list.
+  </Step>
+  <Step number={2} title="Filter it down">
+    Filter by actor, action, source, or entity type where those filters are available for what
+    you're looking for.
+  </Step>
+  <Step number={3} title="Open the linked record">
+    Find the matching event and open the record it points to, rather than trusting the event summary
+    alone.
+  </Step>
+  <Step number={4} title="Compare against current state">
+    Check the recorded action against the record's current state and any related execution or
+    provider receipt to see whether they actually agree.
+  </Step>
 </StepByStep>
 
 For example, if a proposal appears to have changed right after a customer reviewed it, start with that proposal's own events around the time of the review, and keep the proposal's identifier with your findings so a colleague can pull up the exact same record later.

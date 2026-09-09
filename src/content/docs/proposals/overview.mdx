@@ -6,6 +6,14 @@ updated: "2026-09-09"
 
 A proposal that quotes a price your catalog no longer offers is the kind of mistake that only surfaces when a customer accepts it, which is exactly the wrong moment to find out. Proposals at `/admin/proposals` are drafts, sent documents, and decisions living on one ledger, and every total gets checked against your published catalog before it can go out: pricing that doesn't add up is rejected before a send, not after. [Drafting and sending](/docs/proposals/send) covers the actual workflow.
 
+<DocsFigure
+  src="/images/docs/proposals/overview.png"
+  alt="The Proposals screen in the fictional Northline Roofing workspace, showing drafts, sent documents, and decisions."
+  width={1440}
+  height={1000}
+  caption="Proposals in the fictional Northline Roofing workspace. This is the real interface with fictional demo data."
+/>
+
 ## The lifecycle
 
 A proposal moves through create, edit, send, view, accept, and decline, and its public view and decision links are unguessable tokens rather than sequential IDs a stranger could guess. Every one of those events writes an audit row as it happens; the proposal's actual body is not stored inside that audit payload, so the audit trail proves an event occurred without duplicating the content itself.

@@ -6,6 +6,14 @@ updated: "2026-09-09"
 
 Every business has a version of the same problem: the most urgent thing to do this morning is buried under a dozen less urgent ones, and finding it means scanning an inbox, a task list, and a calendar separately before you can even start. Today does that scanning for you. Open it at `/admin/today` at the start of your session, and you get replies, due tasks, upcoming meetings, proposals, approvals, and system problems in one ranked queue.
 
+<DocsFigure
+  src="/images/docs/command-center/today.png"
+  alt="Today in the fictional Northline Roofing workspace, showing Needs your decision, Your work, and Watch sections ranked with reasons."
+  width={1440}
+  height={1000}
+  caption="Today in the fictional Northline Roofing workspace: approvals waiting on the left, ranked tasks below. This is the real interface with fictional demo data."
+/>
+
 ## The four sections, and what each one actually is
 
 **Needs your decision** holds pending approvals with an exact change to review, the only section where something waits specifically on your yes or no. **Your work** is tasks, including recovery follow-ups, with completion and snooze controls right there. **Watch** surfaces conversations, proposals, and operational signals worth investigating, though you go to their source screen to actually act on them. **Upcoming** is meetings and dated context worth preparing for before they happen rather than after.
@@ -15,18 +23,22 @@ These four sections are views over the same underlying records, not a separate t
 ## Working one item
 
 <StepByStep>
-<Step number={1} title="Read the reason">
-Check the item's stated reason and due date, then open its linked record for the latest context before you act on it.
-</Step>
-<Step number={2} title="Take the offered action">
-Respond, review an approval, complete a task, or snooze to a later date where that option exists.
-</Step>
-<Step number={3} title="Check content before approving a send">
-For an approval, inspect the exact proposed change. For a message specifically, read the recipients and the full body, not just that a draft exists.
-</Step>
-<Step number={4} title="Confirm the result">
-Refresh the queue if needed, and check that the item is actually resolved or has a specific next step, rather than assuming your action was the last one required.
-</Step>
+  <Step number={1} title="Read the reason">
+    Check the item's stated reason and due date, then open its linked record for the latest context
+    before you act on it.
+  </Step>
+  <Step number={2} title="Take the offered action">
+    Respond, review an approval, complete a task, or snooze to a later date where that option
+    exists.
+  </Step>
+  <Step number={3} title="Check content before approving a send">
+    For an approval, inspect the exact proposed change. For a message specifically, read the
+    recipients and the full body, not just that a draft exists.
+  </Step>
+  <Step number={4} title="Confirm the result">
+    Refresh the queue if needed, and check that the item is actually resolved or has a specific next
+    step, rather than assuming your action was the last one required.
+  </Step>
 </StepByStep>
 
 Completing a task records that the task itself is done; it says nothing about whether an email was delivered or a customer accepted a proposal, so check the [action result](/docs/start/receipts) whenever the work touched an external service.

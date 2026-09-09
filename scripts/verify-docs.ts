@@ -176,6 +176,14 @@ export function inspectDocs(input: DocsInspectionInput = {}) {
         );
       }
     }
+    for (const match of content.matchAll(/<DocsFigure\b[^>]*\bsrc=["']([^"']+)["']/g)) {
+      const src = match[1] ?? "";
+      if (!src.startsWith("/")) continue;
+      const assetPath = path.join(process.cwd(), "public", src);
+      if (!fs.existsSync(assetPath)) {
+        failures.push(`"${key}" DocsFigure references "${src}", which does not exist in public/.`);
+      }
+    }
   }
 
   // 5. Reserved slugs must not collide with generated public boards.

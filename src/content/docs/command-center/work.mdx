@@ -6,21 +6,33 @@ updated: "2026-09-09"
 
 Today is built for triage: skim the queue, act on what matters most, move on. Work, at `/admin/work`, is built for the opposite: sit with your whole task list, filter it down, and edit anything that needs a correction rather than just acting on it. Both screens read the exact same records, so a change here shows up on Today immediately and vice versa.
 
+<DocsFigure
+  src="/images/docs/command-center/work.png"
+  alt="The Work screen in the fictional Northline Roofing workspace, showing the team's task list with ownership and status filters."
+  width={1440}
+  height={1000}
+  caption="Work in the fictional Northline Roofing workspace: the same tasks Today shows, organized for editing. Fictional demo data."
+/>
+
 ## Finding and editing a task
 
 <StepByStep>
-<Step number={1} title="Choose an ownership view">
-Open **Tasks**, then pick **Team work**, **My work**, or **Unassigned**, and select an open, snoozed, or completed status to match what you're looking for.
-</Step>
-<Step number={2} title="Narrow the list">
-Filter by source or search the task title and related record name. The list shows up to 100 tasks for whichever ownership and status you selected.
-</Step>
-<Step number={3} title="Open and edit">
-Select a task to open its inspector, change its title, due date, or priority, and choose **Save changes**.
-</Step>
-<Step number={4} title="Confirm it stuck">
-Return to Today and check the task where it's due. An edit keeps the task's existing status; it does not mark the task complete on its own.
-</Step>
+  <Step number={1} title="Choose an ownership view">
+    Open **Tasks**, then pick **Team work**, **My work**, or **Unassigned**, and select an open,
+    snoozed, or completed status to match what you're looking for.
+  </Step>
+  <Step number={2} title="Narrow the list">
+    Filter by source or search the task title and related record name. The list shows up to 100
+    tasks for whichever ownership and status you selected.
+  </Step>
+  <Step number={3} title="Open and edit">
+    Select a task to open its inspector, change its title, due date, or priority, and choose **Save
+    changes**.
+  </Step>
+  <Step number={4} title="Confirm it stuck">
+    Return to Today and check the task where it's due. An edit keeps the task's existing status; it
+    does not mark the task complete on its own.
+  </Step>
 </StepByStep>
 
 Use the completion control specifically when work is actually finished. Today also offers snooze until tomorrow, and a snoozed task stays visible in Work's **Snoozed** view rather than disappearing, so nothing gets lost by deferring it. Completing a snoozed task clears the snooze and records completion against that same original task, not a new one.

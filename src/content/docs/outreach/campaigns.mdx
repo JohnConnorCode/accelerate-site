@@ -6,6 +6,14 @@ updated: "2026-09-09"
 
 Open `/admin/campaigns`. Each campaign carries a name, a status, a version, and an approved version, and copy that has not been through that approval never sends, regardless of how ready it looks in the editor.
 
+<DocsFigure
+  src="/images/docs/outreach/campaigns.png"
+  alt="The Campaigns screen in the fictional Northline Roofing workspace, showing active, paused, and in-review campaigns."
+  width={1440}
+  height={1000}
+  caption="Campaigns in the fictional Northline Roofing workspace: Storm inspection availability and Spring roof tune-up, each with its own approval state. Fictional demo data."
+/>
+
 ## Create and approve
 
 New campaign starts as a draft. Edit audience, cadence, send limits, and stop rules. Activation is `propose_campaign_activation` if the assistant stages it, or an explicit approve in the UI. Only the approved version runs.
