@@ -27,6 +27,8 @@ const tenantScopedTableSet = new Set<string>(TENANT_SCOPED_TABLES);
 const ENTITY_REGISTRY_MIGRATION = "migrations/20260904-entity-registry-link-graph.sql";
 const DELIVERY_HANDOFF_MIGRATION = "migrations/20260905-delivery-handoff.sql";
 const releaseMigration = (table: string, column?: string) => {
+  if (["site_websites", "site_website_revisions", "site_website_receipts"].includes(table))
+    return "migrations/20260909012125-installation-website-revisions.sql";
   if (["site_drafts", "site_draft_revisions"].includes(table))
     return "migrations/20260917-site-studio-drafts.sql";
   if (table === "campaign_duplicate_receipts")
@@ -69,23 +71,25 @@ const migrationFor = (table: string, column?: string): string =>
                       ? "migrations/20260830-shared-database-tenancy.sql"
                       : "migrations/20260816-revenue-os.sql");
 const migrationForIndex = (name: string) =>
-  name.startsWith("site_drafts_")
-    ? "migrations/20260917-site-studio-drafts.sql"
-    : name === "idx_drive_documents_content_hash"
-      ? "migrations/20260916-drive-content-indexing.sql"
-      : ["idx_clients_handoff_opportunity_unique", "idx_tasks_delivery_handoff_unique"].includes(
-            name,
-          )
-        ? "migrations/20260920-delivery-handoff-convergence.sql"
-        : name.startsWith("idx_entity_")
-          ? ENTITY_REGISTRY_MIGRATION
-          : name.startsWith("idx_onboarding_templates") || name === "idx_clients_opportunity"
-            ? DELIVERY_HANDOFF_MIGRATION
-            : name.includes("tenant")
-              ? "migrations/20260830-shared-database-tenancy.sql"
-              : name.includes("ai_") || name === "idx_agent_runs_conversation"
-                ? "migrations/20260824-ai-command-runtime.sql"
-                : "migrations/20260816-revenue-os.sql";
+  name === "site_website_revision_history"
+    ? "migrations/20260909012125-installation-website-revisions.sql"
+    : name.startsWith("site_drafts_")
+      ? "migrations/20260917-site-studio-drafts.sql"
+      : name === "idx_drive_documents_content_hash"
+        ? "migrations/20260916-drive-content-indexing.sql"
+        : ["idx_clients_handoff_opportunity_unique", "idx_tasks_delivery_handoff_unique"].includes(
+              name,
+            )
+          ? "migrations/20260920-delivery-handoff-convergence.sql"
+          : name.startsWith("idx_entity_")
+            ? ENTITY_REGISTRY_MIGRATION
+            : name.startsWith("idx_onboarding_templates") || name === "idx_clients_opportunity"
+              ? DELIVERY_HANDOFF_MIGRATION
+              : name.includes("tenant")
+                ? "migrations/20260830-shared-database-tenancy.sql"
+                : name.includes("ai_") || name === "idx_agent_runs_conversation"
+                  ? "migrations/20260824-ai-command-runtime.sql"
+                  : "migrations/20260816-revenue-os.sql";
 const migrationForPolicy = (table: string, name: string) =>
   table === "entity_types" || table === "entity_links"
     ? ENTITY_REGISTRY_MIGRATION

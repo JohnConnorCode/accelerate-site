@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-08.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-09.1";
 
 export const TENANT_SCOPED_TABLES = [
   "proposal_lifecycle_receipts",
@@ -14,6 +14,9 @@ export const TENANT_SCOPED_TABLES = [
   "radar_current_relationships",
   "message_evidence_context",
   "radar_assessments",
+  "site_websites",
+  "site_website_revisions",
+  "site_website_receipts",
   "site_drafts",
   "site_draft_revisions",
   "radar_current_assessments",
@@ -115,6 +118,18 @@ export const TENANT_SCOPED_TABLES = [
 const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 
 const BASE_REVENUE_SCHEMA_TABLES = [
+  {
+    table: "site_websites",
+    columns: ["version", "draft_revision_id", "published_revision_id", "updated_at"],
+  },
+  {
+    table: "site_website_revisions",
+    columns: ["id", "document", "checksum", "actor_email", "created_at"],
+  },
+  {
+    table: "site_website_receipts",
+    columns: ["request_key", "request_hash", "receipt", "created_at"],
+  },
   {
     table: "site_drafts",
     columns: [
@@ -568,6 +583,8 @@ export const REVENUE_SCHEMA_TABLES = [
 ];
 
 export const REVENUE_SCHEMA_CONSTRAINTS = [
+  { table: "site_websites", name: "site_website_draft_revision_fk" },
+  { table: "site_websites", name: "site_website_published_revision_fk" },
   // Pipeline stages are workspace-defined by the kanban migration; the old
   // hard-coded CHECK is deliberately removed by 20260902-kanban-columns.sql.
   { table: "opportunities", name: "opportunities_probability_check" },
@@ -576,6 +593,7 @@ export const REVENUE_SCHEMA_CONSTRAINTS = [
 ] as const;
 
 export const REVENUE_SCHEMA_INDEXES = [
+  "site_website_revision_history",
   "site_drafts_live_slug",
   "site_drafts_recent",
   "idx_drive_documents_content_hash",
@@ -611,6 +629,10 @@ export const REVENUE_SCHEMA_INDEXES = [
 ] as const;
 
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
+  {
+    name: "public.write_site_website(text,uuid,integer,uuid,jsonb,text)",
+    migration: "migrations/20260909012125-installation-website-revisions.sql",
+  },
   {
     name: "public.write_site_draft(text,uuid,text,jsonb,text)",
     migration: "migrations/20260917-site-studio-drafts.sql",

@@ -279,7 +279,7 @@
     "test:agent-task-context": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-task-context.ts",
     "test:local-work-board": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-local-work-board.ts",
     "test:drive-content-indexing": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-drive-content-indexing.ts",
-    "test:site-studio": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-studio-v1.ts && NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-studio-database-store.ts",
+    "test:site-studio": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-studio-v1.ts && NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-studio-database-store.ts && tsx scripts/test-website-document.ts",
     "test:agent-profile": "node scripts/test-agent-profile.mjs",
     "qa:site-studio": "node scripts/resource-run.mjs tsx scripts/qa-site-studio.ts",
     "test:campaign-duplicate-clone": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-duplicate-clone.ts",
