@@ -114,8 +114,17 @@ insufficient reasoning/output allowance. The gateway now preserves timeout statu
 refuses malformed/truncated structured output, and permits an explicitly bounded
 150-second Site Studio deadline. Site models use catalogue-supported reasoning
 effort and at most 8,000 output tokens for page generation. Focused gateway tests
-cover these failures and no-retry behavior. Other model choices have catalogue,
-registry and controlled transport coverage; live availability is not asserted.
+cover these failures and no-retry behavior. Live free Nex N2.5 Mini generation also passed with nine validated sections, and
+low-cost Mercury 2.5 passed with four, using the same fictional brief and no website
+write/publication. The first Nex attempt exhausted its output allowance with medium
+reasoning; its final configuration uses the catalogue-supported `none` effort.
+Receipts are `/tmp/accelerate-studio-free-model-smoke-final.log` and
+`/tmp/accelerate-studio-low-cost-model-smoke.log`. The Claude choices have catalogue,
+registry and controlled transport coverage; their live availability is not asserted.
+The final local gateway build compiled but the shared memory guard stopped its
+TypeScript phase; `/tmp/accelerate-studio-gateway-build.log` preserves that failure.
+Remote CI subsequently passed build/TypeScript for the same application source.
+Final exact-ref CI remains required after the free-model configuration correction.
 
 ## Live migration verification
 

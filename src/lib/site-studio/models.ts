@@ -16,7 +16,7 @@ export const SITE_STUDIO_MODELS = [
     id: "nex-agi/nex-n2.5-mini:free",
     label: "Nex N2.5 Mini",
     tier: "free",
-    reasoningEffort: "medium",
+    reasoningEffort: "none",
     contextWindow: 262144,
     prompt: 0,
     completion: 0,

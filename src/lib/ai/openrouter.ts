@@ -66,7 +66,7 @@ export interface OpenRouterRequest {
   /** Non-streaming inference deadline; explicit callers may allow up to three minutes. */
   timeoutMs?: number;
   /** Bounded non-streaming reasoning configuration selected by the calling job. */
-  reasoning?: { effort: "minimal" | "low" | "medium" | "high"; exclude?: boolean };
+  reasoning?: { effort: "none" | "minimal" | "low" | "medium" | "high"; exclude?: boolean };
   /** Budgeted jobs pin one model and one attempt; no environment fallback. Prices are USD/million tokens. */
   strictPricing?: { prompt: number; completion: number; request: number };
   beforeAttempt?: (attempt: number) => Promise<void>;

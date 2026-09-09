@@ -240,14 +240,14 @@ async function main() {
             ...ask,
             model: "fixture/free",
             strictPricing,
-            reasoning: { effort: "medium", exclude: true },
+            reasoning: { effort: "none", exclude: true },
             schemaName: "fixture",
             schema: { type: "object" },
             validate: (value) => value,
           }),
         /token limit/,
       );
-      assert.deepEqual(calls[0]?.body.reasoning, { effort: "medium", exclude: true });
+      assert.deepEqual(calls[0]?.body.reasoning, { effort: "none", exclude: true });
       assert.equal(calls.length, 1);
     },
   );
