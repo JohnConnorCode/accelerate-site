@@ -1,41 +1,42 @@
 ---
 title: "Put AI to work with your business context"
-description: "Ask questions, inspect the evidence, and turn supported requests into reviewed actions."
-updated: "2026-09-06"
+description: "Ask a real question, see the evidence behind the answer, and review whatever it prepares."
+updated: "2026-09-09"
 ---
 
-The most useful business assistant can work with the information your team uses every day. In Command Center, AI can read through registered workspace tools, explain what it found, and prepare supported changes against the same records you see in the interface.
+A generic assistant can draft a plausible-sounding follow-up email. An assistant that can actually read the opportunity, the conversation history, and what your team already promised can draft the follow-up that is actually correct, and explain which records it used to write it. That difference is the whole reason AI in Command Center is built to read through your registered workspace tools rather than working from a blank context window.
 
-Open **AI Workspace** to start a conversation. A connected workspace needs its AI provider configured; the public demo simulates the experience without making a model request.
+Open **AI Workspace** to start a conversation. A connected workspace needs its AI provider configured first; the public demo simulates the experience without making a real model request, so you can see the shape of it before connecting anything.
 
 <DocsFigure
   src="/images/open-source/slide-ai-frost.png"
   alt="AI Workspace in a fictional community organization, showing Ask, Run history and Capabilities."
+  width={1440}
+  height={1000}
   caption="Ask about your business, then inspect the run and available capabilities. This screenshot shows the fictional demo interface, not a live model response."
 />
 
-## Begin with a question that has a useful next step
+## Start with a question that has a useful next step
 
-Try asking, “What needs my attention today?” Then narrow the request: “Show me the opportunity and explain why its next action is overdue.” A useful answer identifies the records it read and the limits of that evidence, so you can open the source and decide what to do.
+Try "What needs my attention today?" first, then narrow it: "Show me this opportunity and explain why its next action is overdue." A genuinely useful answer names the records it actually read and is honest about the limits of that evidence, so you can open the source yourself and decide what to do next rather than taking the summary on faith.
 
-For action requests, name the customer or record and the intended change. For example: “Prepare a follow-up for this conversation” or “Propose moving this opportunity to the next stage.” The available tools and permissions determine which requests the assistant can fulfill. The [tool catalog](/docs/intelligence/tools) is generated from the registered tools rather than a marketing list.
+For a request that changes something, name the customer or record and the exact change you want: "Prepare a follow-up for this conversation" or "Propose moving this opportunity to the next stage." What the assistant can actually do depends on the tools and permissions your workspace has enabled; the [tool catalog](/docs/intelligence/tools) is generated straight from the registered tools, not written as a marketing list of aspirations.
 
 ## From a request to a recorded result
 
 <DocsApprovalLoop />
 
-Reading a record can return an answer immediately. A supported AI write prepares a proposal for review. Inspect the affected record and exact change in [Approvals](/docs/command-center/approvals), approve it when ready, then check the result. This lets AI help with operational work while keeping the decision and its outcome visible.
+A read can answer you immediately, since nothing about it changes a record. A supported write instead prepares a proposal that waits for your review: inspect the affected record and the exact change in [Approvals](/docs/command-center/approvals), approve it once it's right, then check the result afterward. That loop is what lets AI help with real operational work while the decision, and its outcome, both stay visible to you.
 
-If a source is missing or a connection is unavailable, the answer should explain the gap. If an action fails, inspect the original result before trying again. [Action results](/docs/start/receipts) explains how to distinguish a prepared draft, an approved request and a completed effect.
+If a source is missing or a connection is down, a well-behaved answer says so rather than guessing around the gap. [Action results](/docs/start/receipts) explains how to tell a prepared draft, an approved request, and a completed effect apart, which matters whenever you're deciding whether to retry something that might have already happened.
 
-## Add the capabilities your business needs
+## Adding the capability your business actually needs
 
-A custom AI tool can expose a narrow business operation: read a service history, prepare a renewal plan, or propose a project update. These are extension ideas; each needs an implementation and verification. Your in-app assistant and a connected external assistant can then use the registered operation through the shared platform.
+A custom AI tool can expose one narrow business operation: read a service history, prepare a renewal plan, propose a project update. Each one still needs real implementation and verification behind it, and once it exists, both your in-app assistant and any connected external assistant can use it through the same registered operation.
 
-Explore [plugin examples](/docs/plugins) to see the different building blocks. Reports such as Business Pulse compute findings without a model call. Workflows such as Client onboarding prepare tasks for approval. [Opportunity Radar](/docs/plugins/opportunity-radar) adds a larger review workspace with its own evidence and model-budget controls.
+[Plugin examples](/docs/plugins) show the range of what that looks like in practice. Business Pulse computes its findings without a model call at all. Client onboarding prepares tasks for your approval. [Opportunity Radar](/docs/plugins/opportunity-radar) goes further, adding a full review workspace with its own evidence and model-budget controls.
 
-## Bring your preferred assistant
+## What to check
 
-The [MCP connection guide](/docs/extend/mcp-clients) explains how an external assistant can use workspace tools. Connecting a client grants the capabilities available to that workspace, not unrestricted access to every service or database.
-
-For pipeline and revenue analysis, use the [analytics guides](/docs/pipeline/revenue) alongside AI. Recorded amounts, forecasts and missing data have different meanings. AI can help explain the evidence; it should not turn an estimate into a payment or invent a missing fact.
+- The [MCP connection guide](/docs/extend/mcp-clients) explains how to bring your preferred external assistant into the same workspace. Connecting a client grants exactly the capabilities available to that workspace, never unrestricted access to every service or database behind it.
+- For pipeline and revenue analysis, pair AI with the [analytics guides](/docs/pipeline/revenue) rather than relying on either alone: a recorded amount, a forecast, and a genuine gap in the data mean three different things, and AI should help explain that evidence, not quietly turn an estimate into a confirmed payment.

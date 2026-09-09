@@ -390,24 +390,25 @@ export const docsManifest: DocsSection[] = [
         slug: ["intelligence", "overview"],
         title: "Put AI to work with your business context",
         description:
-          "Ask questions, inspect the evidence, and turn supported requests into reviewed actions.",
+          "Ask a real question, see the evidence behind the answer, and review whatever it prepares.",
       },
       {
         slug: ["intelligence", "opportunity-radar"],
         title: "Review opportunities with Radar",
         description:
-          "Review sources, relationship context, estimates, and drafts with explicit approvals and model budgets.",
+          "Review sourced opportunities and relationships, with model spend off by default and every send reviewed.",
       },
       {
         slug: ["intelligence", "tools"],
         title: "AI tool reference",
-        description: "Registered tools, connection requirements, and input schemas.",
+        description:
+          "Every registered tool, generated straight from the registry: what it needs and what it does.",
       },
       {
         slug: ["intelligence", "workspace"],
         title: "Use the AI Workspace",
         description:
-          "Ask a specific question, check its sources and inspect the result of an action.",
+          "Ask a specific question, check the sources behind the answer, then inspect what actually ran.",
       },
     ],
   },
