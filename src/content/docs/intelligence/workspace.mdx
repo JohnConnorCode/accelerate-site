@@ -1,10 +1,18 @@
 ---
 title: "Use the AI Workspace"
-description: "Ask a specific question, check its sources and inspect the result of an action."
-updated: "2026-09-08"
+description: "Ask a specific question, check the sources behind the answer, then inspect what actually ran."
+updated: "2026-09-09"
 ---
 
-Open `/admin/ai` to ask about workspace records and review assistant runs. You can also use [Ask AI](/docs/command-center/ask) while working on Today.
+Open `/admin/ai` when you want the full run history alongside your question, not just the answer; `/admin/ai` is the dedicated space for that, while [Ask AI](/docs/command-center/ask) covers the same conversation without leaving Today.
+
+<DocsFigure
+  src="/images/docs/intelligence/workspace.png"
+  alt="The AI Workspace in the fictional Northline Roofing workspace."
+  width={1440}
+  height={1000}
+  caption="The AI Workspace in the fictional Northline Roofing workspace. This is the real interface with fictional demo data."
+/>
 
 ## Ask a question the system can verify
 
@@ -26,7 +34,7 @@ If a run stops after an external request, inspect its [action result](/docs/star
 
 ## When a tool is unavailable
 
-Check its connection requirement in the [AI tool reference](/docs/intelligence/tools), then inspect [Setup Center](/docs/workspace/setup). Module settings and your permissions can also restrict access. Enabling a connection does not grant additional user authority.
+Check its connection requirement in the [AI tool reference](/docs/intelligence/tools), then inspect [Setup Center](/docs/workspace/setup); module settings and your own permissions can restrict access too, independently of whether the connection itself is working, and enabling a connection never grants you additional authority on its own.
 
 ## Model jobs and evaluation
 

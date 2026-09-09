@@ -1,10 +1,10 @@
 ---
 title: "Review collection reminders"
-description: "Track verified invoice balances, payment promises, and disputes before approving a reminder."
-updated: "2026-09-06"
+description: "Chase what invoicing actually confirms is owed, with every reminder requiring your approval."
+updated: "2026-09-09"
 ---
 
-Collections keeps overdue invoices, payment promises, disputes, and reminder receipts together. It uses verified invoice balances rather than opportunity estimates. Each send requires human approval.
+Chasing an overdue balance well means working from what your invoicing provider actually confirms is owed, not from an estimate somebody entered into the pipeline months ago and never updated. Collections keeps overdue invoices, payment promises, disputes, and reminder receipts together for exactly that reason, built on verified invoice balances rather than opportunity estimates, and every reminder still requires your approval before it goes out.
 
 ## Open Collections
 
@@ -24,9 +24,9 @@ A changed balance, recipient, dispute, pause, contact restriction, or disabled p
 
 ## Read the receipt before retrying
 
-A confirmed send records a receipt and starts the reminder cooldown. The default cooldown is 72 hours; an operator can configure it from 1 to 720 hours. An uncertain provider response holds further reminders for that case. Choose **Reconcile receipt** on the existing failed action before attempting another reminder; uncertainty is not a confirmed non-send.
+A confirmed send records a receipt and starts the reminder cooldown, 72 hours by default, though an operator can configure it anywhere from 1 to 720 hours depending on how aggressively your business wants to chase. If a provider response comes back uncertain, further reminders for that case hold automatically rather than guessing; choose **Reconcile receipt** on the existing failed action before you attempt another reminder, since an uncertain result is not the same thing as a confirmed non-send.
 
-A payment that occurs after the final provider read can still cross with an email already accepted for delivery. Verified paid invoices show settlement, but do not establish that a reminder caused the payment.
+A payment can still land after the final provider read, crossing paths with an email that was already accepted for delivery. A verified paid invoice shows the settlement, but that alone does not tell you the reminder was what caused the payment, just that both happened.
 
 ## Costs and disabling
 

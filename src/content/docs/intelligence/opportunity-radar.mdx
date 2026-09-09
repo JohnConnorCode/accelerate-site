@@ -1,12 +1,12 @@
 ---
 title: "Review opportunities with Radar"
-description: "Review sources, relationship context, estimates, and drafts with explicit approvals and model budgets."
-updated: "2026-09-06"
+description: "Review sourced opportunities and relationships, with model spend off by default and every send reviewed."
+updated: "2026-09-09"
 ---
 
-Open **Opportunity Radar** in the Intelligence navigation to review supplied evidence, choose a useful business opportunity, and save a draft. The current release includes Today, opportunity details, retained history, source-backed relationship reviews, and optional bounded source briefing.
+Most growth opportunities do not announce themselves; they sit inside a workshop invitation nobody replied to, or a contact you haven't spoken to in eight months who just changed jobs. Open **Opportunity Radar** in the Intelligence navigation to review that kind of supplied evidence, choose a useful opportunity worth pursuing, and save a draft. The current release covers Today, opportunity details, retained history, source-backed relationship reviews, and optional bounded source briefing.
 
-Automatic discovery, publication, and independently verified outcome measurement remain unfinished. Saving a draft or reviewing a relationship does not send a message.
+Automatic discovery, publication, and independently verified outcome measurement are still being built. What ships today is real: saving a draft or reviewing a relationship never sends a message on its own.
 
 ## Start with a workspace
 
@@ -32,13 +32,13 @@ Relationship changes use an exact preview and human approval. Expired offers, ch
 
 The [AI tool reference](/docs/intelligence/tools) lists the current Radar read, preview, and proposal tools. They use the same governed services and cannot approve their own changes.
 
-## Control briefing costs
+## Controlling what briefing actually costs
 
-Model spending starts **off**. You can write and review drafts without an AI provider. Optional source briefing needs an explicitly selected registered model and working workspace provider configuration.
+Model spending starts at **off**, and you can write and review drafts entirely without an AI provider connected. Optional source briefing only runs once you've explicitly selected a registered model and your workspace's provider configuration is working.
 
-**Free-only** refuses a paid fallback. **Budgeted-low-cost** uses the configured call, token, per-run, and daily cost limits. Jobs reserve cost before requesting a model result and retain charge receipts; an unavailable model or exhausted limit produces a deferred result. A free model can still be unavailable or rate-limited. Hosting and local compute are separate from model charges.
+**Free-only** refuses any paid fallback, full stop. **Budgeted-low-cost** runs inside whatever call, token, per-run, and daily cost limits you've configured; every job reserves its cost before requesting a model result and keeps a charge receipt, so an unavailable model or an exhausted limit produces a clearly deferred result rather than a silent failure. A free model can still be unavailable or rate-limited on its own provider's terms, and hosting and local compute costs stay separate from whatever the model itself charges.
 
-If provider acceptance or usage is uncertain, inspect the model receipt and use its reconciliation path before another attempt. Do not assume a timeout means no charge occurred. The [plugin reference](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md) explains the settings and developer extension points.
+If a provider's acceptance or usage is genuinely uncertain, inspect the model receipt and use its reconciliation path before you try again, rather than assuming a timeout means nothing was charged. The [plugin reference](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/opportunity-radar/README.md) covers the full settings and developer extension points.
 
 ## Review and send outreach
 

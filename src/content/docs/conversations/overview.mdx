@@ -1,21 +1,27 @@
 ---
 title: "Conversations"
-description: "One thread per person, with the record it belongs to and a next action attached."
-updated: "2026-09-04"
+description: "Every message from every channel, landed on the same thread, the same person, and the same deal."
+updated: "2026-09-09"
 ---
 
-Conversations at `/admin/conversations` is the reply-ready inbox. Gmail, inbound forms, chat leads, and transcripts land on the same person and the same deal when identity can be resolved.
+A customer emails you Monday, texts a question Wednesday, and fills out a form on your site Friday, and if those three touches live in three separate systems, whoever answers the phone on Saturday has no idea any of it happened. Conversations at `/admin/conversations` is where Gmail, inbound forms, chat leads, and transcripts all land on the same thread, the same person, and the same deal, whenever the system can actually resolve who they are.
 
-## What you do here
+<DocsFigure
+  src="/images/docs/conversations/overview.png"
+  alt="The Conversations screen in the fictional Northline Roofing workspace, showing a reply-ready thread."
+  width={1440}
+  height={1000}
+  caption="Conversations in the fictional Northline Roofing workspace. This is the real interface with fictional demo data."
+/>
 
-Read the thread. Reply. Assign a follow-up. Link the conversation to the contact and opportunity it belongs to. Filters exist for assignment, campaign, and follow-up state so a busy inbox is still searchable.
+## What you actually do here
 
-## Sending
+Read the thread with its full history, write a reply, assign a follow-up, and link the conversation to the contact and opportunity it belongs to. Filters for assignment, campaign, and follow-up state keep a genuinely busy inbox searchable instead of just long. [Replying](/docs/conversations/reply) walks through the filtering, sending, and linking in detail.
 
-A reply you type yourself goes through the communication sender with an idempotency key and a receipt. A reply the assistant drafts is a staged action until you approve it. Both paths share the same send service. See [Approvals](/docs/command-center/approvals).
+## How a reply actually goes out
 
-How to filter, send, and link is in [Replying](/docs/conversations/reply).
+A reply you type yourself goes straight through the communication sender, with an idempotency key and a receipt attached so a retry can never accidentally duplicate it. A reply the assistant drafts for you is different only in that it waits as a staged proposal until you approve it; once approved, it runs through that exact same send service. See [Approvals](/docs/command-center/approvals) for how that review works.
 
-## How it relates
+## Where this sits relative to Inbox and Today
 
-Inbox is intake for items that have not been worked. Today is the ranked subset that should happen now. Conversations is where the actual reply is written.
+Inbox is intake for whatever has not been worked yet. Today is the ranked subset of everything, across the whole workspace, that should happen right now. Conversations is specifically where the actual reply gets written, once you've decided this is the thread that needs one.

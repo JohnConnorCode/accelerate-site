@@ -1,10 +1,18 @@
 ---
 title: "Review bookings"
-description: "Check qualification, call status and the next step for a booked conversation."
-updated: "2026-09-05"
+description: "Prep for the call, then record what actually happened once it's over."
+updated: "2026-09-09"
 ---
 
-Open `/admin/bookings` to review qualified inquiries and scheduled calls. Use the company, fit, source, call and stage columns to prepare for the conversation and record its outcome.
+Walking into a call without knowing why the person booked it wastes the first five minutes re-asking questions they already answered in the form. Open `/admin/bookings` to review qualified inquiries and scheduled calls, using the company, fit, source, call, and stage columns to prepare beforehand and record the outcome once it's actually happened.
+
+<DocsFigure
+  src="/images/docs/delivery/bookings.png"
+  alt="The Bookings screen in the fictional Northline Roofing workspace, showing qualified inquiries and scheduled calls."
+  width={1440}
+  height={1000}
+  caption="Bookings in the fictional Northline Roofing workspace. This is the real interface with fictional demo data."
+/>
 
 ## Review a call
 
@@ -17,9 +25,9 @@ The summary shows qualified inquiries, bookings, calls held and attributed won r
 
 ## When a booking is missing or wrong
 
-Check the company and contact before creating another record. A different email address or an unlinked inquiry can explain why the expected relationship is missing.
+Check the company and contact first before creating another record; a different email address or an unlinked inquiry usually explains why the relationship you expected isn't showing up.
 
-For an expected calendar update, check the connection in [Setup Center](/docs/workspace/setup). A saved connection is not proof that the latest sync succeeded. Calendly is optional; this guide does not require enabling it.
+For an expected calendar update that hasn't appeared, check the connection in [Setup Center](/docs/workspace/setup): a saved connection tells you it was configured once, not that the most recent sync actually succeeded. Calendly stays optional throughout this guide, so nothing here requires enabling it.
 
 After correcting a stage or connection, reload the booking list and confirm the specific row. If the save did not persist, retain the error and use [Troubleshooting](/docs/start/troubleshooting).
 

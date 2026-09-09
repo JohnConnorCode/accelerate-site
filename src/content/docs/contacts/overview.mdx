@@ -1,21 +1,27 @@
 ---
 title: "Contacts"
-description: "Canonical people and companies, with duplicates proposed rather than guessed."
-updated: "2026-09-04"
+description: "One record per person, matched from every channel, with merges proposed rather than assumed."
+updated: "2026-09-09"
 ---
 
-Contacts at `/admin/contacts` is the identity ledger. Website submissions, list imports, chat, and mail all resolve here before they become conversations or deals.
+Most businesses carry the same customer three or four times over: once from a website form in March, once because somebody pasted a trade-show list into a spreadsheet, once inside a Gmail thread nobody else can see. Each copy holds a third of the story, so when that customer calls, whoever picks up starts from a third of the story too. Contacts at `/admin/contacts` is where a person or company exists once. Every route that brings a new name into the business, your website forms, the public chat assistant, a pasted list, any mailbox you have connected, resolves here before it becomes a conversation or a deal.
 
-How a CSV or pasted list becomes records is in [Importing](/docs/contacts/import).
+<DocsFigure
+  src="/images/docs/contacts/overview.png"
+  alt="The Contacts screen in the fictional Northline Roofing workspace, showing an identity ledger of customer records."
+  width={1440}
+  height={1000}
+  caption="Contacts in the fictional Northline Roofing workspace, labeled Contact intake in the interface. Fictional demo data."
+/>
 
-## Intake
+## How a new row gets there
 
-New rows can arrive from the public site, from a CSV or pasted list, or from a provider sync. Imports go through a review batch. The system normalizes and proposes records. Nothing is written until that review is accepted.
+A new row can arrive from your public site, from a CSV or pasted list, or from a provider sync, and every one of them goes through a review batch first rather than writing directly. The system normalizes what it sees and proposes records; nothing is actually saved until a person accepts the review. [Importing](/docs/contacts/import) walks through what that review batch looks like.
 
-## Identity
+## How two records become one
 
-Canonical IDs win over email joins. Two records that look like one person become a merge proposal. The operator decides. Ambiguous identity is review work.
+Canonical IDs win over a matching email whenever both exist, since an email can be shared or changed but an ID cannot. When two records look like the same person, the workspace shows you both side by side with the evidence for the match, and it waits for you to decide, on purpose: a merge you did not intend quietly destroys history you will need later, while a duplicate that sits unresolved for a day costs you thirty seconds. Ambiguous identity stays review work for exactly that reason.
 
-## Companies
+## Following the graph
 
-People link to companies, companies to opportunities, opportunities to conversations. That graph is queryable. Asking who can introduce you to a target is a path through those links.
+A person links to a company, a company to its opportunities, an opportunity to the conversations behind it, and that whole graph is queryable, not just clickable. Asking who at your business could actually introduce you to a target contact is a real question you can answer by walking those links instead of guessing from memory.

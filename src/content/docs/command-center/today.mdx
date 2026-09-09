@@ -1,41 +1,56 @@
 ---
 title: "Work the Today queue"
-description: "Review urgent work, take the next action and confirm the result."
-updated: "2026-09-07"
+description: "Open with the work that actually needs a decision, ranked with the reason it's there."
+updated: "2026-09-09"
 ---
 
-Open `/admin/today` at the start of your work session. Today gathers items that need attention, including replies, due tasks, upcoming meetings, proposals, approvals and system problems.
+Every business has a version of the same problem: the most urgent thing to do this morning is buried under a dozen less urgent ones, and finding it means scanning an inbox, a task list, and a calendar separately before you can even start. Today does that scanning for you. Open it at `/admin/today` at the start of your session, and you get replies, due tasks, upcoming meetings, proposals, approvals, and system problems in one ranked queue.
 
-## Read the four attention sections
+<DocsFigure
+  src="/images/docs/command-center/today.png"
+  alt="Today in the fictional Northline Roofing workspace, showing Needs your decision, Your work, and Watch sections ranked with reasons."
+  width={1440}
+  height={1000}
+  caption="Today in the fictional Northline Roofing workspace: approvals waiting on the left, ranked tasks below. This is the real interface with fictional demo data."
+/>
 
-- **Needs your decision:** pending approvals with an exact change to review.
-- **Your work:** tasks, including recovery follow-ups, with completion and snooze controls.
-- **Watch:** conversations, proposals and operational signals to investigate in their source workspace.
-- **Upcoming:** meetings and dated context to prepare for.
+## The four sections, and what each one actually is
 
-These are views of the underlying records. Opening a signal does not create a task, and a custom App can retain its own work type and native interface. The business snapshot and App follow-up disclosure keeps additional context available below the attention sections.
+**Needs your decision** holds pending approvals with an exact change to review, the only section where something waits specifically on your yes or no. **Your work** is tasks, including recovery follow-ups, with completion and snooze controls right there. **Watch** surfaces conversations, proposals, and operational signals worth investigating, though you go to their source screen to actually act on them. **Upcoming** is meetings and dated context worth preparing for before they happen rather than after.
 
-Open [Work](/docs/command-center/work) for the task and approval lists, ownership/status filters and task editing. The same saved state appears across the two views.
+These four sections are views over the same underlying records, not a separate to-do list, so opening a signal here does not create a new task somewhere else, and a custom App can still keep its own native work type and interface if it needs one. [Work](/docs/command-center/work) gives you the same tasks and approvals with ownership and status filters for editing; both screens share the same saved state, so a change in one shows up in the other immediately.
 
-## Work one item
+## Working one item
 
-1. Read the item's reason and due date. Open its linked record to check the latest context.
-2. Take the offered action: respond, review an approval, complete a task or choose a later date where snooze is available.
-3. For an approval, inspect the exact proposed change. For a message, check the recipients and full body before approving a send.
-4. Check the result. Refresh the queue if needed and confirm the item is resolved or has a specific next step.
+<StepByStep>
+  <Step number={1} title="Read the reason">
+    Check the item's stated reason and due date, then open its linked record for the latest context
+    before you act on it.
+  </Step>
+  <Step number={2} title="Take the offered action">
+    Respond, review an approval, complete a task, or snooze to a later date where that option
+    exists.
+  </Step>
+  <Step number={3} title="Check content before approving a send">
+    For an approval, inspect the exact proposed change. For a message specifically, read the
+    recipients and the full body, not just that a draft exists.
+  </Step>
+  <Step number={4} title="Confirm the result">
+    Refresh the queue if needed, and check that the item is actually resolved or has a specific next
+    step, rather than assuming your action was the last one required.
+  </Step>
+</StepByStep>
 
-Completing a task records that the task is done. It does not prove an email was delivered or a customer accepted a proposal. Check the relevant [action result](/docs/start/receipts) when work involves an external service.
+Completing a task records that the task itself is done; it says nothing about whether an email was delivered or a customer accepted a proposal, so check the [action result](/docs/start/receipts) whenever the work touched an external service.
 
-## Decide what to do first
+## Deciding what to do first
 
-Use urgency, deadline and the stated reason together. A customer waiting for a promised response may need attention before an undated internal task. If you postpone work, leave a date and enough context for the next person to continue.
+Weigh urgency, deadline, and the stated reason together rather than picking whatever sits at the top. A customer waiting on a response you already promised often deserves attention before an undated internal task, even if the task looks older. If you postpone something, leave a date and enough context that the next person, which might be you tomorrow, can pick it up without re-investigating from scratch.
 
-Ask AI can help summarize the underlying records. Review the evidence before accepting its recommendation.
+Ask AI can summarize the records behind an item for you, and it is worth using for exactly that. Review the evidence it shows you before acting on its recommendation, the same way you would with a colleague's summary.
 
-## When the queue looks wrong
+## What to check
 
-- **An item remains after you act:** inspect the saved record and refresh. Do not repeat an external action just to clear the row.
-- **A refresh fails:** the page may retain the last successful queue. Check its age before relying on it.
-- **Nothing appears:** confirm the workspace and loading state. An empty queue is not proof that every connected system is healthy.
-
-Use [Setup Center](/docs/workspace/setup) for connection problems and [Activity](/docs/command-center/activity) to inspect recorded changes.
+- If an item is still there after you act on it, inspect the saved record and refresh before assuming something is broken. Never repeat an external action, like resending an email, just to make a stubborn row disappear.
+- If a refresh fails, the page may be showing you its last successful load rather than current state, so check that load's age before you rely on it.
+- An empty queue means nothing is currently ranked as urgent, not that every connected system is healthy. Use [Setup Center](/docs/workspace/setup) for connection problems and [Activity](/docs/command-center/activity) to inspect what actually happened.

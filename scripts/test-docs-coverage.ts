@@ -13,6 +13,7 @@ function fixture(t: TestContext) {
   t.after(() => rmSync(docsDir, { recursive: true, force: true }));
   const manifest: DocsSection[] = ["start", "reference"].map((id) => ({
     id,
+    track: "operator",
     title: id,
     description: id,
     modules: id === "start" ? ["fixture-module"] : [],
@@ -230,6 +231,7 @@ test("bundled plugins cannot substitute a generic guide or external README", (t)
   );
   input.manifest!.push({
     id: "plugins",
+    track: "builder",
     title: "Plugins",
     description: "Examples",
     pages: [

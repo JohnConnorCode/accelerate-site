@@ -1,10 +1,10 @@
 ---
 title: "Add an integration adapter"
-description: "Verify credentials, encrypt them, and turn inbound events into canonical records."
-updated: "2026-09-04"
+description: "Verify a provider's credentials, encrypt them, and turn its inbound events into canonical records."
+updated: "2026-09-09"
 ---
 
-An adapter is how a provider's credentials get verified and how its inbound data becomes canonical records. The contract is `IntegrationAdapter` in `src/lib/revenue-os/integration-adapters.ts`.
+Connecting a new provider well means two things happening correctly every time: its credentials get verified before anything trusts them, and whatever it sends in becomes a real canonical record rather than a pile of unlinked webhook payloads. An adapter is what does both. The contract is `IntegrationAdapter` in `src/lib/revenue-os/integration-adapters.ts`.
 
 WhatsApp and HubSpot are the adapters on that generic path today. OpenRouter and MCP stay outside it on purpose (tenant-scoped encryption and a server-issued key). Most new adapters will not need that exception.
 

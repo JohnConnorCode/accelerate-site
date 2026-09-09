@@ -7,9 +7,9 @@ import { generateFaqJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 export const metadata = seoMetadata({
   title: "Command Center",
   description:
-    "A multi-tenant operating layer for service businesses: prioritized work, pipeline, communications, analytics, safe automation, and tenant-controlled AI costs.",
+    "See what needs you, follow the customer conversation, and move the next action forward. Command Center connects your records, approvals, and workflows in one workspace.",
   ogTitle: "Command Center",
-  ogSubtitle: "An integrated operating layer, when that is the right solution",
+  ogSubtitle: "Your work. One clear view.",
   path: "/command-center",
 });
 

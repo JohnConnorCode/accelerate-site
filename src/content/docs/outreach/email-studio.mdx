@@ -1,19 +1,27 @@
 ---
 title: "Email Studio"
-description: "Edit live copy, inspect what was sent, and compose a direct follow-up."
-updated: "2026-09-04"
+description: "Edit the actual live copy, check what really sent, and write a direct one-off follow-up."
+updated: "2026-09-09"
 ---
 
-Open `/admin/emails`. Three views share the page: templates, send history, and a composer for a direct follow-up.
+When a customer says they never received your email, the useful next step is not resending it and hoping, it's checking exactly what your system tried to send and whether the provider actually accepted it. Open `/admin/emails` for that: three views share the page, templates, send history, and a composer for a direct follow-up.
+
+<DocsFigure
+  src="/images/docs/outreach/email-studio.png"
+  alt="Email Studio in the fictional Northline Roofing workspace."
+  width={1440}
+  height={1000}
+  caption="Email Studio in the fictional Northline Roofing workspace: templates, send history, and a composer. Fictional demo data."
+/>
 
 ## Templates
 
-Drafts are protected. Publishing a revision is explicit. Preview and test sends use the same rendering path as production, so a test that looks right is the template that will send.
+Drafts stay protected until you explicitly publish a revision, and preview and test sends use the exact same rendering path as production, so a test that looks right in the composer is genuinely the template that will go out to a customer.
 
 ## History
 
-What left the building, with provider receipts. Open a row when a contact says they never got the mail. A missing provider id means the send failed or is still uncertain.
+This is what actually left the building, with each send's provider receipt attached. Open a row whenever a contact says they never got the mail; a missing provider id there tells you the send either failed outright or is still uncertain, which is a different problem than a customer's spam filter.
 
 ## Composer
 
-A one-off follow-up from this screen still goes through the communication sender with an idempotency key. It still obeys [campaign](/docs/outreach/campaigns) stop rules for people who unsubscribed.
+A one-off follow-up you write from this screen still goes through the same communication sender with the same idempotency key as everything else, and it still obeys [campaign](/docs/outreach/campaigns) stop rules for anyone who has unsubscribed, so a manual send can never accidentally reach someone who opted out.

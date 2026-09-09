@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { docsManifest } from "@/content/docs/manifest";
+import { docsManifest, docsTracks } from "@/content/docs/manifest";
 import { DocsSidebar } from "./DocsSidebar";
 
 /** Collapsible guide index for small screens. Closes after a navigation. */
@@ -25,7 +25,9 @@ export function DocsMobileNav() {
       className="mb-8 rounded-xl border border-[var(--rule)] px-4 py-3 lg:hidden"
     >
       <summary className="cursor-pointer text-sm font-semibold text-heading">
-        {section ? `${section.title} guides` : "All guides"}
+        {section
+          ? `${docsTracks.find((t) => t.id === section.track)?.title ?? ""} · ${section.title}`
+          : "All guides"}
       </summary>
       <div className="mt-4 max-h-[min(70vh,32rem)] overflow-y-auto pr-1">
         <DocsSidebar />

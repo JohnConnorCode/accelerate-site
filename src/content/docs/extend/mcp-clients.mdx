@@ -1,10 +1,10 @@
 ---
 title: "Connect an MCP client"
-description: "Connect an external assistant to the intended workspace and verify a read first."
-updated: "2026-09-08"
+description: "Point an external assistant at the right workspace, and verify a read before trusting it."
+updated: "2026-09-09"
 ---
 
-The recommended workspace connection is the tenant HTTP endpoint. It authenticates with the MCP key issued for that workspace. The local stdio runner is a separate self-hosting path with different credentials and scope.
+The recommended way to connect a workspace is the tenant HTTP endpoint, authenticated with the MCP key issued specifically for that workspace. The local stdio runner is a separate self-hosting path, with different credentials and a different scope, covered further down.
 
 ## Connect over HTTP
 

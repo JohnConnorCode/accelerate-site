@@ -1,10 +1,18 @@
 ---
 title: "Review leads and chat handoffs"
-description: "Qualify an inquiry, check for an existing person and record the next action."
-updated: "2026-09-08"
+description: "Qualify a new inquiry, check whether it's actually someone you already know, and record what's next."
+updated: "2026-09-09"
 ---
 
-Open `/admin/leads` for website and form inquiries, or `/admin/chat-leads` for handoffs from the public assistant.
+A form submission and a returning customer asking the same question twice look identical until someone actually checks. Open `/admin/leads` for website and form inquiries, or `/admin/chat-leads` for handoffs from the public assistant, and work each one with that check in mind.
+
+<DocsFigure
+  src="/images/docs/sources/leads.png"
+  alt="The Leads screen in the fictional Northline Roofing workspace, showing inquiries with score and status columns."
+  width={1440}
+  height={1000}
+  caption="Leads in the fictional Northline Roofing workspace: eighteen inquiries with their qualification status. Fictional demo data."
+/>
 
 ## Work an inquiry
 
@@ -16,9 +24,9 @@ Open `/admin/leads` for website and form inquiries, or `/admin/chat-leads` for h
 
 A useful next action names the person responsible, the action and the date: “Maya will call about the estimate on Tuesday.” “Follow up” alone does not tell the next operator what to do.
 
-## Handle an ambiguous match
+## Handling an ambiguous match
 
-Keep the inquiry available for review and compare email, company and conversation history. Do not silently attach a submission to whichever record appears first. Use [Importing contacts](/docs/contacts/import) for file imports; an import is a separate workflow.
+Keep the inquiry available for review and compare email, company, and conversation history rather than attaching a submission to whichever record happens to appear first. [Importing contacts](/docs/contacts/import) is the separate workflow for a file import specifically.
 
 ## Export a list
 

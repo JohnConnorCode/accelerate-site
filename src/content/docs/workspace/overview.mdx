@@ -1,23 +1,21 @@
 ---
 title: "Workspace"
-description: "How a tenant is provisioned, connected, and kept ready."
-updated: "2026-09-04"
+description: "How your business gets provisioned, connected, verified, and kept running."
+updated: "2026-09-09"
 ---
 
-Workspace is tenancy, setup, settings, integrations, and the Feature Board.
+Before any of the daily workflow works, something has to provision your business, connect your tools, and confirm those connections actually function, and that groundwork is what Workspace covers: tenancy, setup, settings, integrations, and the Feature Board that tracks what's still being built.
 
-- [Integrations](/docs/workspace/integrations). Providers, module switches, and the MCP key.
-- [Setup Center](/docs/workspace/setup). Connect, verify, and operate. Status reflects this deployment.
-- [Settings](/docs/workspace/settings). Notification preferences and operating configuration.
+[Integrations](/docs/workspace/integrations) is where providers, module switches, and your MCP key live. [Setup Center](/docs/workspace/setup) is where you connect, verify, and operate, with status that reflects this specific deployment rather than a generic checklist. [Settings](/docs/workspace/settings) holds notification preferences and the rest of your operating configuration.
 
 ## Tenants and setup
 
-`/admin/tenants` provisions workspaces and memberships. `/admin/setup` is the readiness list: schema, providers, mail, calendar, and AI. A check that is not ready is shown as not ready. Setup does not expose secrets.
+`/admin/tenants` provisions workspaces and memberships; `/admin/setup` is the readiness list covering schema, providers, mail, calendar, and AI. A check that genuinely is not ready gets shown as not ready, plainly, and Setup never exposes a secret to tell you that.
 
 ## Integrations and modules
 
-`/admin/integrations` is the connector catalog and the module switches. Provider facts are evidence. A planned connector does not appear installed. See [Modules](/docs/start/modules).
+`/admin/integrations` is both the connector catalog and the module switches in one place. Provider facts shown there are evidence of an actual connection, not a promise: a planned connector never shows up looking installed when it isn't. See [Modules](/docs/start/modules) for how enabling or disabling one actually behaves.
 
 ## Settings and the Feature Board
 
-Operating preferences live in Settings. The Feature Board is the delivery backlog the public [roadmap](/roadmap) renders from the same manifest. This page does not restate that board.
+Operating preferences live in Settings. The Feature Board is the delivery backlog the public [roadmap](/roadmap) renders directly from, so this page points at it rather than duplicating a second, drifting copy of the same list.

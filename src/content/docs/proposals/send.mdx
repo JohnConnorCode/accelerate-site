@@ -1,23 +1,23 @@
 ---
 title: "Drafting and sending"
-description: "Catalog pricing, unguessable public links, and decisions that write an audit row."
-updated: "2026-09-04"
+description: "Draft, share an unguessable link, and record a decision that writes its own audit row."
+updated: "2026-09-09"
 ---
 
-Open `/admin/proposals`. Create a draft and attach it to the client and opportunity. Review the title, scope and totals before marking it sent and sharing its public link.
+Open `/admin/proposals` and create a draft attached to the client and the opportunity it belongs to, then review the title, scope, and totals carefully before you mark it sent and share its public link. That review is the last checkpoint before a customer sees a number; there is no undo on a price they've already read.
 
-## Share and record a decision
+## Sharing and recording a decision
 
-Draft links do not expose proposal content. After the proposal is marked sent, its unguessable public link lets the recipient view, accept or decline. A decline requires a reason. Expired or superseded proposals cannot receive a new decision.
+A draft link never exposes the proposal's content, so sharing one early does not leak your pricing. Once a proposal is marked sent, its unguessable public link lets the recipient view it, accept it, or decline it, and a decline requires a reason so the follow-up has something real to work with. An expired or superseded proposal can no longer receive a new decision, on purpose, since a stale decision on old terms would be worse than no decision at all.
 
-Each lifecycle change records its event and audit evidence in the same transaction. Repeating the same operation returns its existing receipt. If a save fails, refresh the record and retry the same intended change rather than creating another proposal.
+Every lifecycle change records its event and audit evidence in the same transaction, so the two can never drift apart. Repeating the same operation returns its existing receipt rather than creating a duplicate, and if a save fails, refresh the record and retry the same intended change instead of starting a fresh proposal.
 
-## Revise after sharing
+## Revising after you've shared it
 
-Editing the material content of a sent or viewed proposal creates a new draft version. The earlier version becomes superseded and retains its original content and history. Review the successor and share its new link when ready. Accepted, declined and expired proposals are terminal; their terms cannot be edited in place.
+Editing the material content of a proposal that has already been sent or viewed creates a new draft version rather than silently changing what the customer already saw. The earlier version becomes superseded and keeps its original content and history intact, so you always have a record of exactly what they were looking at when they read it. Review the new version and share its link when you're ready. Accepted, declined, and expired proposals are terminal: their terms cannot be edited in place, because a proposal someone already agreed to is not a draft anymore.
 
-## Follow up
+## Following up
 
-A recorded decision creates a follow-up task and uses the shared pipeline transition rules. Acceptance can move an open opportunity to negotiation; it does not establish a won deal or collected payment. If follow-up processing fails after the decision was recorded, retry the same response so its existing receipt can resume the follow-up work without duplicating the decision.
+A recorded decision creates a follow-up task automatically and uses the same pipeline transition rules as everything else. Acceptance can move an open opportunity to negotiation, but it does not on its own establish a won deal or confirm collected payment, those are separate facts you still need to verify. If follow-up processing fails after the decision itself was recorded, retry that same response; its existing receipt lets the follow-up work resume without duplicating the original decision.
 
-Use [Today](/docs/command-center/today) to review the task and [the pipeline](/docs/pipeline/board) to confirm the next stage against actual evidence.
+Use [Today](/docs/command-center/today) to review the resulting task and [the pipeline](/docs/pipeline/board) to confirm the next stage matches what actually happened, not just what you hope happened.

@@ -1,50 +1,41 @@
 ---
 title: "An AI command center you can make your own"
-description: "Connect your business, work with AI, and build on an open-source foundation you control."
-updated: "2026-09-06"
+description: "Connect your business, work with AI that earns more trust over time, and build on an open-source foundation you control."
+updated: "2026-09-09"
 ---
 
-Your business already has a way of working: the people you serve, the promises you make, the tools you rely on, and the decisions that need your attention. Command Center brings that context into a workspace where your team and AI can work with the same records.
+A customer calls to ask when their project starts. Whoever picks up needs the thread from last spring, the proposal they accepted, and the date your team promised, and today those three things usually live in three different places: an inbox, a spreadsheet, and someone's memory. Command Center puts them in one workspace, so the person answering the phone is never reconstructing a story from fragments.
 
-You can review a deal, understand its conversation history, ask AI what needs attention, and prepare the next action without rebuilding the context each time. As your needs grow, you can add your own screens, integrations and plugins. The source is available under the MIT license; you can host the application with your own database and provider accounts.
+That single workspace is also what AI needs to be useful rather than generic. An assistant that can only see the message in front of it can draft a plausible reply. An assistant that can see the deal, the history, and what your team already promised can draft the _right_ reply, and tell you why it drafted it that way.
 
 <DocsFigure
   src="/images/open-source/slide-today-paper.png"
   alt="Today in a fictional roofing business, with a priority queue and actions awaiting review."
-  caption="Start with the work that needs a decision. This is the real Command Center interface using fictional demo data."
+  width={1440}
+  height={1000}
+  caption="Today, in the fictional Northline Roofing workspace: the work that needs a decision, ranked, with the reason attached. This is the real Command Center interface using fictional demo data."
 />
 
-## What changes when your tools share context?
+## What you actually get back
 
-Imagine a customer asks when their project can start. The useful answer depends on more than the message: who they are, which proposal they accepted, and what your team has promised. Linked contacts, conversations, opportunities and tasks give you a place to find that context and keep the next step attached to the right customer.
+Your week gets smaller as the system earns your trust. Every action the assistant can take starts out requiring your review, every time. Once you have approved the same kind of action three times over at least a week, the system proposes moving it up a rung, so a stage change or a routine reply that used to cost you a click starts clearing itself, and the exceptions are what land in front of you. You are never opting into blanket autonomy; you are watching a specific, narrow permission earn its way up, one proven pattern at a time. [Approvals](/docs/command-center/approvals) walks through exactly how that ladder works.
 
-AI uses the workspace's available tools to read that information and prepare supported changes. You can inspect the sources, review a proposed action, and check its recorded result. The [AI guide](/docs/intelligence) shows how to move from a question to useful work.
+Some things never move up that ladder, on purpose. Deleting an account, changing a credential, exporting your customer database, a high-value refund: those stay behind a human decision permanently, regardless of how much the system has earned your trust elsewhere. Of the 77 tools your assistant can call, only three can act outside the workspace at all: sending an email, replying to a conversation, and activating a campaign. Everything else reads what already exists or prepares a change that still needs your yes the first several times, and then, if you let it, on its own after that.
 
-## Start with a working foundation, then shape it
+## One workspace, built to be extended
 
-The application includes customer records, conversations, pipeline, campaigns, proposals, tasks and analytics. Optional modules let you choose the areas you need. Connections bring external information into the workspace; extensions add business-specific behavior.
+The application ships with the records a service business actually runs on: customer contacts, conversations, a pipeline, campaigns, proposals, tasks, and analytics. You turn on the modules you need and leave the rest off. Ten bundled examples ship disabled by default and show working patterns, from a read-only report that flags overdue commitments to a full Collections workspace that tracks a payment promise against a verified invoice balance. The [plugin examples](/docs/plugins) walk through what each one actually does, not what it might one day do.
 
-The [plugin examples](/docs/plugins) make this tangible. Business Pulse combines several sources into a report. Client onboarding turns an approved plan into assigned tasks. Collections connects invoice evidence to a reviewed reminder. Each example explains what runs today and what you could build on top of it.
+When none of that fits, you extend it. A coding assistant can build a new report, a new workflow, or a new AI tool using the same records, permissions, and approval queue the rest of the application already runs on, so a maintenance company can add an equipment-service workspace tied to its existing customers without re-inventing identity resolution or the approval flow underneath it. [Build on it](/docs/extend) is the starting brief.
 
-A coding assistant can help implement those extensions using the same records, permissions and action services as the existing application. You still review and test the result. An extensible foundation gives you room to build; it does not make an unimplemented integration appear automatically.
+## Try it before you connect anything
 
-## Explore it before connecting your business
+Open the [fictional demo](/demo/command-center) and pick one of six businesses, roofing to a law firm to a nonprofit, then follow [your first workflow](/docs/start/daily-path). It needs no account and no provider keys, and nothing it does reaches a real customer. Look at Today, open a conversation, and review an approval to see how the pieces actually connect to each other before you decide whether any of this is worth setting up for real.
 
-Open the [fictional demo](/demo/command-center), then follow [your first workflow](/docs/start/daily-path). It needs no account or provider keys, and its actions stay inside the demo. Look at Today, open a customer conversation, and inspect an approval to see how the pieces connect.
+When you are ready to use your own data, [installation](/docs/self-hosting/installation) and [workspace setup](/docs/workspace/setup) walk through connecting your own database and provider accounts. You own the deployment. The providers you connect, email, calendar, your model of choice, still process what you send them under their own terms, and hosting, email, and AI usage can cost real money once you are past the demo.
 
-When you are ready to use your own data, follow [installation](/docs/self-hosting/installation) and [workspace setup](/docs/workspace/setup). You control the deployment and database. Connected providers still process the information you send them under their own terms, and hosting, email and model usage can incur costs.
+## What to check
 
-## Choose where to go next
-
-| Your goal                                 | Start here                                       |
-| ----------------------------------------- | ------------------------------------------------ |
-| Understand and try the daily workflow     | [Your first workflow](/docs/start/daily-path)    |
-| Ask questions and prepare actions with AI | [Work with business context](/docs/intelligence) |
-| Connect existing tools and data           | [Integrations](/docs/workspace/integrations)     |
-| See what an extension can become          | [Plugin examples](/docs/plugins)                 |
-| Build a capability for your business      | [Extend the runtime](/docs/extend)               |
-| Run an instance you control               | [Self-hosting](/docs/self-hosting/installation)  |
-
-The guides describe the current application. Availability depends on your enabled modules, permissions and connections. The [capability reference](/docs/command-center/capabilities) helps you understand the tools your workspace can actually use.
-
-For the complete map from source data to reviewed work, receipts, extensions, and coding agents, read [How Accelerate works](/docs/start/how-it-works).
+- The source is MIT licensed and self-hostable, but a capability listed in the [reference](/docs/command-center/capabilities) is not proof your workspace has connected and verified that provider. Confirm a capability is live in your own [Setup Center](/docs/workspace/setup) before you promise a workflow to your team.
+- An extensible foundation gives you room to build; it does not mean an integration you have not built yet is already running. Check [Build on it](/docs/extend) for what exists today versus what you would need to write.
+- For the complete map from a piece of source data to a reviewed action, a recorded receipt, and a reusable extension, read [How Accelerate works](/docs/start/how-it-works).

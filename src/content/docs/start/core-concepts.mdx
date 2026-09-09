@@ -1,39 +1,39 @@
 ---
 title: "Core concepts"
-description: "The people, records, work, and decisions you will see in the workspace."
-updated: "2026-09-05"
+description: "The vocabulary every other guide assumes: workspace, record, approval, receipt, and how they connect."
+updated: "2026-09-09"
 ---
 
-Use this page as a glossary. You can start with [your first workflow](/docs/start/daily-path) and return here when a term is unfamiliar.
+Every other guide in this section uses a handful of words in a specific way, and getting them right up front saves you from re-reading a page later wondering what it actually meant. Start with [your first workflow](/docs/start/daily-path) if you have not yet, then come back here whenever a term is unfamiliar.
 
 ## Workspace
 
-Your business's environment: its people, records, settings, and connected accounts. Access depends on your membership. Developers also call this a tenant.
+Your business's own environment: its people, its records, its settings, and the accounts it has connected. What you can see and do inside it depends on your membership. Developers reading the source also call this a tenant, and it is the boundary every check in the product runs against.
 
 ## Record
 
-A saved business object, such as a contact, company, opportunity, or conversation. Records link together so a deal can show the people, messages, and work that belong to it.
+A saved business object with a stable identity: a contact, a company, an opportunity, a conversation. Records link to each other, which is the whole point of the product, so opening one deal shows you the people, the messages, and the work that actually belong to it instead of making you go find each one separately.
 
 ## Module
 
-An area of functionality, such as proposals or campaigns. Your workspace can switch optional modules on or off. A guide may describe a module that is not enabled for you. See [Modules](/docs/start/modules).
+One area of functionality, such as proposals or campaigns, that your workspace can switch on or off without anyone forking the application. A guide here may describe a module that is not enabled for you; [Modules](/docs/start/modules) explains how to check.
 
 ## Proposal and approval
 
-An action proposal describes a change that has not run yet. Approval is the decision to authorize it. This is different from a sales proposal document, which lives under [Proposals](/docs/proposals).
+An action proposal is a specific change that has not run yet. Approval is your decision to authorize it, or not. This is a different thing from a sales proposal document, the kind you send a customer, which lives under [Proposals](/docs/proposals) and has nothing to do with this queue.
 
 ## Action queue
 
-The pending actions that need processing or review. AI-proposed changes appear here before execution. Actions you perform manually follow their screen's controls. See [Approvals](/docs/command-center/approvals).
+The pending actions waiting on processing or your review. Anything the AI proposes lands here before it executes, never after. Something you do manually, like sending a reply you wrote yourself, follows that screen's own controls instead and never touches this queue. See [Approvals](/docs/command-center/approvals) for how an action here earns its way toward running without you.
 
 ## Receipt
 
-A recorded outcome of an attempted action. It helps establish whether the action succeeded, failed, or still needs attention. A draft and an approved request are not proof that a message was sent.
+The recorded outcome of an action that was actually attempted, which is how you tell whether it succeeded, failed, or is still uncertain. A draft sitting in the queue and an approval you just clicked are not proof that a message reached anyone; the receipt is what tells you that, once it exists.
 
 ## Activity and audit
 
-Activity lets you investigate changes and their origin. The underlying audit history records who changed what and when. See [Activity](/docs/command-center/activity).
+Activity is where you go to investigate a change and trace it back to what caused it. The audit history underneath it records who changed what and when, in a form nobody, including an AI tool, can quietly edit after the fact. See [Activity](/docs/command-center/activity).
 
 ## Idempotency
 
-Protection against repeating the same intended action during a retry. For example, a retry of an existing send should use its original request identity rather than create another email. When the result is uncertain, inspect the original action before trying again.
+Protection against the same intended action running twice because of a retry. If a send is retried, it reuses its original request identity instead of creating a second email out of the same intent, so a flaky connection does not turn into a duplicate message in a customer's inbox. When a result is genuinely uncertain, the safe move is to inspect the original attempt before trying again, not to assume it failed and resend.

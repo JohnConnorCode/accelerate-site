@@ -1,15 +1,15 @@
 ---
 title: "AI tool reference"
-description: "Registered tools, connection requirements, and input schemas."
-updated: "2026-09-05"
+description: "Every registered tool, generated straight from the registry: what it needs and what it does."
+updated: "2026-09-09"
 ---
 
-This reference is generated from the application's tool registry. Expand an input schema to inspect the accepted fields before building an integration or debugging a request.
+77 tools are registered in this application, and the split between them is the most important thing to understand before you read the list below: the large majority only read information already in your workspace, and exactly three, `propose_send_email`, `propose_conversation_reply`, and `propose_campaign_activation`, can act outside it at all. Everything else either answers a question or prepares an internal change that still waits for your approval before it does anything a customer would notice.
 
-**Registration does not guarantee availability in your workspace.** Tool packs, module settings, provider readiness, and policy affect which tools an assistant can use. Check the tool's connection requirement and your [Setup Center](/docs/workspace/setup).
+This reference is generated directly from the application's tool registry, so it can never drift out of sync with what actually exists. Expand a tool's input schema to inspect the exact fields it accepts before you build an integration around it or debug a request that isn't behaving the way you expected.
 
-Read tools retrieve context. Tools that propose changes route through the [approval workflow](/docs/command-center/approvals). A proposal is not a completed external action.
+Registering a tool in the product is not the same as that tool being available in your specific workspace: tool packs, module settings, provider readiness, and policy all affect which ones an assistant can actually call for you. Check a tool's connection requirement below, and your own [Setup Center](/docs/workspace/setup), before assuming it's live.
 
-Use the docs search above to find an exact tool name. For client setup, see [Connect an MCP client](/docs/extend/mcp-clients).
+A read tool retrieves context and nothing more. A tool that proposes a change routes through the [approval workflow](/docs/command-center/approvals) instead of running immediately, so a proposal appearing in this reference is a capability, not proof that any specific action has happened. Use the docs search above to jump straight to an exact tool name, and see [Connect an MCP client](/docs/extend/mcp-clients) for client-side setup.
 
 <DocsAiToolCatalog />

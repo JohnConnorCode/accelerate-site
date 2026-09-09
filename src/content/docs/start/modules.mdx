@@ -1,24 +1,23 @@
 ---
 title: "Modules"
-description: "Optional capabilities a workspace turns on and off without forking the app."
-updated: "2026-09-04"
+description: "Turn a whole area of the product on or off per workspace, without forking the application."
+updated: "2026-09-09"
 ---
 
-The product is a set of modules. Core modules (command, pipeline, conversations, contacts, intelligence, system) stay on. Optional modules (campaigns, proposals, bookings, and the rest) can be disabled per workspace.
+A law firm has no use for a campaigns screen it will never touch, and a roofing company does not need a bookings calendar built for a real estate team. Rather than making every business carry every feature, the product is built as modules: self-contained areas like pipeline, campaigns, proposals, and bookings that a workspace can switch on or off without anyone touching the source code.
 
-## What turning one off does
+A small set of core modules, command, pipeline, conversations, contacts, intelligence, and system, stay on for every workspace, because the rest of the product assumes they exist. Everything else is optional, and what you enable is what your team actually sees.
 
-- Its navigation entries disappear
-- Its admin routes show a disabled notice
-- Its API routes refuse the request
-- Its AI tools are marked unavailable to the assistant and to MCP
+## What actually happens when you turn one off
 
-The Integrations screen is the exception that can re-enable modules, so it never hides itself. Gating it would strand an operator with no path back.
+Turning off a module is not cosmetic. Its navigation entries disappear from the sidebar, so nobody stumbles into a screen that will not work. Its admin routes show a disabled notice instead of the real page if someone bookmarks a direct link. Its API routes refuse the request outright rather than silently doing nothing. And its AI tools are marked unavailable to both the assistant and any external MCP client, so the assistant will not attempt an action your workspace has not turned on.
+
+The Integrations screen is the one deliberate exception: it can always re-enable a module, because gating Integrations itself would strand an operator with no way back once something got turned off by mistake.
 
 ## Where to change it
 
-Open Integrations in the workspace. Each module card shows whether it is on, which tools it owns, and a documentation link the build verifies is live. See [Workspace](/docs/workspace).
+Open Integrations in your workspace. Each module's card shows whether it is currently on, which AI tools it owns, and a documentation link that the build itself verifies is live, so a module can never ship pointing at a dead guide. See [Workspace](/docs/workspace) for the rest of what lives on that screen.
 
-## Adding a module
+## Adding one that does not exist yet
 
-Third parties register a manifest under `extensions/` rather than editing core. The contract is in the repository's extending guide. A core or optional module that ships without a docs URL that resolves to a live guide fails CI.
+A third party registers a new module as a manifest under `extensions/` in the source, rather than editing the core application directly. That keeps your changes separate from the parts of the product everyone shares. The full contract for what a manifest needs is in the repository's extending guide, and CI itself enforces one rule you cannot skip: a module that ships without a docs URL resolving to a real, live guide fails the build.

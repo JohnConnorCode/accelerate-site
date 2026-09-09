@@ -1,10 +1,10 @@
 ---
 title: "MCP concepts"
-description: "Bounded reads, staged writes, tenant isolation. The same registry the UI uses."
-updated: "2026-09-04"
+description: "Bounded reads, staged writes, and tenant isolation, using the exact same registry the UI uses."
+updated: "2026-09-09"
 ---
 
-The Command Center exposes a Model Context Protocol server so Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity can read bounded workspace state and stage proposals. It speaks the handshake `initialize` lifecycle over Streamable HTTP, and also a local stdio adapter for desktop clients.
+Command Center exposes a Model Context Protocol server so Claude Desktop, Claude Code, ChatGPT, Cursor, and Antigravity can all read bounded workspace state and stage proposals, without any of them getting a different, less-governed path than your own team gets. It speaks the `initialize` handshake over Streamable HTTP, plus a local stdio adapter for desktop clients.
 
 ## Invariants
 

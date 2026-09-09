@@ -1,5 +1,10 @@
 # Write documentation people can use
 
+For public docs prose (`src/content/docs/**/*.mdx`), read
+[`docs/contracts/DOCS-VOICE-CONTRACT.md`](../contracts/DOCS-VOICE-CONTRACT.md)
+first. It states the voice as nine checkable rules with a before/after
+example, replacing the general guidance below wherever the two disagree.
+
 A guide should help its reader complete a task, interpret a result or recover
 from a failure. Open with that purpose and the screen or command to use.
 

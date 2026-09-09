@@ -1,10 +1,18 @@
 ---
 title: "Change workspace settings"
-description: "Update notifications and configuration, then confirm the saved result."
-updated: "2026-09-08"
+description: "Change a notification or your workspace's look, then confirm the change actually saved."
+updated: "2026-09-09"
 ---
 
-Open `/admin/settings` to manage notification preferences and the configuration exposed to your account.
+Open `/admin/settings` to manage notification preferences and the configuration exposed to your account, from what alerts you get to what your whole workspace looks like.
+
+<DocsFigure
+  src="/images/docs/workspace/settings.png"
+  alt="The Settings screen in the fictional Northline Roofing workspace."
+  width={1440}
+  height={1000}
+  caption="Settings in the fictional Northline Roofing workspace. This is the real interface with fictional demo data."
+/>
 
 ## Change one setting
 
@@ -45,9 +53,9 @@ person saves first, reload and review their version before applying your edits.
 
 Use [Integrations](/docs/workspace/integrations) for provider credentials and connection setup. General settings reject values that resemble secrets. If a credential field is missing, follow the connection guide rather than placing the key in a text setting.
 
-## Recover from a failed save
+## Recovering from a failed save
 
-Reload to check the stored value. If it stayed unchanged, record the setting name and error for your technical owner. Do not include the value when it contains private business information.
+Reload to check the actual stored value. If it stayed unchanged, record the setting name and the error for your technical owner, leaving out the value itself whenever it contains private business information.
 
 Use [Setup Center](/docs/workspace/setup) to inspect a connection problem and [Activity](/docs/command-center/activity) to investigate who changed configuration.
 

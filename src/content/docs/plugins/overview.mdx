@@ -1,12 +1,10 @@
 ---
 title: "Plugin examples"
-description: "Explore eleven bundled examples, from focused reports to complete business workspaces."
-updated: "2026-09-07"
+description: "Eleven working examples, from a read-only report to a full business workspace, all shipped disabled."
+updated: "2026-09-09"
 ---
 
-Plugins show how you can shape Command Center around the work your business actually does. Start with a focused report, add a reviewed workflow, or build a dedicated workspace on the shared records and services.
-
-These examples are included in the source. Their guides explain what is implemented, how to try it and which parts you can adapt. A report, a registration scaffold and a complete operator workspace have different capabilities; choose the example that matches the change you want to make.
+The gap between "the product could theoretically support this" and "here is a working example you can actually open" is usually where extending software gets hard, because you're guessing at patterns instead of copying one that already runs. These eleven bundled examples close that gap: they ship in the source, disabled by default, and each one's own guide explains exactly what it does today, how to try it, and which parts you'd actually adapt for your business.
 
 <DocsFigure
   src="/images/docs/plugins/radar.png"
@@ -18,41 +16,24 @@ These examples are included in the source. Their guides explain what is implemen
 
 ## Reports that turn records into a useful review
 
-| Example                                               | What you get                                                    |
-| ----------------------------------------------------- | --------------------------------------------------------------- |
-| [Business Pulse](/docs/plugins/business-pulse)        | Pipeline risks, commitments and meetings in one factual report. |
-| [Pipeline follow-up](/docs/plugins/pipeline-watch)    | Open deals with stale updates or overdue next actions.          |
-| [Overdue commitments](/docs/plugins/commitment-watch) | Overdue tasks linked to the work behind them.                   |
-| [Meeting preparation](/docs/plugins/meeting-prep)     | Upcoming meetings that need preparation time.                   |
-
-These reports compute findings without a model call. They are useful examples of keeping factual business rules in code while letting AI help interpret the result.
+Four examples compute a factual finding without ever calling a model, which is worth noticing: [Business Pulse](/docs/plugins/business-pulse) combines pipeline risks, overdue commitments, and upcoming meetings into one report. [Pipeline follow-up](/docs/plugins/pipeline-watch) surfaces open deals with a stale update or an overdue next action. [Overdue commitments](/docs/plugins/commitment-watch) lists overdue tasks linked back to the work behind them. [Meeting preparation](/docs/plugins/meeting-prep) flags upcoming meetings that actually need prep time. Together they're a useful pattern for keeping a factual business rule in plain code while still letting AI help interpret what the report found.
 
 ## Workflows that create something you can use
 
-| Example                                                  | What you get                                                  |
-| -------------------------------------------------------- | ------------------------------------------------------------- |
-| [Client onboarding](/docs/plugins/client-onboarding)     | A reviewed checklist tied to a won opportunity.               |
-| [Meeting commitments](/docs/plugins/meeting-commitments) | Assigned, dated tasks tied to a meeting.                      |
-| [Stripe invoicing](/docs/plugins/stripe-invoicing)       | Reviewed invoice creation, sending and customer presentation. |
+Three examples connect a preview to an approval and an execution result, the same loop the rest of the product runs on. [Client onboarding](/docs/plugins/client-onboarding) turns a won opportunity into a reviewed checklist. [Meeting commitments](/docs/plugins/meeting-commitments) turns a meeting into assigned, dated tasks. [Stripe invoicing](/docs/plugins/stripe-invoicing) covers reviewed invoice creation, sending, and customer presentation. Each shows how your own workflow can reuse the platform's task or provider services instead of building them again from nothing.
 
-These examples connect a preview to an approval and an execution result. They show how your own workflow can reuse the platform's task or provider services.
+## Workspaces built around a business process
 
-## Workspaces for a business process
+Two examples go further and become a small business process on their own. [Receivables Collections](/docs/plugins/receivables-collections) brings invoice evidence, payment promises, disputes, and reviewed reminders into one case workspace. [Opportunity Radar](/docs/plugins/opportunity-radar) combines a business profile with source-backed growth and relationship reviews. Both guides are explicit about what's finished today and what the larger extension pattern looks like.
 
-[Receivables Collections](/docs/plugins/receivables-collections) brings invoice evidence, promises, disputes and reviewed reminders into one case workspace. [Opportunity Radar](/docs/plugins/opportunity-radar) combines a business profile with source-backed growth and relationship reviews. Their guides explain current limits as well as the larger extension patterns.
+## Learning the smallest building block
 
-## Learn the smallest building block
+The [Inventory registration example](/docs/plugins/example-inventory) demonstrates a page, navigation entry, and settings, and nothing more; it's a scaffold for learning module registration, not an inventory product you'd actually run.
 
-The [Inventory registration example](/docs/plugins/example-inventory) demonstrates a page, navigation and settings. It is a scaffold for learning module registration, not an inventory product.
+## Building your own
 
-## Build your own
+Choose an example close to what you want, read its guide, and follow the linked source. Describe your desired business outcome to a coding assistant along with the records it should use and the approvals it has to preserve, then implement and test a focused change using [the extension guide](/docs/extend). A good extension feels like part of the same workspace, the same customers, the same permissions, a result your team can actually inspect, and that shared foundation is what frees you to spend your effort on the part that's genuinely specific to your business.
 
-Choose an example, read its guide, and follow the linked source. Describe your desired business outcome to a coding assistant along with the records it should use and the approvals it must preserve. Then implement and test a focused change using [the extension guide](/docs/extend).
+## Going beyond the examples
 
-An extension should feel like part of the same workspace: the same customers, the same permissions, and a recorded result your team can inspect. That shared foundation is what lets you spend more time on your business-specific capability.
-
-## Go beyond the examples
-
-The bundled examples are a starting library. You can build an App with different records, a custom lifecycle, its own queue and a bespoke interface. Follow [the customization path](/docs/customize) to choose between settings and source changes, or use [the AI development brief](/docs/extend/ai-authoring) to describe a new App to a coding assistant. General-purpose App creation inside Command Center is planned; the current path uses the source repository.
-
-[Site Studio](/docs/plugins/site-studio) prepares private template or AI-assisted page drafts with versioned database storage. It starts disabled and does not publish pages.
+These eleven are a starting library, not a ceiling. You can build an App with its own records, a custom lifecycle, its own queue, and a bespoke interface. Follow [the customization path](/docs/customize) to choose between a settings change and a source change, or use [the AI development brief](/docs/extend/ai-authoring) to describe a new App to a coding assistant. General-purpose App creation inside Command Center itself is planned but not shipped; today's path runs through the source repository. [Site Studio](/docs/plugins/site-studio) prepares private, template- or AI-assisted page drafts with versioned database storage; it starts disabled and does not publish pages on its own.

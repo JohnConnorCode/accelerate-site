@@ -29,7 +29,7 @@ export const CATEGORY_META: CategoryMeta[] = [
     glyph: "▤",
     rgb: "167,139,250",
   },
-  { id: "act", label: "Act", blurb: "It does the work and waits.", glyph: "✦", rgb: "163,230,53" },
+  { id: "act", label: "Act", blurb: "It gets the work done.", glyph: "✦", rgb: "163,230,53" },
   {
     id: "learn",
     label: "Learn",

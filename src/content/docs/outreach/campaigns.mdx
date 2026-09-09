@@ -1,10 +1,18 @@
 ---
 title: "Campaigns"
-description: "Approve a version once, then automation runs inside sender, audience, cadence, limit, and stop rules."
-updated: "2026-09-08"
+description: "Approve one version, then automation runs entirely inside the rules you set for it."
+updated: "2026-09-09"
 ---
 
-Open `/admin/campaigns`. Each campaign has a name, a status, a version, and an approved version. Copy that has not been approved does not send.
+Open `/admin/campaigns`. Each campaign carries a name, a status, a version, and an approved version, and copy that has not been through that approval never sends, regardless of how ready it looks in the editor.
+
+<DocsFigure
+  src="/images/docs/outreach/campaigns.png"
+  alt="The Campaigns screen in the fictional Northline Roofing workspace, showing active, paused, and in-review campaigns."
+  width={1440}
+  height={1000}
+  caption="Campaigns in the fictional Northline Roofing workspace: Storm inspection availability and Spring roof tune-up, each with its own approval state. Fictional demo data."
+/>
 
 ## Create and approve
 
@@ -20,7 +28,7 @@ The source version is checked before copying. The draft, steps, provenance and a
 
 ## What stops a send
 
-Stop rules are re-read before every send: reply, unsubscribe, suppression, exhausted retries. A member who is already stopped is not mailed because the cron woke up. Each send has an idempotency key and a provider receipt. Uncertain provider outcomes refuse blind retry.
+Stop rules get re-read before every single send, not just when the campaign starts: reply, unsubscribe, suppression, and exhausted retries all check fresh each time. A member who is already stopped stays stopped even if the scheduled job that would have mailed them wakes up on schedule. Each send carries an idempotency key and a provider receipt, and an uncertain provider outcome refuses a blind retry rather than risking a duplicate.
 
 ## Delivery Runs
 

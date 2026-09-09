@@ -1,10 +1,18 @@
 ---
 title: "Understand revenue figures"
-description: "Read client and proposal totals and investigate differences from pipeline or payment records."
-updated: "2026-09-05"
+description: "Where each number on the revenue screen actually comes from, and how to chase a discrepancy."
+updated: "2026-09-09"
 ---
 
-Open `/admin/revenue` to review recorded client value and accepted proposals. The current screen calculates its figures from client and proposal records. It does not report cash collected from a payment provider.
+An opportunity's value, a signed proposal's total, and money that has actually landed in your bank account are three different numbers that happen to share a currency symbol, and confusing them is how a business ends up planning payroll around revenue it hasn't collected yet. Open `/admin/revenue` to review recorded client value and accepted proposals; this screen calculates every figure from your client and proposal records specifically, not from cash a payment provider has confirmed collecting.
+
+<DocsFigure
+  src="/images/docs/pipeline/revenue.png"
+  alt="The Revenue screen in the fictional Northline Roofing workspace, showing monthly recurring revenue, a trend chart, and revenue by client."
+  width={1440}
+  height={1000}
+  caption="Revenue in the fictional Northline Roofing workspace: recorded client value over time. Fictional demo data."
+/>
 
 ## What the figures mean
 
@@ -16,7 +24,7 @@ Open `/admin/revenue` to review recorded client value and accepted proposals. Th
 | Industry breakdown        | Active-client monthly values grouped by industry               |
 | Accepted proposal value   | Monthly totals on accepted proposals                           |
 
-The MRR timeline is derived from client status and contract-start dates, falling back to record creation dates. It is not an immutable history of invoices, payments or every contract change. Treat it as a view of the recorded client data.
+The MRR timeline is derived from client status and contract-start dates, falling back to record creation dates when a start date is missing. Treat it as a view of your recorded client data, useful for spotting a trend, rather than an immutable ledger of every invoice, payment, and contract change that ever happened.
 
 ## Investigate a difference
 
@@ -25,4 +33,4 @@ The MRR timeline is derived from client status and contract-start dates, falling
 3. Compare with [Pipeline](/docs/pipeline/board) only after checking what that view counts. An opportunity amount, a client agreement and an accepted proposal can represent different stages of the same business.
 4. Correct a demonstrated source-record error through its supported edit flow, then reload Revenue.
 
-Do not change a record merely to make two reports agree. If the inputs are correct and the calculation still differs, report the expected formula and example record IDs to the technical owner.
+Resist the urge to edit a record just to make two reports agree with each other; if the underlying inputs are actually correct and the calculation still comes out different, that is worth reporting, with the expected formula and a couple of example record IDs, to your technical owner rather than papering over.
