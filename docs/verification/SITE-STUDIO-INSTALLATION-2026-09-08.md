@@ -106,7 +106,16 @@ local apply, undo/redo, exact saved publication, rollback retaining the draft,
 collection entry preview, mobile frame bounds, and advanced-filter keyboard/
 Escape behavior. Screenshots were opened at desktop/mobile widths and in the
 shared appearances. Browser runtime errors and fictional API network writes are
-asserted empty. Fictional AI results do not prove live provider availability.
+asserted empty. Fictional AI results do not prove live provider availability. A separate live
+Muse Spark 1.3 smoke generated five validated sections from a fictional brief,
+without saving or publishing a website (`/tmp/accelerate-studio-model-smoke-final.log`).
+Earlier provider failures exposed body-abort errors hidden behind HTTP 200 and an
+insufficient reasoning/output allowance. The gateway now preserves timeout status,
+refuses malformed/truncated structured output, and permits an explicitly bounded
+150-second Site Studio deadline. Site models use catalogue-supported reasoning
+effort and at most 8,000 output tokens for page generation. Focused gateway tests
+cover these failures and no-retry behavior. Other model choices have catalogue,
+registry and controlled transport coverage; live availability is not asserted.
 
 ## Live migration verification
 

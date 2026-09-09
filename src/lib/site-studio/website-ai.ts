@@ -77,9 +77,11 @@ export async function proposeWebsitePage(
   const result = await openRouterJson({
     database: auth.database,
     job: "site-page-draft",
+    timeoutMs: 150_000,
+    reasoning: { effort: selected.reasoningEffort, exclude: true },
     model: selected.id,
     strictPricing: { prompt: selected.prompt, completion: selected.completion, request: 0 },
-    maxTokens: 4000,
+    maxTokens: 8000,
     temperature: 0.3,
     messages: [
       {

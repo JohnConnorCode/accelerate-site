@@ -1349,7 +1349,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "a6ef94fdf87b679ee20eac2ac2f5d464500a76206cecd68d9d6089ffe4c7ce40"
+      "sourceSha256": "3715956fdf4edd4abc50488af8f516e153c006ff5bce7324079a8ff7a2edfeca"
     },
     {
       "source": "src/app/api/admin/site/drafts/route.ts",
@@ -1372,7 +1372,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "6878657882a308100b7ba1815adb32897f76d5621fd98f222708402e5bb5294b"
+      "sourceSha256": "76885de14b1909800a194bc8fa0b2700f2551fb12cb984342a5f9c4001ed8bee"
     },
     {
       "source": "src/app/api/admin/site/website/route.ts",
@@ -1411,7 +1411,7 @@
         "@/lib/site-studio/website-store",
         "next/server"
       ],
-      "sourceSha256": "6f82f71b5e02a897b0933661247c6ef889ab391d8346673546c0a32afee07c54"
+      "sourceSha256": "c93ecf4e1eb13c04e415c3388e69dbf017eed9b1368231cf9c5a39f3cf0cef1a"
     },
     {
       "source": "src/app/api/admin/subscribers/export/route.ts",

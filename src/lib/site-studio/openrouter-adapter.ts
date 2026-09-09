@@ -22,13 +22,15 @@ export async function generatePageWithOpenRouter(
     const result = await openRouterJson({
       database,
       job: "site-page-draft",
+      timeoutMs: 150_000,
+      reasoning: { effort: siteModel(model).reasoningEffort, exclude: true },
       model,
       strictPricing: {
         prompt: siteModel(model).prompt,
         completion: siteModel(model).completion,
         request: 0,
       },
-      maxTokens: 4000,
+      maxTokens: 8000,
       temperature: 0.4,
       messages: [
         { role: "system", content: system },
@@ -46,6 +48,7 @@ export async function generatePageWithOpenRouter(
       );
     throw new Error(
       `Page generation failed before validation: ${error instanceof Error ? error.message : "unknown provider error"}`,
+      { cause: error },
     );
   }
   return validateGeneratedDocument(raw);
@@ -64,13 +67,15 @@ export async function regenerateSectionWithOpenRouter(
     const result = await openRouterJson({
       database,
       job: "site-page-draft",
+      timeoutMs: 150_000,
+      reasoning: { effort: siteModel(model).reasoningEffort, exclude: true },
       model,
       strictPricing: {
         prompt: siteModel(model).prompt,
         completion: siteModel(model).completion,
         request: 0,
       },
-      maxTokens: 2000,
+      maxTokens: 4000,
       temperature: 0.4,
       messages: [
         { role: "system", content: system },

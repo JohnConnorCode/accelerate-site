@@ -4,6 +4,8 @@ import { readBoundedJson } from "@/lib/http/bounded-json";
 import { rateLimit } from "@/lib/rate-limit";
 import { assertWebsiteOwner } from "@/lib/site-studio/website-store";
 import { proposeWebsitePage, websiteAiInput } from "@/lib/site-studio/website-ai";
+export const maxDuration = 180;
+
 export async function POST(request: Request) {
   const auth = await requireAdminForModule("site-studio");
   if (auth instanceof NextResponse) return auth;

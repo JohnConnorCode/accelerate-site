@@ -39,6 +39,8 @@ const createSchema = z
   })
   .strict();
 
+export const maxDuration = 180;
+
 export async function GET() {
   const auth = await requireAdminForModule("site-studio");
   if (auth instanceof NextResponse) return auth;

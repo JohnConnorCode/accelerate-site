@@ -25,6 +25,8 @@ const regenerateSchema = z
   })
   .strict();
 
+export const maxDuration = 180;
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdminForModule("site-studio");
   if (auth instanceof NextResponse) return auth;

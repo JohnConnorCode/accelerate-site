@@ -40,6 +40,7 @@ export function buildPageSystemPrompt(): string {
     "Output a single JSON object with title, slug, description, and root (an array of section nodes).",
     `Available node types: ${SITE_NODE_TYPES.join(", ")}.`,
     "Section nodes hold children; all other nodes are leaves.",
+    "Unless the brief asks otherwise, use three to five concise sections. Complete the JSON object; do not use Markdown fences.",
     "Style with tokens only (background, paddingTop, paddingBottom, maxWidth, gap, align, tone).",
     "House rules:",
     HOUSE_RULES,

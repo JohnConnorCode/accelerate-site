@@ -63,6 +63,10 @@ export interface OpenRouterResponse {
 }
 
 export interface OpenRouterRequest {
+  /** Non-streaming inference deadline; explicit callers may allow up to three minutes. */
+  timeoutMs?: number;
+  /** Bounded non-streaming reasoning configuration selected by the calling job. */
+  reasoning?: { effort: "minimal" | "low" | "medium" | "high"; exclude?: boolean };
   /** Budgeted jobs pin one model and one attempt; no environment fallback. Prices are USD/million tokens. */
   strictPricing?: { prompt: number; completion: number; request: number };
   beforeAttempt?: (attempt: number) => Promise<void>;
@@ -196,7 +200,7 @@ async function attemptChat(
   apiKey: string,
 ): Promise<OpenRouterResponse> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45_000);
+  const timeout = setTimeout(() => controller.abort(), input.timeoutMs ?? 45_000);
   const startedAt = Date.now();
   const fallbackModel = input.strictPricing ? null : getOpenRouterFallbackModel();
   try {
@@ -211,6 +215,7 @@ async function attemptChat(
           ? { models: [model, fallbackModel], route: "fallback" }
           : {}),
         messages: input.messages,
+        ...(input.reasoning ? { reasoning: input.reasoning } : {}),
         max_tokens: Math.min(Math.max(input.maxTokens ?? 1200, 1), 8000),
         temperature: input.temperature ?? 0.2,
         ...(input.tools?.length ? { tools: input.tools, tool_choice: "auto" } : {}),
@@ -236,7 +241,12 @@ async function attemptChat(
     const requestId = response.headers.get("x-request-id");
     const payload = (await (
       input.strictPricing ? readBoundedJson(response, 128 * 1024) : response.json()
-    ).catch(() => null)) as OpenRouterResponse | null;
+    ).catch((error: unknown) => {
+      // A streamed non-streaming response may send headers long before its JSON.
+      // Preserve body aborts so timeout/cancellation cannot masquerade as HTTP 200.
+      if (error instanceof Error && error.name === "AbortError") throw error;
+      return null;
+    })) as OpenRouterResponse | null;
     if (!response.ok || !payload) {
       const errorCode = (payload as { error?: { code?: unknown } } | null)?.error?.code;
       const rejected =
@@ -256,7 +266,7 @@ async function attemptChat(
           : null;
       throw new OpenRouterError(
         boundedProviderMessage(payload),
-        response.status || 502,
+        response.ok ? 502 : response.status || 502,
         requestId,
         rejected,
         retryAfter,
@@ -343,6 +353,11 @@ function resolveJobTenant(input: OpenRouterRequest): string {
 }
 
 export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRouterResponse> {
+  if (
+    input.timeoutMs !== undefined &&
+    (!Number.isFinite(input.timeoutMs) || input.timeoutMs < 1000 || input.timeoutMs > 180000)
+  )
+    throw new OpenRouterError("Inference timeout must be between 1 and 180 seconds", 400);
   if (
     input.strictPricing &&
     (!input.model?.trim() ||
@@ -572,6 +587,12 @@ export async function openRouterJson<T>(
       json_schema: { name: input.schemaName, strict: true, schema: input.schema },
     },
   });
+  if (response.choices[0]?.finish_reason === "length")
+    throw new OpenRouterError(
+      "AI output reached its token limit before completing. Request a shorter page or choose another model.",
+      502,
+      response.id,
+    );
   const content = response.choices[0]?.message.content;
   if (typeof content !== "string" || !content.trim()) {
     throw new OpenRouterError("OpenRouter returned an empty structured response", 502, response.id);
