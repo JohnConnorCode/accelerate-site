@@ -93,7 +93,9 @@ export function parseSiteModelCatalog(payload: unknown, now = Date.now()): SiteS
       continue;
     const amounts = [m.pricing.prompt, m.pricing.completion, m.pricing.request ?? "0"];
     if (amounts.some((value) => !/^(?:\d+(?:\.\d+)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value))) continue;
-    const [prompt, completion, request] = amounts.map(Number);
+    const prompt = Number(m.pricing.prompt);
+    const completion = Number(m.pricing.completion);
+    const request = Number(m.pricing.request ?? "0");
     if (
       ![prompt, completion, request].every(Number.isFinite) ||
       prompt > 0.001 ||
@@ -111,7 +113,7 @@ export function parseSiteModelCatalog(payload: unknown, now = Date.now()): SiteS
     result.set(m.id, {
       id: m.id,
       label: m.name.replace(/^[^:]+:\s*/, ""),
-      provider: m.id.split("/")[0],
+      provider: m.id.slice(0, m.id.indexOf("/")),
       tier:
         prompt === 0 && completion === 0
           ? "free"

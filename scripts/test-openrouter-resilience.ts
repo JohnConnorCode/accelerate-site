@@ -225,6 +225,7 @@ async function main() {
   await scenario("models that forbid temperature receive no temperature parameter", async () => {
     stubFetch([{ status: 200, body: okBody }]);
     await openRouterChat({ ...ask, temperature: null });
+    assert.ok(calls[0]);
     assert.equal(Object.hasOwn(calls[0].body, "temperature"), false);
     stubFetch([{ status: 200, body: okBody }]);
     await openRouterChat({ ...ask });

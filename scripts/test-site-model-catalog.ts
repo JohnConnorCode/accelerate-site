@@ -56,8 +56,10 @@ async function main() {
   ];
   const parsed = parseSiteModelCatalog({ data: [fixture(), ...excluded] });
   assert.equal(parsed.length, 1);
+  const fixtureModel = parsed[0];
+  assert.ok(fixtureModel);
   const futureOpus = {
-    ...parsed[0],
+    ...fixtureModel,
     id: "anthropic/claude-opus-future",
     created: Number.MAX_SAFE_INTEGER,
   };
@@ -65,11 +67,11 @@ async function main() {
   assert.ok(recommendations.includes(futureOpus.id));
   assert.ok(!recommendations.includes("anthropic/claude-opus-5"));
   assert.equal(recommendations[0], DEFAULT_SITE_MODEL);
-  assert.equal(parsed[0].reasoningEffort, "none");
-  assert.equal(parsed[0].supportsTemperature, false);
-  assert.equal(parsed[0].prompt, 0.2);
+  assert.equal(fixtureModel.reasoningEffort, "none");
+  assert.equal(fixtureModel.supportsTemperature, false);
+  assert.equal(fixtureModel.prompt, 0.2);
   assert.throws(
-    () => enforceSitePriceCeiling(parsed[0], { prompt: 0.1, completion: 0.4, request: 0 }),
+    () => enforceSitePriceCeiling(fixtureModel, { prompt: 0.1, completion: 0.4, request: 0 }),
     /price increased/,
   );
   assert.equal(
@@ -79,7 +81,7 @@ async function main() {
   assert.equal(
     parseSiteModelCatalog({
       data: [fixture({ pricing: { prompt: "2e-7", completion: "4e-7" } })],
-    })[0].prompt,
+    })[0]?.prompt,
     0.2,
   );
   const realFetch = globalThis.fetch;
@@ -155,7 +157,7 @@ async function main() {
     const cached = await getSiteModelCatalog();
     assert.equal(cached.source, "cached");
     assert.equal(
-      cached.models[0].prompt,
+      cached.models[0]?.prompt,
       0.3,
       "oversized refresh cannot replace validated metadata",
     );
