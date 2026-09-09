@@ -69,7 +69,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["start", "how-it-works"],
         title: "How Accelerate works",
         description:
-          "Follow business context from its source to a reviewed action, recorded result, and reusable extension.",
+          "The one path every entry point follows, from raw source data to a reviewed action and its receipt.",
       },
       {
         slug: ["start", "business-owners"],
@@ -80,7 +80,8 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["start", "agencies"],
         title: "For agencies",
-        description: "Onboard client workspaces, verify access, and agree an operational handoff.",
+        description:
+          "Plan one client pilot: who owns what, how to prove data stays separated, and how to hand it over.",
       },
       {
         slug: ["start", "daily-path"],
@@ -102,18 +103,20 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["start", "modules"],
         title: "Modules",
-        description: "Optional capabilities a workspace turns on and off without forking the app.",
+        description:
+          "Turn a whole area of the product on or off per workspace, without forking the application.",
       },
       {
         slug: ["start", "receipts"],
         title: "Check an action result",
-        description: "Tell a prepared draft, an approved request, and a completed action apart.",
+        description:
+          "Read the receipt, not the confirmation toast, to know whether an action actually finished.",
       },
       {
         slug: ["start", "troubleshooting"],
         title: "Troubleshooting",
         description:
-          "Recover from common setup, access, search, and action failures without guessing.",
+          "The recovery step for the setup, access, and action failures you'll actually hit, by symptom.",
       },
     ],
   },
@@ -134,23 +137,26 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["command-center", "capabilities"],
         title: "Capability reference",
-        description: "Explore capabilities and check their availability in your workspace.",
+        description:
+          "47 capabilities in six categories, from what the system sees to what it never does without you.",
       },
       {
         slug: ["command-center", "today"],
         title: "Work the Today queue",
-        description: "Review urgent work, take the next action and confirm the result.",
+        description:
+          "Open with the work that actually needs a decision, ranked with the reason it's there.",
       },
       {
         slug: ["command-center", "inbox"],
         title: "Inbox",
-        description: "Triage leads, messages, tasks, and staged actions that still need a person.",
+        description:
+          "Every new lead, message, and staged action that hasn't found an owner yet, in one queue.",
       },
       {
         slug: ["command-center", "work"],
         title: "Manage tasks and approvals in Work",
         description:
-          "Edit commitments and review decisions while keeping one saved task or approval across views.",
+          "The editing view over the same tasks and approvals Today shows you, with filters and full editing.",
       },
       {
         slug: ["command-center", "approvals"],
@@ -161,13 +167,13 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["command-center", "activity"],
         title: "Inspect activity",
-        description: "Find a recorded change and trace it to the affected record.",
+        description: "Trace a change back to who made it, what actually happened, and when.",
       },
       {
         slug: ["command-center", "ask"],
         title: "Ask AI",
         description:
-          "Ask a specific question, inspect the evidence, and review any proposed action.",
+          "Ask a specific question, see the records it used to answer, and review anything it proposes.",
       },
     ],
   },

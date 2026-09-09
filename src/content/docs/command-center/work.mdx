@@ -1,32 +1,44 @@
 ---
 title: "Manage tasks and approvals in Work"
-description: "Edit commitments and review decisions while keeping one saved task or approval across views."
-updated: "2026-09-07"
+description: "The editing view over the same tasks and approvals Today shows you, with filters and full editing."
+updated: "2026-09-09"
 ---
 
-Open **Work** in the Command Center navigation, or visit `/admin/work`. The Tasks and Approvals views read the same records used by Today and the existing business workflows.
+Today is built for triage: skim the queue, act on what matters most, move on. Work, at `/admin/work`, is built for the opposite: sit with your whole task list, filter it down, and edit anything that needs a correction rather than just acting on it. Both screens read the exact same records, so a change here shows up on Today immediately and vice versa.
 
-## Find and edit a task
+## Finding and editing a task
 
-1. Open **Tasks**. Choose **Team work**, **My work** or **Unassigned**, then select an open, snoozed or completed status.
-2. Filter by source or search the task title and related record name. The list shows up to 100 tasks for the selected ownership and status.
-3. Select a task to open its inspector. Edit its title, due date or priority and choose **Save changes**.
-4. Return to Today and confirm the changed task where it is due. An edit keeps its existing status; it does not complete the task.
+<StepByStep>
+<Step number={1} title="Choose an ownership view">
+Open **Tasks**, then pick **Team work**, **My work**, or **Unassigned**, and select an open, snoozed, or completed status to match what you're looking for.
+</Step>
+<Step number={2} title="Narrow the list">
+Filter by source or search the task title and related record name. The list shows up to 100 tasks for whichever ownership and status you selected.
+</Step>
+<Step number={3} title="Open and edit">
+Select a task to open its inspector, change its title, due date, or priority, and choose **Save changes**.
+</Step>
+<Step number={4} title="Confirm it stuck">
+Return to Today and check the task where it's due. An edit keeps the task's existing status; it does not mark the task complete on its own.
+</Step>
+</StepByStep>
 
-Use the completion control when the work is finished. Today also offers snooze until tomorrow. A snoozed task remains available in Work's **Snoozed** view. Completing it clears the snooze and records completion against the original task ID.
+Use the completion control specifically when work is actually finished. Today also offers snooze until tomorrow, and a snoozed task stays visible in Work's **Snoozed** view rather than disappearing, so nothing gets lost by deferring it. Completing a snoozed task clears the snooze and records completion against that same original task, not a new one.
 
-The ownership filter does not assign tasks. Assignment follows the existing workflow that created the task. Custom App cases can keep their own native queues and lifecycle.
+The ownership filter is a lens for browsing, not an assignment tool: changing whose work you're looking at does not reassign anything. Assignment follows whatever workflow originally created the task, and a custom App can keep its own native queue and lifecycle entirely separate from this one.
 
-## Review a decision
+## Reviewing a decision
 
-Open **Approvals**, select the proposal and inspect the exact content, target and consequence. Today and Work use the same review inspector and execution service. A successful decision removes that pending approval from both views; it does not create a second approval record.
+Open **Approvals**, select a proposal, and inspect its exact content, target, and consequence before deciding. Today and Work share the same review inspector and execution service underneath, so a decision you make here behaves identically to making it from Today. Once you decide, that pending approval clears from both views at once; it never creates a second record of the same decision.
 
-Read [approval results](/docs/command-center/approvals) before interpreting a provider action. Approval, execution and delivery are separate facts.
+Read [approval results](/docs/command-center/approvals) before you interpret what a provider action actually did. Approval, execution, and delivery are three separate facts, and only the last one tells you a customer actually received something.
 
-## Check the saved result
+## Checking the saved result
 
-[Activity](/docs/command-center/activity) retains the recorded changes. A task completion does not confirm a payment, send an email or accept a business proposal. Open the relevant App or source record for those results.
+[Activity](/docs/command-center/activity) keeps the recorded history of what changed here. A completed task confirms the task is done, and nothing more: it does not confirm a payment arrived, an email sent, or a customer accepted a proposal, so open the relevant record for those results specifically.
 
-If saving fails, the inspector keeps your input and displays the error. Refresh the record before retrying a stale operation. If a filter looks empty, check ownership and status; an empty filtered list does not mean the workspace has no work.
+## What to check
 
-The fictional demo uses these same pages with isolated session data. Task edits, snoozes and completion persist within that demo session and reset with the workspace.
+- If saving fails, the inspector keeps whatever you typed and shows the error rather than discarding your edit; refresh the record before retrying if the operation might be stale.
+- An empty filtered list usually means your ownership or status filter is narrower than you meant, not that the workspace genuinely has no work.
+- The fictional demo uses these same screens with isolated session data. Edits, snoozes, and completions persist for that session and reset when the demo workspace resets.

@@ -1,32 +1,31 @@
 ---
 title: "Ask AI"
-description: "Ask a specific question, inspect the evidence, and review any proposed action."
-updated: "2026-09-05"
+description: "Ask a specific question, see the records it used to answer, and review anything it proposes."
+updated: "2026-09-09"
 ---
 
-Ask AI can help you find business context and prepare the next step. Open it from Today or use the [AI Workspace](/docs/intelligence/workspace). The answer depends on the records, tools, and connections available to your workspace.
+The difference between "what's overdue on the Whitfield account" answered by a person who has to go check three screens and answered by an assistant that already has those three screens open is the whole reason Ask AI exists. Open it from Today or the [AI Workspace](/docs/intelligence/workspace); what it can actually answer depends on the records, tools, and connections your specific workspace has available.
 
-## Start with a specific question
+## Ask something specific
 
-Give the assistant a clear target and the result you need. For example:
+A clear target and a clear result you need beats a vague prompt every time. Some real shapes that work well:
 
-- “What needs my attention today?”
-- “Show the recent timeline for this contact.”
-- “What is the next action on this opportunity?”
-- “Draft a follow-up for this conversation, using the latest reply.”
+- "What needs my attention today?"
+- "Show the recent timeline for this contact."
+- "What is the next action on this opportunity?"
+- "Draft a follow-up for this conversation, using the latest reply."
 
-Choose the relevant record when the interface provides context. Resolve an ambiguous person or company before asking for a change.
+Choose the relevant record when the interface offers you that context, and resolve an ambiguous person or company before you ask for a change, so the assistant isn't guessing which one you meant either.
 
-## Check the evidence
+## Checking the evidence
 
-Read the supporting tool results or record links. If the answer is partial, inspect what was unavailable rather than treating the missing information as a fact. A disconnected provider or unavailable tool can limit what the assistant can answer.
+Read the tool results or record links behind an answer before you act on it. If the answer is partial, look at what was actually unavailable rather than treating a gap as a fact the assistant confirmed; a disconnected provider or an unavailable tool can genuinely limit what it's able to answer, and the honest response to that is telling you it doesn't know, not guessing.
 
-## Review proposed work
+## Reviewing anything it proposes
 
-A request to draft or change something can produce a proposal. Inspect its target and content in [Approvals](/docs/command-center/approvals). A generated draft does not prove that a message was sent.
+A request to draft or change something produces a proposal, not an executed change. Inspect its exact target and content in [Approvals](/docs/command-center/approvals); a generated draft sitting there is not proof that a message went anywhere. After you authorize it, check the result the same way you would for any other approved action. If the assistant couldn't complete your request at all, the reason it gives you is usually enough to tell whether you need to reconnect a provider, ask a narrower question, or just finish the task yourself.
 
-After authorizing an action, check its result. If the assistant could not complete the request, use the visible reason to decide whether to reconnect a provider, narrow the question, or finish the task manually.
+## What to check
 
-## Explore the tool reference
-
-[AI tools](/docs/intelligence/tools) lists registered tools, connection requirements, and input schemas. Developers can follow [Add an AI tool](/docs/extend/tools) to extend the registry.
+- [AI tools](/docs/intelligence/tools) lists every registered tool, what it needs to be connected, and its input schema, if you want to see the full capability behind an answer.
+- Developers extending the registry with a new tool should read [Add an AI tool](/docs/extend/tools).

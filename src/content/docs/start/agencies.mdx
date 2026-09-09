@@ -1,12 +1,12 @@
 ---
 title: "For agencies"
-description: "Onboard client workspaces, verify access, and agree an operational handoff."
-updated: "2026-09-05"
+description: "Plan one client pilot: who owns what, how to prove data stays separated, and how to hand it over."
+updated: "2026-09-09"
 ---
 
-An agency needs repeatable client onboarding and clear ownership of data, access, providers, and support. Use this guide to plan one client pilot before adding more clients.
+The fifth client you onboard should not require reinventing how the first four went. That repeatability depends on deciding, in writing, who owns the client's data, their access, their provider accounts, and their support before you import a single real record, because a verbal agreement is the thing that falls apart during a handoff eighteen months later. Use this guide to plan one client pilot before you take on more.
 
-A **deployment** is the running application and its database. A **workspace** is one business context inside it. The shared-database architecture supports multiple workspaces; workspace separation must be verified in the installation you operate.
+Two words matter here and are easy to conflate. A **deployment** is the running application and its database, the thing your technical owner actually operates. A **workspace** is one business's context inside that deployment, which is what a client actually sees and uses. The shared-database architecture is built to support many workspaces in one deployment, but that separation is a property you have to verify in your own installation, not one you get for free by reading this sentence.
 
 ## Decide who operates what
 
@@ -20,7 +20,7 @@ Agree these responsibilities with the client before importing data:
 | Business decisions       | Who reviews proposed actions and owns unresolved work?                             |
 | Handoff                  | What access, documentation, and data must be transferred when the engagement ends? |
 
-A workspace administrator is not automatically the platform owner. Creating workspaces, managing invitations, and changing workspace lifecycle status require platform administration. Do not share the founder login among clients.
+A workspace administrator is not automatically the platform owner: creating workspaces, managing invitations, and changing a workspace's lifecycle status all require platform administration, so keep the founder login out of any client's hands.
 
 ## Onboard a client workspace
 
@@ -38,13 +38,13 @@ Use two fictional workspaces and separate test users. Your technical owner shoul
 
 These checks are part of the repository's self-hosting acceptance requirements. A separate sidebar or a workspace name in the header does not prove isolation. Keep real client records out until the checks pass for your installation.
 
-Do not copy another client's provider credentials as an onboarding shortcut. Verify which business owns the sending identity and destination before the first external action.
+Never reuse another client's provider credentials as an onboarding shortcut; verify which business actually owns the sending identity and the destination before the first external action goes out.
 
 ## Hand over an operation the client can run
 
 Give the client the workspace URL, named administrator, enabled workflows, provider ownership list, review routine, escalation contact, and outstanding limitations. Walk through [the daily workflow](/docs/start/daily-path) together, then have the client perform the equivalent controlled workflow themselves.
 
-Record how updates will be tested and who can restore a backup. Do not promise a one-click workspace export, account transfer, or arbitrary custom roles without verifying that your installed version implements the required operation.
+Record how updates get tested and who can restore a backup, and only promise a one-click workspace export, an account transfer, or a custom role if you have actually verified your installed version implements it.
 
 ## Pause or end an engagement
 

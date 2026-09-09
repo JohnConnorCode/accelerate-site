@@ -1,28 +1,37 @@
 ---
 title: "Inspect activity"
-description: "Find a recorded change and trace it to the affected record."
-updated: "2026-09-05"
+description: "Trace a change back to who made it, what actually happened, and when."
+updated: "2026-09-09"
 ---
 
-Open `/admin/activity` when you need to find who changed a record, what action was recorded and when it happened.
+A proposal looks different than it did last week, and nobody on your team remembers changing it. Activity at `/admin/activity` is where you go to answer that question with evidence instead of a guess: who changed a record, what action was recorded, and exactly when it happened.
 
-## Find a change
+## Finding a change
 
-1. Narrow the time range to when the event occurred.
-2. Filter by actor, action, source or entity type where available.
-3. Find the matching event and open its linked record.
-4. Compare the recorded action with the record's current state and any related execution or provider receipt.
+<StepByStep>
+<Step number={1} title="Narrow the time range">
+Set the window to roughly when you think the event occurred; a tight range surfaces the right event faster than scrolling a long list.
+</Step>
+<Step number={2} title="Filter it down">
+Filter by actor, action, source, or entity type where those filters are available for what you're looking for.
+</Step>
+<Step number={3} title="Open the linked record">
+Find the matching event and open the record it points to, rather than trusting the event summary alone.
+</Step>
+<Step number={4} title="Compare against current state">
+Check the recorded action against the record's current state and any related execution or provider receipt to see whether they actually agree.
+</Step>
+</StepByStep>
 
-For example, when a proposal appears to have changed after a customer review, start with that proposal's events and the time of the review. Keep the proposal identifier with your findings so another operator can inspect the same record.
+For example, if a proposal appears to have changed right after a customer reviewed it, start with that proposal's own events around the time of the review, and keep the proposal's identifier with your findings so a colleague can pull up the exact same record later.
 
-## Interpret the evidence
+## Reading the evidence correctly
 
-An activity event records an application action. For an external effect, inspect the associated result as well: an approved request, provider acceptance and final delivery are different facts. [Action results](/docs/start/receipts) explains those states.
+An activity event records that something happened inside the application. For anything with an external effect, like a message going out, check the associated result too: an approved request, provider acceptance, and final delivery are three different facts, and the event log alone only tells you the first one happened. [Action results](/docs/start/receipts) walks through the rest.
 
-Events omit sensitive content. A row may identify a message operation without containing its full body. Open the authorized business record for the content you are allowed to read.
+Events deliberately omit sensitive content, so a row can identify that a message was sent without containing its full body. Open the authorized business record itself for content you're allowed to read.
 
-## When you cannot find an event
+## What to check
 
-Check the workspace, date range and filters. Retain the affected record ID and approximate time for the technical owner if the event is still missing. Do not invent a replacement event or treat absence as proof that nothing happened.
-
-[Today](/docs/command-center/today) shows work to act on; Activity helps investigate what was recorded.
+- If you can't find the event you're looking for, double-check the workspace, date range, and filters before assuming it's missing. If it's genuinely absent, keep the affected record's ID and approximate time to hand to your technical owner rather than guessing at what happened.
+- [Today](/docs/command-center/today) shows you work to act on; Activity is for investigating what was already recorded, not for finding new work.
