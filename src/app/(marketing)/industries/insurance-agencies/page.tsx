@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { verticals } from "@/content/verticals";
@@ -6,7 +7,7 @@ import { generateVerticalJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 const vertical = verticals.find((v) => v.slug === "insurance-agencies")!;
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Insurance Agency AI Solutions",
   description: vertical.shortDescription,
   ogTitle: "Insurance Agency AI Solutions",
@@ -20,7 +21,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Insurance Agencies", url: "/industries/insurance-agencies" },
 ]);
 
-export default function InsuranceAgenciesPage() {
+export default async function InsuranceAgenciesPage() {
+  const published = await publishedWebsiteOverride("/industries/insurance-agencies");
+  if (published) return published;
   return (
     <>
       <script
@@ -37,4 +40,8 @@ export default function InsuranceAgenciesPage() {
       <PageEngagementTracker />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/industries/insurance-agencies")) ?? bundledMetadata;
 }

@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 export const revalidate = 3600;
 
 import { seoMetadata } from "@/lib/og";
@@ -5,7 +6,7 @@ import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { getArticleSummaries } from "@/lib/mdx";
 import { LearnHub } from "@/components/sections/LearnHub";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "AI & Automation Guides for Small Business",
   description:
     "Practical guides on AI, automation, client acquisition, and local SEO for small businesses. Actionable strategies you can implement today.",
@@ -24,7 +25,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Learning Hub", url: "/learn" },
 ]);
 
-export default function LearnPage() {
+export default async function LearnPage() {
+  const published = await publishedWebsiteOverride("/learn");
+  if (published) return published;
   const articles = getArticleSummaries();
   const featuredArticle = articles.find((a) => a.frontmatter.featured) || articles[0] || null;
   const nonFeatured = featuredArticle
@@ -62,4 +65,8 @@ export default function LearnPage() {
       <LearnHub articles={nonFeatured} featuredArticle={featuredArticle} />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/learn")) ?? bundledMetadata;
 }

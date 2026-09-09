@@ -1,14 +1,17 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { seoMetadata } from "@/lib/og";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Privacy Policy",
   description:
     "Accelerate privacy policy. Learn how we collect, use, and protect your personal information.",
   path: "/privacy",
 });
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const published = await publishedWebsiteOverride("/privacy");
+  if (published) return published;
   return (
     <div className="py-20 md:py-28">
       <AnimateOnScroll className="max-w-3xl mx-auto px-4 sm:px-6">
@@ -103,4 +106,8 @@ export default function PrivacyPage() {
       </AnimateOnScroll>
     </div>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/privacy")) ?? bundledMetadata;
 }

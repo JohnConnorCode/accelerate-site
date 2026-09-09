@@ -1,6 +1,7 @@
 import {
   createDemoWebsiteState,
   handleDemoWebsite,
+  demoWebsiteSuggestion,
   type DemoWebsiteState,
 } from "./website-runtime";
 import {
@@ -2299,14 +2300,15 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
     if (path === "/api/admin/site/drafts" && method === "GET") return jsonResponse({ drafts: [] });
-    if (path === "/api/admin/site/website") {
+    if (path === "/api/admin/site/website" || path === "/api/admin/site/website/suggest") {
       if (state.moduleOverrides["site-studio"] === false)
         return jsonResponse(
           { error: "Site Studio is disabled for this fictional workspace." },
           403,
         );
+      if (path.endsWith("/suggest")) return demoWebsiteSuggestion(body);
       state.website ??= createDemoWebsiteState();
-      const response = handleDemoWebsite(state.website, pack.name, method, body);
+      const response = handleDemoWebsite(state.website, pack.name, method, body, url.searchParams);
       if (method === "POST" && response.ok) saveState(scenarioId, state);
       return response;
     }

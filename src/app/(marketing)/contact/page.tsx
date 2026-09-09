@@ -1,8 +1,9 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { ContactPageContent } from "@/components/sections/ContactPage";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Book a Free AI Strategy Session",
   description:
     "Talk through how your business works and where AI, automation, training, or managed execution could free time or increase revenue.",
@@ -26,7 +27,9 @@ const contactJsonLd = {
   },
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const published = await publishedWebsiteOverride("/contact");
+  if (published) return published;
   return (
     <>
       <script
@@ -40,4 +43,8 @@ export default function ContactPage() {
       <ContactPageContent />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/contact")) ?? bundledMetadata;
 }

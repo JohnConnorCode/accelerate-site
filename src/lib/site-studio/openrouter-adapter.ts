@@ -1,4 +1,5 @@
 import "server-only";
+import { DEFAULT_SITE_MODEL, siteModel } from "./models";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { openRouterJson, OpenRouterError } from "@/lib/ai/openrouter";
 import { generatedPageJsonSchema, validateGeneratedDocument, type PageBrief } from "./generate";
@@ -14,12 +15,19 @@ export async function generatePageWithOpenRouter(
   brief: PageBrief,
   system: string,
   user: string,
+  model = DEFAULT_SITE_MODEL,
 ): Promise<SiteDocument> {
   let raw: unknown;
   try {
     const result = await openRouterJson({
       database,
       job: "site-page-draft",
+      model,
+      strictPricing: {
+        prompt: siteModel(model).prompt,
+        completion: siteModel(model).completion,
+        request: 0,
+      },
       maxTokens: 4000,
       temperature: 0.4,
       messages: [
@@ -50,11 +58,18 @@ export async function regenerateSectionWithOpenRouter(
   database: SupabaseClient,
   system: string,
   user: string,
+  model = DEFAULT_SITE_MODEL,
 ): Promise<unknown> {
   try {
     const result = await openRouterJson({
       database,
       job: "site-page-draft",
+      model,
+      strictPricing: {
+        prompt: siteModel(model).prompt,
+        completion: siteModel(model).completion,
+        request: 0,
+      },
       maxTokens: 2000,
       temperature: 0.4,
       messages: [

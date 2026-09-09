@@ -95,3 +95,36 @@ export async function writeWebsite(
   }
   return websiteReceiptSchema.parse(data);
 }
+
+export async function readWebsiteHistory(auth: AdminAuthorization) {
+  assertWebsiteOwner(auth);
+  const database = createPlatformServiceRoleClient("site-studio:owner-read");
+  const [revisions, receipts] = await Promise.all([
+    database
+      .from("site_website_revisions")
+      .select("id,created_at,checksum")
+      .eq("tenant_id", auth.tenant.id)
+      .order("created_at", { ascending: false })
+      .limit(30),
+    database
+      .from("site_website_receipts")
+      .select("receipt")
+      .eq("tenant_id", auth.tenant.id)
+      .order("created_at", { ascending: false })
+      .limit(100),
+  ]);
+  if (revisions.error || receipts.error)
+    throw new Error("Website history is unavailable. Retry without changing your draft.");
+  const published = new Set(
+    receipts.data
+      .map((row) => websiteReceiptSchema.parse(row.receipt))
+      .filter((receipt) => receipt.operation === "publish" || receipt.operation === "rollback")
+      .map((receipt) => receipt.publishedRevisionId),
+  );
+  return revisions.data.map((row) => ({
+    id: row.id,
+    createdAt: row.created_at,
+    checksum: row.checksum,
+    previouslyPublished: published.has(row.id),
+  }));
+}

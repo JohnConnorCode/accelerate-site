@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { verticals } from "@/content/verticals";
@@ -6,7 +7,7 @@ import { generateVerticalJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 const vertical = verticals.find((v) => v.slug === "home-services")!;
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Home Services AI Solutions",
   description: vertical.shortDescription,
   ogTitle: "Home Services AI Solutions",
@@ -20,7 +21,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Home Services", url: "/industries/home-services" },
 ]);
 
-export default function HomeServicesPage() {
+export default async function HomeServicesPage() {
+  const published = await publishedWebsiteOverride("/industries/home-services");
+  if (published) return published;
   return (
     <>
       <script
@@ -37,4 +40,8 @@ export default function HomeServicesPage() {
       <PageEngagementTracker />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/industries/home-services")) ?? bundledMetadata;
 }

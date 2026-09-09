@@ -1,9 +1,10 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { RoadmapPageContent } from "@/components/sections/RoadmapPage";
 import { getPublicRoadmapState } from "@/lib/roadmap";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Roadmap",
   description:
     "What's shipped, in progress, planned, and backlog for Accelerate Revenue OS, read live from the same board the team works from.",
@@ -21,6 +22,8 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
 export const revalidate = 300;
 
 export default async function RoadmapPage() {
+  const published = await publishedWebsiteOverride("/roadmap");
+  if (published) return published;
   const { cards, availability } = await getPublicRoadmapState();
   return (
     <>
@@ -31,4 +34,8 @@ export default async function RoadmapPage() {
       <RoadmapPageContent cards={cards} availability={availability} />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/roadmap")) ?? bundledMetadata;
 }

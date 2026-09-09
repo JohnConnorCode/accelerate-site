@@ -1,10 +1,11 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import type { Metadata } from "next";
 import { BookCallButton, Container, Eyebrow } from "@/components/v2/studio/primitives";
 import { WorkIndex } from "@/components/work/WorkIndex";
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 
-export const metadata: Metadata = {
+const bundledMetadata: Metadata = {
   title: "Selected Work",
   description:
     "Selected work showing how Accelerate identifies business constraints, builds custom AI and automation systems, and improves the work around them.",
@@ -24,7 +25,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function WorkPage() {
+export default async function WorkPage() {
+  const published = await publishedWebsiteOverride("/work");
+  if (published) return published;
   const breadcrumb = generateBreadcrumbJsonLd([
     { name: "Home", url: "/" },
     { name: "Work", url: "/work" },
@@ -71,4 +74,8 @@ export default function WorkPage() {
       <WorkIndex />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/work")) ?? bundledMetadata;
 }

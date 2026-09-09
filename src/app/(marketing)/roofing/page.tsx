@@ -1,7 +1,8 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { seoMetadata } from "@/lib/og";
 import { RoofingCampaignPage } from "@/components/roofing/RoofingCampaignPage";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "AI Strategy for Roofing Operations | Accelerate",
   description:
     "Find where AI and automation can improve inquiry handling, estimates, scheduling, follow-up, reporting, and office operations for a roofing company.",
@@ -10,6 +11,12 @@ export const metadata = seoMetadata({
   path: "/roofing",
 });
 
-export default function RoofingPage() {
+export default async function RoofingPage() {
+  const published = await publishedWebsiteOverride("/roofing");
+  if (published) return published;
   return <RoofingCampaignPage />;
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/roofing")) ?? bundledMetadata;
 }

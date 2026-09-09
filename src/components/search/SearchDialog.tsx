@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppNavigation } from "@/components/navigation/NavigationRuntime";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -195,9 +196,13 @@ export function SearchDialog({
                   {failed && (
                     <p className="px-5 py-10 text-center font-[var(--body)] text-[14px] text-[var(--mid)]">
                       Search is unavailable right now. Try the navigation, or{" "}
-                      <a href="/contact" className="underline underline-offset-4">
+                      <Link
+                        href="/contact"
+                        onClick={() => setOpen(false)}
+                        className="underline underline-offset-4"
+                      >
                         get in touch
-                      </a>
+                      </Link>
                       .
                     </p>
                   )}
@@ -229,9 +234,13 @@ export function SearchDialog({
                     <p className="px-5 py-10 text-center font-[var(--body)] text-[14px] text-[var(--mid)]">
                       Nothing matches <span className="text-[var(--fg)]">{query}</span>. Try a
                       different word, or{" "}
-                      <a href="/contact" className="underline underline-offset-4">
+                      <Link
+                        href="/contact"
+                        onClick={() => setOpen(false)}
+                        className="underline underline-offset-4"
+                      >
                         ask us directly
-                      </a>
+                      </Link>
                       .
                     </p>
                   )}

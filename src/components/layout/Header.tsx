@@ -10,7 +10,9 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./MobileNav";
 import { Logo } from "@/components/ui/Logo";
-import { navItems as navLinks } from "@/content/navigation";
+import { navItems as defaultNavLinks } from "@/content/navigation";
+import { websiteHeaderContent } from "@/content/site-studio/shared";
+import type { WebsiteHeader } from "@/lib/site-studio/website-chrome";
 import type { NavItem as NavLink } from "@/lib/types";
 import { SearchDialog, useSearchShortcut } from "@/components/search/SearchDialog";
 import { headerEntrance, headerLogoReveal, headerNavItem, headerCtaReveal } from "@/lib/animations";
@@ -25,7 +27,17 @@ const navUnderline =
 const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fg)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
 
-export function Header() {
+export function Header({
+  content = websiteHeaderContent,
+  navLinks = defaultNavLinks,
+  brandName,
+  logoSrc,
+}: {
+  content?: WebsiteHeader;
+  navLinks?: NavLink[];
+  brandName?: string;
+  logoSrc?: string;
+}) {
   const reducedMotion = useReducedMotion();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -110,7 +122,7 @@ export function Header() {
         <div className="page-shell flex items-center justify-between">
           {/* Logo */}
           <motion.div variants={headerLogoReveal}>
-            <Logo />
+            <Logo name={brandName} logoSrc={logoSrc} />
           </motion.div>
 
           {/* Desktop Nav */}
@@ -239,11 +251,11 @@ export function Header() {
             </button>
             <ThemeToggle />
             <Link
-              href="/contact"
+              href={content.ctaHref}
               onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "header" })}
               className="btn btn-sm"
             >
-              Book a call{" "}
+              {content.ctaLabel}{" "}
               <span className="arw" aria-hidden="true">
                 →
               </span>
@@ -294,6 +306,9 @@ export function Header() {
           mobileTriggerRef.current?.focus();
         }}
         navLinks={navLinks}
+        content={content}
+        brandName={brandName}
+        logoSrc={logoSrc}
       />
 
       <SearchDialog open={searchOpen} onOpenChangeAction={setSearchOpen} />

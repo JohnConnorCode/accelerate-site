@@ -68,7 +68,7 @@ export const capabilities: Capability[] = [
     category: "act",
     title: "Prepare a private page draft",
     detail:
-      "Enable Site Studio to create a structured template or AI-assisted page, preview it at different widths, rename it and discard it. The installation owner can also edit a private homepage snapshot, save it, review its preview and import or export content. Database revisions refuse stale edits. Public publishing and the rest of the website migration are still separate work.",
+      "Create template or AI-assisted pages with a choice of models, including free and premium options. Installation owners can edit pages and shared content, preview responsive widths, save private revisions and review publication or rollback. Import and export move portable content between installations. Existing source pages are preserved until explicitly replaced; automatic migration of their original layouts remains separate work.",
   },
   // Capture
   {

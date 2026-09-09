@@ -1,3 +1,9 @@
+import {
+  websiteHeaderContent,
+  websiteFooterContent,
+  websiteNavigationContent,
+  websiteDockContent,
+} from "@/content/site-studio/shared";
 import { tenant } from "@/config/tenant";
 import { nativeTemplateDefaults } from "./native-templates";
 import { parseWebsiteDocument } from "./website-document";
@@ -23,8 +29,10 @@ export function createBundledWebsite() {
   return parseWebsiteDocument({
     schemaVersion: 1,
     identity: { name: tenant.brand.name, tagline: marketingPositioning.shortOffer },
-    navigation: [],
-    footer: { text: "", links: [] },
+    navigation: structuredClone(websiteNavigationContent),
+    header: { ...websiteHeaderContent },
+    footer: structuredClone(websiteFooterContent),
+    dock: { ...websiteDockContent },
     theme: {
       accent: "#d8b36a",
       background: "#fbfbfa",

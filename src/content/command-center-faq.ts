@@ -19,7 +19,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Does Site Studio publish a page when I create a draft?",
     answer:
-      "No. Site Studio currently creates private, versioned drafts. For example, use the built-in template for a bookkeeping service page, review it at desktop and mobile widths, then reopen the saved draft. Template creation makes no model request; AI generation uses your configured provider and budget. The installation owner can also save and preview a private homepage content snapshot and import or export it for their own fork. Publishing, scheduling and the remaining site migration are still being built. The Site Studio guide includes worked editing, retry and fork examples.",
+      "No. Creating, applying an AI suggestion and saving all keep the work private. The installation owner separately reviews and publishes a saved website revision. For example, create a bookkeeping page, choose Muse Spark 1.3 or a free or premium alternative, review the copy and phone preview, save, then review publication. History supports rollback. Private tenant drafts remain separate. The Site Studio guide explains costs, recovery and importing content into your own installation.",
   },
   {
     question: "What does a complete delivery handoff mean?",

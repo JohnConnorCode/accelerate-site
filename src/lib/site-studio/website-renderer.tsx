@@ -103,9 +103,14 @@ export function WebsitePageContent({
 }) {
   switch (page.content.kind) {
     case "article":
-      return <WebsiteArticle body={page.content.body} assets={assets} />;
+      return (
+        <article className="mx-auto max-w-3xl px-6 py-24">
+          <h1 className="mb-8 text-4xl font-semibold">{page.metadata.title}</h1>
+          <WebsiteArticle body={page.content.body} assets={assets} />
+        </article>
+      );
     case "document":
-      return <SitePageRenderer document={page.content.document} />;
+      return <SitePageRenderer document={page.content.document} assets={assets} />;
     case "native": {
       const visible = page.content.sections.filter((section) => !section.hidden);
       const nodes: ReactNode[] = [];

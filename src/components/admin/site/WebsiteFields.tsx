@@ -4,7 +4,7 @@
 export const websiteFieldClass =
   "mt-1 block min-h-11 w-full rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-sm text-[var(--admin-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--admin-ink)]";
 export const websiteButtonClass =
-  "inline-flex min-h-11 items-center justify-center rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] px-3 py-2 text-sm text-[var(--admin-ink)] hover:bg-[var(--admin-surface-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--admin-ink)] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] px-3 py-2 text-sm text-[var(--admin-ink)] hover:bg-[var(--admin-surface-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--admin-ink)] disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:bg-[var(--admin-action)] aria-pressed:text-[var(--admin-action-ink)]";
 const humanize = (name: string) =>
   name
     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -45,6 +45,15 @@ const emptyItem = (label: string): Value | undefined =>
     }) as Record<string, Value>
   )[label];
 const fieldOptions: Record<string, string[]> = {
+  background: ["surface", "surfaceDark", "accent", "transparent"],
+  paddingTop: ["none", "sm", "md", "lg", "xl"],
+  paddingBottom: ["none", "sm", "md", "lg", "xl"],
+  maxWidth: ["narrow", "content", "wide", "full"],
+  gap: ["sm", "md", "lg"],
+  align: ["start", "center"],
+  tone: ["default", "muted", "inverse"],
+  variant: ["editorial", "split", "centered"],
+  theme: ["light", "dark"],
   font: ["installation", "sans", "serif", "mono"],
   radius: ["square", "soft", "round"],
   presentation: ["interface", "photo", "slide"],
@@ -62,7 +71,7 @@ export function WebsiteFields({
   label: string;
   disabled?: boolean;
 }) {
-  if (typeof value === "string" && fieldOptions[label])
+  if (typeof value === "string" && fieldOptions[label]?.includes(value))
     return (
       <label className="block text-sm">
         {humanize(label)}
@@ -189,15 +198,28 @@ export function WebsiteFields({
     return (
       <fieldset className="space-y-3" disabled={disabled}>
         <legend className="mb-2 text-sm font-medium">{humanize(label)}</legend>
-        {Object.entries(value).map(([key, item]) => (
-          <WebsiteFields
-            key={key}
-            value={item}
-            label={key}
-            disabled={disabled}
-            onChange={(next) => onChange({ ...value, [key]: next } as Value)}
-          />
-        ))}
+        {Object.entries(value)
+          .filter(
+            ([key]) =>
+              ![
+                "id",
+                "type",
+                "kind",
+                "schemaVersion",
+                "engine",
+                "engineVersion",
+                "template",
+              ].includes(key),
+          )
+          .map(([key, item]) => (
+            <WebsiteFields
+              key={key}
+              value={item}
+              label={key}
+              disabled={disabled}
+              onChange={(next) => onChange({ ...value, [key]: next } as Value)}
+            />
+          ))}
       </fieldset>
     );
   return null;

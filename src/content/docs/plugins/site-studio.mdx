@@ -4,79 +4,51 @@ description: "Create a private AI-assisted page draft from approved components a
 updated: "2026-09-09"
 ---
 
-Apply the current database migrations, enable **Site Studio** in Plugins, and open **Site Studio** to create page drafts for the public website. The plugin starts disabled. A draft is private working copy: it never appears on the public site until a future publish step, which is still being built.
+Open **Site Studio → Edit installation website** to create pages, edit content, preview changes and publish a saved revision. The installation owner needs an active admin membership and the Site Studio plugin enabled. Apply the installation migrations before enabling the editor. Other workspace admins can use their private page drafts without gaining control of the installation's public website.
 
-## Create a draft
+## Create and edit a page
 
-1. Enter the service name, the audience, and the outcome the page should sell, for example “Bookkeeping automation”, “Home service owners”, “The office runs while the crew builds”. Leave the URL slug blank to derive it from the service name, or set it explicitly when a draft already uses that slug. Use Additional direction for constraints the draft should reflect, such as tone or sections to emphasize.
-2. Choose **Built-in service template** for an instant structured draft, or **AI generated** to have the configured model write one (needs OpenRouter connected under Setup).
-3. Optionally attach approved catalog photography. Only catalog images can be attached; external URLs are refused.
-4. Select **Create draft** and confirm the preview opens with your heading, sections, calls to action, and images.
+1. Select **Add page**, enter a title and page address, and choose a service, landing or article starter. **Clone page** copies the current page into a new address.
+2. Edit the page fields and search description. Open a section to change its text or appearance; add, reorder, hide supported native sections, or remove sections as needed. Article controls support headings, paragraphs, formatted text, lists, quotes, code and images.
+3. Use **Ask AI** to improve copy while retaining the layout, or generate a new layout and copy. Describe the result you want, choose a model, and prepare a suggestion. Review the changes and choose **Apply to draft**. Preparing or applying a suggestion does not publish it.
+4. Check the live preview at Phone, Tablet and Desktop widths. **Undo** and **Redo** recover local edits. Select **Save draft** to create a private, versioned snapshot.
 
-AI drafts can be refused before they save: invented links, prices, percentages, client names, or non-catalog images come back with the exact problem named. Fix the brief and try again.
+For example, create a service page at `/bookkeeping-automation`. Ask AI to “Explain how this service reduces evening admin work, using plain language and no invented prices or results.” Review its suggested copy, apply it, check the phone preview and save. The next step is a separate publication review.
 
-## Review the preview
+The bundled homepage exposes its existing sections. Other bundled routes retain their source content until a published page explicitly replaces that address; they are not automatically imported as editable copies. Replacing a route requires reviewing its existing forms, links and metadata. Application routes, documentation routes and compatibility redirects cannot be replaced from the editor.
 
-Check the heading, body copy, calls to action, and every attached image with its alt text. Switch between Desktop, Tablet, and Mobile widths. Rename the draft from the same page when the title needs work; if someone else changed the draft underneath you, the save is refused and the latest copy reloads instead of overwriting. A draft that fails validation shows an error instead of a preview; the attached-images list names each catalog reference so you can spot an unresolved one.
+## Choose a model and control cost
 
-Drafts are private tenant records stored in the database, with stable IDs, incrementing versions and immutable revision history. Renaming a slug does not create a new draft identity. Drafts keep a checksum and source record (template or AI) with the brief that produced them. Publishing, scheduling, and rollback arrive in a later release; treat every draft as unapproved until a person has reviewed it. Discard a draft from its preview page when it is no longer needed; discarding asks once for confirmation and never touches published output.
+**Muse Spark 1.3** is the default. The selector also offers free Nex N2.5 Mini, very low-cost Mercury 2.5, Claude Sonnet 4.6 and premium Claude Opus 4.6. The displayed input and output rates are price ceilings per million tokens, verified against the provider catalogue on September 9, 2026. Availability may vary; a free model can be rate limited.
 
-## Costs, limits and recovery
+Connect OpenRouter under Setup to make real model calls. Requests use the shared model gateway, usage receipts and workspace budget. The chosen model does not silently switch to a more expensive one. Provider costs can apply even when output fails validation. Built-in starters, manual editing and previews make no model request.
 
-Template creation, preview, rename and discard make no model request. AI generation uses your configured OpenRouter job and shared budget controls; its provider charges apply even if the resulting draft needs revision. Pattern checks reject common invented claims, but they cannot verify every statement. Review all business facts yourself before using the copy.
+AI changes must pass the same content validation as manual edits. Copy editing preserves page identity, addresses and layout. Review factual claims yourself: validation cannot establish that every business claim is true. If generation fails, keep editing manually or deliberately select another model and retry. No failed suggestion changes the saved draft.
 
-The list shows the 200 most recently updated active drafts. A failed load shows an error and Retry instead of a successful empty list. A stale edit or discard is refused: reload, inspect the changed content, and decide again. Disabling the plugin closes its routes and refuses writes while retaining stored drafts and history. The fictional demo supports the installation website draft editor described below. Template and AI page generation are not simulated there; demo results do not establish a connected database or provider proof.
+## Publish and recover
 
-The section regeneration service is available through the authenticated API with a required checksum and the same model budget. It currently has no preview-screen control. General-purpose AI/MCP editing tools, publishing, scheduling and rollback remain separate work; no draft operation publishes a page.
+Save your changes, then select **Review publication**. Review the saved page list and responsive previews before selecting **Publish saved revision**. The exact saved revision becomes public; subsequent draft edits stay private until another publication.
 
-## Example: draft a bookkeeping service page
+**History** lists recent revisions. **Review rollback** restores a previously published version while preserving the current draft. **Unpublish** removes public website availability while retaining drafts and history. Review each confirmation before continuing. Scheduling and general-purpose AI/MCP publication tools are not provided by this editor.
 
-Maya is preparing a page for the fictional Northline business.
+If the network drops after a write, use **Retry same save** or the corresponding publication retry. It reuses the original request, avoiding duplicate revisions. An edit conflict preserves your local fields. **Export draft** before **Reload saved draft** if you want to retain a copy; reload asks before replacing local edits. Save and publish errors remain visible until resolved.
 
-1. Enter “Bookkeeping automation” as the service, “Home service owners” as the audience, and “Keep the office work moving while the crew is on site” as the outcome.
-2. Choose **Built-in service template**, leave the slug blank, and select **Create draft**. This path makes no model request.
-3. Review the heading and calls to action at Desktop, Tablet and Mobile widths. Check that the page makes no claim about a price, customer or result that your business has not approved.
-4. Rename the draft if needed, then return to the list and reopen it to confirm the saved version.
+Open **Website tools** for reload, import, export and the saved preview. On phones, switch between **Edit content** and **Preview page**, and use **Editing** to choose the content area. **Unpublish** is available inside **History**.
 
-For AI-written copy, use **AI generated** after your administrator has configured OpenRouter. For example, add “Use plain language; do not invent prices or customer results” to Additional direction. Review the result even if validation accepts it. If validation refuses a claim or link, revise the brief and try again; provider usage can still incur a charge.
+## Shared content, assets and collections
 
-This exercise produces a private draft. There is no Publish control in this release, and creating a draft does not change the public website.
+Use Identity, Navigation, Footer and Theme to edit shared branding, links and appearance. The preview and published output share their theme settings. Under Assets, add an image path or HTTPS image URL and an accessible description, then use it as a logo, sharing image or article image. The asset manager references existing image files; it does not upload files. An image still referenced by content cannot be removed.
 
-If AI generation fails before a preview opens, read the displayed reason. Ask your administrator to verify the configured model and current application release for a provider or configuration error. You can select **Built-in service template** to continue without a model call. If the error names the generated content, such as an unsupported image or invented claim, revise the brief before another AI attempt. A failed attempt may still incur provider usage; do not repeatedly submit an unchanged brief without checking the cause.
+Collections organize repeatable articles and case studies. Create a collection, add an entry, edit its page address, search fields, tags and article body, then save and publish the website. Published entry addresses render as article pages. Published pages and entries are included in the sitemap unless Hidden from search is selected.
 
-## Edit the installation website draft
+## Move content to your own installation
 
-Open **Site Studio → Edit installation website**. This surface belongs to the installation owner: the email configured in `ADMIN_EMAIL`, with an active administrator membership in the installation's original workspace. Being an administrator of another workspace does not grant access to the public installation website.
+**Export draft** downloads a portable snapshot containing content, appearance and image references. It excludes credentials, workspace permissions and publication state. Image files are not included; make referenced files available in the destination installation.
 
-The current editor starts with the bundled homepage. Its twelve main sections have editable content fields, including the hero, service descriptions, industry cards, process, sample plan, team introduction and questions. Open a section to change its text or links. **Move section up** changes the order; **Hide section** keeps its content while removing it from the saved preview. The selected-work cards still come from the source portfolio collection.
+Choose **Import draft** in your own installation, review the imported content, then save a private revision. Import never publishes. Invalid snapshots, unsafe links and files over 8 MB are rejected while preserving local edits. A credential-free fork starts from its own bundled content and does not contact Accelerate's database.
 
-1. Choose a page under **Pages** and open the section you want to edit.
-2. Change the content. Search and sharing fields hold that page's title, description and indexing preference.
-3. Select **Save draft**. Wait for the numbered private-revision confirmation.
-4. Select **Open saved preview** and review the saved copy. Save local changes before navigating to the preview.
+## Private workspace drafts and the fictional demo
 
-Saving and importing do not change the live website. There is no Publish control in this editor yet. Other existing public pages and shared header/footer content are still being migrated. Identity, navigation, footer, theme, assets and collections can be stored in the snapshot, but the current preview renders page content only. This is not yet a replacement for editing the entire public site.
+The original Site Studio draft list remains available for tenant-owned service drafts. Enter a brief, choose a built-in template or AI model, attach approved catalogue photography and create a draft. Its preview supports rename and discard. These drafts are separate from the installation website and do not publish from that screen. Section regeneration is available through its authenticated API with a required checksum and a supported model ID.
 
-### Example: change the homepage introduction
-
-Sam owns a fictional workshop's installation. They open **Pages**, expand the homepage's **statement** section, and replace the heading with “We help local teams spend less time on paperwork.” They update the body to describe services their workshop actually offers, then select **Save draft**.
-
-The editor confirms a private revision number. Sam opens the saved preview and checks the heading, body and linked destinations. The public homepage still shows its previous content; saving this revision did not publish it.
-
-### Keep edits when a save is interrupted
-
-If the connection stops before the save is confirmed, use **Retry same save**. The editor resends the same request so an already completed save does not create another revision. Editing is locked while that request's result is uncertain.
-
-A stale-edit message means the saved website changed since you loaded it. Your local fields stay on screen. Use **Export draft** to keep a copy, then **Reload saved draft**. Review the latest version and reapply the changes you want to retain. The reload confirmation lets you choose **Keep editing** instead of replacing local edits.
-
-## Use the editor in your own fork
-
-Follow [Self-hosting](/docs/self-hosting) to configure your own database, application URL and administrator. Apply the repository's ordered installation migrations and enable Site Studio in your own installation. The editor starts from content bundled with your checkout; it does not retrieve Accelerate's private website revisions or require Accelerate's production credentials.
-
-**Export draft** downloads a content snapshot. It contains pages, content, asset references and appearance values; it does not contain login credentials, workspace authority or publication state. Image references do not copy the image files themselves. Make sure the referenced files or image URLs exist in your installation.
-
-For example, a workshop owner can export a reviewed draft from their test installation, sign in to their own production installation, and choose **Import draft**. They review the imported fields and select **Save draft** to create a private revision there. Importing never publishes, and a file with unsupported fields, unsafe links or more than 8 MB is rejected while preserving local edits.
-
-## Try the fictional website editor
-
-In the [full admin demo](/demo/command-center), open **Site Studio → Edit installation website**. The example belongs to the selected fictional business. Save and reopen its preview to try the workflow without database or AI credentials. Changes stay in that scenario's browser session; switching scenarios keeps their drafts separate, and resetting the scenario removes its demo changes. The demo does not publish or contact providers.
+In the [full admin demo](/demo/command-center), open the installation website editor to try creation, fictional AI suggestions, saving, publication receipts and rollback. Changes remain in that business scenario's browser session. They do not publish a live website, contact a provider or mutate production records. Switching scenarios isolates their drafts; resetting removes the scenario's changes.

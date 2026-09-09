@@ -1,3 +1,6 @@
+import { servicePageTemplate } from "@/lib/site-studio/templates";
+import { websitePageSchema } from "@/lib/site-studio/website-document";
+import { siteModel } from "@/lib/site-studio/models";
 import { parseWebsiteDocument, type WebsiteDocument } from "@/lib/site-studio/website-document";
 import { parseWebsiteCommand, type WebsiteReceipt } from "@/lib/site-studio/website-commands";
 import type { WebsiteState } from "@/lib/site-studio/website-store";
@@ -84,7 +87,23 @@ export function handleDemoWebsite(
   name: string,
   method: string,
   input: unknown,
+  query?: URLSearchParams,
 ): Response {
+  if (method === "GET" && query?.get("history") === "1")
+    return json({
+      revisions: Object.entries(state.revisions)
+        .reverse()
+        .slice(0, 30)
+        .map(([id]) => ({
+          id,
+          createdAt:
+            Object.values(state.receipts).find((row) => row.receipt.draftRevisionId === id)?.receipt
+              .createdAt ?? new Date(0).toISOString(),
+          previouslyPublished: Object.values(state.receipts).some(
+            (row) => row.receipt.publishedRevisionId === id,
+          ),
+        })),
+    });
   if (method === "GET") return json({ website: state.website, bundled: fictionalWebsite(name) });
   if (method !== "POST") return json({ error: "Method not supported" }, 405);
   let command;
@@ -140,4 +159,44 @@ export function handleDemoWebsite(
   };
   state.receipts[command.requestKey] = { fingerprint, receipt };
   return json({ receipt });
+}
+
+export function demoWebsiteSuggestion(input: Record<string, unknown>): Response {
+  try {
+    const page = websitePageSchema.parse(input.page);
+    if (input.model) siteModel(String(input.model));
+    if (
+      typeof input.instruction !== "string" ||
+      input.instruction.length < 3 ||
+      input.instruction.length > 2000
+    )
+      throw new Error("Invalid direction");
+    const next =
+      input.mode === "generate"
+        ? {
+            ...page,
+            content: {
+              kind: "document",
+              document: servicePageTemplate({
+                serviceName: page.metadata.title,
+                audience: "Fictional demo",
+                outcome: "A fictional AI suggestion for reviewing the page creation flow.",
+              }),
+            },
+          }
+        : {
+            ...page,
+            metadata: {
+              ...page.metadata,
+              description:
+                "A fictional AI suggestion. Review this copy, then apply it to your draft.",
+            },
+          };
+    return json({
+      page: next,
+      summary: "Fictional suggestion for trying the review flow. No AI provider was called.",
+    });
+  } catch {
+    return json({ error: "Choose a valid page, model and instruction." }, 400);
+  }
 }

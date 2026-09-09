@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { connection } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "@/lib/tenancy/constants";
@@ -55,6 +56,9 @@ export const readPublicWebsite = cache(async (): Promise<PublicWebsite> => {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url && !key) return { mode: "bootstrap" };
   if (!url || !key) return { mode: "unavailable" };
+  // Connected installations select publication at request time. This must stay
+  // outside the error boundary: Next uses the call to stop prerendering.
+  await connection();
   try {
     return await selectPublicWebsite(
       createPlatformServiceRoleClient("site-studio:public-published-read"),

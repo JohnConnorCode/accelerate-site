@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import Link from "next/link";
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
@@ -27,7 +28,7 @@ import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { HERO_HEADING } from "@/lib/type-recipes";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Industries We Serve",
   description:
     "Custom AI strategy, automation, and execution built around the workflows, tools, and goals of your specific business.",
@@ -54,7 +55,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Industries", url: "/industries" },
 ]);
 
-export default function IndustriesPage() {
+export default async function IndustriesPage() {
+  const published = await publishedWebsiteOverride("/industries");
+  if (published) return published;
   return (
     <>
       <script
@@ -174,4 +177,8 @@ export default function IndustriesPage() {
       </Section>
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/industries")) ?? bundledMetadata;
 }

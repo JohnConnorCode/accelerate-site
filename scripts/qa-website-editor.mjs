@@ -77,19 +77,23 @@ try {
   await page.getByRole("button", { name: "Save draft", exact: true }).click();
   await page.getByRole("alert").filter({ hasText: "website changed" }).waitFor();
   assert.equal(await eyebrow.inputValue(), "Keep this unsaved edit");
+  await page.getByRole("button", { name: "Website tools", exact: true }).click();
   const [download] = await Promise.all([
     page.waitForEvent("download"),
     page.getByRole("button", { name: "Export draft", exact: true }).click(),
   ]);
   const downloaded = JSON.parse(await readFile(await download.path(), "utf8"));
   assert.equal(downloaded.pages[0].content.sections[0].fields.eyebrow, "Keep this unsaved edit");
+  await page.getByRole("button", { name: "Website tools", exact: true }).click();
   await page.getByRole("button", { name: "Reload saved draft", exact: true }).click();
   await page.getByRole("button", { name: "Keep editing", exact: true }).click();
   assert.equal(await eyebrow.inputValue(), "Keep this unsaved edit");
   await page.screenshot({ path: `${output}/desktop-conflict.png` });
+  await page.getByRole("button", { name: "Website tools", exact: true }).click();
   await page.getByRole("button", { name: "Reload saved draft", exact: true }).click();
   await page.getByRole("button", { name: "Replace local edits", exact: true }).click();
   await page.getByText("Saved draft loaded.", { exact: false }).waitFor();
+  await page.getByRole("button", { name: "Website tools", exact: true }).click();
   await page.getByRole("link", { name: "Open saved preview", exact: true }).click();
   const frameResponse = await page.request.get(`${base}/site-preview`);
   assert.equal(frameResponse.headers()["x-frame-options"], "SAMEORIGIN");

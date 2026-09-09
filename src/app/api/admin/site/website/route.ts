@@ -8,6 +8,7 @@ import { parseWebsiteCommand } from "@/lib/site-studio/website-commands";
 import {
   assertWebsiteOwner,
   readWebsite,
+  readWebsiteHistory,
   writeWebsite,
   WebsiteConflictError,
 } from "@/lib/site-studio/website-store";
@@ -29,10 +30,12 @@ async function authorize() {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await authorize();
   if (auth instanceof NextResponse) return auth;
   try {
+    if (new URL(request.url).searchParams.get("history") === "1")
+      return NextResponse.json({ revisions: await readWebsiteHistory(auth) }, { headers });
     return NextResponse.json(
       { website: await readWebsite(auth), bundled: createBundledWebsite() },
       { headers },

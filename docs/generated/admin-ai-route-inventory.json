@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 92,
-  "mutationHandlerCount": 83,
+  "routeCount": 94,
+  "mutationHandlerCount": 85,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -1342,13 +1342,14 @@
         "@/lib/site-studio/database-store",
         "@/lib/site-studio/document",
         "@/lib/site-studio/drafts",
+        "@/lib/site-studio/models",
         "@/lib/site-studio/openrouter-adapter",
         "@/lib/site-studio/regenerate",
         "@/lib/site-studio/revision",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "38dcaf0ffda728893bc942947253c8231a8a04cd759b58a1adf6f1a9ed09e476"
+      "sourceSha256": "a6ef94fdf87b679ee20eac2ac2f5d464500a76206cecd68d9d6089ffe4c7ce40"
     },
     {
       "source": "src/app/api/admin/site/drafts/route.ts",
@@ -1366,11 +1367,51 @@
         "@/lib/site-studio/document",
         "@/lib/site-studio/drafts",
         "@/lib/site-studio/generate",
+        "@/lib/site-studio/models",
         "@/lib/site-studio/openrouter-adapter",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "b3d53d356a2629f5a57dc52ca1c4429109e053f2182bb090ea17898244a65d87"
+      "sourceSha256": "6878657882a308100b7ba1815adb32897f76d5621fd98f222708402e5bb5294b"
+    },
+    {
+      "source": "src/app/api/admin/site/website/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/site-studio/website-commands",
+        "@/lib/site-studio/website-document",
+        "@/lib/site-studio/website-seed",
+        "@/lib/site-studio/website-store",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "2fc0c107af46890d94e2a19b912cc2fa251747c22bacf63b5491dd04537c3a0a"
+    },
+    {
+      "source": "src/app/api/admin/site/website/suggest/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/rate-limit",
+        "@/lib/site-studio/website-ai",
+        "@/lib/site-studio/website-store",
+        "next/server"
+      ],
+      "sourceSha256": "6f82f71b5e02a897b0933661247c6ef889ab391d8346673546c0a32afee07c54"
     },
     {
       "source": "src/app/api/admin/subscribers/export/route.ts",

@@ -1,3 +1,4 @@
+import { DEFAULT_SITE_MODEL, SITE_STUDIO_MODELS } from "@/lib/site-studio/models";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
@@ -12,6 +13,13 @@ import { siteNodeIdSchema } from "@/lib/site-studio/document";
 const regenerateSchema = z
   .object({
     sectionId: siteNodeIdSchema,
+    model: z
+      .string()
+      .refine(
+        (value) => SITE_STUDIO_MODELS.some((model) => model.id === value),
+        "Choose a supported model",
+      )
+      .default(DEFAULT_SITE_MODEL),
     direction: z.string().trim().max(1000).optional(),
     expectedChecksum: z.string().regex(/^[a-f0-9]{64}$/),
   })
@@ -50,7 +58,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         direction: parsed.data.direction,
         expectedChecksum: parsed.data.expectedChecksum,
       },
-      (system, user) => regenerateSectionWithOpenRouter(auth.database, system, user),
+      (system, user) =>
+        regenerateSectionWithOpenRouter(auth.database, system, user, parsed.data.model),
     );
     return NextResponse.json({ draft });
   } catch (error) {

@@ -177,6 +177,19 @@ exception. Update the source inventory after reviewing changed route operations.
 
 ## The live board owns work truth
 
+- Use the configured database-backed canonical service or scoped CLI for board
+  operations. Do not use browser UI for routine board management or ask the
+  founder to navigate it when an authorized service path is available. Browser
+  use is reserved for requested visual/interaction verification. Preserve actor
+  permissions, revision checks, leases and immutable receipts; direct row updates
+  are not a replacement for lifecycle operations.
+- Carry explicit founder recovery authorization through the scoped recover/reopen
+  operations and normal reclaim in the same task. Do not repeat the permission
+  question. Keep operator recovery authority separate from worker review rights.
+- Read one relevant card with `agent:show -- --card <key> --json`; summarize only
+  the fields needed for the next decision. Do not dump the full board for a
+  specific task. Reuse prior inspection and batch independent bounded reads.
+
 - `/admin/features` and the shared work service own card definitions, UUID
   dependencies, revisions, claims, decisions and immutable execution events.
 - Git contains schemas, card templates and explicit dated exports. Edit a live

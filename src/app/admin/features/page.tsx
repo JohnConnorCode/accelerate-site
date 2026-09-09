@@ -9,7 +9,6 @@ import {
   Archive,
   CalendarDays,
   CheckCircle2,
-  Filter,
   GripVertical,
   KanbanSquare,
   Loader2,
@@ -1280,108 +1279,128 @@ export default function FeaturesPage() {
                 ))}
               </section>
               <AdminSurface padding="sm">
-                <WorkViews
-                  initiatives={[
-                    ...new Set(
-                      features.map((f) => f.initiative).filter((v): v is string => Boolean(v)),
-                    ),
-                  ].sort()}
-                  filters={{
-                    search,
-                    milestone,
-                    category,
-                    capability,
-                    ownerFilter,
-                    priority,
-                    queue,
-                    phase,
-                    initiative,
-                  }}
-                  onChange={applyFilters}
-                />
-                <div className="mt-4 flex flex-col gap-3">
+                <div className="flex flex-col gap-3">
                   <div className="relative min-w-0 w-full">
                     <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" />
                     <input
                       ref={searchInputRef}
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
-                      placeholder="Search title, outcome, owner, subtask, or capability"
+                      placeholder="Search work…"
+                      aria-label="Search work"
                       className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center">
-                    <Filter className="hidden size-4 text-[var(--admin-muted)] md:block" />
-                    <select
-                      value={milestone}
-                      onChange={(event) => setMilestone(event.target.value)}
-                      aria-label="Filter by milestone"
-                      className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
-                    >
-                      <option value="all">All milestones</option>
-                      <option value="active">Now + Next</option>
-                      {MILESTONE_OPTIONS.filter((value) => labels.includes(value)).map((value) => (
-                        <option key={value} value={value}>
-                          {taxonomyLabel(value)}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={category}
-                      onChange={(event) => setCategory(event.target.value)}
-                      aria-label="Filter by category"
-                      className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto md:max-w-48"
-                    >
-                      <option value="all">All categories</option>
-                      {categories.map((value) => (
-                        <option key={value} value={value}>
-                          {taxonomyLabel(value)}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={capability}
-                      onChange={(event) => setCapability(event.target.value)}
-                      aria-label="Filter by capability"
-                      className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto md:max-w-48"
-                    >
-                      <option value="all">All capabilities</option>
-                      {capabilities.map((value) => (
-                        <option key={value} value={value}>
-                          {taxonomyLabel(value)}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={ownerFilter}
-                      onChange={(event) => setOwnerFilter(event.target.value)}
-                      aria-label="Filter by owner"
-                      className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
-                    >
-                      <option value="all">All assignments</option>
-                      <option value="mine">Assigned to me</option>
-                      <option value="unassigned">Unassigned</option>
-                      {owners.map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={priority}
-                      onChange={(event) =>
-                        setPriority(event.target.value as "all" | FeaturePriority)
-                      }
-                      aria-label="Filter by priority"
-                      className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
-                    >
-                      <option value="all">All priorities</option>
-                      {FEATURE_PRIORITIES.map((value) => (
-                        <option key={value} value={value}>
-                          {priorityMeta[value].label}
-                        </option>
-                      ))}
-                    </select>
+                  <WorkViews
+                    initiatives={[
+                      ...new Set(
+                        features.map((f) => f.initiative).filter((v): v is string => Boolean(v)),
+                      ),
+                    ].sort()}
+                    filters={{
+                      search,
+                      milestone,
+                      category,
+                      capability,
+                      ownerFilter,
+                      priority,
+                      queue,
+                      phase,
+                      initiative,
+                    }}
+                    onChange={applyFilters}
+                  >
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <label className="flex min-w-0 flex-col gap-2 text-xs">
+                        Milestone
+                        <select
+                          value={milestone}
+                          onChange={(event) => setMilestone(event.target.value)}
+                          aria-label="Filter by milestone"
+                          className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
+                        >
+                          <option value="all">All milestones</option>
+                          <option value="active">Now + Next</option>
+                          {MILESTONE_OPTIONS.filter((value) => labels.includes(value)).map(
+                            (value) => (
+                              <option key={value} value={value}>
+                                {taxonomyLabel(value)}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </label>
+                      <label className="flex min-w-0 flex-col gap-2 text-xs">
+                        Category
+                        <select
+                          value={category}
+                          onChange={(event) => setCategory(event.target.value)}
+                          aria-label="Filter by category"
+                          className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto md:max-w-48"
+                        >
+                          <option value="all">All categories</option>
+                          {categories.map((value) => (
+                            <option key={value} value={value}>
+                              {taxonomyLabel(value)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="flex min-w-0 flex-col gap-2 text-xs">
+                        Capability
+                        <select
+                          value={capability}
+                          onChange={(event) => setCapability(event.target.value)}
+                          aria-label="Filter by capability"
+                          className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto md:max-w-48"
+                        >
+                          <option value="all">All capabilities</option>
+                          {capabilities.map((value) => (
+                            <option key={value} value={value}>
+                              {taxonomyLabel(value)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="flex min-w-0 flex-col gap-2 text-xs">
+                        Assignment
+                        <select
+                          value={ownerFilter}
+                          onChange={(event) => setOwnerFilter(event.target.value)}
+                          aria-label="Filter by owner"
+                          className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
+                        >
+                          <option value="all">All assignments</option>
+                          <option value="mine">Assigned to me</option>
+                          <option value="unassigned">Unassigned</option>
+                          {owners.map((value) => (
+                            <option key={value} value={value}>
+                              {value}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="flex min-w-0 flex-col gap-2 text-xs">
+                        Priority
+                        <select
+                          value={priority}
+                          onChange={(event) =>
+                            setPriority(event.target.value as "all" | FeaturePriority)
+                          }
+                          aria-label="Filter by priority"
+                          className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
+                        >
+                          <option value="all">All priorities</option>
+                          {FEATURE_PRIORITIES.map((value) => (
+                            <option key={value} value={value}>
+                              {priorityMeta[value].label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  </WorkViews>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="col-span-2 flex items-center gap-2 md:col-auto">
                       <span className="rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">
                         {filtered.length}
@@ -1402,8 +1421,7 @@ export default function FeaturesPage() {
                 {filtersActive && (
                   <p className="mt-3 flex items-center gap-2 rounded-lg bg-[var(--admin-warning-soft)] px-3 py-2 text-xs font-medium text-[var(--admin-ink)]">
                     <Tag className="size-3.5 shrink-0 text-[var(--admin-warning)]" />
-                    Dragging is off while a filter is active, so a card hidden by the filter keeps
-                    its exact priority. Clear the filters above to reorder.
+                    Clear filters to reorder cards.
                   </p>
                 )}
               </AdminSurface>

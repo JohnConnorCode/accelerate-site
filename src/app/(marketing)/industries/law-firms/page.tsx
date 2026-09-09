@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { verticals } from "@/content/verticals";
@@ -6,7 +7,7 @@ import { generateVerticalJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 const vertical = verticals.find((v) => v.slug === "law-firms")!;
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Law Firm AI Solutions",
   description: vertical.shortDescription,
   ogTitle: "Law Firm AI Solutions",
@@ -20,7 +21,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Law Firms", url: "/industries/law-firms" },
 ]);
 
-export default function LawFirmsPage() {
+export default async function LawFirmsPage() {
+  const published = await publishedWebsiteOverride("/industries/law-firms");
+  if (published) return published;
   return (
     <>
       <script
@@ -37,4 +40,8 @@ export default function LawFirmsPage() {
       <PageEngagementTracker />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/industries/law-firms")) ?? bundledMetadata;
 }

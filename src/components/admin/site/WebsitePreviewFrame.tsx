@@ -36,8 +36,8 @@ export function WebsitePreviewFrame({ pageId }: { pageId?: string }) {
         ))}
       </div>
       <p className="text-sm text-[var(--admin-muted)]">
-        This preview shows saved page content. Publishing and the website header and footer are
-        still being built.
+        Preview the saved draft, including shared navigation and footer. Publish from the website
+        editor after reviewing your changes.
       </p>
       <iframe
         title="Saved website preview"

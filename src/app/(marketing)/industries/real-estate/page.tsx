@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { verticals } from "@/content/verticals";
@@ -6,7 +7,7 @@ import { generateVerticalJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 const vertical = verticals.find((v) => v.slug === "real-estate")!;
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Real Estate AI Solutions",
   description: vertical.shortDescription,
   ogTitle: "Real Estate AI Solutions",
@@ -20,7 +21,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Real Estate", url: "/industries/real-estate" },
 ]);
 
-export default function RealEstatePage() {
+export default async function RealEstatePage() {
+  const published = await publishedWebsiteOverride("/industries/real-estate");
+  if (published) return published;
   return (
     <>
       <script
@@ -37,4 +40,8 @@ export default function RealEstatePage() {
       <PageEngagementTracker />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/industries/real-estate")) ?? bundledMetadata;
 }

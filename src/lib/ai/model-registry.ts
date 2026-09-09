@@ -1,4 +1,5 @@
 import "server-only";
+import { SITE_STUDIO_MODELS, DEFAULT_SITE_MODEL } from "@/lib/site-studio/models";
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DEFAULT_OPENROUTER_MODEL } from "./openrouter-models";
@@ -165,7 +166,7 @@ export const AI_JOBS: readonly JobRegistration[] = [
     requiresTools: false,
     requiresJson: true,
     minContextWindow: 32_000,
-    defaultModel: BUILT_IN_MODEL_ID,
+    defaultModel: DEFAULT_SITE_MODEL,
   },
 ];
 
@@ -374,7 +375,25 @@ export async function resolveModelForJob(
   const job = AI_JOBS.find((candidate) => candidate.key === jobKey);
   if (!job) throw new Error(`Unknown AI job ${JSON.stringify(jobKey)}`);
   const requested = preferred?.trim() || job.defaultModel;
-  const model = await getModelRegistration(supabase, tenant, requested);
+  const siteDefault =
+    jobKey === "site-page-draft"
+      ? SITE_STUDIO_MODELS.find((model) => model.id === requested)
+      : undefined;
+  const model =
+    (await getModelRegistration(supabase, tenant, requested)) ??
+    (siteDefault
+      ? {
+          id: siteDefault.id,
+          label: siteDefault.label,
+          costTier: siteDefault.tier,
+          contextWindow: siteDefault.contextWindow,
+          supportsTools: false,
+          supportsJson: true,
+          evalPassed: false,
+          evaluatedAt: null,
+          evaluatedBy: null,
+        }
+      : null);
   if (!model) throw new Error(`Model ${JSON.stringify(requested)} is not registered`);
   if (job.allowedModels && !job.allowedModels.includes(model.id))
     throw new Error(`Model ${model.id} is not allowed for job ${jobKey}`);

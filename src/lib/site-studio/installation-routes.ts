@@ -2,6 +2,13 @@
  * checked against the marketing route tree so migrations cannot omit a page. */
 export const installationRoutes = [
   {
+    path: "/[...websitePath]",
+    source: "src/app/(marketing)/[...websitePath]/page.tsx",
+    kind: "page",
+    collection: null,
+    preserve: "Published owner-authored pages and collection entries; drafts stay private",
+  },
+  {
     path: "/about",
     source: "src/app/(marketing)/about/page.tsx",
     kind: "page",

@@ -1,5 +1,8 @@
-import type { WebsiteDocument } from "../../src/lib/site-studio/website-document";
-export const websiteFixture: WebsiteDocument = {
+import {
+  parseWebsiteDocument,
+  type WebsiteDocument,
+} from "../../src/lib/site-studio/website-document";
+export const websiteFixture: WebsiteDocument = parseWebsiteDocument({
   schemaVersion: 1,
   identity: { name: "Northstar Workshop", tagline: "Practical repairs" },
   navigation: [{ label: "Home", href: "/" }],
@@ -29,4 +32,4 @@ export const websiteFixture: WebsiteDocument = {
     },
   ],
   collections: [],
-};
+});

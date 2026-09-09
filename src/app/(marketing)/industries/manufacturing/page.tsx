@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { verticals } from "@/content/verticals";
@@ -6,7 +7,7 @@ import { generateVerticalJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 const vertical = verticals.find((v) => v.slug === "manufacturing")!;
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Manufacturing AI Solutions",
   description: vertical.shortDescription,
   ogTitle: "Manufacturing AI Solutions",
@@ -20,7 +21,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Manufacturing", url: "/industries/manufacturing" },
 ]);
 
-export default function ManufacturingPage() {
+export default async function ManufacturingPage() {
+  const published = await publishedWebsiteOverride("/industries/manufacturing");
+  if (published) return published;
   return (
     <>
       <script
@@ -37,4 +40,8 @@ export default function ManufacturingPage() {
       <PageEngagementTracker />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/industries/manufacturing")) ?? bundledMetadata;
 }

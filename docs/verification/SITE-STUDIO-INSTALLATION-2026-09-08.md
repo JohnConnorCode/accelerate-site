@@ -1,108 +1,144 @@
-# Installation website editor implementation evidence
+# Installation website authoring evidence
 
 Live work: `site-studio-installation-editor` (`7b54f4b4-7519-4758-a268-eeaa17fc0d17`).
-Base: `f09d5ba79b43fcb35e84880f0e8c5130133c52bf`. Resumed checkpoint: 2026-09-09.
+Base: `f09d5ba79b43fcb35e84880f0e8c5130133c52bf`. Resumed: 2026-09-09.
+Draft PR: https://github.com/JohnConnorCode/accelerate-site/pull/67.
 
-This is an implementation checkpoint, not feature acceptance or release approval.
-No production migration or deployment has been performed for this change. Draft
-PR #67 retains the unfinished work. The founder prioritized editing the current
-installation website and independent fork ownership; custom domains, multi-site
-hosting, broad Architect installation and unrelated executor work remain outside
-this claim. Other agents' design/theme source is preserved in their checkouts.
+This remains an implementation checkpoint, not acceptance of every item on the
+broad installation migration card. No deployment or content publication was
+performed. The additive website schema migration was applied and verified as
+described below. The existing worker and its retained same-task chrome edits were
+preserved; other application branches and workers were not reset or switched.
 
-## Implemented and verified locally
+## Implemented
 
-- The reviewed inventory covers all 45 marketing route files, distinguishing
-  content pages, collections and application behavior. Inventory coverage is not
-  evidence that every page has already been migrated.
-- Portable snapshots validate identities, public paths, asset references, safe
-  links, bounded rich text and typed appearance values. They cannot carry tenant
-  authority, arbitrary component code or publication pointers.
-- The native PostgreSQL upgrade suite passed for immutable website revisions,
-  receipts and atomic save/publication operations: concurrent writes, replay,
-  changed-payload refusal, stale versions, previous-publication rollback,
-  unpublish, tenant isolation, anonymous SQL denial, audit rollback and module
-  disable. The SQL has not changed since those passing native runs.
-- Public-selector unit tests prove that drafts and foreign revisions cannot be
-  returned, failures are explicit, and unpublish cannot resurrect the bundled
-  website. That selector is not yet connected to the public route tree.
-- All twelve homepage sections now have registered content adapters. The sample
-  plan and product screenshot content are editable too. The selected-work cards
-  still use the source portfolio collection. Default full-homepage SSR, including
-  the hero grouping, matches the existing Studio renderer. Seven newly migrated
-  components also matched the published baseline in a separate SSR comparison.
-- The owner-only API requires platform ownership, active bootstrap administrator
-  membership, tenant binding and enabled Site Studio. It bounds request bodies,
-  validates the shared command and returns the atomic receipt directly. It never
-  turns a successful write into a false failure through a follow-up read.
-- The admin editor saves private drafts, preserves fields on conflicts, retries
-  an uncertain save with its original key, imports/exports portable snapshots,
-  reorders/hides sections and edits page content. Saved previews use an isolated
-  viewport. Only `/site-preview` permits same-origin framing; its CSP forbids
-  other ancestors. Real draft data still requires the owner API. Preview
-  interactions do not count as public analytics or conversions.
-- The shared admin demo uses fictional scenario session state and the same editor,
-  preview and command schema. It performs no database or provider writes.
-- Public user documentation includes concrete editing, interrupted-save,
-  stale-edit and fork/import examples. Feature copy and FAQ describe the current
-  private-draft limits explicitly.
+The owner editor creates service, landing and article pages, clones content into
+new identities, and edits typed page fields, sections, rich text, metadata and
+safe addresses. It supports local undo/redo, shared identity/navigation/header/
+footer/dock/theme settings, existing image references, collections and article
+entries, and portable import/export. Images can become logos, sharing images or
+article images; referenced images cannot be removed silently.
 
-## Browser evidence
+AI suggestions support copy editing that preserves identity, addresses and layout,
+or generation of a new registered layout and copy. Preparation makes no website
+write. The owner reviews the candidate before adopting local edits and explicitly
+saving. Muse Spark 1.3 is the default, with Nex N2.5 Mini free, Mercury 2.5 low-cost,
+Claude Sonnet 4.6 and Claude Opus 4.6 premium choices. IDs, structured-output
+capabilities and price ceilings were checked against
+https://openrouter.ai/api/v1/models on 2026-09-09. No Contributor/data-sharing tier
+is selected. Requests use the shared tenant-bound gateway, registry and usage
+receipts with explicit model and strict pricing; no automatic model fallback.
+Tenant registration restrictions still win, and these catalogue defaults do not
+implicitly authorize other AI jobs. Both legacy generation APIs accept the same
+supported model IDs and default.
 
-`scripts/qa-website-editor.mjs` now runs in the credential-free CI journey. Its
-local result and opened screenshots are under `/tmp/accelerate-website-editor/`.
-The workflow proves a lost response replays revision 1, a conflicting save keeps
-local edits, export preserves those edits, reload asks before replacement, and
-saved preview displays revision 2. It verifies scenario isolation, invalid-import
-preservation, valid private import, mobile keyboard save, a real 390px preview
-viewport, same-origin framing headers, and absence of draft text in anonymous
-frame HTML. It records browser errors and network mutations.
+Live and saved previews use isolated same-origin frames, validated snapshots and
+real device widths. Public and preview output share a theme mapping and shared
+chrome. Links and submissions are inactive in preview. Mobile has separate Edit
+content and Preview page views, a compact content selector and a Website tools
+dialog for secondary actions.
 
-The appearance loop reads the actual theme registry and waits for its applied
-ID; labels such as Paper/Night are not mistaken for the light/dark IDs. Screenshots
-cover Paper, Night, Signal, Studio and Frost. Desktop and mobile use reduced
-motion. Earlier homepage checks also covered normal animation and keyboard FAQ
-controls. These scoped checks do not establish complete website-editor acceptance.
+Publication, history, rollback and unpublish use the existing validated command
+service and immutable receipts. Uncertain requests retain the original key and
+payload. Stale edits retain local fields. Rollback preserves a newer draft.
+Connected public rendering selects only the published revision at request time;
+credential-free forks keep their bundled static content. New paths and collection
+entries render through the catch-all; supported existing marketing routes can be
+explicitly replaced at the same address. Untouched source routes keep their
+existing rendering. The sitemap merges published addresses and excludes noindex
+entries. Documentation/application/compatibility routes remain protected.
 
-| Before | After |
-| --- | --- |
-| Homepage content lived in source components. | Twelve registered adapters preserve default markup while accepting validated content. |
-| An interrupted save had no installation-editor recovery surface. | The UI retains the exact request for retry and preserves local edits on conflicts. |
-| The draft preview inherited the admin canvas. | A separate same-origin viewport renders page content at its own width and background. |
-| The iframe border reduced the requested mobile viewport. | An outline preserves an exact 390px content viewport. |
-| Reduced-motion visitors could briefly miss the highlighted hero phrase. | The static phrase is visible before hydration; the browser checks its text. |
+The founder's additional Work-board request is implemented as search, a compact
+work-view selector, active filter chips, result count and board/list controls.
+Advanced fields and saved views/sharing use the shared accessible dialog. All
+live board operations in this continuation used the canonical database/CLI path;
+browser checks touched fictional scenarios only. Parent and worker AGENTS.md
+record DB-first, bounded-read and carried-forward recovery authorization rules.
 
-## Verification and resource notes
+## Workshelter reference and visible changes
 
-The focused Site Studio suite, native-template/default parity, fictional revision
-suite, demo contract, documentation coverage, admin token contract and reviewed
-route inventory pass. Full lint and TypeScript/build checks have passed. The
-latest application build uses one static-page worker and a smaller 1536 MB Node
-heap under the unchanged 3 GiB process-group limit:
+Reviewed sibling `../workshelter-next/components/admin/content/PageList.tsx`,
+`PageEditor.tsx` and supporting page-builder sources. Adopted the useful workflow:
+page creation/cloning, separate manual and AI controls, responsive canvas,
+unsaved-change protection, and review before publishing. Reused this repository's
+validated document and command services instead of adding another page engine.
+The sibling repository was not modified.
 
-```sh
-npm run resources:run -- env NODE_OPTIONS=--max-old-space-size=1536 CIRCLE_NODE_TOTAL=2 NEXT_DIST_DIR=.next-qa node scripts/next-release.mjs build
-```
+| Before                                               | After                                                                                           |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| New installation pages had no creation controls.     | Named starters, cloning and explicit page addresses.                                            |
+| Editing exposed only generic saved content fields.   | Section controls, article blocks, collections, AI review and live device previews.              |
+| AI used a fixed draft model.                         | Muse Spark 1.3 default with explicit free, low-cost and premium options and displayed ceilings. |
+| Publication operations had no owner review surface.  | Saved-revision review, publication history, rollback and unpublish.                             |
+| Work filters occupied a large panel on every screen. | Compact controls; advanced filters and saved views open on demand.                              |
+| Mobile editor tools crowded the working area.        | Secondary tools in a dialog, content-area dropdown and separate preview view.                   |
 
-Earlier memory-limit and disk-limit stops remain failures in the local logs;
-they are not passing evidence. Only owned, completed release dependency/build
-output and this worker's rebuildable QA cache were removed to recover space.
-Source, lockfiles, receipts, active workers and other projects were preserved.
-CI run `34302054060` passed for the previous commit `a6bb67f`; the resumed changes
-require their own exact-commit CI result before advancing.
+## Verification
 
-## Work still required for acceptance
+Passing local checks are retained in `/tmp/accelerate-studio-*.log`:
 
-- Migrate the remaining real pages, shared header/footer/navigation, collections
-  and assets while preserving existing URLs, layouts, forms and SEO.
-- Finish the visual editor and complete collection/asset workflows. Generic
-  snapshot fields and image references are not a finished media library or rich
-  collection editor. Shared website chrome is not rendered by the preview yet.
-- Connect public routes to published revisions and add explicit publication
-  review, history, rollback and unpublish controls. No UI save publishes today.
-- Add governed AI/MCP equivalents through the same service and approval queue.
-- Verify the complete owner/fork journey, update the user examples for the finished
-  flows, pass exact-commit CI, submit the reviewed handoff, then satisfy the
-  separate migration and production-release requirements.
+- `npm run verify:agent-contract`; reviewed admin route and AI source inventories.
+- `npm run lint -- --max-warnings=0`.
+- `npm run test:core`, including Site Studio, model registry and website authoring.
+- Additional model-registry assertions verify all choices, Muse default, retained
+  tenant restrictions and refusal to auto-authorize models for other jobs.
+- Production build with TypeScript under the shared resource gate:
+  `npm run resources:run -- env NODE_OPTIONS=--max-old-space-size=1536 CIRCLE_NODE_TOTAL=2 NEXT_DIST_DIR=.next-qa node scripts/next-release.mjs build`.
+- `npm run verify:docs` and `npm run docs:llms:check`.
+- `git diff --check`.
+- Native PostgreSQL 17 upgrade/replay suite, including the website proof:
+  `npm run resources:run -- env PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH" npm run test:migration-ledger`.
 
-The claim remains active; no acceptance or completion handoff has been submitted.
+The first native rerun used the system PostgreSQL 14 binary and failed on the
+existing `security_invoker` requirement. Its failure log remains
+`/tmp/accelerate-studio-native-postgres.log`; the corrected PostgreSQL 17 result
+is `/tmp/accelerate-studio-native-postgres-17.log`. No SQL was weakened for an
+older local binary. Earlier resource gate refusals remain failures, not proof.
+Only one heavy job ran at a time; owned QA servers are stopped after checking.
+
+Browser journeys are `scripts/qa-website-editor.mjs` and
+`scripts/qa-website-authoring.mjs`. Their results/screenshots are under
+`/tmp/accelerate-website-editor/` and `/tmp/accelerate-website-authoring/` and are
+included in CI artifact upload. They prove interrupted-save replay, conflict
+preservation, export/reload/import, scenario isolation, actual 390px saved preview,
+creation and live preview, five models/Muse default/free selection, AI review and
+local apply, undo/redo, exact saved publication, rollback retaining the draft,
+collection entry preview, mobile frame bounds, and advanced-filter keyboard/
+Escape behavior. Screenshots were opened at desktop/mobile widths and in the
+shared appearances. Browser runtime errors and fictional API network writes are
+asserted empty. Fictional AI results do not prove live provider availability.
+
+## Live migration verification
+
+The configured application environment resolved to project
+`skjypuwkceoiunyhhqlm` at `aws-1-us-east-1.pooler.supabase.com`. Read-only ledger
+preflight found no changed checksums or unknown migrations, and only the website
+migration pending through the requested target. The standard migration runner
+applied `migrations/20260909012125-installation-website-revisions.sql` successfully.
+Its checksum is
+`21e7c59b64900d00e0e2ab7d6d70f00ce17fd06aab9b2d5e4d935c1d6a79b303`.
+
+Read-only follow-up verified all three tables have RLS, anonymous revision reads
+and authenticated direct website updates are denied, the command RPC exists, and
+website revision rows remain zero. No production customer content, publication
+pointer, plugin setting, hosting alias or deployed code was changed. The migration
+receipt is `/tmp/accelerate-studio-live-migration.log`; secrets were not printed.
+
+## Remaining acceptance
+
+AC1/AC5 are incomplete: all original source pages, documentation and existing
+collections have not been imported into editable snapshots while preserving their
+exact original layouts/forms/SEO. Inventory coverage and explicit route overrides
+are not that migration. The bundled editable seed currently contains the homepage;
+other source routes remain source-owned until explicitly replaced.
+
+AC8 is incomplete: general-purpose AI/MCP reads and approved mutation tools have
+not been added to the capability registry/action queue. The owner suggestion
+endpoint is a read-only preparation flow, not a substitute for governed tool
+parity. File upload, richer collection ordering and complete original-media import
+also remain beyond the implemented reference-based asset manager.
+
+Exact-commit CI and acceptance-linked completion submission remain necessary.
+This PR must not be marked as completing the broad card solely because the scoped
+builder and recovery journeys pass. Production release retains its separate
+founder-controlled deployment requirements.

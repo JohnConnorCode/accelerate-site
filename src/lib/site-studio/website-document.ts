@@ -1,5 +1,12 @@
+import {
+  websiteNavigationItemSchema,
+  websiteHeaderSchema,
+  websiteFooterSchema,
+  websiteDockSchema,
+} from "./website-chrome";
 import { z } from "zod";
-import { siteDocumentSchema } from "./document";
+import { resolveSiteAsset } from "./assets";
+import { collectAssetIds, siteDocumentSchema } from "./document";
 import { isSiteContentHref } from "./links";
 import { nativeTemplateSchemas } from "./native-templates";
 
@@ -22,12 +29,17 @@ export const websitePathSchema = z
   )
   .refine(
     (path) =>
-      !/^\/(?:api|admin|t|auth|login|logout|setup|site-preview|demo|proposal|plan|plan-builder|style-guide)(?:\/|$)/.test(
+      !/^\/(?:api|admin|t|auth|login|logout|setup|site-preview|demo|proposal|plan|plan-builder|style-guide|docs|blog|results|packages|legacy-home)(?:\/|$)/.test(
         path,
       ),
     "This path belongs to the application",
+  )
+  .refine(
+    (path) =>
+      !/^\/learn\/(?:category|tag)(?:\/|$)/.test(path) &&
+      !/^\/command-center\/demo(?:\/|$)/.test(path),
+    "This path belongs to an application view",
   );
-const link = z.object({ label: z.string().min(1).max(120), href: websiteHrefSchema }).strict();
 const inline = z
   .object({
     text: copy,
@@ -113,7 +125,7 @@ const nativeSection = z
     hidden: z.boolean().default(false),
   })
   .strict();
-const page = z
+export const websitePageSchema = z
   .object({
     id: identity,
     path: websitePathSchema,
@@ -153,8 +165,16 @@ export const websiteDocumentSchema = z
         logoAssetId: identity.optional(),
       })
       .strict(),
-    navigation: z.array(link).max(30),
-    footer: z.object({ text: z.string().max(2000), links: z.array(link).max(60) }).strict(),
+    navigation: z.array(websiteNavigationItemSchema).max(30),
+    header: websiteHeaderSchema.default({ ctaLabel: "Contact", ctaHref: "/contact" }),
+    footer: websiteFooterSchema,
+    dock: websiteDockSchema.default({
+      visible: false,
+      heading: "Contact us",
+      detail: "",
+      ctaLabel: "Contact",
+      ctaHref: "/contact",
+    }),
     theme: z
       .object({
         accent: z.string().regex(/^#[0-9a-fA-F]{6}$/),
@@ -165,7 +185,7 @@ export const websiteDocumentSchema = z
       })
       .strict(),
     assets: z.array(asset).max(3000),
-    pages: z.array(page).min(1).max(500),
+    pages: z.array(websitePageSchema).min(1).max(500),
     collections: z
       .array(
         z
@@ -218,6 +238,10 @@ export const websiteDocumentSchema = z
     checkAsset(document.identity.logoAssetId);
     for (const page of document.pages) {
       checkAsset(page.metadata.imageAssetId);
+      if (page.content.kind === "document")
+        for (const id of collectAssetIds(page.content.document))
+          if (!assets.has(id) && !resolveSiteAsset(id))
+            ctx.addIssue({ code: "custom", message: `Unknown page image: ${id}` });
       if (page.content.kind === "article") checkBody(page.content.body);
       if (page.content.kind === "native") {
         unique(

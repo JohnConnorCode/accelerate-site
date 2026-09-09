@@ -1,4 +1,6 @@
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+import { readPublicWebsite } from "@/lib/site-studio/website-public";
+import { tenant } from "@/config/tenant";
 
 import type { MetadataRoute } from "next";
 import { getAllArticles, getAllCategories, getAllTags } from "@/lib/mdx";
@@ -7,13 +9,17 @@ import { publicWorkProjects } from "@/content/work";
 import { docsManifest, flattenDocsPages } from "@/content/docs/manifest";
 import { TEAM_MEMBERS } from "@/content/team";
 
-const BASE_URL = "https://www.acceleratewith.us";
+const BASE_URL = tenant.brand.siteUrl.replace(/\/$/, "");
 
 // Last significant content/design update date for static pages
 // Must not be a future date — Google penalizes sitemaps with future lastModified
 const LAST_CONTENT_UPDATE = "2026-03-06";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const website = await readPublicWebsite();
+  if (website.mode === "unpublished") return [];
+  if (website.mode === "unavailable")
+    throw new Error("Published website is temporarily unavailable");
   const staticPages: {
     path: string;
     priority: number;
@@ -132,5 +138,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.4,
     }));
 
-  return [...staticEntries, ...articleEntries, ...categoryEntries, ...tagEntries];
+  const entries = new Map(
+    [...staticEntries, ...articleEntries, ...categoryEntries, ...tagEntries].map((entry) => [
+      entry.url.replace(/\/$/, ""),
+      entry,
+    ]),
+  );
+  if (website.mode === "published") {
+    for (const page of [
+      ...website.document.pages,
+      ...website.document.collections.flatMap((collection) => collection.entries),
+    ]) {
+      const url = `${BASE_URL}${page.path === "/" ? "" : page.path}`;
+      entries.delete(url);
+      if (!page.metadata.noIndex)
+        entries.set(url, { url, changeFrequency: "weekly", priority: page.path === "/" ? 1 : 0.7 });
+    }
+  }
+  return [...entries.values()];
 }
