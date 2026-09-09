@@ -60,7 +60,7 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     id: "page-command-center",
     title: "Command Center",
     description:
-      "One integrated operating solution for businesses that need shared context and connected workflows.",
+      "See what needs you, follow the customer conversation, and move the next action forward, in one workspace your team and AI both work from.",
     href: "/command-center",
     keywords: ["dashboard", "admin", "operations", "software"],
   },
@@ -68,7 +68,7 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     id: "page-command-center-demo",
     title: "Command Center Demo",
     description:
-      "Explore five complete fictional operating workspaces using the real Command Center interface.",
+      "Explore six complete fictional operating workspaces using the real Command Center interface.",
     href: "/demo/command-center",
     keywords: ["demo", "sandbox", "interactive", "admin demo", "product demo"],
   },
