@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "material-and-macos-appearances",
+    slug: "material-and-macos-appearances",
+    title: "Choose Material 2026 or macOS in Command Center",
+    description:
+      "Two refined workspace appearances are now available from the Appearance control. Material 2026 uses expressive blue tonal layers and generous geometry; macOS uses quiet translucent surfaces and familiar desktop accents. Both preserve the same responsive behavior, accessibility, and per-demo preference isolation as every other appearance.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
     id: "clearer-core-admin",
     slug: "clearer-core-admin",
     title: "Navigate a clearer, more responsive Command Center",

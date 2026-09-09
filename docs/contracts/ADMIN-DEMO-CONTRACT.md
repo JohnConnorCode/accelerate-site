@@ -35,7 +35,7 @@ analytics formulas, AI runtime, or email sender.
 The current sales suite contains six complete packs: home services, law firms,
 professional services, real estate, nonprofits, and a fictional SuperDebate learning platform. Each pack declares an
 intentional default appearance, while the shared Appearance control still
-offers Paper, Night, Signal, Studio, and Frost. A browser-session appearance
+offers Paper, Night, Signal, Studio, Frost, Material 2026, and macOS. A browser-session appearance
 choice belongs to that scenario, survives switching away and back, and returns
 to the declared default when that scenario is reset.
 

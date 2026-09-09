@@ -95,6 +95,18 @@ try {
       "dark",
       "Demo choice must not overwrite the live/public preference",
     );
+    await choose("Material 2026");
+    assert.equal(
+      await demo.locator("html").getAttribute("data-theme"),
+      "material",
+      "Material 2026 must apply through the shared appearance registry",
+    );
+    await choose("macOS");
+    assert.equal(
+      await demo.locator("html").getAttribute("data-theme"),
+      "mac",
+      "macOS must apply through the shared appearance registry",
+    );
     const switchBusiness = async (id) => {
       if (width === 390) await demo.getByRole("button", { name: "Open More", exact: true }).click();
       await demo
@@ -114,7 +126,11 @@ try {
     await switchBusiness("alder-ridge-law");
     assert.equal(await demo.locator("html").getAttribute("data-theme"), "dark");
     await switchBusiness("northline-roofing");
-    assert.equal(await demo.locator("html").getAttribute("data-theme"), "light");
+    assert.equal(
+      await demo.locator("html").getAttribute("data-theme"),
+      "mac",
+      "Each demo business must retain its selected appearance",
+    );
     await demo
       .getByRole("link", { name: "Conversations", exact: true })
       .filter({ visible: true })

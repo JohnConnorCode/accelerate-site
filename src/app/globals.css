@@ -6523,6 +6523,22 @@ body.admin-mobile-nav-open .admin-mobile-dock {
     inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
 
+[data-theme="mac"] .admin-sidebar,
+[data-theme="mac"] .admin-mobile-header {
+  -webkit-backdrop-filter: blur(30px) saturate(1.35);
+  backdrop-filter: blur(30px) saturate(1.35);
+  background: rgba(246, 246, 248, 0.78);
+}
+[data-theme="mac"] .admin-mobile-dock {
+  --admin-dock-bg: rgba(246, 246, 248, 0.78);
+}
+[data-theme="mac"] .admin-surface,
+[data-theme="mac"] .admin-shell :is(.glass, .glass-prominent, .glass-gold) {
+  -webkit-backdrop-filter: blur(22px) saturate(1.18);
+  backdrop-filter: blur(22px) saturate(1.18);
+  background: rgba(255, 255, 255, 0.82);
+}
+
 /* Collapsed groups keep the operator's navigation compact. Overflow remains
    available for keyboards and wheels without leaving a permanent chrome rail. */
 .admin-nav-scroll {

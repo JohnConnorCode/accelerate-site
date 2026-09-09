@@ -1,7 +1,7 @@
 # Admin themes
 
 Admin appearances share geometry, motion and semantic colors while keeping their
-own character. Paper, Night, Signal, Studio and Frost live in
+own character. Paper, Night, Signal, Studio, Frost, Material 2026 and macOS live in
 `src/lib/admin/themes.json`. The picker and browser matrix derive from this
 registry. `npm run themes:generate` produces `src/app/admin-themes.css`, including
 the dark utility selector from each definition's `mode`.
