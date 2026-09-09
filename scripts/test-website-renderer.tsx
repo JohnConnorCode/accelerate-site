@@ -1,3 +1,6 @@
+import { trackEvent, trackConversion } from "../src/lib/analytics";
+import { createBundledWebsite } from "../src/lib/site-studio/website-seed";
+import { Studio } from "../src/components/v2/studio/Studio";
 import assert from "node:assert/strict";
 import { renderToStaticMarkup } from "react-dom/server";
 import { WebsiteArticle, WebsitePageContent } from "../src/lib/site-studio/website-renderer";
@@ -103,3 +106,55 @@ assert.throws(
 console.log(
   "PASS: literal rich-text rendering, registered native defaults, template rejection and safe native links. This scoped SSR proof does not replace browser visual review.",
 );
+
+const bundled = createBundledWebsite();
+const home = bundled.pages[0];
+assert.ok(home);
+assert.equal(
+  renderToStaticMarkup(
+    <WebsitePageContent
+      page={home}
+      assets={bundled.assets}
+      renderNative={renderNativeWebsiteSection}
+    />,
+  ),
+  renderToStaticMarkup(<Studio />),
+  "Bundled homepage preserves the complete source-rendered layout",
+);
+console.log("PASS: all twelve homepage sections and hero grouping preserve bundled markup.");
+
+assert.ok(
+  renderToStaticMarkup(
+    renderNativeWebsiteSection({
+      id: "product",
+      template: "home-command-center",
+      hidden: false,
+      fields: nativeTemplateDefaults["home-command-center"],
+    }),
+  ).includes('href="/demo/command-center"'),
+  "Bundled product section renders the full admin demo link",
+);
+
+const originalWindow = globalThis.window;
+const originalFetch = globalThis.fetch;
+let previewTrackingCalls = 0;
+try {
+  Reflect.set(globalThis, "window", {
+    location: { pathname: "/site-preview" },
+    gtag: () => previewTrackingCalls++,
+  });
+  globalThis.fetch = async () => {
+    previewTrackingCalls++;
+    throw new Error("Preview attempted tracking");
+  };
+  trackEvent("Private preview click");
+  trackConversion("Private preview conversion");
+  assert.equal(
+    previewTrackingCalls,
+    0,
+    "Private preview interactions never count as public analytics or conversions",
+  );
+} finally {
+  Reflect.set(globalThis, "window", originalWindow);
+  globalThis.fetch = originalFetch;
+}

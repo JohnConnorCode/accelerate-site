@@ -1,7 +1,7 @@
 ---
 title: "Draft public pages with Site Studio"
 description: "Create a private AI-assisted page draft from approved components and photography."
-updated: "2026-09-08"
+updated: "2026-09-09"
 ---
 
 Apply the current database migrations, enable **Site Studio** in Plugins, and open **Site Studio** to create page drafts for the public website. The plugin starts disabled. A draft is private working copy: it never appears on the public site until a future publish step, which is still being built.
@@ -25,7 +25,7 @@ Drafts are private tenant records stored in the database, with stable IDs, incre
 
 Template creation, preview, rename and discard make no model request. AI generation uses your configured OpenRouter job and shared budget controls; its provider charges apply even if the resulting draft needs revision. Pattern checks reject common invented claims, but they cannot verify every statement. Review all business facts yourself before using the copy.
 
-The list shows the 200 most recently updated active drafts. A failed load shows an error and Retry instead of a successful empty list. A stale edit or discard is refused: reload, inspect the changed content, and decide again. Disabling the plugin closes its routes and refuses writes while retaining stored drafts and history. The default fictional demos leave Site Studio disabled; their business workflows do not establish a connected Site Studio proof.
+The list shows the 200 most recently updated active drafts. A failed load shows an error and Retry instead of a successful empty list. A stale edit or discard is refused: reload, inspect the changed content, and decide again. Disabling the plugin closes its routes and refuses writes while retaining stored drafts and history. The fictional demo supports the installation website draft editor described below. Template and AI page generation are not simulated there; demo results do not establish a connected database or provider proof.
 
 The section regeneration service is available through the authenticated API with a required checksum and the same model budget. It currently has no preview-screen control. General-purpose AI/MCP editing tools, publishing, scheduling and rollback remain separate work; no draft operation publishes a page.
 
@@ -43,3 +43,40 @@ For AI-written copy, use **AI generated** after your administrator has configure
 This exercise produces a private draft. There is no Publish control in this release, and creating a draft does not change the public website.
 
 If AI generation fails before a preview opens, read the displayed reason. Ask your administrator to verify the configured model and current application release for a provider or configuration error. You can select **Built-in service template** to continue without a model call. If the error names the generated content, such as an unsupported image or invented claim, revise the brief before another AI attempt. A failed attempt may still incur provider usage; do not repeatedly submit an unchanged brief without checking the cause.
+
+## Edit the installation website draft
+
+Open **Site Studio → Edit installation website**. This surface belongs to the installation owner: the email configured in `ADMIN_EMAIL`, with an active administrator membership in the installation's original workspace. Being an administrator of another workspace does not grant access to the public installation website.
+
+The current editor starts with the bundled homepage. Its twelve main sections have editable content fields, including the hero, service descriptions, industry cards, process, sample plan, team introduction and questions. Open a section to change its text or links. **Move section up** changes the order; **Hide section** keeps its content while removing it from the saved preview. The selected-work cards still come from the source portfolio collection.
+
+1. Choose a page under **Pages** and open the section you want to edit.
+2. Change the content. Search and sharing fields hold that page's title, description and indexing preference.
+3. Select **Save draft**. Wait for the numbered private-revision confirmation.
+4. Select **Open saved preview** and review the saved copy. Save local changes before navigating to the preview.
+
+Saving and importing do not change the live website. There is no Publish control in this editor yet. Other existing public pages and shared header/footer content are still being migrated. Identity, navigation, footer, theme, assets and collections can be stored in the snapshot, but the current preview renders page content only. This is not yet a replacement for editing the entire public site.
+
+### Example: change the homepage introduction
+
+Sam owns a fictional workshop's installation. They open **Pages**, expand the homepage's **statement** section, and replace the heading with “We help local teams spend less time on paperwork.” They update the body to describe services their workshop actually offers, then select **Save draft**.
+
+The editor confirms a private revision number. Sam opens the saved preview and checks the heading, body and linked destinations. The public homepage still shows its previous content; saving this revision did not publish it.
+
+### Keep edits when a save is interrupted
+
+If the connection stops before the save is confirmed, use **Retry same save**. The editor resends the same request so an already completed save does not create another revision. Editing is locked while that request's result is uncertain.
+
+A stale-edit message means the saved website changed since you loaded it. Your local fields stay on screen. Use **Export draft** to keep a copy, then **Reload saved draft**. Review the latest version and reapply the changes you want to retain. The reload confirmation lets you choose **Keep editing** instead of replacing local edits.
+
+## Use the editor in your own fork
+
+Follow [Self-hosting](/docs/self-hosting) to configure your own database, application URL and administrator. Apply the repository's ordered installation migrations and enable Site Studio in your own installation. The editor starts from content bundled with your checkout; it does not retrieve Accelerate's private website revisions or require Accelerate's production credentials.
+
+**Export draft** downloads a content snapshot. It contains pages, content, asset references and appearance values; it does not contain login credentials, workspace authority or publication state. Image references do not copy the image files themselves. Make sure the referenced files or image URLs exist in your installation.
+
+For example, a workshop owner can export a reviewed draft from their test installation, sign in to their own production installation, and choose **Import draft**. They review the imported fields and select **Save draft** to create a private revision there. Importing never publishes, and a file with unsupported fields, unsafe links or more than 8 MB is rejected while preserving local edits.
+
+## Try the fictional website editor
+
+In the [full admin demo](/demo/command-center), open **Site Studio → Edit installation website**. The example belongs to the selected fictional business. Save and reopen its preview to try the workflow without database or AI credentials. Changes stay in that scenario's browser session; switching scenarios keeps their drafts separate, and resetting the scenario removes its demo changes. The demo does not publish or contact providers.

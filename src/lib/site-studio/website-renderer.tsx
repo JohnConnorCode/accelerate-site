@@ -106,15 +106,26 @@ export function WebsitePageContent({
       return <WebsiteArticle body={page.content.body} assets={assets} />;
     case "document":
       return <SitePageRenderer document={page.content.document} />;
-    case "native":
-      return (
-        <>
-          {page.content.sections
-            .filter((section) => !section.hidden)
-            .map((section) => (
-              <Fragment key={section.id}>{renderNative(section)}</Fragment>
-            ))}
-        </>
-      );
+    case "native": {
+      const visible = page.content.sections.filter((section) => !section.hidden);
+      const nodes: ReactNode[] = [];
+      const opening = new Set(["home-hero", "home-statement", "home-marquee"]);
+      for (let index = 0; index < visible.length; index++) {
+        const section = visible[index]!;
+        if (opening.has(section.template)) {
+          const group = [section];
+          while (visible[index + 1] && opening.has(visible[index + 1]!.template))
+            group.push(visible[++index]!);
+          nodes.push(
+            <div className="hero-band" key={section.id}>
+              {group.map((item) => (
+                <Fragment key={item.id}>{renderNative(item)}</Fragment>
+              ))}
+            </div>,
+          );
+        } else nodes.push(<Fragment key={section.id}>{renderNative(section)}</Fragment>);
+      }
+      return <>{nodes}</>;
+    }
   }
 }

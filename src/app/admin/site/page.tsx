@@ -100,6 +100,19 @@ export default function AdminSiteStudioPage() {
         title="Site Studio"
         subtitle="Create AI-assisted page drafts from approved components and photography. Drafts are private and are not published from this workspace."
       />
+      <AdminSurface>
+        <h2 className="admin-section-title">Installation website</h2>
+        <p className="mt-2 text-sm text-[var(--admin-muted)]">
+          The installation owner can edit private website content draft and review its saved
+          preview.
+        </p>
+        <Link
+          href="/admin/site/website"
+          className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-[var(--admin-ink)] underline underline-offset-4"
+        >
+          Edit installation website
+        </Link>
+      </AdminSurface>
       <section aria-label="Create a page draft">
         <h2 className="admin-section-title">New page draft</h2>
         <AdminSurface>

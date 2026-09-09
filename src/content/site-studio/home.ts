@@ -1,3 +1,7 @@
+import { homePlanDeckContent } from "./plan-deck";
+import { PRODUCT_SCREENSHOTS } from "../product-screenshots";
+import { INDUSTRY_VISUALS } from "../industry-visuals";
+import { marketingPositioning } from "../marketing-positioning";
 import { homeFaqs } from "../home-faq";
 
 /** Bundled editable content. Forks start with these local defaults, then keep
@@ -88,4 +92,94 @@ export const homeProcessContent = {
   headingEnd: "making it better.",
   body: "The shape of the engagement follows the problem. The solution may be advice, a focused build, training, ongoing execution, or a combination.",
   steps: homeProcessSteps,
+};
+
+export const homeFinalCtaContent = {
+  eyebrow: "Start here",
+  headingStart: "Book the session.",
+  headingEnd: "Keep the plan.",
+  body: "Thirty minutes with the people who would advise, build, or run the work. You leave with the recommendation in writing. Yours to keep either way.",
+  ctaLabel: "Book a free strategy session",
+  ctaHref: "/contact",
+};
+export const homeSystemsContent = {
+  eyebrow: "How we help",
+  headingStart: "Start with the business.",
+  headingMiddle: "Build",
+  headingEnd: "what it needs.",
+  body: "We learn how your team works, find the useful opportunities for AI and automation, and shape the engagement around the result you need.",
+  listLabel: "Ways to work with Accelerate",
+  modes: marketingPositioning.engagementModes.map((mode) => ({ ...mode })),
+  note: "Choose the support your team needs. We agree the scope together.",
+};
+
+const homeTrades = [
+  {
+    href: "/industries/home-services",
+    name: "Home services",
+    visual: INDUSTRY_VISUALS["home-services"],
+  },
+  { href: "/industries/law-firms", name: "Law firms", visual: INDUSTRY_VISUALS["law-firms"] },
+  {
+    href: "/industries/professional-services",
+    name: "Professional services",
+    visual: INDUSTRY_VISUALS["professional-services"],
+  },
+  { href: "/industries/real-estate", name: "Real estate", visual: INDUSTRY_VISUALS["real-estate"] },
+  { href: "/industries/nonprofits", name: "Nonprofits", visual: INDUSTRY_VISUALS.nonprofits },
+];
+
+export const homeTradesContent = {
+  eyebrow: "Where it lands",
+  headingStart: "Built around the work",
+  headingMiddle: "your team",
+  headingEnd: "actually does.",
+  trades: homeTrades.map(({ href, name, visual }) => ({
+    href,
+    name,
+    promise: visual.promise,
+    image: visual.hero.src,
+    alt: visual.hero.alt,
+  })),
+};
+
+const homePlanItems = [
+  "Where AI or automation is genuinely useful",
+  "Whether the answer is advice, a workflow, an agent, an integration, training, or execution",
+  "What should happen first and why",
+  "The tools, access, people, and approvals the work needs",
+  "A clear scope, ownership model, and way to measure progress",
+];
+
+export const homePlanContent = {
+  eyebrow: "The plan",
+  heading: "You leave the first session with a written plan.",
+  body: "Thirty minutes. You describe how the business runs and what you want to change. We identify where AI or automation fits, recommend the right kind of solution, and put the next steps in writing. Yours to keep either way.",
+  items: homePlanItems,
+  deck: homePlanDeckContent,
+  ctaLabel: "Book a free strategy session",
+  ctaHref: "/contact",
+};
+
+export const homeWorkContent = {
+  eyebrow: "Selected work",
+  heading: "Systems that had to work in production.",
+  body: "These projects show the operating experience behind Accelerate: finding the constraint, designing the right system, building it, and improving the work around it.",
+  ctaLabel: "See all work",
+  ctaHref: "/work",
+};
+export const homeCommandCenterContent = {
+  eyebrow: marketingPositioning.commandCenter.label,
+  headingStart: "When the work needs",
+  headingEnd: "one place to run.",
+  body: marketingPositioning.commandCenter.description,
+  introduction:
+    "Browse real product screens with fictional business data. Open the demo to explore the same workspace, records, and workflows yourself.",
+  groupLabel: "Command Center screens",
+  slides: PRODUCT_SCREENSHOTS.map((slide) => ({ ...slide })),
+  links: [
+    { label: "Explore the Command Center", href: "/command-center" },
+    { label: "Explore the demo", href: "/demo/command-center" },
+    { label: "Read the docs", href: "/docs" },
+  ],
 };

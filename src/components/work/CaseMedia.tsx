@@ -70,6 +70,7 @@ export function MediaSurface({
         lightbox ? (
           <Image
             src={media.src}
+            unoptimized={media.src.startsWith("https://")}
             alt={media.alt}
             width={media.width}
             height={media.height}
@@ -87,6 +88,7 @@ export function MediaSurface({
             <MediaParallax distance={media.fit === "contain" ? 2.75 : compact ? 4.5 : 5.5}>
               <Image
                 src={media.src}
+                unoptimized={media.src.startsWith("https://")}
                 alt={media.alt}
                 fill
                 priority={priority}

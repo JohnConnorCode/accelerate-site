@@ -1,4 +1,9 @@
 import {
+  createDemoWebsiteState,
+  handleDemoWebsite,
+  type DemoWebsiteState,
+} from "./website-runtime";
+import {
   SEED_DEFAULT_MILESTONES,
   handoffRequestSchema,
 } from "@/lib/revenue-os/delivery-handoff-contract";
@@ -85,6 +90,7 @@ type DemoEmailStudioDetail = {
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
 export type DemoState = {
+  website?: DemoWebsiteState;
   deliveryHandoffs?: Record<
     string,
     {
@@ -2292,6 +2298,18 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    if (path === "/api/admin/site/drafts" && method === "GET") return jsonResponse({ drafts: [] });
+    if (path === "/api/admin/site/website") {
+      if (state.moduleOverrides["site-studio"] === false)
+        return jsonResponse(
+          { error: "Site Studio is disabled for this fictional workspace." },
+          403,
+        );
+      state.website ??= createDemoWebsiteState();
+      const response = handleDemoWebsite(state.website, pack.name, method, body);
+      if (method === "POST" && response.ok) saveState(scenarioId, state);
+      return response;
+    }
     const businessResponse = await handleDemoBusinessRequest(
       pack,
       business,

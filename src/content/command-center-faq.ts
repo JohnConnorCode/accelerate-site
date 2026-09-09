@@ -19,7 +19,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Does Site Studio publish a page when I create a draft?",
     answer:
-      "No. Site Studio currently creates private, versioned drafts. For example, use the built-in template for a bookkeeping service page, review it at desktop and mobile widths, then reopen the saved draft. Template creation makes no model request; AI generation uses your configured provider and budget. Publishing, scheduling and rollback are still being built. The Site Studio guide explains the available controls and recovery steps.",
+      "No. Site Studio currently creates private, versioned drafts. For example, use the built-in template for a bookkeeping service page, review it at desktop and mobile widths, then reopen the saved draft. Template creation makes no model request; AI generation uses your configured provider and budget. The installation owner can also save and preview a private homepage content snapshot and import or export it for their own fork. Publishing, scheduling and the remaining site migration are still being built. The Site Studio guide includes worked editing, retry and fork examples.",
   },
   {
     question: "What does a complete delivery handoff mean?",

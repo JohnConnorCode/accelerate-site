@@ -68,7 +68,7 @@ export const capabilities: Capability[] = [
     category: "act",
     title: "Prepare a private page draft",
     detail:
-      "Enable Site Studio to create a structured template or AI-assisted page, preview it at different widths, rename it and discard it. Database revisions preserve each business's drafts and refuse stale edits. Public publishing is still separate work.",
+      "Enable Site Studio to create a structured template or AI-assisted page, preview it at different widths, rename it and discard it. The installation owner can also edit a private homepage snapshot, save it, review its preview and import or export content. Database revisions refuse stale edits. Public publishing and the rest of the website migration are still separate work.",
   },
   // Capture
   {

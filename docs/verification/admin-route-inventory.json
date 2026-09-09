@@ -51,7 +51,9 @@
     "src/app/admin/settings/page.tsx": "5e9484e916c950f0a787bdee06c7cfbeb5931934287335650a9b3e1f98869b9c",
     "src/app/admin/setup/page.tsx": "2af47d0bd024867cb770584a45d801115573e5a2e2b6f101d540e7fac13fcc3b",
     "src/app/admin/site/[id]/page.tsx": "a92b04aacce46a5669c48f4d5736e7aba7b3ed35eeaa34b4743793018532c125",
-    "src/app/admin/site/page.tsx": "fb175b0de0290c01653ddcdef3714f8faf3432c48f8fd2979aa07e379b60fe08",
+    "src/app/admin/site/page.tsx": "3eb912edebb831477b69748094ed84dec63e5d090928634ea613cf20615a9f4b",
+    "src/app/admin/site/website/page.tsx": "1652cf0e48e62ab7c772bc1eb83655cc6b5dfdd40f4483b841cb0015adcc9a0f",
+    "src/app/admin/site/website/preview/page.tsx": "ba3b9457651a48b4045b913c4bb959f80cd510e356968c66b20bdae666eb1582",
     "src/app/admin/subscribers/page.tsx": "d30c46d9d8ae8d624df5b3cb9d18a91f948933a3fe1003e0b43238bde7c7564e",
     "src/app/admin/tenants/page.tsx": "fa19f9c33799c7e7454f82b841011223d1dd912934d2b9c2ea768f85289a51c2",
     "src/app/admin/today/page.tsx": "9611c8eec72e31f5c187e9fe36e9a5a393ad0bf8f735248e1b6cd93f24640127",
@@ -122,6 +124,7 @@
     "src/app/api/admin/site/drafts/[id]/route.ts": "21df6c6c4a8bc45cf244189199c249fd6930dbe68c3f97b79362086a1eede884",
     "src/app/api/admin/site/drafts/[id]/sections/route.ts": "38dcaf0ffda728893bc942947253c8231a8a04cd759b58a1adf6f1a9ed09e476",
     "src/app/api/admin/site/drafts/route.ts": "b3d53d356a2629f5a57dc52ca1c4429109e053f2182bb090ea17898244a65d87",
+    "src/app/api/admin/site/website/route.ts": "de4448011b5ca81ede573d0f61b424537a610e590ab60f01f01f4c280c0f51c0",
     "src/app/api/admin/subscribers/export/route.ts": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63",
     "src/app/api/admin/subscribers/route.ts": "dadb0fc001e5ecc9e1340a1d363e0c24771f492e7e88650aa8e78f2d5a6a18e0",
     "src/app/api/admin/tasks/route.ts": "6482ce152c7f1d849703fb24d63f9cff97d94058ab4968efd64a6ef50f356804",
@@ -214,6 +217,11 @@
     "src/components/admin/TenantProviderControls.tsx": "989a1ecb91efc52d84c869c0aaf1222df9e3a008624b8fc804e3e4d7f0da4788",
     "src/components/admin/Toaster.tsx": "e05c110e50f2a3eccdd32a99daf5749d2f62d125bf29e7a06bfb551deb7b8672",
     "src/components/admin/TodaysPriorities.tsx": "7aacbf6802c467c7db99987d3c7c8dd03843118de743c82b24bb5179947a8064",
+    "src/components/admin/site/WebsiteEditor.tsx": "a3a8c88f25facd2f2e44da6c2f05d7aef27633e4adb205c1f3ab96b902cd033d",
+    "src/components/admin/site/WebsiteFields.tsx": "3d1f6e20be06a767ea94324aeeeceb630520fe646fb90ba72fa26cc9f4178791",
+    "src/components/admin/site/WebsitePreview.tsx": "36886e1894cb80cc05111fc86cd828b816afa36961bfb091520eb8b8f36b9d36",
+    "src/components/admin/site/WebsitePreviewFrame.tsx": "2b76c686427b9d0eed594b45d8f7c71fdf894042dd30660bb4a4c1dac30c03f1",
+    "src/components/admin/site/WebsitePreviewRuntime.tsx": "7e733f728af32992d95ebd684e9deeb3eba1ad9e45199da766f5f74eddf4b3e5",
     "src/components/admin/work-board/WorkAgents.tsx": "49d61e12cbb893e75e4dc47fb9ae6f909d6c008362f43bd166acc23eaed7704b",
     "src/components/admin/work-board/WorkControls.tsx": "226999de79b993b356a6ef8ec0c36193b0cdf3b987398388756bdd581cd5209f",
     "src/components/admin/work-board/WorkViews.tsx": "19fe1866a9c5f7c9b0b9b2f44d485ae306c9fde294da5319fe813d91d4bde8b6",
@@ -294,6 +302,10 @@
     "src/lib/site-studio/openrouter-adapter.ts": "1013486644a7a5f9b473c450db3af04c0878447c161e702dc957f2d399bb237a",
     "src/lib/site-studio/regenerate.ts": "009ca9beddafb3637844149c4cc0424f41a4748f9f8b0e24994e47da3f1149ef",
     "src/lib/site-studio/revision.ts": "3a945fd87c2524a81bbd3b321ecefa97a0a5a3764a39fde3f8a3764313cafb20",
+    "src/lib/site-studio/website-commands.ts": "064486605dce783b163a46b9620947f4b0b01b8c080eb746b4e90076500ecad2",
+    "src/lib/site-studio/website-document.ts": "2ff131fb0f59ed52cdb6e432dfa4f34522f4e65195d1e524383f5ca7adec2dee",
+    "src/lib/site-studio/website-seed.ts": "cc4277ed8c74742ae94bcc499078f2b5bdf9389828f7edd8969a81b7aaa991b1",
+    "src/lib/site-studio/website-store.ts": "8698ffa9232d9b073f2c526f45bfd6b28eeeefdc9b5c86e2b60b9e23e5c75236",
     "src/lib/tenancy/context.ts": "980fc542bbc744ffa66bc58cd463ef0c7508ac1d847c560f0de7a9cfefd38c7d",
     "src/lib/tenancy/lifecycle.ts": "2b2ca947757d4ff3595062f918734b1b765f89352a834e440ae28ae140de8b53",
     "src/lib/tenancy/system.ts": "28e241c788fba9c5793536d0bcf6db076c0d56f6513976f9ae387acc4b222911"
@@ -1654,6 +1666,49 @@
       "boundary": "Disabled-by-default Site Studio module. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. No operation publishes public content. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work.",
       "followUp": null,
       "specialBoundary": null
+    },
+    {
+      "adapters": [
+        {
+          "path": "src/app/api/admin/site/website/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/website-commands",
+            "@/lib/site-studio/website-document",
+            "@/lib/site-studio/website-seed",
+            "@/lib/site-studio/website-store"
+          ],
+          "directTables": []
+        }
+      ],
+      "specialBoundary": null,
+      "route": "/admin/site/website",
+      "page": "src/app/admin/site/website/page.tsx",
+      "primaryAction": "Edit and save a private installation website snapshot; import and export content",
+      "boundary": "Installation owner, active administrator membership in the bootstrap workspace, tenant-bound database and enabled Site Studio are all required. The bounded API validates the shared website command, rejects stale revisions, and returns its immutable receipt without a fallible post-write read. UI exposes private saves only. Publication command transport exists but public rendering, broader content migration and governed AI/MCP parity remain unfinished on the linked claim; this is not an accepted production editor.",
+      "followUp": {
+        "id": "7b54f4b4-7519-4758-a268-eeaa17fc0d17",
+        "key": "site-studio-installation-editor"
+      }
+    },
+    {
+      "adapters": [
+        {
+          "path": "src/app/api/admin/site/website/route.ts",
+          "domainImports": [
+            "@/lib/site-studio/website-commands",
+            "@/lib/site-studio/website-document",
+            "@/lib/site-studio/website-seed",
+            "@/lib/site-studio/website-store"
+          ],
+          "directTables": []
+        }
+      ],
+      "specialBoundary": null,
+      "route": "/admin/site/website/preview",
+      "page": "src/app/admin/site/website/preview/page.tsx",
+      "primaryAction": "Preview the current saved installation website draft at desktop, tablet and mobile widths",
+      "boundary": "Read-only preview frame. The frame URL contains page identity only; real content is fetched through the same installation-owner API and never embedded in static output or shared cache. Recognized demo scenarios use isolated fictional browser-session data through the shared demo runtime. No preview grants publication authority.",
+      "followUp": null
     }
   ],
   "previousBase": "50f3aa671751619f44af22bb0736618c362d1b6b",

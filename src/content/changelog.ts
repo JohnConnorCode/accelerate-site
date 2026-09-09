@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "installation-website-private-editor",
+    slug: "installation-website-private-editor",
+    title: "Edit a private installation website draft",
+    description:
+      "Installation owners can edit homepage content, save versioned drafts, open the saved preview, and import or export a portable content snapshot. Interrupted saves reuse their request and stale saves preserve local fields. The shared fictional demo and user guide include save, recovery and fork examples. Public publishing and the remaining site migration are not part of this draft editor yet.",
+    category: "improvement",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "homepage-reduced-motion-headline",
     slug: "homepage-reduced-motion-headline",
     title: "Read the complete homepage headline with reduced motion",

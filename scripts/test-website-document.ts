@@ -111,3 +111,9 @@ for (const route of installationRoutes)
 console.log(
   "PASS: complete route inventory, portable snapshot validation, duplicate paths and identities, bounded content, asset references, safe links, application route protection and literal rich text.",
 );
+
+assert.equal(
+  websitePathSchema.safeParse("/site-preview").success,
+  false,
+  "Private preview route cannot be published over",
+);
