@@ -69,6 +69,8 @@ export function parseSiteModelCatalog(payload: unknown, now = Date.now()): SiteS
     const parsed = rawModel.safeParse(entry);
     if (!parsed.success) continue;
     const m = parsed.data;
+    if (/^openrouter\/(?:free|auto|bodybuilder)$/.test(m.id) || /\brouter\b/i.test(m.name))
+      continue;
     if (/contributor/i.test(m.id) || (m.id.includes(":") && !m.id.endsWith(":free"))) continue;
     if (
       !m.architecture.input_modalities.includes("text") ||

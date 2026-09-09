@@ -1353,18 +1353,6 @@
       "supportsTemperature": true
     },
     {
-      "id": "openrouter/free",
-      "label": "Free Models Router",
-      "provider": "openrouter",
-      "tier": "free",
-      "contextWindow": 200000,
-      "prompt": 0,
-      "completion": 0,
-      "request": 0,
-      "created": 1769917427,
-      "supportsTemperature": true
-    },
-    {
       "id": "moonshotai/kimi-k2.5",
       "label": "Kimi K2.5",
       "provider": "moonshotai",

@@ -165,7 +165,7 @@ founder-controlled deployment requirements.
 ## Model catalogue follow-up, 2026-09-09
 
 Replaced the fixed five-choice selector with a current, refreshable catalogue.
-The bundled fallback contains 219 compatible text/structured-output models.
+The bundled fallback contains 218 compatible text/structured-output models.
 Search accepts names or IDs; filters cover provider and cost, with newest/price
 sorting and a small recommended menu. Recommendations follow the latest compatible
 members of the supported model families. Muse Spark 1.3 remains the explicit
@@ -174,7 +174,7 @@ bundled catalogue and never requests the external provider catalogue.
 
 Public metadata reads have a five-minute cache, deduplicated refresh, short retry
 cooldown, five-second timeout and a four-megabyte bound. Offline refresh retains a
-dated snapshot. Expired/incompatible, batch, Contributor, image-output and unknown-
+dated snapshot. Automatic routers, expired/incompatible, batch, Contributor, image-output and unknown-
 price entries are excluded. New live entries can serve only the existing private
 page preparation job, with tenant registrations still authoritative. No model is
 implicitly registered for another job.

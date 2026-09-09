@@ -40,6 +40,8 @@ async function main() {
     );
   assert.equal(DEFAULT_SITE_MODEL, "meta/muse-spark-1.3");
   const excluded = [
+    fixture({ id: "openrouter/free" }),
+    fixture({ id: "fixture/automatic", name: "Fixture: Automatic Model Router" }),
     fixture({ id: "fixture/batch:batch" }),
     fixture({ id: "fixture/contributor" }),
     fixture({ id: "fixture/no-json", supported_parameters: ["response_format", "max_tokens"] }),
