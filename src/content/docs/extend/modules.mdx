@@ -1,10 +1,10 @@
 ---
 title: "Add a module"
-description: "Register a JSON manifest and pages. Nothing in extensions/ is executed."
-updated: "2026-09-04"
+description: "Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed."
+updated: "2026-09-09"
 ---
 
-A module is the unit a workspace turns on and off. You drop a JSON manifest in `extensions/` and the pages it names. You do not edit a core array.
+A module is the unit a workspace actually turns on and off, and adding one never means touching the application's core array. You drop a JSON manifest in `extensions/` and the pages it names, and that's the whole registration surface.
 
 ## Manifest
 

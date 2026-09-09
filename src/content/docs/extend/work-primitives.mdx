@@ -1,10 +1,10 @@
 ---
 title: "Design custom work without duplicate state"
-description: "Give an App its own lifecycle and connect tasks, decisions, attention and history to the original records."
-updated: "2026-09-07"
+description: "Give an App its own lifecycle, and link tasks, decisions, and history back to the real record."
+updated: "2026-09-09"
 ---
 
-A creative review has a brief, versions, reviewers, requested changes and a final accepted version. Compressing all of that into one task status would lose useful meaning. Give the review its own record and lifecycle, and link ordinary tasks or approvals only when they represent additional work or a specific decision.
+A creative review has a brief, versions, reviewers, requested changes, and a final accepted version, and compressing all of that into a single generic task status would throw away exactly the meaning that makes it useful. Give the review its own record and lifecycle instead, and link ordinary tasks or approvals to it only when they represent genuinely additional work or a specific decision.
 
 This is an implementation design for a custom App, not a bundled Creative Review feature. It requires domain code, storage, interface work and verification. The existing entity registry and shared services are starting points; they do not generate the whole App.
 

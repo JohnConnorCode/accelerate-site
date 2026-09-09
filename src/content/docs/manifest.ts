@@ -544,77 +544,79 @@ export const docsManifest: DocsSection[] = [
         slug: ["extend", "overview"],
         title: "Build the capabilities your business needs",
         description:
-          "Add screens, integrations and AI tools while reusing the records and workflows already in place.",
+          "Add a screen, an integration, or an AI tool, reusing the records and approval flow already in place.",
       },
       {
         slug: ["extend", "apps"],
         title: "Build an App around your business process",
         description:
-          "Choose shared primitives, custom domain work or a dedicated workspace without duplicating state.",
+          "Choose shared primitives, custom domain work, or a dedicated workspace, without duplicating state.",
       },
       {
         slug: ["extend", "work-primitives"],
         title: "Design custom work without duplicate state",
         description:
-          "Give an App its own lifecycle and connect tasks, decisions, attention and history to the original records.",
+          "Give an App its own lifecycle, and link tasks, decisions, and history back to the real record.",
       },
       {
         slug: ["extend", "custom-ui"],
         title: "Build a custom operating screen",
         description:
-          "Add a native App workspace or replace the default experience while retaining shared business services.",
+          "Build the exact screen your business needs, while keeping the shared services underneath it.",
       },
       {
         slug: ["extend", "ai-authoring"],
         title: "Build Apps with a coding assistant",
         description:
-          "Use a concrete development brief today and understand the planned in-app draft, preview and publish experience.",
+          "A concrete brief to hand a coding assistant today, plus where the in-app builder is headed.",
       },
       {
         slug: ["extend", "first-change"],
         title: "Your first developer change",
-        description: "Run the demo, find the important files, and make a small extension change.",
+        description:
+          "Run the demo, learn where code actually lives, and make one small, safe extension change.",
       },
       {
         slug: ["extend", "modules"],
         title: "Add a module",
-        description: "Register a JSON manifest and pages. Nothing in extensions/ is executed.",
+        description:
+          "Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed.",
       },
       {
         slug: ["extend", "adapters"],
         title: "Add an integration adapter",
         description:
-          "Verify credentials, encrypt them, and turn inbound events into canonical records.",
+          "Verify a provider's credentials, encrypt them, and turn its inbound events into canonical records.",
       },
       {
         slug: ["extend", "plugins"],
         title: "Plugins",
         description:
-          "Register a plugin manifest with tools and triggers that still go through governance.",
+          "Register a plugin manifest with tools and triggers that still route through real governance.",
       },
       {
         slug: ["extend", "tools"],
         title: "Add an AI tool",
         description:
-          "Register a schema, an impact tier, and a service boundary. Mutating tools propose.",
+          "Register a schema, an impact tier, and a service boundary; a mutating tool always proposes.",
       },
       {
         slug: ["extend", "mcp"],
         title: "MCP concepts",
         description:
-          "Bounded reads, staged writes, tenant isolation. The same registry the UI uses.",
+          "Bounded reads, staged writes, and tenant isolation, using the exact same registry the UI uses.",
       },
       {
         slug: ["extend", "mcp-clients"],
         title: "Connect an MCP client",
         description:
-          "Connect an external assistant to the intended workspace and verify a read first.",
+          "Point an external assistant at the right workspace, and verify a read before trusting it.",
       },
       {
         slug: ["extend", "webhooks"],
         title: "Inbound webhooks",
         description:
-          "Tenant-scoped public routes, signature checks, replay windows, and canonical ingest.",
+          "A tenant-scoped public route that checks the signature before anything touches real data.",
       },
     ],
   },
@@ -628,13 +630,14 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["self-hosting", "overview"],
         title: "Self-hosting quickstart",
-        description: "Explore without credentials, then connect a workspace you control.",
+        description:
+          "Explore the real interface with zero credentials, then connect a workspace you actually control.",
       },
       {
         slug: ["self-hosting", "installation"],
         title: "Connect your installation",
         description:
-          "Create the owner account, configure a fresh database, and verify a connected workspace.",
+          "Create the owner account, configure a fresh database, and verify the workspace actually works.",
       },
     ],
   },

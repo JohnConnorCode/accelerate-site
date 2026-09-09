@@ -121,24 +121,24 @@ See what you can build: reports, reviewed workflows and dedicated business works
 ## Build on it
 For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.
 
-- [Build the capabilities your business needs](https://www.acceleratewith.us/docs/extend/overview) (updated 2026-09-07): Add screens, integrations and AI tools while reusing the records and workflows already in place.
-- [Build an App around your business process](https://www.acceleratewith.us/docs/extend/apps) (updated 2026-09-07): Choose shared primitives, custom domain work or a dedicated workspace without duplicating state.
-- [Design custom work without duplicate state](https://www.acceleratewith.us/docs/extend/work-primitives) (updated 2026-09-07): Give an App its own lifecycle and connect tasks, decisions, attention and history to the original records.
-- [Build a custom operating screen](https://www.acceleratewith.us/docs/extend/custom-ui) (updated 2026-09-07): Add a native App workspace or replace the default experience while retaining shared business services.
-- [Build Apps with a coding assistant](https://www.acceleratewith.us/docs/extend/ai-authoring) (updated 2026-09-07): Use a concrete development brief today and understand the planned in-app draft, preview and publish experience.
-- [Your first developer change](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-09-05): Run the demo, find the important files, and make a small extension change.
-- [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-09-04): Register a JSON manifest and pages. Nothing in extensions/ is executed.
-- [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-04): Verify credentials, encrypt them, and turn inbound events into canonical records.
-- [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-07): Register a plugin manifest with tools and triggers that still go through governance.
-- [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-04): Register a schema, an impact tier, and a service boundary. Mutating tools propose.
-- [MCP concepts](https://www.acceleratewith.us/docs/extend/mcp) (updated 2026-09-04): Bounded reads, staged writes, tenant isolation. The same registry the UI uses.
-- [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-08): Connect an external assistant to the intended workspace and verify a read first.
-- [Inbound webhooks](https://www.acceleratewith.us/docs/extend/webhooks) (updated 2026-09-04): Tenant-scoped public routes, signature checks, replay windows, and canonical ingest.
+- [Build the capabilities your business needs](https://www.acceleratewith.us/docs/extend/overview) (updated 2026-09-09): Add a screen, an integration, or an AI tool, reusing the records and approval flow already in place.
+- [Build an App around your business process](https://www.acceleratewith.us/docs/extend/apps) (updated 2026-09-09): Choose shared primitives, custom domain work, or a dedicated workspace, without duplicating state.
+- [Design custom work without duplicate state](https://www.acceleratewith.us/docs/extend/work-primitives) (updated 2026-09-09): Give an App its own lifecycle, and link tasks, decisions, and history back to the real record.
+- [Build a custom operating screen](https://www.acceleratewith.us/docs/extend/custom-ui) (updated 2026-09-09): Build the exact screen your business needs, while keeping the shared services underneath it.
+- [Build Apps with a coding assistant](https://www.acceleratewith.us/docs/extend/ai-authoring) (updated 2026-09-09): A concrete brief to hand a coding assistant today, plus where the in-app builder is headed.
+- [Your first developer change](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-09-09): Run the demo, learn where code actually lives, and make one small, safe extension change.
+- [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-09-09): Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed.
+- [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-09): Verify a provider's credentials, encrypt them, and turn its inbound events into canonical records.
+- [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-09): Register a plugin manifest with tools and triggers that still route through real governance.
+- [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-09): Register a schema, an impact tier, and a service boundary; a mutating tool always proposes.
+- [MCP concepts](https://www.acceleratewith.us/docs/extend/mcp) (updated 2026-09-09): Bounded reads, staged writes, and tenant isolation, using the exact same registry the UI uses.
+- [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-09): Point an external assistant at the right workspace, and verify a read before trusting it.
+- [Inbound webhooks](https://www.acceleratewith.us/docs/extend/webhooks) (updated 2026-09-09): A tenant-scoped public route that checks the signature before anything touches real data.
 
 ## Self-hosting
 Run the Command Center yourself: what you need, how to start, and when to bring us in.
 
-- [Self-hosting quickstart](https://www.acceleratewith.us/docs/self-hosting/overview) (updated 2026-09-05): Explore without credentials, then connect a workspace you control.
-- [Connect your installation](https://www.acceleratewith.us/docs/self-hosting/installation) (updated 2026-09-05): Create the owner account, configure a fresh database, and verify a connected workspace.
+- [Self-hosting quickstart](https://www.acceleratewith.us/docs/self-hosting/overview) (updated 2026-09-09): Explore the real interface with zero credentials, then connect a workspace you actually control.
+- [Connect your installation](https://www.acceleratewith.us/docs/self-hosting/installation) (updated 2026-09-09): Create the owner account, configure a fresh database, and verify the workspace actually works.
 
 - [Documentation landing](https://www.acceleratewith.us/docs): all guides.

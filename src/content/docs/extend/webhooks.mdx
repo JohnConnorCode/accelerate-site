@@ -1,10 +1,10 @@
 ---
 title: "Inbound webhooks"
-description: "Tenant-scoped public routes, signature checks, replay windows, and canonical ingest."
-updated: "2026-09-04"
+description: "A tenant-scoped public route that checks the signature before anything touches real data."
+updated: "2026-09-09"
 ---
 
-Provider inbound events land under `src/app/api/public/[tenantSlug]/webhooks/<provider>/`. The tenant slug is in the path so the handler can resolve tenant context before it touches data.
+A webhook handler that trusts its payload before verifying who sent it is a way to let anyone write into your database. Provider inbound events land under `src/app/api/public/[tenantSlug]/webhooks/<provider>/`, with the tenant slug right there in the path so the handler can resolve tenant context before it touches anything.
 
 ## What the handler does
 
