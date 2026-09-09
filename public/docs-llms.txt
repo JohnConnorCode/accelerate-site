@@ -4,12 +4,12 @@
 ## Start
 Learn the essentials and try your first complete workflow.
 
-- [An AI command center you can make your own](https://www.acceleratewith.us/docs/start/overview) (updated 2026-09-06): Connect your business, work with AI, and build on an open-source foundation you control.
+- [An AI command center you can make your own](https://www.acceleratewith.us/docs/start/overview) (updated 2026-09-09): Connect your business, work with AI that earns more trust over time, and build on an open-source foundation you control.
 - [How Accelerate works](https://www.acceleratewith.us/docs/start/how-it-works) (updated 2026-09-07): Follow business context from its source to a reviewed action, recorded result, and reusable extension.
-- [For business owners](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-09-05): Choose a useful first workflow, assign ownership, and measure whether it helps.
+- [For business owners](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-09-09): Decide whether it fits, run a small pilot, and know what to check before you rely on it.
 - [For agencies](https://www.acceleratewith.us/docs/start/agencies) (updated 2026-09-05): Onboard client workspaces, verify access, and agree an operational handoff.
-- [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-05): Try the daily queue and review a proposed action using fictional data.
-- [Core concepts](https://www.acceleratewith.us/docs/start/core-concepts) (updated 2026-09-05): The people, records, work, and decisions you will see in the workspace.
+- [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-09): Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened.
+- [Core concepts](https://www.acceleratewith.us/docs/start/core-concepts) (updated 2026-09-09): The vocabulary every other guide assumes: workspace, record, approval, receipt, and how they connect.
 - [Your workspace](https://www.acceleratewith.us/docs/start/workspace) (updated 2026-09-05): Check your business context, membership, and available features.
 - [Modules](https://www.acceleratewith.us/docs/start/modules) (updated 2026-09-04): Optional capabilities a workspace turns on and off without forking the app.
 - [Check an action result](https://www.acceleratewith.us/docs/start/receipts) (updated 2026-09-05): Tell a prepared draft, an approved request, and a completed action apart.
@@ -18,12 +18,12 @@ Learn the essentials and try your first complete workflow.
 ## Command Center
 One shared operating layer for the businesses that need it, and how to run the daily workspace.
 
-- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-07): Customer context, daily priorities, and reviewed actions in one workspace.
+- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-09): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-05): Explore capabilities and check their availability in your workspace.
 - [Work the Today queue](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-07): Review urgent work, take the next action and confirm the result.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-04): Triage leads, messages, tasks, and staged actions that still need a person.
 - [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-07): Edit commitments and review decisions while keeping one saved task or approval across views.
-- [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-07): Understand what waits for review, what approval does, and how to check the result.
+- [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-09): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-05): Find a recorded change and trace it to the affected record.
 - [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-05): Ask a specific question, inspect the evidence, and review any proposed action.
 

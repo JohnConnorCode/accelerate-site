@@ -1,41 +1,45 @@
 ---
 title: "Review and approve actions"
-description: "Understand what waits for review, what approval does, and how to check the result."
-updated: "2026-09-07"
+description: "How approval works, how it earns more autonomy over time, and what to check after a decision."
+updated: "2026-09-09"
 ---
 
-An approval is your decision on a proposed action. Before approving, check the target, the content, and the effect. Approving an email proposal can send the message; it is not simply marking the draft as read.
+The first time your assistant drafts a reply, changes a pipeline stage, or prepares a reminder, it stops and asks you. That is not the system being cautious for its own sake: it is the system establishing a track record, one decision at a time, so it can eventually stop asking you about the ones you always say yes to. An approval is your decision on a specific proposed action, and it is also the unit the whole autonomy system is built from.
 
-## What needs a decision
+## What an approval actually is
 
-AI and MCP tools that propose changes stage them for review. Examples include email drafts, suggested pipeline moves, and proposed task changes. Read-only questions do not create an approval.
+AI tools and connected integrations that propose a change stage it here rather than running it immediately: an email draft, a suggested pipeline move, a task change, a prepared reminder. A read-only question, like asking the assistant to summarize a deal, never creates an approval, because nothing about it changes a record.
 
-Manual actions follow the controls on their own screen. For example, a reply you write in [Conversations](/docs/conversations/reply) uses the composer and its confirmation flow. It does not need a second AI proposal first.
+A manual action you take yourself is different and does not route through this queue at all. Writing and sending a reply in [Conversations](/docs/conversations/reply) uses that screen's own composer and confirmation step; it does not need a second AI proposal stacked on top of something you already decided to do.
 
-## Review an item
+## Reviewing one
 
-1. Open **Today → Needs your decision** or **Work → Approvals** and select a pending approval.
-2. Read the proposed action and its supporting context. For messages, check the recipient as well as the wording.
-3. Choose the decision that matches your intent.
+1. Open **Today → Needs your decision** or **Work → Approvals**, and select a pending item.
+2. Read the proposed action and the context behind it. For a message, that means the actual recipient and the actual wording, not just the fact that a message exists.
+3. Choose the decision that matches what you actually want.
 
-| Decision | What it means                                                                                              |
-| -------- | ---------------------------------------------------------------------------------------------------------- |
-| Approve  | Authorize the displayed action to run. A send may contact a real recipient.                                |
-| Revise   | Return to the proposing workflow or AI conversation, change the proposal, then review the revised version. |
-| Reject   | Stop this proposed action. Give a reason when the interface offers it.                                     |
+| Decision | What happens                                                                                                                           |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Approve  | The action runs as shown. Approving an email proposal can put a message in front of a real customer, not just mark a draft as read.    |
+| Revise   | The proposal goes back to whatever produced it, AI or workflow, so you can change it and review the new version before deciding again. |
+| Reject   | The action does not run. Give a reason when the screen offers one; it is what the system learns from.                                  |
 
-## Check what happened
+Approving and the action actually succeeding are two different events. A provider outage can leave an approved send unfinished, so check the result afterward rather than assuming approval was the last step. [Receipts and audit](/docs/start/receipts) covers the exact statuses to look for.
 
-Approval and successful execution are separate. Inspect the result after approving. A provider failure can leave authorized work unfinished. An accepted email send is also different from confirmed delivery to the recipient.
+## How approval turns into autonomy
 
-Use [Activity](/docs/command-center/activity) and the action's result to investigate. If the outcome is unclear, check the existing request before creating another. [Receipts](/docs/start/receipts) explain the statuses to look for.
+Every action type starts at `always_ask`: the system proposes, you decide, every single time, with no exceptions. That is the floor, not a permanent ceiling. Once you have approved the same kind of action three separate times, spread across at least seven days, the system proposes moving that specific action up one rung of trust. It never skips a rung, and a person has to confirm every promotion by hand; the system can suggest graduating a permission, but it cannot grant itself one.
 
-## Autonomy and permissions
+From there, an action can reach `standing_permission`, where it runs without asking you first but still logs everything it did so you can audit it after the fact, and eventually `autonomous` for the narrowest, most consistently correct patterns. The point of the ladder is that your week gets shorter as it climbs: the third time you approve the same routine reply is also the last time you have to.
 
-Approval requirements depend on the action and the workspace policy. Do not assume that repeated approvals automatically remove a gate. Review the relevant settings and current policy before relying on unattended work.
+Six things never climb this ladder, regardless of how much trust everything else has earned: deleting an account, changing a credential, deleting financial history, exporting your customer database, a high-value refund, and a major financial transfer. Those stay behind a human decision permanently. And whatever rung an action type is on, the reversibility of what it actually does is fixed by design, not by trust level: sending an email, activating a campaign, and sending an invoice are permanently non-autonomous actions in this product, meaning they always require your approval no matter how long you have been running the system, because an email you did not mean to send cannot be called back.
 
-An external assistant cannot approve its own staged proposal through MCP. Its own confirmation prompt does not replace the Command Center's approval.
+## Practice it first
 
-## Practice safely
+[Try the review workflow](/docs/start/daily-path) in the fictional demo before you rely on it for real work. Its data and every action inside it are fictional, so nothing you approve or reject there reaches an actual customer.
 
-[Try the review workflow](/docs/start/daily-path) in the demo first. Its data and effects are fictional.
+## What to check
+
+- An external assistant connected through MCP cannot approve its own staged proposal. Its own confirmation prompt is not the same thing as your approval inside Command Center, and the action still waits here regardless of what it told you.
+- Do not assume repeated approvals have quietly removed a gate on their own; check the current autonomy setting for that action type if you are unsure whether it still needs your review.
+- If an approved action's outcome is unclear, inspect [Activity](/docs/command-center/activity) and the action's own result before creating a second attempt. Retrying blind risks a duplicate send.

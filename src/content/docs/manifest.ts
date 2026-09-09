@@ -63,7 +63,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["start", "overview"],
         title: "An AI command center you can make your own",
         description:
-          "Connect your business, work with AI, and build on an open-source foundation you control.",
+          "Connect your business, work with AI that earns more trust over time, and build on an open-source foundation you control.",
       },
       {
         slug: ["start", "how-it-works"],
@@ -75,7 +75,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["start", "business-owners"],
         title: "For business owners",
         description:
-          "Choose a useful first workflow, assign ownership, and measure whether it helps.",
+          "Decide whether it fits, run a small pilot, and know what to check before you rely on it.",
       },
       {
         slug: ["start", "agencies"],
@@ -85,12 +85,14 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["start", "daily-path"],
         title: "Your first workflow",
-        description: "Try the daily queue and review a proposed action using fictional data.",
+        description:
+          "Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened.",
       },
       {
         slug: ["start", "core-concepts"],
         title: "Core concepts",
-        description: "The people, records, work, and decisions you will see in the workspace.",
+        description:
+          "The vocabulary every other guide assumes: workspace, record, approval, receipt, and how they connect.",
       },
       {
         slug: ["start", "workspace"],
@@ -126,7 +128,8 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["command-center", "overview"],
         title: "The Command Center",
-        description: "Customer context, daily priorities, and reviewed actions in one workspace.",
+        description:
+          "Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.",
       },
       {
         slug: ["command-center", "capabilities"],
@@ -153,7 +156,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["command-center", "approvals"],
         title: "Review and approve actions",
         description:
-          "Understand what waits for review, what approval does, and how to check the result.",
+          "How approval works, how it earns more autonomy over time, and what to check after a decision.",
       },
       {
         slug: ["command-center", "activity"],
