@@ -120,7 +120,13 @@ const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 const BASE_REVENUE_SCHEMA_TABLES = [
   {
     table: "site_websites",
-    columns: ["version", "draft_revision_id", "published_revision_id", "updated_at"],
+    columns: [
+      "version",
+      "draft_revision_id",
+      "published_revision_id",
+      "has_published",
+      "updated_at",
+    ],
   },
   {
     table: "site_website_revisions",

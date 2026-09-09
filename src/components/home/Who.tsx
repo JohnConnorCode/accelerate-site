@@ -1,23 +1,25 @@
 import Link from "next/link";
+import { homeWhoContent } from "@/content/site-studio/home";
+import type { HomeWhoContent } from "@/lib/site-studio/native-templates";
 import { Reveal } from "./reveal";
 import { AmbientField } from "./AmbientField";
 import { CountUp } from "./CountUp";
 
-export function Who() {
+export function Who({ content = homeWhoContent }: { content?: HomeWhoContent }) {
   return (
     <section className="sect" id="who" style={{ paddingTop: 0 }}>
       <AmbientField />
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            The firm
+            {content.eyebrow}
           </Reveal>
           <Reveal rv as="h2" className="h2" delay={0.06}>
-            Engineered by
+            {content.headingStart}
             <br />
-            veteran founders
+            {content.headingMiddle}
             <br />
-            and operators.
+            {content.headingEnd}
           </Reveal>
         </div>
         <div className="who">
@@ -28,21 +30,14 @@ export function Who() {
               different composition/rhythm than its neighbors, not just
               more motion on the same template. */}
           <Reveal rv className="who-stat">
-            <CountUp target="15" className="who-n" />
-            <span className="who-n-label">Years deploying machine learning at scale</span>
+            <CountUp target={content.years} className="who-n" />
+            <span className="who-n-label">{content.yearsLabel}</span>
           </Reveal>
           <Reveal rv className="who-copy" delay={0.08}>
-            <p className="lead-p">
-              We put AI into production long before the hype cycle. Knowing exactly where to deploy
-              automation, and what will break when you do, is the difference between a system that
-              runs and one that needs babysitting.
-            </p>
-            <p>
-              We are deliberately selective. You interface directly with the engineers architecting
-              your system, never an account manager. The practice is led by John Connor.
-            </p>
+            <p className="lead-p">{content.body}</p>
+            <p>{content.detail}</p>
             <Link
-              href="/about"
+              href={content.linkHref}
               className="body-c"
               style={{
                 fontSize: "14.5px",
@@ -50,7 +45,7 @@ export function Who() {
                 textUnderlineOffset: "3px",
               }}
             >
-              Read more about the team <span aria-hidden="true">→</span>
+              {content.linkLabel} <span aria-hidden="true">→</span>
             </Link>
           </Reveal>
         </div>

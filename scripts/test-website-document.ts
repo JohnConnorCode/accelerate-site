@@ -1,49 +1,18 @@
 import assert from "node:assert/strict";
+import { websiteFixture } from "./lib/website-fixture";
 import { readdirSync } from "node:fs";
 import { join, relative } from "node:path";
-import {
-  parseWebsiteDocument,
-  websitePathSchema,
-  type WebsiteDocument,
-} from "../src/lib/site-studio/website-document";
+import { parseWebsiteDocument, websitePathSchema } from "../src/lib/site-studio/website-document";
 import { parseWebsiteCommand } from "../src/lib/site-studio/website-commands";
 import { installationRoutes } from "../src/lib/site-studio/installation-routes";
 import { isSiteContentHref } from "../src/lib/site-studio/links";
 
-const fixture: WebsiteDocument = {
-  schemaVersion: 1,
-  identity: { name: "Northstar Workshop", tagline: "Practical repairs" },
-  navigation: [{ label: "Home", href: "/" }],
-  footer: { text: "Local workshop", links: [] },
-  theme: {
-    accent: "#123456",
-    background: "#ffffff",
-    foreground: "#111111",
-    font: "installation",
-    radius: "soft",
-  },
-  assets: [{ id: "workshop", src: "/images/workshop.jpg", alt: "Workshop" }],
-  pages: [
-    {
-      id: "home",
-      path: "/",
-      metadata: { title: "Workshop", description: "Book a repair", noIndex: false },
-      content: {
-        kind: "article",
-        body: [
-          {
-            type: "paragraph",
-            content: [{ text: "<script>alert(1)</script> stays literal text" }],
-          },
-        ],
-      },
-    },
-  ],
-  collections: [],
-};
+const fixture = websiteFixture;
 assert.deepEqual(parseWebsiteDocument(fixture), fixture);
 const reject = (value: unknown) => assert.throws(() => parseWebsiteDocument(value));
+reject({ ...fixture, assets: [{ id: "invalid", src: "#not-an-image", alt: "Invalid" }] });
 const page = fixture.pages[0];
+assert.ok(page);
 const withBody = (body: unknown) => ({
   ...fixture,
   pages: [{ ...page, content: { kind: "article", body } }],
@@ -89,6 +58,9 @@ for (const path of [
   "/t/acme",
   "/auth/callback",
   "/demo/x",
+  "/proposal/private-token",
+  "/plan/private-token",
+  "/plan-builder",
   "/foo?bar",
   "/foo/../bar",
   "/foo/",

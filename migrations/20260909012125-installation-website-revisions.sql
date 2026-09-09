@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS public.site_websites (
  version integer NOT NULL DEFAULT 0 CHECK(version >= 0),
  draft_revision_id uuid,
  published_revision_id uuid,
+ has_published boolean NOT NULL DEFAULT false,
  updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS public.site_website_revisions (
@@ -91,6 +92,7 @@ BEGIN
  END IF;
  UPDATE public.site_websites SET version=version+1,draft_revision_id=new_revision,
   published_revision_id=CASE WHEN p_operation='save' THEN current_site.published_revision_id WHEN p_operation='unpublish' THEN NULL ELSE p_revision_id END,
+  has_published=current_site.has_published OR p_operation IN ('publish','rollback'),
   updated_at=clock_timestamp() WHERE tenant_id=t;
  SELECT jsonb_build_object('requestKey',p_request_key,'operation',p_operation,'version',version,'draftRevisionId',draft_revision_id,'publishedRevisionId',published_revision_id,'previousPublishedRevisionId',current_site.published_revision_id,'createdAt',updated_at) INTO result FROM public.site_websites WHERE tenant_id=t;
  INSERT INTO public.site_website_receipts(tenant_id,request_key,request_hash,receipt) VALUES(t,p_request_key,request_hash,result);

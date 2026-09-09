@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "homepage-reduced-motion-headline",
+    slug: "homepage-reduced-motion-headline",
+    title: "Read the complete homepage headline with reduced motion",
+    description:
+      "The homepage shows the full headline immediately when your device requests reduced motion. The highlighted phrase no longer waits for the scramble animation, and the usual animation remains available for other visitors.",
+    category: "fix",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "demo-layout-settings-read",
     slug: "demo-layout-settings-read",
     title: "Inspect default layout settings in fictional workspaces",

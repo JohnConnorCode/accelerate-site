@@ -35,7 +35,7 @@ const href = z
   .string()
   .min(1)
   .max(500)
-  .refine(isSiteContentHref, "Links must be site-relative paths or https URLs");
+  .refine(isSiteContentHref, "Links must be site-relative paths, anchors, or HTTPS URLs");
 
 export const siteStyleSchema = z
   .object({

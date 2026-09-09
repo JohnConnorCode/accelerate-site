@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { siteDocumentSchema } from "./document";
 import { isSiteContentHref } from "./links";
+import { nativeTemplateSchemas } from "./native-templates";
 
 /** A portable website contains content, never tenant IDs, credentials, code,
  * publication pointers, or authority. Import creates an unpublished revision. */
@@ -20,7 +21,10 @@ export const websitePathSchema = z
     "Use a lowercase site path without a query or trailing slash",
   )
   .refine(
-    (path) => !/^\/(?:api|admin|t|auth|login|logout|setup|demo)(?:\/|$)/.test(path),
+    (path) =>
+      !/^\/(?:api|admin|t|auth|login|logout|setup|demo|proposal|plan|plan-builder|style-guide)(?:\/|$)/.test(
+        path,
+      ),
     "This path belongs to the application",
   );
 const link = z.object({ label: z.string().min(1).max(120), href: websiteHrefSchema }).strict();
@@ -80,7 +84,10 @@ export type WebsiteRichText = z.infer<typeof websiteRichTextSchema>;
 const asset = z
   .object({
     id: identity,
-    src: websiteHrefSchema,
+    src: websiteHrefSchema.refine(
+      (value) => !value.startsWith("#"),
+      "Use an image path or HTTPS URL",
+    ),
     alt: z.string().max(300),
     width: z.number().int().positive().max(20000).optional(),
     height: z.number().int().positive().max(20000).optional(),
@@ -96,12 +103,13 @@ const metadata = z
   .strict();
 /** Native templates are shipped React components with explicitly named content
  * slots. The template registry further validates these fields before saving. */
-const fieldValue = z.union([copy, z.number().finite(), z.boolean(), z.array(copy).max(200)]);
+// Field objects are validated against the closed native template schema below.
+const fieldValue = z.unknown();
 const nativeSection = z
   .object({
     id: identity,
     template: identity,
-    fields: z.record(identity, fieldValue),
+    fields: z.record(z.string().regex(/^[a-z][a-zA-Z0-9-]{0,79}$/), fieldValue),
     hidden: z.boolean().default(false),
   })
   .strict();
@@ -211,11 +219,22 @@ export const websiteDocumentSchema = z
     for (const page of document.pages) {
       checkAsset(page.metadata.imageAssetId);
       if (page.content.kind === "article") checkBody(page.content.body);
-      if (page.content.kind === "native")
+      if (page.content.kind === "native") {
         unique(
           page.content.sections.map((section) => section.id),
           `section identity in ${page.id}`,
         );
+        for (const section of page.content.sections) {
+          const schema = Object.hasOwn(nativeTemplateSchemas, section.template)
+            ? nativeTemplateSchemas[section.template]
+            : undefined;
+          if (!schema || !schema.safeParse(section.fields).success)
+            ctx.addIssue({
+              code: "custom",
+              message: `Unknown template or invalid fields: ${section.template}`,
+            });
+        }
+      }
     }
     for (const entry of entries) {
       checkAsset(entry.imageAssetId);
