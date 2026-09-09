@@ -188,12 +188,13 @@ export const docsManifest: DocsSection[] = [
         slug: ["conversations", "overview"],
         title: "Conversations",
         description:
-          "One thread per person, with the record it belongs to and a next action attached.",
+          "Every message from every channel, landed on the same thread, the same person, and the same deal.",
       },
       {
         slug: ["conversations", "reply"],
         title: "Reply to a conversation",
-        description: "Find the right thread, review the recipient, and check the send result.",
+        description:
+          "Find the right thread, confirm who you're actually writing to, and check that it sent.",
       },
     ],
   },
@@ -208,12 +209,13 @@ export const docsManifest: DocsSection[] = [
         slug: ["contacts", "overview"],
         title: "Contacts",
         description:
-          "Canonical people and companies, with duplicates proposed rather than guessed.",
+          "One record per person, matched from every channel, with merges proposed rather than assumed.",
       },
       {
         slug: ["contacts", "import"],
         title: "Import contacts",
-        description: "Prepare a small list, review the proposed records, and confirm the import.",
+        description:
+          "Bring in a CSV or pasted list through a review batch that writes nothing until you confirm it.",
       },
     ],
   },
@@ -227,19 +229,19 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["pipeline", "overview"],
         title: "Pipeline",
-        description:
-          "Move work that produces revenue, then review every opportunity from one board.",
+        description: "Every open deal on one board, ranked by what actually moves revenue next.",
       },
       {
         slug: ["pipeline", "revenue"],
         title: "Understand revenue figures",
         description:
-          "Read client and proposal totals and investigate differences from pipeline or payment records.",
+          "Where each number on the revenue screen actually comes from, and how to chase a discrepancy.",
       },
       {
         slug: ["pipeline", "board"],
         title: "Use the pipeline board",
-        description: "Move an opportunity forward and keep its next action clear.",
+        description:
+          "Drag a card when the evidence actually changed, and leave the next action clear behind it.",
       },
     ],
   },
@@ -253,13 +255,14 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["proposals", "overview"],
         title: "Proposals",
-        description: "Estimates and scopes that share a ledger with the rest of the workspace.",
+        description:
+          "Drafts, sends, and decisions on one ledger, with pricing checked against your catalog.",
       },
       {
         slug: ["proposals", "send"],
         title: "Drafting and sending",
         description:
-          "Catalog pricing, unguessable public links, and decisions that write an audit row.",
+          "Draft, share an unguessable link, and record a decision that writes its own audit row.",
       },
     ],
   },
@@ -273,7 +276,8 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["follow-up", "overview"],
         title: "Follow up on an inquiry",
-        description: "Assign the response, record a due date and close the loop.",
+        description:
+          "Assign the response, name a real next action, and close the loop once it's answered.",
       },
     ],
   },
@@ -362,12 +366,13 @@ export const docsManifest: DocsSection[] = [
         slug: ["sources", "overview"],
         title: "Sources",
         description:
-          "Where new people enter, before they become contacts, conversations, or deals.",
+          "Where a new name actually enters the business, before it becomes a canonical contact.",
       },
       {
         slug: ["sources", "leads"],
         title: "Review leads and chat handoffs",
-        description: "Qualify an inquiry, check for an existing person and record the next action.",
+        description:
+          "Qualify a new inquiry, check whether it's actually someone you already know, and record what's next.",
       },
     ],
   },

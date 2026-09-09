@@ -1,17 +1,15 @@
 ---
 title: "Proposals"
-description: "Estimates and scopes that share a ledger with the rest of the workspace."
-updated: "2026-09-04"
+description: "Drafts, sends, and decisions on one ledger, with pricing checked against your catalog."
+updated: "2026-09-09"
 ---
 
-Proposals at `/admin/proposals` are drafts, sent documents, and decisions. Pricing has to match the published catalog. Totals that do not add up are rejected before a send.
+A proposal that quotes a price your catalog no longer offers is the kind of mistake that only surfaces when a customer accepts it, which is exactly the wrong moment to find out. Proposals at `/admin/proposals` are drafts, sent documents, and decisions living on one ledger, and every total gets checked against your published catalog before it can go out: pricing that doesn't add up is rejected before a send, not after. [Drafting and sending](/docs/proposals/send) covers the actual workflow.
 
-How to draft and send is in [Drafting and sending](/docs/proposals/send).
+## The lifecycle
 
-## Lifecycle
+A proposal moves through create, edit, send, view, accept, and decline, and its public view and decision links are unguessable tokens rather than sequential IDs a stranger could guess. Every one of those events writes an audit row as it happens; the proposal's actual body is not stored inside that audit payload, so the audit trail proves an event occurred without duplicating the content itself.
 
-Create, edit, send, view, accept, decline. Public view and decision links are unguessable tokens. Each of those events writes an audit row. The proposal body is not stored in the audit payload.
+## Keeping follow-up visible
 
-## Follow-up
-
-An unanswered proposal appears on [Today](/docs/command-center/today) and in [Inbox](/docs/command-center/inbox). The next action lives on the opportunity, not only in someone's head.
+An unanswered proposal shows up on [Today](/docs/command-center/today) and in [Inbox](/docs/command-center/inbox), so the next action for it lives on the opportunity where anyone can see it, not only in whichever person's memory happened to send it.

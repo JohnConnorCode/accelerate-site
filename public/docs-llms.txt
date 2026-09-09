@@ -30,32 +30,32 @@ One shared operating layer for the businesses that need it, and how to run the d
 ## Conversations
 The reply-ready inbox for Gmail, forms, chat, and transcripts.
 
-- [Conversations](https://www.acceleratewith.us/docs/conversations/overview) (updated 2026-09-04): One thread per person, with the record it belongs to and a next action attached.
-- [Reply to a conversation](https://www.acceleratewith.us/docs/conversations/reply) (updated 2026-09-05): Find the right thread, review the recipient, and check the send result.
+- [Conversations](https://www.acceleratewith.us/docs/conversations/overview) (updated 2026-09-09): Every message from every channel, landed on the same thread, the same person, and the same deal.
+- [Reply to a conversation](https://www.acceleratewith.us/docs/conversations/reply) (updated 2026-09-09): Find the right thread, confirm who you're actually writing to, and check that it sent.
 
 ## Contacts
 Identity resolution, intake, and reviewed list imports.
 
-- [Contacts](https://www.acceleratewith.us/docs/contacts/overview) (updated 2026-09-04): Canonical people and companies, with duplicates proposed rather than guessed.
-- [Import contacts](https://www.acceleratewith.us/docs/contacts/import) (updated 2026-09-05): Prepare a small list, review the proposed records, and confirm the import.
+- [Contacts](https://www.acceleratewith.us/docs/contacts/overview) (updated 2026-09-09): One record per person, matched from every channel, with merges proposed rather than assumed.
+- [Import contacts](https://www.acceleratewith.us/docs/contacts/import) (updated 2026-09-09): Bring in a CSV or pasted list through a review batch that writes nothing until you confirm it.
 
 ## Pipeline
 Opportunities, stages, value, and closed revenue in one operating view.
 
-- [Pipeline](https://www.acceleratewith.us/docs/pipeline/overview) (updated 2026-09-04): Move work that produces revenue, then review every opportunity from one board.
-- [Understand revenue figures](https://www.acceleratewith.us/docs/pipeline/revenue) (updated 2026-09-05): Read client and proposal totals and investigate differences from pipeline or payment records.
-- [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-08): Move an opportunity forward and keep its next action clear.
+- [Pipeline](https://www.acceleratewith.us/docs/pipeline/overview) (updated 2026-09-09): Every open deal on one board, ranked by what actually moves revenue next.
+- [Understand revenue figures](https://www.acceleratewith.us/docs/pipeline/revenue) (updated 2026-09-09): Where each number on the revenue screen actually comes from, and how to chase a discrepancy.
+- [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-09): Drag a card when the evidence actually changed, and leave the next action clear behind it.
 
 ## Proposals
 Drafts, pricing validation, decisions, and follow-up.
 
-- [Proposals](https://www.acceleratewith.us/docs/proposals/overview) (updated 2026-09-04): Estimates and scopes that share a ledger with the rest of the workspace.
-- [Drafting and sending](https://www.acceleratewith.us/docs/proposals/send) (updated 2026-09-04): Catalog pricing, unguessable public links, and decisions that write an audit row.
+- [Proposals](https://www.acceleratewith.us/docs/proposals/overview) (updated 2026-09-09): Drafts, sends, and decisions on one ledger, with pricing checked against your catalog.
+- [Drafting and sending](https://www.acceleratewith.us/docs/proposals/send) (updated 2026-09-09): Draft, share an unguessable link, and record a decision that writes its own audit row.
 
 ## Follow-up
 The discipline that decides most inquiries: respond first, follow through, and let nothing wait.
 
-- [Follow up on an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-05): Assign the response, record a due date and close the loop.
+- [Follow up on an inquiry](https://www.acceleratewith.us/docs/follow-up/overview) (updated 2026-09-09): Assign the response, name a real next action, and close the loop once it's answered.
 
 ## Outreach
 Campaigns, email templates, and reactivation of past demand.
@@ -78,8 +78,8 @@ Clients, bookings, content, and resources after the sale.
 ## Sources
 Inbound leads, chat, subscribers, partners, and website grades.
 
-- [Sources](https://www.acceleratewith.us/docs/sources/overview) (updated 2026-09-04): Where new people enter, before they become contacts, conversations, or deals.
-- [Review leads and chat handoffs](https://www.acceleratewith.us/docs/sources/leads) (updated 2026-09-08): Qualify an inquiry, check for an existing person and record the next action.
+- [Sources](https://www.acceleratewith.us/docs/sources/overview) (updated 2026-09-09): Where a new name actually enters the business, before it becomes a canonical contact.
+- [Review leads and chat handoffs](https://www.acceleratewith.us/docs/sources/leads) (updated 2026-09-09): Qualify a new inquiry, check whether it's actually someone you already know, and record what's next.
 
 ## Intelligence
 The assistant, run traces, knowledge, and source-to-revenue analytics.

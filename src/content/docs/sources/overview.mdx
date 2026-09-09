@@ -1,17 +1,15 @@
 ---
 title: "Sources"
-description: "Where new people enter, before they become contacts, conversations, or deals."
-updated: "2026-09-04"
+description: "Where a new name actually enters the business, before it becomes a canonical contact."
+updated: "2026-09-09"
 ---
 
-Sources are the intake ledgers that are not yet the canonical contact: direct leads, chat inquiries, subscribers, partner applications, and website grades.
-
-How form and chat intake works is in [Leads and chat](/docs/sources/leads).
+A form submission, a chat transcript, and a partner application all start life as the same kind of thing: information about someone who is not yet a canonical contact, and might not even be a real match for anyone in your system. Sources are the intake ledgers that hold that in-between state, direct leads, chat inquiries, subscribers, partner applications, and website grades, each waiting for someone to actually confirm who it belongs to.
 
 ## Leads and chat
 
-`/admin/leads` and `/admin/chat-leads` hold submissions from forms and the public assistant. Qualification happens here. Identity resolution into [Contacts](/docs/contacts) is a review step.
+`/admin/leads` holds submissions from your forms; `/admin/chat-leads` holds handoffs from the public assistant. Qualifying the inquiry happens right here, and resolving its identity into an actual [Contact](/docs/contacts) is a deliberate review step afterward, not something that happens automatically the moment a form is submitted.
 
-## Subscribers, partners, grades
+## Subscribers, partners, and grades
 
-Newsletter and resource subscribers, referral partner applications, and website grader intake each have their own list. They share the same tenant boundary. A new row waits for someone to confirm a merge.
+Newsletter and resource subscribers, referral partner applications, and website grader intake each keep their own list, sharing the same tenant boundary as everything else in your workspace. A new row here waits for a person to actually confirm a merge before it becomes part of your real customer record.

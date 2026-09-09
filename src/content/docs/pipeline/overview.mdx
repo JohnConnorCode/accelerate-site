@@ -1,21 +1,21 @@
 ---
 title: "Pipeline"
-description: "Move work that produces revenue, then review every opportunity from one board."
-updated: "2026-09-04"
+description: "Every open deal on one board, ranked by what actually moves revenue next."
+updated: "2026-09-09"
 ---
 
-Pipeline is the opportunity board at `/admin/pipeline`. Each card is a deal: stage, value, next action, and the people attached to it. Columns are the live stages for that workspace. Dragging a card writes a real stage change.
+A deal that has gone quiet for three weeks looks identical to a deal that is one signature away from closing, right up until someone actually opens it and checks. Pipeline at `/admin/pipeline` is the opportunity board that makes that check fast: each card is a deal carrying its stage, its value, its next action, and the people attached to it, in columns that are the live stages your workspace actually uses. Dragging a card writes a real stage change, immediately, not a suggestion.
 
-## What belongs here
+## What actually lives here
 
-Open opportunities, ranked for the work that moves revenue. Won and lost deals leave the working set. Closed revenue and client value also live in this cluster. See [Revenue](/docs/pipeline/revenue).
+Open opportunities, ranked for the work that moves revenue forward. Won and lost deals leave this working set once they close, because they no longer need daily attention, though the closed revenue and client value they produced stay visible in the [Revenue](/docs/pipeline/revenue) view of the same cluster.
 
-## Assistant-proposed moves
+## When the assistant suggests a move
 
-`propose_stage_change` does not write the stage. It stages a proposal with the evidence it read. You approve it like any other [approval](/docs/command-center/approvals). A reply that sounds like yes is still a proposal until you confirm it.
+`propose_stage_change` never writes the stage directly. It stages a proposal with the evidence it read to support it, and you approve that proposal the same way you would any other [approval](/docs/command-center/approvals). A customer reply that sounds like a yes is still just a proposal until you confirm it, because the assistant reading "sounds good, let's move forward" is not the same as you deciding that deal actually advanced.
 
-How to use the board day to day is in [Using the board](/docs/pipeline/board).
+[Using the board](/docs/pipeline/board) covers the day-to-day mechanics of moving a card yourself.
 
-## Related records
+## The records behind a card
 
-An opportunity links to contacts, companies, conversations, tasks, and proposals. Open the card for that graph. Duplicate people are not merged from this board; that review lives under [Contacts](/docs/contacts).
+An opportunity links to contacts, companies, conversations, tasks, and proposals, and opening the card is how you see that whole graph in one place. Duplicate people do not get merged from this board, though; that review lives specifically under [Contacts](/docs/contacts), where the evidence for a match actually is.
