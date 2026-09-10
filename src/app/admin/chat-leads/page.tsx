@@ -124,7 +124,10 @@ export default function ChatLeadsPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title={adminPageName("chat-leads")} subtitle="Review enquiries submitted through your website chat." />
+        <PageHeader
+          title={adminPageName("chat-leads")}
+          subtitle="Review enquiries submitted through your website chat."
+        />
         <LoadingSkeleton variant="table" />
       </div>
     );

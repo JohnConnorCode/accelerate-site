@@ -11,8 +11,12 @@ const missing = ids.filter((id) => !guidance.includes(`"${id}": {`));
 const problems = [
   ...missing.map((id) => `Missing contextual guidance for ${id}`),
   ...(header.includes("How this works") ? [] : ["PageHeader does not expose contextual help"]),
-  ...(navigation.includes('label: "Delivery Runs"') ? ["Deprecated Delivery Runs label remains"] : []),
-  ...(navigation.includes('label: "Identity review"') ? ["Deprecated Identity review label remains"] : []),
+  ...(navigation.includes('label: "Delivery Runs"')
+    ? ["Deprecated Delivery Runs label remains"]
+    : []),
+  ...(navigation.includes('label: "Identity review"')
+    ? ["Deprecated Identity review label remains"]
+    : []),
 ];
 
 if (problems.length) {
@@ -20,4 +24,6 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`Admin language audit passed: ${ids.length} navigation destinations have shared guidance.`);
+console.log(
+  `Admin language audit passed: ${ids.length} navigation destinations have shared guidance.`,
+);

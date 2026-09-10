@@ -956,7 +956,10 @@ function SidebarContent({
   )?.label;
   const { pendingHref } = useNavigationRuntime();
   const pendingPath = pendingHref
-    ? new URL(pendingHref, "http://accelerate.local").pathname.replace(/^\/demo\/command-center\/[^/]+/, "/admin")
+    ? new URL(pendingHref, "http://accelerate.local").pathname.replace(
+        /^\/demo\/command-center\/[^/]+/,
+        "/admin",
+      )
     : null;
   const [sectionState, setSectionState] = useState({
     routeSection: activeSection,
@@ -967,9 +970,10 @@ function SidebarContent({
   if (sectionState.routeSection !== activeSection) {
     setSectionState({
       routeSection: activeSection,
-      expanded: activeSection && !sectionState.expanded.includes(activeSection)
-        ? [...sectionState.expanded, activeSection]
-        : sectionState.expanded,
+      expanded:
+        activeSection && !sectionState.expanded.includes(activeSection)
+          ? [...sectionState.expanded, activeSection]
+          : sectionState.expanded,
     });
   }
   const expandedSections = sectionState.expanded;
@@ -1152,10 +1156,17 @@ function SidebarContent({
                                 collapsed ? "justify-center px-0" : "gap-3 px-2.5",
                               )}
                               aria-current={active ? "page" : undefined}
-                              data-pending={pendingPath === link.href && !active ? "true" : undefined}
+                              data-pending={
+                                pendingPath === link.href && !active ? "true" : undefined
+                              }
                             >
                               <link.icon className="h-4 w-4 shrink-0 transition-colors duration-150" />
-                              <span className="admin-nav-label min-w-0 truncate" aria-hidden={collapsed}>{link.label}</span>
+                              <span
+                                className="admin-nav-label min-w-0 truncate"
+                                aria-hidden={collapsed}
+                              >
+                                {link.label}
+                              </span>
                               {link.href === "/admin/today" &&
                                 priorityCount > 0 &&
                                 (collapsed ? (

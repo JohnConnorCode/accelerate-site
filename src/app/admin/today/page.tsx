@@ -348,7 +348,10 @@ export default function TodayPage() {
   if (!overview && error)
     return (
       <div className="space-y-7 pb-10">
-        <PageHeader title={adminPageName("today")} subtitle="The founder queue could not be assembled yet." />
+        <PageHeader
+          title={adminPageName("today")}
+          subtitle="The founder queue could not be assembled yet."
+        />
         <AdminSurface
           tone="attention"
           className="mx-auto flex max-w-2xl flex-col items-start gap-4 p-6 sm:flex-row sm:items-center"

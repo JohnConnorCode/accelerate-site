@@ -40,7 +40,10 @@ export function AdminReadBody({
           <h2 className="text-sm font-semibold text-[var(--admin-ink)]">
             We couldn’t load this information
           </h2>
-          <p className="admin-copy mt-1 text-sm">Try again. If the problem continues, check Setup for any connection that needs attention.</p>
+          <p className="admin-copy mt-1 text-sm">
+            Try again. If the problem continues, check Setup for any connection that needs
+            attention.
+          </p>
           <details className="admin-error-details mt-2 text-xs">
             <summary>View error details</summary>
             <p className="mt-2 break-words">{error}</p>

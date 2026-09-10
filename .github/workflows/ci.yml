@@ -259,6 +259,9 @@ jobs:
           node scripts/qa-admin-polish-touch.mjs
           node scripts/qa-admin-polish-theme-editor.mjs
           node scripts/qa-admin-polish-navigation.mjs
+          node scripts/qa-contact-review-copy.mjs
+          node scripts/qa-demo-marketing.mjs
+          node scripts/qa-theme-persistence.mjs
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -283,6 +286,9 @@ jobs:
             /tmp/accelerate-booking-mode/
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
+            /tmp/accelerate-contact-review/
+            /tmp/accelerate-demo-marketing/
+            /tmp/accelerate-theme-persistence/
           if-no-files-found: ignore
           retention-days: 7
 

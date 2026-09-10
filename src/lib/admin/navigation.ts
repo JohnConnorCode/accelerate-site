@@ -58,7 +58,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Today",
         href: "/admin/today",
         icon: LayoutDashboard,
-        description: "See urgent priorities, upcoming commitments, and the next steps that need your attention.",
+        description:
+          "See urgent priorities, upcoming commitments, and the next steps that need your attention.",
         mobilePrimary: true,
       },
       {
@@ -82,7 +83,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Conversations",
         href: "/admin/conversations",
         icon: MessageSquareText,
-        description: "Read customer messages, review the conversation history, and prepare your next reply.",
+        description:
+          "Read customer messages, review the conversation history, and prepare your next reply.",
         mobilePrimary: true,
       },
       {
@@ -98,7 +100,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Contact review",
         href: "/admin/identity-review",
         icon: UserPlus,
-        description: "Match unfamiliar senders to the right contact so their messages appear with the right history.",
+        description:
+          "Match unfamiliar senders to the right contact so their messages appear with the right history.",
         keywords: "identity review ambiguous unknown link contact",
       },
     ],
@@ -111,7 +114,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Contact intake",
         href: "/admin/contacts",
         icon: UsersRound,
-        description: "Review website submissions and import contact lists for your team to follow up.",
+        description:
+          "Review website submissions and import contact lists for your team to follow up.",
         keywords: "contacts submissions csv json paste ai dedupe import",
         moreGroup: "Revenue",
       },
@@ -137,7 +141,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Revenue Recovery",
         href: "/admin/recovery",
         icon: RotateCcw,
-        description: "Reconnect with past enquiries and customers who may be ready for a follow-up.",
+        description:
+          "Reconnect with past enquiries and customers who may be ready for a follow-up.",
         keywords: "reactivation stale leads no shows estimates recovery",
         moreGroup: "Revenue",
       },
@@ -154,7 +159,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Email Sequences",
         href: "/admin/email-sequences",
         icon: MailCheck,
-        description: "Check scheduled follow-ups, delivered messages, and the next email in each sequence.",
+        description:
+          "Check scheduled follow-ups, delivered messages, and the next email in each sequence.",
         keywords: "email sequences sends delivery runs nurture enrollment follow up",
         moreGroup: "Revenue",
       },
@@ -163,7 +169,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Revenue",
         href: "/admin/revenue",
         icon: BriefcaseBusiness,
-        description: "Review revenue and customer value to understand where your business is growing.",
+        description:
+          "Review revenue and customer value to understand where your business is growing.",
         moreGroup: "Revenue",
       },
     ],
@@ -213,7 +220,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "AI Workspace",
         href: "/admin/ai",
         icon: Bot,
-        description: "Ask about your business, review AI activity, and understand the tools available to it.",
+        description:
+          "Ask about your business, review AI activity, and understand the tools available to it.",
         keywords: "assistant copilot command chat operations traces capabilities",
         moreGroup: "Intelligence",
       },
@@ -222,7 +230,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Analytics",
         href: "/admin/analytics",
         icon: BarChart3,
-        description: "Understand which sources bring enquiries and how those enquiries become customers.",
+        description:
+          "Understand which sources bring enquiries and how those enquiries become customers.",
         moreGroup: "Intelligence",
       },
       {
@@ -251,7 +260,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Integrations",
         href: "/admin/integrations",
         icon: PlugZap,
-        description: "Manage connected services and the business tools available in your workspace.",
+        description:
+          "Manage connected services and the business tools available in your workspace.",
         moreGroup: "System",
       },
       {
@@ -267,7 +277,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Feature Board",
         href: "/admin/features",
         icon: KanbanSquare,
-        description: "Plan product improvements, follow implementation progress, and review completed work.",
+        description:
+          "Plan product improvements, follow implementation progress, and review completed work.",
         moreGroup: "System",
       },
       {
@@ -296,7 +307,8 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Leads",
         href: "/admin/leads",
         icon: UserRound,
-        description: "Review enquiries, qualify potential customers, and decide who needs follow-up.",
+        description:
+          "Review enquiries, qualify potential customers, and decide who needs follow-up.",
         moreGroup: "Sources",
       },
       {

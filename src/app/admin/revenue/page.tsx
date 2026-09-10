@@ -36,7 +36,10 @@ export default function RevenuePage() {
       transition={{ duration: 0.3 }}
       className="pb-10"
     >
-      <PageHeader title={adminPageName("revenue")} subtitle="Review revenue and customer value to understand where your business is growing." />
+      <PageHeader
+        title={adminPageName("revenue")}
+        subtitle="Review revenue and customer value to understand where your business is growing."
+      />
       <AdminReadBody
         loading={loading}
         hasData={Boolean(data)}
