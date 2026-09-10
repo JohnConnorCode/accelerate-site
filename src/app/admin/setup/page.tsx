@@ -96,6 +96,8 @@ interface SetupGuide {
   steps: string[];
   href?: string;
   linkLabel?: string;
+  settingsHref?: string;
+  settingsLabel?: string;
 }
 
 const vercelEnvironmentUrl = tenant.external.vercelProjectUrl ?? "https://vercel.com/dashboard";
@@ -147,6 +149,8 @@ const setupGuides: Record<string, SetupGuide> = {
     ],
     href: "https://resend.com/domains",
     linkLabel: "Open Resend domains",
+    settingsHref: "/admin/settings",
+    settingsLabel: "Edit sender in Settings",
   },
   founder_access: {
     steps: [
@@ -156,6 +160,8 @@ const setupGuides: Record<string, SetupGuide> = {
     ],
     href: vercelEnvironmentUrl,
     linkLabel: "Open Vercel environment variables",
+    settingsHref: "/admin/settings",
+    settingsLabel: "Review in Settings",
   },
   site_url: {
     steps: [
@@ -165,6 +171,8 @@ const setupGuides: Record<string, SetupGuide> = {
     ],
     href: vercelEnvironmentUrl,
     linkLabel: "Open Vercel environment variables",
+    settingsHref: "/admin/settings",
+    settingsLabel: "Review in Settings",
   },
   first_party_analytics: {
     steps: [
@@ -469,6 +477,14 @@ function SetupCheckCard({ check, bookingMode }: { check: SetupCheck; bookingMode
               >
                 {guide.linkLabel} <ExternalLink className="size-3.5" aria-hidden="true" />
               </a>
+            )}
+            {guide.settingsHref && (
+              <Link
+                href={guide.settingsHref}
+                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-opacity hover:opacity-65 sm:ml-2"
+              >
+                {guide.settingsLabel} <ArrowRight className="size-3.5" aria-hidden="true" />
+              </Link>
             )}
           </div>
         </details>

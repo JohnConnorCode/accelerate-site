@@ -30,11 +30,3 @@ export async function getSetting(key: string): Promise<string> {
 
   return "";
 }
-
-/**
- * Mask a secret value for display: show first 3 and last 3 chars
- */
-export function maskSecret(value: string): string {
-  if (!value || value.length < 8) return value ? "****" : "";
-  return `${value.slice(0, 3)}****${value.slice(-3)}`;
-}

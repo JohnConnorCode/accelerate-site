@@ -185,6 +185,12 @@ async function expectStatus(
       body: {},
       label: "settings write without session",
     },
+    {
+      path: "/api/admin/settings",
+      method: "PUT",
+      body: { key: "RESEND_API_KEY", value: "rk_live_probe" },
+      label: "settings secret write without session",
+    },
   ];
   for (const probe of unauthWrites) {
     checks.push(`unauthenticated ${probe.method} ${probe.path} rejected with 401: ${probe.label}`);
@@ -206,6 +212,7 @@ async function expectStatus(
     { path: "/api/admin/revenue-os/overview", method: "PATCH", label: "overview PATCH" },
     { path: "/api/admin/analytics", method: "PUT", label: "analytics PUT" },
     { path: "/api/admin/settings", method: "PATCH", label: "settings PATCH" },
+    { path: "/api/admin/settings/test", method: "GET", label: "settings test GET" },
     { path: "/api/send-contact-email", method: "GET", label: "contact GET" },
   ];
   for (const gate of methodGates) {

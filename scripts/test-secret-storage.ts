@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { maskSecret, SERVER_ONLY_SECRET_KEYS } from "@/lib/admin/settings";
+import { getSetting, SERVER_ONLY_SECRET_KEYS } from "@/lib/admin/settings";
 import {
   decryptSecret,
   decryptTenantSecret,
@@ -148,14 +148,47 @@ assert.equal(
   "Helper should restore to original environment value after test mutations.",
 );
 
-assert.equal(maskSecret(""), "", "Empty secret values should stay empty.");
-assert.equal(maskSecret("a"), "****", "Very short secret values remain fully masked.");
-assert.equal(maskSecret("short12"), "****", "Short secret values remain fully masked.");
-assert.equal(
-  maskSecret("very_long_secret_value"),
-  "ver****lue",
-  "Long secret masking should show first 3 and last 3 chars.",
-);
+(async () => {
+  // Server-only secrets are never masked for display — the settings API
+  // returns "" for them, so getSetting must resolve "" unless the value
+  // comes from the environment itself.
+  const savedCron = process.env.CRON_SECRET;
+  delete process.env.CRON_SECRET;
+  try {
+    assert.equal(
+      await getSetting("CRON_SECRET"),
+      "",
+      "Server-only secret without an environment value must resolve empty, never masked.",
+    );
+  } finally {
+    if (savedCron !== undefined) process.env.CRON_SECRET = savedCron;
+  }
+
+  process.env.CRON_SECRET = "test-cron-value";
+  try {
+    assert.equal(
+      await getSetting("CRON_SECRET"),
+      "test-cron-value",
+      "Environment remains the only source for server-only secrets.",
+    );
+  } finally {
+    if (savedCron === undefined) delete process.env.CRON_SECRET;
+    else process.env.CRON_SECRET = savedCron;
+  }
+
+  assert.equal(
+    SERVER_ONLY_SECRET_KEYS.has("CRON_SECRET"),
+    true,
+    "CRON_SECRET must stay server-only and unwritable through admin_settings.",
+  );
+  assert.equal(
+    SERVER_ONLY_SECRET_KEYS.has("RESEND_API_KEY"),
+    true,
+    "RESEND_API_KEY must stay server-only and unwritable through admin_settings.",
+  );
+})().then(() => {
+  console.log(JSON.stringify({ result: "secret-storage-hardening coverage added", checks: 14 }));
+});
 
 assert.equal(
   SERVER_ONLY_SECRET_KEYS.has("RESEND_WEBHOOK_SECRET"),
@@ -189,5 +222,3 @@ withEnv(
     );
   },
 );
-
-console.log(JSON.stringify({ result: "secret-storage-hardening coverage added", checks: 14 }));
