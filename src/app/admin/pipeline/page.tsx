@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "@/components/admin/AdminLink";
 import {
@@ -300,8 +302,8 @@ export default function PipelinePage() {
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
-        title="Pipeline"
-        subtitle="Keep every opportunity moving with a clear next step."
+        title={adminPageName("pipeline")}
+        subtitle="See where each opportunity stands and decide how to move it forward."
         utilityActions={
           <button
             type="button"

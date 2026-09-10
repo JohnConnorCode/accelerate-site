@@ -111,7 +111,7 @@ export const capabilities: Capability[] = [
     category: "capture",
     title: "AI-assisted contact import",
     detail:
-      "Bring in a CSV or pasted list, let the system normalize and resolve identity, then review the proposed records before anything is written.",
+      "Bring in a CSV or pasted list, check for existing contacts, then review the proposed records before saving. Contact review helps you match unfamiliar conversation senders to the right person.",
   },
 
   // Organize
@@ -385,7 +385,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "Make the workspace your own",
     detail:
-      "Choose a built-in appearance or preview a custom palette, typography and corner style in Branding. Import and export portable themes, or ask the connected assistant to prepare a theme for approval. Saved themes use the same workspace permissions and revision checks as branding.",
+      "Choose a built-in appearance or preview a custom palette, typography and corner style in Branding. Import and export portable themes, or ask the connected assistant to prepare a theme for approval. Saved themes use the same workspace permissions and revision checks as branding. Demo appearance choices stay separate from the live workspace.",
   },
   // Govern
   {

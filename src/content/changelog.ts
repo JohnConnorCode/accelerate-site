@@ -2,6 +2,42 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "material-and-macos-appearances",
+    slug: "material-and-macos-appearances",
+    title: "Choose Material 2026 or macOS in Command Center",
+    description:
+      "Two refined workspace appearances are now available from the Appearance control. Material 2026 uses expressive blue tonal layers and generous geometry; macOS uses quiet translucent surfaces and familiar desktop accents. Both preserve the same responsive behavior, accessibility, and per-demo preference isolation as every other appearance.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "clearer-core-admin",
+    slug: "clearer-core-admin",
+    title: "Navigate a clearer, more responsive Command Center",
+    description:
+      "Core admin navigation now uses task-based names, each destination explains its purpose and offers concise in-context guidance, and the sidebar responds smoothly while keeping your open groups in place. Errors provide a practical recovery step before optional details.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "demo-marketing-contact-review",
+    slug: "demo-marketing-contact-review",
+    title: "Explore the business demos and clearer contact reviews",
+    description:
+      "The demo launcher now introduces Command Center with an interactive inquiry-to-result illustration and six business workspaces. Contact review explains matching decisions in plain language, preserves its heading during loading and errors, and no longer displays a setup warning after a successful read. Shared setup messages explain the next step without database instructions.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "appearance-cross-tab-persistence",
+    slug: "appearance-cross-tab-persistence",
+    title: "Keep demo tabs from resetting your workspace appearance",
+    description:
+      "An open demo could immediately overwrite a theme selected in the live workspace. Demo businesses now use separate theme preferences, and their saved appearance is restored only when entering that business. Changing an appearance no longer restarts the demo runtime.",
+    category: "fix",
+    publishedAt: "2026-09-09",
+  },
+  {
     id: "website-authoring-model-choice",
     slug: "website-authoring-model-choice",
     title: "Create and edit website pages with a choice of AI models",

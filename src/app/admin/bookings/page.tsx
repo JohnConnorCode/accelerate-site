@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useCallback } from "react";
 import { CalendarCheck2, DollarSign, Target, UserCheck } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -88,8 +90,8 @@ export default function AdminBookingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Bookings"
-        subtitle="Qualification, scheduled calls, attendance, and attributed revenue."
+        title={adminPageName("bookings")}
+        subtitle="Review meeting requests, scheduled appointments, and booking details."
       />
       <AdminReadBody
         loading={loading}

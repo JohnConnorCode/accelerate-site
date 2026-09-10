@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "@/components/admin/AdminLink";
@@ -211,8 +213,8 @@ export default function AdminInboxPage() {
     <motion.div variants={adminListVariants} initial={false} animate="visible">
       <motion.div variants={adminSectionVariants}>
         <PageHeader
-          title="Operator Inbox"
-          subtitle="Every lead, message, follow-up, and stalled deal that needs a human decision."
+          title={adminPageName("inbox")}
+          subtitle="Review incoming items and follow-ups that need a decision."
           actions={
             <Button
               size="sm"

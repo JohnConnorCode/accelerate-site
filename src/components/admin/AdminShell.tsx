@@ -636,10 +636,11 @@ export default function AdminShell({
                 <aside
                   inert={mobileOpen}
                   className={cn(
-                    "admin-sidebar hidden shrink-0 transition-[width] duration-300 lg:block",
+                    "admin-sidebar hidden shrink-0 lg:block",
                     sidebarCollapsed ? "w-[80px]" : "w-[272px]",
                   )}
                   data-admin-sidebar
+                  data-collapsed={sidebarCollapsed}
                 >
                   <div className="sticky top-0 flex h-screen flex-col px-4 py-5">
                     <SidebarContent
@@ -953,24 +954,33 @@ function SidebarContent({
   const activeSection = navigationSections.find((section) =>
     section.links.some((link) => isActive(link.href)),
   )?.label;
+  const { pendingHref } = useNavigationRuntime();
+  const pendingPath = pendingHref
+    ? new URL(pendingHref, "http://accelerate.local").pathname.replace(/^\/demo\/command-center\/[^/]+/, "/admin")
+    : null;
   const [sectionState, setSectionState] = useState({
     routeSection: activeSection,
     expanded: activeSection ? [activeSection] : [navigationSections[0]!.label],
   });
-  const expandedSections =
-    sectionState.routeSection === activeSection
-      ? sectionState.expanded
-      : activeSection
-        ? [activeSection]
-        : sectionState.expanded;
-  const demoScenario = demoScenarioId ? DEMO_SCENARIOS[demoScenarioId] : null;
-  const toggleSection = (label: string) => {
+  // Remember user disclosures while revealing a newly selected destination.
+  // Updating this component's state during render avoids a late effect/jump.
+  if (sectionState.routeSection !== activeSection) {
     setSectionState({
       routeSection: activeSection,
-      expanded: expandedSections.includes(label)
-        ? expandedSections.filter((section) => section !== label)
-        : [...expandedSections, label],
+      expanded: activeSection && !sectionState.expanded.includes(activeSection)
+        ? [...sectionState.expanded, activeSection]
+        : sectionState.expanded,
     });
+  }
+  const expandedSections = sectionState.expanded;
+  const demoScenario = demoScenarioId ? DEMO_SCENARIOS[demoScenarioId] : null;
+  const toggleSection = (label: string) => {
+    setSectionState((current) => ({
+      ...current,
+      expanded: current.expanded.includes(label)
+        ? current.expanded.filter((section) => section !== label)
+        : [...current.expanded, label],
+    }));
   };
 
   return (
@@ -1082,13 +1092,8 @@ function SidebarContent({
         className="admin-nav-scroll flex-1 space-y-2 overflow-y-auto overscroll-contain"
         aria-label="Admin navigation"
       >
-        {navigationSections.map((section, sectionIndex) => (
-          <motion.section
-            key={section.label}
-            initial={{ opacity: 0, y: 7 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: sectionIndex * 0.055, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          >
+        {navigationSections.map((section) => (
+          <section key={section.label} data-nav-section={section.label}>
             {(() => {
               const expanded = collapsed || expandedSections.includes(section.label);
               const panelId = `${idPrefix}-nav-${section.label.toLowerCase()}`;
@@ -1110,7 +1115,7 @@ function SidebarContent({
                           )}
                           aria-hidden="true"
                         />
-                        {section.label}
+                        {section.title ?? section.label}
                       </span>
                       <ChevronDown
                         className={cn(
@@ -1127,7 +1132,7 @@ function SidebarContent({
                     inert={!expanded}
                     aria-hidden={!expanded}
                     className={cn(
-                      "grid transition-[grid-template-rows,opacity] duration-300 ease-out",
+                      "admin-nav-disclosure grid",
                       expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
                     )}
                   >
@@ -1140,15 +1145,17 @@ function SidebarContent({
                               key={link.href}
                               href={link.href}
                               onClick={onNavigate}
-                              title={collapsed ? link.label : undefined}
+                              aria-label={collapsed ? link.label : undefined}
+                              title={collapsed ? link.label : link.description}
                               className={cn(
-                                "admin-nav-link group relative flex min-h-10 items-center rounded-[var(--admin-control-radius)] text-[13.5px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.96]",
+                                "admin-nav-link group relative flex min-h-11 items-center rounded-[var(--admin-control-radius)] text-[13.5px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.96]",
                                 collapsed ? "justify-center px-0" : "gap-3 px-2.5",
                               )}
                               aria-current={active ? "page" : undefined}
+                              data-pending={pendingPath === link.href && !active ? "true" : undefined}
                             >
                               <link.icon className="h-4 w-4 shrink-0 transition-colors duration-150" />
-                              {!collapsed && <span className="min-w-0 truncate">{link.label}</span>}
+                              <span className="admin-nav-label min-w-0 truncate" aria-hidden={collapsed}>{link.label}</span>
                               {link.href === "/admin/today" &&
                                 priorityCount > 0 &&
                                 (collapsed ? (
@@ -1174,7 +1181,7 @@ function SidebarContent({
                                 ))}
                               {active && (
                                 <motion.span
-                                  layoutId="admin-nav-active"
+                                  layoutId={`${idPrefix}-nav-active`}
                                   className="admin-nav-active-indicator absolute inset-y-2 -left-4 w-0.5 rounded-r"
                                   transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                                 />
@@ -1188,7 +1195,7 @@ function SidebarContent({
                 </>
               );
             })()}
-          </motion.section>
+          </section>
         ))}
       </nav>
 

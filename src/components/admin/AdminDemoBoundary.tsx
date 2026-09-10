@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useEffectEvent,
   useLayoutEffect,
   useRef,
   useState,
@@ -46,17 +47,20 @@ export function AdminDemoBoundary({
   });
   const resetRef = useRef<null | (() => void)>(null);
   const { setTheme } = useTheme();
+  // next-themes changes setter identity with the selected theme. Initialization
+  // follows the scenario lifecycle, never an appearance change or storage event.
+  const applyScenarioAppearance = useEffectEvent((id: DemoScenarioId) => {
+    setTheme(readDemoAppearance(id));
+  });
   const pathname = usePathname();
   const pathnameScenario = pathname.match(/^\/demo\/command-center\/([^/]+)/)?.[1] || "";
   const activeScenarioId = isDemoScenarioId(pathnameScenario) ? pathnameScenario : scenarioId;
 
-  if (typeof window !== "undefined" && activeScenarioId) {
-    installAdminDemoRuntime(activeScenarioId);
-  }
-
   useLayoutEffect(() => {
     if (!activeScenarioId) return;
-    setTheme(readDemoAppearance(activeScenarioId));
+    applyScenarioAppearance(activeScenarioId);
+    // Install at commit, after the previous boundary has cleaned up. Installing
+    // during render lets an old cleanup restore native fetch over the new demo.
     const runtime = installAdminDemoRuntime(activeScenarioId);
     resetRef.current = runtime.reset;
     const updateModules = () => {
@@ -76,7 +80,7 @@ export function AdminDemoBoundary({
       resetRef.current = null;
       runtime.restore();
     };
-  }, [activeScenarioId, setTheme]);
+  }, [activeScenarioId]);
 
   const reset = useCallback(() => resetRef.current?.(), []);
   if (!activeScenarioId) return <>{children}</>;

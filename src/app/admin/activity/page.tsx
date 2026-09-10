@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -169,8 +171,8 @@ export default function ActivityPage() {
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
-        title="Activity"
-        subtitle="Actor, origin, target, and before/after history for material changes."
+        title={adminPageName("activity")}
+        subtitle="Review recorded changes and action results across your business."
       />
       <AdminReadBody
         loading={historyQuery.isPending}

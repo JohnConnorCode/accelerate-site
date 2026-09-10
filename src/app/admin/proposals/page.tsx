@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Loader2, ArrowLeft } from "lucide-react";
@@ -139,7 +141,7 @@ export default function ProposalsPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Proposals" />
+        <PageHeader title={adminPageName("proposals")} />
         <LoadingSkeleton variant="table" count={5} />
       </div>
     );
@@ -170,7 +172,7 @@ export default function ProposalsPage() {
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
-        title="Proposals"
+        title={adminPageName("proposals")}
         subtitle={`$${totalMonthly.toLocaleString()}/mo · $${totalOneTime.toLocaleString()} one-time`}
         actions={
           <div className="flex gap-2">

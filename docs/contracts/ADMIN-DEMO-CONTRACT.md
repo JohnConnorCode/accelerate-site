@@ -35,7 +35,7 @@ analytics formulas, AI runtime, or email sender.
 The current sales suite contains six complete packs: home services, law firms,
 professional services, real estate, nonprofits, and a fictional SuperDebate learning platform. Each pack declares an
 intentional default appearance, while the shared Appearance control still
-offers Paper, Night, Signal, Studio, and Frost. A browser-session appearance
+offers Paper, Night, Signal, Studio, Frost, Material 2026, and macOS. A browser-session appearance
 choice belongs to that scenario, survives switching away and back, and returns
 to the declared default when that scenario is reset.
 
@@ -112,3 +112,30 @@ Scenario QA covers desktop and mobile, all admin appearances, keyboard and focus
 reduced motion, overflow, console errors, refresh persistence, exact reset,
 cross-scenario isolation, and a founder-authenticated run proving zero protected
 or provider requests.
+
+## Launcher and product language
+
+The public launcher leads with the business outcome and a bounded interactive
+illustration, followed by the six real demo entry links. Illustrations identify
+themselves and never act as a second workspace or claim real provider results.
+User-controlled story changes support keyboard and reduced motion.
+
+Shared admin copy names the object, explains the current state and offers a
+clear next step. Keep SQL paths, migrations, idempotency and canonical-record
+terminology in setup diagnostics or developer references. Show setup warnings
+only for an observed missing requirement; a successful empty read describes
+the queue, never a claim that every business record is resolved. Keep the page
+heading visible while data loads or fails.
+
+## Appearance lifecycle
+
+The root theme provider keeps the existing live/public `theme` preference and
+a separate storage channel for each demo business. Entering or leaving a demo
+business reinitializes that provider scope; navigation within the business
+retains it. The demo boundary restores its session appearance only when the
+active business changes. A theme setter identity or storage event must never
+restart the fictional runtime or publish the demo default to live tabs.
+
+Install the fictional request handler in the committed layout effect, after the
+previous business has cleaned up. Render-time installation races with the old
+cleanup during a provider scope change and can expose native fetch afterward.

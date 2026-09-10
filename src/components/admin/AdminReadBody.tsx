@@ -38,9 +38,13 @@ export function AdminReadBody({
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-[var(--admin-ink)]">
-            This workspace could not be loaded
+            We couldn’t load this information
           </h2>
-          <p className="admin-copy mt-1 text-sm">{error} Filters and drafts were not discarded.</p>
+          <p className="admin-copy mt-1 text-sm">Try again. If the problem continues, check Setup for any connection that needs attention.</p>
+          <details className="admin-error-details mt-2 text-xs">
+            <summary>View error details</summary>
+            <p className="mt-2 break-words">{error}</p>
+          </details>
           {onRetry && (
             <button
               type="button"
@@ -65,7 +69,7 @@ export function AdminReadBody({
           <TriangleAlert className="size-5 shrink-0 text-amber-600" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-[var(--admin-ink)]">
-              Showing the last successful snapshot
+              Showing previously loaded information
             </p>
             <p className="admin-copy mt-0.5 text-xs">{error} Existing data remains visible.</p>
           </div>
