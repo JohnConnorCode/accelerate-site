@@ -112,6 +112,11 @@ try {
       }
       if (mode === "error") {
         await page
+          .getByRole("heading", { name: "We couldn’t load this information", exact: true })
+          .waitFor();
+        await page.getByRole("button", { name: "Retry", exact: true }).waitFor();
+        await page.getByText("View error details", { exact: true }).click();
+        await page
           .getByText("We couldn’t load contacts that need review. Try again in a moment.", {
             exact: false,
           })

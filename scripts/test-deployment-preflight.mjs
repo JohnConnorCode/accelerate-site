@@ -1,3 +1,7 @@
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { resolve, dirname } from "node:path";
+import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { verifyDeploymentTarget } from "./deployment-preflight.mjs";
@@ -69,3 +73,53 @@ test("rejects wrong remote owner and inaccessible project", () => {
     /Access denied/,
   );
 });
+
+for (const shape of [
+  "static",
+  "dynamic",
+  "wrong-static-id",
+  "wrong-dynamic-id",
+  "runtime-override",
+  "missing",
+  "unknown-handler",
+]) {
+  test(`prebuilt release verification: ${shape}`, () => {
+    const root = mkdtempSync(resolve(tmpdir(), "accelerate-prebuilt-test-"));
+    const id = "123456789abc";
+    const put = (name, body) => {
+      const path = resolve(root, name);
+      mkdirSync(dirname(path), { recursive: true });
+      writeFileSync(path, body);
+    };
+    try {
+      const config = { deploymentId: id, experimental: { runtimeServerDeploymentId: false } };
+      put(".next/required-server-files.json", JSON.stringify({ config }));
+      if (shape.includes("static"))
+        put(
+          ".vercel/output/functions/demo/command-center.prerender-fallback.html",
+          `<script src="/app.js?dpl=${shape === "static" ? id : "wrong"}"></script>`,
+        );
+      else if (shape !== "missing") {
+        put(
+          ".vercel/output/functions/demo/command-center.func/.vc-config.json",
+          JSON.stringify({
+            handler: shape === "unknown-handler" ? "other.cjs" : "___next_launcher.cjs",
+          }),
+        );
+        put(
+          ".vercel/output/functions/demo/command-center.func/___next_launcher.cjs",
+          `const conf = ${JSON.stringify({ ...config, deploymentId: shape === "wrong-dynamic-id" ? "wrong" : id, experimental: { runtimeServerDeploymentId: shape === "runtime-override" } })};`,
+        );
+      }
+      const result = spawnSync(
+        process.execPath,
+        [resolve("scripts/next-release.mjs"), "verify-prebuilt"],
+        { cwd: root, env: { ...process.env, NEXT_DEPLOYMENT_ID: id }, encoding: "utf8" },
+      );
+      if (["static", "dynamic"].includes(shape)) assert.equal(result.status, 0, result.stderr);
+      else assert.notEqual(result.status, 0, "An unverified artifact must refuse deployment");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+}

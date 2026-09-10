@@ -57,7 +57,7 @@ try {
       const task = read.data.tasks.find((t) => t.source === "manual");
       assert.ok(task);
       await go("work");
-      await page.getByRole("heading", { name: "Work", exact: true }).waitFor();
+      await page.getByRole("heading", { name: "Tasks & approvals", exact: true }).waitFor();
       const taskRow = page.locator(`[data-source-type=task][data-source-id="${task.id}"]`);
       await taskRow.getByRole("button").first().click();
       const inspector = page.getByRole("dialog", { name: "Task details" });

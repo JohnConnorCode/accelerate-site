@@ -1,6 +1,6 @@
 import { deploymentPreflight } from "./deployment-preflight.mjs";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -44,10 +44,27 @@ function verifyPrebuiltIdentity() {
       "Prebuilt output may replace the custom release id at runtime. Refusing deployment.",
     );
   }
-  const document = readFileSync(
-    ".vercel/output/functions/demo/command-center.prerender-fallback.html",
-    "utf8",
-  );
+  const fallback = ".vercel/output/functions/demo/command-center.prerender-fallback.html";
+  if (!existsSync(fallback)) {
+    // Published website settings make the launcher server-rendered in a
+    // connected installation. Verify its packaged server configuration instead
+    // of requiring an HTML artifact that only exists in credential-free builds.
+    const functionRoot = ".vercel/output/functions/demo/command-center.func";
+    const metadata = readJson(`${functionRoot}/.vc-config.json`);
+    if (metadata.handler !== "___next_launcher.cjs")
+      throw new Error("Unrecognized demo server artifact. Refusing deployment.");
+    const launcher = readFileSync(`${functionRoot}/___next_launcher.cjs`, "utf8");
+    const serialized = launcher.match(/^const conf = (\{[^\n]+\});$/m)?.[1];
+    if (!serialized) throw new Error("Demo server has no verifiable Next configuration.");
+    const config = JSON.parse(serialized);
+    if (
+      config.deploymentId !== deploymentId ||
+      config.experimental?.runtimeServerDeploymentId !== false
+    )
+      throw new Error("Demo server artifact does not preserve the exact release identity.");
+    return;
+  }
+  const document = readFileSync(fallback, "utf8");
   const documentIds = new Set(
     [...document.matchAll(/\?dpl=([a-zA-Z0-9_-]+)/g)].map((match) => match[1]),
   );

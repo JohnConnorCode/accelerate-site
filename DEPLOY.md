@@ -44,6 +44,8 @@ npm run deploy
 
 The command intentionally uses `--prebuilt` and `--archive=tgz`. Prebuilt deployment keeps local and hosted artifacts aligned; the archive avoids thousands of individual file uploads.
 
+The prebuilt identity check supports both the static demo document and the server function produced by a connected installation. For a server function, it verifies the packaged Next.js configuration carries the exact release identity and disables runtime identity overrides. The canonical hosted document is still checked after deployment.
+
 ## Verification
 
 Do not treat a successful upload as a complete release. Record:
