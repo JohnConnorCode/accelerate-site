@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { ArrowUpRight, ChevronDown, CircleHelp } from "lucide-react";
 import { adminNavSections, resolveAdminNavLink } from "@/lib/admin/navigation";
 import { adminPageGuidance, type AdminPageGuidance } from "@/lib/admin/page-guidance";
@@ -25,7 +25,9 @@ export function PageHeader({
   guidance,
 }: PageHeaderProps) {
   const pathname = usePathname();
-  const adminPath = pathname.replace(/^\/demo\/command-center\/[^/]+/, "/admin");
+  const adminPath = pathname
+    .replace(/^\/demo\/command-center\/[^/]+/, "/admin")
+    .replace(/^\/t\/[^/]+\/admin/, "/admin");
   const destination = resolveAdminNavLink(adminPath);
   const isRoot = destination?.href === adminPath;
   const section = adminNavSections.find((item) =>

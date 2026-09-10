@@ -529,7 +529,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "site-studio"],
         title: "Draft public pages with Site Studio",
         description:
-          "Draft a public-site page from your approved components and photography, entirely privately.",
+          "Create and edit website pages, review AI suggestions, and publish saved revisions.",
       },
     ],
   },

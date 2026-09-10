@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DollarSign, Calendar, CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
 import { AdminSurface } from "./AdminSurface";
 import { StatusBadge } from "./StatusBadge";
+import Link from "./AdminLink";
+import { fetchJson } from "@/lib/admin/fetchJson";
 import { TaskQuickAdd } from "./TaskQuickAdd";
 
 interface Client {
@@ -53,6 +55,24 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
           { label: "First deliverable sent", done: false },
         ],
   );
+  const [followups, setFollowups] = useState<Array<{ id: string; title: string; status: string }>>(
+    [],
+  );
+  const [followupError, setFollowupError] = useState(false);
+  const loadFollowups = useCallback(async () => {
+    try {
+      const result = await fetchJson<{
+        tasks: Array<{ id: string; title: string; status: string }>;
+      }>(`/api/admin/tasks?related_type=client&related_id=${encodeURIComponent(client.id)}`);
+      setFollowups(result.tasks);
+      setFollowupError(false);
+    } catch {
+      setFollowupError(true);
+    }
+  }, [client.id]);
+  useEffect(() => {
+    void loadFollowups();
+  }, [loadFollowups]);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -259,7 +279,43 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
       </div>
 
       {/* Follow-up Task */}
-      <TaskQuickAdd relatedType="client" relatedId={client.id} relatedName={client.contact_name} />
+      <AdminSurface padding="md">
+        <h3 className="text-sm font-semibold">Follow-ups</h3>
+        {followupError ? (
+          <p role="alert" className="mt-2 text-sm">
+            Follow-ups could not load.{" "}
+            <button
+              type="button"
+              onClick={() => void loadFollowups()}
+              className="min-h-10 underline"
+            >
+              Retry
+            </button>
+          </p>
+        ) : (
+          <ul className="mt-2 divide-y divide-[var(--admin-border)]">
+            {followups.map((task) => (
+              <li key={task.id}>
+                <Link
+                  href={`/admin/work?task=${encodeURIComponent(task.id)}`}
+                  className="flex min-h-11 items-center justify-between gap-3 py-2 text-sm hover:underline"
+                >
+                  <span>{task.title}</span>
+                  <span className="text-xs capitalize text-[var(--admin-muted)]">
+                    {task.status}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        <TaskQuickAdd
+          relatedType="client"
+          relatedId={client.id}
+          relatedName={client.contact_name}
+          onTaskCreated={() => void loadFollowups()}
+        />
+      </AdminSurface>
 
       {toast && (
         <Toast

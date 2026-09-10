@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "connected-client-demo",
+    slug: "connected-client-demo",
+    title: "Open clients and carry follow-ups into Work",
+    description:
+      "Client rows and contact links have larger targets, demo search and status filters work, and saved follow-ups open in the task inspector. Timeline links preserve the exact related record. Follow-up failures retain the draft and show an error instead of disappearing silently.",
+    category: "fix",
+    publishedAt: "2026-09-09",
+  },
+  {
     id: "material-and-macos-appearances",
     slug: "material-and-macos-appearances",
     title: "Choose Material 2026 or macOS in Command Center",

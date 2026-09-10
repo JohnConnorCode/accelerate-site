@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Calendar, Flag } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { toast } from "@/lib/admin/useToast";
 import { Input } from "@/components/ui/Input";
 
 interface TaskQuickAddProps {
@@ -27,7 +28,7 @@ export function TaskQuickAdd({
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async () => {
-    if (!title.trim()) return;
+    if (!title.trim() || saving) return;
     setSaving(true);
 
     try {
@@ -50,9 +51,10 @@ export function TaskQuickAdd({
       setDueDate("");
       setPriority("medium");
       setIsOpen(false);
+      toast.success("Follow-up added");
       onTaskCreated?.();
     } catch {
-      // Silent error handling
+      toast.error("Could not add the follow-up. Your draft is still here; try again.");
     } finally {
       setSaving(false);
     }
@@ -62,7 +64,7 @@ export function TaskQuickAdd({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className={`flex items-center gap-1.5 text-xs text-white-muted hover:text-gold-light transition-colors cursor-pointer ${compact ? "" : "mt-2"}`}
+        className={`inline-flex min-h-11 items-center gap-1.5 text-xs text-[var(--admin-muted)] hover:text-[var(--admin-ink)] transition-colors cursor-pointer ${compact ? "" : "mt-2"}`}
       >
         <Plus className="h-3.5 w-3.5" />
         Add follow-up
@@ -72,9 +74,10 @@ export function TaskQuickAdd({
 
   return (
     <div
-      className={`rounded-lg border border-border-glass bg-white/[0.03] p-3 ${compact ? "" : "mt-2"}`}
+      className={`rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] p-3 ${compact ? "" : "mt-2"}`}
     >
       <Input
+        aria-label="Follow-up title"
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -88,22 +91,22 @@ export function TaskQuickAdd({
       />
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
-          <Calendar className="h-3.5 w-3.5 text-white-muted" />
+          <Calendar className="h-3.5 w-3.5 text-[var(--admin-muted)]" />
           <input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             aria-label="Due date"
-            className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/30"
+            className="bg-transparent text-xs text-[var(--admin-ink)] border border-[var(--admin-border)] rounded px-2 py-1 focus-visible:outline-none focus-visible:border-[var(--admin-ink)] focus-visible:ring-1 focus-visible:ring-[var(--admin-ink)]/30"
           />
         </div>
         <div className="flex items-center gap-1.5">
-          <Flag className="h-3.5 w-3.5 text-white-muted" />
+          <Flag className="h-3.5 w-3.5 text-[var(--admin-muted)]" />
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
             aria-label="Priority"
-            className="bg-transparent text-xs text-white-secondary border border-border-glass rounded px-2 py-1 focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/30"
+            className="bg-transparent text-xs text-[var(--admin-ink)] border border-[var(--admin-border)] rounded px-2 py-1 focus-visible:outline-none focus-visible:border-[var(--admin-ink)] focus-visible:ring-1 focus-visible:ring-[var(--admin-ink)]/30"
           >
             <option value="high">High</option>
             <option value="medium">Medium</option>

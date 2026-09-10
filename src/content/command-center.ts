@@ -504,7 +504,7 @@ export const CURRENT_SURFACES = [
   },
   {
     title: "From a won opportunity to a reviewed delivery plan",
-    body: "Review the onboarding template and originating proposal, create one client engagement, and track its shared tasks and handoff receipt. Retries preserve completed commitments and the original source context.",
+    body: "Review the onboarding template and originating proposal, create one client engagement, and track its shared tasks and handoff receipt. Open client rows to edit notes, follow exact record links and add a follow-up that opens in Tasks & approvals. Retries preserve completed commitments and the original source context.",
   },
   {
     n: "02",

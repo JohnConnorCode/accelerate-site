@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I actually work with clients in the demo?",
+    answer:
+      "Yes. Search or filter clients, open an account, save notes and add a follow-up. Open the saved follow-up in Tasks & approvals or follow a contact timeline to its specific conversation or opportunity. Changes persist in that fictional business session and never contact customers.",
+  },
+  {
     question: "Can I try Command Center before setting it up?",
     answer:
       "Yes. Open the demo, preview how an inquiry moves through an AI draft to a reviewed result, then explore one of six fictional businesses. Try the demo opens Northline Roofing directly, with no signup required. The full workspaces use sample records and simulated actions saved in your browser session.",

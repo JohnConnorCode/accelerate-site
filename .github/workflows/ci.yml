@@ -238,6 +238,7 @@ jobs:
           if [ "$ready" != true ]; then cat /tmp/accelerate-first-run-server.log; exit 1; fi
           node scripts/check-internal-demo-rewrites.mjs
           node scripts/qa-turnkey.mjs
+          node scripts/qa-client-interactions.mjs
           npx tsx scripts/qa-site-studio.ts
           node scripts/qa-campaign-duplicate.mjs
           node scripts/qa-delivery-handoff.mjs
@@ -286,6 +287,7 @@ jobs:
             /tmp/accelerate-booking-mode/
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
+            /tmp/accelerate-client-interactions/
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/
             /tmp/accelerate-theme-persistence/

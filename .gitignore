@@ -60,3 +60,6 @@ scripts/smoothcap.mjs
 
 # private scratch state
 /.accelerate/
+
+# Isolated agent checkouts are not application source.
+.agent-worktrees/
