@@ -204,13 +204,14 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     category: "system",
     isCore: true,
     defaultEnabled: true,
-    navLinkIds: ["tenants", "setup", "features", "settings", "branding"],
+    navLinkIds: ["tenants", "setup", "features", "settings", "branding", "blueprints"],
     routes: [
       "/admin/tenants",
       "/admin/setup",
       "/admin/features",
       "/admin/settings",
       "/admin/branding",
+      "/admin/blueprints",
     ],
     aiToolNames: [
       "discover_tool_bundles",

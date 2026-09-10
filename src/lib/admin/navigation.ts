@@ -5,6 +5,7 @@ import {
   Bot,
   BriefcaseBusiness,
   CalendarCheck,
+  DraftingCompass,
   FileText,
   FileCheck,
   Globe2,
@@ -267,6 +268,14 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/features",
         icon: KanbanSquare,
         description: "Managed delivery backlog",
+        moreGroup: "System",
+      },
+      {
+        id: "blueprints",
+        label: "Blueprints",
+        href: "/admin/blueprints",
+        icon: DraftingCompass,
+        description: "Workspace Architect proposals and review",
         moreGroup: "System",
       },
       {

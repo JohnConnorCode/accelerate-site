@@ -100,6 +100,45 @@ function normalizeTypeKey(typeKey: string): string {
   return key;
 }
 
+/**
+ * Canonical core entity keys backed by dedicated tables and domain services
+ * (identity, pipeline, tasks, conversations, proposals, campaigns), not by
+ * registry rows. Blueprints may reference these alongside registered custom
+ * types; the Architect must never re-register them as custom entities.
+ */
+export const CORE_ENTITY_KEYS = [
+  "campaign",
+  "company",
+  "contact",
+  "conversation",
+  "opportunity",
+  "proposal",
+  "task",
+] as const;
+
+/**
+ * Every entity key a Blueprint may reference in this workspace: canonical
+ * core keys plus registered, non-disabled custom types. Sorted, deduplicated.
+ */
+export async function listEntityTypeKeys(
+  supabase: SupabaseClient,
+  tenantId: string,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("entity_types")
+    .select("type_key")
+    .eq("tenant_id", requireTenant(tenantId))
+    .eq("is_disabled", false);
+  if (error) throw new Error(error.message);
+  const keys = new Set<string>(CORE_ENTITY_KEYS);
+  for (const row of (data ?? []) as Array<{ type_key: unknown }>) {
+    if (typeof row.type_key === "string" && TYPE_KEY_PATTERN.test(row.type_key)) {
+      keys.add(row.type_key);
+    }
+  }
+  return [...keys].sort();
+}
+
 /** Resolve the retire marker for a soft_delete_column spec. See the field docs. */
 export function softDeleteValue(spec: string): { column: string; value: boolean | string } {
   const [column, mode] = spec.split(":");

@@ -51,6 +51,8 @@ export const TENANT_SCOPED_TABLES = [
   "plugin_tools",
   "plugin_triggers",
   "kanban_columns",
+  "workspace_blueprints",
+  "workspace_blueprint_versions",
 
   "action_queue",
   "activities",

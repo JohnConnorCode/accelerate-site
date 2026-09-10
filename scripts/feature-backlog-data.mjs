@@ -2369,6 +2369,100 @@ export const featureBacklog = [
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test generation failure, malformed model output, unsupported claims, repeat staging, missing recipient variables, stop conditions and all five demo recipes. Scoped test deliverable: create scripts/test-campaign-business-recipes.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-business-recipes.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
   }),
   card({
+    key: "campaign-duplicate-clone",
+    title: "Duplicate campaigns into new drafts with versioned copies",
+    workstream: "campaigns",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    workSpec: {
+      packetVersion: 2,
+      northstar: {
+        phase: "B",
+        layers: ["Act"],
+        contribution: "Proves the Act layer handles campaign configuration copies through one approval-gated domain service.",
+      },
+      currentBehavior: "The Campaigns workspace activates, pauses and runs bounded campaigns; there is no way to start from an existing campaign without recreating audience, steps, sender and policy by hand.",
+      businessValue: "Repeating a successful campaign should take seconds, not a rebuild. One click gives an exact editable draft copy with full provenance, without ever inheriting members, sends or approvals.",
+      scope: ["duplicateCampaign domain service copying campaign row, audience, policy and every step into a fresh draft", "members, sends, receipts and approvals never carry over", "audit records the duplicated provenance", "PATCH action duplicate, duplicate_campaign approvable action, propose_campaign_duplicate AI parity, card-level UI action"],
+      exclusions: ["no automatic re-enrollment of the source campaign's members", "no send or schedule inherited from the source"],
+      references: [{ path: "src/lib/revenue-os/campaigns.ts", reason: "Domain owner for the duplicate and activation lifecycle" }, { path: "src/app/api/admin/revenue-os/campaigns/route.ts", reason: "PATCH adapter that must stay side-effect free" }, { path: "src/app/admin/campaigns/page.tsx", reason: "Shared operator surface" }],
+      verification: [{ command: "npm run test:campaign-duplicate-clone", expected: "Copy fidelity, zero carryover, cleanup and independence pass", environment: "local" }, { command: "npm run test:core", expected: "Full scoped chain green", environment: "local" }, { command: "npm run build", expected: "Production build of the candidate tree", environment: "local" }],
+      requiredCapabilities: ["typescript"],
+      repository: { url: "https://github.com/JohnConnorCode/accelerate-site.git", baseBranch: "main", baseCommit: "dca5f6159c024658a8516f19b8c9c781cdd8f0b9" },
+      workflow: ["Open Campaigns and choose Duplicate on any campaign card", "The copy opens as a draft with its source recorded", "Edit, dry-run, approve and activate independently"],
+      failureModes: ["source campaign changed mid-claim", "step copy failure leaves a half draft", "twice-duplicate independence"],
+      acceptance: [{ id: "AC-1", criterion: "A duplicate of any status yields an editable draft carrying audience, steps, sender, limits and stops", environment: "local" }, { id: "AC-2", criterion: "No members, sends, receipts or approvals carry over", environment: "local" }, { id: "AC-3", criterion: "Provenance links the draft to source campaign and version", environment: "local" }, { id: "AC-4", criterion: "Missing or cross-tenant source fails honestly with no partial rows", environment: "local" }],
+    },
+    description:
+      "Operators duplicate a campaign into a fresh draft that copies audience selection, document revision, sender, schedule, limits and stop policy without copying membership state, receipts or approvals.\n\nImplementation steps:\n1. Add a tenant-scoped duplicate domain service that deep-copies the source campaign row, steps and approved document reference into status draft with version 1 and no approved_version.\n2. Never copy campaign_members, messages, receipts, approvals or audit history; the clone starts with zero members and requires fresh enrollment and approval.\n3. Expose duplicate through the existing Campaigns workspace row action and the governed admin/AI path with the same authorization as campaign creation.\n4. Record an audit receipt linking the new draft to its source campaign and version for provenance.",
+    acceptance: [
+      "Duplicating any draft, active, paused or completed campaign yields an editable draft with identical audience, copy, sender, schedule, limits and stops.",
+      "No members, sends, receipts, approvals or provider state carry over; the clone cannot execute until enrolled and reapproved.",
+      "Duplicate output references the source campaign and version; duplicating twice produces two independent drafts.",
+      "Cross-tenant duplication is refused; invalid or missing source IDs fail honestly without creating partial rows.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Finish the Campaigns planning and control workspace",
+      "Enforce campaign policy envelopes and version reapproval",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: app/api/admin/campaigns/[campaignId]/duplicate/route.ts; lib/admin/campaigns/get-campaigns.ts. Accelerate owners/entrypoints: src/lib/revenue-os/campaigns.ts; src/app/admin/campaigns/page.tsx; src/app/api/admin/revenue-os/campaigns/.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. A duplicate is never approval; activation still requires the full review path. Do not copy Workshelter route-owned enrollment loops or its single-tenant role model.",
+    labels: ["campaigns", "duplication"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test duplicate of each source status, zero member/receipt carryover, double-duplicate independence, cross-tenant refusal, missing source, and reapproval gating before activation. Scoped test deliverable: create scripts/test-campaign-duplicate-clone.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-campaign-duplicate-clone.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
+    key: "contact-bulk-operations",
+    title: "Add bulk tag, list, and enrollment operations to Contacts",
+    workstream: "campaigns",
+    phase: 3,
+    status: "backlog",
+    priority: "high",
+    workSpec: {
+      packetVersion: 2,
+      northstar: {
+        phase: "B",
+        layers: ["Notice", "Act"],
+        contribution: "Keeps bulk human work and AI work on the same governed write path the executor already polices.",
+      },
+      currentBehavior: "Leads rows resolve to canonical contacts through the compatibility bridge and offer bulk stage transition; there is no reviewed way to tag, suppress or campaign-stage many contacts at once.",
+      businessValue: "Operators curate campaigns and outreach lists in minutes instead of row by row, while suppression safety and per-record receipts stay intact.",
+      scope: ["validated set-semantics tags on contacts with per-record outcomes", "suppression through the canonical campaign-stop writer", "draft-only enrollment through the shared member-staging service", "bulk API adapter, three AI parity tools, Leads bulk bar with confirmation and outcome receipt"],
+      exclusions: ["saved-list membership, owned by card:campaign-saved-audiences", "no marketing permission changes"],
+      references: [{ path: "src/lib/revenue-os/contact-bulk.ts", reason: "Bulk domain owner" }, { path: "src/lib/revenue-os/campaigns.ts", reason: "Shared stageCampaignMembers staging path" }, { path: "src/lib/revenue-os/campaign-stops.ts", reason: "Canonical suppression writer" }, { path: "src/components/admin/LeadsTable.tsx", reason: "Shared multi-select surface" }, { path: "migrations/20260915-contact-tags.sql", reason: "Additive tenant-scoped tags column" }],
+      verification: [{ command: "npm run test:contact-bulk-operations", expected: "Outcomes, cap refusal, retry convergence and receipts pass", environment: "local" }, { command: "npm run test:core", expected: "Full scoped chain green", environment: "local" }, { command: "npm run build", expected: "Production build of the candidate tree", environment: "local" }, { command: "npm run qa:leads-bulk", expected: "Desktop, mobile and reduced-motion browser QA", environment: "local" }, { command: "apply migrations/20260915-contact-tags.sql and re-run", expected: "Migration ledger and live column and index verified", environment: "production" }],
+      requiredCapabilities: ["typescript", "playwright"],
+      repository: { url: "https://github.com/JohnConnorCode/accelerate-site.git", baseBranch: "main", baseCommit: "dca5f6159c024658a8516f19b8c9c781cdd8f0b9" },
+      workflow: ["Select lead rows and apply tag, suppress or enroll with a confirmation", "Per-record outcomes and one summary audit per run", "The assistant stages the same operations through the approval queue"],
+      failureModes: ["empty selection", "oversized selection", "mid-batch row failure"],
+      acceptance: [{ id: "AC-1", criterion: "Each bulk action shows exact counts before confirmation and per-record outcomes after", environment: "local" }, { id: "AC-2", criterion: "Suppressed, ambiguous or emailless contacts are skipped with reasons", environment: "local" }, { id: "AC-3", criterion: "Retrying a partial run never duplicates applied changes", environment: "local" }, { id: "AC-4", criterion: "Bulk enrollment stages into draft campaigns only", environment: "local" }, { id: "AC-5", criterion: "Tags column migration is additive, idempotent and live-verified", environment: "production" }],
+    },
+    description:
+      "Operators select lead rows and apply reviewed bulk actions against the linked canonical contacts: add/remove tags, suppress from campaign email, or stage enrollment into a draft campaign, with per-record results and full receipts. Saved-list membership stays on card:campaign-saved-audiences, which owns those tables.\n\nImplementation steps:\n1. Extend the existing Leads table selection (the only multi-select contact surface) with a bulk bar; leads without a linked canonical contact are named and skipped, never guessed.\n2. Implement tenant-scoped bulk domain services for validated set-semantics tag mutation, canonical suppression, and campaign enrollment staging through the shared member-staging service; each returns per-record applied/skipped/failed outcomes and caps oversized selections instead of silently truncating.\n3. Require an exact confirmation showing the affected count and action before any write; writes reuse canonical contact IDs, idempotency keys and audit receipts, one summary receipt per run.\n4. Surface partial failures with per-record reasons and safe retry that never duplicates an already applied change.",
+    acceptance: [
+      "Bulk tag, suppress and enrollment staging each show exact counts before confirmation and per-record outcomes after.",
+      "Suppressed, ambiguous or cross-tenant contacts are skipped with reasons, never silently included or altered.",
+      "Retrying a partially failed bulk action applies only the missing records; completed records are not duplicated.",
+      "Bulk enrollment stages into a draft audience only; it never approves, activates or sends.",
+    ],
+    dependencies: [
+      "Reconcile the reusable business-plugin baseline before Workshelter adoption",
+      "Implement deterministic contact and company identity resolution",
+      "Add canonical saved audiences and explainable campaign eligibility",
+    ],
+    start:
+      "Read docs/contributing/WORKSHELTER-REUSE-CONTRACT.md before implementation. Handoff branch: agent/workshelter-reuse-backlog; if this checkout lacks the contract, read it with git show agent/workshelter-reuse-backlog:docs/contributing/WORKSHELTER-REUSE-CONTRACT.md and bring the committed handoff into the integration baseline. Workshelter source root: sibling workshelter-next, inspected commit 05eddae3e76e6067ef75bd364e37cc9b6ca692f4. Reuse code only after adapting its dependencies; retain MIT attribution. Workshelter references: app/admin/contacts/ContactsPageClient.tsx; app/admin/contacts/BulkTagModal.tsx; app/admin/contacts/AddToListModal.tsx; app/admin/contacts/[contactId]/EnrollSequenceModal.tsx; lib/contacts/operations.ts. Accelerate owners/entrypoints: src/app/admin/leads/page.tsx; src/components/admin/LeadsTable.tsx; src/lib/revenue-os/contact-bulk.ts; src/lib/revenue-os/campaigns.ts (stageCampaignMembers); src/lib/revenue-os/campaign-stops.ts; src/app/api/admin/leads/bulk/.",
+    guardrails:
+      " Tenant-scoped domain services own all writes; UI, AI, jobs and MCP share them. Preserve canonical IDs, action approval, idempotency and immutable receipts. Same admin UI in all five session-local demos; no real provider requests from demos. No production deployment or uncontrolled customer sends. Bulk actions never grant marketing permission; suppression is a safety stop, not an unsubscribe. Do not copy Workshelter roster-wide in-memory filtering or its store/customer identity model. Saved-list membership remains owned by card:campaign-saved-audiences.",
+    labels: ["contacts", "campaigns"],
+    verification:
+      "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build; git diff --check. Add focused tests for this card to test:core. For UI run repository Playwright at desktop/mobile, all five appearances, keyboard and reduced motion; open screenshots and record console/overflow checks. Attach exact commands/results and migration/provider evidence; never claim local mocks prove live delivery. Test two tenants, suppressed/ambiguous/emailless contacts, empty and oversized selections, partial failure plus idempotent retry, and draft-only enrollment staging. Scoped test deliverable: create scripts/test-contact-bulk-operations.ts, add it to test:core, and run NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-contact-bulk-operations.ts. The file must test domain outcomes and failure boundaries, not merely mirror implementation.",
+  }),
+  card({
     key: "support-conversation-triage",
     title: "Add assignment, snooze and a durable needs-reply conversation queue",
     workstream: "operations",

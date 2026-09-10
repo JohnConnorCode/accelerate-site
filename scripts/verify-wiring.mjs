@@ -42,6 +42,8 @@ export const WIRING_ALLOWLIST = {
     "Standalone tested isolate primitive; host integration is explicitly not claimed by plugin-isolate-host. See northstar-runtime-consolidation audit.",
   "unwired-module:mcp-client.ts":
     "Standalone external MCP client awaiting host integration; tests establish the primitive only, not production wiring. See northstar-runtime-consolidation audit.",
+  "unwired-module:workspace-blueprint.ts":
+    "Freshly landed Workspace Architect Phase 1 primitive (WA-01, docs/planning/WORKSPACE-ARCHITECT-BACKLOG.md): schema, classification, capability validation, preflight, diffs, impact, and versioned persistence. Its first runtime caller is the WA-03 Blueprint review surface; tests establish the primitive only, not production wiring. Remove this entry when WA-03 lands.",
 };
 
 // -----------------------------------------------------------------------------

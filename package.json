@@ -270,6 +270,8 @@
     "test:radar-outreach": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-recorded-email-guards.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-outreach-contract.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-outreach-drafting.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-outreach-service.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-radar-outreach-demo.ts",
     "test:health-output": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-health-output.ts",
     "test:operator-attention": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-operator-attention.ts",
+    "test:workspace-blueprint": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-workspace-blueprint.ts",
+    "qa:blueprint-review": "node scripts/qa-blueprint-review.mjs",
     "qa:operator-workspace": "node scripts/qa-operator-workspace.mjs"
   },
   "dependencies": {
