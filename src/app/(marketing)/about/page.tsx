@@ -1,8 +1,9 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { AboutPageContent } from "@/components/sections/AboutPage";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "About Accelerate",
   description:
     "Accelerate helps businesses choose, build, and run useful AI and automation through direct strategy, engineering, execution, and support.",
@@ -25,7 +26,9 @@ const aboutJsonLd = {
   url: "https://www.acceleratewith.us/about",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const published = await publishedWebsiteOverride("/about");
+  if (published) return published;
   return (
     <>
       <script
@@ -41,4 +44,8 @@ export default function AboutPage() {
       <AboutPageContent />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/about")) ?? bundledMetadata;
 }

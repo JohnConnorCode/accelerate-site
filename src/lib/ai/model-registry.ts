@@ -1,4 +1,6 @@
+import { cachedSiteModel } from "@/lib/site-studio/model-catalog";
 import "server-only";
+import { DEFAULT_SITE_MODEL } from "@/lib/site-studio/models";
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DEFAULT_OPENROUTER_MODEL } from "./openrouter-models";
@@ -9,8 +11,10 @@ import { DEFAULT_OPENROUTER_MODEL } from "./openrouter-models";
  * model changes are never silent.
  *
  * Models are operator-registered rows (admin_settings KV), never invented
- * IDs: the only built-in entry is the repository default already serving
- * traffic. Jobs declare typed workload requirements (tools, JSON mode,
+ * IDs. Site Studio preparation can also use its validated provider catalogue;
+ * that does not register models for other jobs or override tenant restrictions.
+ * Other jobs retain the repository default and explicit registrations.
+ * Jobs declare typed workload requirements (tools, JSON mode,
  * context floor); compatibility is MATCHED against model capabilities, so
  * operator choices are limited without hardcoding provider lineups.
  * Free/low-cost models stay visible but cannot run consequential jobs until
@@ -165,7 +169,7 @@ export const AI_JOBS: readonly JobRegistration[] = [
     requiresTools: false,
     requiresJson: true,
     minContextWindow: 32_000,
-    defaultModel: BUILT_IN_MODEL_ID,
+    defaultModel: DEFAULT_SITE_MODEL,
   },
 ];
 
@@ -374,7 +378,22 @@ export async function resolveModelForJob(
   const job = AI_JOBS.find((candidate) => candidate.key === jobKey);
   if (!job) throw new Error(`Unknown AI job ${JSON.stringify(jobKey)}`);
   const requested = preferred?.trim() || job.defaultModel;
-  const model = await getModelRegistration(supabase, tenant, requested);
+  const siteDefault = jobKey === "site-page-draft" ? cachedSiteModel(requested) : undefined;
+  const model =
+    (await getModelRegistration(supabase, tenant, requested)) ??
+    (siteDefault
+      ? {
+          id: siteDefault.id,
+          label: siteDefault.label,
+          costTier: siteDefault.tier,
+          contextWindow: siteDefault.contextWindow,
+          supportsTools: false,
+          supportsJson: true,
+          evalPassed: false,
+          evaluatedAt: null,
+          evaluatedBy: null,
+        }
+      : null);
   if (!model) throw new Error(`Model ${JSON.stringify(requested)} is not registered`);
   if (job.allowedModels && !job.allowedModels.includes(model.id))
     throw new Error(`Model ${model.id} is not allowed for job ${jobKey}`);

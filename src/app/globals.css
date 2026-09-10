@@ -1226,6 +1226,16 @@ a.tag:active {
 .hero-intelligent-scramble {
   display: inline;
 }
+/* Serve the complete stored headline before hydration for reduced-motion
+   visitors. The animated text keeps identical server/client initial markup. */
+@media (prefers-reduced-motion: reduce) {
+  .hero .hero-intelligent-static {
+    display: inline;
+  }
+  .hero .hero-intelligent-scramble {
+    display: none;
+  }
+}
 .motion-ready .hero:not(.loaded) .word > span {
   transform: translateY(112%);
   filter: blur(var(--word-blur, 18px));

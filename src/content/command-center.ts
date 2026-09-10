@@ -68,7 +68,7 @@ export const capabilities: Capability[] = [
     category: "act",
     title: "Prepare a private page draft",
     detail:
-      "Enable Site Studio to create a structured template or AI-assisted page, preview it at different widths, rename it and discard it. Database revisions preserve each business's drafts and refuse stale edits. Public publishing is still separate work.",
+      "Create template or AI-assisted pages with Muse Spark 1.3 by default and a searchable, refreshable catalogue of free, low-cost and premium models. Filter by provider and price; price increases require review. Installation owners can edit pages and shared content, preview responsive widths, save private revisions and review publication or rollback. Import and export move portable content between installations. Existing source pages are preserved until explicitly replaced; automatic migration of their original layouts remains separate work.",
   },
   // Capture
   {

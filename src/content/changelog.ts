@@ -2,6 +2,33 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "website-authoring-model-choice",
+    slug: "website-authoring-model-choice",
+    title: "Create and edit website pages with a choice of AI models",
+    description:
+      "Installation owners can create and clone pages, review AI copy or layout suggestions, undo edits, preview phone and desktop widths, and explicitly publish or roll back saved revisions. Muse Spark 1.3 is the default. A refreshable model catalogue offers current recommendations, search, provider/cost filters and price sorting, with explicit price ceilings. Shared content, image references, collections and portable snapshots use the same versioned website document. The Work board moves advanced filters and saved views into a compact dialog. Existing source pages retain their layouts until deliberately replaced; automatic import of all existing page content remains separate work.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "installation-website-private-editor",
+    slug: "installation-website-private-editor",
+    title: "Edit a private installation website draft",
+    description:
+      "Installation owners can edit homepage content, save versioned drafts, open the saved preview, and import or export a portable content snapshot. Interrupted saves reuse their request and stale saves preserve local fields. The shared fictional demo and user guide include save, recovery and fork examples. Public publishing and the remaining site migration are not part of this draft editor yet.",
+    category: "improvement",
+    publishedAt: "2026-09-08",
+  },
+  {
+    id: "homepage-reduced-motion-headline",
+    slug: "homepage-reduced-motion-headline",
+    title: "Read the complete homepage headline with reduced motion",
+    description:
+      "The homepage shows the full headline immediately when your device requests reduced motion. The highlighted phrase no longer waits for the scramble animation, and the usual animation remains available for other visitors.",
+    category: "fix",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "demo-layout-settings-read",
     slug: "demo-layout-settings-read",
     title: "Inspect default layout settings in fictional workspaces",

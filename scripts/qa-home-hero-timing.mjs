@@ -83,15 +83,28 @@ if (comparable(timelines.desktop) !== comparable(timelines.mobile))
     reducedMotion: "reduce",
   });
   const page = await context.newPage();
+  page.on("pageerror", (error) => failures.push(`reduced-motion: ${error.message}`));
+  page.on("console", (message) => {
+    if (message.type() === "error") failures.push(`reduced-motion: ${message.text()}`);
+  });
   await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60_000 });
   const reduced = await page.evaluate(() => ({
+    highlightedVisible:
+      getComputedStyle(document.querySelector(".hero-intelligent-static")).display !== "none",
+    highlightedText: document.querySelector(".hero-intelligent-static")?.textContent?.trim(),
     words: [...document.querySelectorAll(".hero .word > span")].every(
       (node) => getComputedStyle(node).animationName === "none",
     ),
     profit: Number(getComputedStyle(document.querySelector(".hero-profit")).opacity),
     cta: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
   }));
-  if (!reduced.words || reduced.profit < 0.99 || reduced.cta < 0.99)
+  if (
+    !reduced.words ||
+    reduced.profit < 0.99 ||
+    reduced.cta < 0.99 ||
+    !reduced.highlightedVisible ||
+    reduced.highlightedText !== "intelligent automation"
+  )
     failures.push("mobile reduced motion did not render the complete hero immediately");
   await context.close();
 }

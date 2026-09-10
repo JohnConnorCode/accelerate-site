@@ -143,15 +143,17 @@ await page.route("**/api/admin/features**", async (route) => {
 });
 await page.goto("/admin/features", { waitUntil: "domcontentloaded" });
 await page
-  .getByRole("button", { name: "Needs specification", exact: true })
-  .click({ timeout: 60000 });
+  .getByRole("combobox", { name: "Work view", exact: true })
+  .selectOption("specification", { timeout: 60000 });
 await page.screenshot({ path: `${outDir}/needs-specification.png`, fullPage: true });
 await page.getByRole("button", { name: "Edit QA needs repository base", exact: true }).waitFor();
 if (await page.getByRole("button", { name: "Edit QA complete packet", exact: true }).count())
   throw new Error("Specification queue includes ready work");
-await page.getByRole("button", { name: "Ready to claim", exact: true }).click();
+await page.getByRole("combobox", { name: "Work view", exact: true }).selectOption("ready");
+await page.getByRole("button", { name: /^Filters/ }).click();
 await page.getByLabel("North star phase", { exact: true }).selectOption("B");
 await page.getByLabel("Initiative", { exact: true }).selectOption("Runtime quality");
+await page.getByRole("button", { name: "Close filters", exact: true }).click();
 await page.getByRole("button", { name: "Edit QA complete packet", exact: true }).click();
 await page.getByText("Implementation contract", { exact: true }).click();
 await page.getByText("Execution steps", { exact: true }).waitFor();
@@ -160,10 +162,11 @@ await page.screenshot({ path: `${outDir}/contract-desktop.png`, fullPage: true }
 await page.setViewportSize({ width: 390, height: 844 });
 await page.screenshot({ path: `${outDir}/contract-mobile.png`, fullPage: true });
 await page.getByRole("button", { name: "Close feature details", exact: true }).click();
-await page.getByRole("button", { name: "Needs review", exact: true }).focus();
-await page.keyboard.press("Enter");
+await page.getByRole("combobox", { name: "Work view", exact: true }).selectOption("review");
+await page.getByRole("combobox", { name: "Work view", exact: true }).focus();
+await page.keyboard.press("Tab");
 await page.getByRole("button", { name: "Edit QA waiting for review", exact: true }).waitFor();
-await page.getByRole("button", { name: "Awaiting integration / proof", exact: true }).click();
+await page.getByRole("combobox", { name: "Work view", exact: true }).selectOption("unmerged");
 await page
   .getByRole("button", { name: "Edit QA verified awaiting integration", exact: true })
   .waitFor();

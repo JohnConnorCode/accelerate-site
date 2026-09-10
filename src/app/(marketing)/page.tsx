@@ -1,10 +1,12 @@
+import { readPublicWebsite } from "@/lib/site-studio/website-public";
+import { PublishedWebsitePage, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { seoMetadata } from "@/lib/og";
 import { generateFaqJsonLd } from "@/lib/seo";
 import { homeFaqs } from "@/content/home-faq";
 import { Studio } from "@/components/v2/studio/Studio";
 import { marketingPositioning } from "@/content/marketing-positioning";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Accelerate | Custom AI Strategy, Solutions & Execution",
   description: marketingPositioning.shortOffer,
   ogTitle: "The Right AI Solution for Your Business",
@@ -53,7 +55,13 @@ const serviceJsonLd = {
   },
 };
 
-export default function HomePage() {
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/")) ?? bundledMetadata;
+}
+
+export default async function HomePage() {
+  const website = await readPublicWebsite();
+  if (website.mode !== "bootstrap") return <PublishedWebsitePage path="/" />;
   return (
     <>
       <script

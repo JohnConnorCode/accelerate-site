@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { seoMetadata } from "@/lib/og";
@@ -15,6 +16,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const published = await publishedWebsiteMetadata(`/team/${slug}`);
+  if (published) return published;
   const member = getTeamMember(slug);
   if (!member) return { title: "Team member not found" };
   return seoMetadata({
@@ -28,6 +31,8 @@ export async function generateMetadata({
 
 export default async function TeamBioPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const published = await publishedWebsiteOverride(`/team/${slug}`);
+  if (published) return published;
   const member = getTeamMember(slug);
   if (!member) notFound();
 

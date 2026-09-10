@@ -89,6 +89,7 @@ export function ProductSlider({
             >
               <Image
                 src={s.src}
+                unoptimized={s.src.startsWith("https://")}
                 alt={s.alt}
                 fill
                 sizes="(min-width: 1280px) 1200px, 90vw"

@@ -1,15 +1,8 @@
-const ITEMS = [
-  "Revenue systems",
-  "Workflow automation",
-  "Custom integrations",
-  "AI agents",
-  "Forecasting and analytics",
-  "Internal tools",
-  "Team enablement",
-];
+import { homeMarqueeContent } from "@/content/site-studio/home";
+import type { HomeMarqueeContent } from "@/lib/site-studio/native-templates";
 
-export function Marquee() {
-  const loop = [...ITEMS, ...ITEMS];
+export function Marquee({ content = homeMarqueeContent }: { content?: HomeMarqueeContent }) {
+  const loop = [...content.items, ...content.items];
   return (
     <div className="ink-panel">
       <div className="mq">

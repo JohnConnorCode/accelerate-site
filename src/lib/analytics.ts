@@ -113,7 +113,12 @@ function safeEventName(name: string) {
 }
 
 function sendFirstPartyEvent(name: string, props?: Record<string, string | number>) {
-  if (typeof window === "undefined" || window.location.pathname.startsWith("/admin")) return;
+  if (
+    typeof window === "undefined" ||
+    window.location.pathname.startsWith("/admin") ||
+    window.location.pathname === "/site-preview"
+  )
+    return;
   const attribution = getUTMParams() || undefined;
   const referrerHost = (() => {
     try {
@@ -146,7 +151,7 @@ function sendFirstPartyEvent(name: string, props?: Record<string, string | numbe
 }
 
 export function trackConversion(name: string, props?: Record<string, string | number>) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || window.location.pathname === "/site-preview") return;
 
   const page = window.location.pathname;
   const allProps: Record<string, string | number> = { ...props, page };

@@ -1,3 +1,10 @@
+import { SITE_STUDIO_MODELS, SITE_MODELS_OBSERVED_AT } from "@/lib/site-studio/models";
+import {
+  createDemoWebsiteState,
+  handleDemoWebsite,
+  demoWebsiteSuggestion,
+  type DemoWebsiteState,
+} from "./website-runtime";
 import {
   SEED_DEFAULT_MILESTONES,
   handoffRequestSchema,
@@ -85,6 +92,7 @@ type DemoEmailStudioDetail = {
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
 export type DemoState = {
+  website?: DemoWebsiteState;
   deliveryHandoffs?: Record<
     string,
     {
@@ -2292,6 +2300,31 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    if (path === "/api/admin/site/models" && method === "GET") {
+      if (state.moduleOverrides["site-studio"] === false)
+        return jsonResponse(
+          { error: "Site Studio is disabled for this fictional workspace." },
+          403,
+        );
+      return jsonResponse({
+        models: SITE_STUDIO_MODELS,
+        observedAt: SITE_MODELS_OBSERVED_AT,
+        source: "bundled",
+      });
+    }
+    if (path === "/api/admin/site/drafts" && method === "GET") return jsonResponse({ drafts: [] });
+    if (path === "/api/admin/site/website" || path === "/api/admin/site/website/suggest") {
+      if (state.moduleOverrides["site-studio"] === false)
+        return jsonResponse(
+          { error: "Site Studio is disabled for this fictional workspace." },
+          403,
+        );
+      if (path.endsWith("/suggest")) return demoWebsiteSuggestion(body);
+      state.website ??= createDemoWebsiteState();
+      const response = handleDemoWebsite(state.website, pack.name, method, body, url.searchParams);
+      if (method === "POST" && response.ok) saveState(scenarioId, state);
+      return response;
+    }
     const businessResponse = await handleDemoBusinessRequest(
       pack,
       business,

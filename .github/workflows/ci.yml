@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
   merge_group:
   push:
@@ -241,6 +242,8 @@ jobs:
           node scripts/qa-campaign-duplicate.mjs
           node scripts/qa-delivery-handoff.mjs
           node scripts/qa-leads-bulk.mjs
+          node scripts/qa-website-editor.mjs
+          node scripts/qa-website-authoring.mjs
           node scripts/qa-radar-workspace.mjs
           node scripts/qa-operator-workspace.mjs
           node scripts/qa-booking-mode.mjs
@@ -263,6 +266,8 @@ jobs:
           name: credential-free-browser-evidence
           path: |
             /tmp/accelerate-site-studio-qa/
+            /tmp/accelerate-website-editor/
+            /tmp/accelerate-website-authoring/
             /tmp/accelerate-campaign-duplicate/
             /tmp/accelerate-delivery-handoff/
             /tmp/accelerate-leads-bulk/

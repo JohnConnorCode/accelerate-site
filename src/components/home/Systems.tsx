@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Reveal } from "./reveal";
 import { AmbientField } from "./AmbientField";
-import { marketingPositioning } from "@/content/marketing-positioning";
+import { homeSystemsContent } from "@/content/site-studio/home";
+import type { HomeSystemsContent } from "@/lib/site-studio/native-templates";
 
 /** Small, authored diagrams explain each engagement rather than decorate it. */
 function EngagementDrawing({ kind }: { kind: string }) {
@@ -43,29 +44,28 @@ function EngagementDrawing({ kind }: { kind: string }) {
   );
 }
 
-export function Systems() {
+export function Systems({ content = homeSystemsContent }: { content?: HomeSystemsContent }) {
   return (
     <section className="sect" id="systems" aria-labelledby="systems-heading">
       <AmbientField />
       <div className="wrap">
         <div className="shead">
           <Reveal rv as="p" className="label eyebrow-anim">
-            How we help
+            {content.eyebrow}
           </Reveal>
           <div>
             <Reveal rv as="h2" id="systems-heading" className="h2" delay={0.06}>
-              Start with the business.
+              {content.headingStart}
               <br />
-              Build <span className="it">what it needs.</span>
+              {content.headingMiddle} <span className="it">{content.headingEnd}</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              We learn how your team works, find the useful opportunities for AI and automation, and
-              shape the engagement around the result you need.
+              {content.body}
             </Reveal>
           </div>
         </div>
-        <ol className="engagement-list" aria-label="Ways to work with Accelerate">
-          {marketingPositioning.engagementModes.map((mode, i) => (
+        <ol className="engagement-list" aria-label={content.listLabel}>
+          {content.modes.map((mode, i) => (
             <Reveal key={mode.key} rv as="li" className="engagement-item">
               <Link href={mode.href} className="engagement-link">
                 <span className="engagement-index" aria-hidden="true">
@@ -87,9 +87,7 @@ export function Systems() {
             </Reveal>
           ))}
         </ol>
-        <p className="engagement-note">
-          Choose the support your team needs. We agree the scope together.
-        </p>
+        <p className="engagement-note">{content.note}</p>
       </div>
     </section>
   );

@@ -216,6 +216,11 @@ export async function callSiteDraftRpc(database: SupabaseClient, args: Record<st
   return callVerifiedHostRpc(database, "write_site_draft", args);
 }
 
+/** Installation website commands are additionally owner-gated by website-store. */
+export async function callWebsiteRpc(database: SupabaseClient, args: Record<string, unknown>) {
+  return callVerifiedHostRpc(database, "write_site_website", args);
+}
+
 export async function callContactBulkRpc(
   database: SupabaseClient,
   name: "bulk_tag_contacts" | "stage_campaign_members",

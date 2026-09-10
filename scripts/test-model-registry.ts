@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
 import {
+  DEFAULT_SITE_MODEL,
+  SITE_STUDIO_MODELS,
+  SITE_MODEL_RECOMMENDATIONS,
+} from "../src/lib/site-studio/models";
+import {
   AI_JOBS,
   getModelRegistration,
   recordModelCall,
@@ -22,6 +27,35 @@ async function main() {
 
   const mem = new MemorySupabase({ admin_settings: [], activities: [] });
   const db = mem.client as never;
+
+  const siteDb = new MemorySupabase({ admin_settings: [], activities: [] }).client as never;
+  assert.equal(
+    (await resolveModelForJob(siteDb, TENANT, "site-page-draft")).resolved,
+    DEFAULT_SITE_MODEL,
+  );
+  for (const choice of SITE_STUDIO_MODELS.filter((model) =>
+    SITE_MODEL_RECOMMENDATIONS.includes(model.id),
+  )) {
+    assert.equal(
+      (await resolveModelForJob(siteDb, TENANT, "site-page-draft", choice.id)).resolved,
+      choice.id,
+    );
+    await assert.rejects(
+      () => resolveModelForJob(siteDb, TENANT, "copilot-answer", choice.id),
+      /not registered/,
+    );
+  }
+  await registerModel(siteDb, {
+    tenantId: TENANT,
+    id: DEFAULT_SITE_MODEL,
+    label: "Locally restricted Muse",
+    supportsJson: false,
+    actorEmail: "founder@example.test",
+  });
+  await assert.rejects(
+    () => resolveModelForJob(siteDb, TENANT, "site-page-draft"),
+    /needs JSON mode/,
+  );
 
   // 2. Registration is idempotent and tenant-scoped.
   await registerModel(db, {

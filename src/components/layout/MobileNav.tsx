@@ -1,5 +1,8 @@
 "use client";
 
+import { websiteHeaderContent } from "@/content/site-studio/shared";
+import type { WebsiteHeader } from "@/lib/site-studio/website-chrome";
+
 import { useState, useRef, useEffect } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
@@ -19,12 +22,22 @@ interface MobileNavProps {
   isOpen: boolean;
   onClose: () => void;
   navLinks: NavLink[];
+  content?: WebsiteHeader;
+  brandName?: string;
+  logoSrc?: string;
 }
 
 const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fg)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]";
 
-export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
+export function MobileNav({
+  isOpen,
+  onClose,
+  navLinks,
+  content = websiteHeaderContent,
+  brandName,
+  logoSrc,
+}: MobileNavProps) {
   const pathname = usePathname();
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -83,7 +96,7 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
       >
         <div className="flex items-center justify-between pb-6">
           <div onClick={onClose}>
-            <Logo size="sm" />
+            <Logo size="sm" name={brandName} logoSrc={logoSrc} />
           </div>
           <button
             ref={closeButtonRef}
@@ -185,14 +198,14 @@ export function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps) {
 
         <div className="mobile-nav-cta">
           <Link
-            href="/contact"
+            href={content.ctaHref}
             onClick={() => {
               trackConversion("Strategy Call CTA Clicked", { location: "mobile_nav" });
               onClose();
             }}
             className="btn w-full"
           >
-            Book a call{" "}
+            {content.ctaLabel}{" "}
             <span className="arw" aria-hidden="true">
               →
             </span>

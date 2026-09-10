@@ -33,7 +33,7 @@ for (const scenario of scenarios) {
   );
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "New feature", exact: true }).waitFor();
-  await page.getByRole("button", { name: "All work", exact: true }).waitFor();
+  await page.getByRole("combobox", { name: "Work view", exact: true }).waitFor();
   await page.waitForFunction(() => document.documentElement.getAttribute("data-theme") === "dark");
   await page.screenshot({ path: `${out}/${scenario}-dark.png`, fullPage: true });
   await page.evaluate(
@@ -42,7 +42,7 @@ for (const scenario of scenarios) {
     [scenario],
   );
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "All work", exact: true }).waitFor();
+  await page.getByRole("combobox", { name: "Work view", exact: true }).waitFor();
   await page.getByRole("button", { name: "New feature", exact: true }).click();
   await page.getByLabel("Title", { exact: true }).fill(`QA ${scenario}`);
   await page
@@ -52,7 +52,7 @@ for (const scenario of scenarios) {
     .getByLabel("Definition of done", { exact: true })
     .fill("The fixture can be claimed and submitted for review.");
   await page.getByRole("button", { name: "Add to board", exact: true }).click();
-  await page.getByRole("button", { name: "All work", exact: true }).click();
+  await page.getByRole("combobox", { name: "Work view", exact: true }).selectOption("all");
   // Open via the rendered card title, never call a protected backend from demo.
   await page.getByRole("button", { name: `Edit QA ${scenario}`, exact: true }).click();
   await page.getByText("Implementation contract", { exact: true }).click();
@@ -105,7 +105,7 @@ for (const scenario of scenarios) {
   await page.screenshot({ path: `${out}/${scenario}-desktop.png`, fullPage: true });
   await page.getByRole("button", { name: "Close feature details", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole("button", { name: "All work", exact: true }).focus();
+  await page.getByRole("combobox", { name: "Work view", exact: true }).focus();
   await page.keyboard.press("Tab");
   assert.ok(await page.evaluate(() => document.activeElement?.tagName !== "BODY"));
   await page.evaluate(() => scrollTo(0, 0));
