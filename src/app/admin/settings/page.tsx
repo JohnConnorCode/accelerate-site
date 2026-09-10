@@ -401,7 +401,7 @@ export default function SettingsPage() {
                         {item.manageHref && (
                           <Link
                             href={item.manageHref}
-                            className="inline-flex min-h-8 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-opacity hover:opacity-65"
+                            className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-opacity hover:opacity-65"
                           >
                             {item.manageLabel}
                           </Link>
