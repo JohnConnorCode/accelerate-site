@@ -237,34 +237,53 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then cat /tmp/accelerate-first-run-server.log; exit 1; fi
-          node scripts/check-internal-demo-rewrites.mjs
-          node scripts/qa-turnkey.mjs
-          node scripts/qa-client-interactions.mjs
-          npx tsx scripts/qa-site-studio.ts
-          node scripts/qa-campaign-duplicate.mjs
-          node scripts/qa-delivery-handoff.mjs
-          node scripts/qa-leads-bulk.mjs
-          node scripts/qa-website-editor.mjs
-          node scripts/qa-website-authoring.mjs
-          node scripts/qa-radar-workspace.mjs
-          node scripts/qa-operator-workspace.mjs
-          node scripts/qa-today-workspace.mjs
-          node scripts/qa-booking-mode.mjs
-          npm run test:work-completion -- --browser-fixtures
-          node scripts/qa-work-completion.mjs
-          DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
-          node scripts/qa-work-portfolio.mjs
-          node scripts/qa-demo-business-workflows.mjs
-          node scripts/qa-collections-workspace.mjs
-          node scripts/qa-universal-work-board.mjs
-          node scripts/qa-admin-polish.mjs
-          node scripts/qa-admin-polish-interactions.mjs
-          node scripts/qa-admin-polish-touch.mjs
-          node scripts/qa-admin-polish-theme-editor.mjs
-          node scripts/qa-admin-polish-navigation.mjs
-          node scripts/qa-contact-review-copy.mjs
-          node scripts/qa-demo-marketing.mjs
-          node scripts/qa-theme-persistence.mjs
+          # Each browser owns isolated contexts and fictional session state.
+          # Run every group and collect every exit status before stopping the server.
+          (
+            set -e
+            node scripts/check-internal-demo-rewrites.mjs
+            node scripts/qa-turnkey.mjs
+            node scripts/qa-client-interactions.mjs
+            npx tsx scripts/qa-site-studio.ts
+            node scripts/qa-campaign-duplicate.mjs
+            node scripts/qa-delivery-handoff.mjs
+            node scripts/qa-leads-bulk.mjs
+            node scripts/qa-website-editor.mjs
+            node scripts/qa-website-authoring.mjs
+            node scripts/qa-radar-workspace.mjs
+            node scripts/qa-operator-workspace.mjs
+            node scripts/qa-today-workspace.mjs
+            node scripts/qa-booking-mode.mjs
+            npm run test:work-completion -- --browser-fixtures
+            node scripts/qa-work-completion.mjs
+          ) &
+          workspace_qa_pid=$!
+          (
+            set -e
+            DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
+            node scripts/qa-work-portfolio.mjs
+            node scripts/qa-demo-business-workflows.mjs
+          ) &
+          public_qa_pid=$!
+          (
+            set -e
+            node scripts/qa-collections-workspace.mjs
+            node scripts/qa-universal-work-board.mjs
+            node scripts/qa-admin-polish.mjs
+            node scripts/qa-admin-polish-interactions.mjs
+            node scripts/qa-admin-polish-touch.mjs
+            node scripts/qa-admin-polish-theme-editor.mjs
+            node scripts/qa-admin-polish-navigation.mjs
+            node scripts/qa-contact-review-copy.mjs
+            node scripts/qa-demo-marketing.mjs
+            node scripts/qa-theme-persistence.mjs
+          ) &
+          admin_qa_pid=$!
+          browser_status=0
+          for browser_pid in "$workspace_qa_pid" "$public_qa_pid" "$admin_qa_pid"; do
+            if ! wait "$browser_pid"; then browser_status=1; fi
+          done
+          exit "$browser_status"
       - name: Retain first-run browser evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
