@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
 import { ArrowUpRight, ChevronDown, CircleHelp } from "lucide-react";
 import { adminNavSections, resolveAdminNavLink } from "@/lib/admin/navigation";
@@ -14,6 +16,18 @@ interface PageHeaderProps {
   utilityActions?: React.ReactNode;
   eyebrow?: string;
   guidance?: AdminPageGuidance | false;
+}
+
+// Renders into document.body so the floating panel can never be trapped
+// inside an ancestor's stacking context (e.g. a framer-motion entrance
+// animation leaves a `transform` on .admin-page-introduction, which would
+// otherwise sandbox z-index and let later page content paint over it).
+// Same approach as NotificationBell's overlay.
+function HelpOverlayPortal({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- gate a portal behind mount
+  useEffect(() => setMounted(true), []);
+  return mounted ? createPortal(children, document.body) : null;
 }
 
 /** Shared page identity and optional help. Detail titles remain record-specific. */
@@ -40,28 +54,62 @@ export function PageHeader({
       : (guidance ?? (destination ? adminPageGuidance[destination.id] : undefined));
   const description = subtitle ?? (isRoot ? help?.description : undefined);
 
-  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpOpenPathname, setHelpOpenPathname] = useState(pathname);
+  const [panelPosition, setPanelPosition] = useState<{ top: number; right: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const node = detailsRef.current;
-    if (node) node.open = false;
-  }, [pathname]);
+  // Close the popover when navigating, without an Effect: adjust state
+  // during render when the route we opened it on has changed.
+  if (pathname !== helpOpenPathname) {
+    setHelpOpenPathname(pathname);
+    if (helpOpen) setHelpOpen(false);
+  }
 
-  useEffect(() => {
-    function closeOnOutsideOrEscape(event: MouseEvent | KeyboardEvent) {
-      const node = detailsRef.current;
-      if (!node || !node.open) return;
-      if (event.type === "keydown" && (event as KeyboardEvent).key !== "Escape") return;
-      if (event.type === "mousedown" && node.contains(event.target as Node)) return;
-      node.open = false;
-    }
-    document.addEventListener("mousedown", closeOnOutsideOrEscape);
-    document.addEventListener("keydown", closeOnOutsideOrEscape);
-    return () => {
-      document.removeEventListener("mousedown", closeOnOutsideOrEscape);
-      document.removeEventListener("keydown", closeOnOutsideOrEscape);
-    };
+  const closeHelp = useCallback((restoreFocus = false) => {
+    setHelpOpen(false);
+    if (restoreFocus) window.requestAnimationFrame(() => triggerRef.current?.focus());
   }, []);
+
+  const toggleHelp = () => {
+    if (!helpOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPanelPosition({
+        top: rect.bottom + 8,
+        right: Math.max(12, window.innerWidth - rect.right),
+      });
+    }
+    setHelpOpen((value) => !value);
+  };
+
+  useEffect(() => {
+    if (!helpOpen) return;
+    function onPointerDown(event: MouseEvent) {
+      const target = event.target as Node;
+      if (triggerRef.current?.contains(target) || panelRef.current?.contains(target)) return;
+      closeHelp();
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeHelp(true);
+      }
+    }
+    function onViewportChange() {
+      closeHelp();
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    window.addEventListener("resize", onViewportChange);
+    window.addEventListener("scroll", onViewportChange, true);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", onViewportChange);
+      window.removeEventListener("scroll", onViewportChange, true);
+    };
+  }, [helpOpen, closeHelp]);
 
   return (
     <div className="admin-page-introduction">
@@ -85,31 +133,61 @@ export function PageHeader({
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               {actions}
               {help && (
-                <details ref={detailsRef} className="admin-help">
-                  <summary className="admin-help-trigger" aria-label="How this page works">
+                <>
+                  <button
+                    ref={triggerRef}
+                    type="button"
+                    className="admin-help-trigger"
+                    aria-expanded={helpOpen}
+                    aria-haspopup="dialog"
+                    onClick={toggleHelp}
+                  >
                     <CircleHelp size={14} aria-hidden="true" />
                     <span>Help</span>
-                    <ChevronDown className="admin-help-chevron" size={12} aria-hidden="true" />
-                  </summary>
-                  <div className="admin-help-panel">
-                    <p className="font-semibold text-[var(--admin-ink)]">
-                      {destination?.label ?? title}
-                    </p>
-                    <ol className="mt-3 grid gap-3">
-                      {help.steps.map((step, index) => (
-                        <li key={step} className="flex items-start gap-3">
-                          <span className="admin-help-step" aria-hidden="true">
-                            {index + 1}
-                          </span>
-                          <span>{step}</span>
-                        </li>
-                      ))}
-                    </ol>
-                    <Link href={help.guideHref} className="admin-help-guide">
-                      Read the guide <ArrowUpRight size={14} aria-hidden="true" />
-                    </Link>
-                  </div>
-                </details>
+                    <ChevronDown
+                      className="admin-help-chevron"
+                      size={12}
+                      aria-hidden="true"
+                      style={{ transform: helpOpen ? "rotate(180deg)" : undefined }}
+                    />
+                  </button>
+                  <HelpOverlayPortal>
+                    <AnimatePresence>
+                      {helpOpen && panelPosition && (
+                        <motion.div
+                          ref={panelRef}
+                          role="dialog"
+                          aria-label={`How ${destination?.label ?? title} works`}
+                          className="admin-help-panel admin-overlay-token-scope"
+                          style={{ top: panelPosition.top, right: panelPosition.right }}
+                          initial={{ opacity: 0, y: -4, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -4, scale: 0.96 }}
+                          transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                        >
+                          <p className="admin-help-title">{destination?.label ?? title}</p>
+                          <ol className="admin-help-steps">
+                            {help.steps.map((step, index) => (
+                              <li key={step} className="admin-help-step-row">
+                                <span className="admin-help-step" aria-hidden="true">
+                                  {index + 1}
+                                </span>
+                                <span>{step}</span>
+                              </li>
+                            ))}
+                          </ol>
+                          <Link
+                            href={help.guideHref}
+                            className="admin-help-guide"
+                            onClick={() => closeHelp()}
+                          >
+                            Read the guide <ArrowUpRight size={14} aria-hidden="true" />
+                          </Link>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </HelpOverlayPortal>
+                </>
               )}
             </div>
           </div>
