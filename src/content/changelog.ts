@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "connected-client-demo",
     title: "Open clients and carry follow-ups into Work",
     description:
-      "Client rows and contact links have larger targets, demo search and status filters work, and saved follow-ups open in the task inspector. Timeline links preserve the exact related record. Follow-up failures retain the draft and show an error instead of disappearing silently.",
+      "Client rows and contact links have larger targets, demo search and status filters work, and saved follow-ups open in the task inspector. Mobile summaries are compact and shared status badges follow the current theme. Timeline links preserve the exact related record. Follow-up failures retain the draft and show an error instead of disappearing silently.",
     category: "fix",
     publishedAt: "2026-09-09",
   },

@@ -58,6 +58,11 @@ try {
       (count) => document.querySelectorAll("[data-client-row]").length === count,
       clients.filter((c) => c.status === "active").length,
     );
+    await page.getByRole("button", { name: "Show active clients" }).click();
+    assert.equal(
+      await page.getByRole("combobox", { name: "Filter by status" }).inputValue(),
+      "all",
+    );
     await page.getByRole("combobox", { name: "Filter by status" }).selectOption("all");
     await page.waitForFunction(
       (count) => document.querySelectorAll("[data-client-row]").length === count,

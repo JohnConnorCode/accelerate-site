@@ -116,7 +116,7 @@ export default function ClientsPage() {
       </div>
 
       {/* MRR Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-3 mb-6">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <AdminSurface padding="sm">
           <p className="admin-eyebrow">Monthly recurring</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
@@ -124,12 +124,20 @@ export default function ClientsPage() {
           </p>
         </AdminSurface>
         <AdminSurface padding="sm">
-          <p className="admin-eyebrow">Active clients</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-emerald-600 dark:text-emerald-300">
-            {activeCount}
-          </p>
+          <button
+            type="button"
+            aria-label="Show active clients"
+            aria-pressed={statusFilter === "active"}
+            onClick={() => setStatusFilter(statusFilter === "active" ? "all" : "active")}
+            className="min-h-11 w-full text-left focus-visible:outline focus-visible:outline-2"
+          >
+            <span className="admin-eyebrow">Active clients</span>
+            <span className="mt-1 block text-xl font-semibold tabular-nums text-[var(--admin-success)]">
+              {activeCount}
+            </span>
+          </button>
         </AdminSurface>
-        <AdminSurface padding="sm">
+        <AdminSurface padding="sm" className="hidden sm:block">
           <p className="admin-eyebrow">Average MRR / client</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
             ${activeCount > 0 ? Math.round(totalMRR / activeCount).toLocaleString() : "0"}
