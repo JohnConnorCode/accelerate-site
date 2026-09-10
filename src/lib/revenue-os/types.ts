@@ -106,6 +106,7 @@ export interface RevenueOpportunity {
 }
 
 export interface OperatorQueueItem {
+  ownerUserId?: string | null;
   /** Optional App-owned identity and attention category; no duplicate lifecycle. */
   attention?: import("./operator-attention").AttentionSource;
   id: string;

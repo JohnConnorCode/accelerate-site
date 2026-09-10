@@ -18,6 +18,8 @@
   "packageManager": "npm@10.9.2",
   "scripts": {
     "dev": "next dev",
+    "test:today-workspace": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-today-workspace.ts && node scripts/test-today-views-postgres.mjs",
+    "qa:today-workspace": "node scripts/qa-today-workspace.mjs",
     "build": "node scripts/resource-run.mjs node scripts/next-release.mjs build",
     "build:qa": "NEXT_DIST_DIR=.next-qa node scripts/resource-run.mjs node scripts/next-release.mjs build",
     "start": "node scripts/next-release.mjs start",

@@ -51,6 +51,15 @@ because it reaches a task endpoint.
 
 ## Shared attention and work
 
+The composable Today follow-up uses `today-snapshot.ts` over canonical queue,
+activity, WorkItem and App readers. Saved `today-views.ts` documents own only
+arrangement and preferences, with private member scope or administrator-managed
+workspace defaults. Muted watch items resurface when their exact evidence
+changes, and a persistent control exposes unfiltered attention. Business Pulse
+interpretations are separately labeled, evidence-bound and read-only. Page
+refresh never performs a model or provider operation. Legacy layout overrides
+seed the default arrangement; the workspace can return to classic Today.
+
 Today is an optional attention projection. Each contribution identifies its
 `sourceType`, `sourceId`, reason, related records and any relevant due date or
 severity. An attention category such as decision, work, watch or upcoming controls

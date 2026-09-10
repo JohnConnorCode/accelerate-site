@@ -4,6 +4,7 @@ import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { loadOperatorQueue } from "@/lib/revenue-os/queue";
 import { loadPipelineStages } from "@/lib/revenue-os/pipeline-stage-resolver";
 import { loadOperationalHealth } from "@/lib/revenue-os/health";
+import { pipelineMetrics } from "@/lib/revenue-os/pipeline-metrics";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -42,24 +43,7 @@ export async function GET() {
     if (firstError) throw firstError;
     const opportunities = opportunitiesResult.data ?? [];
     const stages = await loadPipelineStages(supabase, auth.tenant.id);
-    const isOpenStage = (rawStage: string) => {
-      const canonical = stages.canonicalStage(rawStage);
-      return canonical ? stages.role(canonical) === "open" : true;
-    };
-    const open = opportunities.filter((item) => isOpenStage(item.stage));
-    const pipelineValue = open.reduce((sum, item) => sum + Number(item.estimated_value || 0), 0);
-    // Uses each opportunity's own stored `probability` (kept in sync with its
-    // stage's configured probability by transitionOpportunity()) rather than
-    // re-deriving one from the stage name — the two used to be two
-    // independently hardcoded, disagreeing sources of truth.
-    const weightedValue = open.reduce(
-      (sum, item) =>
-        sum +
-        (Number(item.estimated_value || 0) *
-          Math.min(100, Math.max(0, Number(item.probability || 0)))) /
-          100,
-      0,
-    );
+    const metrics = pipelineMetrics(opportunities, stages);
     const wonRevenue = opportunities.reduce((sum, item) => sum + Number(item.won_value || 0), 0);
     const integrations = integrationResult.data ?? [];
 
@@ -67,9 +51,7 @@ export async function GET() {
       schemaReady: true,
       generatedAt: new Date().toISOString(),
       metrics: {
-        openOpportunities: open.length,
-        pipelineValue,
-        weightedValue: Math.round(weightedValue),
+        ...metrics,
         wonRevenue,
         unreadConversations: (conversationsResult.data ?? []).reduce(
           (sum, item) => sum + Number(item.unread_count || 0),

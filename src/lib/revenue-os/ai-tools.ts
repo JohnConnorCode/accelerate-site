@@ -1,4 +1,7 @@
 import { createHash } from "node:crypto";
+import { TODAY_TOOL_NAMES, todaySaveSchema } from "@/lib/admin/today-workspace";
+import { loadTodaySnapshot } from "./today-snapshot";
+import { readTodayViews, previewTodayViewChange, proposeTodayViewChange } from "./today-views";
 import { prepareRadarOutreachDraft } from "./radar-outreach-drafting";
 import {
   previewRadarOutreach,
@@ -490,6 +493,38 @@ const registry: AiToolRegistration[] = [
         grantsApproval: false,
       };
     },
+  },
+  {
+    name: "get_today_workspace",
+    description: "Read the business brief, source-backed attention, coworker progress and enabled App follow-up. Each source reports its own freshness and availability.",
+    inputSchema: z.toJSONSchema(z.object({}).strict()),
+    impact: "read", confirmationRequired: false, connectionRequirement: "none", serviceTarget: "revenue-os.today",
+    outputSchema: { type: "object" },
+    execute: async ({ supabase }) => loadTodaySnapshot(supabase),
+  },
+  {
+    name: "get_today_views",
+    description: "Read this member's private Today views and shared defaults with revision numbers. Read before preparing any layout or preference change.",
+    inputSchema: z.toJSONSchema(z.object({}).strict()),
+    impact: "read", confirmationRequired: false, connectionRequirement: "none", serviceTarget: "revenue-os.today-views",
+    outputSchema: { type: "object" },
+    execute: async ({ supabase }) => readTodayViews(supabase),
+  },
+  {
+    name: "preview_today_view_change",
+    description: "Preview a complete personal or shared Today view document. Preserve unrelated views/preferences. Use its current revision and a new UUID requestId. Supports adding, editing, deleting, duplicating, setting defaults, pins and muted findings. Does not save.",
+    inputSchema: z.toJSONSchema(todaySaveSchema),
+    impact: "read", confirmationRequired: false, connectionRequirement: "none", serviceTarget: "revenue-os.today-views",
+    outputSchema: { type: "object" },
+    execute: async ({ supabase }, input) => previewTodayViewChange(supabase, input),
+  },
+  {
+    name: "propose_today_view_change",
+    description: "Prepare the exact previewed Today view change for human approval. Supply unchanged change and digest; no save occurs before approval.",
+    inputSchema: z.toJSONSchema(z.object({ change: todaySaveSchema, digest: z.string().length(64) }).strict()),
+    impact: "internal_write", confirmationRequired: true, connectionRequirement: "none", serviceTarget: "revenue-os.today-views",
+    outputSchema: { type: "object" },
+    execute: async ({ supabase, actorEmail }, input) => proposeTodayViewChange(supabase, input, actorEmail),
   },
   {
     ...MODULE_CONTROL_TOOLS[0],
@@ -2433,6 +2468,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "reconcile_radar_model_call",
     ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
+    ...TODAY_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
     ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
@@ -2474,6 +2510,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   pipeline: [
     ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
+    ...TODAY_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,
     "get_today_snapshot",
     "search_pipeline",
@@ -2500,6 +2537,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   outreach: [
     ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
+    ...TODAY_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
     "get_today_snapshot",

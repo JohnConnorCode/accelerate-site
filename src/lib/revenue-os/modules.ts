@@ -64,6 +64,8 @@ export interface ModuleSettingField {
 }
 
 export interface RevenueOSModule {
+  /** Optional source-backed participation in the daily workspace. */
+  today?: { source: "collection_case" | "radar_opportunity"; href: string };
   /** Unique stable module key. */
   id: string;
   /** Human-readable module name. */
@@ -123,6 +125,10 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     routes: ["/admin/today", "/admin/work", "/admin/inbox", "/admin/activity"],
     aiToolNames: [
       "get_today_snapshot",
+      "get_today_workspace",
+      "get_today_views",
+      "preview_today_view_change",
+      "propose_today_view_change",
       "get_record_timeline",
       "get_pending_actions",
       "propose_task",

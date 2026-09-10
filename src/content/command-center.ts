@@ -321,7 +321,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "The web app",
     detail:
-      "Today separates decisions, tasks, watch signals and upcoming commitments. Work provides task filters and editing alongside the same approval inspector, with shared records across both views.",
+      "Arrange Today around a sourced business brief, decisions, commitments, coworker progress and enabled App follow-up. Save personal or shared views, inspect the context and prepare the next action. Empty modules offer useful starting points. Work keeps the same tasks and approvals available for editing.",
   },
   {
     id: "chat",

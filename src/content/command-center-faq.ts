@@ -29,7 +29,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How do Today and Work fit together?",
     answer:
-      "Today shows decisions, tasks, signals and upcoming context that deserve attention. Work lets you filter and edit tasks or review pending approvals. Both use the same saved records and approval service: editing a task keeps its status, snoozing postpones it, and completing it records the result. Custom Apps can keep their own domain workspaces and lifecycles.",
+      "Today is a customizable daily workspace: save personal or shared arrangements of your business brief, decisions, commitments, coworker progress and enabled App follow-up. It offers useful starting points even when there is little content. Work provides task editing and the same approvals. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
   },
   {
     question: "Can we build a completely different App or interface?",

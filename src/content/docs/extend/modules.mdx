@@ -36,6 +36,18 @@ Create `extensions/<your-module>.module.json`:
 
 Then create `src/app/admin/acme-inventory/page.tsx`, run `npm run build:extensions`, and commit both the manifest and `src/lib/revenue-os/extension-modules.generated.ts`.
 
+## Contribute existing App records to Today
+
+Collections and Radar declare a `today` object in their existing manifests, with
+a supported `source` and a native `href`. The builder checks that the route belongs
+to that module. Today includes only enabled contributions, reads bounded records
+through their existing domain services and isolates source failures.
+
+The current source adapters are `collection_case` and `radar_opportunity`.
+Adding another source requires a reviewed adapter in `today-snapshot.ts`,
+matching schema validation, tests and a shared demo fixture. A manifest cannot
+execute arbitrary code, fetch providers or define a new lifecycle by itself.
+
 `example-inventory.module.json` in that directory is a complete working example. It ships disabled.
 
 ## Rules that fail the build

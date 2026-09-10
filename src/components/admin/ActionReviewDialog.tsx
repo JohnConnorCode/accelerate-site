@@ -4,6 +4,8 @@ import { AdminDialog } from "./AdminDialog";
 import { ADMIN_LAYOUT_SCOPES } from "@/lib/admin/layout-scopes";
 import { relativeTime } from "@/lib/admin/work-presentation";
 import { cn } from "@/lib/utils";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
+import { TODAY_MODULES, type TodayDocument } from "@/lib/admin/today-workspace";
 
 export interface ActionRow {
   id: string;
@@ -24,6 +26,7 @@ export interface ActionRow {
  * before the button, not after.
  */
 const ACTION_CONSEQUENCE: Record<string, string> = {
+  today_view_change: "Saves the exact Today arrangement and preferences shown below. Business records are unchanged. Only the proposing member can approve it.",
   send_email: "Sends this email immediately. It cannot be recalled.",
   send_gmail_reply: "Sends this reply from your Gmail account immediately. It cannot be recalled.",
   activate_campaign:
@@ -119,6 +122,12 @@ export function ActionReviewDialog({
   onApprove: () => void;
   onReject: () => void;
 }) {
+  const isToday = action?.action_type === "today_view_change";
+  const todayPreview = useAdminQuery<{ before: TodayDocument; after: TodayDocument; change: { scope: string; revision: number } }>(
+    ["today-proposal", action?.id],
+    "/api/admin/revenue-os/today/views?proposal=" + encodeURIComponent(String(action?.payload?.digest || "")),
+    { enabled: Boolean(open && isToday), retry: false },
+  );
   if (!action) {
     return (
       <AdminDialog open={false} onClose={onClose} title="Review before approving">
@@ -213,6 +222,18 @@ export function ActionReviewDialog({
           </p>
         )}
         <div className="grid gap-4 px-5 py-5 sm:px-6">
+          {isToday && <section className="grid gap-3 text-xs text-[var(--admin-ink)]">
+            {todayPreview.isPending && <p>Loading the private exact preview…</p>}
+            {todayPreview.error && <p role="alert">{todayPreview.error.message} Only the proposing member can open this preview.</p>}
+            {todayPreview.data && <>
+              <p>Save for: {todayPreview.data.change.scope === "personal" ? "Just me" : "Everyone in this workspace"} · Expected revision {todayPreview.data.change.revision}</p>
+              {(["before", "after"] as const).map((phase) => <div key={phase} className="rounded-xl border border-[var(--admin-border)] p-3">
+                <h3 className="mb-2 font-semibold">{phase === "before" ? "Current arrangement" : "Exact new arrangement"}</h3>
+                {todayPreview.data![phase].views.map((view) => <p key={view.id} className="mb-2"><strong>{view.name}</strong> · {view.density}<br />{view.modules.map((m) => TODAY_MODULES.find((t) => t.id === m.type)?.name).join(" → ")}</p>)}
+                <details><summary className="cursor-pointer py-2">Inspect all settings and preferences</summary><pre className="overflow-auto whitespace-pre-wrap break-all text-[10px]">{JSON.stringify(todayPreview.data![phase], null, 2)}</pre></details>
+              </div>)}
+            </>}
+          </section>}
           {layoutSummary && (
             <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
               <div className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
@@ -244,7 +265,7 @@ export function ActionReviewDialog({
             </dl>
           )}
 
-          {!layoutSummary && fields.length > 0 && (
+          {!isToday && !layoutSummary && fields.length > 0 && (
             <dl className="grid gap-2 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-4 py-3">
               {fields.map(([key, value]) => (
                 <div key={key} className="grid gap-1 sm:grid-cols-[130px_1fr] sm:gap-3">
@@ -316,7 +337,7 @@ export function ActionReviewDialog({
             </button>
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || Boolean(isToday && !todayPreview.data)}
               onClick={onApprove}
               className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
             >

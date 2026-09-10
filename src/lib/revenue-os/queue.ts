@@ -112,7 +112,10 @@ export function operatorTaskRecordHref(task: {
   return "/admin/today";
 }
 
-export async function loadOperatorQueue(supabase: SupabaseClient): Promise<OperatorQueueItem[]> {
+export async function loadOperatorQueue(
+  supabase: SupabaseClient,
+  options?: { onSourceError: (source: string) => void },
+): Promise<OperatorQueueItem[]> {
   const nowDate = new Date();
   const now = nowDate.toISOString();
   const inFortyEightHours = new Date(nowDate.getTime() + 48 * 3_600_000).toISOString();
@@ -128,7 +131,7 @@ export async function loadOperatorQueue(supabase: SupabaseClient): Promise<Opera
       supabase
         .from("tasks")
         .select(
-          "id,title,description,priority,due_date,snoozed_until,related_type,related_id,opportunity_id,source,created_at",
+          "id,title,description,priority,due_date,snoozed_until,related_type,related_id,opportunity_id,source,created_at,assigned_to",
         )
         .in("status", ["pending", "snoozed"])
         .lte("due_date", inSevenDays.slice(0, 10))
@@ -159,7 +162,11 @@ export async function loadOperatorQueue(supabase: SupabaseClient): Promise<Opera
         .eq("status", "stopped")
         .eq("stop_reason", "send_failed_requires_reconciliation")
         .limit(30),
-      loadOperationalHealth(supabase),
+      loadOperationalHealth(supabase).catch((error) => {
+        if (!options) throw error;
+        options.onSourceError("Connection health");
+        return { concerns: [] };
+      }),
     ]);
   const firstError = [
     actions.error,
@@ -169,7 +176,12 @@ export async function loadOperatorQueue(supabase: SupabaseClient): Promise<Opera
     meetings.error,
     campaignExceptions.error,
   ].find(Boolean);
-  if (firstError) throw new Error(firstError.message);
+  if (firstError && !options) throw new Error(firstError.message);
+  if (options) {
+    [actions, tasks, conversations, proposals, meetings, campaignExceptions].forEach((result, index) => {
+      if (result.error) options.onSourceError(["Approvals", "Tasks", "Conversations", "Proposals", "Calendar", "Campaigns"][index]!);
+    });
+  }
 
   const items: OperatorQueueItem[] = [];
   for (const action of actions.data ?? [])
@@ -195,6 +207,7 @@ export async function loadOperatorQueue(supabase: SupabaseClient): Promise<Opera
     );
     items.push({
       id: `task:${task.id}`,
+      ownerUserId: task.assigned_to,
       kind: task.related_type === "lead" ? "follow_up" : presentation.kind,
       title: task.title,
       summary: task.description || "An operator task is due.",

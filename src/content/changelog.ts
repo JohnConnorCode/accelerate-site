@@ -2,6 +2,14 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "today-composable-workspace",
+    slug: "today-composable-workspace",
+    title: "Make Today fit the way you work",
+    description: "Save personal and shared Today views with a sourced business brief, contextual work, coworker outcomes and enabled App follow-up. Arrange modules, filter attention, pin priorities and inspect source records before acting. Sparse and empty states offer useful starting points. Live refresh holds content during interaction; optional AI interpretations use existing budgets and current supporting evidence.",
+    category: "feature",
+    publishedAt: "2026-09-09",
+  },
+  {
     id: "demo-layout-settings-read",
     slug: "demo-layout-settings-read",
     title: "Inspect default layout settings in fictional workspaces",
