@@ -19,7 +19,7 @@ async function digest(value: unknown) {
     .map((x) => x.toString(16).padStart(2, "0"))
     .join("");
 }
-function seed(pack: DemoScenarioPack, state: DemoBusinessState) {
+export function seedDemoCollections(pack: DemoScenarioPack, state: DemoBusinessState) {
   if (state.collections) return state.collections;
   state.collections = Array.from({ length: 6 }, (_, i) => {
     const person = pack.people[i]!,
@@ -146,7 +146,7 @@ export async function handleDemoCollections(
     .max(720)
     .parse(getModuleSettings("receivables-collections", moduleSettings).cooldownHours);
   const initialized = Boolean(state.collections);
-  const cases = seed(pack, state);
+  const cases = seedDemoCollections(pack, state);
   if (!initialized) save();
   const enabled = () => {
     if (!modules["receivables-collections"] || !modules["stripe-invoicing"])

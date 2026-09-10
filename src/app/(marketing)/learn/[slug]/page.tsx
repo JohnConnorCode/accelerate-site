@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 export const revalidate = 3600;
 
 import type { Metadata } from "next";
@@ -107,6 +108,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const published = await publishedWebsiteMetadata(`/learn/${slug}`);
+  if (published) return published;
   const article = getArticleBySlug(slug);
   if (!article) return { title: "Article Not Found" };
 
@@ -134,6 +137,8 @@ export async function generateMetadata({
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const published = await publishedWebsiteOverride(`/learn/${slug}`);
+  if (published) return published;
   const article = getArticleBySlug(slug);
   if (!article) notFound();
 

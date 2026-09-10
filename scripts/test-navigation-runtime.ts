@@ -561,7 +561,8 @@ for (const file of adminPageFiles) {
 }
 
 const coreAdminPages = [
-  "src/app/admin/today/page.tsx",
+  "src/components/admin/TodayWorkspace.tsx",
+  "src/components/admin/LegacyToday.tsx",
   "src/app/admin/pipeline/page.tsx",
   "src/app/admin/conversations/page.tsx",
   "src/app/admin/analytics/page.tsx",
@@ -592,7 +593,9 @@ for (const file of coreAdminPages) {
   );
 }
 
-const today = readFileSync("src/app/admin/today/page.tsx", "utf8");
+const today =
+  readFileSync("src/components/admin/TodayWorkspace.tsx", "utf8") +
+  readFileSync("src/components/admin/LegacyToday.tsx", "utf8");
 const notifications = readFileSync("src/components/admin/NotificationBell.tsx", "utf8");
 const aiChat = readFileSync("src/components/admin/AdminAIChat.tsx", "utf8");
 const aiCommand = readFileSync("src/components/admin/RevenueAICommand.tsx", "utf8");

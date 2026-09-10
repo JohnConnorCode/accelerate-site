@@ -26,6 +26,7 @@ import type { InvoiceDocumentData, InvoiceDesign } from "@/components/business/I
 import { REVENUE_OS_MODULES, type ModuleSettingsConfig } from "@/lib/revenue-os/modules";
 
 export const DEMO_BUSINESS_MODULES = {
+  "site-studio": true,
   "opportunity-radar": true,
   "receivables-collections": true,
   "stripe-invoicing": true,

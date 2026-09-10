@@ -25,6 +25,10 @@ try {
           waitUntil: "networkidle",
         });
         await page.waitForFunction(() => Boolean(window.__accelerateAdminDemoRuntime));
+        if (route === "today") {
+          await page.locator("[data-today-module=brief]").waitFor();
+          await page.getByRole("button", { name: /decisions & urgent items/ }).click();
+        }
       };
       const settleInspector = () =>
         page.waitForFunction(() => {
@@ -49,15 +53,15 @@ try {
           { path, body },
         );
       await go("today");
-      await page.locator("[data-attention-kind=work]").waitFor();
-      for (const title of ["Needs your decision", "Your work", "Watch", "Upcoming"])
-        await page.getByRole("heading", { name: title, exact: true }).waitFor();
+      await page.locator("[data-attention-kind=work]").first().waitFor();
+      for (const todayModule of ["brief", "attention", "handling", "upcoming"])
+        await page.locator(`[data-today-module="${todayModule}"]`).waitFor();
       const read = await request("/api/admin/tasks?status=pending");
       assert.equal(read.status, 200);
       const task = read.data.tasks.find((t) => t.source === "manual");
       assert.ok(task);
       await go("work");
-      await page.getByRole("heading", { name: "Work", exact: true }).waitFor();
+      await page.getByRole("heading", { name: "Tasks & approvals", exact: true }).waitFor();
       const taskRow = page.locator(`[data-source-type=task][data-source-id="${task.id}"]`);
       await taskRow.getByRole("button").first().click();
       const inspector = page.getByRole("dialog", { name: "Task details" });
@@ -71,9 +75,19 @@ try {
       assert.equal(saved.title, "Reviewed task for shared work");
       assert.equal(saved.status, "pending");
       await go("today");
-      const attentionTask = page.locator(`[data-source-type=task][data-source-id="${task.id}"]`);
+      const attentionTask = page
+        .locator("[data-today-module=attention]")
+        .locator(`[data-source-type=task][data-source-id="${task.id}"]`);
       await attentionTask.getByText(saved.title, { exact: true }).waitFor();
-      await attentionTask.getByRole("button", { name: /Snooze/ }).click();
+      await attentionTask
+        .getByRole("button", { name: "Inspect " + saved.title, exact: true })
+        .click();
+      const workContext = page.getByRole("dialog", { name: "Work context", exact: true });
+      await workContext
+        .getByLabel("Snooze until", { exact: true })
+        .fill(new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10));
+      await workContext.getByRole("button", { name: "Save new date", exact: true }).click();
+      await workContext.waitFor({ state: "hidden" });
       await attentionTask.waitFor({ state: "hidden" });
       saved = (await request(`/api/admin/tasks?id=${task.id}`)).data.tasks[0];
       assert.equal(saved.status, "snoozed");
@@ -98,15 +112,30 @@ try {
         (a) => a.status === "pending",
       );
       assert.ok(approval);
-      const approvalRow = page.locator(
-        `[data-source-type=approval][data-source-id="${approval.id}"]`,
-      );
+      const approvalRow = page
+        .locator("[data-today-module=attention]")
+        .locator(`[data-source-type=approval][data-source-id="${approval.id}"]`);
       assert.equal(await approvalRow.count(), 1, "One approval projection in Today");
-      await approvalRow.locator("[data-approval-review]").click();
+      const reviewNavigation = (url) =>
+        url.pathname.endsWith("/today") && url.searchParams.has("action");
+      await page.route(reviewNavigation, async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await route.continue();
+      });
+      await approvalRow
+        .getByRole("button", { name: "Review " + approval.title, exact: true })
+        .click();
       let review = page.getByRole("dialog", { name: approval.title, exact: true });
       await review.waitFor();
       await page.keyboard.press("Escape");
       await review.waitFor({ state: "hidden" });
+      await page.waitForTimeout(750);
+      assert.equal(
+        await review.isVisible(),
+        false,
+        "A delayed URL transition must not reopen a dismissed approval",
+      );
+      await page.unroute(reviewNavigation);
       await go("work?tab=approvals");
       await page
         .locator(`[data-source-type=approval][data-source-id="${approval.id}"]`)
@@ -135,7 +164,10 @@ try {
       for (const route of ["today", "work"]) {
         await go(route);
         await page
-          .getByRole("heading", { name: route === "today" ? "Today" : "Work", exact: true })
+          .getByRole("heading", {
+            name: route === "today" ? "Today" : "Tasks & approvals",
+            exact: true,
+          })
           .waitFor();
         assert.equal(
           await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),

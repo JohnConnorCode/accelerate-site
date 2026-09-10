@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+import { homeSystemsContent, homeCommandCenterContent } from "../src/content/site-studio/home";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -35,11 +36,17 @@ assert.match(marketingPositioning.commandCenter.description, /For some businesse
 assert.match(marketingPositioning.commandCenter.description, /For others/i);
 
 const systems = readFileSync("src/components/home/Systems.tsx", "utf8");
-assert.match(systems, /marketingPositioning\.engagementModes/);
+assert.deepEqual(
+  homeSystemsContent.modes,
+  marketingPositioning.engagementModes,
+  "Bundled homepage keeps all approved engagement content",
+);
+assert.match(systems, /homeSystemsContent/);
 assert.doesNotMatch(systems, /href:\s*["']\/command-center/);
 
 const commandCenter = readFileSync("src/components/home/CommandCenter.tsx", "utf8");
-assert.match(commandCenter, /marketingPositioning\.commandCenter\.description/);
+assert.equal(homeCommandCenterContent.body, marketingPositioning.commandCenter.description);
+assert.match(commandCenter, /homeCommandCenterContent/);
 
 const assistantPrompt = readFileSync("src/lib/chat/system-prompt.ts", "utf8");
 assert.match(assistantPrompt, /marketingPositioning\.coreOffer/);
@@ -60,6 +67,7 @@ function withoutComments(source: string): string {
 
 const scopedFiles = [
   ...walk(join(ROOT, "src/components/home")),
+  ...walk(join(ROOT, "src/content/site-studio")),
   ...[
     "src/components/sections/ServicesPage.tsx",
     "src/components/sections/AboutPage.tsx",

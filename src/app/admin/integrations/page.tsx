@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
@@ -696,8 +698,8 @@ export default function IntegrationsPage() {
   return (
     <div className="space-y-7 pb-10">
       <PageHeader
-        title="Integrations & Modules"
-        subtitle="One unified management console for providers, AI agents, and pluggable business capabilities."
+        title={adminPageName("integrations")}
+        subtitle="Manage connected services and the business tools available in your workspace."
         actions={
           <>
             <Link

@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { FormEvent, useCallback, useState } from "react";
 import {
   ArrowRight,
@@ -197,8 +199,8 @@ export default function RecoveryPage() {
   return (
     <div className="space-y-7 pb-10">
       <PageHeader
-        title="Revenue Recovery"
-        subtitle="Turn reviewed past relationships into governed, attributable opportunities. No email leaves until you approve an exact playbook version."
+        title={adminPageName("recovery")}
+        subtitle="Reconnect with past enquiries and customers who may be ready for a follow-up."
         actions={
           <button
             type="button"

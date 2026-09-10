@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
@@ -69,7 +71,7 @@ export default function ResourcesPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Resource Downloads" />
+        <PageHeader title={adminPageName("resources")} />
         <LoadingSkeleton variant="page" />
       </div>
     );
@@ -77,7 +79,7 @@ export default function ResourcesPage() {
 
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <PageHeader title="Resource Downloads" subtitle={`${total} total downloads`} />
+      <PageHeader title={adminPageName("resources")} subtitle={`${total} total downloads`} />
 
       <div className="grid gap-4 sm:grid-cols-2 mb-6">
         <StatCard label="Total Downloads" value={stats.totalDownloads} icon={Download} index={0} />

@@ -125,6 +125,16 @@ function fail(file, message) {
 }
 
 function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
+  if (manifest.today) {
+    if (!["collection_case", "radar_opportunity"].includes(manifest.today.source))
+      fail(file, "Today contributions require a supported host source adapter");
+    if (
+      !manifest.routes?.some(
+        (route) => manifest.today.href === route || manifest.today.href.startsWith(route + "/"),
+      )
+    )
+      fail(file, "Today destination must belong to the App");
+  }
   for (const message of pluginHistoryFailures(repoRoot, manifest)) fail(file, message);
   for (const message of pluginDocumentationFailures(repoRoot, manifest)) fail(file, message);
   const req = ["id", "name", "description", "category", "defaultEnabled", "navLinks"];
@@ -416,6 +426,7 @@ const modules = manifests.map((manifest) => ({
   ...(manifest.settings?.length ? { settings: manifest.settings } : {}),
   ...(manifest.settingsContract ? { settingsContract: manifest.settingsContract } : {}),
   ...(manifest.report ? { report: manifest.report } : {}),
+  ...(manifest.today ? { today: manifest.today } : {}),
   ...(manifest.workflow ? { workflow: manifest.workflow } : {}),
 }));
 

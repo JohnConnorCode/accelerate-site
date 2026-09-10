@@ -2,26 +2,28 @@ import { cn } from "@/lib/utils";
 
 const statusColorMap: Record<string, string> = {
   // Lead statuses
-  new: "bg-blue-500/20 text-blue-300",
-  contacted: "bg-yellow-500/20 text-yellow-300",
-  qualified: "bg-green-500/20 text-green-300",
-  proposal: "bg-purple-500/20 text-purple-300",
-  won: "bg-emerald-500/20 text-emerald-300",
-  lost: "bg-red-500/20 text-red-300",
+  new: "bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]",
+  contacted: "bg-[var(--admin-warning-soft)] text-[var(--admin-warning)]",
+  qualified: "bg-[var(--admin-success-soft)] text-[var(--admin-success)]",
+  proposal: "bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]",
+  won: "bg-[var(--admin-success-soft)] text-[var(--admin-success)]",
+  lost: "bg-[var(--admin-danger-soft)] text-[var(--admin-danger)]",
   // Partner / email sequence statuses
-  pending: "bg-yellow-500/20 text-yellow-300",
-  approved: "bg-emerald-500/20 text-emerald-300",
-  declined: "bg-red-500/20 text-red-300",
-  active: "bg-emerald-500/20 text-emerald-300",
-  completed: "bg-blue-500/20 text-blue-300",
-  paused: "bg-yellow-500/20 text-yellow-300",
-  unsubscribed: "bg-red-500/20 text-red-300",
+  pending: "bg-[var(--admin-warning-soft)] text-[var(--admin-warning)]",
+  approved: "bg-[var(--admin-success-soft)] text-[var(--admin-success)]",
+  declined: "bg-[var(--admin-danger-soft)] text-[var(--admin-danger)]",
+  onboarding: "bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]",
+  churned: "bg-[var(--admin-danger-soft)] text-[var(--admin-danger)]",
+  active: "bg-[var(--admin-success-soft)] text-[var(--admin-success)]",
+  completed: "bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]",
+  paused: "bg-[var(--admin-warning-soft)] text-[var(--admin-warning)]",
+  unsubscribed: "bg-[var(--admin-danger-soft)] text-[var(--admin-danger)]",
   // Content statuses
-  idea: "bg-slate-500/20 text-slate-300",
-  outline: "bg-blue-500/20 text-blue-300",
-  draft: "bg-yellow-500/20 text-yellow-300",
-  review: "bg-purple-500/20 text-purple-300",
-  published: "bg-emerald-500/20 text-emerald-300",
+  idea: "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]",
+  outline: "bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]",
+  draft: "bg-[var(--admin-warning-soft)] text-[var(--admin-warning)]",
+  review: "bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]",
+  published: "bg-[var(--admin-success-soft)] text-[var(--admin-success)]",
 };
 
 interface StatusBadgeProps {
@@ -34,7 +36,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
-        statusColorMap[status] || "bg-white/10 text-white-secondary",
+        statusColorMap[status] || "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]",
         className,
       )}
     >

@@ -2,6 +2,87 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "today-composable-workspace",
+    slug: "today-composable-workspace",
+    title: "Make Today fit the way you work",
+    description:
+      "Save personal and shared Today views with a sourced business brief, contextual work, coworker outcomes and enabled App follow-up. Arrange modules, filter attention, pin priorities and inspect source records before acting. Sparse and empty states offer useful starting points. Live refresh holds content during interaction; optional AI interpretations use existing budgets and current supporting evidence.",
+    category: "feature",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "connected-client-demo",
+    slug: "connected-client-demo",
+    title: "Open clients and carry follow-ups into Work",
+    description:
+      "Client rows and contact links have larger targets, demo search and status filters work, and saved follow-ups open in the task inspector. Mobile summaries are compact and shared status badges follow the current theme. Timeline links preserve the exact related record. Follow-up failures retain the draft and show an error instead of disappearing silently.",
+    category: "fix",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "material-and-macos-appearances",
+    slug: "material-and-macos-appearances",
+    title: "Choose Material 2026 or macOS in Command Center",
+    description:
+      "Two refined workspace appearances are now available from the Appearance control. Material 2026 uses expressive blue tonal layers and generous geometry; macOS uses quiet translucent surfaces and familiar desktop accents. Both preserve the same responsive behavior, accessibility, and per-demo preference isolation as every other appearance.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "clearer-core-admin",
+    slug: "clearer-core-admin",
+    title: "Navigate a clearer, more responsive Command Center",
+    description:
+      "Core admin navigation now uses task-based names, each destination explains its purpose and offers concise in-context guidance, and the sidebar responds smoothly while keeping your open groups in place. Errors provide a practical recovery step before optional details.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "demo-marketing-contact-review",
+    slug: "demo-marketing-contact-review",
+    title: "Explore the business demos and clearer contact reviews",
+    description:
+      "The demo launcher now introduces Command Center with an interactive inquiry-to-result illustration and six business workspaces. Contact review explains matching decisions in plain language, preserves its heading during loading and errors, and no longer displays a setup warning after a successful read. Shared setup messages explain the next step without database instructions.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "appearance-cross-tab-persistence",
+    slug: "appearance-cross-tab-persistence",
+    title: "Keep demo tabs from resetting your workspace appearance",
+    description:
+      "An open demo could immediately overwrite a theme selected in the live workspace. Demo businesses now use separate theme preferences, and their saved appearance is restored only when entering that business. Changing an appearance no longer restarts the demo runtime.",
+    category: "fix",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "website-authoring-model-choice",
+    slug: "website-authoring-model-choice",
+    title: "Create and edit website pages with a choice of AI models",
+    description:
+      "Installation owners can create and clone pages, review AI copy or layout suggestions, undo edits, preview phone and desktop widths, and explicitly publish or roll back saved revisions. Muse Spark 1.3 is the default. A refreshable model catalogue offers current recommendations, search, provider/cost filters and price sorting, with explicit price ceilings. Shared content, image references, collections and portable snapshots use the same versioned website document. The Work board moves advanced filters and saved views into a compact dialog. Existing source pages retain their layouts until deliberately replaced; automatic import of all existing page content remains separate work.",
+    category: "improvement",
+    publishedAt: "2026-09-09",
+  },
+  {
+    id: "installation-website-private-editor",
+    slug: "installation-website-private-editor",
+    title: "Edit a private installation website draft",
+    description:
+      "Installation owners can edit homepage content, save versioned drafts, open the saved preview, and import or export a portable content snapshot. Interrupted saves reuse their request and stale saves preserve local fields. The shared fictional demo and user guide include save, recovery and fork examples. Public publishing and the remaining site migration are not part of this draft editor yet.",
+    category: "improvement",
+    publishedAt: "2026-09-08",
+  },
+  {
+    id: "homepage-reduced-motion-headline",
+    slug: "homepage-reduced-motion-headline",
+    title: "Read the complete homepage headline with reduced motion",
+    description:
+      "The homepage shows the full headline immediately when your device requests reduced motion. The highlighted phrase no longer waits for the scramble animation, and the usual animation remains available for other visitors.",
+    category: "fix",
+    publishedAt: "2026-09-08",
+  },
+  {
     id: "demo-layout-settings-read",
     slug: "demo-layout-settings-read",
     title: "Inspect default layout settings in fictional workspaces",

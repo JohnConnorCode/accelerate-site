@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { campaignDuplicateOptions } from "@/lib/revenue-os/campaign-duplicate-contract";
 import { tenant } from "@/config/tenant";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
@@ -260,8 +262,8 @@ export default function CampaignsPage() {
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
-        title="Campaigns"
-        subtitle="Approve a campaign version once, then let controlled automation run inside its sender, audience, cadence, limit, and stop rules."
+        title={adminPageName("campaigns")}
+        subtitle="Prepare outreach campaigns, review recipients, and track their progress."
         actions={
           <>
             <button

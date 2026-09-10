@@ -7,7 +7,7 @@ import { registerCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
-import { tryCoworkerAgentTask as tryAiExecution } from "./coworker-agent";
+import { generateTodayBrief } from "./today-brief";
 
 // ---------------------------------------------------------------------------
 // Business Pulse Coworker (northstar Phase E, priority 1)
@@ -119,7 +119,7 @@ export async function createDailyDigestWork(
     dedupeKey: `pulse:digest:${today}`,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
-    surfaceInInbox: true,
+    surfaceInInbox: false,
   });
 }
 
@@ -179,82 +179,8 @@ export async function createDetectVelocityChangeWork(
 // ---------------------------------------------------------------------------
 
 const dailyDigestHandler: WorkKindHandler = async (supabase, wi, signal) => {
-  // AI-first: let the model produce an interpreted pipeline summary.
-  const aiResult = await tryAiExecution(supabase, wi, signal);
-  if (aiResult) {
-    if (aiResult.status !== "completed") return aiResult;
-    await storeAgentMemory(supabase, {
-      coworkerId: BUSINESS_PULSE_COWORKER_ID,
-      category: "prior_work",
-      subject: "daily_digest: AI judgment",
-      body: aiResult.outcome,
-      relevanceHorizon: "daily",
-    }).catch(() => {});
-    return aiResult;
-  }
-
-  // Deterministic fallback.
-  // Count opportunities by stage.
-  const { data: opportunities } = await supabase
-    .from("opportunities")
-    .select("stage, probability, created_at, updated_at")
-    .not("stage", "in", '("won","lost")');
-
-  const byStage: Record<string, number> = {};
-  let totalActive = 0;
-  let weightedPipeline = 0;
-  for (const opp of opportunities ?? []) {
-    byStage[opp.stage] = (byStage[opp.stage] ?? 0) + 1;
-    totalActive++;
-    weightedPipeline += (opp.probability ?? 0) / 100;
-  }
-
-  // Count stale (no update in 7+ days).
-  const staleThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const staleCount = (opportunities ?? []).filter((o) => o.updated_at < staleThreshold).length;
-
-  // Count new this week.
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { count: newThisWeek } = await supabase
-    .from("opportunities")
-    .select("*", { count: "exact", head: true })
-    .gte("created_at", weekAgo);
-
-  // Count pending actions.
-  const { count: pendingActions } = await supabase
-    .from("action_queue")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "pending");
-
-  const digest = [
-    `Active pipeline: ${totalActive} opportunities`,
-    `Weighted pipeline value: ${weightedPipeline.toFixed(1)} units`,
-    `By stage: ${Object.entries(byStage)
-      .map(([s, c]) => `${s}=${c}`)
-      .join(", ")}`,
-    `New this week: ${newThisWeek ?? 0}`,
-    `Stale (7+ days): ${staleCount}`,
-    `Pending actions: ${pendingActions ?? 0}`,
-  ].join(" | ");
-
-  await recordAudit(supabase, {
-    actorEmail: "system",
-    action: "business_pulse.daily_digest",
-    entityType: "work_engine",
-    entityId: "daily_digest",
-    source: "automation",
-    after: { totalActive, weightedPipeline, staleCount, newThisWeek, pendingActions, byStage },
-  });
-
-  await storeAgentMemory(supabase, {
-    coworkerId: BUSINESS_PULSE_COWORKER_ID,
-    category: "prior_work",
-    subject: "daily_digest: pipeline summary",
-    body: digest,
-    relevanceHorizon: "daily",
-  }).catch(() => {});
-
-  return { status: "completed", outcome: digest };
+  const brief = await generateTodayBrief(supabase, wi, signal);
+  return { status: "completed", outcome: JSON.stringify(brief) };
 };
 
 const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {

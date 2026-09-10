@@ -2,9 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { homeStatementContent } from "@/content/site-studio/home";
+import type { HomeStatementContent } from "@/lib/site-studio/native-templates";
 
 /** The original hero explanation, held for the next scroll beat. */
-export function HeroStatement() {
+export function HeroStatement({
+  content = homeStatementContent,
+}: {
+  content?: HomeStatementContent;
+}) {
   const ref = useRef<HTMLElement>(null);
   const [revealed, setRevealed] = useState(false);
 
@@ -31,26 +37,22 @@ export function HeroStatement() {
     <section ref={ref} className={`hero-statement${revealed ? " is-revealed" : ""}`}>
       <div className="wrap hero-statement-layout">
         <div className="hero-statement-aside">
-          <p className="label">Built around your business</p>
+          <p className="label">{content.eyebrow}</p>
           <nav aria-label="Explore the homepage" className="home-section-links">
-            <Link href="#systems">
-              How we help <span aria-hidden="true">↓</span>
+            <Link href={content.systemsHref}>
+              {content.systemsLabel} <span aria-hidden="true">↓</span>
             </Link>
-            <Link href="#selected-work">
-              See our work <span aria-hidden="true">↓</span>
+            <Link href={content.workHref}>
+              {content.workLabel} <span aria-hidden="true">↓</span>
             </Link>
-            <Link href="#command-center">
-              Explore Command Center <span aria-hidden="true">↓</span>
+            <Link href={content.productHref}>
+              {content.productLabel} <span aria-hidden="true">↓</span>
             </Link>
           </nav>
         </div>
         <div>
-          <p className="hero-statement-copy">We start with the work your team does every day.</p>
-          <p className="hero-statement-detail">
-            We identify where work is slow or revenue is missed, then build and improve the smallest
-            useful system. That can include CRM connections, voice-to-text workflows, or better
-            inquiry capture.
-          </p>
+          <p className="hero-statement-copy">{content.heading}</p>
+          <p className="hero-statement-detail">{content.body}</p>
         </div>
       </div>
     </section>

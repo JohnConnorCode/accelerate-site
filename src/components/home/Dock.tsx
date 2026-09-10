@@ -20,11 +20,15 @@ import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
  * Mobile: full-bleed bottom bar (native tab-bar language). Desktop: centered
  * pill so it does not interrupt the editorial layout.
  */
-export function Dock() {
+import { websiteDockContent } from "@/content/site-studio/shared";
+import type { WebsiteDock } from "@/lib/site-studio/website-chrome";
+
+export function Dock({ content = websiteDockContent }: { content?: WebsiteDock }) {
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
   const hiddenRoute =
+    !content.visible ||
     isApplicationWorkspace(pathname) ||
     pathname.startsWith("/contact") ||
     pathname.startsWith("/command-center");
@@ -74,18 +78,18 @@ export function Dock() {
         >
           <div className="flex min-w-0 flex-col gap-0.5 leading-tight">
             <b className="font-display text-[13.5px] font-medium tracking-[-0.01em] text-[var(--paper)]">
-              Free 30-minute strategy session
+              {content.heading}
             </b>
             <span className="font-mono text-[9.5px] uppercase tracking-[0.13em] text-[rgba(251,251,250,0.5)]">
-              You leave with a written plan
+              {content.detail}
             </span>
           </div>
           <Link
-            href="/contact"
+            href={content.ctaHref}
             onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "dock" })}
             className="btn btn-inv shrink-0 whitespace-nowrap !px-5 !py-3 !text-[10px]"
           >
-            Book{" "}
+            {content.ctaLabel}{" "}
             <span className="arw" aria-hidden="true">
               →
             </span>

@@ -1,14 +1,17 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { seoMetadata } from "@/lib/og";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Terms of Service",
   description:
     "Accelerate terms of service. Review the terms and conditions for using our AI-powered business solutions.",
   path: "/terms",
 });
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const published = await publishedWebsiteOverride("/terms");
+  if (published) return published;
   return (
     <div className="py-20 md:py-28">
       <AnimateOnScroll className="max-w-3xl mx-auto px-4 sm:px-6">
@@ -98,4 +101,8 @@ export default function TermsPage() {
       </AnimateOnScroll>
     </div>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/terms")) ?? bundledMetadata;
 }

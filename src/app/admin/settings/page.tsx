@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useEffect, useState, useCallback } from "react";
 import {
   Key,
@@ -211,7 +213,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Settings" />
+        <PageHeader title={adminPageName("settings")} />
         <LoadingSkeleton variant="page" />
       </div>
     );
@@ -220,8 +222,8 @@ export default function SettingsPage() {
   return (
     <div>
       <PageHeader
-        title="Settings"
-        subtitle="Control notification preferences and the configuration that powers the operating system."
+        title={adminPageName("settings")}
+        subtitle="Adjust workspace preferences and how your team uses Command Center."
       />
 
       <div className="space-y-6">

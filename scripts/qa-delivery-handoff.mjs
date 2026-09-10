@@ -20,6 +20,10 @@ try {
       page.on("pageerror", (e) => errors.push(e.message));
       await page.goto(`${base}/demo/command-center/${scenario}/pipeline`, { timeout: 60000 });
       await page.getByRole("heading", { name: "Pipeline", exact: true }).waitFor();
+      await page.waitForFunction(
+        (expected) => window.__accelerateAdminDemoRuntime === expected,
+        scenario,
+      );
       const id = await page.evaluate(async () => {
         const x = await (await fetch("/api/admin/revenue-os/pipeline")).json();
         return x.opportunities.find((o) => o.canonical_stage === "won").id;

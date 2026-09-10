@@ -1,7 +1,23 @@
+import { SITE_STUDIO_MODELS, SITE_MODELS_OBSERVED_AT } from "@/lib/site-studio/models";
+import {
+  createDemoWebsiteState,
+  handleDemoWebsite,
+  demoWebsiteSuggestion,
+  type DemoWebsiteState,
+} from "./website-runtime";
 import {
   SEED_DEFAULT_MILESTONES,
   handoffRequestSchema,
 } from "@/lib/revenue-os/delivery-handoff-contract";
+import {
+  TODAY_TOOL_NAMES,
+  defaultTodayViews,
+  todaySaveSchema,
+  type TodayViews,
+} from "@/lib/admin/today-workspace";
+import { todayFacts, type TodaySnapshot, type TodayRegion } from "@/lib/admin/today-data";
+import { projectOperatorAttention } from "@/lib/revenue-os/operator-attention";
+import type { OperatorQueueItem } from "@/lib/revenue-os/types";
 import type { HandoffReceipt } from "@/lib/revenue-os/delivery-handoff";
 import {
   campaignDraftCopy,
@@ -12,7 +28,8 @@ import {
   type OperatorTaskPatchInput,
 } from "@/lib/revenue-os/operator-task-patch";
 import { requireReopenEligibility } from "@/lib/revenue-os/pipeline-transition-policy";
-import { demoRadarProfile } from "./radar-fixtures";
+import { demoRadarProfile, seedRadar } from "./radar-fixtures";
+import { seedDemoCollections } from "./collections-runtime";
 import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
 import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
@@ -85,6 +102,9 @@ type DemoEmailStudioDetail = {
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
 export type DemoState = {
+  website?: DemoWebsiteState;
+  todayViews?: TodayViews;
+  todayViewReceipts?: Record<string, { fingerprint: string; result: unknown }>;
   deliveryHandoffs?: Record<
     string,
     {
@@ -117,6 +137,21 @@ export type DemoState = {
   completedActions: string[];
   completedTasks: string[];
   taskOverrides: Record<string, Partial<OperatorTaskPatchInput> & { completed_at?: string | null }>;
+  manualTasks?: Array<{
+    id: string;
+    title: string;
+    status: string;
+    priority: string;
+    due_date: string | null;
+    description: string | null;
+    snoozed_until: string | null;
+    completed_at: string | null;
+    assigned_to: string | null;
+    source: string;
+    related_name: string;
+    related_id: string;
+    related_type: string;
+  }>;
   stageOverrides: Record<string, string>;
   opportunityOrder: Record<string, number>;
   contentOverrides: Record<string, Record<string, unknown>>;
@@ -310,7 +345,11 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
       related_type: "client",
     })),
   );
-  return [...base, ...delivery];
+  return [
+    ...base,
+    ...delivery,
+    ...(state.manualTasks ?? []).map((task) => ({ ...task, ...state.taskOverrides[task.id] })),
+  ];
 }
 
 export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string) {
@@ -576,7 +615,7 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
   const replies = pack.conversations.slice(0, 2).map((item, index) => {
     const contact = person(pack, item.personId);
     return {
-      id: `reply:${item.id}`,
+      id: `conversation:${item.id}`,
       kind: "reply",
       title: `Reply to ${contact.name}`,
       summary: item.messages.at(-1)!.body,
@@ -1554,6 +1593,19 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
     ],
   ];
   rows.push(
+    ...TODAY_TOOL_NAMES.map(
+      (name) =>
+        [
+          name,
+          name === "get_today_workspace"
+            ? "Read source-backed Today context and App follow-up."
+            : "Read, preview or propose this member’s saved Today arrangement. Changes require exact approval.",
+          name.startsWith("propose_") ? "internal_write" : "read",
+          name.startsWith("propose_"),
+          ["core", "pipeline", "outreach"],
+          "revenue-os.today-views",
+        ] as (typeof rows)[number],
+    ),
     ...[...BRANDING_TOOLS, ...MODULE_CONTROL_TOOLS, ...TOOL_DISCOVERY_METADATA].map(
       (t) =>
         [
@@ -1903,7 +1955,10 @@ export function clientRows(pack: DemoScenarioPack, state: DemoState) {
   }));
 }
 
-function clients(pack: DemoScenarioPack, state: DemoState, requestedId?: string | null) {
+function clients(pack: DemoScenarioPack, state: DemoState, query: URLSearchParams) {
+  const requestedId = query.get("id");
+  const search = (query.get("search") || "").trim().toLowerCase();
+  const status = query.get("status");
   const rows = clientRows(pack, state);
   if (requestedId)
     return {
@@ -1911,7 +1966,14 @@ function clients(pack: DemoScenarioPack, state: DemoState, requestedId?: string 
       canonicalSchemaReady: true,
     };
   return {
-    clients: rows,
+    clients: rows.filter(
+      (row) =>
+        (!status || status === "all" || row.status === status) &&
+        (!search ||
+          `${row.business_name} ${row.contact_name} ${row.contact_email}`
+            .toLowerCase()
+            .includes(search)),
+    ),
     canonicalSchemaReady: true,
     totalMRR: rows
       .filter((item) => item.status === "active")
@@ -2292,6 +2354,148 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    if (path === "/api/admin/site/models" && method === "GET") {
+      if (state.moduleOverrides["site-studio"] === false)
+        return jsonResponse(
+          { error: "Site Studio is disabled for this fictional workspace." },
+          403,
+        );
+      return jsonResponse({
+        models: SITE_STUDIO_MODELS,
+        observedAt: SITE_MODELS_OBSERVED_AT,
+        source: "bundled",
+      });
+    }
+    if (path === "/api/admin/site/drafts" && method === "GET") return jsonResponse({ drafts: [] });
+    if (path === "/api/admin/site/website" || path === "/api/admin/site/website/suggest") {
+      if (state.moduleOverrides["site-studio"] === false)
+        return jsonResponse(
+          { error: "Site Studio is disabled for this fictional workspace." },
+          403,
+        );
+      if (path.endsWith("/suggest")) return demoWebsiteSuggestion(body);
+      state.website ??= createDemoWebsiteState();
+      const response = handleDemoWebsite(state.website, pack.name, method, body, url.searchParams);
+      if (method === "POST" && response.ok) saveState(scenarioId, state);
+      return response;
+    }
+    if (path === "/api/admin/revenue-os/today/views") {
+      const views = state.todayViews ?? defaultTodayViews();
+      if (method === "GET")
+        return jsonResponse({ ...views, userId: "demo-member", tenantId: scenarioId });
+      if (method !== "POST") return jsonResponse({ error: "Unsupported view operation" }, 405);
+      const parsed = todaySaveSchema.safeParse(body);
+      if (!parsed.success) return jsonResponse({ error: parsed.error.issues[0]?.message }, 400);
+      const change = parsed.data,
+        fingerprint = JSON.stringify(change);
+      const prior = state.todayViewReceipts?.[change.requestId];
+      if (prior)
+        return prior.fingerprint === fingerprint
+          ? jsonResponse(prior.result)
+          : jsonResponse({ error: "Request key content changed" }, 409);
+      if (views[change.scope].revision !== change.revision)
+        return jsonResponse(
+          { error: "Today views changed in another session. Reload before saving." },
+          409,
+        );
+      const result = { revision: change.revision + 1, document: change.document };
+      state.todayViews = { ...views, [change.scope]: result };
+      state.todayViewReceipts = {
+        ...state.todayViewReceipts,
+        [change.requestId]: { fingerprint, result },
+      };
+      saveState(scenarioId, state);
+      return jsonResponse({ ...result, simulated: true });
+    }
+    if (path === "/api/admin/revenue-os/today") {
+      const at = new Date().toISOString();
+      const region = <T>(data: T): TodayRegion<T> => ({
+        data,
+        state: data === null || (Array.isArray(data) && !data.length) ? "empty" : "ready",
+        observedAt: at,
+      });
+      // The fixture is intentionally shaped like the canonical queue. Keep the
+      // boundary explicit so fixture literals do not widen its discriminants.
+      const attention = projectOperatorAttention(queue(pack, state) as OperatorQueueItem[]);
+      const history = auditHistory(pack, new URLSearchParams(), business).entries;
+      const activity = history.slice(0, 12).map((row) => ({
+        id: row.id,
+        title: row.action.replaceAll(".", " ").replaceAll("_", " "),
+        summary: null,
+        at: row.createdAt,
+        href: "/admin/activity",
+      }));
+      const opportunities = opportunityRows(pack, state).filter(
+        (o) => !["won", "lost"].includes(o.canonical_stage),
+      );
+      const apps = getActiveModules({
+        modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
+      })
+        .filter((m) => m.today)
+        .map((m) => {
+          const items =
+            m.today!.source === "collection_case"
+              ? seedDemoCollections(pack, business)
+                  .filter((c) => c.status === "open")
+                  .slice(0, 8)
+                  .map((c) => ({
+                    id: c.id,
+                    title: c.name + " · " + c.currency.toUpperCase(),
+                    detail: c.nextAction,
+                    sourceType: "collection_case",
+                    sourceId: c.id,
+                    href: "/admin/collections?case=" + c.id,
+                  }))
+              : (business.radar ??= seedRadar(pack)).opportunities
+                  .filter((o) => o.state !== "archived")
+                  .slice(0, 8)
+                  .map((o) => ({
+                    id: o.id,
+                    title: o.title,
+                    detail: o.summary,
+                    sourceType: "radar_opportunity",
+                    sourceId: o.id,
+                    href: "/admin/radar/opportunities/" + o.id,
+                  }));
+          return {
+            id: m.id,
+            name: m.name,
+            href: m.today!.href,
+            items,
+            state: items.length ? ("ready" as const) : ("empty" as const),
+          };
+        });
+      const snapshot: TodaySnapshot = {
+        generatedAt: at,
+        attention: region(attention),
+        activity: region(activity),
+        facts: region(todayFacts(attention, activity)),
+        apps: region(apps),
+        brief: region(null),
+        handling: region(
+          aiRuns(pack, state)
+            .runs.slice(0, 3)
+            .map((run) => ({
+              id: run.id,
+              title: run.promptPreview,
+              status: run.status,
+              owner: "Workspace AI",
+              outcome: run.resultPreview,
+              nextCheckAt: null,
+              nextCheckReason: null,
+              href: "/admin/ai",
+            })),
+        ),
+        metrics: region({
+          openOpportunities: opportunities.length,
+          pipelineValue: opportunities.reduce((sum, o) => sum + o.estimated_value, 0),
+          weightedValue: Math.round(
+            opportunities.reduce((sum, o) => sum + (o.estimated_value * o.probability) / 100, 0),
+          ),
+        }),
+      };
+      return jsonResponse(snapshot);
+    }
     const businessResponse = await handleDemoBusinessRequest(
       pack,
       business,
@@ -2699,7 +2903,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (method === "GET" && path === "/api/admin/email-sequences")
       return jsonResponse(emailSequences(pack));
     if (method === "GET" && path === "/api/admin/clients")
-      return jsonResponse(clients(pack, state, url.searchParams.get("id")));
+      return jsonResponse(clients(pack, state, url.searchParams));
     if (method === "GET" && path === "/api/admin/content")
       return jsonResponse({ items: contentItems(pack, state) });
     if (path === "/api/admin/content" && method !== "GET") {
@@ -3350,6 +3554,59 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         simulated: true,
       });
     }
+    if (method === "POST" && path === "/api/admin/tasks") {
+      const title = typeof body.title === "string" ? body.title.trim() : "";
+      const relatedType = typeof body.related_type === "string" ? body.related_type : "";
+      const relatedId = typeof body.related_id === "string" ? body.related_id : "";
+      const relatedClient =
+        relatedType === "client"
+          ? clientRows(pack, state).find((item) => item.id === relatedId)
+          : undefined;
+      const relatedPerson =
+        relatedType !== "client" ? pack.people.find((item) => item.id === relatedId) : undefined;
+      if (
+        !title ||
+        title.length > 500 ||
+        !["high", "medium", "low"].includes(String(body.priority ?? "medium"))
+      )
+        return jsonResponse({ error: "Enter a follow-up title and a valid priority." }, 400);
+      if ((relatedType || relatedId) && !relatedClient && !relatedPerson)
+        return jsonResponse({ error: "The related record is not in this demo workspace." }, 404);
+      if (
+        body.due_date &&
+        (typeof body.due_date !== "string" ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(body.due_date) ||
+          !Number.isFinite(Date.parse(body.due_date)))
+      )
+        return jsonResponse({ error: "Choose a valid due date." }, 400);
+      const task = {
+        id: crypto.randomUUID(),
+        title,
+        status: "pending",
+        priority: String(body.priority ?? "medium"),
+        due_date: typeof body.due_date === "string" && body.due_date ? body.due_date : null,
+        description: null,
+        snoozed_until: null,
+        completed_at: null,
+        assigned_to: "00000000-0000-4000-8000-000000000079",
+        source: "manual",
+        related_name: relatedClient?.contact_name ?? relatedPerson?.name ?? "",
+        related_id: relatedId,
+        related_type: relatedType,
+      };
+      state.manualTasks = [...(state.manualTasks ?? []), task];
+      business.receipts.unshift({
+        id: crypto.randomUUID(),
+        operation: `Follow-up created: ${title}`,
+        at: new Date().toISOString(),
+        simulated: true,
+        sourceType: "task",
+        sourceId: task.id,
+      });
+      saveState(scenarioId, state);
+      window.dispatchEvent(new Event("admin:demo-state"));
+      return jsonResponse({ task, simulated: true }, 201);
+    }
     if (method === "PATCH" && ["/api/admin/tasks", "/api/admin/revenue-os/tasks"].includes(path)) {
       try {
         const before = demoTaskRows(pack, state).find((item) => item.id === body.id);
@@ -3672,43 +3929,45 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
             opportunities: [],
           },
         });
-      const opportunity =
-        pack.opportunities.find((item) => item.personId === contact.id) || pack.opportunities[0]!;
-      const conversation =
-        pack.conversations.find((item) => item.personId === contact.id) || pack.conversations[0]!;
-      const contactTasks = pack.tasks.filter((item) => item.personId === contact.id).slice(0, 3);
+      const opportunity = pack.opportunities.find((item) => item.personId === contact.id);
+      const conversation = pack.conversations.find((item) => item.personId === contact.id);
+      const relatedClient = clientRows(pack, state).find(
+        (item) => item.contact_email === contact.email,
+      );
+      const contactTasks = demoTaskRows(pack, state).filter(
+        (item) =>
+          item.related_id === contact.id ||
+          (item.related_type === "client" && item.related_id === relatedClient?.id),
+      );
       const timeline = [
-        {
-          type: "contact",
-          title: `Website inquiry from ${contact.name}`,
-          description: conversation.messages[0]!.body,
-          timestamp: conversation.messages[0]!.at,
-          sourceId: `submission-${contact.id}`,
-          link: "/admin/contacts",
-        },
-        ...conversation.messages.map((message) => ({
+        ...(conversation?.messages ?? []).map((message) => ({
           type: message.direction === "inbound" ? "message_inbound" : "message_outbound",
-          title: `${message.direction === "inbound" ? "Received" : "Sent"}: ${conversation.subject}`,
+          title: `${message.direction === "inbound" ? "Received" : "Sent"}: ${conversation!.subject}`,
           description: message.body,
           timestamp: message.at,
           sourceId: message.id,
-          link: "/admin/conversations",
+          link: `/admin/conversations?thread=${encodeURIComponent(conversation!.id)}`,
         })),
-        {
-          type: "opportunity",
-          title: `Pipeline: ${opportunity.name}`,
-          description: `Stage: ${opportunity.stage.replace(/_/g, " ")} · $${opportunity.value.toLocaleString()} · Next: ${opportunity.nextAction}`,
-          timestamp: conversation.messages[0]!.at,
-          sourceId: opportunity.id,
-          link: `/admin/pipeline?search=${encodeURIComponent(contact.email)}`,
-        },
+        ...(opportunity
+          ? [
+              {
+                type: "opportunity",
+                title: `Pipeline: ${opportunity.name}`,
+                description: `Stage: ${opportunity.stage.replace(/_/g, " ")} · $${opportunity.value.toLocaleString()} · Next: ${opportunity.nextAction}`,
+                timestamp: conversation?.messages[0]?.at ?? ago(1),
+                sourceId: opportunity.id,
+                link: `/admin/pipeline/${encodeURIComponent(opportunity.id)}`,
+              },
+            ]
+          : []),
         ...contactTasks.map((task, index) => ({
           type: "task",
           title: `Task: ${task.title}`,
           description: `${task.status} · ${task.priority} priority`,
-          timestamp: ago(index + 2),
+          timestamp:
+            business.receipts.find((receipt) => receipt.sourceId === task.id)?.at ?? ago(index + 2),
           sourceId: task.id,
-          link: "/admin/today",
+          link: `/admin/work?task=${encodeURIComponent(task.id)}`,
         })),
       ].sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
       return jsonResponse({
@@ -3719,10 +3978,10 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           contact: {
             id: contact.id,
             full_name: contact.name,
-            lifecycle_stage: opportunity.stage,
+            lifecycle_stage: opportunity?.stage ?? "contact",
             communication_status: "active",
-            next_action: opportunity.nextAction,
-            next_action_at: dateOffset(1),
+            next_action: opportunity?.nextAction ?? null,
+            next_action_at: opportunity ? dateOffset(1) : null,
           },
           company: {
             id: `company-${contact.id}`,
@@ -3730,14 +3989,16 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
             domain: `${contact.company.toLowerCase().replace(/[^a-z0-9]+/g, "")}.example`,
             industry: pack.category,
           },
-          opportunities: [
-            {
-              id: opportunity.id,
-              stage: opportunity.stage,
-              estimated_value: opportunity.value,
-              won_value: opportunity.stage === "won" ? opportunity.value : 0,
-            },
-          ],
+          opportunities: opportunity
+            ? [
+                {
+                  id: opportunity.id,
+                  stage: opportunity.stage,
+                  estimated_value: opportunity.value,
+                  won_value: opportunity.stage === "won" ? opportunity.value : 0,
+                },
+              ]
+            : [],
         },
       });
     }
@@ -3801,6 +4062,23 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         viewerId,
         tasks: demoTaskRows(pack, state)
           .filter((item) => !url.searchParams.get("id") || item.id === url.searchParams.get("id"))
+          .filter(
+            (item) =>
+              !url.searchParams.get("related_id") ||
+              (item.related_id === url.searchParams.get("related_id") &&
+                item.related_type === url.searchParams.get("related_type")),
+          )
+          .filter(
+            (item) =>
+              !url.searchParams.get("date") || item.due_date === url.searchParams.get("date"),
+          )
+          .filter(
+            (item) =>
+              url.searchParams.get("include_overdue") !== "true" ||
+              (item.status === "pending" &&
+                item.due_date &&
+                item.due_date <= new Date().toISOString().slice(0, 10)),
+          )
           .filter((item) => !status || status === "all" || item.status === status)
           .filter((item) =>
             owner === "me"

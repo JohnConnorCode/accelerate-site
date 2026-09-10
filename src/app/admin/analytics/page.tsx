@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -286,8 +288,8 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-7 pb-10">
       <PageHeader
-        title="Analytics"
-        subtitle="Revenue facts, operating estimates, and data-quality gaps from the same canonical records."
+        title={adminPageName("analytics")}
+        subtitle="Understand which sources bring enquiries and how those enquiries become customers."
         utilityActions={
           <button
             type="button"

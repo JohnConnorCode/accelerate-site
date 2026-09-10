@@ -87,14 +87,14 @@ try {
       window.__navSamples = [];
       window.dispatchEvent(new Event("admin:priority-refresh"));
     });
-    await page.getByText("Showing the last successful snapshot", { exact: true }).waitFor();
+    await page.getByText("Showing previously loaded information", { exact: true }).waitFor();
     assert.ok(await page.locator("[data-kanban-card]").count());
     assert.equal(await page.evaluate(() => window.__navSamples.some((s) => s.visible)), false);
     await page.screenshot({ path: `${output}/navigation-refresh-error-${reducedMotion}.png` });
     await page.evaluate(() => (window.__navFailure = false));
     await page.getByRole("button", { name: "Retry", exact: true }).click();
     await page
-      .getByText("Showing the last successful snapshot", { exact: true })
+      .getByText("Showing previously loaded information", { exact: true })
       .waitFor({ state: "hidden" });
     results.push(`${reducedMotion}: failed refresh keeps cards and retries without blanking`);
     await page.evaluate(() => cancelAnimationFrame(window.__navFrame));

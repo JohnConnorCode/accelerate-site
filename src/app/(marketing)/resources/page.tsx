@@ -1,8 +1,9 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { ResourcesPage } from "@/components/sections/ResourcesPage";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Free AI Guides & Tools",
   description:
     "Download free guides, checklists, and comparisons to help your small business adopt AI and automation. No fluff, just actionable insights.",
@@ -15,7 +16,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Resources", url: "/resources" },
 ]);
 
-export default function Resources() {
+export default async function Resources() {
+  const published = await publishedWebsiteOverride("/resources");
+  if (published) return published;
   return (
     <>
       <script
@@ -25,4 +28,8 @@ export default function Resources() {
       <ResourcesPage />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/resources")) ?? bundledMetadata;
 }

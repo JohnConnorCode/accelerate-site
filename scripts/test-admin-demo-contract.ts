@@ -1,3 +1,4 @@
+import { homeCommandCenterContent } from "../src/content/site-studio/home";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { DEMO_SCENARIOS, DEMO_SCENARIO_SUMMARIES } from "../src/lib/admin/demo/scenarios";
@@ -161,11 +162,17 @@ for (const file of [
   "src/components/home/CommandCenter.tsx",
   "src/components/sections/CommandCenterPage.tsx",
 ]) {
-  assert.match(
-    readFileSync(file, "utf8"),
-    /href="\/demo\/command-center"/,
-    `${file}: public full-admin demo link is missing`,
-  );
+  if (file === "src/components/home/CommandCenter.tsx") {
+    assert.ok(
+      homeCommandCenterContent.links.some((link) => link.href === "/demo/command-center"),
+      "Bundled homepage content retains the full-admin demo destination",
+    );
+  } else
+    assert.match(
+      readFileSync(file, "utf8"),
+      /href="\/demo\/command-center"/,
+      `${file}: public full-admin demo link is missing`,
+    );
   assert.doesNotMatch(
     readFileSync(file, "utf8"),
     /href="\/command-center\/demo"/,
@@ -186,7 +193,7 @@ assert.doesNotMatch(
 );
 
 for (const file of [
-  "src/app/admin/today/page.tsx",
+  "src/components/admin/LegacyToday.tsx",
   "src/components/admin/NotificationBell.tsx",
   "src/components/admin/RevenueAICommand.tsx",
 ]) {

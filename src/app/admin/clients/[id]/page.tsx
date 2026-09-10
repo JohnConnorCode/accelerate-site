@@ -55,10 +55,15 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
       // Fetch timeline for this client's email
       if (data.client?.contact_email) {
-        const timelineData = await fetchJson<{ timeline?: TimelineItem[] }>(
-          `/api/admin/contacts/timeline?email=${encodeURIComponent(data.client.contact_email)}`,
-        );
-        setTimeline(timelineData.timeline || []);
+        try {
+          const timelineData = await fetchJson<{ timeline?: TimelineItem[] }>(
+            `/api/admin/contacts/timeline?email=${encodeURIComponent(data.client.contact_email)}`,
+          );
+          setTimeline(timelineData.timeline || []);
+        } catch {
+          setTimeline([]);
+          toast.error("Client loaded, but activity could not load. Reload to try again.");
+        }
       }
     } catch (error) {
       setClient(null);
@@ -69,7 +74,8 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   }, [id]);
 
   useEffect(() => {
-    fetchClient();
+    setLoading(true);
+    void fetchClient();
   }, [fetchClient]);
 
   const handleUpdate = async (data: Record<string, unknown>) => {
@@ -122,6 +128,12 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       </div>
 
       <PageHeader title={client.business_name} subtitle={client.contact_name} />
+      <Link
+        href={`/admin/contacts/${encodeURIComponent(client.contact_email)}`}
+        className="mb-5 inline-flex min-h-11 items-center text-sm font-medium text-[var(--admin-ink)] underline underline-offset-4"
+      >
+        Open {client.contact_name}&apos;s contact history
+      </Link>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">

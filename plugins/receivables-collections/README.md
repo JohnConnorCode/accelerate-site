@@ -1,5 +1,14 @@
 # Collections Action Desk
 
+Today contribution: the existing module manifest declares
+`today: { source: "collection_case", href: "/admin/collections" }`.
+The Today reader reuses `readCollectionWorkspace`, bounded to eight open cases
+without invoice options or message previews. Names and next steps link to the
+native case; no Stripe refresh, model request or reminder occurs. Disabled
+modules contribute nothing, and read failures are local to the App. Shared demo
+cases use the same session state as Collections. See the
+[Today guide](https://www.acceleratewith.us/docs/command-center/today).
+
 **Status: default-off native business workspace with durable cases, approved reminders and five shared demos.**
 The live Feature Board parent is `receivables-collections-plugin`. The decision
 engine runs in the existing QuickJS isolate; the host loads authorized Stripe

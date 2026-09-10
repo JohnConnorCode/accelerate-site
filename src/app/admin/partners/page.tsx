@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Handshake } from "lucide-react";
@@ -66,7 +68,7 @@ export default function PartnersPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Partner Applications" />
+        <PageHeader title={adminPageName("partners")} />
         <LoadingSkeleton variant="table" />
       </div>
     );
@@ -75,7 +77,7 @@ export default function PartnersPage() {
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
-        title="Partner Applications"
+        title={adminPageName("partners")}
         actions={
           <Select
             value={statusFilter}

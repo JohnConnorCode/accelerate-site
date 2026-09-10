@@ -1,3 +1,8 @@
+import {
+  DEFAULT_SITE_MODEL,
+  siteModelIdSchema,
+  sitePriceCeilingSchema,
+} from "@/lib/site-studio/models";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
@@ -12,10 +17,14 @@ import { siteNodeIdSchema } from "@/lib/site-studio/document";
 const regenerateSchema = z
   .object({
     sectionId: siteNodeIdSchema,
+    model: siteModelIdSchema.default(DEFAULT_SITE_MODEL),
+    priceCeiling: sitePriceCeilingSchema.optional(),
     direction: z.string().trim().max(1000).optional(),
     expectedChecksum: z.string().regex(/^[a-f0-9]{64}$/),
   })
   .strict();
+
+export const maxDuration = 180;
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdminForModule("site-studio");
@@ -50,7 +59,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         direction: parsed.data.direction,
         expectedChecksum: parsed.data.expectedChecksum,
       },
-      (system, user) => regenerateSectionWithOpenRouter(auth.database, system, user),
+      (system, user) =>
+        regenerateSectionWithOpenRouter(
+          auth.database,
+          system,
+          user,
+          parsed.data.model,
+          parsed.data.priceCeiling,
+        ),
     );
     return NextResponse.json({ draft });
   } catch (error) {

@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -166,8 +168,8 @@ export default function ContactsPage() {
   return (
     <div>
       <PageHeader
-        title="Contact intake"
-        subtitle="Review website inquiries and bring external contact lists into the same controlled intake workflow."
+        title={adminPageName("contacts")}
+        subtitle="Review website submissions and import contact lists for your team to follow up."
         actions={
           <button
             type="button"

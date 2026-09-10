@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isSiteContentHref } from "./links";
 
 /** Site Studio document model v1. The stored page is validated data, never
  * executable code. See docs/planning/SITE-STUDIO.md section 3. */
@@ -34,10 +35,7 @@ const href = z
   .string()
   .min(1)
   .max(500)
-  .refine(
-    (value) => value.startsWith("/") || value.startsWith("https://"),
-    "Links must be site-relative paths or https URLs",
-  );
+  .refine(isSiteContentHref, "Links must be site-relative paths, anchors, or HTTPS URLs");
 
 export const siteStyleSchema = z
   .object({

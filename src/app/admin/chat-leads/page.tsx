@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { tenant } from "@/config/tenant";
 import { useEffect, useState, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -122,7 +124,10 @@ export default function ChatLeadsPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Chat Leads" subtitle="Conversations that asked for a human follow-up" />
+        <PageHeader
+          title={adminPageName("chat-leads")}
+          subtitle="Review enquiries submitted through your website chat."
+        />
         <LoadingSkeleton variant="table" />
       </div>
     );
@@ -136,7 +141,7 @@ export default function ChatLeadsPage() {
       className="min-w-0 max-w-full overflow-x-hidden"
     >
       <PageHeader
-        title="Chat Leads"
+        title={adminPageName("chat-leads")}
         subtitle={`${total} conversation${total === 1 ? "" : "s"}${debouncedQuery ? ` matching “${debouncedQuery}”` : ""}`}
         actions={
           <button

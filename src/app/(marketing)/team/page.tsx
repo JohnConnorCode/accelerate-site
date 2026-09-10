@@ -1,9 +1,10 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import type { Metadata } from "next";
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { TeamPageContent } from "@/components/sections/TeamPage";
 
-export const metadata: Metadata = seoMetadata({
+const bundledMetadata: Metadata = seoMetadata({
   title: "Meet the Team",
   description:
     "The operators and advisors behind Accelerate: strategy, engineering, execution, and partnerships, led by founder John Connor.",
@@ -26,7 +27,9 @@ const teamJsonLd = {
   url: "https://www.acceleratewith.us/team",
 };
 
-export default function TeamPage() {
+export default async function TeamPage() {
+  const published = await publishedWebsiteOverride("/team");
+  if (published) return published;
   return (
     <>
       <script
@@ -42,4 +45,8 @@ export default function TeamPage() {
       <TeamPageContent />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/team")) ?? bundledMetadata;
 }

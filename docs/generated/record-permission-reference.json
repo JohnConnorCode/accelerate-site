@@ -233,6 +233,22 @@
       "module": "core-command"
     },
     {
+      "tool": "get_today_workspace",
+      "module": "core-command"
+    },
+    {
+      "tool": "get_today_views",
+      "module": "core-command"
+    },
+    {
+      "tool": "preview_today_view_change",
+      "module": "core-command"
+    },
+    {
+      "tool": "propose_today_view_change",
+      "module": "core-command"
+    },
+    {
       "tool": "get_record_timeline",
       "module": "core-command"
     },

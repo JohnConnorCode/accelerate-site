@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { verticals } from "@/content/verticals";
@@ -6,7 +7,7 @@ import { generateVerticalJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 const vertical = verticals.find((v) => v.slug === "startups")!;
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "AI Systems for Startups",
   description: vertical.shortDescription,
   ogTitle: "AI Systems for Startups",
@@ -20,7 +21,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Startups", url: "/industries/startups" },
 ]);
 
-export default function StartupsPage() {
+export default async function StartupsPage() {
+  const published = await publishedWebsiteOverride("/industries/startups");
+  if (published) return published;
   return (
     <>
       <script
@@ -37,4 +40,8 @@ export default function StartupsPage() {
       <PageEngagementTracker />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/industries/startups")) ?? bundledMetadata;
 }

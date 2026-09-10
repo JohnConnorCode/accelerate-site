@@ -1,10 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 32" width="32" height="32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 32" width="64" height="32">
   <!-- Accelerate chevron mark — same geometry as components/ui/LogoMark.tsx so
-       the favicon and the in-page logo read as the same brand mark. -->
+       the favicon and the in-page logo read as the same brand mark.
+       Ink (#0B0B0B) matches the editorial ink token; the old lime
+       (#C6FF3D) was retired with the gold-to-ink aliasing. -->
   <defs>
     <path id="cv" d="M 0 0 L 14 0 L 22 16 L 14 32 L 0 32 L 8 16 Z" />
   </defs>
-  <use href="#cv" transform="translate(0,0)"  fill="#C6FF3D" fill-opacity="0.30" />
-  <use href="#cv" transform="translate(18,0)" fill="#C6FF3D" fill-opacity="0.60" />
-  <use href="#cv" transform="translate(36,0)" fill="#C6FF3D" fill-opacity="1" />
+  <style>
+    .cv { fill: #0B0B0B; }
+    /* Dark browser chrome: flip to paper so the mark stays visible. */
+    @media (prefers-color-scheme: dark) {
+      .cv { fill: #FBFBFA; }
+    }
+  </style>
+  <use href="#cv" transform="translate(0,0)"  class="cv" fill-opacity="0.30" />
+  <use href="#cv" transform="translate(18,0)" class="cv" fill-opacity="0.60" />
+  <use href="#cv" transform="translate(36,0)" class="cv" fill-opacity="1" />
 </svg>

@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { verticals } from "@/content/verticals";
@@ -6,7 +7,7 @@ import { generateVerticalJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 const vertical = verticals.find((v) => v.slug === "nonprofits")!;
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "AI for Nonprofits",
   description:
     "We build the systems that thank, steward, and invite supporters back, then we run them alongside your team. Your voice, your data, your approvals.",
@@ -21,7 +22,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Nonprofits", url: "/industries/nonprofits" },
 ]);
 
-export default function NonprofitsPage() {
+export default async function NonprofitsPage() {
+  const published = await publishedWebsiteOverride("/industries/nonprofits");
+  if (published) return published;
   return (
     <>
       <script
@@ -38,4 +41,8 @@ export default function NonprofitsPage() {
       <PageEngagementTracker />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/industries/nonprofits")) ?? bundledMetadata;
 }

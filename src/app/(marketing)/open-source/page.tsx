@@ -1,10 +1,11 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { generateBreadcrumbJsonLd, generateFaqJsonLd } from "@/lib/seo";
 import { OpenSourcePageContent } from "@/components/sections/OpenSourcePage";
 import { openSourceFaqs } from "@/content/open-source";
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Open Source",
   description:
     "The Command Center is MIT licensed and open source. Run it yourself for free, or have Accelerate build and run a custom managed version for your business.",
@@ -18,7 +19,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Open Source", url: "/open-source" },
 ]);
 
-export default function OpenSourcePage() {
+export default async function OpenSourcePage() {
+  const published = await publishedWebsiteOverride("/open-source");
+  if (published) return published;
   return (
     <>
       <script
@@ -35,4 +38,8 @@ export default function OpenSourcePage() {
       <PageEngagementTracker />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/open-source")) ?? bundledMetadata;
 }

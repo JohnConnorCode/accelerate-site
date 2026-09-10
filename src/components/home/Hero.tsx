@@ -12,6 +12,8 @@ import {
   useSpring,
 } from "framer-motion";
 import { trackConversion } from "@/lib/analytics";
+import { homeHeroContent } from "@/content/site-studio/home";
+import type { HomeHeroContent } from "@/lib/site-studio/native-templates";
 
 // The headline's original, deliberately mechanical scramble: a constant
 // cadence and a simple left-to-right lock. Spaces remain spaces so the phrase
@@ -20,16 +22,18 @@ function ScrambleText({
   text,
   delay = 0,
   trigger = true,
+  reducedMotion = false,
 }: {
   text: string;
   delay?: number;
   trigger?: boolean;
+  reducedMotion?: boolean;
 }) {
   const [display, setDisplay] = useState(text.replace(/./g, " ")); // Non-breaking spaces for layout stability
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
 
   useEffect(() => {
-    if (!trigger) return;
+    if (!trigger || reducedMotion) return;
 
     let interval: ReturnType<typeof setInterval>;
     const timeout = setTimeout(() => {
@@ -59,12 +63,12 @@ function ScrambleText({
       clearTimeout(timeout);
       if (interval) clearInterval(interval);
     };
-  }, [text, delay, trigger]);
+  }, [text, delay, trigger, reducedMotion]);
 
   return <span className="inline-block max-w-full">{display}</span>;
 }
 
-export function Hero() {
+export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent }) {
   const [loaded, setLoaded] = useState(false);
   const entranceRaf = useRef<number | undefined>(undefined);
   const entranceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -323,9 +327,7 @@ export function Hero() {
         }
       >
         <div className="hero-top">
-          <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>
-            AI systems, built and run for operators
-          </p>
+          <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>{content.eyebrow}</p>
           <h1 className="h1">
             {/* "We architect and deploy intelligent automation to scale
                 your productivity" flows as ONE continuous flex-wrap row —
@@ -337,35 +339,43 @@ export function Hero() {
                 line-break decision is now the browser's, based on real
                 available width. */}
             <span className="h1-word-row">
-              {["We", "architect", "and", "deploy"].map((w, i) => (
-                <span key={w} className="word">
-                  <span style={{ "--d": `${0.2 + i * 0.2}s` } as CSSProperties}>{w}</span>
-                </span>
-              ))}
+              {content.prefix
+                .split(/\s+/)
+                .filter(Boolean)
+                .map((w, i) => (
+                  <span key={`${i}-${w}`} className="word">
+                    <span style={{ "--d": `${0.2 + i * 0.2}s` } as CSSProperties}>{w}</span>
+                  </span>
+                ))}
               {/* "intelligent automation" — the original single combined
                   scramble (ScrambleText below), restored verbatim. This is
                   the effect and speed that was actually working. */}
               <span className="word">
-                <span
-                  aria-label="intelligent automation"
-                  style={{ "--d": "1.00s" } as CSSProperties}
-                >
+                <span aria-label={content.highlighted} style={{ "--d": "1.00s" } as CSSProperties}>
                   <span className="hero-intelligent-static" aria-hidden="true">
-                    intelligent automation
+                    {content.highlighted}
                   </span>
                   <span className="hero-intelligent-scramble" aria-hidden="true">
-                    <ScrambleText text="intelligent automation" delay={1250} trigger={loaded} />
+                    <ScrambleText
+                      text={content.highlighted}
+                      delay={1250}
+                      trigger={loaded}
+                      reducedMotion={Boolean(reduced)}
+                    />
                   </span>
                 </span>
               </span>
-              {["to", "scale", "your"].map((w, i) => (
-                <span key={w} className="word">
-                  <span style={{ "--d": `${2.2 + i * 0.2}s` } as CSSProperties}>{w}</span>
-                </span>
-              ))}
+              {content.suffix
+                .split(/\s+/)
+                .filter(Boolean)
+                .map((w, i) => (
+                  <span key={`${i}-${w}`} className="word">
+                    <span style={{ "--d": `${2.2 + i * 0.2}s` } as CSSProperties}>{w}</span>
+                  </span>
+                ))}
               <span className="word">
                 <span style={{ "--d": "2.80s" } as CSSProperties}>
-                  <span className="strike">productivity</span>
+                  <span className="strike">{content.replacedWord}</span>
                 </span>
               </span>
             </span>
@@ -387,16 +397,16 @@ export function Hero() {
                     { position: "relative", zIndex: 10, display: "inline-block" } as CSSProperties
                   }
                 >
-                  PROFIT
+                  {content.finalWord}
                 </span>
               </span>
               <span className="hero-inline-cta" style={{ "--d": "6.10s" } as CSSProperties}>
                 <Link
-                  href="/contact"
+                  href={content.ctaHref}
                   onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })}
                   className="btn"
                 >
-                  Book a free strategy session{" "}
+                  {content.ctaLabel}{" "}
                   <span className="arw" aria-hidden="true">
                     →
                   </span>

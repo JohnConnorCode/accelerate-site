@@ -222,6 +222,86 @@ async function main() {
   });
 
   const strictPricing = { prompt: 0, completion: 0, request: 0 };
+  await scenario("models that forbid temperature receive no temperature parameter", async () => {
+    stubFetch([{ status: 200, body: okBody }]);
+    await openRouterChat({ ...ask, temperature: null });
+    assert.ok(calls[0]);
+    assert.equal(Object.hasOwn(calls[0].body, "temperature"), false);
+    stubFetch([{ status: 200, body: okBody }]);
+    await openRouterChat({ ...ask });
+    assert.equal(calls.at(-1)?.body.temperature, 0.2);
+  });
+  await scenario(
+    "structured generation forwards bounded reasoning and rejects truncated output",
+    async () => {
+      stubFetch([
+        {
+          status: 200,
+          body: {
+            ...okBody,
+            choices: [{ finish_reason: "length", message: { role: "assistant", content: "{}" } }],
+          },
+        },
+      ]);
+      await assert.rejects(
+        () =>
+          openRouterJson({
+            ...ask,
+            model: "fixture/free",
+            strictPricing,
+            reasoning: { effort: "none", exclude: true },
+            schemaName: "fixture",
+            schema: { type: "object" },
+            validate: (value) => value,
+          }),
+        /token limit/,
+      );
+      assert.deepEqual(calls[0]?.body.reasoning, { effort: "none", exclude: true });
+      assert.equal(calls.length, 1);
+    },
+  );
+  await scenario("invalid inference deadlines refuse before a provider call", async () => {
+    stubFetch([{ status: 200, body: okBody }]);
+    for (const timeoutMs of [0, 999, 180001, NaN, Infinity]) {
+      await assert.rejects(
+        () => openRouterChat({ ...ask, timeoutMs }),
+        (error: unknown) => error instanceof OpenRouterError && error.status === 400,
+      );
+    }
+    assert.equal(calls.length, 0);
+  });
+  await scenario("a body abort after HTTP 200 remains a timeout without a paid retry", async () => {
+    globalThis.fetch = (async (_url: string, init: RequestInit) => {
+      calls.push({ body: JSON.parse(String(init.body)), signal: init.signal });
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.error(new DOMException("Body aborted", "AbortError"));
+          },
+        }),
+        { status: 200 },
+      );
+    }) as typeof fetch;
+    await assert.rejects(
+      () => openRouterChat({ ...ask, model: "fixture/free", strictPricing, timeoutMs: 150000 }),
+      (error: unknown) => error instanceof OpenRouterError && error.status === 504,
+    );
+    assert.equal(calls.length, 1);
+  });
+  await scenario(
+    "invalid JSON behind HTTP 200 reports provider failure, never success",
+    async () => {
+      globalThis.fetch = (async (_url: string, init: RequestInit) => {
+        calls.push({ body: JSON.parse(String(init.body)), signal: init.signal });
+        return new Response("not JSON", { status: 200 });
+      }) as typeof fetch;
+      await assert.rejects(
+        () => openRouterChat({ ...ask, model: "fixture/free", strictPricing }),
+        (error: unknown) => error instanceof OpenRouterError && error.status === 502,
+      );
+      assert.equal(calls.length, 1);
+    },
+  );
   await scenario(
     "budgeted calls pin one model, pricing ceiling and attempt even with a premium fallback",
     async () => {

@@ -1,119 +1,161 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  GitBranch,
+  Layers,
+  SlidersHorizontal,
+} from "lucide-react";
 import { DEMO_SCENARIO_SHELL_NAMES, DEMO_SCENARIO_SUMMARIES } from "@/lib/admin/demo/scenarios";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 import { DemoWorkspacePreview } from "@/components/admin/DemoWorkspacePreview";
-import { cn } from "@/lib/utils";
+import { DemoStory } from "@/components/command-center/launcher/DemoStory";
+import styles from "@/components/command-center/launcher/launcher.module.css";
 
 export const metadata: Metadata = {
-  title: "Command Center Demo Workspaces",
-  description: "Explore the full Command Center with detailed fictional business data.",
+  title: "Try Command Center | Your business, connected",
+  description:
+    "See how an AI workspace brings customers, conversations and next steps together. Explore six interactive business demos, with no signup required.",
   robots: { index: false, follow: false },
 };
 
+const examples = [
+  "Turn a customer inquiry into the next booked job.",
+  "Keep each client conversation connected to the case.",
+  "Stay on top of client work and upcoming deadlines.",
+  "Follow every buyer conversation through the pipeline.",
+  "Bring donor relationships and community work together.",
+  "Coordinate events, members and a growing community.",
+];
+
 export default function AdminDemoLauncher() {
   return (
-    <main className="demo-launcher relative min-h-screen overflow-x-hidden bg-[var(--demo-launcher-canvas)] px-[var(--gut)] pb-16 pt-[calc(var(--site-header-h)+env(safe-area-inset-top)+1rem)] text-[var(--demo-launcher-ink)] antialiased transition-colors duration-200 sm:pb-20 sm:pt-[calc(var(--site-header-h)+env(safe-area-inset-top)+1.5rem)]">
-      <div className="demo-launcher-grid pointer-events-none absolute inset-0" aria-hidden="true" />
-      <div
-        className="demo-launcher-glow demo-launcher-glow--top pointer-events-none absolute -right-40 top-8 size-[28rem] rounded-full blur-[110px]"
-        aria-hidden="true"
-      />
-
-      <div className="relative mx-auto max-w-[1120px]">
-        <header className="grid items-end gap-6 pb-10 pt-[clamp(2.25rem,6vw,4.75rem)] sm:pb-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(16rem,.7fr)] lg:gap-16">
-          <div>
-            <p className="admin-demo-enter admin-demo-d1 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--demo-launcher-faint)]">
-              Full admin demo
+    <main className={`demo-launcher ${styles.page}`}>
+      <div className={styles.container}>
+        <header className={styles.hero}>
+          <div className={styles.heroCopy}>
+            <p className={styles.kicker}>
+              <span /> MEET YOUR COMMAND CENTER
             </p>
-            <h1
-              id="demo-launcher-title"
-              className="admin-demo-enter admin-demo-d2 mt-4 max-w-[13ch] text-balance font-display text-[clamp(2.35rem,5.2vw,4.35rem)] font-semibold leading-[0.94] tracking-[-0.055em]"
-            >
-              Explore the full admin through six fictional operating models.
+            <h1>
+              Your business.
+              <br />
+              <span>Working together.</span>
             </h1>
-          </div>
-          <div className="admin-demo-enter admin-demo-d3 lg:pb-1">
-            <p className="max-w-[28rem] text-pretty text-[15px] leading-7 text-[var(--demo-launcher-muted)] sm:text-base">
-              Pick the business closest to yours. Each workspace uses complete fictional records and
-              safe simulated actions.
+            <p className={styles.intro}>
+              Customers, conversations and AI in one workspace. See what needs attention, prepare
+              the next move, and give your team more time for the work that matters.
             </p>
-            <p className="admin-demo-enter admin-demo-d4 mt-4 font-mono text-[10px] uppercase leading-5 tracking-[0.12em] text-[var(--demo-launcher-accent)]">
-              Browser-only fictional workspaces. Nothing can send, schedule, or change a live
-              record.
+            <div className={styles.heroActions}>
+              <Link href="/demo/command-center/northline-roofing/today" className={styles.primary}>
+                Try the demo <ArrowUpRight size={19} />
+              </Link>
+              <a href="#business-demos" className={styles.secondary}>
+                Find your business <ArrowDown size={16} />
+              </a>
+            </div>
+            <p className={styles.reassurance}>
+              <Check size={14} /> No signup. Explore with sample data.
             </p>
           </div>
+          <DemoStory />
         </header>
 
-        <section aria-labelledby="demo-launcher-title">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-6">
-            {DEMO_SCENARIO_SUMMARIES.map((scenario, index) => (
-              <div
-                key={scenario.id}
-                className={cn(
-                  "admin-demo-enter min-w-0 lg:col-span-2",
-                  index === 3 && "lg:col-start-2",
-                  index === 4 &&
-                    "sm:col-span-2 sm:mx-auto sm:w-full sm:max-w-[calc(50%-0.625rem)] lg:col-span-2 lg:max-w-none",
-                )}
-                style={{ animationDelay: `${380 + index * 90}ms` }}
-              >
-                <Link
-                  href={`/demo/command-center/${scenario.id}/today`}
-                  className="demo-launcher-card group relative flex h-full flex-col overflow-hidden rounded-[20px] p-5 text-[var(--demo-card-ink)] shadow-[var(--demo-card-shadow)] transition-[translate,box-shadow,background-color] duration-300 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1 hover:shadow-[var(--demo-card-shadow-hover)] focus-visible:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--demo-launcher-focus)] active:translate-y-0 sm:p-5"
-                  aria-label={`Explore ${scenario.name} demo workspace`}
-                >
-                  <span
-                    className="absolute inset-x-0 top-0 h-[3px] origin-left scale-x-[0.2] transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-x-100 group-focus-visible:scale-x-100"
-                    style={{ background: scenario.accent }}
-                    aria-hidden="true"
-                  />
-
-                  <article className="relative flex min-w-0 flex-1 flex-col">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="grid size-10 shrink-0 place-items-center rounded-[10px] text-white"
-                        style={{ background: scenario.accent }}
-                      >
-                        <DemoScenarioMark scenarioId={scenario.id} className="size-6" />
-                      </span>
-                      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--demo-card-faint)]">
-                        {scenario.category}
-                      </p>
-                    </div>
-
-                    <h2 className="mt-5 text-balance font-display text-[1.65rem] font-semibold leading-[1.02] tracking-[-0.04em] sm:text-[1.75rem]">
-                      {DEMO_SCENARIO_SHELL_NAMES[scenario.id]}
-                    </h2>
-                    <p className="mt-2.5 text-pretty text-[13px] leading-5 text-[var(--demo-card-muted)]">
-                      {scenario.description}
-                    </p>
-
-                    <DemoWorkspacePreview scenarioId={scenario.id} />
-
-                    <span className="mt-auto flex min-h-11 items-center justify-between pt-5 text-[13px] font-semibold">
-                      Open workspace
-                      <span
-                        className="grid size-9 place-items-center rounded-full bg-[var(--demo-card-action)] text-[var(--demo-card-action-ink)] transition-transform duration-300 ease-[cubic-bezier(.16,1,.3,1)] group-hover:translate-x-0.5 group-focus-visible:translate-x-0.5"
-                        aria-hidden="true"
-                      >
-                        <ArrowUpRight className="size-3.5" />
-                      </span>
-                    </span>
-                  </article>
-                </Link>
-              </div>
-            ))}
+        <section className={styles.valueStrip} aria-label="Why Command Center">
+          <div>
+            <Layers />
+            <p>
+              <strong>One connected picture</strong>
+              <span>Customer history travels with the work.</span>
+            </p>
+          </div>
+          <div>
+            <SlidersHorizontal />
+            <p>
+              <strong>AI with your oversight</strong>
+              <span>Review proposed actions before they run.</span>
+            </p>
+          </div>
+          <div>
+            <GitBranch />
+            <p>
+              <strong>Built around your business</strong>
+              <span>Own the source. Extend the workspace.</span>
+            </p>
           </div>
         </section>
 
-        <p
-          className="admin-demo-enter mt-10 text-center font-mono text-[9px] uppercase leading-5 tracking-[0.12em] text-[var(--demo-launcher-faint)]"
-          style={{ animationDelay: "860ms" }}
+        <section
+          id="business-demos"
+          className={styles.scenarios}
+          aria-labelledby="business-demos-title"
         >
-          Each business keeps separate data and appearance in this browser session.
-        </p>
+          <div className={styles.sectionHeader}>
+            <div>
+              <p className={styles.kicker}>SIX BUSINESSES. ROOM TO EXPLORE.</p>
+              <h2 id="business-demos-title">See yourself in the work.</h2>
+            </div>
+            <p>
+              Choose a business and step inside. Explore its customers, try an AI conversation, or
+              review the day’s priorities.
+            </p>
+          </div>
+          <div className={styles.scenarioGrid}>
+            {DEMO_SCENARIO_SUMMARIES.map((scenario, index) => (
+              <Link
+                key={scenario.id}
+                href={`/demo/command-center/${scenario.id}/today`}
+                className={`demo-launcher-card ${styles.scenarioCard}`}
+                aria-label={`Explore ${scenario.name} demo workspace`}
+              >
+                <div className={styles.scenarioIdentity}>
+                  <span className={styles.scenarioMark} style={{ background: scenario.accent }}>
+                    <DemoScenarioMark scenarioId={scenario.id} className="size-7" />
+                  </span>
+                  <span>{scenario.category}</span>
+                  <ArrowUpRight size={19} />
+                </div>
+                <h3>{DEMO_SCENARIO_SHELL_NAMES[scenario.id]}</h3>
+                <p>{examples[index]}</p>
+                <DemoWorkspacePreview scenarioId={scenario.id} />
+                <span className={styles.cardAction}>
+                  Explore this business <ArrowRight size={16} />
+                </span>
+              </Link>
+            ))}
+          </div>
+          <p className={styles.demoNote}>
+            Every business is fictional. Your demo changes stay in this browser session, and
+            messages are simulated.
+          </p>
+        </section>
+
+        <section className={styles.closing} aria-labelledby="make-it-yours">
+          <div>
+            <p className={styles.kicker}>START WITH WHAT YOUR TEAM NEEDS</p>
+            <h2 id="make-it-yours">
+              Imagine this.
+              <br />
+              Built for your business.
+            </h2>
+            <p>
+              We help you find the right use for AI, build around your existing tools, and keep
+              improving the work with your team.
+            </p>
+          </div>
+          <div className={styles.closingActions}>
+            <Link href="/contact" className={styles.primary}>
+              Let’s talk about your business <ArrowUpRight size={18} />
+            </Link>
+            <Link href="/command-center" className={styles.secondary}>
+              Explore Command Center <ArrowRight size={16} />
+            </Link>
+            <p>From a focused automation to a complete workspace.</p>
+          </div>
+        </section>
       </div>
     </main>
   );

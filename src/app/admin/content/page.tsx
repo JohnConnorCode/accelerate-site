@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useState, useCallback, useMemo } from "react";
 import { useAdminDialogState } from "@/components/admin/AdminDialog";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
@@ -71,7 +73,7 @@ export default function AdminContentPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Content Calendar"
+        title={adminPageName("content")}
         actions={
           <Button
             variant="primary"

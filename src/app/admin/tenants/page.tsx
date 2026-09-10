@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { FormEvent, useCallback, useMemo, useState } from "react";
 import {
   Archive,
@@ -215,8 +217,8 @@ export default function TenantDirectoryPage() {
     <div className="space-y-6 pb-10">
       <PageHeader
         eyebrow="Platform control"
-        title="Tenant operations"
-        subtitle="Provision shared-database workspaces, govern access, and pause every tenant-owned effect from one control plane."
+        title={adminPageName("tenants")}
+        subtitle="Manage business workspaces and the people who can access them."
       />
       <AdminReadBody
         loading={query.isLoading}

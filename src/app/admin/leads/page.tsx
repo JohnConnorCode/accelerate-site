@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Plus, X, Save } from "lucide-react";
@@ -265,7 +267,7 @@ export default function AdminLeadsPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Leads" />
+        <PageHeader title={adminPageName("leads")} />
         <LoadingSkeleton variant="table" count={8} />
       </div>
     );
@@ -274,7 +276,7 @@ export default function AdminLeadsPage() {
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
-        title="Leads"
+        title={adminPageName("leads")}
         subtitle={`${total} total`}
         actions={
           <Button variant="primary" size="sm" onClick={() => setShowAddLead(true)}>

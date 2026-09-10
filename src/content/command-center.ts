@@ -68,7 +68,7 @@ export const capabilities: Capability[] = [
     category: "act",
     title: "Prepare a private page draft",
     detail:
-      "Enable Site Studio to create a structured template or AI-assisted page, preview it at different widths, rename it and discard it. Database revisions preserve each business's drafts and refuse stale edits. Public publishing is still separate work.",
+      "Create template or AI-assisted pages with Muse Spark 1.3 by default and a searchable, refreshable catalogue of free, low-cost and premium models. Filter by provider and price; price increases require review. Installation owners can edit pages and shared content, preview responsive widths, save private revisions and review publication or rollback. Import and export move portable content between installations. Existing source pages are preserved until explicitly replaced; automatic migration of their original layouts remains separate work.",
   },
   // Capture
   {
@@ -111,7 +111,7 @@ export const capabilities: Capability[] = [
     category: "capture",
     title: "AI-assisted contact import",
     detail:
-      "Bring in a CSV or pasted list, let the system normalize and resolve identity, then review the proposed records before anything is written.",
+      "Bring in a CSV or pasted list, check for existing contacts, then review the proposed records before saving. Contact review helps you match unfamiliar conversation senders to the right person.",
   },
 
   // Organize
@@ -321,7 +321,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "The web app",
     detail:
-      "Today separates decisions, tasks, watch signals and upcoming commitments. Work provides task filters and editing alongside the same approval inspector, with shared records across both views.",
+      "Arrange Today around a sourced business brief, decisions, commitments, coworker progress and enabled App follow-up. Save personal or shared views, inspect the context and prepare the next action. Empty modules offer useful starting points. Work keeps the same tasks and approvals available for editing.",
   },
   {
     id: "chat",
@@ -385,7 +385,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "Make the workspace your own",
     detail:
-      "Choose a built-in appearance or preview a custom palette, typography and corner style in Branding. Import and export portable themes, or ask the connected assistant to prepare a theme for approval. Saved themes use the same workspace permissions and revision checks as branding.",
+      "Choose a built-in appearance or preview a custom palette, typography and corner style in Branding. Import and export portable themes, or ask the connected assistant to prepare a theme for approval. Saved themes use the same workspace permissions and revision checks as branding. Demo appearance choices stay separate from the live workspace.",
   },
   // Govern
   {
@@ -504,7 +504,7 @@ export const CURRENT_SURFACES = [
   },
   {
     title: "From a won opportunity to a reviewed delivery plan",
-    body: "Review the onboarding template and originating proposal, create one client engagement, and track its shared tasks and handoff receipt. Retries preserve completed commitments and the original source context.",
+    body: "Review the onboarding template and originating proposal, create one client engagement, and track its shared tasks and handoff receipt. Open client rows to edit notes, follow exact record links and add a follow-up that opens in Tasks & approvals. Retries preserve completed commitments and the original source context.",
   },
   {
     n: "02",

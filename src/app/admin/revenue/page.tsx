@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { motion } from "framer-motion";
 import { DollarSign, Users, TrendingDown, BarChart3 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -34,7 +36,10 @@ export default function RevenuePage() {
       transition={{ duration: 0.3 }}
       className="pb-10"
     >
-      <PageHeader title="Revenue" subtitle="Financial overview" />
+      <PageHeader
+        title={adminPageName("revenue")}
+        subtitle="Review revenue and customer value to understand where your business is growing."
+      />
       <AdminReadBody
         loading={loading}
         hasData={Boolean(data)}

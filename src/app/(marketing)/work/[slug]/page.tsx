@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CaseStudy } from "@/components/work/CaseStudy";
@@ -6,13 +7,15 @@ import { generateBreadcrumbJsonLd } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return workProjects.map(({ slug }) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const published = await publishedWebsiteMetadata(`/work/${(await params).slug}`);
+  if (published) return published;
   const project = getWorkBySlug((await params).slug);
   if (!project) return {};
   const path = `/work/${project.slug}`;
@@ -39,6 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function WorkCasePage({ params }: Props) {
+  const published = await publishedWebsiteOverride(`/work/${(await params).slug}`);
+  if (published) return published;
   const project = getWorkBySlug((await params).slug);
   if (!project) notFound();
   const breadcrumb = generateBreadcrumbJsonLd([

@@ -1,3 +1,4 @@
+import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { verticals } from "@/content/verticals";
@@ -6,7 +7,7 @@ import { generateVerticalJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 const vertical = verticals.find((v) => v.slug === "auto-dealers")!;
 
-export const metadata = seoMetadata({
+const bundledMetadata = seoMetadata({
   title: "Auto Dealer & Service Center AI Solutions",
   description: vertical.shortDescription,
   ogTitle: "Auto Dealer & Service Center AI Solutions",
@@ -20,7 +21,9 @@ const breadcrumbJsonLd = generateBreadcrumbJsonLd([
   { name: "Auto Dealers & Service Centers", url: "/industries/auto-dealers" },
 ]);
 
-export default function AutoDealersPage() {
+export default async function AutoDealersPage() {
+  const published = await publishedWebsiteOverride("/industries/auto-dealers");
+  if (published) return published;
   return (
     <>
       <script
@@ -37,4 +40,8 @@ export default function AutoDealersPage() {
       <PageEngagementTracker />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return (await publishedWebsiteMetadata("/industries/auto-dealers")) ?? bundledMetadata;
 }

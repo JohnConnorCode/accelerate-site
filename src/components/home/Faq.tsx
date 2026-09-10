@@ -2,11 +2,16 @@
 
 import type { CSSProperties, MouseEvent } from "react";
 import { useState } from "react";
-import { homeFaqs } from "@/content/home-faq";
+import { homeFaqContent } from "@/content/site-studio/home";
+import type { HomeFaqContent } from "@/lib/site-studio/native-templates";
 import { Reveal } from "./reveal";
 import { AmbientField } from "./AmbientField";
 
-export function Faq() {
+export function Faq({ content = homeFaqContent }: { content?: HomeFaqContent }) {
+  const homeFaqs = content.questions.map((question, index) => ({
+    question,
+    answer: content.answers[index],
+  }));
   const [open, setOpen] = useState(0);
 
   return (
@@ -15,10 +20,10 @@ export function Faq() {
       <div className="wrap">
         <div className="shead" style={{ marginBottom: "clamp(28px,3.6vw,46px)" }}>
           <Reveal rv as="p" className="label eyebrow-anim">
-            Common questions
+            {content.eyebrow}
           </Reveal>
           <Reveal rv as="h2" className="h2" delay={0.06}>
-            Answered plainly.
+            {content.title}
           </Reveal>
         </div>
 

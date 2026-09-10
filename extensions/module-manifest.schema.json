@@ -6,6 +6,15 @@
   "required": ["id", "name", "description", "category", "defaultEnabled", "navLinks", "docsUrl"],
   "additionalProperties": false,
   "properties": {
+    "today": {
+      "type": "object",
+      "required": ["source", "href"],
+      "additionalProperties": false,
+      "properties": {
+        "source": { "enum": ["collection_case", "radar_opportunity"] },
+        "href": { "type": "string", "pattern": "^/admin/[a-z0-9/-]+$" }
+      }
+    },
     "$schema": {
       "type": "string"
     },

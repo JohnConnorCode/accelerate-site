@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { supabaseDashboard, tenant } from "@/config/tenant";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "@/components/admin/AdminLink";
@@ -644,8 +646,8 @@ export default function AdminSetupPage() {
   return (
     <div className="space-y-7 pb-8">
       <PageHeader
-        title="Setup Center"
-        subtitle="Connect, verify, and operate the complete Revenue OS. Every status reflects this deployment; secrets are never displayed or stored in the admin database."
+        title={adminPageName("setup")}
+        subtitle="Connect your services and check what is ready or still needs attention."
         actions={
           <>
             <Link

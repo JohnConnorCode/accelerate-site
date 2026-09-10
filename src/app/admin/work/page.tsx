@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
@@ -160,8 +162,8 @@ export default function WorkPage() {
   return (
     <div className="space-y-5 pb-8">
       <PageHeader
-        title="Work"
-        subtitle="Tasks and decisions, connected to the records behind them."
+        title={adminPageName("work")}
+        subtitle="Track assigned tasks and review actions waiting for your approval."
         utilityActions={
           <button
             type="button"

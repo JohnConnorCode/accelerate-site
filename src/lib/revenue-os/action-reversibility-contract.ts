@@ -11,6 +11,13 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "today_view_change",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore a previous view with a newly reviewed change against the current revision. Personal layout receipts retain the exact prior request.",
+  },
+  {
     actionType: "send_radar_outreach",
     impact: "external_action",
     reversibility: "irreversible",

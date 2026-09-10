@@ -1,5 +1,7 @@
 "use client";
 
+import { WebsiteModelPicker } from "@/components/admin/site/WebsiteModelPicker";
+import { DEFAULT_SITE_MODEL, siteModel, modelPriceCeiling } from "@/lib/site-studio/models";
 import { useCallback, useEffect, useState } from "react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -31,6 +33,7 @@ export default function AdminSiteStudioPage() {
   const [extra, setExtra] = useState("");
   const [slug, setSlug] = useState("");
   const [mode, setMode] = useState<"template" | "ai">("template");
+  const [model, setModel] = useState(() => siteModel(DEFAULT_SITE_MODEL));
   const [assetIds, setAssetIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +78,8 @@ export default function AdminSiteStudioPage() {
             ...(extra.trim() ? { extra: extra.trim() } : {}),
           },
           mode,
+          model: model.id,
+          priceCeiling: modelPriceCeiling(model),
           assetIds,
           ...(slug.trim() ? { slug: slug.trim().toLowerCase() } : {}),
         }),
@@ -100,6 +105,19 @@ export default function AdminSiteStudioPage() {
         title="Site Studio"
         subtitle="Create AI-assisted page drafts from approved components and photography. Drafts are private and are not published from this workspace."
       />
+      <AdminSurface>
+        <h2 className="admin-section-title">Installation website</h2>
+        <p className="mt-2 text-sm text-[var(--admin-muted)]">
+          The installation owner can create pages, edit with AI, preview every screen size, and
+          publish a saved website revision.
+        </p>
+        <Link
+          href="/admin/site/website"
+          className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-[var(--admin-ink)] underline underline-offset-4"
+        >
+          Edit installation website
+        </Link>
+      </AdminSurface>
       <section aria-label="Create a page draft">
         <h2 className="admin-section-title">New page draft</h2>
         <AdminSurface>
@@ -160,6 +178,9 @@ export default function AdminSiteStudioPage() {
                 <option value="ai">AI generated (needs OpenRouter)</option>
               </select>
             </label>
+            {mode === "ai" && (
+              <WebsiteModelPicker value={model} onChange={setModel} disabled={creating} />
+            )}
             <fieldset>
               <legend className="text-sm font-medium text-[var(--admin-ink)]">
                 Choose photography (optional)

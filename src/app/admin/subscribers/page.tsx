@@ -1,5 +1,7 @@
 "use client";
 
+import { adminPageName } from "@/lib/admin/navigation";
+
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
@@ -73,7 +75,7 @@ export default function SubscribersPage() {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Newsletter Subscribers" />
+        <PageHeader title={adminPageName("subscribers")} />
         <LoadingSkeleton variant="page" />
       </div>
     );
@@ -81,7 +83,7 @@ export default function SubscribersPage() {
 
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <PageHeader title="Newsletter Subscribers" subtitle={`${total} total`} />
+      <PageHeader title={adminPageName("subscribers")} subtitle={`${total} total`} />
 
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <StatCard label="Total" value={stats.total} icon={AtSign} index={0} />

@@ -1226,6 +1226,16 @@ a.tag:active {
 .hero-intelligent-scramble {
   display: inline;
 }
+/* Serve the complete stored headline before hydration for reduced-motion
+   visitors. The animated text keeps identical server/client initial markup. */
+@media (prefers-reduced-motion: reduce) {
+  .hero .hero-intelligent-static {
+    display: inline;
+  }
+  .hero .hero-intelligent-scramble {
+    display: none;
+  }
+}
 .motion-ready .hero:not(.loaded) .word > span {
   transform: translateY(112%);
   filter: blur(var(--word-blur, 18px));
@@ -6309,9 +6319,26 @@ body.admin-app-open {
   background: var(--admin-sidebar);
   color: var(--admin-nav-ink);
   opacity: 1;
+  transition:
+    width 240ms var(--ease-out),
+    box-shadow 180ms var(--ease-out);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   box-shadow: 18px 0 42px -34px rgba(0, 0, 0, 0.85);
+}
+
+.admin-nav-label {
+  overflow: hidden;
+  max-width: 11rem;
+  opacity: 1;
+  transition:
+    max-width 180ms var(--ease-out),
+    opacity 110ms var(--ease-out);
+}
+.admin-sidebar[data-collapsed="true"] .admin-nav-label {
+  max-width: 0;
+  opacity: 0;
+  transition-delay: 0ms, 0ms;
 }
 
 .admin-mobile-header {
@@ -6510,6 +6537,22 @@ body.admin-mobile-nav-open .admin-mobile-dock {
     inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
 
+[data-theme="mac"] .admin-sidebar,
+[data-theme="mac"] .admin-mobile-header {
+  -webkit-backdrop-filter: blur(30px) saturate(1.35);
+  backdrop-filter: blur(30px) saturate(1.35);
+  background: rgba(246, 246, 248, 0.78);
+}
+[data-theme="mac"] .admin-mobile-dock {
+  --admin-dock-bg: rgba(246, 246, 248, 0.78);
+}
+[data-theme="mac"] .admin-surface,
+[data-theme="mac"] .admin-shell :is(.glass, .glass-prominent, .glass-gold) {
+  -webkit-backdrop-filter: blur(22px) saturate(1.18);
+  backdrop-filter: blur(22px) saturate(1.18);
+  background: rgba(255, 255, 255, 0.82);
+}
+
 /* Collapsed groups keep the operator's navigation compact. Overflow remains
    available for keyboards and wheels without leaving a permanent chrome rail. */
 .admin-nav-scroll {
@@ -6555,6 +6598,22 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   color: var(--admin-nav-active-ink);
   background: var(--admin-nav-active-bg);
   box-shadow: 0 10px 26px -16px color-mix(in srgb, var(--admin-nav-accent) 72%, transparent);
+}
+.admin-nav-link:hover {
+  transform: translateX(2px);
+}
+.admin-nav-link:active {
+  transform: scale(0.98);
+}
+.admin-nav-link[data-pending="true"] {
+  color: var(--admin-nav-ink);
+  background: color-mix(in srgb, var(--admin-nav-accent) 9%, transparent);
+  box-shadow: inset 2px 0 0 color-mix(in srgb, var(--admin-nav-accent) 72%, transparent);
+}
+.admin-nav-disclosure {
+  transition-property: grid-template-rows, opacity;
+  transition-duration: 240ms;
+  transition-timing-function: var(--ease-out);
 }
 .admin-nav-link[aria-current="page"] svg {
   color: var(--admin-nav-active-ink);
@@ -6921,6 +6980,80 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 }
 .admin-page-title {
   font-size: clamp(1.75rem, 2.5vw, 2.35rem);
+}
+
+.admin-page-introduction {
+  margin-bottom: 1.75rem;
+  padding-bottom: 0.15rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--admin-ink) 7%, transparent);
+}
+.admin-page-help {
+  width: min(100%, 44rem);
+  margin-top: 1rem;
+  border-radius: calc(var(--admin-control-radius) + 4px);
+  background: color-mix(in srgb, var(--admin-accent) 5%, var(--admin-surface));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--admin-accent) 12%, transparent),
+    0 8px 20px -18px color-mix(in srgb, var(--admin-ink) 38%, transparent);
+  transition:
+    background-color 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out);
+}
+.admin-page-help:hover {
+  background: color-mix(in srgb, var(--admin-accent) 7%, var(--admin-surface));
+}
+.admin-help-trigger {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  color: var(--admin-ink);
+  font-size: 0.78rem;
+  font-weight: 650;
+  list-style: none;
+}
+.admin-help-trigger::-webkit-details-marker {
+  display: none;
+}
+.admin-help-chevron {
+  margin-left: auto;
+  transition: transform 180ms var(--ease-out);
+}
+.admin-page-help[open] .admin-help-chevron {
+  transform: rotate(180deg);
+}
+.admin-help-content {
+  padding: 0 0.85rem 0.9rem;
+  color: var(--admin-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.admin-help-step {
+  display: grid;
+  width: 1.3rem;
+  height: 1.3rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--admin-accent);
+  background: color-mix(in srgb, var(--admin-accent) 12%, transparent);
+  font-size: 0.65rem;
+  font-weight: 750;
+}
+.admin-help-guide {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+  color: var(--admin-accent);
+  font-weight: 650;
+}
+.admin-error-details summary {
+  cursor: pointer;
+  color: var(--admin-muted);
 }
 
 /* Async page regions must preserve the same rhythm as directly rendered admin

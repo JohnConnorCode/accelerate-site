@@ -20,7 +20,7 @@ One shared operating layer for the businesses that need it, and how to run the d
 
 - [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-09): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-09): 47 capabilities in six categories, from what the system sees to what it never does without you.
-- [Work the Today queue](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-09): Open with the work that actually needs a decision, ranked with the reason it's there.
+- [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-09): Arrange your business brief, decisions, work and App follow-up into saved views that fit your day.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-09): Every new lead, message, and staged action that hasn't found an owner yet, in one queue.
 - [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-09): The editing view over the same tasks and approvals Today shows you, with filters and full editing.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-09): How approval works, how it earns more autonomy over time, and what to check after a decision.
@@ -116,7 +116,7 @@ See what you can build: reports, reviewed workflows and dedicated business works
 - [Pipeline follow-up](https://www.acceleratewith.us/docs/plugins/pipeline-watch) (updated 2026-09-09): Find open opportunities whose next action or update needs attention.
 - [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-09-09): Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.
 - [Stripe invoicing](https://www.acceleratewith.us/docs/plugins/stripe-invoicing) (updated 2026-09-09): Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.
-- [Draft public pages with Site Studio](https://www.acceleratewith.us/docs/plugins/site-studio) (updated 2026-09-09): Draft a public-site page from your approved components and photography, entirely privately.
+- [Draft public pages with Site Studio](https://www.acceleratewith.us/docs/plugins/site-studio) (updated 2026-09-09): Create and edit website pages, review AI suggestions, and publish saved revisions.
 
 ## Build on it
 For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.

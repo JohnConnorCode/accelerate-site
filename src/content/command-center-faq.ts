@@ -2,9 +2,19 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I actually work with clients in the demo?",
+    answer:
+      "Yes. Search or filter clients, open an account, save notes and add a follow-up. Open the saved follow-up in Tasks & approvals or follow a contact timeline to its specific conversation or opportunity. Changes persist in that fictional business session and never contact customers.",
+  },
+  {
+    question: "Can I try Command Center before setting it up?",
+    answer:
+      "Yes. Open the demo, preview how an inquiry moves through an AI draft to a reviewed result, then explore one of six fictional businesses. Try the demo opens Northline Roofing directly, with no signup required. The full workspaces use sample records and simulated actions saved in your browser session.",
+  },
+  {
     question: "Can we create our own workspace theme?",
     answer:
-      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device.",
+      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
   },
   {
     question: "How does the whole system fit together?",
@@ -19,7 +29,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Does Site Studio publish a page when I create a draft?",
     answer:
-      "No. Site Studio currently creates private, versioned drafts. For example, use the built-in template for a bookkeeping service page, review it at desktop and mobile widths, then reopen the saved draft. Template creation makes no model request; AI generation uses your configured provider and budget. Publishing, scheduling and rollback are still being built. The Site Studio guide explains the available controls and recovery steps.",
+      "No. Creating, applying an AI suggestion and saving all keep the work private. The installation owner separately reviews and publishes a saved website revision. For example, create a bookkeeping page, choose Muse Spark 1.3 or browse current models by provider and price, review the copy and phone preview, save, then review publication. History supports rollback. Private tenant drafts remain separate. The Site Studio guide explains costs, recovery and importing content into your own installation.",
   },
   {
     question: "What does a complete delivery handoff mean?",
@@ -29,7 +39,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How do Today and Work fit together?",
     answer:
-      "Today shows decisions, tasks, signals and upcoming context that deserve attention. Work lets you filter and edit tasks or review pending approvals. Both use the same saved records and approval service: editing a task keeps its status, snoozing postpones it, and completing it records the result. Custom Apps can keep their own domain workspaces and lifecycles.",
+      "Today is a customizable daily workspace: save personal or shared arrangements of your business brief, decisions, commitments, coworker progress and enabled App follow-up. It offers useful starting points even when there is little content. Work provides task editing and the same approvals. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
   },
   {
     question: "Can we build a completely different App or interface?",

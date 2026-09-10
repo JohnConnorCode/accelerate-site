@@ -265,4 +265,15 @@ limits, recovery and extension requirements.
 
 Booking mode is resolved by `src/lib/booking.ts`. Public embed availability stays separate from verified Calendly attribution in setup and the integration catalog.
 
+`today-snapshot.ts` composes bounded canonical reads into independently available
+Today regions. `today-brief.ts` uses the existing Business Pulse worker and
+read-only tool allowlist; page reads never invoke a model. Exact source content
+binds each durable interpretation. `today-views.ts` is the shared UI/AI service
+for versioned personal and workspace documents, exact previews and approved
+execution. Personal proposal bodies stay in RLS-protected storage, outside the
+shared action queue. `save_today_views` commits revision CAS, immutable replay
+receipt and content-free audit atomically. Apply the ordered Today migration
+before enabling saved views; `test:today-workspace` executes it twice in an
+owned ephemeral PostgreSQL database and tests authorization/recovery.
+
 `proposals.ts` owns proposal transitions, material-edit versions, immutable events, and acceptance/decline pipeline updates. API adapters reuse that service.

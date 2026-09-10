@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { SiteCta, SiteLeafNode, SiteSectionNode } from "./document";
 import { resolveSectionStyle, resolveContainerStyle } from "./tokens";
 import { resolveSiteAsset } from "./assets";
+export type RenderAsset = { id: string; src: string; alt: string };
 
 /** Plain helper, same rationale as siteImage: host elements in the tree. */
 function ctaButton(cta: SiteCta, variant?: "primary" | "secondary" | "ghost") {
@@ -17,7 +18,7 @@ function ctaButton(cta: SiteCta, variant?: "primary" | "secondary" | "ghost") {
       style={{
         display: "inline-block",
         padding: "0.75rem 1.5rem",
-        borderRadius: "0.5rem",
+        borderRadius: "var(--site-radius, 0.5rem)",
         fontWeight: 600,
         ...tone,
       }}
@@ -29,9 +30,14 @@ function ctaButton(cta: SiteCta, variant?: "primary" | "secondary" | "ghost") {
 
 /** Plain helper, deliberately not a component: output stays a host-element
  * tree so previews, QA, and tests inspect exactly what renders. */
-function siteImage(assetId: string | undefined, alt: string | undefined, caption?: string) {
+function siteImage(
+  assetId: string | undefined,
+  alt: string | undefined,
+  caption?: string,
+  assets: readonly RenderAsset[] = [],
+) {
   if (!assetId) return null;
-  const asset = resolveSiteAsset(assetId);
+  const asset = assets.find((asset) => asset.id === assetId) ?? resolveSiteAsset(assetId);
   if (!asset) {
     return (
       <div
@@ -49,7 +55,7 @@ function siteImage(assetId: string | undefined, alt: string | undefined, caption
     <img
       src={asset.src}
       alt={resolvedAlt}
-      style={{ width: "100%", height: "auto", borderRadius: "0.75rem" }}
+      style={{ width: "100%", height: "auto", borderRadius: "var(--site-radius, 0.75rem)" }}
     />
   );
   if (caption === undefined) return img;
@@ -61,7 +67,7 @@ function siteImage(assetId: string | undefined, alt: string | undefined, caption
   );
 }
 
-function renderLeaf(node: SiteLeafNode): ReactNode {
+function renderLeaf(node: SiteLeafNode, assets: readonly RenderAsset[] = []): ReactNode {
   switch (node.type) {
     case "hero": {
       const props = node.props;
@@ -80,7 +86,7 @@ function renderLeaf(node: SiteLeafNode): ReactNode {
             {props.primaryCta ? ctaButton(props.primaryCta, "primary") : null}
             {props.secondaryCta ? ctaButton(props.secondaryCta, "secondary") : null}
           </div>
-          {siteImage(props.assetId, undefined)}
+          {siteImage(props.assetId, undefined, undefined, assets)}
         </div>
       );
     }
@@ -100,7 +106,7 @@ function renderLeaf(node: SiteLeafNode): ReactNode {
       );
     case "image": {
       const props = node.props;
-      return <div>{siteImage(props.assetId, props.alt, props.caption)}</div>;
+      return <div>{siteImage(props.assetId, props.alt, props.caption, assets)}</div>;
     }
     case "button":
       return (
@@ -129,7 +135,7 @@ function renderLeaf(node: SiteLeafNode): ReactNode {
                 key={item.title}
                 style={{
                   border: "1px solid currentColor",
-                  borderRadius: "0.75rem",
+                  borderRadius: "var(--site-radius, 0.75rem)",
                   padding: "1.25rem",
                 }}
               >
@@ -167,13 +173,16 @@ function renderLeaf(node: SiteLeafNode): ReactNode {
   }
 }
 
-export function renderSection(node: SiteSectionNode): ReactNode {
+export function renderSection(
+  node: SiteSectionNode,
+  assets: readonly RenderAsset[] = [],
+): ReactNode {
   return (
     <section key={node.id} data-site-section={node.id} style={resolveSectionStyle(node.styles)}>
       <div style={resolveContainerStyle(node.styles)}>
         {node.children.map((child) => (
           <div key={child.id} data-site-node={child.id}>
-            {renderLeaf(child)}
+            {renderLeaf(child, assets)}
           </div>
         ))}
       </div>
