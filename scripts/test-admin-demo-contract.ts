@@ -193,7 +193,7 @@ assert.doesNotMatch(
 );
 
 for (const file of [
-  "src/app/admin/today/page.tsx",
+  "src/components/admin/LegacyToday.tsx",
   "src/components/admin/NotificationBell.tsx",
   "src/components/admin/RevenueAICommand.tsx",
 ]) {

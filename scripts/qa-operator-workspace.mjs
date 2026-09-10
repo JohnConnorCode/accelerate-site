@@ -53,9 +53,9 @@ try {
           { path, body },
         );
       await go("today");
-      await page.locator("[data-attention-kind=work]").waitFor();
-      for (const title of ["Business brief", "Needs you", "Being handled", "Upcoming"])
-        await page.getByRole("heading", { name: title, exact: true }).waitFor();
+      await page.locator("[data-attention-kind=work]").first().waitFor();
+      for (const module of ["brief", "attention", "handling", "upcoming"])
+        await page.locator(`[data-today-module="${module}"]`).waitFor();
       const read = await request("/api/admin/tasks?status=pending");
       assert.equal(read.status, 200);
       const task = read.data.tasks.find((t) => t.source === "manual");
@@ -75,7 +75,9 @@ try {
       assert.equal(saved.title, "Reviewed task for shared work");
       assert.equal(saved.status, "pending");
       await go("today");
-      const attentionTask = page.locator(`[data-source-type=task][data-source-id="${task.id}"]`);
+      const attentionTask = page
+        .locator("[data-today-module=attention]")
+        .locator(`[data-source-type=task][data-source-id="${task.id}"]`);
       await attentionTask.getByText(saved.title, { exact: true }).waitFor();
       await attentionTask
         .getByRole("button", { name: "Inspect " + saved.title, exact: true })
@@ -110,9 +112,9 @@ try {
         (a) => a.status === "pending",
       );
       assert.ok(approval);
-      const approvalRow = page.locator(
-        `[data-source-type=approval][data-source-id="${approval.id}"]`,
-      );
+      const approvalRow = page
+        .locator("[data-today-module=attention]")
+        .locator(`[data-source-type=approval][data-source-id="${approval.id}"]`);
       assert.equal(await approvalRow.count(), 1, "One approval projection in Today");
       await approvalRow
         .getByRole("button", { name: "Review " + approval.title, exact: true })
