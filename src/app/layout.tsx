@@ -42,7 +42,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#FBFBFA",
+  // Paper by default, ink when the editorial dark theme is active.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FBFBFA" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B0B0B" },
+  ],
 };
 
 const defaultSocialImage =

@@ -10,8 +10,10 @@ export default function manifest(): MetadataRoute.Manifest {
     // "browser" (not "standalone") so this stays a normal website — no PWA
     // "install / download app" prompt, which doesn't belong on a marketing site.
     display: "browser",
-    background_color: "#0a0a0a",
-    theme_color: "#0a0a0a",
+    // Paper (#FBFBFA) matches the default light viewport themeColor in
+    // layout.tsx — the old near-black (#0a0a0a) predated the editorial system.
+    background_color: "#FBFBFA",
+    theme_color: "#FBFBFA",
     icons: [
       {
         src: "/favicon.ico",
@@ -24,7 +26,9 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/svg+xml",
       },
       {
-        src: "/apple-icon.png",
+        // Generated route from src/app/apple-icon.tsx (Next serves
+        // generated apple-icons at /apple-icon, not /apple-icon.png).
+        src: "/apple-icon",
         sizes: "180x180",
         type: "image/png",
       },
