@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { claimApprovedAction, failAction, finishAction } from "./actions";
+import { claimApprovedAction, failAction, finishAction, proposeAction } from "./actions";
 import { reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
 import { transitionOpportunity } from "./pipeline";
@@ -9,6 +9,7 @@ import { sendGmailReply } from "./google";
 import {
   createRevenueTask,
   completeOperatorTask,
+  deleteOperatorTask,
   snoozeOperatorTask,
   updateOperatorTask,
 } from "./tasks";
@@ -31,6 +32,7 @@ export const APPROVABLE_ACTIONS = [
   "transition_opportunity",
   "create_task",
   "update_task",
+  "delete_task",
   "update_next_action",
   "activate_campaign",
   "admin_layout_change",
@@ -168,7 +170,7 @@ export async function approveAndExecuteAction(
         const taskId = stringValue(payload, "taskId")!;
         const { data: taskBefore } = await supabase
           .from("tasks")
-          .select("id,title,priority,due_date,status,snoozed_until,completed_at")
+          .select("id,title,description,priority,due_date,status,snoozed_until,completed_at")
           .eq("id", taskId)
           .maybeSingle();
         // Copy primitives now: some clients hand back live row references
@@ -177,6 +179,7 @@ export async function approveAndExecuteAction(
         compensation.before = before
           ? {
               title: before.title,
+              description: before.description ?? null,
               priority: before.priority,
               due_date: before.due_date ?? null,
               status: before.status,
@@ -198,6 +201,10 @@ export async function approveAndExecuteAction(
           result = await updateOperatorTask(supabase, {
             id: taskId,
             title: stringValue(payload, "title", false),
+            description:
+              typeof payload.description === "string" || payload.description === null
+                ? (payload.description as string | null)
+                : undefined,
             priority: ["high", "medium", "low"].includes(String(priorityRaw))
               ? (priorityRaw as "high" | "medium" | "low")
               : undefined,
@@ -210,6 +217,20 @@ export async function approveAndExecuteAction(
         } else {
           throw new Error(`Unknown task update changeType "${changeType}"`);
         }
+        break;
+      }
+      case "delete_task": {
+        const taskId = stringValue(payload, "taskId")!;
+        const { data: taskRow } = await supabase
+          .from("tasks")
+          .select("*")
+          .eq("id", taskId)
+          .maybeSingle();
+        if (!taskRow) throw new Error("Task not found");
+        // Full-row inverse: compensateAction re-inserts it. No table declares
+        // a foreign key to tasks, so id-based references survive the removal.
+        compensation.row = { ...taskRow };
+        result = await deleteOperatorTask(supabase, { id: taskId, actorEmail });
         break;
       }
       case "update_next_action": {
@@ -282,7 +303,11 @@ export async function approveAndExecuteAction(
           contactId: stringValue(payload, "contactId", false) ?? null,
           companyId: stringValue(payload, "companyId", false) ?? null,
           opportunityId: stringValue(payload, "opportunityId", false) ?? null,
-          captureSource: "ai_answer",
+          captureSource: stringValue(payload, "captureSource", false) ?? "ai_answer",
+          ...(typeof payload.contactEmail === "string" ? { contactEmail: payload.contactEmail } : {}),
+          ...(typeof payload.captureDurationMs === "number"
+            ? { captureDurationMs: payload.captureDurationMs }
+            : {}),
         });
         break;
       case "identity_review":
@@ -307,4 +332,53 @@ export async function approveAndExecuteAction(
     await failAction(supabase, id, error instanceof Error ? error.message : "Action failed");
     throw error;
   }
+}
+
+/**
+ * The operator write path: a decision the human already made at the click is
+ * staged through the same action queue and executed through the same
+ * approveAndExecuteAction as every AI-originated write. One path, so UI
+ * writes get the identical claim, reversibility stamp, captured inverse,
+ * receipt, and audit as programmatic ones, and stay compensable from
+ * Today. The human approval the queue records is the click itself, under
+ * the authenticated operator's identity: mode stays "approved" and the
+ * impact gate refuses external effects, which keep the explicit review
+ * decision in Today. Learned policy blocks surface as a named refusal
+ * rather than a silent bypass.
+ */
+export async function runOperatorAction(
+  supabase: SupabaseClient,
+  input: {
+    actionType: string;
+    title: string;
+    payload: Record<string, unknown>;
+    actorEmail: string;
+    dedupeKey?: string;
+    entityType?: string;
+    entityId?: string;
+  },
+) {
+  const entry = reversibilityOf(input.actionType);
+  if (entry.impact !== "internal_write")
+    throw new Error(
+      `${input.actionType} reaches outside the workspace and requires its own approval decision in Today; it cannot run as an immediate operator action.`,
+    );
+  const proposed = await proposeAction(supabase, {
+    actionType: input.actionType,
+    title: input.title,
+    payload: input.payload,
+    sourceContext: "operator_ui",
+    entityType: input.entityType,
+    entityId: input.entityId,
+    dedupeKey: input.dedupeKey,
+    proposedBy: input.actorEmail,
+  });
+  if (proposed && (proposed as { blocked_by_policy?: boolean }).blocked_by_policy)
+    throw new Error((proposed as { message?: string }).message ?? "Blocked by learned policy");
+  const actionId = String((proposed as { id?: unknown }).id ?? "");
+  if (!actionId) throw new Error("Operator action could not be staged");
+  const result = await approveAndExecuteAction(supabase, actionId, input.actorEmail, {
+    mode: "approved",
+  });
+  return { actionId, result };
 }

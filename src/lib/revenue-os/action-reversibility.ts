@@ -65,6 +65,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     rationale: "Prior field values are captured at execution and restored.",
   },
   {
+    actionType: "delete_task",
+    impact: "internal_write",
+    reversibility: "reversible",
+    rationale:
+      "No table declares a foreign key to tasks (verified across the migration set), so the captured full row re-inserts with its id and every id-based reference survives.",
+  },
+  {
     actionType: "update_next_action",
     impact: "internal_write",
     reversibility: "reversible",

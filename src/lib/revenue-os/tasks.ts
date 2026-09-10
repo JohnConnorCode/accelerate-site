@@ -192,6 +192,7 @@ export async function updateOperatorTask(
   input: {
     id: string;
     title?: string;
+    description?: string | null;
     priority?: "high" | "medium" | "low";
     dueDate?: string | null;
     actorEmail: string;
@@ -204,6 +205,7 @@ export async function updateOperatorTask(
     if (!trimmed) throw new Error("Task title cannot be empty");
     patch.title = trimmed;
   }
+  if (input.description !== undefined) patch.description = input.description;
   if (input.priority !== undefined) patch.priority = input.priority;
   if (input.dueDate !== undefined) patch.due_date = input.dueDate || null;
   if (Object.keys(patch).length === 0) throw new Error("No task fields were changed");
@@ -213,7 +215,7 @@ export async function updateOperatorTask(
     .update(patch)
     .eq("id", input.id)
     .eq("status", before.status)
-    .select("id,title,status,priority,due_date,snoozed_until,completed_at,opportunity_id")
+    .select("id,title,description,status,priority,due_date,snoozed_until,completed_at,opportunity_id")
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!task) throw new Error("This task changed while you were working. Refresh and try again.");
@@ -241,4 +243,47 @@ export async function updateOperatorTask(
     ),
   );
   return task;
+}
+
+/**
+ * Deletes a task through the executor path. No table declares an
+ * ON DELETE CASCADE against tasks (checked across the migration set), so
+ * the full row is captured before removal and a re-insert restores it with
+ * its identity; anything other tables reference by id stays intact.
+ */
+export async function deleteOperatorTask(
+  supabase: SupabaseClient,
+  input: { id: string; actorEmail: string },
+) {
+  const { data: before, error: loadError } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("id", input.id)
+    .maybeSingle();
+  if (loadError) throw new Error(loadError.message);
+  if (!before) throw new Error("Task not found");
+  const { error } = await supabase.from("tasks").delete().eq("id", input.id);
+  if (error) throw new Error(error.message);
+  await recordAudit(supabase, {
+    actorEmail: input.actorEmail,
+    action: "task.deleted",
+    entityType: "task",
+    entityId: input.id,
+    before,
+  });
+  await recordActivity(supabase, {
+    activityType: "task_deleted",
+    title: `Task deleted: ${before.title}`,
+    opportunityId: before.opportunity_id ?? null,
+    source: "admin",
+    actorEmail: input.actorEmail,
+    externalId: `task:${input.id}:deleted`,
+    metadata: { task_id: input.id },
+  }).catch((error) =>
+    console.error(
+      "[revenue-os/tasks] delete activity receipt failed",
+      error instanceof Error ? error.message : error,
+    ),
+  );
+  return { deleted: input.id };
 }
