@@ -675,7 +675,7 @@ export default function AdminShell({
                         <span className="block max-w-40 truncate text-sm">
                           {DEMO_SCENARIO_SHELL_NAMES[scenarioId]}
                         </span>
-                        <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.13em] opacity-50">
+                        <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.13em] text-[var(--admin-nav-muted)]">
                           Demo
                         </span>
                       </span>
@@ -1044,7 +1044,7 @@ function SidebarContent({
               <span className="block truncate text-[13px] font-semibold leading-4">
                 {DEMO_SCENARIO_SHELL_NAMES[demoScenarioId]}
               </span>
-              <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.13em] opacity-50">
+              <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[0.13em] text-[var(--admin-nav-muted)]">
                 Demo workspace
               </span>
             </span>
