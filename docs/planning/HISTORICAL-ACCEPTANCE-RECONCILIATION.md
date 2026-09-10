@@ -69,3 +69,11 @@ Commands run for this comparison (local, this checkout):
 
 - This is an evidence reconciliation, not a functional re-test of all 14 shipped surfaces; scoped functional proof remains with each surface's own test/Playwright cards.
 - Prerequisite `clarify` cards (e.g. `communication-sender-service`, `ai-bounded-context`, `admin-shell-design-system`) still need their own specified work; this report does not close them.
+
+## Review addendum (2026-09-10, against the live board)
+
+Re-checked all 15 distinct prerequisites against the live board after the audit export. Thirteen remain unshipped (`blocked`, `in_review`, `in_progress`, `planned`, or `backlog`), so the dependency-added-later verdict above stands for every row except the two naming `system-health-report`:
+
+- `system-health-report` has since **shipped** (rev 22, PR51, commit `b98469d`). The "unshipped at audit time" premise no longer holds for the `integration-capability-platform` and `operations-alerting` rows.
+- This does **not** automatically satisfy those dependencies: both shipped cards are rev 1 with no structured acceptance, so there is nothing to link the new delivery against. Treating `system-health-report` rev 22 as a satisfied prerequisite for either card requires its own explicit linkage proof.
+- Recommended follow-up (not blocking acceptance of this reconciliation): file or attach that linkage check to the two affected rows rather than reopening this card.
