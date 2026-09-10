@@ -37,7 +37,6 @@ export function PageHeader({
     guidance === false
       ? undefined
       : (guidance ?? (destination ? adminPageGuidance[destination.id] : undefined));
-  const heading = isRoot ? destination.label : title;
   const description = subtitle ?? (isRoot ? help?.description : undefined);
   return (
     <div className="admin-page-introduction">
@@ -46,7 +45,7 @@ export function PageHeader({
           {(eyebrow || section) && (
             <p className="admin-eyebrow">{eyebrow ?? section?.title ?? section?.label}</p>
           )}
-          <h1 className="admin-page-title">{heading}</h1>
+          <h1 className="admin-page-title">{title}</h1>
           {description && (
             <p className="admin-copy mt-2 max-w-2xl text-sm leading-relaxed">{description}</p>
           )}
