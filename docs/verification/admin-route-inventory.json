@@ -219,7 +219,7 @@
     "src/components/admin/TenantProviderControls.tsx": "989a1ecb91efc52d84c869c0aaf1222df9e3a008624b8fc804e3e4d7f0da4788",
     "src/components/admin/Toaster.tsx": "e05c110e50f2a3eccdd32a99daf5749d2f62d125bf29e7a06bfb551deb7b8672",
     "src/components/admin/TodayViewEditor.tsx": "1bf5c21077acd727e91051f0295eaf1e84b231eccecdded83eb64712b3a90246",
-    "src/components/admin/TodayWorkspace.tsx": "32781330d1e5a13d873c9bf9c60e0f9ec7360effb4787022e9e4cf49c40cd9c5",
+    "src/components/admin/TodayWorkspace.tsx": "d26b7c8b247fc58ecfb0993247459eccacd1db96680485b6131d30a6bafb0339",
     "src/components/admin/TodaysPriorities.tsx": "7aacbf6802c467c7db99987d3c7c8dd03843118de743c82b24bb5179947a8064",
     "src/components/admin/site/WebsiteAssets.tsx": "4b913b28d2bfc3fcb747071a5164d50053e2c170626bbd29099313b076c06faf",
     "src/components/admin/site/WebsiteCollections.tsx": "6aa3035ebdb68f35843569a690e5e44e2d87ed53f5a6de99326dfd2fc829fe26",

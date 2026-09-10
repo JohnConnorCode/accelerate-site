@@ -116,6 +116,12 @@ try {
         .locator("[data-today-module=attention]")
         .locator(`[data-source-type=approval][data-source-id="${approval.id}"]`);
       assert.equal(await approvalRow.count(), 1, "One approval projection in Today");
+      const reviewNavigation = (url) =>
+        url.pathname.endsWith("/today") && url.searchParams.has("action");
+      await page.route(reviewNavigation, async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await route.continue();
+      });
       await approvalRow
         .getByRole("button", { name: "Review " + approval.title, exact: true })
         .click();
@@ -123,6 +129,13 @@ try {
       await review.waitFor();
       await page.keyboard.press("Escape");
       await review.waitFor({ state: "hidden" });
+      await page.waitForTimeout(750);
+      assert.equal(
+        await review.isVisible(),
+        false,
+        "A delayed URL transition must not reopen a dismissed approval",
+      );
+      await page.unroute(reviewNavigation);
       await go("work?tab=approvals");
       await page
         .locator(`[data-source-type=approval][data-source-id="${approval.id}"]`)

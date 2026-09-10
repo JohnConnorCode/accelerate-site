@@ -168,6 +168,7 @@ export function TodayWorkspace() {
     setEditorOpen(false);
     setFactOpen(false);
     setReviewOpen(false);
+    dismissedAction.current = null;
   }, [scopeKey]);
   const choices = useMemo(
     () => [
@@ -212,10 +213,9 @@ export function TodayWorkspace() {
   );
   useEffect(() => {
     const id = search.get("action");
-    if (!id) {
-      dismissedAction.current = null;
-      return;
-    }
+    // A local open can precede its URL transition. Retain an explicit dismissal
+    // while that navigation is pending so a late action query cannot reopen it.
+    if (!id) return;
     if (dismissedAction.current === id) return;
     const action = pendingActions.find((row) => row.id === id);
     if (action) {
@@ -226,7 +226,7 @@ export function TodayWorkspace() {
   const closeReview = () => {
     dismissedAction.current = reviewing?.id ?? search.get("action");
     setReviewOpen(false);
-    if (search.has("action")) router.replace("/admin/today?focus=approval", "preserve");
+    router.replace("/admin/today?focus=approval", "preserve");
   };
   async function refresh() {
     const [next] = await Promise.all([query.refetch(), actionsQuery.refetch()]);
