@@ -6585,9 +6585,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   background: var(--admin-nav-active-bg);
   box-shadow: 0 10px 26px -16px color-mix(in srgb, var(--admin-nav-accent) 72%, transparent);
 }
-.admin-nav-link {
-  will-change: transform;
-}
 .admin-nav-link:hover {
   transform: translateX(2px);
 }
