@@ -64,6 +64,8 @@ export function AdminAppearancePicker({
   useEffect(() => {
     if (!open) return;
     const focusTimer = window.setTimeout(() => {
+      // Preserve a choice the user has already focused while the panel opens.
+      if (panelRef.current?.contains(document.activeElement)) return;
       panelRef.current?.querySelector<HTMLElement>('[role="radio"][aria-checked="true"]')?.focus();
     }, 40);
     const onPointerDown = (event: PointerEvent) => {

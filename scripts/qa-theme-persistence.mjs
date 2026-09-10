@@ -66,6 +66,12 @@ try {
       await trigger.click();
       const option = demo.getByRole("radio", { name: new RegExp(label) });
       await option.focus();
+      await demo.waitForTimeout(80);
+      assert.equal(
+        await option.evaluate((element) => element === document.activeElement),
+        true,
+        "Opening autofocus must not steal focus from the chosen appearance",
+      );
       await demo.keyboard.press("Enter");
       await demo.waitForTimeout(500);
       if (width === 390) await demo.keyboard.press("Escape");
