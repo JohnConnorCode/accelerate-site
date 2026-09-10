@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import Link from "@/components/admin/AdminLink";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Toast } from "@/components/ui/Toast";
@@ -30,14 +31,40 @@ interface Setting {
   is_secret: boolean;
   description: string;
   updated_at: string;
+  configured: boolean;
 }
 
-const settingSections = [
+const serverOnlyKeys = [
   {
-    title: "API Keys",
-    icon: Key,
-    keys: ["OPENROUTER_API_KEY", "RESEND_API_KEY", "CRON_SECRET"],
+    key: "OPENROUTER_API_KEY",
+    label: "OpenRouter API key",
+    description:
+      "Managed in Integrations. The encrypted workspace key is verified server-side and never returns to the browser.",
+    testable: true,
+    manageHref: "/admin/integrations#workspace-provider-heading",
+    manageLabel: "Manage in Integrations",
   },
+  {
+    key: "RESEND_API_KEY",
+    label: "Resend API key",
+    description:
+      "Managed in Integrations. The encrypted workspace key is verified server-side and never returns to the browser.",
+    testable: true,
+    manageHref: "/admin/integrations#workspace-provider-heading",
+    manageLabel: "Manage in Integrations",
+  },
+  {
+    key: "CRON_SECRET",
+    label: "Cron secret",
+    description:
+      "Server-only platform secret. Configure it in Vercel environment variables; it is never displayed or stored here.",
+    testable: false,
+    manageHref: null,
+    manageLabel: null,
+  },
+];
+
+const settingSections = [
   {
     title: "Email Configuration",
     icon: Mail,
@@ -294,6 +321,100 @@ export default function SettingsPage() {
           </AdminSurface>
         </div>
 
+        {/* Provider keys & secrets (server-only status) */}
+        <div>
+          <AdminSurface padding="lg">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]">
+                <Key className="size-4" />
+              </span>
+              <div>
+                <p className="admin-eyebrow">Server-only</p>
+                <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
+                  Provider keys & secrets
+                </h2>
+                <p className="admin-copy mt-1 text-xs">
+                  Secret values are never displayed, edited, or stored here. Workspace keys are
+                  managed in Integrations; platform secrets live in Vercel environment variables.
+                </p>
+              </div>
+            </div>
+
+            <div className="divide-y divide-[var(--admin-border)] overflow-hidden rounded-xl bg-[var(--admin-surface-subtle)] shadow-[var(--admin-shadow-border)]">
+              {serverOnlyKeys.map((item) => {
+                const setting = getSetting(item.key);
+                const testResult = testResults[item.key];
+                const configured = Boolean(setting?.configured);
+
+                return (
+                  <div key={item.key} className="px-4 py-4">
+                    <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-start">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-[var(--admin-ink)]">
+                            {item.label}
+                          </p>
+                          <span className="flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                            {configured ? (
+                              <>
+                                <CheckCircle className="h-3.5 w-3.5 text-[var(--success)]" />
+                                Configured
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="h-3.5 w-3.5" />
+                                Not set
+                              </>
+                            )}
+                          </span>
+                          {testResult && (
+                            <span className="flex items-center gap-1">
+                              {testResult === "success" ? (
+                                <CheckCircle className="h-3.5 w-3.5 text-[var(--success)]" />
+                              ) : (
+                                <XCircle className="h-3.5 w-3.5 text-[var(--error)]" />
+                              )}
+                            </span>
+                          )}
+                        </div>
+                        <p className="admin-copy mt-1 text-pretty text-xs">{item.description}</p>
+                        <p className="mt-2 break-all font-mono text-xs text-[var(--admin-muted)]">
+                          {item.key}
+                        </p>
+                      </div>
+
+                      <div className="flex shrink-0 justify-end gap-2">
+                        {item.testable && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleTest(item.key)}
+                            disabled={testing === item.key || !configured}
+                          >
+                            {testing === item.key ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              "Test"
+                            )}
+                          </Button>
+                        )}
+                        {item.manageHref && (
+                          <Link
+                            href={item.manageHref}
+                            className="inline-flex min-h-8 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[var(--admin-ink)] underline decoration-[var(--admin-border)] underline-offset-4 transition-opacity hover:opacity-65"
+                          >
+                            {item.manageLabel}
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </AdminSurface>
+        </div>
+
         {settingSections.map((section) => (
           <div key={section.title}>
             <AdminSurface padding="lg">
@@ -314,7 +435,6 @@ export default function SettingsPage() {
                   const setting = getSetting(key);
                   const isEditing = editingKey === key;
                   const testResult = testResults[key];
-                  const isTestable = key === "OPENROUTER_API_KEY" || key === "RESEND_API_KEY";
 
                   return (
                     <div key={key} className="px-4 py-4">
@@ -382,20 +502,6 @@ export default function SettingsPage() {
 
                         {!isEditing && (
                           <div className="flex shrink-0 justify-end gap-2">
-                            {isTestable && (
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => handleTest(key)}
-                                disabled={testing === key}
-                              >
-                                {testing === key ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                  "Test"
-                                )}
-                              </Button>
-                            )}
                             <Button
                               variant="secondary"
                               size="sm"
