@@ -135,7 +135,10 @@ try {
       for (const route of ["today", "work"]) {
         await go(route);
         await page
-          .getByRole("heading", { name: route === "today" ? "Today" : "Work", exact: true })
+          .getByRole("heading", {
+            name: route === "today" ? "Today" : "Tasks & approvals",
+            exact: true,
+          })
           .waitFor();
         assert.equal(
           await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
