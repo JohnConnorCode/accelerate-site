@@ -25,6 +25,10 @@ try {
           waitUntil: "networkidle",
         });
         await page.waitForFunction(() => Boolean(window.__accelerateAdminDemoRuntime));
+        if (route === "today") {
+          await page.locator("[data-today-module=brief]").waitFor();
+          await page.getByRole("button", { name: /decisions & urgent items/ }).click();
+        }
       };
       const settleInspector = () =>
         page.waitForFunction(() => {
@@ -50,7 +54,7 @@ try {
         );
       await go("today");
       await page.locator("[data-attention-kind=work]").waitFor();
-      for (const title of ["Needs your decision", "Your work", "Watch", "Upcoming"])
+      for (const title of ["Business brief", "Needs you", "Being handled", "Upcoming"])
         await page.getByRole("heading", { name: title, exact: true }).waitFor();
       const read = await request("/api/admin/tasks?status=pending");
       assert.equal(read.status, 200);
@@ -73,7 +77,15 @@ try {
       await go("today");
       const attentionTask = page.locator(`[data-source-type=task][data-source-id="${task.id}"]`);
       await attentionTask.getByText(saved.title, { exact: true }).waitFor();
-      await attentionTask.getByRole("button", { name: /Snooze/ }).click();
+      await attentionTask
+        .getByRole("button", { name: "Inspect " + saved.title, exact: true })
+        .click();
+      const workContext = page.getByRole("dialog", { name: "Work context", exact: true });
+      await workContext
+        .getByLabel("Snooze until", { exact: true })
+        .fill(new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10));
+      await workContext.getByRole("button", { name: "Save new date", exact: true }).click();
+      await workContext.waitFor({ state: "hidden" });
       await attentionTask.waitFor({ state: "hidden" });
       saved = (await request(`/api/admin/tasks?id=${task.id}`)).data.tasks[0];
       assert.equal(saved.status, "snoozed");
@@ -102,7 +114,9 @@ try {
         `[data-source-type=approval][data-source-id="${approval.id}"]`,
       );
       assert.equal(await approvalRow.count(), 1, "One approval projection in Today");
-      await approvalRow.locator("[data-approval-review]").click();
+      await approvalRow
+        .getByRole("button", { name: "Review " + approval.title, exact: true })
+        .click();
       let review = page.getByRole("dialog", { name: approval.title, exact: true });
       await review.waitFor();
       await page.keyboard.press("Escape");

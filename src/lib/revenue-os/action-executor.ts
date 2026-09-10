@@ -6,6 +6,7 @@ import { executeRadarAssessment } from "./radar-ranking";
 import { executeRadarStoreChange } from "./radar-store";
 import { executeModuleConfiguration } from "./module-actions";
 import { executeWorkspaceBrandUpdate } from "./branding-actions";
+import { executeTodayViewChange } from "./today-views";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { executeCollectionReminder } from "./collection-reminders";
 import { executeInvoicePagePublication } from "./invoice-pages";
@@ -41,6 +42,7 @@ function stringValue(
 }
 
 export const APPROVABLE_ACTIONS = [
+  "today_view_change",
   "send_radar_outreach",
   "review_radar_relationship",
   "review_radar_assessment",
@@ -187,6 +189,11 @@ export async function approveAndExecuteAction(
       case "update_workspace_brand": {
         if (mode !== "approved") throw new Error("Branding changes require human approval");
         result = await executeWorkspaceBrandUpdate(supabase, payload, actorEmail);
+        break;
+      }
+      case "today_view_change": {
+        if (mode !== "approved") throw new Error("Today view changes require human approval");
+        result = await executeTodayViewChange(supabase, payload);
         break;
       }
       case "publish_invoice_page": {

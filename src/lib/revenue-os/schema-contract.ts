@@ -5,9 +5,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-09.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-10.1";
 
 export const TENANT_SCOPED_TABLES = [
+  "today_view_proposals",
+  "today_workspace_views",
+  "today_view_receipts",
   "proposal_lifecycle_receipts",
   "radar_outreach_attempts",
   "radar_relationship_reviews",
@@ -118,6 +121,12 @@ export const TENANT_SCOPED_TABLES = [
 const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 
 const BASE_REVENUE_SCHEMA_TABLES = [
+  { table: "today_workspace_views", columns: ["owner_key", "revision", "document", "updated_at"] },
+  {
+    table: "today_view_receipts",
+    columns: ["actor_id", "request_id", "owner_key", "request_payload", "result", "created_at"],
+  },
+  { table: "today_view_proposals", columns: ["actor_id", "digest", "preview", "created_at"] },
   {
     table: "site_websites",
     columns: [
@@ -662,6 +671,7 @@ export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
 ] as const;
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
+  "public.save_today_views(text,bigint,jsonb,uuid)",
   ...REVENUE_SCHEMA_SERVICE_FUNCTIONS.map(({ name }) => name),
   "private.advance_client_handoff_revision()",
   "private.check_delivery_source_binding()",

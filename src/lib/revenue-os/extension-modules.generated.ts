@@ -136,7 +136,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "322fc2678604ecbcabf52caa674b76a2cab3bab0d3e7c3a996266190b0685b01",
+      contractHash: "e7b1ba4bc39b3ca6e5c7b3f77633141f124555a3009ce9f13e34f3eebb4f0dfc",
       tools: [
         {
           operation: "prepare-workflow",
@@ -421,7 +421,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "791edf364b90dcdc08484b81efc4bef3ed64ae9574aef9c14751a953abba747f",
+      contractHash: "16c7339b536a623a784548917431fcb80dfdb5f520e067a0a368bc111462c3c7",
       tools: [
         {
           operation: "prepare-workflow",
@@ -825,6 +825,10 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       },
     ],
     settingsContract: "opportunity-radar-profile-v1",
+    today: {
+      source: "radar_opportunity",
+      href: "/admin/radar/today",
+    },
   },
   {
     id: "pipeline-watch",
@@ -877,6 +881,10 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         max: 720,
       },
     ],
+    today: {
+      source: "collection_case",
+      href: "/admin/collections",
+    },
   },
   {
     id: "site-studio",
@@ -997,7 +1005,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "c8021ae55c96ddbb10fcc74193880c5f1d9e5b028798a47d5cc8bbb7fd5c9081",
+      contractHash: "4c36f851284be2b31de7808540effa3a3e66aeaa540c92b8cebfb140517895ce",
       tools: [
         {
           operation: "prepare-workflow",

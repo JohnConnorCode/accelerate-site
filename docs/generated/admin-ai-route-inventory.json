@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 95,
-  "mutationHandlerCount": 85,
+  "routeCount": 97,
+  "mutationHandlerCount": 86,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -1113,11 +1113,12 @@
         "@/lib/admin/auth",
         "@/lib/revenue-os/db",
         "@/lib/revenue-os/health",
+        "@/lib/revenue-os/pipeline-metrics",
         "@/lib/revenue-os/pipeline-stage-resolver",
         "@/lib/revenue-os/queue",
         "next/server"
       ],
-      "sourceSha256": "b1c89c1040fd8c1b154d2863a2442af7bded6cfa65d1512b46106c98c6c0edc7"
+      "sourceSha256": "8cbca9c90a9175a7e27d3f6a18df668839b5197b61d07a61979eedd07c2ed97a"
     },
     {
       "source": "src/app/api/admin/revenue-os/pipeline/route.ts",
@@ -1208,6 +1209,36 @@
         "next/server"
       ],
       "sourceSha256": "342c2e36c31e200393d53bb1e7e3ef3da65356162889a14196c09241169bb88a"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/today/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/today-snapshot",
+        "next/server"
+      ],
+      "sourceSha256": "2b4e432e251f5625f008c08e7c28cc59ed6556721ef063f518dc629f77b2f975"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/today/views/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/today-views",
+        "@/lib/tenancy/context",
+        "next/server"
+      ],
+      "sourceSha256": "e852a343f57099979336c39de5bf55b5bda8cbd511def23117375dafad9dd71e"
     },
     {
       "source": "src/app/api/admin/revenue/route.ts",

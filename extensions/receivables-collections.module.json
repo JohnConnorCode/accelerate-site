@@ -1,6 +1,7 @@
 {
   "$schema": "./module-manifest.schema.json",
   "id": "receivables-collections",
+  "today": { "source": "collection_case", "href": "/admin/collections" },
   "name": "Collections Action Desk",
   "description": "Track verified overdue invoices, disputes, payment promises and collection follow-up for CRM billing contacts.",
   "category": "revenue",

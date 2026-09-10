@@ -163,6 +163,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:tenant-lifecycle:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
 
       - name: Verify installation migrations
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -247,6 +248,7 @@ jobs:
           node scripts/qa-website-authoring.mjs
           node scripts/qa-radar-workspace.mjs
           node scripts/qa-operator-workspace.mjs
+          node scripts/qa-today-workspace.mjs
           node scripts/qa-booking-mode.mjs
           npm run test:work-completion -- --browser-fixtures
           node scripts/qa-work-completion.mjs

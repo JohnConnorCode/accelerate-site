@@ -9,6 +9,15 @@ import {
   SEED_DEFAULT_MILESTONES,
   handoffRequestSchema,
 } from "@/lib/revenue-os/delivery-handoff-contract";
+import {
+  TODAY_TOOL_NAMES,
+  defaultTodayViews,
+  todaySaveSchema,
+  type TodayViews,
+} from "@/lib/admin/today-workspace";
+import { todayFacts, type TodaySnapshot, type TodayRegion } from "@/lib/admin/today-data";
+import { projectOperatorAttention } from "@/lib/revenue-os/operator-attention";
+import type { OperatorQueueItem } from "@/lib/revenue-os/types";
 import type { HandoffReceipt } from "@/lib/revenue-os/delivery-handoff";
 import {
   campaignDraftCopy,
@@ -19,7 +28,8 @@ import {
   type OperatorTaskPatchInput,
 } from "@/lib/revenue-os/operator-task-patch";
 import { requireReopenEligibility } from "@/lib/revenue-os/pipeline-transition-policy";
-import { demoRadarProfile } from "./radar-fixtures";
+import { demoRadarProfile, seedRadar } from "./radar-fixtures";
+import { seedDemoCollections } from "./collections-runtime";
 import { TOOL_DISCOVERY_METADATA } from "@/lib/revenue-os/ai-tool-bundles";
 import { MODULE_CONTROL_TOOLS } from "@/lib/revenue-os/module-actions-contract";
 import { BRANDING_TOOLS } from "@/lib/revenue-os/branding-actions-contract";
@@ -93,6 +103,8 @@ type DemoEmailStudioDetail = {
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
 export type DemoState = {
   website?: DemoWebsiteState;
+  todayViews?: TodayViews;
+  todayViewReceipts?: Record<string, { fingerprint: string; result: unknown }>;
   deliveryHandoffs?: Record<
     string,
     {
@@ -603,7 +615,7 @@ export function queue(pack: DemoScenarioPack, state: DemoState) {
   const replies = pack.conversations.slice(0, 2).map((item, index) => {
     const contact = person(pack, item.personId);
     return {
-      id: `reply:${item.id}`,
+      id: `conversation:${item.id}`,
       kind: "reply",
       title: `Reply to ${contact.name}`,
       summary: item.messages.at(-1)!.body,
@@ -1581,6 +1593,19 @@ function aiCapabilities(tenantConfig: { modules: Partial<Record<string, boolean>
     ],
   ];
   rows.push(
+    ...TODAY_TOOL_NAMES.map(
+      (name) =>
+        [
+          name,
+          name === "get_today_workspace"
+            ? "Read source-backed Today context and App follow-up."
+            : "Read, preview or propose this member’s saved Today arrangement. Changes require exact approval.",
+          name.startsWith("propose_") ? "internal_write" : "read",
+          name.startsWith("propose_"),
+          ["core", "pipeline", "outreach"],
+          "revenue-os.today-views",
+        ] as (typeof rows)[number],
+    ),
     ...[...BRANDING_TOOLS, ...MODULE_CONTROL_TOOLS, ...TOOL_DISCOVERY_METADATA].map(
       (t) =>
         [
@@ -2353,6 +2378,123 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const response = handleDemoWebsite(state.website, pack.name, method, body, url.searchParams);
       if (method === "POST" && response.ok) saveState(scenarioId, state);
       return response;
+    }
+    if (path === "/api/admin/revenue-os/today/views") {
+      const views = state.todayViews ?? defaultTodayViews();
+      if (method === "GET")
+        return jsonResponse({ ...views, userId: "demo-member", tenantId: scenarioId });
+      if (method !== "POST") return jsonResponse({ error: "Unsupported view operation" }, 405);
+      const parsed = todaySaveSchema.safeParse(body);
+      if (!parsed.success) return jsonResponse({ error: parsed.error.issues[0]?.message }, 400);
+      const change = parsed.data,
+        fingerprint = JSON.stringify(change);
+      const prior = state.todayViewReceipts?.[change.requestId];
+      if (prior)
+        return prior.fingerprint === fingerprint
+          ? jsonResponse(prior.result)
+          : jsonResponse({ error: "Request key content changed" }, 409);
+      if (views[change.scope].revision !== change.revision)
+        return jsonResponse(
+          { error: "Today views changed in another session. Reload before saving." },
+          409,
+        );
+      const result = { revision: change.revision + 1, document: change.document };
+      state.todayViews = { ...views, [change.scope]: result };
+      state.todayViewReceipts = {
+        ...state.todayViewReceipts,
+        [change.requestId]: { fingerprint, result },
+      };
+      saveState(scenarioId, state);
+      return jsonResponse({ ...result, simulated: true });
+    }
+    if (path === "/api/admin/revenue-os/today") {
+      const at = new Date().toISOString();
+      const region = <T>(data: T): TodayRegion<T> => ({
+        data,
+        state: data === null || (Array.isArray(data) && !data.length) ? "empty" : "ready",
+        observedAt: at,
+      });
+      // The fixture is intentionally shaped like the canonical queue. Keep the
+      // boundary explicit so fixture literals do not widen its discriminants.
+      const attention = projectOperatorAttention(queue(pack, state) as OperatorQueueItem[]);
+      const history = auditHistory(pack, new URLSearchParams(), business).entries;
+      const activity = history.slice(0, 12).map((row) => ({
+        id: row.id,
+        title: row.action.replaceAll(".", " ").replaceAll("_", " "),
+        summary: null,
+        at: row.createdAt,
+        href: "/admin/activity",
+      }));
+      const opportunities = opportunityRows(pack, state).filter(
+        (o) => !["won", "lost"].includes(o.canonical_stage),
+      );
+      const apps = getActiveModules({
+        modules: { ...DEMO_BUSINESS_MODULES, ...state.moduleOverrides },
+      })
+        .filter((m) => m.today)
+        .map((m) => {
+          const items =
+            m.today!.source === "collection_case"
+              ? seedDemoCollections(pack, business)
+                  .filter((c) => c.status === "open")
+                  .slice(0, 8)
+                  .map((c) => ({
+                    id: c.id,
+                    title: c.name + " · " + c.currency.toUpperCase(),
+                    detail: c.nextAction,
+                    sourceType: "collection_case",
+                    sourceId: c.id,
+                    href: "/admin/collections?case=" + c.id,
+                  }))
+              : (business.radar ??= seedRadar(pack)).opportunities
+                  .filter((o) => o.state !== "archived")
+                  .slice(0, 8)
+                  .map((o) => ({
+                    id: o.id,
+                    title: o.title,
+                    detail: o.summary,
+                    sourceType: "radar_opportunity",
+                    sourceId: o.id,
+                    href: "/admin/radar/opportunities/" + o.id,
+                  }));
+          return {
+            id: m.id,
+            name: m.name,
+            href: m.today!.href,
+            items,
+            state: items.length ? ("ready" as const) : ("empty" as const),
+          };
+        });
+      const snapshot: TodaySnapshot = {
+        generatedAt: at,
+        attention: region(attention),
+        activity: region(activity),
+        facts: region(todayFacts(attention, activity)),
+        apps: region(apps),
+        brief: region(null),
+        handling: region(
+          aiRuns(pack, state)
+            .runs.slice(0, 3)
+            .map((run) => ({
+              id: run.id,
+              title: run.promptPreview,
+              status: run.status,
+              owner: "Workspace AI",
+              outcome: run.resultPreview,
+              nextCheckAt: null,
+              nextCheckReason: null,
+              href: "/admin/ai",
+            })),
+        ),
+        metrics: region({
+          openOpportunities: opportunities.length,
+          pipelineValue: opportunities.reduce((sum, o) => sum + o.estimated_value, 0),
+          weightedValue: Math.round(
+            opportunities.reduce((sum, o) => sum + (o.estimated_value * o.probability) / 100, 0),
+          ),
+        }),
+      };
+      return jsonResponse(snapshot);
     }
     const businessResponse = await handleDemoBusinessRequest(
       pack,

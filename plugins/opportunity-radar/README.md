@@ -1,5 +1,13 @@
 # Opportunity Radar
 
+Today contribution: the existing module manifest declares
+`today: { source: "radar_opportunity", href: "/admin/radar" }`.
+The Today reader reuses bounded `readRadarStore` metadata, up to eight
+opportunities linking to their native records. It does not discover sources,
+call a model or send outreach. Disabled modules contribute nothing; a read
+failure leaves other Today modules usable. The fictional demo reuses its Radar
+session state. See the [Today guide](https://www.acceleratewith.us/docs/command-center/today).
+
 Configure a reusable business profile for evidence-backed earned-growth work.
 **Available now: validated profile, two presets, CLI setup and governed AI
 configuration, bounded source briefing, model charge receipts and a versioned

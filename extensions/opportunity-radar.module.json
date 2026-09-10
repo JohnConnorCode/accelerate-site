@@ -1,6 +1,7 @@
 {
   "$schema": "./module-manifest.schema.json",
   "id": "opportunity-radar",
+  "today": { "source": "radar_opportunity", "href": "/admin/radar/today" },
   "name": "Opportunity Radar",
   "description": "Review sources, opportunities, relationships and drafts, then send configured outreach after exact human approval. Discovery and publication remain unfinished. Sending and model spending start off.",
   "category": "intelligence",

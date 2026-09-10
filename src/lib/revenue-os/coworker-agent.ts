@@ -205,9 +205,13 @@ export async function runCoworkerAgentTask(
         ],
         tools: toOpenRouterTools(toolPack).filter(
           (tool) =>
-            workItem.kind !== "draft_followup" ||
-            !tool.function.name.startsWith("propose_") ||
-            ["propose_send_email", "propose_conversation_reply"].includes(tool.function.name),
+            (workItem.kind !== "daily_digest" ||
+              ["get_today_workspace", "get_today_snapshot", "get_record_timeline"].includes(
+                tool.function.name,
+              )) &&
+            (workItem.kind !== "draft_followup" ||
+              !tool.function.name.startsWith("propose_") ||
+              ["propose_send_email", "propose_conversation_reply"].includes(tool.function.name)),
         ),
       });
 
@@ -285,6 +289,11 @@ export async function runCoworkerAgentTask(
         }
         try {
           await transitionOwnedWorkItem(supabase, workItem, { agent_run_id: run.id });
+          if (
+            workItem.kind === "daily_digest" &&
+            !["get_today_workspace", "get_today_snapshot", "get_record_timeline"].includes(name)
+          )
+            throw new Error("Business briefs may only read their source context.");
           if (
             workItem.kind === "draft_followup" &&
             name.startsWith("propose_") &&
