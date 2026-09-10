@@ -688,6 +688,11 @@ async function main() {
             await route.continue();
           });
           await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
+          // The pending indicator is set by the client NavigationRuntime.
+          // Clicking before hydration performs a full document load with no
+          // pending state — intermittent under CI load. Prove the client
+          // tree mounted before interacting.
+          await page.locator("[data-route-entry]").waitFor({ timeout: 15000 });
           const previousHeading = await page.locator("main h1").innerText();
           if (destination === "/work") {
             if (width < 1280)
@@ -698,7 +703,27 @@ async function main() {
               .click({ noWaitAfter: true });
           } else
             await page.getByRole("link", { name: "Try your first workflow", exact: true }).click();
-          await page.locator('[data-navigation-pending="true"]').waitFor();
+          try {
+            await page.locator('[data-navigation-pending="true"]').waitFor({ timeout: 30000 });
+          } catch (error) {
+            const slug = `${width}${destination.replaceAll("/", "-")}`;
+            await page.screenshot({ path: `${output}/${slug}-navigation-pending-missing.png` });
+            const state = await page.evaluate(() => ({
+              url: location.href,
+              pending:
+                document
+                  .querySelector("[data-navigation-pending]")
+                  ?.getAttribute("data-navigation-pending") ?? "absent",
+              entry:
+                document.querySelector("[data-route-entry]")?.getAttribute("data-route-entry") ??
+                "absent",
+            }));
+            throw new Error(
+              `${width} ${destination}: navigation-pending indicator never appeared ` +
+                `(url=${state.url} pending=${state.pending} entry=${state.entry}; screenshot saved)`,
+              { cause: error },
+            );
+          }
           const frames = await page.evaluate(async () => {
             const samples: { heading: string; skeleton: boolean; opacity: number }[] = [];
             const started = performance.now();
