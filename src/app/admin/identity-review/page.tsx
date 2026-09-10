@@ -121,7 +121,7 @@ export default function IdentityReviewPage() {
         </AdminSurface>
       ) : items.length === 0 ? (
         <AdminSurface className="flex items-center gap-3">
-          <CheckCircle2 className="size-5 text-emerald-500" aria-hidden />
+          <CheckCircle2 className="size-5 text-[var(--admin-success)]" aria-hidden />
           <div>
             <p className="font-semibold">Queue clear</p>
             <p className="text-sm text-white-muted">
@@ -154,8 +154,8 @@ export default function IdentityReviewPage() {
                         className={cn(
                           "inline-flex items-center rounded-full border px-2 py-0.5 font-semibold",
                           item.reason === "ambiguous"
-                            ? "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                            : "border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400",
+                            ? "border-[var(--admin-warning)]/30 bg-[var(--admin-warning-soft)] text-[var(--admin-warning)]"
+                            : "border-[var(--admin-accent)]/30 bg-[var(--admin-accent-soft)] text-[var(--admin-ink)]",
                         )}
                       >
                         {item.reason}
@@ -214,7 +214,7 @@ export default function IdentityReviewPage() {
                         <label
                           className={cn(
                             "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2",
-                            candidateId === candidate.id ? "border-emerald-500/50" : "border-border-glass",
+                            candidateId === candidate.id ? "border-[var(--admin-success)]" : "border-border-glass",
                           )}
                         >
                           <input
@@ -257,7 +257,7 @@ export default function IdentityReviewPage() {
                   type="button"
                   disabled={resolving || !candidateId}
                   onClick={() => resolve("link")}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--admin-success)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {resolving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <CheckCircle2 className="size-4" aria-hidden />}
                   Link selected

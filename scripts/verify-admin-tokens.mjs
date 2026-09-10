@@ -76,7 +76,7 @@ const COLOR_BUDGET = {
   "src/app/admin/contacts/page.tsx": 3,
   "src/app/admin/conversations/page.tsx": 33,
   "src/app/admin/emails/page.tsx": 17,
-  "src/app/admin/features/page.tsx": 23,
+  "src/app/admin/features/page.tsx": 16,
   "src/app/admin/inbox/page.tsx": 12,
   "src/app/admin/integrations/page.tsx": 44,
   "src/app/admin/leads/page.tsx": 1,

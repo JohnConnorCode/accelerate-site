@@ -287,7 +287,7 @@ function FeatureCard({
           </span>
         )}
         {feature.status === "blocked" && (
-          <span className="inline-flex min-h-6 items-center rounded-full bg-rose-500/10 px-2 text-[10px] font-semibold text-rose-700 dark:text-rose-300">
+          <span className="inline-flex min-h-6 items-center rounded-full bg-[var(--admin-danger-soft)] px-2 text-[10px] font-semibold text-[var(--admin-danger)]">
             Blocked
           </span>
         )}
@@ -345,7 +345,7 @@ function FeatureCard({
           <span
             className={cn(
               "inline-flex items-center gap-1.5 font-mono text-[10px] tabular-nums text-[var(--admin-muted)]",
-              overdue && "font-semibold text-rose-700 dark:text-rose-300",
+              overdue && "font-semibold text-[var(--admin-danger)]",
             )}
           >
             <CalendarDays className="size-3" />
@@ -707,7 +707,7 @@ function FeatureDialog({
                 type="button"
                 disabled={saving}
                 onClick={() => void onArchive(feature)}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-rose-700 transition-[background-color,transform] duration-150 hover:bg-rose-500/10 active:scale-[0.96] disabled:opacity-50 dark:text-rose-300"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-danger)] transition-[background-color,transform] duration-150 hover:bg-[var(--admin-danger-soft)] active:scale-[0.96] disabled:opacity-50"
               >
                 <Archive className="size-3.5" /> Archive
               </button>
@@ -1489,7 +1489,7 @@ export default function FeaturesPage() {
                             <span
                               className={cn(
                                 isFeatureOverdue(feature) &&
-                                  "font-semibold text-rose-700 dark:text-rose-300",
+                                  "font-semibold text-[var(--admin-danger)]",
                               )}
                             >
                               {feature.target_date}
