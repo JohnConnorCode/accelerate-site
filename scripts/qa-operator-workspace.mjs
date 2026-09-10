@@ -54,8 +54,8 @@ try {
         );
       await go("today");
       await page.locator("[data-attention-kind=work]").first().waitFor();
-      for (const module of ["brief", "attention", "handling", "upcoming"])
-        await page.locator(`[data-today-module="${module}"]`).waitFor();
+      for (const todayModule of ["brief", "attention", "handling", "upcoming"])
+        await page.locator(`[data-today-module="${todayModule}"]`).waitFor();
       const read = await request("/api/admin/tasks?status=pending");
       assert.equal(read.status, 200);
       const task = read.data.tasks.find((t) => t.source === "manual");
