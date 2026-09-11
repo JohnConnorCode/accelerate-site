@@ -75,13 +75,15 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
         "Creates or sends an external billing document; no automatic compensator is registered, so explicit human approval is permanent.",
     }),
   ),
-  ...["bootstrap_coworker", "store_agent_memory", "record_learned_policy"].map((actionType) => ({
-    actionType,
-    impact: "internal_write" as const,
-    reversibility: "compensable" as const,
-    rationale:
-      "A reviewed configuration change or superseding memory entry compensates for this action; no automatic inverse is promised.",
-  })),
+  ...["bootstrap_coworker", "store_agent_memory", "record_learned_policy", "approve_learning"].map(
+    (actionType) => ({
+      actionType,
+      impact: "internal_write" as const,
+      reversibility: "compensable" as const,
+      rationale:
+        "A reviewed configuration change or superseding memory entry compensates for this action; no automatic inverse is promised.",
+    }),
+  ),
   {
     actionType: "send_collection_reminder",
     impact: "external_action",

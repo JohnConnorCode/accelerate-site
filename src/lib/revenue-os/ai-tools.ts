@@ -2284,6 +2284,10 @@ const registry: AiToolRegistration[] = [
         coworker_id: p.coworker_id,
         scope_entity_type: p.scope_entity_type,
         scope_entity_id: p.scope_entity_id,
+        proposal_type: p.proposal_type,
+        authority: p.authority,
+        confidence: p.confidence,
+        affected_workers: p.affected_workers,
         created_at: p.created_at,
       }));
     },
@@ -2322,6 +2326,95 @@ const registry: AiToolRegistration[] = [
         sourceContext: "runtime_tool",
         proposedBy: actorEmail,
       }),
+  },
+  {
+    name: "list_learning_proposals",
+    description:
+      "List Learning Inbox proposals: reusable corrections awaiting review. Proposed rows are not shared truth; only approved learnings persist as policy. Use this to show the founder what the system wants to learn.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          enum: ["proposed", "approved", "rejected", "conversation_only", "ignored"],
+        },
+      },
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-read",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const { listLearningProposals } = await import("./learning-inbox");
+      const status = value(input, "status");
+      return listLearningProposals(supabase, {
+        status: (
+          ["proposed", "approved", "rejected", "conversation_only", "ignored"] as const
+        ).includes(status as never)
+          ? (status as "proposed")
+          : undefined,
+      });
+    },
+  },
+  {
+    name: "propose_learning",
+    description:
+      "Propose a reusable correction to the Learning Inbox: a typed, sourced candidate improvement from real work. The proposal waits for human review; approval executes through the action path and persists as shared policy. Never shared automatically.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        type: {
+          type: "string",
+          enum: [
+            "positioning_policy",
+            "workflow_preference",
+            "offering",
+            "messaging",
+            "process_rule",
+            "other",
+          ],
+        },
+        rule: { type: "string" },
+        rationale: { type: "string" },
+        confidence: { type: "string", enum: ["high", "medium", "low"] },
+        affectedWorkers: { type: "array", items: { type: "string" } },
+      },
+      required: ["type", "rule"],
+      additionalProperties: false,
+    },
+    outputSchema: {
+      type: "object",
+      required: ["id", "status"],
+      properties: {
+        id: { type: "string" },
+        status: { type: "string" },
+        proposal_type: { type: "string" },
+        rule: { type: "string" },
+        confidence: { type: "string" },
+      },
+    },
+    serviceTarget: "revenue-os.memory-write",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) => {
+      const { proposeLearning } = await import("./learning-inbox");
+      const affected = input.affectedWorkers;
+      return proposeLearning(supabase, {
+        type: input.type as "positioning_policy",
+        rule: String(input.rule ?? ""),
+        rationale: typeof input.rationale === "string" ? input.rationale : "",
+        confidence: (["high", "medium", "low"] as const).includes(input.confidence as never)
+          ? (input.confidence as "medium")
+          : undefined,
+        affectedWorkers: Array.isArray(affected)
+          ? affected.filter((w): w is string => typeof w === "string")
+          : [],
+        actorEmail,
+      });
+    },
   },
   {
     name: "check_budgets",
@@ -2519,6 +2612,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "get_agent_memory",
     "get_learned_policies",
     "record_learned_policy",
+    "list_learning_proposals",
+    "propose_learning",
     "check_budgets",
     "get_budget_limits",
     "propose_task",

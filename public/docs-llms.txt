@@ -87,6 +87,7 @@ The assistant, run traces, knowledge, and source-to-revenue analytics.
 - [Put AI to work with your business context](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-09): Ask a real question, see the evidence behind the answer, and review whatever it prepares.
 - [Review opportunities with Radar](https://www.acceleratewith.us/docs/intelligence/opportunity-radar) (updated 2026-09-09): Review sourced opportunities and relationships, with model spend off by default and every send reviewed.
 - [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-09): Every registered tool, generated straight from the registry: what it needs and what it does.
+- [Teach the business with the Learning Inbox](https://www.acceleratewith.us/docs/intelligence/learning-inbox) (updated 2026-09-11): Propose reusable corrections once, review them in one inbox, and let approved learnings guide future work.
 - [Use the AI Workspace](https://www.acceleratewith.us/docs/intelligence/workspace) (updated 2026-09-09): Ask a specific question, check the sources behind the answer, then inspect what actually ran.
 
 ## Workspace
