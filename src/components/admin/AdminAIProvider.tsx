@@ -75,6 +75,7 @@ interface AdminAIContextValue {
     permission: string;
     resourceId: string;
   }>;
+  assumptions: string[];
   tools: AdminAIToolStep[];
   proposals: AdminAIProposal[];
   running: boolean;
@@ -88,6 +89,13 @@ interface AdminAIContextValue {
   startNew: () => void;
   archiveActive: () => Promise<void>;
   attachSource: (file: File) => Promise<void>;
+  attachSources: (files: File[]) => Promise<void>;
+  addConnectedSource: (input: {
+    source: string;
+    scope: string;
+    resourceId: string;
+  }) => Promise<void>;
+  addAssumption: (text: string) => Promise<void>;
   send: (text?: string) => Promise<void>;
   stop: () => void;
   openWithPrompt: (prompt?: string) => void;
@@ -139,6 +147,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   const [connectedContext, setConnectedContext] = useState<
     Array<{ source: string; scope: string; permission: string; resourceId: string }>
   >([]);
+  const [assumptions, setAssumptions] = useState<string[]>([]);
   const [tools, setTools] = useState<AdminAIToolStep[]>([]);
   const [proposals, setProposals] = useState<AdminAIProposal[]>([]);
   const [running, setRunning] = useState(false);
@@ -182,6 +191,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       setMessages([]);
       setSources([]);
       setConnectedContext([]);
+      setAssumptions([]);
       window.localStorage.removeItem(
         purposeRef.current === "architect" ? ARCHITECT_KEY : ACTIVE_KEY,
       );
@@ -201,12 +211,14 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         messages?: AdminAIMessage[];
         sources?: AdminAISource[];
         connectedContext?: AdminAIContextValue["connectedContext"];
+        assumptions?: string[];
         error?: string;
       };
       if (!response.ok) throw new Error(payload.error || "Could not load AI conversation");
       setMessages(payload.messages ?? []);
       setSources(payload.sources ?? []);
       setConnectedContext(payload.connectedContext ?? []);
+      setAssumptions(payload.assumptions ?? []);
       setSchemaReady(true);
     } catch (issue) {
       setError(issue instanceof Error ? issue.message : "Could not load AI conversation");
@@ -388,30 +400,33 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
     setDraft("");
     setSources([]);
     setConnectedContext([]);
+    setAssumptions([]);
   }, [selectConversation]);
+  const ensureArchitectSession = useCallback(async () => {
+    if (activeConversationId) return activeConversationId;
+    const created = await fetch("/api/admin/revenue-os/ai/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ purpose: "architect" }),
+    });
+    const createdPayload = (await created.json().catch(() => null)) as {
+      conversation?: AdminAIConversation;
+      error?: string;
+    } | null;
+    if (!created.ok || !createdPayload?.conversation)
+      throw new Error(createdPayload?.error || "Could not open Architect session");
+    const conversationId = createdPayload.conversation.id;
+    setActiveConversationId(conversationId);
+    window.localStorage.setItem(ARCHITECT_KEY, conversationId);
+    await refreshConversations();
+    return conversationId;
+  }, [activeConversationId, refreshConversations]);
   const attachSource = useCallback(
     async (file: File) => {
       if (purposeRef.current !== "architect") return;
       setError("");
       try {
-        let conversationId = activeConversationId;
-        if (!conversationId) {
-          const created = await fetch("/api/admin/revenue-os/ai/conversations", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ purpose: "architect" }),
-          });
-          const createdPayload = (await created.json().catch(() => null)) as {
-            conversation?: AdminAIConversation;
-            error?: string;
-          } | null;
-          if (!created.ok || !createdPayload?.conversation)
-            throw new Error(createdPayload?.error || "Could not open Architect session");
-          conversationId = createdPayload.conversation.id;
-          setActiveConversationId(conversationId);
-          window.localStorage.setItem(ARCHITECT_KEY, conversationId);
-          await refreshConversations();
-        }
+        const conversationId = await ensureArchitectSession();
         const excerpt = (await file.text()).slice(0, 8000);
         const response = await fetch(
           `/api/admin/revenue-os/ai/conversations/${encodeURIComponent(conversationId)}/sources`,
@@ -442,7 +457,71 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         setError(issue instanceof Error ? issue.message : "Could not attach source");
       }
     },
-    [activeConversationId, refreshConversations],
+    [ensureArchitectSession],
+  );
+  const attachSources = useCallback(
+    async (files: File[]) => {
+      for (const file of files) await attachSource(file);
+    },
+    [attachSource],
+  );
+  const addConnectedSource = useCallback(
+    async (input: { source: string; scope: string; resourceId: string }) => {
+      if (purposeRef.current !== "architect") return;
+      setError("");
+      try {
+        const conversationId = await ensureArchitectSession();
+        const next = [...connectedContext, { ...input, permission: "read" as const }];
+        const response = await fetch(
+          `/api/admin/revenue-os/ai/conversations/${encodeURIComponent(conversationId)}/context`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ connectedContext: next }),
+          },
+        );
+        const payload = (await response.json().catch(() => null)) as {
+          connectedContext?: AdminAIContextValue["connectedContext"];
+          error?: string;
+        } | null;
+        if (!response.ok || !payload?.connectedContext)
+          throw new Error(payload?.error || "Could not add scoped source");
+        setConnectedContext(payload.connectedContext);
+      } catch (issue) {
+        setError(issue instanceof Error ? issue.message : "Could not add scoped source");
+      }
+    },
+    [connectedContext, ensureArchitectSession],
+  );
+  const addAssumption = useCallback(
+    async (text: string) => {
+      if (purposeRef.current !== "architect") return;
+      const assumption = text.trim();
+      if (!assumption) return;
+      setError("");
+      try {
+        const conversationId = await ensureArchitectSession();
+        const next = [...assumptions, assumption];
+        const response = await fetch(
+          `/api/admin/revenue-os/ai/conversations/${encodeURIComponent(conversationId)}/context`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ assumptions: next }),
+          },
+        );
+        const payload = (await response.json().catch(() => null)) as {
+          assumptions?: string[];
+          error?: string;
+        } | null;
+        if (!response.ok || !payload?.assumptions)
+          throw new Error(payload?.error || "Could not record assumption");
+        setAssumptions(payload.assumptions);
+      } catch (issue) {
+        setError(issue instanceof Error ? issue.message : "Could not record assumption");
+      }
+    },
+    [assumptions, ensureArchitectSession],
   );
   const archiveActive = useCallback(async () => {
     if (!activeConversationId) return;
@@ -473,6 +552,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       messages,
       sources,
       connectedContext,
+      assumptions,
       tools,
       proposals,
       running,
@@ -486,6 +566,9 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       startNew,
       archiveActive,
       attachSource,
+      attachSources,
+      addConnectedSource,
+      addAssumption,
       send,
       stop,
       openWithPrompt,
@@ -500,6 +583,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       messages,
       sources,
       connectedContext,
+      assumptions,
       tools,
       proposals,
       running,
@@ -513,6 +597,9 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       startNew,
       archiveActive,
       attachSource,
+      attachSources,
+      addConnectedSource,
+      addAssumption,
       send,
       stop,
       openWithPrompt,

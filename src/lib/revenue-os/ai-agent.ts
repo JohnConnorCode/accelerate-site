@@ -54,6 +54,7 @@ export interface AgentProposalSummary {
 export interface CommandAgentOptions {
   surface?: string;
   conversationId?: string | null;
+  architectEvidence?: string | null;
   pageContext?: CommandPageContext | null;
   /** The calling tenant's active module configuration, so a disabled module's
    * AI tools are unavailable to the agent exactly as they are to the UI and
@@ -232,7 +233,7 @@ export async function runRevenueCommandAgent(
         messages: [
           {
             role: "system" as const,
-            content: `${SYSTEM_CONTRACT}\n\n${grounding}\nThe initial pack is navigation context only. Use discover_tool_bundles for any admin capability missing from the current tools, then activate_tool_bundle. Activation replaces the previous bundle for subsequent turns of this run; it does not approve actions. Only call tools advertised on this turn. Active bundle: ${activeBundleId ?? "core only"}.`,
+            content: `${SYSTEM_CONTRACT}\n\n${grounding}${options.architectEvidence ? `\n\n${options.architectEvidence}` : ""}\nThe initial pack is navigation context only. Use discover_tool_bundles for any admin capability missing from the current tools, then activate_tool_bundle. Activation replaces the previous bundle for subsequent turns of this run; it does not approve actions. Only call tools advertised on this turn. Active bundle: ${activeBundleId ?? "core only"}.`,
           },
           ...transcript,
         ],

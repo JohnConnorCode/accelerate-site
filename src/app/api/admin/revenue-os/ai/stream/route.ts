@@ -5,6 +5,7 @@ import { runRevenueCommandAgent, type CommandPageContext } from "@/lib/revenue-o
 import {
   AiConversationSchemaUnavailableError,
   appendAiAssistantMessage,
+  architectEvidenceForRun,
   openAiConversationTurn,
 } from "@/lib/revenue-os/ai-conversations";
 import type { AiCommandStreamEvent } from "@/lib/revenue-os/ai-stream-contract";
@@ -95,6 +96,11 @@ export async function POST(request: NextRequest) {
         userMessageId: turn.userMessage.id,
       });
       try {
+        const architectEvidence = await architectEvidenceForRun(
+          supabase,
+          actorEmail,
+          turn.conversationId,
+        );
         const result = await runRevenueCommandAgent(
           supabase,
           actorEmail,
@@ -102,6 +108,7 @@ export async function POST(request: NextRequest) {
           {
             surface: "admin_command_stream",
             conversationId: turn.conversationId,
+            architectEvidence,
             pageContext,
             tenantConfig: {
               modules: (auth.tenant.config?.modules as Partial<Record<string, boolean>>) ?? {},
