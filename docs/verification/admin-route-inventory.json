@@ -11,6 +11,8 @@
     "src/app/admin/ai-operations/page.tsx": "92aae0344b61a69def1d4fd711c387863b1c9bf18c433f33706271b7c6c4d2aa",
     "src/app/admin/ai/page.tsx": "ae4d9cbb09dcba05beffdf3d618210e5286273f7c651c4eb0c03aada76c07ed3",
     "src/app/admin/analytics/page.tsx": "af23a666edbc93988dbb745dcda0322dd1179ceef3ff36b383909efba131b481",
+    "src/app/admin/blueprints/[id]/page.tsx": "7f0cacbe1722bd215b37406d74a7b230182873c9d4e4e53b76afc07b944aaab2",
+    "src/app/admin/blueprints/page.tsx": "63d92c68c2224de0b2cf604a85f6507ee30c25e1fe5a6930c0d7ef6413150192",
     "src/app/admin/bookings/page.tsx": "cc77ea4855043e47b466b6dbebacb582776c31ecd37d15b48898ff338fda0c5f",
     "src/app/admin/branding/page.tsx": "58b67278c1f272f9b0b86755fbf929880b0d74ea2ef89a88b23a35e130941a3d",
     "src/app/admin/campaigns/page.tsx": "7cc75c9daef450a84d73c4ed2a4ad180cf693c42c93b427eff256a929917ece2",
@@ -61,6 +63,8 @@
     "src/app/admin/website-grades/page.tsx": "7329b376b5d959aa128c37cf8c75ce1d89cb451be78cf24790fe5389aa795dd1",
     "src/app/admin/work/page.tsx": "1b38cadb31fc791672068d0dbdef9142f47a3e0f484a31bdd61f52b0adb959ec",
     "src/app/api/admin/activity/route.ts": "ee9f15fedfb7aa0151bcaeb01414ed6407658cf22e224b7ca4fdef02376a38f8",
+    "src/app/api/admin/blueprints/[id]/route.ts": "d363da852cb82a865230f1850c32bcf0c4d0beadaea511f9a8e750416386aa23",
+    "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",
     "src/app/api/admin/bookings/route.ts": "57b07eb5f5da312bc972daec1cfa68584d9e4f65f0451940dabd42f04565341e",
     "src/app/api/admin/chat-leads/route.ts": "8712c08abc9a1e130bdbf50d3a19cc19956246056bf9eeac186cd06a0a4eaa70",
     "src/app/api/admin/clients/route.ts": "e0b0db321d70eb56f11965e0f71b3235c5832a407f522123d536c8bfb3326e1c",
@@ -172,6 +176,8 @@
     "src/components/admin/ArchitectEvidencePanel.tsx": "9369d3169678a090a87f360937cabeba52d9a75217fcc29ef00d220c11bc2990",
     "src/components/admin/ArchitectUnderstandingPanel.tsx": "a4a26e0a9b9c19841cd897db017cc0c6e765c203087ec73dcb0cdf3991da8601",
     "src/components/admin/AttentionList.tsx": "e39a1c0f6699a413a9e3ac543342e3492a475e02a647ced612d31a1a8d19fa00",
+    "src/components/admin/BlueprintReview.tsx": "41440f27dc9b6739e02a171b826c82c18398db91f6ed9ee49f661e1632b29d8e",
+    "src/components/admin/BlueprintsWorkspace.tsx": "3fa0af458affa8e82287a1b22f1ec5bbf2c84e42e2ad0a5ba46bba9a783afdb4",
     "src/components/admin/ChannelBreakdown.tsx": "fb6deda8fab795f0988422f4cbe3f57cbeeb49b7b17c543bef37f54c239d1429",
     "src/components/admin/ClientDetail.tsx": "ba2c70a7e681d6d427c686de16081c2fc1bd3cb5a4c9a1d248bfda3d482b6547",
     "src/components/admin/CollectionsWorkspace.tsx": "edcf3fb64632b3b27d84c7a643d07402c6db59adb2cd1de4444acee80710f53d",
@@ -241,7 +247,7 @@
     "src/components/admin/work-board/WorkAgents.tsx": "49d61e12cbb893e75e4dc47fb9ae6f909d6c008362f43bd166acc23eaed7704b",
     "src/components/admin/work-board/WorkControls.tsx": "226999de79b993b356a6ef8ec0c36193b0cdf3b987398388756bdd581cd5209f",
     "src/components/admin/work-board/WorkViews.tsx": "836cb92dc22de8df338aec9d70961c35fe637f93bfd31c781f208dc5bf3d8a9a",
-    "src/lib/admin/navigation.ts": "ee2d644e914304fa092c91a5fc486b7c196d8ce6a172cc6c155c0f4f80d69706",
+    "src/lib/admin/navigation.ts": "4c9d1b54871615e2a887c9075b8dc85b6752ced4e0ad9c92c24f79767fbf7e93",
     "src/lib/ai/approved-pricing.ts": "de3c37eddce5b73b90acc8e38f72d01865e9a1b207ea3a27972de4bfbd34dc42",
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
     "src/lib/ai/openrouter.ts": "8f6d35f84cb7c9b737929dda0667d39c029a18bc65076e34e6079feeca0b89c8",
@@ -250,7 +256,7 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "d0795e65882ced6451479c7c9f9060a04dabe669cb2cdab5fcfb3c9a435f5a31",
+    "src/lib/revenue-os/README.md": "c268a2b2ab089fff63acca3313386bbd709ee26303fc155be356fdfc774cf029",
     "src/lib/revenue-os/action-executor.ts": "fd5c15ec33aa295fcb8bc2c8a8b07262c5dd3ace523b06860c000b728d718d52",
     "src/lib/revenue-os/actions.ts": "4b8f06cdbdf696ac3e7aa61799073f49302f9b3ce377983e043daef74c535a8b",
     "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
@@ -293,7 +299,7 @@
     "src/lib/revenue-os/mcp-server.ts": "7cd566363b9f78c7c6d1a881134275bdee935651cacb8f457094974cca8549a0",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
     "src/lib/revenue-os/module-configuration.ts": "49dc143f9117ac8dcb9554f077ccd7cd108ca4f5c4f81196104ba536cd91004b",
-    "src/lib/revenue-os/modules.ts": "ed9c810e15ccb67fb2988f8d064f9804a67683364c956e52c72f534f71d5c6e0",
+    "src/lib/revenue-os/modules.ts": "7e124c20ee45731aed934370d69415799ab325c4a0c85730b11c255efe5f2f19",
     "src/lib/revenue-os/pipeline-metrics.ts": "6299e90a3489ff2025da89228f9e495b0866febb5c411f8fa386094a2a3dc353",
     "src/lib/revenue-os/pipeline-stage-resolver.ts": "3581116b6b179a7955feba43e7b535fdfd7febc5f5823eebf804113665486f94",
     "src/lib/revenue-os/pipeline.ts": "c01c688af0c25fffd4f926e55ad4c134ccf12f2cbcfd553d27525a91f6ecb886",
@@ -304,7 +310,7 @@
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/runs.ts": "94ea4fe446cc959aaf90cb4ab968f9b0baf0c165f3c393081b9fd6e4d8015fdd",
-    "src/lib/revenue-os/schema-contract.ts": "d9028e7d04fe1151548bacbaaa10bee7df36e1909d1e59923ef332219a2f6007",
+    "src/lib/revenue-os/schema-contract.ts": "505411de344ab342c4f5652de57ac5db472c6e59258e600c8751c94fee2480dd",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/tasks.ts": "ddca6cc4af840c5758270c65f37eaf14bd3865cf08f1e17eba898ef4c7a164dc",
@@ -313,6 +319,7 @@
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
     "src/lib/revenue-os/work-board.ts": "3c59b5bf3a403b554b05675beeb44c3d985f9fea67a29f63e3a56428000e5e0e",
     "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
+    "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
     "src/lib/site-studio/database-store.ts": "4db7724ecea8c3148c8c7bda344c3292d71c6256afa3825fff17668dfc49494f",
     "src/lib/site-studio/document.ts": "612dd8babdc38c26a5786ca59b61c7cadeda1759010538c92b260a482284d7a3",
     "src/lib/site-studio/drafts.ts": "eb016af336fa9d0efa3e7f3e628de3414f22486017b3cf8682658c4076eb6d42",
@@ -437,6 +444,36 @@
       "boundary": "Compatibility redirect preserves demo scenario context.",
       "followUp": null,
       "specialBoundary": "redirect:/admin/ai?view=runs"
+    },
+    {
+      "route": "/admin/blueprints",
+      "page": "src/app/admin/blueprints/page.tsx",
+      "primaryAction": "Create and list versioned Workspace Blueprints",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/blueprints/route.ts",
+          "domainImports": ["@/lib/revenue-os/workspace-blueprint"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Blueprints are versioned configuration proposals. Saving appends a new version after schema, secret and executable-markup checks. Unknown capabilities and entity keys fail closed. Nothing is applied to live schema, modules or records from this page.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/blueprints/[id]",
+      "page": "src/app/admin/blueprints/[id]/page.tsx",
+      "primaryAction": "Inspect a Blueprint version, diffs and validation",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/blueprints/[id]/route.ts",
+          "domainImports": ["@/lib/revenue-os/workspace-blueprint"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Review is read-only against the latest version. Validation uses live capabilities and entity keys. The document is never executed.",
+      "followUp": null,
+      "specialBoundary": null
     },
     {
       "route": "/admin/analytics",
