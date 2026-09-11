@@ -97,6 +97,7 @@
     "test:ai-operations": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-operations.ts",
     "test:agent-loop": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-loop.ts",
     "test:ai-command-runtime": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-command-runtime.ts",
+    "test:workspace-blueprint": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-workspace-blueprint.ts",
     "qa:ai-command": "node --env-file=.env.local scripts/qa-ai-command-workspace.mjs",
     "test:action-execution": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-action-execution.ts",
     "test:admin-command-palette": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-admin-command-palette.ts",

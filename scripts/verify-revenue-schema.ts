@@ -42,6 +42,8 @@ const releaseMigration = (table: string, column?: string) => {
     return "migrations/20260920-delivery-handoff-convergence.sql";
   if (table === "ai_conversations" && column === "business_model")
     return "migrations/20260922-architect-understanding.sql";
+  if (table === "workspace_blueprints" || table === "workspace_blueprint_versions")
+    return "migrations/20260923-workspace-blueprints.sql";
   if (
     table === "ai_conversation_sources" ||
     (table === "ai_conversations" &&
@@ -89,18 +91,20 @@ const migrationForIndex = (name: string) =>
               name,
             )
           ? "migrations/20260920-delivery-handoff-convergence.sql"
-          : name.startsWith("idx_ai_conversation_sources") ||
-              name === "idx_ai_conversations_actor_purpose"
-            ? "migrations/20260921-architect-sessions.sql"
-            : name.startsWith("idx_entity_")
-              ? ENTITY_REGISTRY_MIGRATION
-              : name.startsWith("idx_onboarding_templates") || name === "idx_clients_opportunity"
-                ? DELIVERY_HANDOFF_MIGRATION
-                : name.includes("tenant")
-                  ? "migrations/20260830-shared-database-tenancy.sql"
-                  : name.includes("ai_") || name === "idx_agent_runs_conversation"
-                    ? "migrations/20260824-ai-command-runtime.sql"
-                    : "migrations/20260816-revenue-os.sql";
+          : name.startsWith("idx_workspace_blueprint")
+            ? "migrations/20260923-workspace-blueprints.sql"
+            : name.startsWith("idx_ai_conversation_sources") ||
+                name === "idx_ai_conversations_actor_purpose"
+              ? "migrations/20260921-architect-sessions.sql"
+              : name.startsWith("idx_entity_")
+                ? ENTITY_REGISTRY_MIGRATION
+                : name.startsWith("idx_onboarding_templates") || name === "idx_clients_opportunity"
+                  ? DELIVERY_HANDOFF_MIGRATION
+                  : name.includes("tenant")
+                    ? "migrations/20260830-shared-database-tenancy.sql"
+                    : name.includes("ai_") || name === "idx_agent_runs_conversation"
+                      ? "migrations/20260824-ai-command-runtime.sql"
+                      : "migrations/20260816-revenue-os.sql";
 const migrationForPolicy = (table: string, name: string) =>
   table === "entity_types" || table === "entity_links"
     ? ENTITY_REGISTRY_MIGRATION
