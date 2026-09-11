@@ -341,6 +341,14 @@
       "module": "core-intelligence"
     },
     {
+      "tool": "list_learning_proposals",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "propose_learning",
+      "module": "core-intelligence"
+    },
+    {
       "tool": "get_claims_for_entity",
       "module": "core-intelligence"
     },
