@@ -1,12 +1,12 @@
 ---
 title: "Connect your installation"
-description: "Create the owner account, configure a fresh database, and verify the workspace actually works."
-updated: "2026-09-09"
+description: "Create the owner account, apply the ordered schema, and sign in to a workspace you control."
+updated: "2026-09-11"
 ---
 
-This walkthrough turns a local demo into a connected installation you actually control, database, authentication, and a real owner account. You need a working checkout, a new empty Supabase project, access to its authentication settings, and a chosen owner email; complete [the local quickstart](/docs/self-hosting) first if you haven't already.
+This walkthrough turns a local demo into a connected installation you actually control: database, authentication, and a real owner account. You need a working checkout, a new empty Supabase project, access to its authentication settings, and a chosen owner email; complete [the local quickstart](/docs/self-hosting) first if you haven't already.
 
-Use the installation instructions shipped with your checkout when upgrading an older version. This guide follows the repository's `docs/self-hosting/SELF-HOSTING.md` sequence. The database commands below change the project you configure.
+Use the installation instructions shipped with your checkout when upgrading an older version. This guide follows the repository's `docs/self-hosting/SELF-HOSTING.md` sequence. The setup command below changes the project you configure.
 
 ## 1. Configure your local environment
 
@@ -32,30 +32,37 @@ Uncomment and set the relevant `BOOTSTRAP_*` identity fields in `.env.example` b
 
 Check the project reference and database host against the project you created. Do not use a database holding real customer records for this installation exercise.
 
-## 2. Create the owner before migrations
+## 2. Enable authentication redirects
 
-In your Supabase project's Authentication settings, enable email authentication. Create the owner user with the same email as `ADMIN_EMAIL` and give the account a password.
+In your Supabase project's Authentication settings, enable email authentication. Configure the application origin and its `/auth/callback` redirect URL. For a local origin of `http://localhost:3000`, the callback is `http://localhost:3000/auth/callback`. If the server uses a different port, update both the app origin and authentication configuration. These are project settings; a database key cannot configure them.
 
-Configure the application origin and its `/auth/callback` redirect URL. For a local origin of `http://localhost:3000`, the callback is `http://localhost:3000/auth/callback`. If the server uses a different port, update both the app origin and authentication configuration.
+Do not create the owner account in the dashboard first. The setup command below creates or reuses the configured owner, applies the ordered schema, and establishes admin membership.
 
-The migration binds the existing owner user to an active workspace membership. Creating the account afterward does not retroactively create that membership. App password recovery also needs configured Resend delivery, so establish the initial password here.
+## 3. Plan and apply workspace setup
 
-## 3. Apply and verify the database
-
-Run each command in order. Stop and investigate if one fails.
+Inspect the read-only plan:
 
 ```bash
-npm run verify:migrations
-npm run db:migrate:all
-npm run db:verify-schema
-npm run verify:bootstrap-identity
+npm run setup
 ```
 
-The first check validates migration classification. The runner applies pending files in the canonical order and records their checksums. The final checks verify the schema and bootstrap identity. Keep their results with your installation notes.
+Missing or placeholder configuration returns named fixes without making changes. A configured plan checks the database target and migration ledger and looks up the owner. It never prints passwords or service keys.
 
-A failed migration file rolls back. Fix the reported cause, then rerun the migration command to resume. Already recorded files are verified and skipped. Do not edit recorded migrations or remove the ledger to force replay.
+To create a new owner, set `SETUP_OWNER_PASSWORD` in your private local environment (12 to 1024 characters). Do not put the password in command arguments, Git, or a shared transcript.
 
-An existing database without a migration ledger needs reviewed baseline adoption. Stop rather than treating that refusal as a fresh installation failure.
+Apply to the exact project reference displayed by the plan:
+
+```bash
+npm run setup -- --apply --project your-project-reference
+```
+
+The command reuses an existing confirmed, active owner or creates the configured owner with a confirmed email and password. It sends no invitation email. Existing passwords are never reset. It verifies that the Auth owner also exists in the configured database, applies the existing migration ledger, then verifies the matching bootstrap workspace and active admin membership.
+
+Auth account creation and database migration are separate operations. If a later step fails, rerun the same command: the owner is reused and completed migration transactions are skipped. Setup does not delete partial installations. Remove `SETUP_OWNER_PASSWORD` after completion.
+
+A failed migration file rolls back. Do not edit recorded migrations or remove the ledger to force replay. An existing database without a migration ledger needs reviewed baseline adoption. Stop rather than treating that refusal as a fresh installation failure.
+
+The lower-level `npm run verify:migrations`, `npm run db:migrate:all`, `npm run db:verify-schema`, and `npm run verify:bootstrap-identity` commands remain available for migration-only operations. The guided command supplies the owner and membership steps those commands do not.
 
 ## 4. Sign in and check the workspace
 

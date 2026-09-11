@@ -173,6 +173,7 @@
     "test:google-readiness": "node scripts/test-google-oauth-readiness.mjs",
     "verify:google-readiness": "node scripts/verify-google-oauth-readiness.mjs",
     "test:setup-status": "npx tsx scripts/test-setup-status.ts && node --test scripts/test-workspace-setup.mjs",
+    "test:install-runbook": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-install-runbook.ts",
     "test:audit": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-audit.ts",
     "qa:audit-activity": "node scripts/qa-audit-activity.mjs",
     "test:tenant-config": "npx tsx scripts/test-tenant-config-seam.ts",
