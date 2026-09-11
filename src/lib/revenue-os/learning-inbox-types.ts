@@ -48,6 +48,7 @@ export interface LearningProposal {
   status: LearningStatus;
   dedupe_key: string;
   learned_policy_id: string | null;
+  approval_action_id: string | null;
   created_at: string;
   decided_at: string | null;
 }

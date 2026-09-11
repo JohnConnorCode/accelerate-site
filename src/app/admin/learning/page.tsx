@@ -286,6 +286,11 @@ export default function LearningInboxPage() {
                             Policy: {p.learned_policy_id}
                           </p>
                         )}
+                        {p.status === "proposed" && p.approval_action_id && (
+                          <p className="mt-1 font-mono text-[10px] text-amber-800 dark:text-amber-300">
+                            Awaiting approval in Today
+                          </p>
+                        )}
                       </div>
 
                       {p.status === "proposed" && (

@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS public.learning_proposals (
                      CHECK (status IN ('proposed','approved','rejected','conversation_only','ignored')),
   dedupe_key         TEXT NOT NULL,
   learned_policy_id  UUID REFERENCES public.learned_policies(id) ON DELETE SET NULL,
+  approval_action_id UUID REFERENCES public.action_queue(id) ON DELETE SET NULL,
   created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
   decided_at         TIMESTAMPTZ
 );

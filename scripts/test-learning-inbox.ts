@@ -141,6 +141,9 @@ import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixtu
       id: string;
     };
     assert.equal(again.id, action.id);
+    // The proposal links its live approval for inbox display.
+    const linked = mem.rows("learning_proposals").find((r) => r.id === p.id);
+    assert.equal(linked?.approval_action_id, action.id);
 
     await approveAndExecuteAction(client, action.id, ACTOR, { mode: "approved" });
 
@@ -201,57 +204,56 @@ import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixtu
   }
 
   // AI/admin parity: the Inbox operations exist as governed conversational
-// tools over the same service. Approval itself stays human-only.
-{
-  const tools = getRevenueAiTools();
-  const byName = new Map(tools.map((t) => [t.name, t]));
-  const list = byName.get("list_learning_proposals");
-  const propose = byName.get("propose_learning");
-  assert.ok(list && propose, "learning tools are registered");
-  assert.equal(list?.impact, "read");
-  assert.equal(list?.confirmationRequired, false);
-  assert.equal(propose?.impact, "internal_write");
-  assert.equal(propose?.confirmationRequired, true);
-  const core = new Set(getRevenueAiTools("core").map((t) => t.name));
-  assert.ok(core.has("list_learning_proposals") && core.has("propose_learning"));
+  // tools over the same service. Approval itself stays human-only.
+  {
+    const tools = getRevenueAiTools();
+    const byName = new Map(tools.map((t) => [t.name, t]));
+    const list = byName.get("list_learning_proposals");
+    const propose = byName.get("propose_learning");
+    assert.ok(list && propose, "learning tools are registered");
+    assert.equal(list?.impact, "read");
+    assert.equal(list?.confirmationRequired, false);
+    assert.equal(propose?.impact, "internal_write");
+    assert.equal(propose?.confirmationRequired, true);
+    const core = new Set(getRevenueAiTools("core").map((t) => t.name));
+    assert.ok(core.has("list_learning_proposals") && core.has("propose_learning"));
 
-  const { mem, client } = db();
-  await proposeLearning(client, { type: "messaging", rule: "Tool-visible rule" });
-  const listed = (await list?.execute(
-    { supabase: client, actorEmail: ACTOR },
-    {},
-  )) as Array<{ rule: string }>;
-  assert.ok(listed.some((r) => r.rule === "Tool-visible rule"));
-  const created = (await propose?.execute(
-    { supabase: client, actorEmail: ACTOR },
-    { type: "offering", rule: "Tool-proposed rule" },
-  )) as { id: string; status: string };
-  assert.equal(created.status, "proposed");
-  // Conversational proposals land as proposed rows awaiting human review.
-  const inboxRows = mem.rows("learning_proposals");
-  assert.ok(inboxRows.some((r) => r.id === created.id && r.status === "proposed"));
-}
+    const { mem, client } = db();
+    await proposeLearning(client, { type: "messaging", rule: "Tool-visible rule" });
+    const listed = (await list?.execute({ supabase: client, actorEmail: ACTOR }, {})) as Array<{
+      rule: string;
+    }>;
+    assert.ok(listed.some((r) => r.rule === "Tool-visible rule"));
+    const created = (await propose?.execute(
+      { supabase: client, actorEmail: ACTOR },
+      { type: "offering", rule: "Tool-proposed rule" },
+    )) as { id: string; status: string };
+    assert.equal(created.status, "proposed");
+    // Conversational proposals land as proposed rows awaiting human review.
+    const inboxRows = mem.rows("learning_proposals");
+    assert.ok(inboxRows.some((r) => r.id === created.id && r.status === "proposed"));
+  }
 
-// Robustness: malformed ids fail closed; listing stays bounded.
-{
-  const { client } = db();
-  await assert.rejects(
-    () =>
-      proposeLearning(client, {
-        type: "messaging",
-        rule: "Rule with bad supersede link",
-        supersedesPolicyId: "not-a-uuid",
-      }),
-    /must be a valid UUID/,
-  );
-  await proposeLearning(client, { type: "messaging", rule: "Bounded one" });
-  await proposeLearning(client, { type: "messaging", rule: "Bounded two" });
-  await proposeLearning(client, { type: "messaging", rule: "Bounded three" });
-  const clamped = await listLearningProposals(client, { limit: 0 });
-  assert.equal(clamped.length, 1);
-  const capped = await listLearningProposals(client, { limit: 100000 });
-  assert.equal(capped.length, 3);
-}
+  // Robustness: malformed ids fail closed; listing stays bounded.
+  {
+    const { client } = db();
+    await assert.rejects(
+      () =>
+        proposeLearning(client, {
+          type: "messaging",
+          rule: "Rule with bad supersede link",
+          supersedesPolicyId: "not-a-uuid",
+        }),
+      /must be a valid UUID/,
+    );
+    await proposeLearning(client, { type: "messaging", rule: "Bounded one" });
+    await proposeLearning(client, { type: "messaging", rule: "Bounded two" });
+    await proposeLearning(client, { type: "messaging", rule: "Bounded three" });
+    const clamped = await listLearningProposals(client, { limit: 0 });
+    assert.equal(clamped.length, 1);
+    const capped = await listLearningProposals(client, { limit: 100000 });
+    assert.equal(capped.length, 3);
+  }
 
-console.log(JSON.stringify({ result: "learning-inbox coverage added", checks: 16 }));
+  console.log(JSON.stringify({ result: "learning-inbox coverage added", checks: 17 }));
 })();

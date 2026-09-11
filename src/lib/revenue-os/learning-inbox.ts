@@ -203,7 +203,7 @@ export async function requestLearningApproval(
   if (current.status !== "proposed")
     throw new Error(`Only proposed learnings can seek approval (status: ${current.status})`);
 
-  return (await proposeAction(supabase, {
+  const action = (await proposeAction(supabase, {
     actionType: "approve_learning",
     title: `Approve learning: ${current.rule.slice(0, 120)}`,
     description: current.rationale || undefined,
@@ -214,7 +214,18 @@ export async function requestLearningApproval(
     entityId: current.id,
     dedupeKey: `approve-learning:${current.id}`,
     proposedBy: input.actorEmail ?? undefined,
-  })) as unknown as Record<string, unknown>;
+  })) as unknown as { id: string };
+
+  // Link the approval so the inbox shows awaiting-approval state. The
+  // dedupe collapse may return a pre-existing action; either way the
+  // stored id is the live approval for this proposal.
+  if (!current.approval_action_id || current.approval_action_id !== action.id) {
+    await supabase
+      .from("learning_proposals")
+      .update({ approval_action_id: action.id })
+      .eq("id", current.id);
+  }
+  return action;
 }
 
 /**
