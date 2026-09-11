@@ -63,7 +63,7 @@
         "@/lib/revenue-os/workspace-blueprint",
         "next/server"
       ],
-      "sourceSha256": "e90cdeaf5c155b7a7a6e3f9bb001ce99203696a44e06b5ed7347ad386b9b3c88"
+      "sourceSha256": "d363da852cb82a865230f1850c32bcf0c4d0beadaea511f9a8e750416386aa23"
     },
     {
       "source": "src/app/api/admin/blueprints/route.ts",
@@ -79,7 +79,7 @@
         "@/lib/revenue-os/workspace-blueprint",
         "next/server"
       ],
-      "sourceSha256": "4dda7883b01027c906fca4abf5f1239760635535e782a5235187e484073bb83c"
+      "sourceSha256": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c"
     },
     {
       "source": "src/app/api/admin/bookings/route.ts",

@@ -121,8 +121,8 @@ export function BlueprintsWorkspace() {
       <AdminSurface>
         <h2 className="mb-1 text-sm font-semibold">Propose a new Blueprint</h2>
         <p className="mb-3 text-xs text-[var(--admin-muted)]">
-          Paste the full Blueprint document. Saving creates version 1; saving against an existing
-          Blueprint always forks a new version — reviewed versions are never mutated.
+          Paste the full Blueprint document. Saving creates version 1. Saving against an existing
+          Blueprint always forks a new version. Reviewed versions are never mutated.
         </p>
         <label className="block text-xs font-semibold">
           Blueprint document (JSON)

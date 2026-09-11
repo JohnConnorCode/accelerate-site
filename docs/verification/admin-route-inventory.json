@@ -177,7 +177,7 @@
     "src/components/admin/ArchitectUnderstandingPanel.tsx": "a4a26e0a9b9c19841cd897db017cc0c6e765c203087ec73dcb0cdf3991da8601",
     "src/components/admin/AttentionList.tsx": "e39a1c0f6699a413a9e3ac543342e3492a475e02a647ced612d31a1a8d19fa00",
     "src/components/admin/BlueprintReview.tsx": "41440f27dc9b6739e02a171b826c82c18398db91f6ed9ee49f661e1632b29d8e",
-    "src/components/admin/BlueprintsWorkspace.tsx": "baeb121eb619c124b09c2a54602ca28d547c16b52845a94956dce01c6096570f",
+    "src/components/admin/BlueprintsWorkspace.tsx": "3fa0af458affa8e82287a1b22f1ec5bbf2c84e42e2ad0a5ba46bba9a783afdb4",
     "src/components/admin/ChannelBreakdown.tsx": "fb6deda8fab795f0988422f4cbe3f57cbeeb49b7b17c543bef37f54c239d1429",
     "src/components/admin/ClientDetail.tsx": "ba2c70a7e681d6d427c686de16081c2fc1bd3cb5a4c9a1d248bfda3d482b6547",
     "src/components/admin/CollectionsWorkspace.tsx": "edcf3fb64632b3b27d84c7a643d07402c6db59adb2cd1de4444acee80710f53d",
