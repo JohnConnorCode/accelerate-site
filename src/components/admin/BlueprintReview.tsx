@@ -49,6 +49,18 @@ interface BlueprintDetail {
     blockedCount: number;
     approvalCount: number;
   };
+  compile?: {
+    canApply: boolean;
+    customAppBriefs: Array<{
+      id: string;
+      title: string;
+      missingKey: string;
+      why: string;
+      boundary: string;
+    }>;
+    approvals: Array<{ ref: string; key: string; reason: string }>;
+    blocked: Array<{ ref: string; key: string; reason: string }>;
+  };
 }
 
 const STATUS_LABEL: Record<ItemStatus, string> = {
@@ -107,6 +119,7 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     if (query.data && !editing) setSummary(query.data.review.businessSummary);
@@ -141,6 +154,56 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
       void saved;
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Save failed.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const approve = async () => {
+    if (!query.data) return;
+    setError("");
+    setNotice("");
+    setSaving(true);
+    try {
+      await fetchJson(`/api/admin/blueprints/${blueprintId}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version: query.data.version }),
+      });
+      setNotice("Blueprint approved. Apply still goes through existing approval services.");
+      await cache.invalidateQueries({ queryKey: ["admin", "blueprint", blueprintId] });
+    } catch (approveError) {
+      setError(approveError instanceof Error ? approveError.message : "Approve failed.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const apply = async () => {
+    if (!query.data) return;
+    setError("");
+    setNotice("");
+    setSaving(true);
+    try {
+      const result = await fetchJson<{ replayed?: boolean }>(
+        `/api/admin/blueprints/${blueprintId}/apply`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            version: query.data.version,
+            requestKey: crypto.randomUUID(),
+          }),
+        },
+      );
+      setNotice(
+        result.replayed
+          ? "This apply request was already recorded."
+          : "Apply recorded. Approval-gated steps are staged in the existing action queue.",
+      );
+      await cache.invalidateQueries({ queryKey: ["admin", "blueprint", blueprintId] });
+    } catch (applyError) {
+      setError(applyError instanceof Error ? applyError.message : "Apply failed.");
     } finally {
       setSaving(false);
     }
@@ -199,6 +262,11 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
             {error}
           </p>
         )}
+        {notice && (
+          <p role="status" className="mt-2 text-xs font-semibold">
+            {notice}
+          </p>
+        )}
         <div className="mt-3 flex flex-wrap gap-2">
           {!editing ? (
             <button
@@ -229,8 +297,33 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
               </button>
             </>
           )}
+          <button type="button" className={button} disabled={saving} onClick={() => void approve()}>
+            Approve
+          </button>
+          <button
+            type="button"
+            className={button}
+            disabled={saving || detail.compile?.canApply === false}
+            onClick={() => void apply()}
+          >
+            Apply approved version
+          </button>
         </div>
       </AdminSurface>
+      {detail.compile?.customAppBriefs && detail.compile.customAppBriefs.length > 0 && (
+        <AdminSurface>
+          <h2 className="mb-3 text-sm font-semibold">Custom App Briefs</h2>
+          <ul className="space-y-3">
+            {detail.compile.customAppBriefs.map((brief) => (
+              <li key={brief.id}>
+                <p className="text-sm font-semibold">{brief.title}</p>
+                <p className="mt-0.5 text-xs text-[var(--admin-muted)]">{brief.why}</p>
+                <p className="mt-0.5 text-xs">{brief.boundary}</p>
+              </li>
+            ))}
+          </ul>
+        </AdminSurface>
+      )}
 
       <Section title="Business model" items={detail.review.businessModel} />
       <Section title="Workflows" items={detail.review.workflows} />

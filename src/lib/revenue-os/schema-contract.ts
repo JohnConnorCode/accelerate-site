@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-11.2";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-11.3";
 
 export const TENANT_SCOPED_TABLES = [
   "today_view_proposals",
@@ -44,6 +44,7 @@ export const TENANT_SCOPED_TABLES = [
   "work_items",
   "workspace_blueprints",
   "workspace_blueprint_versions",
+  "workspace_blueprint_applies",
   "workspace_capabilities",
   "coworkers",
   "claims",
@@ -475,6 +476,10 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     ],
   },
   {
+    table: "workspace_blueprint_applies",
+    columns: ["tenant_id", "id", "blueprint_id", "version", "request_key", "receipt", "created_at"],
+  },
+  {
     table: "ai_conversation_sources",
     columns: [
       "id",
@@ -683,6 +688,8 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_ai_conversation_sources_conversation",
   "idx_workspace_blueprints_tenant_updated",
   "idx_workspace_blueprint_versions_history",
+  "idx_workspace_blueprint_applies_replay",
+  "idx_workspace_blueprint_applies_blueprint",
   "idx_ai_messages_tenant_client_replay",
   "idx_ai_messages_conversation_order",
   "idx_agent_runs_conversation",
