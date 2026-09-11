@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 97,
-  "mutationHandlerCount": 86,
+  "routeCount": 99,
+  "mutationHandlerCount": 88,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -569,6 +569,37 @@
         "next/server"
       ],
       "sourceSha256": "fa21cb9caaa32e8e670cc379ca07dd7712186af88706f1a9137cdf9d93212437"
+    },
+    {
+      "source": "src/app/api/admin/learning/[id]/route.ts",
+      "handlers": [
+        "PUT"
+      ],
+      "mutationHandlers": [
+        "PUT"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/learning-inbox",
+        "next/server"
+      ],
+      "sourceSha256": "03e5ad746d03ce0c1c7208a4195b62f98d950989f4ddffda48f8229d6e8b63e9"
+    },
+    {
+      "source": "src/app/api/admin/learning/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/learning-inbox",
+        "next/server"
+      ],
+      "sourceSha256": "75fbac692eb2aa0d8270d6a3981d1f9cba40ae1595278a772fe09caf414195c5"
     },
     {
       "source": "src/app/api/admin/login/route.ts",

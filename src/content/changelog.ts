@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "learning-inbox",
+    slug: "learning-inbox",
+    title: "Teach Command Center with reusable corrections",
+    description:
+      "A new Learning Inbox collects reusable corrections from everyday work. Propose a correction once with its type, scope and confidence; ignore it, keep it to the current conversation, or send it to approvals. Approved learnings become shared policy with authority and provenance, so future drafts, coworkers and agents inherit what the business already decided.",
+    category: "feature",
+    publishedAt: "2026-09-11",
+  },
+  {
     id: "today-composable-workspace",
     slug: "today-composable-workspace",
     title: "Make Today fit the way you work",
