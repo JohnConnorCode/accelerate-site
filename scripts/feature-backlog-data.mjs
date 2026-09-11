@@ -7429,6 +7429,101 @@ export const featureBacklog = [
     },
   }),
   card({
+    key: "learning-inbox",
+    title: "Institutional Learning Inbox: propose, approve and record reusable corrections",
+    workstream: "learn",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Turn reusable human corrections into approved shared intelligence instead of letting them disappear into conversations. A Learning proposal carries type, scope, confidence, conflicting references, affected workers, supersedes links and source; ignore and this-conversation dispositions leave no shared residue; approval routes through the existing action/autonomy path and persists via the extended learned-policy record with authority tier and provenance.",
+    acceptance: [
+      "A reusable correction from a conversation or work diff can be proposed to the Learning Inbox with type, scope, confidence, conflicts, affected workers, supersedes and source",
+      "Ignore and this-conversation dispositions leave no shared residue",
+      "Approval routes through the existing action/autonomy path and rejection leaves no residue",
+      "Approved learnings persist via the extended learned-policy record with authority tier and provenance, and superseded entries link forward",
+      "Every learning write states its human-truth-hierarchy position, and conversation-derived content never becomes shared truth without approval",
+      "Duplicate or replayed proposals reuse the deterministic idempotency key and create no second record; invalid input fails closed with a truthful receipt",
+    ],
+    dependencies: [
+      "Memory architecture: five distinct memory categories with unified query",
+      "Finish the shared AI confirmation system",
+      "Build the Evidence and Claim Ledger for AI-derived facts",
+    ],
+    start:
+      "src/lib/revenue-os/memory.ts for recordLearnedPolicy and the learned_policies table; src/lib/revenue-os/actions.ts for the approval lifecycle; src/lib/revenue-os/claims.ts for evidence linkage; src/lib/revenue-os/ai-conversations.ts for correction capture points",
+    guardrails:
+      "Nothing enters shared knowledge without explicit approval; learning stays governed, never automatic. Conversation-derived content defaults to the lowest authority tier until reviewed. Do not build a second policy store; extend the learned-policy record. No production deployment or provider sends from test fixtures.",
+    labels: ["learning", "knowledge"],
+    verification:
+      "a scoped learning-inbox test covering propose/ignore/this-conversation/approve/reject dispositions, deterministic idempotency on replay, invalid input refusal, and authority-tier defaulting; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; reviewed desktop and mobile screenshots of the Inbox surface; npm run build.",
+    initiative: "Institutional Learning",
+    workSpec: {
+      businessValue:
+        "Turn reusable human corrections into approved shared intelligence instead of letting them disappear into conversations.",
+      scope: [
+        "Propose a reusable correction from a conversation or work diff to the Learning Inbox with type, scope, confidence, conflicts, affected workers, supersedes and source.",
+        "Ignore and this-conversation dispositions leave no shared residue.",
+        "Approval routes through the existing action/autonomy path and rejection leaves no residue.",
+        "Approved learnings persist via the extended learned-policy record with authority tier and provenance, and superseded entries link forward.",
+      ],
+      exclusions: [
+        "No automatic learning without approval; no second policy store; no new providers.",
+        "Correction detection heuristics beyond explicit user-marked and diff-derived candidates belong in correction-capture, not here.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/memory.ts",
+          reason: "Extend recordLearnedPolicy and the learned_policies table; do not create a parallel store.",
+          revision: "552aaaf",
+        },
+        {
+          path: "src/lib/revenue-os/actions.ts",
+          reason: "Reuse the approval lifecycle for learning proposals.",
+          revision: "552aaaf",
+        },
+        {
+          path: "src/lib/revenue-os/claims.ts",
+          reason: "Link learning evidence to the claim ledger with provenance.",
+          revision: "552aaaf",
+        },
+      ],
+      northstar: { phase: "B", layers: ["Learn", "Act"], contribution: "Institutional Learning: corrections become proposed, approved, shared intelligence that future work inherits." },
+      acceptance: [
+        { id: "AC1", criterion: "A reusable correction can be proposed with full typing and sourcing.", environment: "local" },
+        { id: "AC2", criterion: "Ignore and this-conversation dispositions leave no shared residue.", environment: "local" },
+        { id: "AC3", criterion: "Approval routes through the existing action path; rejection leaves no residue.", environment: "local" },
+        { id: "AC4", criterion: "Approved learnings persist with authority tier and forward-linked supersession.", environment: "local" },
+      ],
+      workflow: [
+        "Extend the learned-policy record with type, scope, confidence, conflicts, affected workers, supersedes, source and authority tier.",
+        "Build the Learning proposal object plus Inbox surface reusing the action approval lifecycle.",
+        "Prove all dispositions, idempotent replay, invalid input refusal and tier defaulting with scoped fixtures.",
+        "Run the named checks, attach evidence per acceptance ID and submit the exact commit for review.",
+      ],
+      failureModes: [
+        "Duplicate proposals collapse onto the idempotency key; invalid input fails closed with a truthful receipt.",
+        "Unapproved content never reaches shared reads; audit records every disposition.",
+      ],
+      verification: [
+        { command: "npm run verify:agent-contract", expected: "Pass.", environment: "local" },
+        { command: "npx tsc --noEmit", expected: "Exit zero.", environment: "local" },
+        { command: "npm run lint", expected: "Exit zero.", environment: "local" },
+        { command: "npm run build", expected: "Exit zero.", environment: "local" },
+      ],
+      repository: {
+        url: "https://github.com/JohnConnorCode/accelerate-site.git",
+        baseBranch: "main",
+        baseCommit: "552aaaf0f5829738bc451fa217e877e55dc01eb7",
+      },
+      businessValue: "Turn reusable human corrections into approved shared intelligence.",
+      currentBehavior:
+        "Corrections given to AI outputs and workers disappear into conversations today; no shared Learning proposal object, inbox surface, or approval path exists, and learned policies carry no authority tier or conflict metadata.",
+      requiredCapabilities: [],
+      packetVersion: 2,
+    },
+  }),
+  card({
     key: "trust-graduation-engine",
     title: "Propose trust promotion on evidence and demote automatically on failure",
     workstream: "ai",
