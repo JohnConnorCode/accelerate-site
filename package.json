@@ -137,6 +137,7 @@
     "test:schema-verification": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-schema-verification.ts",
     "test:secret-storage": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-secret-storage.ts",
     "test:learning-inbox": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-learning-inbox.ts",
+    "test:correction-capture": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-correction-capture.ts",
     "verify:founder-access": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-founder-access.ts",
     "test:api-contracts": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-api-contract-basics.ts",
     "verify:webhook-cron-defense": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-webhook-cron-defense.ts",
