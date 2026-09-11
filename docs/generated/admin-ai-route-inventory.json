@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 99,
-  "mutationHandlerCount": 88,
+  "routeCount": 102,
+  "mutationHandlerCount": 92,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -869,6 +869,21 @@
       "sourceSha256": "6f7ac4fefdbf00690a036eba905643d7406beb4cb3bba458e703236b73a64655"
     },
     {
+      "source": "src/app/api/admin/revenue-os/ai/conversations/[id]/context/route.ts",
+      "handlers": [
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/ai-conversations",
+        "next/server"
+      ],
+      "sourceSha256": "f30f24f1f3697c37230c6da8ac4c07d7905b7bd1b6e884f91b2f2f36736461f0"
+    },
+    {
       "source": "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts",
       "handlers": [
         "DELETE",
@@ -885,17 +900,51 @@
       "sourceSha256": "d4f346d8e2454a5306244ab76b2d79e167c0e7146d422161daf27257770198fd"
     },
     {
-      "source": "src/app/api/admin/revenue-os/ai/conversations/route.ts",
+      "source": "src/app/api/admin/revenue-os/ai/conversations/[id]/sources/route.ts",
       "handlers": [
-        "GET"
+        "POST"
       ],
-      "mutationHandlers": [],
+      "mutationHandlers": [
+        "POST"
+      ],
       "imports": [
         "@/lib/admin/auth",
         "@/lib/revenue-os/ai-conversations",
         "next/server"
       ],
-      "sourceSha256": "f0f9c5e3eaeec896d10c7c19ab3c2264e8d947a498f2e4492eaf08ba93ebd5ed"
+      "sourceSha256": "e52b7af4d426d3b5f1d401885151ef013e12235e5d579e3ff301cde6da00d2a5"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/ai/conversations/[id]/understanding/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/ai-conversations",
+        "@/lib/revenue-os/architect-understanding",
+        "next/server"
+      ],
+      "sourceSha256": "4dcf8eddc3f2844334146a0ef9213f1d3567ba5a694875989668614d5481f9bf"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/ai/conversations/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/ai-conversations",
+        "next/server"
+      ],
+      "sourceSha256": "52df76cc864c4fc2d43f2d08037e49cf8ddf5a0a7d39a6b9e1be1df0e37d0bad"
     },
     {
       "source": "src/app/api/admin/revenue-os/ai/feedback/route.ts",
@@ -954,7 +1003,7 @@
         "@/lib/revenue-os/ai-stream-contract",
         "next/server"
       ],
-      "sourceSha256": "0742738061c3d609d8ee4e7ef6321316b89032e734aecad224a29401293961f7"
+      "sourceSha256": "a1121e01781822ae6837fdc7ee6ed58292e632c42b40fdd9012bdffdee34b376"
     },
     {
       "source": "src/app/api/admin/revenue-os/analytics/route.ts",

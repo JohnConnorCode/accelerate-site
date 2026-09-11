@@ -306,6 +306,20 @@ export class MemorySupabase {
             error: { code: "23505", message: "duplicate AI client message" },
           });
         }
+        if (
+          table === "ai_conversation_sources" &&
+          payload.client_source_id &&
+          this.tables[table]!.some(
+            (row) =>
+              row.conversation_id === payload.conversation_id &&
+              row.client_source_id === payload.client_source_id,
+          )
+        ) {
+          return resolve({
+            data: null,
+            error: { code: "23505", message: "duplicate AI source" },
+          });
+        }
         // Honour the partial unique index the real action_queue carries: one
         // pending row per dedupe key. Several tests hinge on that constraint.
         const key = payload.dedupe_key;
