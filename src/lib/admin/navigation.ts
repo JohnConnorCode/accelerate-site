@@ -18,6 +18,7 @@ import {
   MailCheck,
   MessageSquareText,
   MessageCircleMore,
+  Layers,
   PlugZap,
   RotateCcw,
   Settings,
@@ -233,6 +234,16 @@ export const adminNavSections: AdminNavSection[] = [
         description:
           "Teach the workspace how the business works through a durable chat session, attachments and scoped sources.",
         keywords: "workspace architect setup blueprint attachments sources",
+        moreGroup: "Intelligence",
+      },
+      {
+        id: "blueprints",
+        label: "Blueprints",
+        href: "/admin/blueprints",
+        icon: Layers,
+        description:
+          "Review versioned workspace contracts before anything is applied to schema or settings.",
+        keywords: "blueprint architect version diff validation contract",
         moreGroup: "Intelligence",
       },
       {

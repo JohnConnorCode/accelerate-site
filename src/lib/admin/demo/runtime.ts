@@ -48,6 +48,7 @@ import {
 } from "./business-runtime";
 import { DEMO_SCENARIOS, type DemoScenarioId, type DemoScenarioPack } from "./scenarios";
 import { clearDemoAppearance } from "./appearance-state";
+import { DEMO_BLUEPRINT_DETAIL } from "./blueprint-fixture";
 import {
   REVENUE_OS_MODULES,
   isAiToolModuleEnabled,
@@ -179,6 +180,12 @@ export type DemoState = {
     string,
     Partial<FeatureRequest> & { created?: boolean; demoClaimToken?: string }
   >;
+  blueprintEdits?: {
+    version: number;
+    summary: string;
+    changeSummary: string;
+    createdAt: string;
+  } | null;
   workViews?: Array<Record<string, unknown>>;
   workEvents?: Array<Record<string, unknown>>;
   workReceipts?: Record<string, { fingerprint: string; card: unknown }>;
@@ -2973,6 +2980,74 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           updated_at: ago(1),
         })),
       });
+    }
+    if (path === "/api/admin/blueprints") {
+      if (method === "GET") {
+        const edits = state.blueprintEdits;
+        return jsonResponse({
+          blueprints: [
+            {
+              id: DEMO_BLUEPRINT_DETAIL.blueprintId,
+              title: DEMO_BLUEPRINT_DETAIL.title,
+              status: DEMO_BLUEPRINT_DETAIL.status,
+              latest_version: edits?.version ?? DEMO_BLUEPRINT_DETAIL.version,
+              updated_at: edits?.createdAt ?? DEMO_BLUEPRINT_DETAIL.createdAt,
+            },
+          ],
+        });
+      }
+      if (method === "POST") {
+        const input = body as {
+          document?: unknown;
+          changeSummary?: unknown;
+        };
+        if (
+          !input ||
+          typeof input !== "object" ||
+          !input.document ||
+          typeof input.document !== "object" ||
+          typeof input.changeSummary !== "string" ||
+          !input.changeSummary.trim()
+        ) {
+          return jsonResponse(
+            { error: "A Blueprint document and change summary are required" },
+            400,
+          );
+        }
+        const next = (state.blueprintEdits?.version ?? DEMO_BLUEPRINT_DETAIL.version) + 1;
+        const summary = (input.document as Record<string, unknown>).businessSummary;
+        state.blueprintEdits = {
+          version: next,
+          summary:
+            typeof summary === "string" && summary.trim()
+              ? summary.trim()
+              : DEMO_BLUEPRINT_DETAIL.review.businessSummary,
+          changeSummary: input.changeSummary.trim().slice(0, 200),
+          createdAt: new Date().toISOString(),
+        };
+        saveState(scenarioId, state);
+        return jsonResponse(
+          { blueprintId: DEMO_BLUEPRINT_DETAIL.blueprintId, version: next, simulated: true },
+          201,
+        );
+      }
+    }
+    const blueprintDetail = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)$/i);
+    if (method === "GET" && blueprintDetail) {
+      if (blueprintDetail[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
+        return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
+      }
+      const seed = structuredClone(DEMO_BLUEPRINT_DETAIL);
+      const edits = state.blueprintEdits;
+      if (edits) {
+        seed.version = edits.version;
+        seed.parentVersion = edits.version - 1;
+        seed.changeSummary = edits.changeSummary;
+        seed.createdAt = edits.createdAt;
+        (seed.document as Record<string, unknown>).businessSummary = edits.summary;
+        seed.review.businessSummary = edits.summary;
+      }
+      return jsonResponse(seed);
     }
     if (path === "/api/admin/features/views") {
       if (method === "GET") return jsonResponse({ views: state.workViews ?? [] });
