@@ -76,7 +76,10 @@ export function ArchitectUnderstandingPanel() {
         This is a structured reading of evidence. It does not create records, schema or settings.
       </p>
       {error && (
-        <p className="mt-2 rounded-xl bg-rose-500/10 px-3 py-2 text-xs text-rose-700" role="alert">
+        <p
+          className="mt-2 rounded-xl bg-[var(--admin-danger-soft)] px-3 py-2 text-xs text-[var(--admin-danger)]"
+          role="alert"
+        >
           {error}
         </p>
       )}
@@ -109,7 +112,10 @@ export function ArchitectUnderstandingPanel() {
             ) : (
               <ul className="mt-2 space-y-2">
                 {model.conflicts.map((item) => (
-                  <li key={item.id} className="rounded-xl bg-amber-500/[0.08] px-3 py-2 text-xs">
+                  <li
+                    key={item.id}
+                    className="rounded-xl bg-[var(--admin-warning-soft)] px-3 py-2 text-xs"
+                  >
                     <p className="inline-flex items-center gap-1 font-semibold text-[var(--admin-ink)]">
                       <CircleAlert className="size-3.5" />
                       {item.concept}

@@ -96,12 +96,15 @@
     "src/app/api/admin/resources/route.ts": "d78eadde6bce745c27b8853065f36b42d8947b467fd52952c4c6a0e7277102aa",
     "src/app/api/admin/revenue-os/actions/route.ts": "d00621269c6885c8e78ad906024f635b602b39ece01a9e9ff2ec7bef9d4e11e6",
     "src/app/api/admin/revenue-os/ai/capabilities/route.ts": "6f7ac4fefdbf00690a036eba905643d7406beb4cb3bba458e703236b73a64655",
+    "src/app/api/admin/revenue-os/ai/conversations/[id]/context/route.ts": "f30f24f1f3697c37230c6da8ac4c07d7905b7bd1b6e884f91b2f2f36736461f0",
     "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts": "d4f346d8e2454a5306244ab76b2d79e167c0e7146d422161daf27257770198fd",
-    "src/app/api/admin/revenue-os/ai/conversations/route.ts": "f0f9c5e3eaeec896d10c7c19ab3c2264e8d947a498f2e4492eaf08ba93ebd5ed",
+    "src/app/api/admin/revenue-os/ai/conversations/[id]/sources/route.ts": "e52b7af4d426d3b5f1d401885151ef013e12235e5d579e3ff301cde6da00d2a5",
+    "src/app/api/admin/revenue-os/ai/conversations/[id]/understanding/route.ts": "4dcf8eddc3f2844334146a0ef9213f1d3567ba5a694875989668614d5481f9bf",
+    "src/app/api/admin/revenue-os/ai/conversations/route.ts": "52df76cc864c4fc2d43f2d08037e49cf8ddf5a0a7d39a6b9e1be1df0e37d0bad",
     "src/app/api/admin/revenue-os/ai/feedback/route.ts": "3577fe8fb268c642639e83c4f5e8711c7b91fe54244957db42cee0f69fac1f82",
     "src/app/api/admin/revenue-os/ai/runs/[id]/route.ts": "c88f9daf9b655445bf240ce856ff5b1fb364afc9dba642513470dbe8fd5e3383",
     "src/app/api/admin/revenue-os/ai/runs/route.ts": "1611a2f123a5751e7bb2c37955dd1c0b4209d003028aa0a8660e47f1bae80189",
-    "src/app/api/admin/revenue-os/ai/stream/route.ts": "0742738061c3d609d8ee4e7ef6321316b89032e734aecad224a29401293961f7",
+    "src/app/api/admin/revenue-os/ai/stream/route.ts": "a1121e01781822ae6837fdc7ee6ed58292e632c42b40fdd9012bdffdee34b376",
     "src/app/api/admin/revenue-os/analytics/route.ts": "962c2a65c89ea76b6445bf99c94f8f555d4759bd4410f0d961b2028fd0818d1e",
     "src/app/api/admin/revenue-os/campaigns/members/route.ts": "853132cc41d0863663b276645c419ef73acd8e9ca8b9ab861664b5fcda73d96c",
     "src/app/api/admin/revenue-os/campaigns/preview/route.ts": "63eab34f9292f3f161061a89e7a528725d2dbf896236825716e6acdb3c5af3f9",
@@ -139,10 +142,10 @@
     "src/components/admin/AIRunHistory.tsx": "7b1435f78af743f431fc3bad46de404ef45e65d2ea2857831d00678ed785cbeb",
     "src/components/admin/ActionReviewDialog.tsx": "92e66b360142a854a0fd4892095b909b686b6d158d0f2e2be1374e35be8e0c76",
     "src/components/admin/AddLeadModal.tsx": "30c1ba2bb1a4b0a648dac085f6a4c607c0e1bba48490fe24cd2a13e6c5b36fc0",
-    "src/components/admin/AdminAIChat.tsx": "b3a0fd35af95322caa7910aabc7d8b65461bd1ace2da2ac18f41a7f7c7c1e800",
+    "src/components/admin/AdminAIChat.tsx": "a9792bf141802c9131b4a5589e2dc0eea59dea4f8176278c24b6e5b351187d5b",
     "src/components/admin/AdminAIPanel.tsx": "b7153809b5422c884a719a0ae3210eace4223838e4be334fc0b8340884ac647a",
-    "src/components/admin/AdminAIProvider.tsx": "202d5be95a9174dcd3023d3daed07ecf7c625ff9fe3a17c6a933071a0110c80a",
-    "src/components/admin/AdminAIWorkspace.tsx": "ffbc2d5fb85f3c58508cfb924503d4dcd8d0615c892e5335029bd13610966756",
+    "src/components/admin/AdminAIProvider.tsx": "a900d0feb64b8a00f94f4f8ef8fe1e2f0c0ec73a60359f7e23ee8f0fa8adee69",
+    "src/components/admin/AdminAIWorkspace.tsx": "53cc59f860889e4e1b3295f2e7b6e8498c6dde8a62bd59d993f018a35ed0cd1a",
     "src/components/admin/AdminAppearancePicker.tsx": "a87b47a80997c9510d056ea738d888d8d2d40e562bb2a0cc487b0324a59e85f2",
     "src/components/admin/AdminAsyncRegion.tsx": "5b21040c6982b10aa211e83a5dfa6cfe41d1e75ac09f17436f0edef2b9386682",
     "src/components/admin/AdminAuthLayout.tsx": "919c168dcb2e0122b971c8bb0158d745647a40c399e8e0cfdcdb918dabab2ee0",
@@ -166,6 +169,8 @@
     "src/components/admin/AdminTable.tsx": "ad851510d70e104c7f2578ee8affc57d873dee81babfba31036487df98e75e06",
     "src/components/admin/AdminThemeEditor.tsx": "66b44a93a3bbd200df056438ea84da68ba95529ee16968c6465c1c9565f51676",
     "src/components/admin/AdminThemeProvider.tsx": "8e6a151e4c0b8c9211ee35b88d89e8cd3808a5bed7c9d865d12f61e0d79176e3",
+    "src/components/admin/ArchitectEvidencePanel.tsx": "9369d3169678a090a87f360937cabeba52d9a75217fcc29ef00d220c11bc2990",
+    "src/components/admin/ArchitectUnderstandingPanel.tsx": "a4a26e0a9b9c19841cd897db017cc0c6e765c203087ec73dcb0cdf3991da8601",
     "src/components/admin/AttentionList.tsx": "e39a1c0f6699a413a9e3ac543342e3492a475e02a647ced612d31a1a8d19fa00",
     "src/components/admin/ChannelBreakdown.tsx": "fb6deda8fab795f0988422f4cbe3f57cbeeb49b7b17c543bef37f54c239d1429",
     "src/components/admin/ClientDetail.tsx": "ba2c70a7e681d6d427c686de16081c2fc1bd3cb5a4c9a1d248bfda3d482b6547",
@@ -236,7 +241,7 @@
     "src/components/admin/work-board/WorkAgents.tsx": "49d61e12cbb893e75e4dc47fb9ae6f909d6c008362f43bd166acc23eaed7704b",
     "src/components/admin/work-board/WorkControls.tsx": "226999de79b993b356a6ef8ec0c36193b0cdf3b987398388756bdd581cd5209f",
     "src/components/admin/work-board/WorkViews.tsx": "836cb92dc22de8df338aec9d70961c35fe637f93bfd31c781f208dc5bf3d8a9a",
-    "src/lib/admin/navigation.ts": "0c47bd9c647aace51cc93a482915b803031d60ae57b40f4394b7981e571ac50e",
+    "src/lib/admin/navigation.ts": "ee2d644e914304fa092c91a5fc486b7c196d8ce6a172cc6c155c0f4f80d69706",
     "src/lib/ai/approved-pricing.ts": "de3c37eddce5b73b90acc8e38f72d01865e9a1b207ea3a27972de4bfbd34dc42",
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
     "src/lib/ai/openrouter.ts": "8f6d35f84cb7c9b737929dda0667d39c029a18bc65076e34e6079feeca0b89c8",
@@ -251,13 +256,14 @@
     "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
-    "src/lib/revenue-os/ai-agent.ts": "30498c8786cf3a49f3b8b6ef3d05ca49f56d6b8c2ff954e99af1fd9287dabc26",
-    "src/lib/revenue-os/ai-conversations.ts": "8e4be3df653134b373db518e1dbc4d92532dd9994606610037f679174aee6f22",
+    "src/lib/revenue-os/ai-agent.ts": "728d0497e77c40b692a93a9e9a4a10546ddf4ed3dbab19317c6af101aab58128",
+    "src/lib/revenue-os/ai-conversations.ts": "42666ef100685c3b93e6f4487cd5af7b689220a56aa5efc10e6725659e9b0491",
     "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
     "src/lib/revenue-os/ai-operations.ts": "ae39bc1112700f7af976bdf68a1308d7c720747ed82191d589817ba78b4aa945",
     "src/lib/revenue-os/ai-stream-contract.ts": "813ce466f99ba479b50cfee912921003a8e21bf812dba9e16494a4df3b5d00c7",
     "src/lib/revenue-os/ai-tools.ts": "26cd8f86b0344ec78ef697a1bf7165210b9db888802b4617205d867378d1f0d5",
     "src/lib/revenue-os/analytics.ts": "d57c3a867c3926e1fed1a64c110f0f28c8569e96a3c177b033e4eb11967764fb",
+    "src/lib/revenue-os/architect-understanding.ts": "5e0764b46aaacd1f9d4e9d519d38348f8617b2d639fc3e4716b50de84ea39a18",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
     "src/lib/revenue-os/branding-contract.ts": "fc2d5988692b39e55a38c422266aba4679b229e031ecac5cc7d50382334d6c76",
     "src/lib/revenue-os/branding.ts": "2c55ec70e64c17402eb34d0cae439a49023ec56611f1d2dbc08278082b16b616",
@@ -287,7 +293,7 @@
     "src/lib/revenue-os/mcp-server.ts": "7cd566363b9f78c7c6d1a881134275bdee935651cacb8f457094974cca8549a0",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
     "src/lib/revenue-os/module-configuration.ts": "49dc143f9117ac8dcb9554f077ccd7cd108ca4f5c4f81196104ba536cd91004b",
-    "src/lib/revenue-os/modules.ts": "68377928181b612655050d9db6fb624ddef25e91f8850c731ffd01fbc8e13d6a",
+    "src/lib/revenue-os/modules.ts": "ed9c810e15ccb67fb2988f8d064f9804a67683364c956e52c72f534f71d5c6e0",
     "src/lib/revenue-os/pipeline-metrics.ts": "6299e90a3489ff2025da89228f9e495b0866febb5c411f8fa386094a2a3dc353",
     "src/lib/revenue-os/pipeline-stage-resolver.ts": "3581116b6b179a7955feba43e7b535fdfd7febc5f5823eebf804113665486f94",
     "src/lib/revenue-os/pipeline.ts": "c01c688af0c25fffd4f926e55ad4c134ccf12f2cbcfd553d27525a91f6ecb886",
@@ -298,7 +304,7 @@
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/runs.ts": "94ea4fe446cc959aaf90cb4ab968f9b0baf0c165f3c393081b9fd6e4d8015fdd",
-    "src/lib/revenue-os/schema-contract.ts": "0e9e90036344b4a430a68c026fb69d897b0d1a0894d90bf576017ad6ca3d0014",
+    "src/lib/revenue-os/schema-contract.ts": "d9028e7d04fe1151548bacbaaa10bee7df36e1909d1e59923ef332219a2f6007",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/tasks.ts": "ddca6cc4af840c5758270c65f37eaf14bd3865cf08f1e17eba898ef4c7a164dc",
@@ -355,7 +361,7 @@
     {
       "route": "/admin/ai",
       "page": "src/app/admin/ai/page.tsx",
-      "primaryAction": "Ask the assistant; inspect runs and capabilities",
+      "primaryAction": "Ask the assistant or teach the workspace; inspect runs and capabilities",
       "adapters": [
         {
           "path": "src/app/api/admin/revenue-os/ai/capabilities/route.ts",
@@ -369,6 +375,24 @@
         {
           "path": "src/app/api/admin/revenue-os/ai/conversations/[id]/route.ts",
           "domainImports": ["@/lib/revenue-os/ai-conversations"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/ai/conversations/[id]/context/route.ts",
+          "domainImports": ["@/lib/revenue-os/ai-conversations"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/ai/conversations/[id]/sources/route.ts",
+          "domainImports": ["@/lib/revenue-os/ai-conversations"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/revenue-os/ai/conversations/[id]/understanding/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/ai-conversations",
+            "@/lib/revenue-os/architect-understanding"
+          ],
           "directTables": []
         },
         {
@@ -401,7 +425,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Shared AI workspace; writes require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates. Radar setup uses existing read/preview/propose module tools and exact human approval. Preview and execution check public profile readiness; reads explicitly report discovery, sending and publication unavailable. Radar briefing calls the tenant-bound shared budget gateway; status and usage reconciliation expose bounded receipts. These tools cannot send, publish, edit business records or bypass module gates.",
+      "boundary": "Shared AI workspace; purpose=architect reuses the same conversation store for teaching the workspace. Attached and connected sources are inspectable evidence, never executable instruction; entire-account scopes are refused. Business-model extraction persists a reading only and does not write schema or configuration. Command-center writes still require the existing action approval path. Bundled plugin tool declarations and full input parsers come from the shared trusted registration; dispatch retains module, pack and approval gates. Radar setup uses existing read/preview/propose module tools and exact human approval. Preview and execution check public profile readiness; reads explicitly report discovery, sending and publication unavailable. Radar briefing calls the tenant-bound shared budget gateway; status and usage reconciliation expose bounded receipts. These tools cannot send, publish, edit business records or bypass module gates.",
       "followUp": null,
       "specialBoundary": null
     },
