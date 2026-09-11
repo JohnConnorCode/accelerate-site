@@ -31,9 +31,15 @@ function validView(value: string | null): WorkspaceView {
 export function AdminAIWorkspace() {
   const searchParams = useSearchParams();
   const router = useAdminNavigation();
-  const { activeConversationId, selectConversation } = useAdminAI();
+  const { activeConversationId, selectConversation, setPurpose, refreshConversations } =
+    useAdminAI();
   const view = validView(searchParams.get("view"));
   const conversationId = searchParams.get("conversation");
+  const purpose = searchParams.get("purpose") === "architect" ? "architect" : "command";
+  useEffect(() => {
+    setPurpose(purpose);
+    void refreshConversations().catch(() => undefined);
+  }, [purpose, refreshConversations, setPurpose]);
   useEffect(() => {
     if (view === "ask" && conversationId && conversationId !== activeConversationId)
       void selectConversation(conversationId);
@@ -49,8 +55,12 @@ export function AdminAIWorkspace() {
   return (
     <div className="pb-10">
       <PageHeader
-        title="AI Workspace"
-        subtitle="Ask with live business context, inspect the evidence, and approve every consequential action."
+        title={purpose === "architect" ? "Workspace Architect" : "AI Workspace"}
+        subtitle={
+          purpose === "architect"
+            ? "Teach the workspace how the business works. Chat stays the control plane; attachments and connected sources are inspectable evidence, never executable instruction."
+            : "Ask with live business context, inspect the evidence, and approve every consequential action."
+        }
       />
       <nav
         className="mb-4 grid grid-cols-3 gap-1 rounded-2xl bg-black/[0.025] p-1.5 shadow-[var(--admin-shadow-border)] dark:bg-white/[0.025]"

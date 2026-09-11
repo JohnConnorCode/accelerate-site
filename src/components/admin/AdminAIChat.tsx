@@ -13,6 +13,7 @@ import {
   MessageSquarePlus,
   NotebookPen,
   Octagon,
+  Paperclip,
   RotateCcw,
   Send,
   ThumbsDown,
@@ -20,12 +21,26 @@ import {
   Wrench,
 } from "lucide-react";
 import { useAdminAI, type AdminAIMessage } from "./AdminAIProvider";
+import { ArchitectEvidencePanel } from "./ArchitectEvidencePanel";
+import { ArchitectUnderstandingPanel } from "./ArchitectUnderstandingPanel";
 import { cn } from "@/lib/utils";
 
 const starters = [
   { label: "Attention", prompt: "What needs my attention today?" },
   { label: "Prepare", prompt: "What follow-ups should I prepare?" },
   { label: "Analyze", prompt: "Show me pipeline risk and explain why." },
+];
+
+const architectStarters = [
+  {
+    label: "Business",
+    prompt: "Here is how this business actually makes money and delivers work.",
+  },
+  { label: "Customers", prompt: "These are the kinds of customers we serve and how they find us." },
+  {
+    label: "Rules",
+    prompt: "These are the decisions a coworker should never make without asking.",
+  },
 ];
 
 function toolLabel(name: string) {
@@ -234,7 +249,9 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="admin-eyebrow">Conversations</p>
+        <p className="admin-eyebrow">
+          {ai.purpose === "architect" ? "Architect sessions" : "Conversations"}
+        </p>
         <button
           type="button"
           onClick={ai.startNew}
@@ -333,13 +350,31 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
         </div>
       )}
       <div className="flex items-center gap-2 border-b border-[var(--admin-border)] px-4 py-2.5 text-[11px] text-[var(--admin-muted)]">
-        <Bot className="size-3.5" />
-        <span>Live records</span>
-        <span aria-hidden="true">·</span>
-        <span>Visible evidence</span>
-        <span aria-hidden="true">·</span>
-        <span>Changes staged for approval</span>
+        {ai.purpose === "architect" ? (
+          <NotebookPen className="size-3.5" />
+        ) : (
+          <Bot className="size-3.5" />
+        )}
+        {ai.purpose === "architect" ? (
+          <>
+            <span>Architect session</span>
+            <span aria-hidden="true">·</span>
+            <span>Sources are evidence</span>
+            <span aria-hidden="true">·</span>
+            <span>Never executed as instructions</span>
+          </>
+        ) : (
+          <>
+            <span>Live records</span>
+            <span aria-hidden="true">·</span>
+            <span>Visible evidence</span>
+            <span aria-hidden="true">·</span>
+            <span>Changes staged for approval</span>
+          </>
+        )}
       </div>
+      {ai.purpose === "architect" && <ArchitectEvidencePanel />}
+      {ai.purpose === "architect" && <ArchitectUnderstandingPanel />}
       {mobileConversationBar}
       <div
         ref={scrollRef}
@@ -359,17 +394,22 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
         {!ai.loadingHistory && ai.messages.length === 0 && (
           <div className="mx-auto flex min-h-full max-w-xl flex-col items-center justify-center py-8 text-center">
             <span className="grid size-12 place-items-center rounded-2xl bg-[var(--admin-ink)] text-[var(--admin-surface)]">
-              <Bot className="size-5" />
+              {ai.purpose === "architect" ? (
+                <NotebookPen className="size-5" />
+              ) : (
+                <Bot className="size-5" />
+              )}
             </span>
             <h2 className="mt-4 text-xl font-semibold tracking-[-0.035em] text-[var(--admin-ink)]">
-              Ask the operating system
+              {ai.purpose === "architect" ? "Teach the workspace" : "Ask the operating system"}
             </h2>
             <p className="admin-copy mt-2 max-w-md text-sm">
-              It reads bounded live records, shows its work, and stages consequential changes for
-              your approval.
+              {ai.purpose === "architect"
+                ? "This session keeps chat, attachments and scoped sources together. Reloading restores the same evidence. Sources stay inspectable and are never run as instructions."
+                : "It reads bounded live records, shows its work, and stages consequential changes for your approval."}
             </p>
             <div className="mt-5 grid w-full gap-2 sm:grid-cols-3">
-              {starters.map((starter) => (
+              {(ai.purpose === "architect" ? architectStarters : starters).map((starter) => (
                 <button
                   key={starter.label}
                   type="button"
@@ -505,8 +545,25 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           </p>
         )}
         <div className="admin-composer">
+          {ai.purpose === "architect" && (
+            <label className="admin-icon-button !size-11 shrink-0 cursor-pointer">
+              <span className="sr-only">Attach source as evidence</span>
+              <Paperclip className="size-4" />
+              <input
+                type="file"
+                multiple
+                className="sr-only"
+                disabled={ai.schemaReady === false}
+                onChange={(event) => {
+                  const files = [...(event.target.files ?? [])];
+                  event.currentTarget.value = "";
+                  if (files.length) void ai.attachSources(files);
+                }}
+              />
+            </label>
+          )}
           <textarea
-            aria-label="Ask the business"
+            aria-label={ai.purpose === "architect" ? "Teach the workspace" : "Ask the business"}
             value={ai.draft}
             onChange={(event) => ai.setDraft(event.target.value.slice(0, 8000))}
             onKeyDown={(event) => {
@@ -516,7 +573,11 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
               }
             }}
             rows={1}
-            placeholder="Ask about priorities, pipeline, conversations, or next actions…"
+            placeholder={
+              ai.purpose === "architect"
+                ? "Describe the business, attach notes, or name a scoped source…"
+                : "Ask about priorities, pipeline, conversations, or next actions…"
+            }
             className="admin-composer-field max-h-32"
           />
           {ai.running ? (

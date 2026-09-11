@@ -226,6 +226,16 @@ export const adminNavSections: AdminNavSection[] = [
         moreGroup: "Intelligence",
       },
       {
+        id: "architect",
+        label: "Architect",
+        href: "/admin/ai?purpose=architect",
+        icon: MessageSquareText,
+        description:
+          "Teach the workspace how the business works through a durable chat session, attachments and scoped sources.",
+        keywords: "workspace architect setup blueprint attachments sources",
+        moreGroup: "Intelligence",
+      },
+      {
         id: "analytics",
         label: "Analytics",
         href: "/admin/analytics",

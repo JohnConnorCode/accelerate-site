@@ -235,6 +235,15 @@ export async function getEntityType(
   return data ? toTypeRecord(data as Row) : null;
 }
 
+export async function listEntityTypes(supabase: SupabaseClient): Promise<EntityTypeRecord[]> {
+  const { data, error } = await supabase
+    .from("entity_types")
+    .select("*")
+    .order("type_key", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => toTypeRecord(row as Row)).filter((row) => !row.isDisabled);
+}
+
 async function requireUsableType(
   supabase: SupabaseClient,
   tenantId: string,
