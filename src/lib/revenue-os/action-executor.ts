@@ -56,6 +56,7 @@ export const APPROVABLE_ACTIONS = [
   "bootstrap_coworker",
   "store_agent_memory",
   "record_learned_policy",
+  "approve_learning",
   "send_collection_reminder",
   "send_email",
   "send_gmail_reply",
@@ -215,9 +216,21 @@ export async function approveAndExecuteAction(
       }
       case "bootstrap_coworker":
       case "store_agent_memory":
-      case "record_learned_policy": {
+      case "record_learned_policy":
+      case "approve_learning": {
         if (mode !== "approved")
           throw new Error("Runtime configuration and memory changes require human approval");
+        if (action.action_type === "approve_learning") {
+          const { approveLearningProposal } = await import("./learning-inbox");
+          const proposalId = payload.proposalId;
+          if (typeof proposalId !== "string" || !proposalId)
+            throw new Error("approve_learning requires a proposalId payload");
+          result = await approveLearningProposal(supabase, {
+            proposalId,
+            actorEmail,
+          });
+          break;
+        }
         result = await executeRuntimeAction(supabase, action.action_type, payload, actorEmail);
         break;
       }

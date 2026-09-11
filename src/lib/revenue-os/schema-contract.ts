@@ -50,6 +50,7 @@ export const TENANT_SCOPED_TABLES = [
   "autonomy_hard_floors",
   "agent_memory",
   "learned_policies",
+  "learning_proposals",
   "budget_limits",
   "budget_usage",
   "budget_receipts",

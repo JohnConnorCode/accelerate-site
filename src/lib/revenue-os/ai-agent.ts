@@ -192,7 +192,7 @@ export async function runRevenueCommandAgent(
     const memorySummary =
       [
         activePolicies.length
-          ? `Learned policies (${activePolicies.length}): ${activePolicies.map((p) => `"${p.rule}" (${p.action_key})`).join("; ")}. Use get_learned_policies for details.`
+          ? `Learned policies (${activePolicies.length}): ${activePolicies.map((p) => `"${p.rule}" (${p.action_key}${p.authority ? `, ${p.authority}` : ""})`).join("; ")}. Use get_learned_policies for details.`
           : undefined,
         recentAgentMemory.length
           ? `Recent agent memory (${recentAgentMemory.length}): ${recentAgentMemory.map((m) => `${m.category}: ${m.subject}`).join("; ")}. Use get_agent_memory for details.`

@@ -57,13 +57,19 @@ export interface LearnedPolicyEntry {
   action_key: string;
   rule: string;
   rationale: string;
-  source: "human_decision" | "founder_override" | "incident_remediation" | "policy_review";
+  source: "human_decision" | "founder_override" | "incident_remediation" | "policy_review" | "approved_learning";
   coworker_id: string | null;
   scope_entity_type: string | null;
   scope_entity_id: string | null;
   superseded_by: string | null;
   created_at: string;
   superseded_at: string | null;
+  proposal_type: string | null;
+  scope: Record<string, unknown> | null;
+  confidence: "high" | "medium" | "low" | null;
+  conflicts: Record<string, unknown> | null;
+  affected_workers: string[] | null;
+  authority: "official" | "approved" | "working" | "historical" | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -174,6 +180,12 @@ export async function recordLearnedPolicy(
     scopeEntityType?: string | null;
     scopeEntityId?: string | null;
     actorEmail?: string | null;
+    proposalType?: string | null;
+    scope?: Record<string, unknown> | null;
+    confidence?: "high" | "medium" | "low" | null;
+    conflicts?: Record<string, unknown> | null;
+    affectedWorkers?: string[] | null;
+    authority?: "official" | "approved" | "working" | "historical" | null;
   },
 ): Promise<LearnedPolicyEntry> {
   // Only one active (superseded_at IS NULL) row may exist per action_key +
@@ -214,6 +226,12 @@ export async function recordLearnedPolicy(
       coworker_id: input.coworkerId ?? null,
       scope_entity_type: input.scopeEntityType ?? null,
       scope_entity_id: input.scopeEntityId ?? null,
+      proposal_type: input.proposalType ?? null,
+      scope: input.scope ?? null,
+      confidence: input.confidence ?? null,
+      conflicts: input.conflicts ?? null,
+      affected_workers: input.affectedWorkers ?? null,
+      authority: input.authority ?? null,
     })
     .select()
     .single();
