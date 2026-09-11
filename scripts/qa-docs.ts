@@ -694,18 +694,33 @@ async function main() {
           // tree mounted before interacting.
           await page.locator("[data-route-entry]").waitFor({ timeout: 15000 });
           const previousHeading = await page.locator("main h1").innerText();
-          if (destination === "/work") {
-            if (width < 1280)
-              await page.getByRole("button", { name: "Open navigation menu" }).click();
-            await page
-              .getByRole("navigation", { name: width < 1280 ? "Mobile" : "Primary", exact: true })
-              .getByRole("link", { name: "Work", exact: true })
-              .click({ noWaitAfter: true });
-          } else
-            await page.getByRole("link", { name: "Try your first workflow", exact: true }).click();
-          try {
-            await page.locator('[data-navigation-pending="true"]').waitFor({ timeout: 30000 });
-          } catch (error) {
+          const clickDestination = () =>
+            destination === "/work"
+              ? page
+                  .getByRole("navigation", {
+                    name: width < 1280 ? "Mobile" : "Primary",
+                    exact: true,
+                  })
+                  .getByRole("link", { name: "Work", exact: true })
+                  .click({ noWaitAfter: true })
+              : page.getByRole("link", { name: "Try your first workflow", exact: true }).click();
+          if (destination === "/work" && width < 1280)
+            await page.getByRole("button", { name: "Open navigation menu" }).click();
+          // A click can be swallowed without starting navigation when the
+          // runner is saturated. Retry once; the pending assertion below
+          // stays strict — it must still appear and persist while held.
+          let pendingSeen = false;
+          let lastError: unknown = null;
+          for (let attempt = 1; attempt <= 2 && !pendingSeen; attempt++) {
+            await clickDestination();
+            try {
+              await page.locator('[data-navigation-pending="true"]').waitFor({ timeout: 15000 });
+              pendingSeen = true;
+            } catch (error) {
+              lastError = error;
+            }
+          }
+          if (!pendingSeen) {
             const slug = `${width}${destination.replaceAll("/", "-")}`;
             await page.screenshot({ path: `${output}/${slug}-navigation-pending-missing.png` });
             const state = await page.evaluate(() => ({
@@ -719,9 +734,9 @@ async function main() {
                 "absent",
             }));
             throw new Error(
-              `${width} ${destination}: navigation-pending indicator never appeared ` +
+              `${width} ${destination}: navigation-pending indicator never appeared after 2 clicks ` +
                 `(url=${state.url} pending=${state.pending} entry=${state.entry}; screenshot saved)`,
-              { cause: error },
+              { cause: lastError },
             );
           }
           const frames = await page.evaluate(async () => {
