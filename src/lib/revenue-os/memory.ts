@@ -57,7 +57,12 @@ export interface LearnedPolicyEntry {
   action_key: string;
   rule: string;
   rationale: string;
-  source: "human_decision" | "founder_override" | "incident_remediation" | "policy_review" | "approved_learning";
+  source:
+    | "human_decision"
+    | "founder_override"
+    | "incident_remediation"
+    | "policy_review"
+    | "approved_learning";
   coworker_id: string | null;
   scope_entity_type: string | null;
   scope_entity_id: string | null;

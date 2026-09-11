@@ -16,9 +16,9 @@ export async function GET(request: NextRequest) {
   const status =
     rawStatus === null
       ? undefined
-      : (
-          ["proposed", "approved", "rejected", "conversation_only", "ignored"] as const
-        ).includes(rawStatus as never)
+      : (["proposed", "approved", "rejected", "conversation_only", "ignored"] as const).includes(
+            rawStatus as never,
+          )
         ? (rawStatus as "proposed")
         : "invalid";
   if (status === "invalid") {
@@ -62,7 +62,10 @@ export async function POST(request: NextRequest) {
     body.supersedesPolicyId !== null &&
     typeof body.supersedesPolicyId !== "string"
   ) {
-    return NextResponse.json({ error: "supersedesPolicyId must be a UUID string" }, { status: 400 });
+    return NextResponse.json(
+      { error: "supersedesPolicyId must be a UUID string" },
+      { status: 400 },
+    );
   }
 
   try {
@@ -93,7 +96,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ proposal });
   } catch (error) {
     const message = (error as Error).message;
-    if (/Unknown proposal type|must not be empty|Unknown confidence|must be a valid UUID/.test(message)) {
+    if (
+      /Unknown proposal type|must not be empty|Unknown confidence|must be a valid UUID/.test(
+        message,
+      )
+    ) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
     console.error("Database error:", message);

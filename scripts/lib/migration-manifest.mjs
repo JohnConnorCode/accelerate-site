@@ -91,6 +91,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260920-delivery-handoff-convergence.sql",
   "migrations/20260909012125-installation-website-revisions.sql",
   "migrations/20260910-today-workspace.sql",
+  "migrations/20260911-learning-inbox.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

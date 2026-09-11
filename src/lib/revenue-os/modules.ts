@@ -194,8 +194,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     category: "intelligence",
     isCore: true,
     defaultEnabled: true,
-    navLinkIds: ["ai"],
-    routes: ["/admin/ai"],
+    navLinkIds: ["ai", "learning"],
+    routes: ["/admin/ai", "/admin/learning"],
     aiToolNames: [
       "search_knowledge_base",
       "query_memory",

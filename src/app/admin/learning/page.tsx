@@ -25,8 +25,8 @@ const statusFilters: Array<{ id: LearningStatus | "all"; label: string }> = [
 ];
 
 const statusTone: Record<LearningStatus, string> = {
-  proposed: "bg-amber-500/12 text-amber-800 dark:text-amber-300",
-  approved: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  proposed: "bg-black/[0.055] text-[var(--admin-warning)] dark:bg-white/[0.07]",
+  approved: "bg-black/[0.055] text-[var(--admin-success)] dark:bg-white/[0.07]",
   rejected: "bg-black/[0.055] text-[var(--admin-muted)] dark:bg-white/[0.07]",
   conversation_only: "bg-black/[0.055] text-[var(--admin-muted)] dark:bg-white/[0.07]",
   ignored: "bg-black/[0.055] text-[var(--admin-muted)] dark:bg-white/[0.07]",
@@ -274,7 +274,7 @@ export default function LearningInboxPage() {
                           </p>
                         )}
                         {p.conflicts != null && (
-                          <p className="mt-1 font-mono text-[10px] text-amber-800 dark:text-amber-300">
+                          <p className="mt-1 font-mono text-[10px] text-[var(--admin-warning)]">
                             Conflicts:{" "}
                             {typeof p.conflicts === "string"
                               ? p.conflicts
@@ -287,7 +287,7 @@ export default function LearningInboxPage() {
                           </p>
                         )}
                         {p.status === "proposed" && p.approval_action_id && (
-                          <p className="mt-1 font-mono text-[10px] text-amber-800 dark:text-amber-300">
+                          <p className="mt-1 font-mono text-[10px] text-[var(--admin-warning)]">
                             Awaiting approval in Today
                           </p>
                         )}

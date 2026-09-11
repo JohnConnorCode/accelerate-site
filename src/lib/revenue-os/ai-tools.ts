@@ -2330,7 +2330,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "list_learning_proposals",
     description:
-      "List Learning Inbox proposals — reusable corrections awaiting review. Proposed rows are not shared truth; only approved learnings persist as policy. Use this to show the founder what the system wants to learn.",
+      "List Learning Inbox proposals: reusable corrections awaiting review. Proposed rows are not shared truth; only approved learnings persist as policy. Use this to show the founder what the system wants to learn.",
     inputSchema: {
       type: "object",
       properties: {
@@ -2361,7 +2361,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "propose_learning",
     description:
-      "Propose a reusable correction to the Learning Inbox — a typed, sourced candidate improvement from real work. The proposal waits for human review; approval executes through the action path and persists as shared policy. Never shared automatically.",
+      "Propose a reusable correction to the Learning Inbox: a typed, sourced candidate improvement from real work. The proposal waits for human review; approval executes through the action path and persists as shared policy. Never shared automatically.",
     inputSchema: {
       type: "object",
       properties: {
