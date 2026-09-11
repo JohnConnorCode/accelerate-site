@@ -12,6 +12,12 @@ export interface DemoBlueprintDetail {
   blocked: unknown[];
   approvals: unknown[];
   preflight: Record<string, number>;
+  compile?: {
+    canApply: boolean;
+    customAppBriefs: unknown[];
+    approvals: unknown[];
+    blocked: unknown[];
+  };
 }
 export const DEMO_BLUEPRINT_DETAIL: DemoBlueprintDetail = {
   blueprintId: "11111111-1111-4111-8111-111111111111",

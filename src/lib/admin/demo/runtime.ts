@@ -3047,7 +3047,35 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         (seed.document as Record<string, unknown>).businessSummary = edits.summary;
         seed.review.businessSummary = edits.summary;
       }
+      seed.compile = {
+        canApply: true,
+        customAppBriefs: [],
+        approvals: [],
+        blocked: [],
+      };
       return jsonResponse(seed);
+    }
+    const blueprintApprove = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)\/approve$/i);
+    if (method === "POST" && blueprintApprove) {
+      if (blueprintApprove[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
+        return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
+      }
+      return jsonResponse({ status: "approved", simulated: true });
+    }
+    const blueprintApply = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)\/apply$/i);
+    if (method === "POST" && blueprintApply) {
+      if (blueprintApply[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
+        return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
+      }
+      const input = body as { version?: unknown; requestKey?: unknown };
+      if (typeof input.version !== "number" || typeof input.requestKey !== "string") {
+        return jsonResponse({ error: "version and requestKey are required" }, 400);
+      }
+      return jsonResponse({
+        replayed: false,
+        receipt: { blueprintId: DEMO_BLUEPRINT_DETAIL.blueprintId, version: input.version },
+        simulated: true,
+      });
     }
     if (path === "/api/admin/features/views") {
       if (method === "GET") return jsonResponse({ views: state.workViews ?? [] });
