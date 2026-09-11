@@ -7345,6 +7345,90 @@ export const featureBacklog = [
       "an adversarial trust test covering direct trust-row manipulation, irreversible refusal at every level, compensable ceiling, and budget-exceeded demotion; npm run test:core; npx tsc --noEmit; npm run build; a security review pass before merge.",
   }),
   card({
+    key: "correction-capture",
+    title: "Detect reusable corrections from work diffs and propose learnings",
+    workstream: "learn",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Notice when a human correction is probably reusable and turn it into a Learning Inbox proposal with a guessed type, scope and confidence. Detection covers explicit user-marked corrections and diff-derived candidates from edited drafts; every candidate still waits for human review and nothing reaches shared knowledge automatically.",
+    acceptance: [
+      "An explicit user-marked correction becomes a Learning proposal with guessed type, scope and confidence",
+      "An edited draft diff yields a candidate learning without duplicating existing proposals",
+      "Low-confidence or ambiguous corrections stay suggestions and never auto-file",
+      "Duplicate candidates collapse onto the same proposal via the inbox idempotency key",
+      "Detection reads conversation and draft state only; it never writes shared knowledge directly",
+    ],
+    dependencies: [
+      "Institutional Learning Inbox: propose, approve and record reusable corrections",
+    ],
+    start:
+      "src/lib/revenue-os/learning-inbox.ts for proposeLearning; src/lib/revenue-os/ai-conversations.ts for conversation reads; approval edit-diff capture points",
+    guardrails:
+      "Detection proposes; humans dispose. Heuristics stay conservative: a missed reusable correction is a lesser failure than a false shared truth. Do not touch approval, policy or propagation logic; those belong to learning-inbox and later cards. No production deployment or provider sends from test fixtures.",
+    labels: ["learning", "knowledge"],
+    verification:
+      "a scoped correction-capture test covering marked corrections, diff-derived candidates, low-confidence suppression, duplicate collapse and read-only proof; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+    initiative: "Institutional Learning",
+    workSpec: {
+      businessValue:
+        "Notice reusable corrections in normal work and file them as reviewable learning candidates.",
+      currentBehavior:
+        "Corrections live and die inside conversations and edited drafts; no detection exists and every inbox proposal must be authored by hand.",
+      requiredCapabilities: [],
+      scope: [
+        "Detect explicit user-marked corrections and file Learning proposals with guessed type, scope and confidence.",
+        "Derive candidates from edited draft diffs without duplicating existing proposals.",
+        "Suppress low-confidence or ambiguous candidates to suggestions that never auto-file.",
+      ],
+      exclusions: [
+        "No approval, policy or propagation changes; no shared writes outside proposeLearning.",
+        "No new providers; no production deployment from fixtures.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/learning-inbox.ts",
+          reason: "File candidates through proposeLearning; reuse its idempotency and validation.",
+          revision: "552aaaf0f5829738bc451fa217e877e55dc01eb7",
+        },
+        {
+          path: "src/lib/revenue-os/ai-conversations.ts",
+          reason: "Read conversation state for marked corrections.",
+          revision: "552aaaf0f5829738bc451fa217e877e55dc01eb7",
+        },
+      ],
+      northstar: { phase: "B", layers: ["Learn", "Notice"], contribution: "Institutional Learning: corrections surface as reviewable candidates instead of disappearing." },
+      acceptance: [
+        { id: "AC1", criterion: "Marked corrections become typed, sourced proposals.", environment: "local" },
+        { id: "AC2", criterion: "Draft diffs yield deduplicated candidates.", environment: "local" },
+        { id: "AC3", criterion: "Low-confidence candidates never auto-file; detection never writes shared knowledge.", environment: "local" },
+      ],
+      workflow: [
+        "Build correction detection over conversation reads and draft diffs, filing through proposeLearning.",
+        "Prove marked, diff-derived, suppressed and duplicate cases plus read-only behavior with fixtures.",
+        "Run the named checks, attach evidence per acceptance ID and submit the exact commit for review.",
+      ],
+      failureModes: [
+        "Duplicates collapse onto the inbox idempotency key; ambiguous input stays a suggestion.",
+        "Detection failures are silent by design; proposal failures raise truthfully.",
+      ],
+      verification: [
+        { command: "npm run verify:agent-contract", expected: "Pass.", environment: "local" },
+        { command: "npx tsc --noEmit", expected: "Exit zero.", environment: "local" },
+        { command: "npm run lint", expected: "Exit zero.", environment: "local" },
+        { command: "npm run build", expected: "Exit zero.", environment: "local" },
+      ],
+      repository: {
+        url: "https://github.com/JohnConnorCode/accelerate-site.git",
+        baseBranch: "main",
+        baseCommit: "552aaaf0f5829738bc451fa217e877e55dc01eb7",
+      },
+      businessValue: "Notice reusable corrections in normal work.",
+      packetVersion: 2,
+    },
+  }),
+  card({
     key: "trust-graduation-engine",
     title: "Propose trust promotion on evidence and demote automatically on failure",
     workstream: "ai",
