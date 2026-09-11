@@ -62,7 +62,7 @@ export interface OpenSourceStat {
 export const OPEN_SOURCE_STATS: OpenSourceStat[] = [
   { value: "85", label: "Ordered migrations", detail: "Every schema change, in sequence" },
   { value: "230", label: "Automated checks", detail: "Test and verification scripts" },
-  { value: "165K", label: "Lines of TypeScript", detail: "Across 859 source files" },
+  { value: "164K", label: "Lines of TypeScript", detail: "Across 855 source files" },
 
   { value: "MIT", label: "Fully open license", detail: "No seat limits, no usage tiers" },
 ];
