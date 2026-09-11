@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import {
   buildReviewModel,
+  collectBlueprintLiveContext,
   getLatestBlueprintVersion,
-  validateBlueprintAgainstLive,
+  parseBlueprint,
+  summarizePreflight,
+  validateAgainstCapabilities,
 } from "@/lib/revenue-os/workspace-blueprint";
+import { compileBlueprintPlan } from "@/lib/revenue-os/workspace-blueprint-compiler";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -20,17 +24,21 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       tenantId: auth.tenant.id,
       blueprintId: id.trim(),
     });
-    const live = await validateBlueprintAgainstLive(auth.database, auth.tenant.id, latest.document);
+    const blueprint = parseBlueprint(latest.document);
+    const context = await collectBlueprintLiveContext(auth.database, auth.tenant.id);
+    const validation = validateAgainstCapabilities(blueprint, context);
     return NextResponse.json({
       blueprintId: latest.blueprint_id,
       version: latest.version,
       parentVersion: latest.parent_version,
       changeSummary: latest.change_summary,
       createdAt: latest.created_at,
-      document: live.blueprint,
-      review: buildReviewModel(live.blueprint, live.validation),
-      blocked: live.validation.blocked,
-      approvals: live.validation.approvals,
+      document: blueprint,
+      review: buildReviewModel(blueprint, validation),
+      compile: compileBlueprintPlan(blueprint, context),
+      preflight: summarizePreflight(blueprint),
+      blocked: validation.blocked,
+      approvals: validation.approvals,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
