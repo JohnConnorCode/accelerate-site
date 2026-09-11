@@ -26,6 +26,22 @@ export interface AdminAIConversation {
   lastMessageAt: string;
 }
 
+export interface AdminAISource {
+  id: string;
+  filename: string;
+  contentType: string;
+  excerpt: string;
+  provenance: {
+    capturedAt: string;
+    executable: false;
+    permission: string;
+    scope: string;
+    source: string;
+  };
+}
+
+export type AdminAIPurpose = "command" | "architect";
+
 export interface AdminAIToolStep {
   name: string;
   index: number;
@@ -47,9 +63,18 @@ interface AdminAIContextValue {
   setOpen: (open: boolean) => void;
   draft: string;
   setDraft: (draft: string) => void;
+  purpose: AdminAIPurpose;
+  setPurpose: (purpose: AdminAIPurpose) => void;
   conversations: AdminAIConversation[];
   activeConversationId: string | null;
   messages: AdminAIMessage[];
+  sources: AdminAISource[];
+  connectedContext: Array<{
+    source: string;
+    scope: string;
+    permission: string;
+    resourceId: string;
+  }>;
   tools: AdminAIToolStep[];
   proposals: AdminAIProposal[];
   running: boolean;
@@ -62,6 +87,7 @@ interface AdminAIContextValue {
   selectConversation: (id: string | null) => Promise<void>;
   startNew: () => void;
   archiveActive: () => Promise<void>;
+  attachSource: (file: File) => Promise<void>;
   send: (text?: string) => Promise<void>;
   stop: () => void;
   openWithPrompt: (prompt?: string) => void;
@@ -69,6 +95,7 @@ interface AdminAIContextValue {
 
 const AdminAIContext = createContext<AdminAIContextValue | null>(null);
 const ACTIVE_KEY = "accelerate:admin-ai-conversation";
+const ARCHITECT_KEY = "accelerate:admin-architect-conversation";
 
 async function readEventStream(response: Response, onEvent: (event: AiCommandStreamEvent) => void) {
   if (!response.ok || !response.body) {
@@ -103,9 +130,15 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [purpose, setPurposeState] = useState<AdminAIPurpose>("command");
+  const purposeRef = useRef<AdminAIPurpose>("command");
   const [conversations, setConversations] = useState<AdminAIConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<AdminAIMessage[]>([]);
+  const [sources, setSources] = useState<AdminAISource[]>([]);
+  const [connectedContext, setConnectedContext] = useState<
+    Array<{ source: string; scope: string; permission: string; resourceId: string }>
+  >([]);
   const [tools, setTools] = useState<AdminAIToolStep[]>([]);
   const [proposals, setProposals] = useState<AdminAIProposal[]>([]);
   const [running, setRunning] = useState(false);
@@ -116,8 +149,14 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   const [pack, setPack] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
+  const setPurpose = useCallback((next: AdminAIPurpose) => {
+    purposeRef.current = next;
+    setPurposeState(next);
+  }, []);
+
   const refreshConversations = useCallback(async () => {
-    const response = await fetch("/api/admin/revenue-os/ai/conversations?limit=30", {
+    const query = new URLSearchParams({ limit: "30", purpose: purposeRef.current });
+    const response = await fetch(`/api/admin/revenue-os/ai/conversations?${query}`, {
       cache: "no-store",
     });
     const payload = (await response.json().catch(() => null)) as {
@@ -141,19 +180,33 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
     setError("");
     if (!id) {
       setMessages([]);
-      window.localStorage.removeItem(ACTIVE_KEY);
+      setSources([]);
+      setConnectedContext([]);
+      window.localStorage.removeItem(
+        purposeRef.current === "architect" ? ARCHITECT_KEY : ACTIVE_KEY,
+      );
       return;
     }
-    window.localStorage.setItem(ACTIVE_KEY, id);
+    window.localStorage.setItem(
+      purposeRef.current === "architect" ? ARCHITECT_KEY : ACTIVE_KEY,
+      id,
+    );
     setLoadingHistory(true);
     try {
       const response = await fetch(
         `/api/admin/revenue-os/ai/conversations/${encodeURIComponent(id)}`,
         { cache: "no-store" },
       );
-      const payload = (await response.json()) as { messages?: AdminAIMessage[]; error?: string };
+      const payload = (await response.json()) as {
+        messages?: AdminAIMessage[];
+        sources?: AdminAISource[];
+        connectedContext?: AdminAIContextValue["connectedContext"];
+        error?: string;
+      };
       if (!response.ok) throw new Error(payload.error || "Could not load AI conversation");
       setMessages(payload.messages ?? []);
+      setSources(payload.sources ?? []);
+      setConnectedContext(payload.connectedContext ?? []);
       setSchemaReady(true);
     } catch (issue) {
       setError(issue instanceof Error ? issue.message : "Could not load AI conversation");
@@ -188,7 +241,9 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void refreshConversations()
       .then(() => {
-        const stored = window.localStorage.getItem(ACTIVE_KEY);
+        const stored = window.localStorage.getItem(
+          purposeRef.current === "architect" ? ARCHITECT_KEY : ACTIVE_KEY,
+        );
         if (stored) void selectConversation(stored);
       })
       .catch((issue) =>
@@ -238,6 +293,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
             conversationId: activeConversationId,
             text,
             clientMessageId,
+            purpose: purposeRef.current,
             pageContext: pageContext(pathname),
           }),
           signal: controller.signal,
@@ -245,7 +301,10 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
         await readEventStream(response, (event) => {
           if (event.type === "conversation") {
             setActiveConversationId(event.conversationId);
-            window.localStorage.setItem(ACTIVE_KEY, event.conversationId);
+            window.localStorage.setItem(
+              purposeRef.current === "architect" ? ARCHITECT_KEY : ACTIVE_KEY,
+              event.conversationId,
+            );
           }
           if (event.type === "run_started") {
             setModel(event.model);
@@ -327,7 +386,64 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
   const startNew = useCallback(() => {
     void selectConversation(null);
     setDraft("");
+    setSources([]);
+    setConnectedContext([]);
   }, [selectConversation]);
+  const attachSource = useCallback(
+    async (file: File) => {
+      if (purposeRef.current !== "architect") return;
+      setError("");
+      try {
+        let conversationId = activeConversationId;
+        if (!conversationId) {
+          const created = await fetch("/api/admin/revenue-os/ai/conversations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ purpose: "architect" }),
+          });
+          const createdPayload = (await created.json().catch(() => null)) as {
+            conversation?: AdminAIConversation;
+            error?: string;
+          } | null;
+          if (!created.ok || !createdPayload?.conversation)
+            throw new Error(createdPayload?.error || "Could not open Architect session");
+          conversationId = createdPayload.conversation.id;
+          setActiveConversationId(conversationId);
+          window.localStorage.setItem(ARCHITECT_KEY, conversationId);
+          await refreshConversations();
+        }
+        const excerpt = (await file.text()).slice(0, 8000);
+        const response = await fetch(
+          `/api/admin/revenue-os/ai/conversations/${encodeURIComponent(conversationId)}/sources`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              clientSourceId: crypto.randomUUID(),
+              kind: "upload",
+              filename: file.name,
+              contentType: file.type || "text/plain",
+              excerpt,
+            }),
+          },
+        );
+        const payload = (await response.json().catch(() => null)) as {
+          source?: AdminAISource;
+          error?: string;
+        } | null;
+        if (!response.ok || !payload?.source)
+          throw new Error(payload?.error || "Could not attach source");
+        setSources((current) =>
+          current.some((item) => item.id === payload.source!.id)
+            ? current
+            : [...current, payload.source!],
+        );
+      } catch (issue) {
+        setError(issue instanceof Error ? issue.message : "Could not attach source");
+      }
+    },
+    [activeConversationId, refreshConversations],
+  );
   const archiveActive = useCallback(async () => {
     if (!activeConversationId) return;
     const response = await fetch(
@@ -350,9 +466,13 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       setOpen,
       draft,
       setDraft,
+      purpose,
+      setPurpose,
       conversations,
       activeConversationId,
       messages,
+      sources,
+      connectedContext,
       tools,
       proposals,
       running,
@@ -365,6 +485,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       selectConversation,
       startNew,
       archiveActive,
+      attachSource,
       send,
       stop,
       openWithPrompt,
@@ -372,9 +493,13 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
     [
       open,
       draft,
+      purpose,
+      setPurpose,
       conversations,
       activeConversationId,
       messages,
+      sources,
+      connectedContext,
       tools,
       proposals,
       running,
@@ -387,6 +512,7 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
       selectConversation,
       startNew,
       archiveActive,
+      attachSource,
       send,
       stop,
       openWithPrompt,

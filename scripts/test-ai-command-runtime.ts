@@ -7,9 +7,11 @@ import { MemorySupabase } from "./lib/memory-supabase";
 import {
   appendAiAssistantMessage,
   archiveAiConversation,
+  attachArchitectSource,
   listAiConversations,
   loadAiConversation,
   openAiConversationTurn,
+  setArchitectConnectedContext,
 } from "../src/lib/revenue-os/ai-conversations";
 import { openRouterChatStream } from "../src/lib/ai/openrouter";
 
@@ -96,6 +98,92 @@ async function main() {
     "archived threads leave the active list",
   );
 
+  const architect = await openAiConversationTurn(memory.client, {
+    actorEmail: "founder@example.com",
+    content: "Here is how our roofing company actually sells.",
+    clientMessageId: "architect-1",
+    purpose: "architect",
+  });
+  const uploaded = await attachArchitectSource(memory.client, {
+    actorEmail: "founder@example.com",
+    conversationId: architect.conversationId,
+    clientSourceId: "file-1",
+    kind: "upload",
+    filename: "pricing-notes.txt",
+    contentType: "text/plain",
+    excerpt: "We never discount below 8% margin.",
+  });
+  const replayedSource = await attachArchitectSource(memory.client, {
+    actorEmail: "founder@example.com",
+    conversationId: architect.conversationId,
+    clientSourceId: "file-1",
+    kind: "upload",
+    filename: "pricing-notes.txt",
+    contentType: "text/plain",
+    excerpt: "We never discount below 8% margin.",
+  });
+  assert.equal(replayedSource.id, uploaded.id, "attachment replay must not duplicate evidence");
+  const scoped = await setArchitectConnectedContext(memory.client, {
+    actorEmail: "founder@example.com",
+    conversationId: architect.conversationId,
+    connectedContext: [
+      {
+        source: "drive",
+        scope: "folder",
+        permission: "read",
+        resourceId: "folder-ops-playbooks",
+      },
+    ],
+  });
+  assert.equal(scoped.connectedContext.length, 1, "scoped connected context must persist");
+  await assert.rejects(
+    () =>
+      setArchitectConnectedContext(memory.client, {
+        actorEmail: "founder@example.com",
+        conversationId: architect.conversationId,
+        connectedContext: [
+          { source: "drive", scope: "account", permission: "read", resourceId: "*" },
+        ],
+      }),
+    /explicit scope/i,
+    "unscoped connected-account ingest must fail closed",
+  );
+  const reloaded = await loadAiConversation(
+    memory.client,
+    "founder@example.com",
+    architect.conversationId,
+  );
+  assert.equal(reloaded.conversation.purpose, "architect");
+  assert.equal(reloaded.sources.length, 1, "reload must retain attached sources");
+  assert.equal(reloaded.sources[0]?.provenance.executable, false);
+  assert.equal(reloaded.connectedContext[0]?.resourceId, "folder-ops-playbooks");
+  assert.equal(
+    (await listAiConversations(memory.client, "founder@example.com", 30, { purpose: "command" }))
+      .length,
+    0,
+    "command listing must not mix Architect sessions",
+  );
+  assert.equal(
+    (await listAiConversations(memory.client, "founder@example.com", 30, { purpose: "architect" }))
+      .length,
+    1,
+    "Architect listing must keep the durable session",
+  );
+  await assert.rejects(
+    () =>
+      attachArchitectSource(memory.client, {
+        actorEmail: "other@example.com",
+        conversationId: architect.conversationId,
+        clientSourceId: "file-2",
+        kind: "upload",
+        filename: "secret.txt",
+        contentType: "text/plain",
+        excerpt: "should not attach",
+      }),
+    /not found/i,
+    "another actor must not attach sources",
+  );
+
   const deltas: string[] = [];
   globalThis.fetch = (async () =>
     sseResponse([
@@ -176,6 +264,11 @@ async function main() {
           "history-order",
           "owner-isolation",
           "archive",
+          "architect-session-reload",
+          "architect-attachment-replay",
+          "architect-scoped-context",
+          "architect-unscoped-refusal",
+          "architect-owner-isolation",
           "text-stream",
           "tool-reconstruction",
         ],

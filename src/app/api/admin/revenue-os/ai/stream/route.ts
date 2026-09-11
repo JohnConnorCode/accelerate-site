@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
     text?: unknown;
     clientMessageId?: unknown;
     pageContext?: unknown;
+    purpose?: unknown;
   } | null;
   if (!body || typeof body.text !== "string" || typeof body.clientMessageId !== "string") {
     return NextResponse.json({ error: "Text and clientMessageId are required" }, { status: 400 });
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest) {
       conversationId,
       content: body.text,
       clientMessageId: body.clientMessageId.slice(0, 100),
+      purpose: body.purpose === "architect" ? "architect" : "command",
     });
   } catch (error) {
     const status = error instanceof AiConversationSchemaUnavailableError ? 503 : 400;

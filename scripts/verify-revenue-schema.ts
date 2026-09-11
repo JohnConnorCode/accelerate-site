@@ -40,6 +40,12 @@ const releaseMigration = (table: string, column?: string) => {
     return "migrations/20260916-drive-content-indexing.sql";
   if (table === "clients" && column === "handoff_revision")
     return "migrations/20260920-delivery-handoff-convergence.sql";
+  if (
+    table === "ai_conversation_sources" ||
+    (table === "ai_conversations" &&
+      ["purpose", "connected_context", "blueprint_draft_id", "assumptions"].includes(column ?? ""))
+  )
+    return "migrations/20260921-architect-sessions.sql";
   return null;
 };
 const migrationFor = (table: string, column?: string): string =>
@@ -81,15 +87,18 @@ const migrationForIndex = (name: string) =>
               name,
             )
           ? "migrations/20260920-delivery-handoff-convergence.sql"
-          : name.startsWith("idx_entity_")
-            ? ENTITY_REGISTRY_MIGRATION
-            : name.startsWith("idx_onboarding_templates") || name === "idx_clients_opportunity"
-              ? DELIVERY_HANDOFF_MIGRATION
-              : name.includes("tenant")
-                ? "migrations/20260830-shared-database-tenancy.sql"
-                : name.includes("ai_") || name === "idx_agent_runs_conversation"
-                  ? "migrations/20260824-ai-command-runtime.sql"
-                  : "migrations/20260816-revenue-os.sql";
+          : name.startsWith("idx_ai_conversation_sources") ||
+              name === "idx_ai_conversations_actor_purpose"
+            ? "migrations/20260921-architect-sessions.sql"
+            : name.startsWith("idx_entity_")
+              ? ENTITY_REGISTRY_MIGRATION
+              : name.startsWith("idx_onboarding_templates") || name === "idx_clients_opportunity"
+                ? DELIVERY_HANDOFF_MIGRATION
+                : name.includes("tenant")
+                  ? "migrations/20260830-shared-database-tenancy.sql"
+                  : name.includes("ai_") || name === "idx_agent_runs_conversation"
+                    ? "migrations/20260824-ai-command-runtime.sql"
+                    : "migrations/20260816-revenue-os.sql";
 const migrationForPolicy = (table: string, name: string) =>
   table === "entity_types" || table === "entity_links"
     ? ENTITY_REGISTRY_MIGRATION

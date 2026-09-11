@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-10.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-11.1";
 
 export const TENANT_SCOPED_TABLES = [
   "today_view_proposals",
@@ -67,6 +67,7 @@ export const TENANT_SCOPED_TABLES = [
   "agent_run_events",
   "agent_runs",
   "ai_conversations",
+  "ai_conversation_sources",
   "ai_messages",
   "audit_log",
   "calendar_events",
@@ -433,9 +434,29 @@ const BASE_REVENUE_SCHEMA_TABLES = [
       "actor_email",
       "title",
       "status",
+      "purpose",
+      "connected_context",
+      "blueprint_draft_id",
+      "assumptions",
       "last_message_at",
       "created_at",
       "updated_at",
+    ],
+  },
+  {
+    table: "ai_conversation_sources",
+    columns: [
+      "id",
+      "conversation_id",
+      "client_source_id",
+      "kind",
+      "filename",
+      "content_type",
+      "byte_size",
+      "digest",
+      "excerpt",
+      "provenance",
+      "created_at",
     ],
   },
   {
@@ -626,6 +647,9 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_messages_provider_id",
   "idx_webhook_receipts_provider_received",
   "idx_ai_conversations_actor_recent",
+  "idx_ai_conversations_actor_purpose",
+  "idx_ai_conversation_sources_replay",
+  "idx_ai_conversation_sources_conversation",
   "idx_ai_messages_tenant_client_replay",
   "idx_ai_messages_conversation_order",
   "idx_agent_runs_conversation",
