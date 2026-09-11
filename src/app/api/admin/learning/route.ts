@@ -12,10 +12,21 @@ export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
-  const status = new URL(request.url).searchParams.get("status");
+  const rawStatus = new URL(request.url).searchParams.get("status");
+  const status =
+    rawStatus === null
+      ? undefined
+      : (
+          ["proposed", "approved", "rejected", "conversation_only", "ignored"] as const
+        ).includes(rawStatus as never)
+        ? (rawStatus as "proposed")
+        : "invalid";
+  if (status === "invalid") {
+    return NextResponse.json({ error: "Unknown status filter" }, { status: 400 });
+  }
   try {
     const proposals = await listLearningProposals(auth.database, {
-      status: (status as "proposed") || undefined,
+      status,
       limit: 50,
     });
     return NextResponse.json({ proposals });

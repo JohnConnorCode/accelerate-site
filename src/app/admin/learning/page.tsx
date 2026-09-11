@@ -229,6 +229,24 @@ export default function LearningInboxPage() {
                         {p.rationale && (
                           <p className="admin-copy mt-1 text-pretty text-xs">{p.rationale}</p>
                         )}
+                        {p.affected_workers.length > 0 && (
+                          <p className="mt-1 font-mono text-[10px] text-[var(--admin-muted)]">
+                            Affects: {p.affected_workers.join(", ")}
+                          </p>
+                        )}
+                        {p.conflicts != null && (
+                          <p className="mt-1 font-mono text-[10px] text-amber-800 dark:text-amber-300">
+                            Conflicts:{" "}
+                            {typeof p.conflicts === "string"
+                              ? p.conflicts
+                              : JSON.stringify(p.conflicts)}
+                          </p>
+                        )}
+                        {p.learned_policy_id && (
+                          <p className="mt-1 break-all font-mono text-[10px] text-[var(--admin-muted)]">
+                            Policy: {p.learned_policy_id}
+                          </p>
+                        )}
                       </div>
 
                       {p.status === "proposed" && (

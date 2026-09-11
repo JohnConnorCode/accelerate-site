@@ -4,7 +4,6 @@ import { recordAudit } from "./audit";
 import { proposeAction } from "./actions";
 import { recordLearnedPolicy, type LearnedPolicyEntry } from "./memory";
 import type {
-  LearningAuthority,
   LearningConfidence,
   LearningProposal,
   LearningProposalType,

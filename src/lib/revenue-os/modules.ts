@@ -203,6 +203,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "get_agent_memory",
       "get_learned_policies",
       "record_learned_policy",
+      "list_learning_proposals",
+      "propose_learning",
       "get_claims_for_entity",
       "get_agent_activity_for_entity",
     ],

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
+import { getRevenueAiTools } from "../src/lib/revenue-os/ai-tools";
 import {
   approveLearningProposal,
   learningDedupeKey,
@@ -199,5 +200,37 @@ import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixtu
     assert.equal(approved.length, 0);
   }
 
-  console.log(JSON.stringify({ result: "learning-inbox coverage added", checks: 12 }));
+  // AI/admin parity: the Inbox operations exist as governed conversational
+// tools over the same service. Approval itself stays human-only.
+{
+  const tools = getRevenueAiTools();
+  const byName = new Map(tools.map((t) => [t.name, t]));
+  const list = byName.get("list_learning_proposals");
+  const propose = byName.get("propose_learning");
+  assert.ok(list && propose, "learning tools are registered");
+  assert.equal(list?.impact, "read");
+  assert.equal(list?.confirmationRequired, false);
+  assert.equal(propose?.impact, "internal_write");
+  assert.equal(propose?.confirmationRequired, true);
+  const core = new Set(getRevenueAiTools("core").map((t) => t.name));
+  assert.ok(core.has("list_learning_proposals") && core.has("propose_learning"));
+
+  const { mem, client } = db();
+  await proposeLearning(client, { type: "messaging", rule: "Tool-visible rule" });
+  const listed = (await list?.execute(
+    { supabase: client, actorEmail: ACTOR },
+    {},
+  )) as Array<{ rule: string }>;
+  assert.ok(listed.some((r) => r.rule === "Tool-visible rule"));
+  const created = (await propose?.execute(
+    { supabase: client, actorEmail: ACTOR },
+    { type: "offering", rule: "Tool-proposed rule" },
+  )) as { id: string; status: string };
+  assert.equal(created.status, "proposed");
+  // Conversational proposals land as proposed rows awaiting human review.
+  const inboxRows = mem.rows("learning_proposals");
+  assert.ok(inboxRows.some((r) => r.id === created.id && r.status === "proposed"));
+}
+
+console.log(JSON.stringify({ result: "learning-inbox coverage added", checks: 14 }));
 })();
