@@ -438,6 +438,7 @@ const BASE_REVENUE_SCHEMA_TABLES = [
       "connected_context",
       "blueprint_draft_id",
       "assumptions",
+      "business_model",
       "last_message_at",
       "created_at",
       "updated_at",

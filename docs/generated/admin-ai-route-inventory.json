@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 99,
-  "mutationHandlerCount": 89,
+  "routeCount": 100,
+  "mutationHandlerCount": 90,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -882,6 +882,22 @@
         "next/server"
       ],
       "sourceSha256": "e52b7af4d426d3b5f1d401885151ef013e12235e5d579e3ff301cde6da00d2a5"
+    },
+    {
+      "source": "src/app/api/admin/revenue-os/ai/conversations/[id]/understanding/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/ai-conversations",
+        "@/lib/revenue-os/architect-understanding",
+        "next/server"
+      ],
+      "sourceSha256": "4dcf8eddc3f2844334146a0ef9213f1d3567ba5a694875989668614d5481f9bf"
     },
     {
       "source": "src/app/api/admin/revenue-os/ai/conversations/route.ts",

@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useAdminAI, type AdminAIMessage } from "./AdminAIProvider";
 import { ArchitectEvidencePanel } from "./ArchitectEvidencePanel";
+import { ArchitectUnderstandingPanel } from "./ArchitectUnderstandingPanel";
 import { cn } from "@/lib/utils";
 
 const starters = [
@@ -373,6 +374,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
         )}
       </div>
       {ai.purpose === "architect" && <ArchitectEvidencePanel />}
+      {ai.purpose === "architect" && <ArchitectUnderstandingPanel />}
       {mobileConversationBar}
       <div
         ref={scrollRef}

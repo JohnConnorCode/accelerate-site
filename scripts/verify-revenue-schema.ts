@@ -40,6 +40,8 @@ const releaseMigration = (table: string, column?: string) => {
     return "migrations/20260916-drive-content-indexing.sql";
   if (table === "clients" && column === "handoff_revision")
     return "migrations/20260920-delivery-handoff-convergence.sql";
+  if (table === "ai_conversations" && column === "business_model")
+    return "migrations/20260922-architect-understanding.sql";
   if (
     table === "ai_conversation_sources" ||
     (table === "ai_conversations" &&

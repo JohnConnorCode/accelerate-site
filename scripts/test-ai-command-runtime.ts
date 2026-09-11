@@ -15,6 +15,7 @@ import {
   setArchitectAssumptions,
   setArchitectConnectedContext,
 } from "../src/lib/revenue-os/ai-conversations";
+import { extractBusinessModel } from "../src/lib/revenue-os/architect-understanding";
 import { openRouterChatStream } from "../src/lib/ai/openrouter";
 
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
@@ -229,6 +230,47 @@ async function main() {
   assert.equal(afterSecondFile.sources.length, 2, "multiple attachments must persist");
   assert.equal(afterSecondFile.assumptions.length, 1);
 
+  const model = extractBusinessModel({
+    corpus: [
+      {
+        kind: "message",
+        ref: "m1",
+        text: "We track every customer and send invoices after the job is done.",
+      },
+      {
+        kind: "source",
+        ref: "pricing-notes.txt",
+        text: "We never invoice residential work.",
+      },
+      {
+        kind: "message",
+        ref: "m2",
+        text: "I think we should add a custom warranty object.",
+      },
+    ],
+    knownEntityKeys: ["contact", "invoice", "opportunity"],
+    knownCapabilityKeys: ["invoicing"],
+    assumptions: ["Residential reroof is the core offer"],
+  });
+  assert.ok(
+    model.statements.some((item) => item.kind === "fact" && item.evidence.length > 0),
+    "facts must keep evidence",
+  );
+  assert.ok(
+    model.statements.some((item) => item.kind === "inference" || item.kind === "recommendation"),
+    "inferences and recommendations stay distinct from facts",
+  );
+  assert.ok(
+    model.resolvedPrimitives.includes("invoice"),
+    "invoice must resolve to the existing primitive",
+  );
+  assert.equal(model.statements.find((item) => item.concept === "invoice")?.resolution, "existing");
+  assert.ok(model.conflicts.some((item) => item.concept === "invoice"));
+  const top = model.questions[0];
+  assert.equal(top?.impact, "architecture");
+  assert.ok(top?.rank ?? 0 >= 80);
+  assert.ok(model.questions.every((item) => item.why.length > 0));
+
   const deltas: string[] = [];
   globalThis.fetch = (async () =>
     sseResponse([
@@ -317,6 +359,9 @@ async function main() {
           "architect-evidence-envelope",
           "architect-assumptions",
           "architect-multiple-attachments",
+          "understanding-fact-evidence",
+          "understanding-primitive-resolution",
+          "understanding-ranked-conflicts",
           "text-stream",
           "tool-reconstruction",
         ],
