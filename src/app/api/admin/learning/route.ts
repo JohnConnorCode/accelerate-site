@@ -57,6 +57,13 @@ export async function POST(request: NextRequest) {
   ) {
     return NextResponse.json({ error: "type and non-empty rule are required" }, { status: 400 });
   }
+  if (
+    body.supersedesPolicyId !== undefined &&
+    body.supersedesPolicyId !== null &&
+    typeof body.supersedesPolicyId !== "string"
+  ) {
+    return NextResponse.json({ error: "supersedesPolicyId must be a UUID string" }, { status: 400 });
+  }
 
   try {
     const proposal = await proposeLearning(auth.database, {
@@ -85,7 +92,11 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ proposal });
   } catch (error) {
-    console.error("Database error:", (error as Error).message);
+    const message = (error as Error).message;
+    if (/Unknown proposal type|must not be empty|Unknown confidence|must be a valid UUID/.test(message)) {
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+    console.error("Database error:", message);
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 }

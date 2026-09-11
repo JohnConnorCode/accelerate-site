@@ -40,6 +40,8 @@ export default function LearningInboxPage() {
   const [formType, setFormType] = useState<LearningProposalType>("positioning_policy");
   const [formRule, setFormRule] = useState("");
   const [formRationale, setFormRationale] = useState("");
+  const [formConfidence, setFormConfidence] = useState<"high" | "medium" | "low">("medium");
+  const [formWorkers, setFormWorkers] = useState("");
   const [saving, setSaving] = useState(false);
   const [acting, setActing] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -69,15 +71,27 @@ export default function LearningInboxPage() {
     }
     setSaving(true);
     try {
+      const affectedWorkers = formWorkers
+        .split(",")
+        .map((w) => w.trim())
+        .filter(Boolean);
       const res = await fetch("/api/admin/learning", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: formType, rule: formRule, rationale: formRationale }),
+        body: JSON.stringify({
+          type: formType,
+          rule: formRule,
+          rationale: formRationale,
+          confidence: formConfidence,
+          affectedWorkers,
+        }),
       });
       if (!res.ok) throw new Error("Propose failed");
       setToast({ message: "Learning proposed to the inbox", type: "success" });
       setFormRule("");
       setFormRationale("");
+      setFormWorkers("");
+      setFormConfidence("medium");
       setShowForm(false);
       await fetchProposals();
     } catch {
@@ -180,6 +194,31 @@ export default function LearningInboxPage() {
                     className="mt-1"
                   />
                 </label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block text-xs font-semibold text-[var(--admin-ink)]">
+                    Confidence
+                    <select
+                      value={formConfidence}
+                      onChange={(e) =>
+                        setFormConfidence(e.target.value as "high" | "medium" | "low")
+                      }
+                      className="mt-1 block w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm"
+                    >
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </label>
+                  <label className="block text-xs font-semibold text-[var(--admin-ink)]">
+                    Affected workers
+                    <Input
+                      value={formWorkers}
+                      onChange={(e) => setFormWorkers(e.target.value)}
+                      placeholder="proposal-writer, outreach-agent"
+                      className="mt-1"
+                    />
+                  </label>
+                </div>
                 <div className="flex gap-2">
                   <Button variant="primary" size="sm" onClick={handlePropose} disabled={saving}>
                     {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save proposal"}
@@ -262,11 +301,12 @@ export default function LearningInboxPage() {
                               )
                             }
                             disabled={acting === p.id}
+                            title="Send to the approvals queue; nothing becomes shared until approved there"
                           >
                             {acting === p.id ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             ) : (
-                              "Approve"
+                              "Send to approvals"
                             )}
                           </Button>
                           <Button

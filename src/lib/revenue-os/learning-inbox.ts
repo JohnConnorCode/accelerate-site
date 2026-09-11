@@ -37,6 +37,12 @@ function normalizeRule(rule: string): string {
   return rule.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function requireUuid(value: string, field: string): void {
+  if (!UUID_PATTERN.test(value)) throw new Error(`${field} must be a valid UUID`);
+}
+
 /** Deterministic idempotency key: same type + normalized rule + scope collapses. */
 export function learningDedupeKey(input: {
   type: LearningProposalType;
@@ -86,6 +92,7 @@ export async function proposeLearning(
   if (!normalizeRule(input.rule)) throw new Error("Rule must not be empty");
   const confidence = input.confidence ?? "medium";
   if (!LEARNING_CONFIDENCES.includes(confidence)) throw new Error("Unknown confidence");
+  if (input.supersedesPolicyId) requireUuid(input.supersedesPolicyId, "supersedesPolicyId");
 
   const dedupeKey = learningDedupeKey({ type: input.type, rule: input.rule, scope: input.scope });
 
@@ -305,11 +312,12 @@ export async function listLearningProposals(
   supabase: SupabaseClient,
   input?: { status?: LearningStatus; limit?: number },
 ): Promise<LearningProposal[]> {
+  const limit = Math.min(Math.max(input?.limit ?? 50, 1), 200);
   let query = supabase
     .from("learning_proposals")
     .select("*")
     .order("created_at", { ascending: false })
-    .limit(input?.limit ?? 50);
+    .limit(limit);
   if (input?.status) query = query.eq("status", input.status);
   const { data, error } = await query;
   if (error) throw new Error(`Failed to list learnings: ${error.message}`);

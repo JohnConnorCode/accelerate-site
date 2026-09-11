@@ -232,5 +232,26 @@ import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixtu
   assert.ok(inboxRows.some((r) => r.id === created.id && r.status === "proposed"));
 }
 
-console.log(JSON.stringify({ result: "learning-inbox coverage added", checks: 14 }));
+// Robustness: malformed ids fail closed; listing stays bounded.
+{
+  const { client } = db();
+  await assert.rejects(
+    () =>
+      proposeLearning(client, {
+        type: "messaging",
+        rule: "Rule with bad supersede link",
+        supersedesPolicyId: "not-a-uuid",
+      }),
+    /must be a valid UUID/,
+  );
+  await proposeLearning(client, { type: "messaging", rule: "Bounded one" });
+  await proposeLearning(client, { type: "messaging", rule: "Bounded two" });
+  await proposeLearning(client, { type: "messaging", rule: "Bounded three" });
+  const clamped = await listLearningProposals(client, { limit: 0 });
+  assert.equal(clamped.length, 1);
+  const capped = await listLearningProposals(client, { limit: 100000 });
+  assert.equal(capped.length, 3);
+}
+
+console.log(JSON.stringify({ result: "learning-inbox coverage added", checks: 16 }));
 })();

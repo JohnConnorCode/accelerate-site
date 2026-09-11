@@ -405,6 +405,12 @@ export const docsManifest: DocsSection[] = [
           "Every registered tool, generated straight from the registry: what it needs and what it does.",
       },
       {
+        slug: ["intelligence", "learning-inbox"],
+        title: "Teach the business with the Learning Inbox",
+        description:
+          "Propose reusable corrections once, review them in one inbox, and let approved learnings guide future work.",
+      },
+      {
         slug: ["intelligence", "workspace"],
         title: "Use the AI Workspace",
         description:
