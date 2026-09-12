@@ -2,6 +2,24 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "source-authority",
+    slug: "source-authority",
+    title: "Tell the assistant what to believe",
+    description:
+      "Register which systems own which truth, from official records to contextual chatter. Retrieval now orders answers by authority, flags conflicts instead of resolving them silently, and surfaces stale knowledge instead of serving it as current.",
+    category: "feature",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "decision-memory",
+    slug: "decision-memory",
+    title: "Remember why the business decided",
+    description:
+      "Record decisions with their reasons, owners, evidence and implications. Superseded decisions stay readable with forward links, and approving a new decision surfaces conflicts instead of applying implications automatically.",
+    category: "feature",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",
