@@ -27,7 +27,7 @@ upstream`. Push to your registry and resolve the resulting image digest.
    serves `/source/postiz-source.tar.gz`; provide that link to service users.
    Upstream is AGPL-3.0; preserve its license and attribution, including this
    modification and the source/build material. See `POSTIZ-LICENSE`.
-6. Inspect `docker compose config --quiet` and the exposed ports. Only HTTPS and
+6. Run `./validate-release.sh` with the private environment exported and inspect the exposed ports. Only HTTPS and
    its HTTP redirect are public; Postgres, Redis and Temporal have no host ports.
    Start with `docker compose up -d` on the chosen host. Confirm container health,
    HTTPS, source download and persistent volume ownership.
@@ -63,8 +63,7 @@ checksums, health checks and isolation results before calling the backup proven.
 
 ## Release and recovery
 
-Run a two-organization integration test: identical draft and operation IDs remain
-isolated; a foreign page/media ID is refused; credential rotation and disconnect
+Run a two-organization integration test: operation IDs remain isolated and foreign draft IDs are refused; a foreign page/media ID is refused; credential rotation and disconnect
 stop pending sends. Publish only exact human-approved test posts. Retain the
 Postiz post ID, LinkedIn URL and Accelerate attempt/approval receipts. Exercise
 process interruption after provider acceptance and prove there is no second send.

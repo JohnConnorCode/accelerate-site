@@ -6,7 +6,9 @@ if [[ -e upstream ]]; then
   echo 'Retain the existing upstream directory. Prepare a new release directory for another build.' >&2
   exit 1
 fi
-git clone --no-checkout https://github.com/gitroomhq/postiz-app.git upstream
+git init upstream
+git -C upstream remote add origin https://github.com/gitroomhq/postiz-app.git
+git -C upstream fetch --depth=1 origin "$revision"
 git -C upstream checkout --detach "$revision"
 test "$(git -C upstream rev-parse HEAD)" = "$revision"
 git -C upstream apply --check ../identity.patch
