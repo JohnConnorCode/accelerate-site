@@ -49,7 +49,9 @@ export async function compensateAction(
     throw new Error(
       `${action.action_type} is ${entry.reversibility}: ${entry.rationale} Compensate it explicitly instead.`,
     );
-  const { data, error: undoError } = await supabase.rpc("apply_local_action", {
+  const conversation = ["assign_conversation", "update_conversation_status"].includes(String(action.action_type));
+  const { data, error: undoError } = await supabase.rpc(conversation ? "apply_conversation_action" : "apply_local_action", {
+    ...(conversation ? { p_operation: action.action_type } : {}),
     p_id: id,
     p_payload: action.payload,
     p_actor: actorEmail,

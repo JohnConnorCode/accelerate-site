@@ -10,6 +10,12 @@ interface ActionReversibility {
 }
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
+  { actionType: "update_conversation_status", impact: "internal_write", reversibility: "reversible",
+    rationale: "Restore the prior status and unread count only while the captured conversation state is unchanged." },
+  { actionType: "assign_conversation", impact: "internal_write", reversibility: "reversible",
+    rationale: "Restore the prior assignment against unchanged state; a restored assignee must still be an active workspace member." },
+  { actionType: "link_conversation_record", impact: "internal_write", reversibility: "compensable",
+    rationale: "Correct links with a new reviewed change; original human evidence remains part of the history." },
   {
     actionType: "create_opportunity",
     impact: "internal_write",
