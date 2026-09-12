@@ -1,0 +1,85 @@
+export type WorkSlug = "work-shelter" | "healthcare-real-estate" | "superdebate" | "sparkblox" | "thrive-protocol" | "green-goods" | "northern-trust";
+export type WorkSection = {
+    label: string;
+    title: string;
+    body: string;
+};
+export type WorkVisibility = "public" | "archived";
+export type WorkServiceId = "strategy" | "automation" | "sales" | "engagement" | "content" | "reporting";
+export type WorkImage = {
+    kind: "image";
+    src: string;
+    alt: string;
+    caption: string;
+    width: number;
+    height: number;
+    presentation: "interface" | "photo" | "slide";
+    fit?: "cover" | "contain";
+    canvas?: "paper" | "ink";
+    objectPosition?: string;
+};
+export type WorkVideo = {
+    kind: "youtube";
+    youtubeId: string;
+    poster: string;
+    title: string;
+    caption: string;
+};
+export type WorkDiagram = {
+    kind: "diagram";
+    variant: "work-shelter-routing" | "healthcare-object-map" | "healthcare-deal-flow" | "superdebate-operating-loop" | "superdebate-product-system" | "sparkblox-product-stack" | "thrive-builder-loop" | "green-goods-proof-flow";
+    title: string;
+    caption: string;
+};
+export type WorkMedia = WorkImage | WorkVideo | WorkDiagram;
+export type WorkVisualBlock = {
+    afterSection: number;
+    eyebrow?: string;
+    title?: string;
+    intro?: string;
+    layout: "single" | "duo" | "triptych" | "filmstrip" | "interface-grid";
+    width?: "contained" | "wide" | "bleed";
+    tone?: "paper" | "ink" | "accent";
+    frame?: WorkArtDirection["mediaFrame"];
+    media: WorkMedia[];
+};
+export type WorkArtDirection = {
+    world: "workshop" | "stage" | "clinical" | "archive" | "brief" | "field" | "enterprise";
+    hero: "wide" | "portrait" | "system" | "window" | "document";
+    rhythm: "editorial" | "cinematic" | "architectural" | "stacked" | "notebook";
+    mediaFrame: "edge" | "film" | "window" | "paper";
+};
+export type WorkProject = {
+    slug: WorkSlug;
+    visibility: WorkVisibility;
+    name: string;
+    category: string;
+    cardHeadline: string;
+    cardDescription: string;
+    proof?: string;
+    proofLabel?: string;
+    showProofOnCard?: boolean;
+    industry: string;
+    role: string;
+    relationship: string;
+    timeline: string;
+    description: string;
+    capabilities: string[];
+    serviceIds: WorkServiceId[];
+    accent: "ink" | "red" | "blue" | "green" | "violet" | "gold" | "slate";
+    composition: "operations" | "platform" | "company" | "ecosystem" | "field" | "motion";
+    artDirection: WorkArtDirection;
+    cardMedia: WorkImage | WorkDiagram;
+    heroMedia: WorkMedia;
+    sections: WorkSection[];
+    visualBlocks: WorkVisualBlock[];
+    carryForward: string;
+    related: WorkSlug[];
+    seoTitle: string;
+    seoDescription: string;
+};
+export const workProjects: readonly WorkProject[] = [];
+export const publicWorkProjects: readonly WorkProject[] = [];
+export const archivedWorkProjects: readonly WorkProject[] = [];
+export const featuredWork: readonly WorkProject[] = [];
+export function getWorkBySlug(slug: string) { return workProjects.find(project => project.slug === slug); }

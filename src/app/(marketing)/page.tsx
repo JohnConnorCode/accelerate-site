@@ -1,3 +1,7 @@
+import { distributionProfile } from "@/lib/distribution/profile";
+import { neutralPublicIdentity } from "@/lib/distribution/public-identity";
+import { tenant } from "@/config/tenant";
+import Link from "next/link";
 import { readPublicWebsite } from "@/lib/site-studio/website-public";
 import { PublishedWebsitePage, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { seoMetadata } from "@/lib/og";
@@ -56,12 +60,42 @@ const serviceJsonLd = {
 };
 
 export async function generateMetadata() {
-  return (await publishedWebsiteMetadata("/")) ?? bundledMetadata;
+  const published = await publishedWebsiteMetadata("/");
+  if (published) return published;
+  if (distributionProfile() === "neutral") {
+    const identity = neutralPublicIdentity(tenant);
+    return {
+      title: { absolute: identity.title },
+      description: identity.description,
+      alternates: { canonical: identity.siteUrl },
+    };
+  }
+  return bundledMetadata;
 }
 
 export default async function HomePage() {
   const website = await readPublicWebsite();
   if (website.mode !== "bootstrap") return <PublishedWebsitePage path="/" />;
+  if (distributionProfile() === "neutral")
+    return (
+      <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 px-6 py-16">
+        <p className="text-sm font-medium">Business workspace</p>
+        <h1 className="text-4xl font-semibold tracking-tight">{tenant.brand.name}</h1>
+        <p className="text-lg">{tenant.brand.tagline}</p>
+        <nav aria-label="Workspace entry" className="flex flex-wrap gap-6">
+          <Link href="/admin" className="underline underline-offset-4">
+            Open your workspace
+          </Link>
+          <Link href="/demo/command-center" className="underline underline-offset-4">
+            Explore fictional demo workspaces
+          </Link>
+        </nav>
+        <p className="text-sm">
+          Connect your own services in Setup. Demo changes stay in this browser.
+        </p>
+      </main>
+    );
+
   return (
     <>
       <script

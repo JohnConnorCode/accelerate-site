@@ -164,6 +164,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:install-runbook
 
+      - name: Verify neutral fork distribution
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:neutral-runtime-distribution && node scripts/test-neutral-export.mjs
+
       - name: Retain install-runbook receipt
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -358,10 +362,64 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  neutral-starter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Export one actual neutral starter from the exact checkout
+        run: node scripts/export-neutral-starter.mjs --output "$RUNNER_TEMP/neutral-starter"
+      - name: Install fresh artifact dependencies and verify rendered identity
+        working-directory: ${{ runner.temp }}/neutral-starter
+        env:
+          NEXT_PUBLIC_DISTRIBUTION_PROFILE: neutral
+        run: |
+          npm ci
+          npx tsx scripts/test-neutral-starter-artifact.ts
+      - name: Build the exported starter with its own fresh source history
+        working-directory: ${{ runner.temp }}/neutral-starter
+        run: |
+          git init --quiet
+          git add .
+          git -c user.name="Neutral Starter CI" -c user.email="neutral-ci@example.com" commit --quiet -m "Verify exported neutral source"
+          npm run build
+      - name: Verify actual neutral desktop and mobile journeys
+        working-directory: ${{ runner.temp }}/neutral-starter
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3024
+        run: |
+          npx playwright install --with-deps chromium
+          setsid npm run start -- --hostname localhost --port 3024 > /tmp/accelerate-neutral-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL" > /dev/null; then ready=true; break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-neutral-server.log; exit 1; fi
+          node scripts/qa-turnkey.mjs --neutral
+      - name: Retain exact neutral artifact and browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: neutral-starter-evidence
+          path: |
+            ${{ runner.temp }}/neutral-starter/neutral-starter-receipt.json
+            /tmp/accelerate-neutral-qa/
+            /tmp/accelerate-neutral-server.log
+          if-no-files-found: ignore
+          retention-days: 7
+
   # Keep the existing required check name and fail if either job fails or skips.
   verify:
     if: ${{ always() }}
-    needs: [checks, build]
+    needs: [checks, build, neutral-starter]
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
@@ -369,4 +427,5 @@ jobs:
         env:
           CHECKS_RESULT: ${{ needs.checks.result }}
           BUILD_RESULT: ${{ needs.build.result }}
-        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success
+          NEUTRAL_RESULT: ${{ needs.neutral-starter.result }}
+        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success && test "$NEUTRAL_RESULT" = success

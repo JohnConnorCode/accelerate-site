@@ -1,0 +1,2 @@
+import type { FAQ } from "@/lib/types";
+export const commandCenterFaqs: FAQ[] = [];

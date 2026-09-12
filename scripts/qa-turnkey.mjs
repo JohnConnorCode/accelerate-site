@@ -1,9 +1,23 @@
 import assert from "node:assert/strict";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3018";
-const output = "/tmp/accelerate-turnkey-qa";
+const neutral = process.argv.includes("--neutral");
+const output = neutral ? "/tmp/accelerate-neutral-qa" : "/tmp/accelerate-turnkey-qa";
 mkdirSync(output, { recursive: true });
+async function captureNeutral(page, name, fullPage = true) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await Promise.all(
+      document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getTiming().iterations !== Infinity)
+        .map((animation) => animation.finished.catch(() => undefined)),
+    );
+  });
+  await page.screenshot({ path: `${output}/${name}.png`, fullPage });
+}
 const browser = await chromium.launch({ headless: true });
 try {
   for (const [label, viewport, motion] of [
@@ -12,6 +26,130 @@ try {
   ]) {
     const context = await browser.newContext({ viewport, reducedMotion: motion });
     const page = await context.newPage();
+    if (neutral) {
+      const escaped = [],
+        errors = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      page.on("console", (message) => {
+        if (message.type() === "error") errors.push(message.text());
+      });
+      await page.route("**/*", (route) => {
+        const url = new URL(route.request().url());
+        if (url.origin !== new URL(base).origin) {
+          escaped.push(url.origin + url.pathname);
+          return route.abort();
+        }
+        return route.continue();
+      });
+      try {
+        assert.equal((await page.goto(base)).status(), 200);
+        await page.getByRole("heading", { name: "Harbor Operations", exact: true }).waitFor();
+        assert.equal(await page.title(), "Harbor Operations");
+        const social = await page.request.get(base + "/api/og");
+        assert.equal(social.status(), 200);
+        assert.match(social.headers()["content-type"], /image\/png/);
+        writeFileSync(`${output}/${label}-social.png`, await social.body());
+        assert.equal(
+          await page.locator('link[rel="canonical"]').getAttribute("href"),
+          "https://harbor.example",
+        );
+        await captureNeutral(page, `${label}-entry`);
+        await page.getByRole("link", { name: "Open your workspace", exact: true }).focus();
+        await page.keyboard.press("Enter");
+        await page.getByRole("heading", { name: "Connect your Supabase project" }).waitFor();
+        await captureNeutral(page, `${label}-setup`);
+        const demo = base + "/demo/command-center/northline-roofing";
+        await page.goto(demo + "/pipeline");
+        await page.getByPlaceholder("Search company, person, or email").waitFor();
+        await page.waitForFunction(() => Boolean(window.__accelerateAdminDemoRuntime));
+        await page.locator(".kanban-scroller [data-opportunity-id]").first().waitFor();
+        assert.ok(
+          (await page.locator(".kanban-scroller [data-opportunity-id]").count()) > 0,
+          "Fictional populated pipeline",
+        );
+        await page.locator(".kanban-scroller").scrollIntoViewIfNeeded();
+        await captureNeutral(page, `${label}-populated`);
+        await page
+          .getByPlaceholder("Search company, person, or email")
+          .fill("no-matching-neutral-fixture-81725");
+        const empty = page.getByText("No opportunities in this stage.", { exact: true }).first();
+        await empty.waitFor();
+        assert.equal(await page.locator(".kanban-scroller [data-opportunity-id]").count(), 0);
+        await empty.scrollIntoViewIfNeeded();
+        await captureNeutral(page, `${label}-empty`);
+        await page.goto(demo + "/branding");
+        await page.getByLabel("Display name", { exact: true }).fill("Harbor Demo Team");
+        await page.getByRole("button", { name: "Save branding", exact: true }).focus();
+        await page.keyboard.press("Enter");
+        await page
+          .getByRole("button", { name: "Save branding", exact: true })
+          .and(page.locator(":disabled"))
+          .waitFor();
+        await page.reload();
+        await page.getByLabel("Display name", { exact: true }).waitFor();
+        assert.equal(
+          await page.getByLabel("Display name", { exact: true }).inputValue(),
+          "Harbor Demo Team",
+        );
+        assert.equal(
+          await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2),
+          true,
+        );
+        await page.getByLabel("Display name", { exact: true }).scrollIntoViewIfNeeded();
+        await captureNeutral(page, `${label}-branding`, false);
+        await page.goto(base + "/docs/workspace/setup");
+        await page
+          .getByRole("heading", { name: "Set up a working workspace", exact: true })
+          .waitFor();
+        assert.equal(
+          await page.locator('link[rel="canonical"]').getAttribute("href"),
+          "https://harbor.example/docs/workspace/setup",
+        );
+        assert.equal(
+          await page.locator('img[src*="images%2Fdocs"], img[src*="/images/docs/"]').count(),
+          0,
+        );
+        await captureNeutral(page, `${label}-docs`);
+        assert.deepEqual(
+          escaped,
+          [],
+          "No escaped external requests, including original installation domains",
+        );
+        assert.deepEqual(errors, [], "No browser console or runtime errors");
+        writeFileSync(
+          `${output}/${label}.json`,
+          JSON.stringify(
+            {
+              passed: true,
+              viewport,
+              motion,
+              escaped,
+              errors,
+              evidence: [
+                "configured entry metadata and social image",
+                "retained documentation omits protected screenshots",
+                "setup boundary",
+                "fictional populated pipeline",
+                "filtered empty state",
+                "saved demo branding survives reload",
+              ],
+            },
+            null,
+            2,
+          ),
+        );
+      } catch (error) {
+        await page.screenshot({ path: `${output}/${label}-failure.png`, fullPage: true });
+        writeFileSync(
+          `${output}/${label}.json`,
+          JSON.stringify({ passed: false, message: error.message, escaped, errors }, null, 2),
+        );
+        throw error;
+      } finally {
+        await context.close();
+      }
+      continue;
+    }
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("console", (m) => {

@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-12",
   },
   {
+    id: "neutral-fork-distribution",
+    slug: "neutral-fork-distribution",
+    title: "Run a fork as your business, not ours",
+    description:
+      "A manifest-driven exporter creates a separate neutral starter with configured business identity, empty business collections and sample page content. Protected media and original hosting targets are omitted. The same admin and runtime remain, with fresh artifact build and fictional desktop/mobile checks in CI. The original branded installation remains the default.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "admin-guidance-clarity",
     slug: "admin-guidance-clarity",
     title: "Find the same names and guidance across Command Center",

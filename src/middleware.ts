@@ -1,3 +1,4 @@
+import { tenant as bootstrapTenant } from "@/config/tenant";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
@@ -120,7 +121,7 @@ export async function middleware(request: NextRequest) {
 
   let tenantId = ACCELERATE_TENANT_ID;
   let tenantSlug = ACCELERATE_TENANT_SLUG;
-  let tenantName = "Accelerate";
+  let tenantName = bootstrapTenant.brand.name;
 
   if (workspaceMatch) {
     tenantSlug = workspaceMatch[1]!;
