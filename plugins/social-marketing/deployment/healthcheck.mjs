@@ -19,7 +19,11 @@ try {
       throw new Error("Process unavailable");
   }
   await Promise.all(
-    ["http://localhost:5000", "http://localhost:3000/auth/can-register"].map(async (url) => {
+    [
+      "http://localhost:5000",
+      "http://localhost:3000/auth/can-register",
+      "http://localhost:3002/health/status",
+    ].map(async (url) => {
       const response = await fetch(url, { signal: AbortSignal.timeout(3000), redirect: "follow" });
       if (!response.ok) throw new Error("HTTP unavailable");
       await response.body?.cancel();

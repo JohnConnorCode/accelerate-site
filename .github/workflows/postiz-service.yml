@@ -23,11 +23,22 @@ jobs:
       - name: Prepare exact patched source
         working-directory: plugins/social-marketing/deployment
         run: ./prepare-source.sh
+      - name: Set up cached container builder
+        uses: docker/setup-buildx-action@v4
       - name: Build actual upstream application
-        working-directory: plugins/social-marketing/deployment
-        run: |
-          docker build --build-arg NEXT_PUBLIC_VERSION=accelerate-3cbe20b-2 \
-            -f upstream/Dockerfile.dev -t accelerate-postiz:verification upstream
+        uses: docker/build-push-action@v7
+        env:
+          DOCKER_BUILD_SUMMARY: "false"
+          DOCKER_BUILD_RECORD_UPLOAD: "false"
+        with:
+          context: plugins/social-marketing/deployment/upstream
+          file: plugins/social-marketing/deployment/upstream/Dockerfile.dev
+          build-args: NEXT_PUBLIC_VERSION=accelerate-3cbe20b-2
+          tags: accelerate-postiz:verification
+          load: true
+          push: false
+          cache-from: type=gha,scope=postiz-service
+          cache-to: type=gha,scope=postiz-service,mode=max
       - name: Verify isolated service and recovery
         working-directory: plugins/social-marketing/deployment
         run: ./verify-service.sh
