@@ -210,7 +210,7 @@
     "src/components/admin/ModuleDisabledNotice.tsx": "4f584cccf0f294945129a7a6e7ada45c8a15f041be6b0d355779b29ab4fc4fd5",
     "src/components/admin/ModuleSettingsForm.tsx": "07ba6bb965cf8bacb40be797e3b4d967c6db19bd7f4b03a134c9f3b8d02b2077",
     "src/components/admin/NotificationBell.tsx": "05cac06d0c88f2b359968e40822d9d2a1d9602d876ae656b3ca5981b47b9ccd9",
-    "src/components/admin/PageHeader.tsx": "5ef314c3d1e83215346e03b7d0b55084debbc6d47b3e073d650b05e5b1866d1b",
+    "src/components/admin/PageHeader.tsx": "1e4eb280aad4396e9bb57f25680b3a2737dcdd177ff0f9248a294d7b595e5e23",
     "src/components/admin/Pagination.tsx": "b3d4081852df3883f4e1ff0dfa7cb3e3a57e7920bcc5d69bebc0fcfd25bb18f3",
     "src/components/admin/PlausibleWidget.tsx": "250f81a9de33b8432d902c626757002def6ea084e88c26dfa0c933f6e54ebeed",
     "src/components/admin/ProposalEditor.tsx": "a39e2fae836275917a132e787043749d2e333e15be2929527286cb3c31579323",

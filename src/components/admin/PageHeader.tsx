@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type CSSProperties,
+} from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -98,7 +105,8 @@ export function PageHeader({
         closeHelp(true);
       }
     }
-    function onViewportChange() {
+    function onViewportChange(event: Event) {
+      if (event.target instanceof Node && panelRef.current?.contains(event.target)) return;
       closeHelp();
     }
     document.addEventListener("mousedown", onPointerDown);
@@ -161,7 +169,12 @@ export function PageHeader({
                           role="dialog"
                           aria-label={`How ${destination?.label ?? title} works`}
                           className="admin-help-panel admin-overlay-token-scope"
-                          style={{ top: panelPosition.top, right: panelPosition.right }}
+                          style={
+                            {
+                              "--admin-help-top": `${panelPosition.top}px`,
+                              "--admin-help-anchor-right": `${panelPosition.right}px`,
+                            } as CSSProperties
+                          }
                           initial={{ opacity: 0, y: -4, scale: 0.96 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -4, scale: 0.96 }}

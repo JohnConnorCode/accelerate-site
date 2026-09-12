@@ -25,7 +25,9 @@ try {
       });
       await context.addInitScript(
         ({ scenario, appearance }) => {
-          sessionStorage.setItem(`accelerate:admin-demo:${scenario}:appearance:v1`, appearance);
+          // Sandbox previews have no storage authority; configure only the app document.
+          if (window === window.top)
+            sessionStorage.setItem(`accelerate:admin-demo:${scenario}:appearance:v1`, appearance);
         },
         { scenario, appearance: theme.id },
       );
@@ -63,6 +65,10 @@ try {
             (await page.title()).startsWith(destination.label),
             "document title differs from root heading",
           );
+          await page.waitForFunction(
+            (appearance) => document.documentElement.dataset.theme === appearance,
+            theme.id,
+          );
           const main = page.locator(".admin-main");
           assert(
             await main.evaluate((node) => node.scrollWidth <= node.clientWidth + 1),
@@ -76,6 +82,9 @@ try {
             exact: true,
           });
           await panel.waitFor();
+          await panel.evaluate(async (node) => {
+            await Promise.all(node.getAnimations().map((animation) => animation.finished));
+          });
           assert((await panel.locator("li").count()) >= 2, "workflow steps absent");
           assert.equal(await panel.locator('a[href*="/docs/"]').count(), 1);
           const box = await panel.boundingBox();

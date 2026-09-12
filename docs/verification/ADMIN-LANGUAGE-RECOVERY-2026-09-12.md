@@ -13,6 +13,12 @@ are verified by the audit and its mutation fixtures.
 - Architect query state resolves independently from AI Workspace in headings, help, navigation selection and breadcrumbs.
 - Blueprints uses the registry heading; Architect, Blueprints and Learning Inbox have workflow guidance and valid public guides.
 
+CI run 34703821325 built successfully and rendered the matrix, exposing mobile
+Help panels anchored outside the viewport. The shared panel now clamps its anchor
+inside page gutters and scrolls within the available height. The fixture configures
+appearance only in the top-level app document, preserving sandboxed preview isolation.
+Final browser verification and screenshot inspection remain pending for this repair.
+
 ## Source matrix
 
 Record-specific detail and selected-record titles remain intentional. Source locations
