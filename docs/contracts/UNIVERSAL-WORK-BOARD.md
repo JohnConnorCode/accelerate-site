@@ -70,7 +70,8 @@ Claim requires a fresh random 32-byte base64url claimToken generated and retaine
 by the caller before sending. Only its hash is stored on the card. Heartbeat,
 progress, block, release and submit require that token, the authenticated actor,
 an unexpired lease and in_progress status. Leases last 30 minutes. A stale worker
-cannot renew or complete a later worker's attempt. Expiry is explicit review work.
+cannot renew or complete a later worker's attempt. An explicitly requested expired
+task continues through a fresh claim without another recovery approval.
 
 Lifecycle: backlog/planned → claim → in_progress → submit → in_review → accepted
 verification (the legacy `shipped` key). Rejection returns work to planning with a

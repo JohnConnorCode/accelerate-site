@@ -78,7 +78,7 @@ npm --prefix "$ACCELERATE_CONTROL" run agent:heartbeat -- --card <ticket-key>
 npm --prefix "$ACCELERATE_CONTROL" run agent:progress -- --card <ticket-key> --message "Implemented the scoped path; controlled failure checks remain."
 ```
 
-Renew before the 30-minute lease expires. When stepping away, release the claim and preserve the worktree. If an HTTP claim result is uncertain, retry the printed UUID with `agent:next -- --request-key <uuid>`; the exact original request and token are retained privately. Never start a second claim to guess whether the first succeeded. Expired claims require an operator's explicit recovery.
+Renew before the 30-minute lease expires. When stepping away, release the claim and preserve the worktree. If an HTTP claim result is uncertain, retry the printed UUID with `agent:next -- --request-key <uuid>`; the exact original request and token are retained privately. Never start a second claim to guess whether the first succeeded. Resume an explicitly requested expired task through the normal claim path without another recovery approval; preserve its retained checkout.
 
 Run the packet's scoped checks and the [verification workflow](VERIFICATION-WORKFLOW.md). Use the shared resource gate for heavy work; the full build includes final TypeScript validation. Commit hooks stay offline and fast. Fresh installations should use `npm ci`; locally shared dependency symlinks may require `npm run build -- --webpack` because Turbopack rejects dependencies outside its filesystem root. Do not disable compiler checks.
 
