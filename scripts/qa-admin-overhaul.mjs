@@ -196,8 +196,10 @@ try {
           "page",
           "visible navigation is not current",
         );
-        if (width === 390)
+        if (width === 390) {
           await page.getByRole("button", { name: "Close navigation", exact: true }).click();
+          await page.locator("#admin-mobile-navigation").waitFor({ state: "detached" });
+        }
         assert(
           await page
             .locator(".admin-main")
@@ -252,12 +254,14 @@ try {
           0,
         );
         await page.keyboard.press("Escape");
+        await disabledPalette.waitFor({ state: "detached" });
         await setCampaigns(true);
         await page.reload({ waitUntil: "networkidle" });
         await assertIdentity("Email Sequences", "Marketing");
         const restoredPalette = await search("Email Sequences");
         await restoredPalette.getByText("Email Sequences", { exact: true }).waitFor();
         await page.keyboard.press("Escape");
+        await restoredPalette.waitFor({ state: "detached" });
         await page.screenshot({ path: `${output}/${label}-sequences.png` });
         results.push({
           width,

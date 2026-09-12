@@ -20,7 +20,7 @@ Scoped lint, syntax, whitespace and agent-contract checks pass. Independent sour
 review confirmed the extracted adapters preserve behavior and the new browser
 selectors match the actual shell and fictional module endpoint.
 
-## Browser proof pending
+## Browser verification
 
 The existing language QA discovers all six businesses from the actual launcher.
 At 1440px and 390px, it checks direct Email Sequences, keyboard search to Architect,
@@ -28,6 +28,13 @@ visible current navigation, Back, fictional module disable/re-enable, reload,
 overflow and console/protected-request isolation. It retains screenshots alongside
 the existing theme/Help matrix. Exact remote CI and opened screenshots are required
 before final acceptance; no live database or production browser proof is claimed.
+
+CI run 34713079112 passed all 126 language and scenario cases on source
+69590f669f8baed4d9777a94ebb2f2d3017f52b9. Opening its retained screenshots
+revealed that mobile drawer and command-palette exit animations were still running
+at capture. The fixture now waits for those elements to detach. This changes only
+verification timing; refreshed screenshots must be inspected before acceptance.
+The canonical card evidence and PR record the final run and visual review.
 
 ## Documentation review
 
