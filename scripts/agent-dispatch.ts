@@ -8,7 +8,11 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, chmodSync } from "n
 import { resolve } from "node:path";
 import { readdirSync } from "node:fs";
 import { receipt } from "./lib/task-context";
-import { createCheckpoint, prepareSuccessor } from "./lib/agent-checkpoint.mjs";
+import {
+  createCheckpoint,
+  prepareSuccessor,
+  retainedCheckpointWorkspace,
+} from "./lib/agent-checkpoint.mjs";
 import { readinessSummary, resumableCard } from "./lib/agent-readiness.mjs";
 import {
   repositoryContext,
@@ -52,6 +56,7 @@ async function main() {
     "message",
     "evidence-file",
     "checkpoint-file",
+    "worktree",
     "attempt",
     "limit",
     "offset",
@@ -71,6 +76,8 @@ async function main() {
     }
   }
 
+  if (flags.worktree && !["checkpoint", "progress"].includes(command))
+    throw new Error("--worktree attaches retained source only through checkpoint or progress.");
   if (flags.attempt && !/^[a-f0-9-]{36}$/i.test(flags.attempt))
     throw new Error("--attempt must be a UUID");
   if (flags["request-key"] && !/^[a-f0-9-]{36}$/i.test(flags["request-key"]))
@@ -582,10 +589,17 @@ async function main() {
       throw new Error(
         "This attempt was superseded. Its credentials and source are preserved; use the successor packet.",
       );
+    const attachedWorktree = flags.worktree
+      ? retainedCheckpointWorkspace(root, card, flags.worktree)
+      : undefined;
+    if (attachedWorktree && session.worktree && resolve(session.worktree) !== attachedWorktree)
+      throw new Error("This attempt already has a different retained checkout; preserve it.");
     const operation =
       command === "complete"
         ? "submit"
-        : command === "progress" && resumeSupport?.version === 1 && session.worktree
+        : command === "progress" &&
+            resumeSupport?.version === 1 &&
+            (session.worktree || attachedWorktree)
           ? "checkpoint"
           : command;
     const payload: Record<string, unknown> = { claimToken: session.claimToken };
@@ -597,6 +611,7 @@ async function main() {
       id: card.id,
       attempt: session.requestKey ?? session.attemptId ?? null,
       message: flags.message,
+      ...(attachedWorktree ? { worktree: attachedWorktree } : {}),
       evidence: flags["evidence-file"] ? readFileSync(flags["evidence-file"], "utf8") : undefined,
       checkpoint: flags["checkpoint-file"]
         ? readFileSync(flags["checkpoint-file"], "utf8")
@@ -627,9 +642,9 @@ async function main() {
         throw new Error(
           "--checkpoint-file is required: summary, completed, remaining, artifacts and explicitly included new source files.",
         );
-      if (!session.worktree)
+      if (!session.worktree && !attachedWorktree)
         throw new Error(
-          "No retained workspace recorded; inspect and resume the task before checkpointing.",
+          "No retained workspace recorded; inspect it, then use --worktree <existing-agent-checkout>.",
         );
       if (
         card.status !== "in_progress" ||
@@ -646,6 +661,8 @@ async function main() {
         payload: { claimToken: session.claimToken },
       });
       card = renewed.card;
+      // A successful canonical heartbeat proves this token may attach retained source.
+      if (attachedWorktree) session.worktree = attachedWorktree;
       Object.assign(session, persistSession(session, renewed.card, sessionPath));
       const input = flags["checkpoint-file"]
         ? JSON.parse(readFileSync(flags["checkpoint-file"], "utf8"))
