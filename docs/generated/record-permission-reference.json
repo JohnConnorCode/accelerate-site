@@ -221,6 +221,12 @@
       "defaultEnabled": false
     },
     {
+      "id": "social-marketing",
+      "name": "Social Marketing",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
       "id": "stripe-invoicing",
       "name": "Stripe invoicing",
       "core": false,
@@ -555,6 +561,22 @@
     {
       "tool": "propose_collection_reminder",
       "module": "receivables-collections"
+    },
+    {
+      "tool": "get_social_workspace",
+      "module": "social-marketing"
+    },
+    {
+      "tool": "prepare_social_week",
+      "module": "social-marketing"
+    },
+    {
+      "tool": "preview_social_change",
+      "module": "social-marketing"
+    },
+    {
+      "tool": "propose_social_change",
+      "module": "social-marketing"
     },
     {
       "tool": "prepare_stripe_invoicing",

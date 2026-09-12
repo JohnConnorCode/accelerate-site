@@ -187,6 +187,15 @@ export const capabilities: Capability[] = [
     gated: true,
   },
 
+  {
+    id: "social-marketing",
+    category: "act",
+    title: "Social Marketing: reviewed LinkedIn publishing",
+    detail:
+      "Prepare source-backed drafts, approve exact content and schedules, and follow Postiz acceptance through to verified LinkedIn publication. Each workspace connects its own organization; uncertain submissions retain their receipts for review.",
+    gated: true,
+  },
+
   // Act
   {
     id: "collections",
@@ -349,7 +358,7 @@ export const capabilities: Capability[] = [
     category: "govern",
     title: "Point any coding agent at the backlog",
     detail:
-      "Tell any coding agent that can read and run the repository to pick up backlog work and follow protocol. The repository entrypoint resolves the configured private transport, selects one eligible card, preserves claim ownership, creates the approved isolated worktree, supplies the live packet, and carries the work through verification, commit, and evidence submission without requiring a ticket key or internal command name.",
+      "Tell any coding agent that can read and run the repository to pick up backlog work and follow protocol. The repository entrypoint resolves the configured private transport, continues current work or selects an eligible card, preserves attempt ownership, creates the approved isolated worktree, supplies the live packet, and carries the work through verification, commit, and evidence submission without requiring a ticket key or internal command name. With the recovery migration and project policy enabled, replacement agents resume expired work from saved checkpoints.",
   },
   {
     id: "sms",
@@ -546,6 +555,6 @@ export const CURRENT_SURFACES = [
     n: "08",
     label: "Run per tenant",
     title: "Shared infrastructure, isolated workspaces",
-    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Eleven bundled plugin examples have public guides covering setup, approvals, costs, and recovery.",
+    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Twelve bundled plugin examples have public guides covering setup, approvals, costs, and recovery.",
   },
 ];

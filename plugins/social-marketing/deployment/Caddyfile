@@ -1,0 +1,9 @@
+{$POSTIZ_HOST} {
+  handle_path /source/* {
+    root * /srv/source
+    file_server
+  }
+  handle {
+    reverse_proxy postiz:5000
+  }
+}

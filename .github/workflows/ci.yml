@@ -107,7 +107,9 @@ jobs:
 
       - name: Verify runtime tenant and domain boundaries
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run verify:runtime-boundaries
+        run: |
+          npm run verify:runtime-boundaries
+          node --test scripts/test-runtime-error-adoption.mjs
 
       - name: Lint
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -177,7 +179,14 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:local-actions:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
+
+      - name: Verify Social Marketing adapter and publication transactions
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          npm run test:social-postiz
+          PATH="$(pg_config --bindir):$PATH" npm run test:social-postgres
 
       - name: Verify installation migrations
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -190,7 +199,10 @@ jobs:
 
       - name: Verify developer handoff and fresh-clone pickup
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run test:developer-handoff
+        run: |
+          npm run test:developer-handoff
+          npm run test:agent-checkpoint
+          NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-demo-work-continuity.ts
 
       - name: Verify resource gate behavior
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -281,6 +293,7 @@ jobs:
           public_qa_pid=$!
           (
             set -e
+            node scripts/qa-social-marketing.mjs
             node scripts/qa-collections-workspace.mjs
             node scripts/qa-universal-work-board.mjs
             node scripts/qa-admin-polish.mjs
@@ -304,6 +317,7 @@ jobs:
         with:
           name: credential-free-browser-evidence
           path: |
+            /tmp/accelerate-social-qa/
             /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-website-editor/
             /tmp/accelerate-website-authoring/

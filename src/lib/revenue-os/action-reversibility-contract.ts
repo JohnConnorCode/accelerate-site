@@ -73,6 +73,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "Review a new assessment to replace current estimates. Original judgments and audit history remain immutable; no deletion or automatic inverse.",
   },
   {
+    actionType: "social_marketing_change",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale:
+      "A scheduled social post can become public. Cancel before dispatch; publishing always requires human approval.",
+  },
+  {
     actionType: "update_radar_store",
     impact: "internal_write",
     reversibility: "compensable",

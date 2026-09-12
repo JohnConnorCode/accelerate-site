@@ -76,7 +76,7 @@
       "impact": "external_action",
       "reversibility": "irreversible"
     },
-    "contractHash": "fddf42f056e00afc4807cccf2c17bdcaa071a5cd0e324b972bfb4e18c2086ae3",
+    "contractHash": "179b3933dd839812529584ae61bfd50d77d71561010b4dc17e8241ad3586bbe0",
     "tools": [
       {
         "operation": "prepare-workflow",

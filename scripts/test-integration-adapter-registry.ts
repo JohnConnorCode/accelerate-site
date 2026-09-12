@@ -30,7 +30,12 @@ const fakeEncrypt = (value: string) => `enc(${value})`;
 // the action names derive from.
 assert.equal(INTEGRATION_ADAPTERS.get("whatsapp"), whatsAppAdapter);
 assert.equal(INTEGRATION_ADAPTERS.get("hubspot"), hubSpotAdapter);
-assert.equal(INTEGRATION_ADAPTERS.size, 3);
+assert.deepEqual([...INTEGRATION_ADAPTERS.keys()].sort(), [
+  "hubspot",
+  "postiz",
+  "stripe",
+  "whatsapp",
+]);
 
 // WhatsApp: accessToken -> api_key, phoneNumberId -> phone_number_id.
 // This is the exact mapping the old hand-written block built.

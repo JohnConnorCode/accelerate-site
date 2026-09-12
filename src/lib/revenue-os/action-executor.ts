@@ -5,6 +5,7 @@ import { systemSourceForDatabase } from "@/lib/supabase/server";
 import type { RevenueTaskInput } from "./tasks";
 import { executeRadarRelationship } from "./radar-relationships";
 import { executeRadarAssessment } from "./radar-ranking";
+import { executeSocialChange } from "./social-marketing";
 import { executeRadarStoreChange } from "./radar-store";
 import { executeModuleConfiguration } from "./module-actions";
 import { executeWorkspaceBrandUpdate } from "./branding-actions";
@@ -49,6 +50,7 @@ export const APPROVABLE_ACTIONS = [
   "review_radar_relationship",
   "review_radar_assessment",
   "update_radar_store",
+  "social_marketing_change",
   "update_module_configuration",
   "update_workspace_brand",
   "create_stripe_invoice_draft",
@@ -181,6 +183,11 @@ export async function approveAndExecuteAction(
         if (mode !== "approved")
           throw new Error("Radar estimates and classification require human approval");
         result = await executeRadarAssessment(supabase, payload, actorEmail);
+        break;
+      }
+      case "social_marketing_change": {
+        if (mode !== "approved") throw new Error("Social publishing requires exact human approval");
+        result = await executeSocialChange(supabase, payload, actorEmail, id);
         break;
       }
       case "update_radar_store": {

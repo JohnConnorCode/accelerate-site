@@ -28,8 +28,22 @@ export interface FeatureRequest {
   work_kind?: string;
   work_spec?: Record<string, unknown>;
   work_delivery?: Record<string, unknown>;
+  work_attempt_id?: string | null;
+  work_checkpoint?: {
+    id: string;
+    attemptId: string;
+    createdAt: string;
+    commitSha: string;
+    baseCommit: string;
+    branch: string;
+    summary: string;
+    completed: string[];
+    remaining: string[];
+    artifacts: string[];
+  } | null;
   work_blocker?: string | null;
   readiness?: string[];
+  resume_readiness?: string[];
   dependencies?: string[];
   id: string;
   seed_key: string | null;

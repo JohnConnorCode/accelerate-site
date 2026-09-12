@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     );
   try {
     const draft = await regenerateSection(
-      siteDrafts(auth.database, auth.user.email ?? auth.user.id),
+      siteDrafts(auth),
       id,
       parsed.data.sectionId,
       {

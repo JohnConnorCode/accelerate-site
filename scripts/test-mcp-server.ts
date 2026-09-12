@@ -23,6 +23,7 @@ import { tenant } from "../src/config/tenant";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { taskToolProfileToolNames } from "../src/lib/revenue-os/ai-tools";
+import { proveToolProfileTasks } from "./lib/tool-profile-proof";
 import type { TaskToolProfile } from "../src/lib/revenue-os/tool-profiles";
 
 interface ToolItem {
@@ -71,6 +72,7 @@ interface PromptGetResult {
 
 async function main() {
   console.log("Starting MCP Server tests...");
+  console.log(JSON.stringify(await proveToolProfileTasks()));
   const mem = new MemorySupabase({
     tasks: [
       {

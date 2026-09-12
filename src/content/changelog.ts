@@ -29,6 +29,42 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-12",
   },
   {
+    id: "social-marketing-postiz",
+    slug: "social-marketing-postiz",
+    title: "Prepare and review LinkedIn publishing in Social Marketing",
+    description:
+      "An optional Postiz-backed plugin adds source-backed drafts, weekly preparation, exact batch approval, durable scheduling and publication receipts. Each tenant connects a separate organization. Hosting, LinkedIn access and the internal pilot require verified setup before customer activation.",
+    category: "feature",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "resumable-agent-work",
+    slug: "resumable-agent-work",
+    title: "Continue unfinished agent work from saved checkpoints",
+    description:
+      "Repository agents can preserve source checkpoints and resume interrupted tasks through the usual backlog request. This release adds durable attempts and permanently fenced old sessions. Active ownership stays protected, while work volume does not block an authorized claim. Automatic takeover requires the recovery migration and an enabled project policy; hosted activation remains a separate release step.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "drive-duplicate-provenance",
+    slug: "drive-duplicate-provenance",
+    title: "Keep Drive duplicate references across repeated syncs",
+    description:
+      "Unchanged Drive files retain their duplicate-source relationship across repeated syncs and listing order changes. If the original changes, disappears or loses download access, an available unchanged copy becomes the source for that content. Each file keeps its own identity, link and folder provenance.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "site-studio-verified-writes",
+    slug: "site-studio-verified-writes",
+    title: "Keep Site Studio saves bound to the verified editor",
+    description:
+      "Site Studio passes the verified editor directly to its existing server write service and rechecks active workspace membership. The upgrade preserves prior migration history and restores private write permissions after the compatible application release. Saved website revisions remain installation-owner controlled; private workspace drafts keep their existing access boundary.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",

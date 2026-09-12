@@ -1,22 +1,22 @@
 ---
 title: "Add an integration adapter"
 description: "Verify a provider's credentials, encrypt them, and turn its inbound events into canonical records."
-updated: "2026-09-09"
+updated: "2026-09-12"
 ---
 
 Connecting a new provider well means two things happening correctly every time: its credentials get verified before anything trusts them, and whatever it sends in becomes a real canonical record rather than a pile of unlinked webhook payloads. An adapter is what does both. The contract is `IntegrationAdapter` in `src/lib/revenue-os/integration-adapters.ts`.
 
-WhatsApp and HubSpot are the adapters on that generic path today. OpenRouter and MCP stay outside it on purpose (tenant-scoped encryption and a server-issued key). Most new adapters will not need that exception.
+WhatsApp, HubSpot, Stripe and Postiz are registered adapters. OpenRouter and MCP stay outside it on purpose (tenant-scoped encryption and a server-issued key). Most new adapters will not need that exception.
 
 ## Registration
 
 Implement `verify` (a real call against the provider) and `connect` (the receipt that gets stored). Declare `credentialFields` so each form field maps to the key stored in `integration_connections.encrypted_credentials`.
 
-Register the adapter in `INTEGRATION_ADAPTERS` in the same file. `configureAdapterProvider()` in the tenant providers route looks it up by id, calls `verify`, encrypts each declared field, and audits the write. That route does not change per adapter.
+Register the adapter in `INTEGRATION_ADAPTERS` in the same file. `configureAdapterProvider()` in the tenant providers route looks it up by id, calls `verify`, encrypts each declared field, and audits the write. Add the validated configure/disconnect action to that route when introducing a provider; keep its credential lifecycle in the shared adapter service.
 
 ## Rules that are not optional
 
-- Credentials are encrypted at rest through `encryptSecret` / `resolveTenantProviderSecrets`. Never store or return plaintext.
+- Credentials are encrypted at rest through the shared provider credential helpers; new tenant credentials use authenticated tenant/provider/field binding. Never store or return plaintext.
 - Writes are tenant-bound. Inside a webhook or system-context path, build the client with `createServiceRoleClient(provider.context)`, never the unbound platform client. The unbound client writes rows with no `tenant_id`.
 - Inbound webhook handlers live under `src/app/api/public/[tenantSlug]/webhooks/<provider>/`, verify the provider signature with `timingSafeEqual`, and reject replays outside a bounded window.
 - Do not add another analytics, email, AI, or scheduling vendor when the existing first-party path can do the work.
@@ -24,3 +24,9 @@ Register the adapter in `INTEGRATION_ADAPTERS` in the same file. `configureAdapt
 ## Inbound shape
 
 Normalize the provider event into the canonical inbound service (`identity.ts`, `inbound.ts`, `activities.ts`). Do not insert operational rows from the webhook handler itself. The handler authenticates, calls the service, and returns a truthful receipt.
+
+## A separately hosted service
+
+Social Marketing uses a Postiz adapter with an operator-fixed HTTPS origin and a verified organization identity. Each workspace connects a separate organization; group filters are not a tenant boundary. Publication stays behind the host's approval queue and durable attempt, because the upstream create-post API has no idempotency guarantee.
+
+See [Social Marketing](/docs/plugins/social-marketing) for the user journey and the [service packaging guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/OPEN-SOURCE-SERVICE-PLUGINS.md) for the reusable deployment, licensing, recovery and verification pattern. Source metadata helps track the release; it does not prove live readiness.

@@ -1,3 +1,15 @@
+import {
+  readSocialWorkspace,
+  previewSocialChange,
+  proposeSocialChange,
+  prepareSocialWeek,
+} from "./social-marketing";
+import {
+  socialReadSchema,
+  socialPreviewSchema,
+  socialProposalSchema,
+  socialWeeklySchema,
+} from "./social-marketing-contract";
 import { createHash } from "node:crypto";
 import { TODAY_TOOL_NAMES, todaySaveSchema } from "@/lib/admin/today-workspace";
 import { loadTodaySnapshot } from "./today-snapshot";
@@ -812,6 +824,57 @@ const registry: AiToolRegistration[] = [
     confirmationRequired: true,
     execute: ({ supabase, actorEmail }, input) =>
       proposeRadarAssessment(supabase, input, actorEmail),
+  },
+  {
+    name: "get_social_workspace",
+    description: "Read tenant social drafts, calendar, publication receipts, metrics and setup.",
+    inputSchema: z.toJSONSchema(socialReadSchema),
+    parseInput: (input) => socialReadSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.social-marketing",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => readSocialWorkspace(supabase, input),
+  },
+  {
+    name: "prepare_social_week",
+    description:
+      "Prepare three source-backed weekly drafts from supplied paragraphs. Never publishes.",
+    inputSchema: z.toJSONSchema(socialWeeklySchema),
+    parseInput: (input) => socialWeeklySchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.social-marketing",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => prepareSocialWeek(supabase, input),
+  },
+  {
+    name: "preview_social_change",
+    description:
+      "Preview exact social draft changes, cancellation or publication schedule; saves nothing.",
+    inputSchema: z.toJSONSchema(socialPreviewSchema),
+    parseInput: (input) => socialPreviewSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.social-marketing",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => previewSocialChange(supabase, input),
+  },
+  {
+    name: "propose_social_change",
+    description:
+      "Queue the exact social preview for human approval. Cannot approve or publish by itself.",
+    inputSchema: z.toJSONSchema(socialProposalSchema),
+    parseInput: (input) => socialProposalSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.social-marketing",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) => proposeSocialChange(supabase, input, actorEmail),
   },
   {
     name: "get_radar_store",
@@ -2561,6 +2624,10 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "get_social_workspace",
+    "prepare_social_week",
+    "preview_social_change",
+    "propose_social_change",
     "prepare_radar_outreach",
     "preview_radar_outreach",
     "propose_radar_outreach",
@@ -2625,6 +2692,10 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_founder_note",
   ],
   pipeline: [
+    "get_social_workspace",
+    "prepare_social_week",
+    "preview_social_change",
+    "propose_social_change",
     ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
     ...TODAY_TOOL_NAMES,
@@ -2652,6 +2723,10 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_stage_change",
   ],
   outreach: [
+    "get_social_workspace",
+    "prepare_social_week",
+    "preview_social_change",
+    "propose_social_change",
     ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
     ...TODAY_TOOL_NAMES,
