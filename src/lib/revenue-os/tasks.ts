@@ -78,7 +78,12 @@ export async function createRevenueTask(
     })
     .select("*")
     .single();
-  if (error?.code === "23505" && input.source === "delivery_handoff") {
+  // A concurrent writer may have won the dedupe-key race (two requests for
+  // the same idempotent action landing close together - e.g. a replayed
+  // proposal decision). Re-read before surfacing failure for any dedupeKey
+  // caller, not just delivery_handoff, so a duplicate-key conflict resolves
+  // to the winner's task instead of a 500.
+  if (error?.code === "23505" && input.dedupeKey) {
     const concurrent = await findExisting();
     if (concurrent) return { task: concurrent, deduplicated: true };
   }

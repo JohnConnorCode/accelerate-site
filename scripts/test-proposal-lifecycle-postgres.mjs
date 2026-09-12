@@ -140,6 +140,58 @@ assert.match(
   fail(command({ id: accepted, operation: "decline", patch: {}, reason: "Changed mind" })),
   /no longer/,
 );
+// Public explanations remain optional while direct admin commands still require one.
+for (const reason of [undefined, null, "  ", "\n\t"]) {
+  const publicId = seed("sent");
+  const decline = { id: publicId, operation: "decline", patch: {}, source: "public_link", reason };
+  const first = JSON.parse(sql(command(decline)));
+  assert.equal(first.proposal.status, "declined");
+  assert.equal(first.proposal.decline_reason, null);
+  assert.equal(JSON.parse(sql(command(decline))).replayed, true);
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM proposal_events WHERE proposal_id='${publicId}' AND event_type='declined';`,
+    ),
+    "1",
+  );
+  assert.match(fail(command({ ...decline, operation: "accept" })), /no longer/);
+}
+for (const reason of [undefined, null, "  ", "\n\t"]) {
+  const adminId = seed("sent");
+  assert.match(
+    fail(command({ id: adminId, operation: "decline", patch: {}, source: "admin", reason })),
+    /decline reason/,
+  );
+  assert.equal(sql(`SELECT status FROM proposals WHERE id='${adminId}';`), "sent");
+}
+for (const reason of [{ malformed: true }, 42, "x".repeat(1001)]) {
+  const malformedId = seed("sent");
+  assert.match(
+    fail(
+      command({ id: malformedId, operation: "decline", patch: {}, source: "public_link", reason }),
+    ),
+    /decline reason/,
+  );
+  assert.equal(
+    sql(`SELECT count(*) FROM proposal_lifecycle_receipts WHERE proposal_id='${malformedId}';`),
+    "0",
+  );
+}
+const explainedId = seed("sent");
+assert.equal(
+  JSON.parse(
+    sql(
+      command({
+        id: explainedId,
+        operation: "decline",
+        patch: {},
+        source: "public_link",
+        reason: "  Budget\nchanged  ",
+      }),
+    ),
+  ).proposal.decline_reason,
+  "Budget changed",
+);
 const expired = seed("sent");
 sql(`UPDATE proposals SET expires_at=now()-interval '1 hour' WHERE id='${expired}';`);
 assert.match(fail(command({ id: expired, operation: "accept", patch: {} })), /expired/);
