@@ -42,6 +42,24 @@ assert.deepEqual(getAdminBreadcrumbs("/admin/contacts/fixture"), [
   { label: "Timeline", href: "/admin/contacts/fixture" },
 ]);
 
+// Shell passes the query-qualified identity. Queries never become breadcrumb labels;
+// record links keep their query while canonical parents retain stable destinations.
+for (const query of ["?", "?view=history&return=overview"]) {
+  assert.deepEqual(getAdminBreadcrumbs(`/admin/contacts${query}`), [
+    { label: adminPageName("contacts"), href: "/admin/contacts" },
+  ]);
+  assert.deepEqual(getAdminBreadcrumbs(`/admin/contacts/fixture${query}`), [
+    { label: adminPageName("contacts"), href: "/admin/contacts" },
+    { label: "Timeline", href: `/admin/contacts/fixture${query}` },
+  ]);
+  assert.deepEqual(getAdminBreadcrumbs(`/admin/blueprints/fixture${query}`), [
+    { label: adminPageName("blueprints"), href: "/admin/blueprints" },
+  ]);
+}
+assert.deepEqual(getAdminBreadcrumbs("/admin/ai?purpose=architect&view=chat"), [
+  { label: adminPageName("architect"), href: "/admin/ai?purpose=architect" },
+]);
+
 const guidanceFile = "src/lib/admin/page-guidance.ts";
 const guidance = readFileSync(guidanceFile, "utf8");
 assert.deepEqual(
