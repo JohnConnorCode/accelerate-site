@@ -113,11 +113,18 @@ try {
             await page.goto(`${base}${demo}/contacts/${encodeURIComponent(email)}`, {
               waitUntil: "networkidle",
             });
-            await page
-              .locator('.admin-breadcrumbs a, nav[aria-label="Breadcrumb"] a')
-              .filter({ hasText: destination.label })
-              .first()
-              .waitFor();
+            if (width < 640) {
+              // Mobile details use the visible back link instead of desktop breadcrumbs.
+              await page
+                .getByRole("link", { name: "Back to contact intake", exact: true })
+                .waitFor();
+            } else {
+              await page
+                .locator('nav[aria-label="Breadcrumb"] a')
+                .filter({ hasText: destination.label })
+                .first()
+                .waitFor();
+            }
             await page.screenshot({ path: `${output}/${label}-detail.png` });
           }
           results.push({
