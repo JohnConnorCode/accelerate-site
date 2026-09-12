@@ -6,6 +6,7 @@ import { recordAudit } from "./audit";
 import { isMissingRevenueSchema, normalizeEmail, safeErrorMessage } from "./db";
 import {
   importApprovedContact,
+  businessDomain,
   inspectContactImportIdentity,
   type ApprovedImportedContact,
 } from "./identity";
@@ -681,7 +682,7 @@ export async function analyzeContactImport(
         confidence,
         raw_data: rawRow ?? { source: "AI extracted from unstructured input" },
         proposed_data: validated.data,
-        reviewed_data: validated.data,
+        reviewed_data: { ...validated.data, identityDomain: businessDomain(validated.data) },
         warnings,
         errors,
         match_reason: match.reason,
@@ -815,7 +816,7 @@ export async function saveContactImportReview(
     if (action !== "skip") action = match.status === "exact" ? "update" : "create";
     const included = Boolean(change.included) && action !== "skip" && !errors.length;
     const update = {
-      reviewed_data: validated.data,
+      reviewed_data: { ...validated.data, identityDomain: businessDomain(validated.data) },
       action,
       included,
       status: included ? "proposed" : errors.length ? "needs_review" : "skipped",

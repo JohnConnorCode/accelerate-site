@@ -136,6 +136,8 @@ export interface ApprovedImportedContact {
   industry: string | null;
   source: string | null;
   notes: string | null;
+  /** Server-normalized company identity included in the approved review digest. */
+  identityDomain?: string | null;
 }
 
 export interface ContactImportIdentityMatch {
@@ -162,7 +164,7 @@ export interface ContactImportIdentityMatch {
   companyCandidates: Array<{ id: string; name: string; domain: string | null }>;
 }
 
-function businessDomain(data: ApprovedImportedContact): string | null {
+export function businessDomain(data: ApprovedImportedContact): string | null {
   const domain = domainFromEmailOrWebsite(data.email, data.website);
   return domain && !PERSONAL_EMAIL_DOMAINS.has(domain) ? domain : null;
 }
