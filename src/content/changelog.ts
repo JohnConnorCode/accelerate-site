@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "site-studio-verified-writes",
+    slug: "site-studio-verified-writes",
+    title: "Keep Site Studio saves bound to the verified editor",
+    description:
+      "Site Studio passes the verified editor directly to its existing server write service and rechecks active workspace membership. The upgrade preserves prior migration history and restores private write permissions after the compatible application release. Saved website revisions remain installation-owner controlled; private workspace drafts keep their existing access boundary.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",

@@ -4,6 +4,8 @@ import { MemorySupabase } from "./lib/memory-supabase";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { DatabaseSiteDraftRepository } from "../src/lib/site-studio/database-store";
 import { servicePageTemplate } from "../src/lib/site-studio/templates";
+import { withSiteHostTransport } from "./lib/site-host-fixture";
+import type { AdminAuthorization } from "../src/lib/admin/auth";
 import { draftChecksum } from "../src/lib/site-studio/store";
 
 async function main() {
@@ -39,14 +41,28 @@ async function main() {
       },
     ],
   });
+  const actor: AdminAuthorization = {
+    kind: "actor",
+    isPlatformAdmin: false,
+    role: "admin",
+    user: { id: randomUUID(), email: "owner@example.test" },
+    tenant: {
+      id: tenant,
+      slug: "fixture",
+      name: "Fixture",
+      status: "active",
+      config: { modules: { "site-studio": true } },
+    },
+    database: bindTenantDatabaseForTest(mem.client as never, tenant),
+  };
+  mem.tables.tenant_memberships = [
+    { tenant_id: tenant, user_id: actor.user.id, role: "admin", status: "active" },
+  ];
   assert.throws(
-    () => new DatabaseSiteDraftRepository(mem.client as never, "owner@example.test"),
+    () => new DatabaseSiteDraftRepository({ ...actor, database: mem.client as never }),
     /tenant-bound/,
   );
-  const repo = new DatabaseSiteDraftRepository(
-    bindTenantDatabaseForTest(mem.client as never, tenant),
-    "owner@example.test",
-  );
+  const repo = new DatabaseSiteDraftRepository(actor);
   assert.equal((await repo.list()).length, 1);
   assert.equal((await repo.get(id))?.title, snapshot.title);
   let writes = 0;
@@ -59,14 +75,16 @@ async function main() {
     assert.equal(Object.hasOwn(args.p_draft as object, "expectedChecksum"), false);
     return { ...(args.p_draft as object), version: 2 };
   });
-  const result = await repo.save({
-    id,
-    expectedChecksum: snapshot.checksum,
-    title: snapshot.title,
-    slug: snapshot.slug,
-    document: doc,
-    source: "template",
-  });
+  const result = await withSiteHostTransport(mem, actor, () =>
+    repo.save({
+      id,
+      expectedChecksum: snapshot.checksum,
+      title: snapshot.title,
+      slug: snapshot.slug,
+      document: doc,
+      source: "template",
+    }),
+  );
   assert.equal(result.version, 2);
   assert.equal(writes, 1);
   mem.tables.tenants![0]!.config = { modules: { "site-studio": false } };

@@ -43,7 +43,7 @@ export const maxDuration = 180;
 export async function GET() {
   const auth = await requireAdminForModule("site-studio");
   if (auth instanceof NextResponse) return auth;
-  const drafts = (await siteDrafts(auth.database, auth.user.email ?? auth.user.id).list()).map(
+  const drafts = (await siteDrafts(auth).list()).map(
     (draft) => ({
       id: draft.id,
       slug: draft.slug,
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     const draft = await createSiteDraft(
-      siteDrafts(auth.database, auth.user.email ?? auth.user.id),
+      siteDrafts(auth),
       {
         title: input.title,
         slug: input.slug,
