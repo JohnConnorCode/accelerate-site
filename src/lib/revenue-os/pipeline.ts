@@ -1,16 +1,14 @@
 import "server-only";
+import { systemSourceForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { resolveOrCreateIdentity } from "./identity";
 import { normalizeEmail } from "./db";
 import { recordActivity } from "./activities";
-import { loadPipelineStages } from "./pipeline-stage-resolver";
 import { createDetectOverduePaymentsWork } from "./finance-coworker";
 import { createRevenueStageAuditWork } from "./finance-coworker";
 import { createDetectStaleDealsWork } from "./business-pulse-coworker";
 import { createDataQualityScanWork } from "./operations-coworker";
-
-import { requireReopenEligibility } from "./pipeline-transition-policy";
 
 export async function createOpportunity(
   supabase: SupabaseClient,
@@ -95,17 +93,27 @@ export async function createOpportunity(
   return data;
 }
 
-export async function updateOpportunityDetails(
-  supabase: SupabaseClient,
-  input: {
-    id: string;
-    actorEmail: string;
-    nextAction?: string | null;
-    nextActionAt?: string | null;
-    estimatedValue?: number | null;
-    expectedUpdatedAt?: string;
-  },
-) {
+export interface OpportunityDetailsInput {
+  id: string;
+  actorEmail: string;
+  nextAction?: string | null;
+  nextActionAt?: string | null;
+  estimatedValue?: number | null;
+  expectedUpdatedAt?: string;
+  effectKey?: string;
+}
+export interface OpportunityTransitionInput {
+  id: string;
+  to: string;
+  actorEmail: string;
+  source?: string;
+  reason?: string;
+  lossReason?: string;
+  allowTerminalReopen?: boolean;
+  sortOrder?: number;
+  effectKey?: string;
+}
+export function opportunityDetailsPatch(input: Omit<OpportunityDetailsInput, "id" | "actorEmail">) {
   const allowed: Record<string, unknown> = {};
   if (input.nextAction !== undefined) {
     const value = input.nextAction?.trim() || null;
@@ -125,150 +133,68 @@ export async function updateOpportunityDetails(
   }
   if (!Object.keys(allowed).length) throw new Error("No valid updates supplied");
 
-  const { data: before, error: beforeError } = await supabase
-    .from("opportunities")
-    .select("*")
-    .eq("id", input.id)
-    .maybeSingle();
-  if (beforeError) throw new Error(beforeError.message);
-  if (!before) throw new Error("Opportunity not found");
-  let update = supabase.from("opportunities").update(allowed).eq("id", input.id);
-  if (input.expectedUpdatedAt) update = update.eq("updated_at", input.expectedUpdatedAt);
-  const { data, error } = await update.select("*").maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data)
-    throw new Error("The opportunity changed while you were editing it. Refresh and try again.");
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: "opportunity.updated",
-    entityType: "opportunity",
-    entityId: input.id,
-    before,
-    after: data,
-  });
-  return data;
+  return allowed;
 }
 
+export async function updateOpportunityDetails(
+  supabase: SupabaseClient,
+  input: OpportunityDetailsInput,
+) {
+  const patch = opportunityDetailsPatch(input);
+  const { executePipelineChange } = await import("./action-executor");
+  return executePipelineChange(supabase, "update_opportunity_details", input.actorEmail, {
+    opportunityId: input.id,
+    patch,
+    expectedUpdatedAt: input.expectedUpdatedAt,
+    effectKey: input.effectKey,
+  });
+}
 export async function transitionOpportunity(
   supabase: SupabaseClient,
-  input: {
-    id: string;
-    to: string;
-    actorEmail: string;
-    source?: string;
-    reason?: string;
-    lossReason?: string;
-    allowTerminalReopen?: boolean;
-    /** Position within the target column (drag-and-drop); omitted keeps the
-     * existing sort_order untouched, e.g. for non-drag stage changes. */
-    sortOrder?: number;
-  },
+  input: OpportunityTransitionInput,
 ) {
-  const { data: current, error: readError } = await supabase
-    .from("opportunities")
-    .select("id, tenant_id, stage, probability, won_value, estimated_value, loss_reason")
-    .eq("id", input.id)
-    .maybeSingle();
-  if (readError) throw new Error(readError.message);
-  if (!current) throw new Error("Opportunity not found");
+  const { executePipelineChange } = await import("./action-executor");
+  const { id, to, actorEmail, ...details } = input;
+  return executePipelineChange(supabase, "transition_opportunity", actorEmail, {
+    opportunityId: id,
+    stage: to,
+    ...details,
+  });
+}
 
-  const stages = await loadPipelineStages(supabase, current.tenant_id);
-  const canonicalFrom = stages.canonicalStage(current.stage);
-  if (!canonicalFrom) throw new Error(`Invalid pipeline stage: ${current.stage}`);
-  const canonicalTo = stages.canonicalStage(input.to);
-  if (!canonicalTo) throw new Error(`Cannot move an opportunity to unknown stage ${input.to}`);
-
-  const fromMeta = stages.getMeta(canonicalFrom)!;
-  const toMeta = stages.getMeta(canonicalTo)!;
-
-  requireReopenEligibility(
-    fromMeta.role,
-    toMeta.role,
-    canonicalFrom,
-    canonicalTo,
-    input.reason,
-    Boolean(input.allowTerminalReopen),
-  );
-  if (toMeta.role === "lost" && !input.lossReason?.trim()) {
-    throw new Error("A loss reason is required when closing an opportunity as lost");
+/** The queue and bound system adapters share this atomic domain effect. */
+export async function applyPipelineEffect(
+  supabase: SupabaseClient,
+  actionType: string,
+  payload: Record<string, unknown>,
+  actorEmail: string,
+  actionId: string | null,
+) {
+  const systemSource = actionId === null ? systemSourceForDatabase(supabase) : null;
+  if (actionId === null && !systemSource) throw new Error("Bound tenant system context required");
+  const { data, error } = await supabase.rpc("apply_pipeline_action", {
+    p_action_id: actionId,
+    p_operation: actionType,
+    p_payload: payload,
+    p_actor: actorEmail,
+    p_system_source: systemSource,
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.opportunity) throw new Error("Pipeline effect returned no opportunity receipt");
+  if (data.changed && actionType === "transition_opportunity") {
+    if (data.toRole === "won") {
+      createDetectOverduePaymentsWork(supabase).catch(() => {});
+      createDataQualityScanWork(supabase).catch(() => {});
+    } else if (data.toRole === "lost") {
+      createDetectStaleDealsWork(supabase).catch(() => {});
+      createRevenueStageAuditWork(supabase).catch(() => {});
+      createDataQualityScanWork(supabase).catch(() => {});
+    } else if (["proposal", "negotiation"].includes(data.opportunity.stage)) {
+      createDetectStaleDealsWork(supabase).catch(() => {});
+      createRevenueStageAuditWork(supabase).catch(() => {});
+    }
   }
-
-  const now = new Date().toISOString();
-  const patch: Record<string, unknown> = {
-    stage: canonicalTo,
-    probability: toMeta.probability,
-    last_activity_at: now,
-    closed_at: toMeta.role !== "open" ? now : null,
-  };
-  if (toMeta.role === "lost") patch.loss_reason = input.lossReason!.trim();
-  else patch.loss_reason = null;
-  if (toMeta.role === "won" && Number(current.won_value || 0) === 0)
-    patch.won_value = Number(current.estimated_value || 0);
-  if (Number.isFinite(input.sortOrder)) patch.sort_order = input.sortOrder;
-
-  const { data: updated, error: updateError } = await supabase
-    .from("opportunities")
-    .update(patch)
-    .eq("id", input.id)
-    .eq("stage", current.stage)
-    .select("*")
-    .maybeSingle();
-  if (updateError) throw new Error(updateError.message);
-  if (!updated)
-    throw new Error("The opportunity changed while you were editing it. Refresh and try again.");
-
-  await Promise.all([
-    supabase.from("stage_events").insert({
-      opportunity_id: input.id,
-      from_stage: current.stage,
-      to_stage: canonicalTo,
-      source: input.source ?? "admin",
-      actor_email: input.actorEmail,
-      reason: input.reason ?? null,
-      metadata: input.lossReason ? { loss_reason: input.lossReason } : {},
-    }),
-    recordAudit(supabase, {
-      actorEmail: input.actorEmail,
-      action: "opportunity.stage_changed",
-      entityType: "opportunity",
-      entityId: input.id,
-      before: current,
-      after: updated,
-      metadata: { reason: input.reason ?? null },
-    }),
-    recordActivity(supabase, {
-      activityType: "opportunity_stage_changed",
-      title: `Opportunity moved to ${toMeta.label}`,
-      summary: input.reason?.trim() || null,
-      opportunityId: input.id,
-      source: input.source ?? "admin",
-      actorEmail: input.actorEmail,
-      externalId: `opportunity:${input.id}:stage:${canonicalFrom}:${canonicalTo}:${now}`,
-      metadata: {
-        from_stage: canonicalFrom,
-        to_stage: canonicalTo,
-        loss_reason: input.lossReason?.trim() || null,
-      },
-      occurredAt: now,
-    }),
-  ]);
-
-  // Trigger relevant coworker work based on the transition role.
-  // These are fire-and-forget — the transition must succeed regardless.
-  if (toMeta.role === "won") {
-    createDetectOverduePaymentsWork(supabase).catch(() => {});
-    createDataQualityScanWork(supabase).catch(() => {});
-  } else if (toMeta.role === "lost") {
-    createDetectStaleDealsWork(supabase).catch(() => {});
-    createRevenueStageAuditWork(supabase).catch(() => {});
-    createDataQualityScanWork(supabase).catch(() => {});
-  } else if (canonicalTo === "proposal" || canonicalTo === "negotiation") {
-    // High-value stage entry — pulse should re-evaluate pipeline health.
-    createDetectStaleDealsWork(supabase).catch(() => {});
-    createRevenueStageAuditWork(supabase).catch(() => {});
-  }
-
-  return updated;
+  return data.opportunity;
 }
 
 export function transitionStatusFromError(error: unknown): number {

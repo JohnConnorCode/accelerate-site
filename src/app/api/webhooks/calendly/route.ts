@@ -219,6 +219,7 @@ export async function handleCalendlyWebhook(
         to: "booked",
         actorEmail: "calendly",
         source: "calendly_webhook",
+        effectKey: `calendly:${receiptId}:pipeline`,
         reason: "Calendly booking created",
       });
     } catch (error) {
@@ -328,6 +329,7 @@ export async function handleCalendlyWebhook(
           to: "qualified",
           actorEmail: "calendly",
           source: "calendly_webhook",
+          effectKey: `calendly:${receiptId}:pipeline`,
           reason: "Calendly invitee canceled",
         });
       } catch (error) {

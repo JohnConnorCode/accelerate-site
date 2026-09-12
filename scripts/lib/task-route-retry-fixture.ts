@@ -4,6 +4,10 @@ import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { NextRequest, NextResponse } from "next/server";
 import { AuthorizedMemorySupabase } from "./autonomy-fixture";
+import {
+  transitionOpportunity,
+  transitionStatusFromError,
+} from "../../src/lib/revenue-os/pipeline";
 import { createRevenueTask } from "../../src/lib/revenue-os/tasks";
 
 // Execute the actual adapters with explicit auth/transition boundaries. Task
@@ -15,6 +19,20 @@ export async function testTaskRouteRetries() {
     const mem = new AuthorizedMemorySupabase({
       [table]: [{ id, stage: "showed", email: "lead@example.test", contact_name: "Lead" }],
     });
+    mem.tables.kanban_columns = [
+      {
+        board_key: "pipeline",
+        column_key: "meeting",
+        label: "Meeting",
+        metadata: { role: "open", probability: 55 },
+      },
+      {
+        board_key: "pipeline",
+        column_key: "proposal",
+        label: "Proposal",
+        metadata: { role: "open", probability: 70 },
+      },
+    ];
     let fail = true;
     const imports: Record<string, unknown> = {
       "next/server": { NextRequest, NextResponse },
@@ -34,14 +52,7 @@ export async function testTaskRouteRetries() {
           tenant: { id },
         }),
       },
-      "@/lib/revenue-os/pipeline": {
-        transitionOpportunity: async (_db: unknown, input: { to: string }) => {
-          const row = mem.tables[table]![0]!;
-          row.stage = input.to;
-          return row;
-        },
-        transitionStatusFromError: () => 409,
-      },
+      "@/lib/revenue-os/pipeline": { transitionOpportunity, transitionStatusFromError },
       "@/lib/email/booking": {},
       "@/config/tenant": {
         tenant: { playbooks: [] },
@@ -92,6 +103,18 @@ export async function testTaskRouteRetries() {
     mem.rows("tasks")[0]!.status = "completed";
     assert.equal((await exports.PATCH!(request())).status, 200);
     assert.equal(mem.rows("tasks").length, 1, "Retry preserves completed follow-up identity");
+    if (route === "bookings") {
+      assert.equal(
+        mem.rows("stage_events").length,
+        1,
+        "Same-stage retry creates no extra pipeline effect",
+      );
+      assert.equal(
+        mem.rpcCalls.filter((call) => call.name === "apply_pipeline_action").length,
+        3,
+        "Actual booking adapter reaches canonical pipeline executor on each attempt",
+      );
+    }
   }
   console.log(
     "PASS: actual booking/lead adapters report partial failures and retry without duplicate tasks.",

@@ -73,12 +73,19 @@ export async function proposeAction(
   },
 ) {
   // Capture target state when proposing, never when approving an old proposal.
-  if (["update_task", "delete_task", "update_next_action"].includes(input.actionType)) {
-    const table = input.actionType === "update_next_action" ? "opportunities" : "tasks";
-    const id =
-      input.actionType === "update_next_action"
-        ? input.payload.opportunityId
-        : input.payload.taskId;
+  if (
+    [
+      "update_task",
+      "delete_task",
+      "update_next_action",
+      "transition_opportunity",
+      "update_opportunity_details",
+    ].includes(input.actionType)
+  ) {
+    const table = ["update_task", "delete_task"].includes(input.actionType)
+      ? "tasks"
+      : "opportunities";
+    const id = table === "opportunities" ? input.payload.opportunityId : input.payload.taskId;
     const { data, error } = await supabase.from(table).select("*").eq("id", id).maybeSingle();
     if (error || !data) throw new Error("Proposal target is unavailable");
     if (
@@ -87,6 +94,23 @@ export async function proposeAction(
     )
       throw new Error("Record changed since preview; prepare a new proposal");
     input = { ...input, payload: { ...input.payload, expectedState: structuredClone(data) } };
+  }
+  if (input.actionType === "transition_opportunity") {
+    const { data, error } = await supabase
+      .from("kanban_columns")
+      .select("column_key,label,metadata")
+      .eq("board_key", "pipeline")
+      .order("column_key");
+    if (error) throw new Error(error.message);
+    if (
+      input.payload.expectedPipeline !== undefined &&
+      !isDeepStrictEqual(input.payload.expectedPipeline, data ?? [])
+    )
+      throw new Error("Pipeline stages changed since preview; prepare a new proposal");
+    input = {
+      ...input,
+      payload: { ...input.payload, expectedPipeline: structuredClone(data ?? []) },
+    };
   }
   // Learned observations remain reviewable context. Authority is evaluated
   // from structured autonomy policies at execution, never from prose keywords.

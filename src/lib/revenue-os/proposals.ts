@@ -310,6 +310,7 @@ async function syncOpportunity(
   await transitionOpportunity(supabase, {
     id: String(proposal.opportunity_id),
     to,
+    effectKey: `proposal:${proposal.id}:decision:${decision}:pipeline`,
     actorEmail,
     source,
     reason: decision === "accepted" ? "Client accepted proposal" : "Client declined proposal",

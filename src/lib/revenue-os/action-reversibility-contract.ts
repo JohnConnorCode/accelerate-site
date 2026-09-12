@@ -11,6 +11,13 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "update_opportunity_details",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "A new reviewed detail update restores prior values against current state; no automatic inverse is promised.",
+  },
+  {
     actionType: "today_view_change",
     impact: "internal_write",
     reversibility: "compensable",

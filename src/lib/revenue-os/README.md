@@ -124,7 +124,7 @@ remaining manifest-policy work.
 
 - New person/business matching extends `identity.ts`.
 - New import format or contact cleanup policy extends `contact-imports.ts`; approved identity writes still extend `identity.ts`.
-- New pipeline movement extends `pipeline.ts`.
+- New pipeline movement extends `pipeline.ts`. Its transition/detail adapters dispatch through `action-executor.ts`; `apply_pipeline_action` owns atomic authority, captured state, live stage rules and domain receipts for both approved actions and bound system sources.
 - New task source extends `tasks.ts`. Shared task transition validation lives in
   `operator-task-patch.ts` and is reused by the fictional runtime. Today projects
   source identities through `operator-attention.ts`; `/admin/work` reads the same

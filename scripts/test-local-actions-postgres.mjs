@@ -323,6 +323,234 @@ try {
     ),
     "missing source",
   );
+  const pipelineColumns = () =>
+    JSON.parse(
+      sql(
+        `SELECT jsonb_agg(jsonb_build_object('column_key',column_key,'label',label,'metadata',metadata) ORDER BY column_key) FROM kanban_columns WHERE tenant_id='${a}' AND board_key='pipeline';`,
+      ),
+    );
+  const pipelineState = () =>
+    JSON.parse(sql(`SELECT to_jsonb(o) FROM opportunities o WHERE id='${old.id}';`));
+  const stagePayload = (stageName, extra = {}) => ({
+    opportunityId: old.id,
+    stage: stageName,
+    expectedState: pipelineState(),
+    expectedPipeline: pipelineColumns(),
+    ...extra,
+  });
+  const pipelineCall = (id, operation, payload, asSystem = false, actor = "owner@example.test") =>
+    (asSystem ? machineContext : context()) +
+    `SELECT apply_pipeline_action(${id ? quote(id) : "NULL"},${quote(operation)},${quote(JSON.stringify(payload))}::jsonb,${quote(actor)},${asSystem ? "'native-pipeline'" : "NULL"});`;
+  sql(`UPDATE opportunities SET stage='qualified' WHERE id='${old.id}';`);
+  const move = stagePayload("proposal", {
+    source: "admin_bookings",
+    reason: "Reviewed pipeline move",
+    sortOrder: 2.5,
+  });
+  const moveId = stage("transition_opportunity", move);
+  const moved = JSON.parse(sql(pipelineCall(moveId, "transition_opportunity", move)));
+  assert.equal(moved.opportunity.stage, "proposal");
+  assert.equal(Number(moved.opportunity.sort_order), 2.5);
+  assert.equal(
+    JSON.parse(sql(pipelineCall(moveId, "transition_opportunity", move))).changed,
+    false,
+    "exact queue replay returns saved effect",
+  );
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM stage_events WHERE opportunity_id='${old.id}' AND metadata->>'actionId'='${moveId}';`,
+    ),
+    "1",
+  );
+  assert.equal(
+    sql(`SELECT source FROM stage_events WHERE metadata->>'actionId'='${moveId}';`),
+    "admin_bookings",
+  );
+  denied(
+    pipelineCall(moveId, "transition_opportunity", move, false, "forged@example.test"),
+    "pipeline replay actor binding",
+  );
+  const changedColumns = stagePayload("meeting");
+  const changedColumnsId = stage("transition_opportunity", changedColumns);
+  sql(
+    `UPDATE kanban_columns SET label=label||' changed' WHERE tenant_id='${a}' AND board_key='pipeline' AND column_key='meeting';`,
+  );
+  denied(
+    pipelineCall(changedColumnsId, "transition_opportunity", changedColumns),
+    "pipeline stage configuration changed since approval",
+  );
+  const stalePipeline = stagePayload("meeting");
+  const stalePipelineId = stage("transition_opportunity", stalePipeline);
+  sql(`UPDATE opportunities SET next_action='Concurrent change' WHERE id='${old.id}';`);
+  denied(
+    pipelineCall(stalePipelineId, "transition_opportunity", stalePipeline),
+    "full pipeline record state binding",
+  );
+  const detail = {
+    opportunityId: old.id,
+    expectedState: pipelineState(),
+    patch: { next_action: null, next_action_at: null, estimated_value: 1234 },
+  };
+  const detailId = stage("update_opportunity_details", detail);
+  const detailed = JSON.parse(sql(pipelineCall(detailId, "update_opportunity_details", detail)));
+  assert.equal(detailed.opportunity.next_action, null);
+  assert.equal(detailed.opportunity.next_action_at, null);
+  assert.equal(Number(detailed.opportunity.estimated_value), 1234);
+  assert.equal(
+    sql(`SELECT reversibility FROM action_queue WHERE id='${detailId}';`),
+    "compensable",
+  );
+  const revokedMove = stagePayload("meeting");
+  const revokedMoveId = stage("transition_opportunity", revokedMove);
+  sql(
+    `INSERT INTO autonomy_policies(tenant_id,action_key,label,level,source) VALUES('${a}','transition_opportunity','Native pipeline','prohibited','system');`,
+  );
+  denied(
+    pipelineCall(revokedMoveId, "transition_opportunity", revokedMove),
+    "revoked pipeline policy before apply",
+  );
+  sql(
+    `DELETE FROM autonomy_policies WHERE tenant_id='${a}' AND action_key='transition_opportunity';`,
+  );
+  const systemMove = stagePayload("meeting", {
+    source: "calendly_webhook",
+    effectKey: "calendly-native-event:created",
+    reason: "Verified booking",
+  });
+  denied(
+    context() +
+      `SELECT apply_pipeline_action(NULL,'transition_opportunity',${quote(JSON.stringify(systemMove))}::jsonb,'owner@example.test','spoofed-system');`,
+    "pipeline system provenance cannot be caller text",
+  );
+  assert.equal(
+    JSON.parse(sql(pipelineCall(null, "transition_opportunity", systemMove, true, "calendly")))
+      .changed,
+    true,
+  );
+  const systemReplay = stagePayload("meeting", {
+    source: "calendly_webhook",
+    effectKey: "calendly-native-event:created",
+    reason: "Verified booking",
+  });
+  assert.equal(
+    JSON.parse(sql(pipelineCall(null, "transition_opportunity", systemReplay, true, "calendly")))
+      .changed,
+    false,
+  );
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM stage_events WHERE opportunity_id='${old.id}' AND source='calendly_webhook';`,
+    ),
+    "1",
+  );
+  sql(`UPDATE opportunities SET stage='qualified' WHERE id='${old.id}';`);
+  assert.equal(
+    JSON.parse(sql(pipelineCall(null, "transition_opportunity", systemReplay, true, "calendly")))
+      .opportunity.stage,
+    "meeting",
+    "Replay returns original receipt",
+  );
+  assert.equal(
+    pipelineState().stage,
+    "qualified",
+    "Source replay never overwrites an intervening change",
+  );
+  denied(
+    pipelineCall(
+      null,
+      "transition_opportunity",
+      { ...systemReplay, reason: "Different source intent" },
+      true,
+      "calendly",
+    ),
+    "source effect key binds exact intent",
+  );
+  denied(
+    pipelineCall(null, "transition_opportunity", systemReplay, true, "different-actor"),
+    "source effect key binds original actor",
+  );
+  denied(
+    pipelineCall(
+      null,
+      "transition_opportunity",
+      { ...systemReplay, effectKey: null },
+      true,
+      "calendly",
+    ),
+    "source effect key required",
+  );
+  denied(
+    context() +
+      `INSERT INTO audit_log(tenant_id,actor_email,action,entity_type,entity_id,metadata) VALUES('${a}','owner@example.test','pipeline.system_receipt','opportunity','${old.id}','{}');`,
+    "authenticated cannot forge system receipt",
+  );
+  denied(
+    context() +
+      `UPDATE audit_log SET action='pipeline.system_receipt' WHERE action='opportunity.stage_changed' AND entity_id='${old.id}';`,
+    "authenticated cannot transform ordinary audit into system receipt",
+  );
+  assert.equal(
+    sql(
+      context() +
+        `WITH changed AS (UPDATE audit_log SET actor_email='forged' WHERE action='pipeline.system_receipt' RETURNING id) SELECT count(*) FROM changed;`,
+    ),
+    "0",
+    "system receipt cannot be edited by authenticated",
+  );
+  assert.equal(
+    sql(
+      context() +
+        `WITH removed AS (DELETE FROM audit_log WHERE action='pipeline.system_receipt' RETURNING id) SELECT count(*) FROM removed;`,
+    ),
+    "0",
+    "system receipt cannot be deleted by authenticated",
+  );
+  const closed = stagePayload("won");
+  const closeId = stage("transition_opportunity", closed);
+  sql(pipelineCall(closeId, "transition_opportunity", closed));
+  const reopen = stagePayload("meeting", { reason: "Reviewed reopen" });
+  const reopenId = stage("transition_opportunity", reopen);
+  denied(
+    pipelineCall(reopenId, "transition_opportunity", reopen),
+    "terminal reopen requires explicit policy",
+  );
+  const allowedReopen = stagePayload("meeting", {
+    reason: "Reviewed reopen",
+    allowTerminalReopen: true,
+  });
+  const allowedReopenId = stage("transition_opportunity", allowedReopen);
+  assert.equal(
+    JSON.parse(sql(pipelineCall(allowedReopenId, "transition_opportunity", allowedReopen)))
+      .opportunity.closed_at,
+    null,
+  );
+  const rollbackMove = stagePayload("proposal", { reason: "Atomic pipeline rollback" });
+  const rollbackMoveId = stage("transition_opportunity", rollbackMove);
+  sql(
+    `CREATE FUNCTION public.fail_pipeline_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action='opportunity.stage_changed' AND NEW.entity_id='${old.id}' THEN RAISE EXCEPTION 'injected pipeline audit failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER native_pipeline_audit_failure BEFORE INSERT ON audit_log FOR EACH ROW EXECUTE FUNCTION public.fail_pipeline_audit();`,
+  );
+  denied(
+    pipelineCall(rollbackMoveId, "transition_opportunity", rollbackMove),
+    "pipeline audit failure rolls back effect",
+  );
+  assert.equal(pipelineState().stage, "meeting");
+  assert.equal(
+    sql(`SELECT count(*) FROM stage_events WHERE metadata->>'actionId'='${rollbackMoveId}';`),
+    "0",
+  );
+  sql(
+    `DROP TRIGGER native_pipeline_audit_failure ON audit_log; DROP FUNCTION public.fail_pipeline_audit();`,
+  );
+  assert.equal(
+    JSON.parse(sql(pipelineCall(rollbackMoveId, "transition_opportunity", rollbackMove)))
+      .opportunity.stage,
+    "proposal",
+  );
+  denied(
+    context(b) +
+      `SELECT apply_pipeline_action('${rollbackMoveId}','transition_opportunity',${quote(JSON.stringify(rollbackMove))}::jsonb,'owner@example.test',NULL);`,
+    "pipeline cross tenant receipt unavailable",
+  );
   sql(`UPDATE tenant_memberships SET status='revoked' WHERE tenant_id='${a}' AND user_id='${u}';`);
   denied(call(failId, failPayload, true), "revoked member even on undo replay");
   assert.equal(sql(`SELECT prosecdef FROM pg_proc WHERE proname='apply_local_action';`), "f");
@@ -332,6 +560,10 @@ try {
       proofs: [
         "full-business-catalog-twice",
         "four-seeded-inverses",
+        "pipeline-owner-atomic-authority-state-and-replay",
+        "pipeline-live-column-and-terminal-policy",
+        "pipeline-source-provenance-and-null-details",
+        "pipeline-audit-rollback-and-retry",
         "system-provenance-and-permanent-dedupe",
         "exact-parent-task-membership-and-key",
         "assignment-and-activity-preserved",

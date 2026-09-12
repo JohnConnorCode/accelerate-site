@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
       to: "calendar_viewed",
       actorEmail: "roofing_page",
       source: "roofing_page",
+      effectKey: `qualifier-calendar-viewed:${opportunity.id}`,
       reason: "Qualification page viewed",
     });
   } catch (error) {

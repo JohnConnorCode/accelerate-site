@@ -70,6 +70,7 @@ const ACTION_CAPABILITIES: Record<string, string> = {
   bulk_suppress_contacts: "crm.write",
   bulk_enroll_contacts: "crm.write",
   transition_opportunity: "crm.write",
+  update_opportunity_details: "crm.write",
   update_next_action: "crm.write",
   create_task: "tasks.create",
   update_task: "tasks.write",

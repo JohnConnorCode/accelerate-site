@@ -1,156 +1,19 @@
+import { proposeAction } from "../src/lib/revenue-os/actions";
+import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { transitionOpportunity, transitionStatusFromError } from "../src/lib/revenue-os/pipeline";
+import {
+  transitionOpportunity,
+  transitionStatusFromError,
+  applyPipelineEffect,
+} from "../src/lib/revenue-os/pipeline";
 
 type Row = Record<string, unknown>;
 
-type QueryResult = {
-  data: Row[] | Row | null;
-  error: { code?: string; message: string } | null;
-};
-
-type ReadSnapshot = {
-  table: string;
-  rows: Row[];
-  rawRows: Row[];
-};
-
-type ReadHook = (snapshot: ReadSnapshot) => void;
-
-class MemoryQuery implements PromiseLike<QueryResult> {
-  private filters: Array<(row: Row) => boolean> = [];
-  private operation: "read" | "insert" | "update" = "read";
-  private payload: Row | Row[] | null = null;
-  private one = false;
-  private sort: { column: string; ascending: boolean } | null = null;
-
-  constructor(
-    private readonly db: MemorySupabase,
-    private readonly table: string,
-    private readonly onRead?: ReadHook,
-  ) {}
-
-  select() {
-    return this;
-  }
-
-  eq(column: string, value: unknown) {
-    this.filters.push((row) => row[column] === value);
-    return this;
-  }
-
-  order(column: string, options?: { ascending?: boolean }) {
-    this.sort = { column, ascending: options?.ascending !== false };
-    return this;
-  }
-
-  maybeSingle() {
-    this.one = true;
-    return this;
-  }
-
-  single() {
-    this.one = true;
-    return this;
-  }
-
-  insert(payload: Row | Row[]) {
-    this.operation = "insert";
-    this.payload = payload;
-    return this;
-  }
-
-  update(payload: Row) {
-    this.operation = "update";
-    this.payload = payload;
-    return this;
-  }
-
-  private rowsForRead() {
-    const rows = this.db.rowsFor(this.table);
-    const matched = rows.filter((row) => this.filters.every((filter) => filter(row)));
-    if (!this.sort) return matched;
-    const { column, ascending } = this.sort;
-    return [...matched].sort(
-      (a, b) => (String(a[column]) < String(b[column]) ? -1 : 1) * (ascending ? 1 : -1),
-    );
-  }
-
-  private read(): QueryResult {
-    this.db.touched.add(this.table);
-    const rows = this.rowsForRead();
-    const snapshot = rows.map((row) => ({ ...row }));
-    this.onRead?.({ table: this.table, rows: snapshot, rawRows: rows });
-    if (this.operation === "read") {
-      const selected = snapshot;
-      return { data: this.one ? (selected[0] ?? null) : selected, error: null };
-    }
-    return { data: null, error: null };
-  }
-
-  private insertRows(): QueryResult {
-    const tableRows = this.db.rowsFor(this.table);
-    const payloads = Array.isArray(this.payload) ? this.payload : [this.payload ?? {}];
-    const inserted: Row[] = [];
-    for (const payload of payloads) {
-      const row = { ...payload, id: payload.id ?? this.db.nextId(this.table) };
-      tableRows.push(row);
-      inserted.push(row);
-    }
-    return { data: this.one ? (inserted[0] ?? null) : inserted, error: null };
-  }
-
-  private updateRows(): QueryResult {
-    const tableRows = this.db.rowsFor(this.table);
-    const matching = tableRows.filter((row) => this.filters.every((filter) => filter(row)));
-    for (const row of matching) Object.assign(row, this.payload ?? {});
-    const selected = matching.map((row) => ({ ...row }));
-    return { data: this.one ? (selected[0] ?? null) : selected, error: null };
-  }
-
-  private execute(): QueryResult {
-    if (this.operation === "insert") return this.insertRows();
-    if (this.operation === "update") return this.updateRows();
-    return this.read();
-  }
-
-  then<TResult1 = QueryResult, TResult2 = never>(
-    onfulfilled?: ((value: QueryResult) => TResult1 | PromiseLike<TResult1>) | null,
-    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
-  ) {
-    return Promise.resolve(this.execute()).then(onfulfilled, onrejected);
-  }
-}
-
-class MemorySupabase {
-  readonly touched = new Set<string>();
-  private sequence = 0;
-  constructor(
-    public readonly rows: Record<string, Row[]>,
-    private readonly onRead?: ReadHook,
-  ) {}
-
-  nextId(table: string) {
-    this.sequence += 1;
-    return `${table}-${this.sequence}`;
-  }
-
-  rowsFor(table: string) {
-    return this.rows[table] ?? (this.rows[table] = []);
-  }
-
-  from(table: string) {
-    return new MemoryQuery(this, table, this.onRead);
-  }
-}
-
-function rows(db: MemorySupabase, table: string) {
-  return db.rowsFor(table);
-}
-
-function memorySupabase(rows: Record<string, Row[]>, onRead?: ReadHook) {
-  return new MemorySupabase(rows, onRead);
-}
+import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixture";
+const rows = (db: MemorySupabase, table: string) => db.rows(table);
+const memorySupabase = (seed: Record<string, Row[]>) => new MemorySupabase(seed);
 
 /**
  * Admin-defined pipeline board rows. transitionOpportunity() resolves every
@@ -262,7 +125,7 @@ async function run() {
     kanban_columns: pipelineBoardSeed(),
   });
 
-  const lostTransition = await transitionOpportunity(db as never, {
+  const lostTransition = await transitionOpportunity(db.client, {
     id: "o1",
     to: "lost",
     actorEmail: "founder@example.com",
@@ -280,15 +143,18 @@ async function run() {
     (rows(db, "stage_events")[0]?.metadata as { loss_reason?: string } | undefined)?.loss_reason,
     "Duplicate lead source",
   );
-  assert.equal(rows(db, "audit_log").length, 1);
+  const stageAudits = rows(db, "audit_log").filter(
+    (row) => row.action === "opportunity.stage_changed",
+  );
+  assert.equal(stageAudits.length, 1);
   assert.equal(
-    (rows(db, "audit_log")[0] as { action?: string } | undefined)?.action,
+    (stageAudits[0] as { action?: string } | undefined)?.action,
     "opportunity.stage_changed",
   );
 
   await assert.rejects(
     () =>
-      transitionOpportunity(db as never, {
+      transitionOpportunity(db.client, {
         id: "o2",
         to: "lost",
         actorEmail: "founder@example.com",
@@ -300,7 +166,7 @@ async function run() {
 
   await assert.rejects(
     () =>
-      transitionOpportunity(db as never, {
+      transitionOpportunity(db.client, {
         id: "o3",
         to: "contacted",
         actorEmail: "founder@example.com",
@@ -313,7 +179,7 @@ async function run() {
 
   await assert.rejects(
     () =>
-      transitionOpportunity(db as never, {
+      transitionOpportunity(db.client, {
         id: "o3",
         to: "contacted",
         actorEmail: "founder@example.com",
@@ -324,7 +190,7 @@ async function run() {
     "Reopen must include a reason.",
   );
 
-  const reopened = await transitionOpportunity(db as never, {
+  const reopened = await transitionOpportunity(db.client, {
     id: "o3",
     to: "contacted",
     actorEmail: "founder@example.com",
@@ -335,7 +201,7 @@ async function run() {
   assert.equal(reopened.stage, "contacted");
   assert.equal(rows(db, "stage_events").at(-1)?.to_stage, "contacted");
 
-  const legacyInput = await transitionOpportunity(db as never, {
+  const legacyInput = await transitionOpportunity(db.client, {
     id: "o4",
     to: "booked",
     actorEmail: "founder@example.com",
@@ -349,7 +215,7 @@ async function run() {
   // between two recognized stages is structurally allowed (see canTransition
   // in pipeline-stage-resolver.ts). A direct open→won close succeeds and
   // derives won_value from the estimate when none was recorded.
-  const directClose = await transitionOpportunity(db as never, {
+  const directClose = await transitionOpportunity(db.client, {
     id: "o4",
     to: "won",
     actorEmail: "founder@example.com",
@@ -360,32 +226,33 @@ async function run() {
   assert.equal(directClose.won_value, 2000);
   assert.equal(rows(db, "stage_events").at(-1)?.to_stage, "won");
 
-  const staleDb = memorySupabase(
-    {
-      opportunities: [
-        {
-          id: "o6",
-          stage: "qualified",
-          probability: 40,
-          won_value: 0,
-          estimated_value: 1500,
-          loss_reason: null,
-        },
-      ],
-      stage_events: [],
-      audit_log: [],
-      kanban_columns: pipelineBoardSeed(),
-    },
-    ({ table, rawRows }) => {
-      if (table !== "opportunities") return;
-      const row = rawRows.find((entry) => entry.id === "o6");
-      if (row) row.stage = "won";
-    },
-  );
+  const staleDb = memorySupabase({
+    opportunities: [
+      {
+        id: "o6",
+        stage: "qualified",
+        probability: 40,
+        won_value: 0,
+        estimated_value: 1500,
+        loss_reason: null,
+      },
+    ],
+    stage_events: [],
+    audit_log: [],
+    kanban_columns: pipelineBoardSeed(),
+  });
 
+  const staleTransport = staleDb.client as SupabaseClient;
+  const staleClient = {
+    ...staleTransport,
+    rpc: (name: string, args: Record<string, unknown>) => {
+      if (name === "apply_pipeline_action") staleDb.rows("opportunities")[0]!.stage = "won";
+      return staleTransport.rpc(name, args);
+    },
+  } as SupabaseClient;
   await assert.rejects(
     () =>
-      transitionOpportunity(staleDb as never, {
+      transitionOpportunity(staleClient, {
         id: "o6",
         to: "meeting",
         actorEmail: "founder@example.com",
@@ -399,7 +266,7 @@ async function run() {
 
   await assert.rejects(
     () =>
-      transitionOpportunity(db as never, {
+      transitionOpportunity(db.client, {
         id: "o2",
         to: "not_a_stage",
         actorEmail: "founder@example.com",
@@ -422,6 +289,30 @@ async function run() {
     "Other transition failures map to 400 for bad request.",
   );
 
+  const beforeCalls = db.rpcCalls.length;
+  const proposed = await proposeAction(db.client, {
+    actionType: "transition_opportunity",
+    title: "Reviewed programmatic transition",
+    payload: { opportunityId: "o5", stage: "meeting", reason: "Exact reviewed move" },
+    sourceContext: "ai",
+    proposedBy: "founder@example.com",
+  });
+  const programmatic = (await approveAndExecuteAction(
+    db.client,
+    String(proposed.id),
+    "founder@example.com",
+  )) as Row;
+  assert.equal(programmatic.stage, "meeting");
+  assert.equal(
+    db.rpcCalls.slice(beforeCalls).filter((call) => call.name === "apply_pipeline_action").length,
+    1,
+    "Programmatic approval reaches the same pipeline effect as actual booking UI",
+  );
+  await assert.rejects(
+    () => applyPipelineEffect(db.client, "transition_opportunity", {}, "system", null),
+    /Bound tenant system context required/,
+    "Caller text cannot supply service provenance",
+  );
   console.log(
     JSON.stringify({
       checks: [

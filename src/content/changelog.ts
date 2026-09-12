@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "atomic-pipeline-changes",
+    slug: "atomic-pipeline-changes",
+    title: "Keep pipeline changes and their receipts together",
+    description:
+      "Manual stage changes and opportunity detail edits now use the same executor as approved proposals. Each change saves its record and history together, checks the latest authority, and refuses stale record or stage previews. Repeated booking updates preserve their source and avoid duplicate stage events. Pipeline restoration remains a newly reviewed change.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "atomic-task-execution",
     slug: "atomic-task-execution",
     title: "Keep task changes and recovery receipts together",

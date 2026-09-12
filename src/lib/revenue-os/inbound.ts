@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolvePlaybook, tenant } from "@/config/tenant";
 import { safeAttribution } from "@/lib/opportunities";
@@ -373,6 +374,7 @@ export async function ingestPlaybookQualification(
         to: targetStage,
         actorEmail: tenant.founder.systemActorEmail,
         source: matchedPlaybook.sourceTag,
+        effectKey: `qualification:${opportunity.id}:${createHash("sha256").update(JSON.stringify(input.qualification)).digest("hex")}`,
         reason: input.qualification.reason,
       })) as typeof opportunity;
     } catch (transitionError) {
