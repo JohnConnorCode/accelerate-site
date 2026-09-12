@@ -7610,6 +7610,90 @@ export const featureBacklog = [
     },
   }),
   card({
+    key: "decision-memory",
+    title: "Decision Memory: record why, supersede cleanly, surface implications",
+    workstream: "learn",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Businesses forget why they decided. A decision object records what was decided, why, by whom, when, what evidence supported it, what it superseded, and what it implies. Approving a decision surfaces conflicts with existing policies, documents and workers and offers explicit updates; nothing propagates automatically.",
+    acceptance: [
+      "A decision records what, why, owner, date, evidence, supersedes and implications",
+      "Superseded decisions link forward and stay readable as history",
+      "Approving a decision surfaces conflicts with policies, documents and workers without auto-applying",
+      "Duplicate decisions collapse onto a deterministic key; invalid input fails closed",
+    ],
+    dependencies: [
+      "Institutional Learning Inbox: propose, approve and record reusable corrections",
+      "Brain source authority: registry, tiers and trustworthy retrieval",
+    ],
+    start:
+      "src/lib/revenue-os/claims.ts for supersede mechanics; src/lib/revenue-os/audit.ts for decision receipts; src/lib/revenue-os/memory.ts for learned-policy linkage",
+    guardrails:
+      "Decisions are human-authored and human-approved; no inferred decisions. Implications are offered, never applied. No production deployment or provider sends from test fixtures.",
+    labels: ["learning", "knowledge"],
+    verification:
+      "a scoped decision-memory test covering record, supersede chain, conflict surfacing, duplicate collapse and invalid input; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run build.",
+    initiative: "Institutional Learning",
+    workSpec: {
+      businessValue:
+        "Remember why the business decided, and propagate implications by approval, not accident.",
+      currentBehavior:
+        "Decisions live in chat threads, meeting notes and memory; supersession is implicit and implications are rediscovered by accident.",
+      requiredCapabilities: [],
+      scope: [
+        "Record decisions with what, why, owner, date, evidence, supersedes and implications.",
+        "Forward-link superseded decisions and keep them readable as history.",
+        "Surface conflicts with policies, documents and workers on approval without auto-applying.",
+      ],
+      exclusions: [
+        "No inferred or automatic decisions; no automatic propagation (belongs in learning-propagation).",
+        "No new providers; no production deployment from fixtures.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/claims.ts",
+          reason: "Reuse supersede mechanics and provenance for decision lineage.",
+          revision: "d6d9831ef80040bc9be29092a4f31fda2fdc68ef",
+        },
+        {
+          path: "src/lib/revenue-os/audit.ts",
+          reason: "Record decision receipts through the audit ledger.",
+          revision: "d6d9831ef80040bc9be29092a4f31fda2fdc68ef",
+        },
+      ],
+      northstar: { phase: "B", layers: ["Remember", "Learn"], contribution: "Institutional Learning: decisions persist with reasons, lineage and explicit implications." },
+      acceptance: [
+        { id: "AC1", criterion: "Decisions record what, why, owner, date, evidence, supersedes and implications.", environment: "local" },
+        { id: "AC2", criterion: "Superseded decisions link forward and stay readable.", environment: "local" },
+        { id: "AC3", criterion: "Approval surfaces conflicts without auto-applying; duplicates collapse; invalid input fails closed.", environment: "local" },
+      ],
+      workflow: [
+        "Build the decision object with lineage and implications over audit plus supersede mechanics.",
+        "Prove record, supersede, conflict surfacing, duplicate collapse and invalid input with fixtures.",
+        "Run the named checks, attach evidence per acceptance ID and submit the exact commit for review.",
+      ],
+      failureModes: [
+        "Duplicate decisions collapse onto the idempotency key; invalid input fails closed.",
+        "Implication application without approval is refused at the service boundary.",
+      ],
+      verification: [
+        { command: "npm run verify:agent-contract", expected: "Pass.", environment: "local" },
+        { command: "npx tsc --noEmit", expected: "Exit zero.", environment: "local" },
+        { command: "npm run lint", expected: "Exit zero.", environment: "local" },
+        { command: "npm run build", expected: "Exit zero.", environment: "local" },
+      ],
+      repository: {
+        url: "https://github.com/JohnConnorCode/accelerate-site.git",
+        baseBranch: "main",
+        baseCommit: "d6d9831ef80040bc9be29092a4f31fda2fdc68ef",
+      },
+      businessValue: "Decisions persist with reasons, lineage and explicit implications.",
+      packetVersion: 2,
+    },
+  }),
+  card({
     key: "trust-graduation-engine",
     title: "Propose trust promotion on evidence and demote automatically on failure",
     workstream: "ai",
