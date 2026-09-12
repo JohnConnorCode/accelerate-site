@@ -7524,6 +7524,92 @@ export const featureBacklog = [
     },
   }),
   card({
+    key: "brain-source-authority",
+    title: "Brain source authority: registry, tiers and trustworthy retrieval",
+    workstream: "learn",
+    phase: 3,
+    status: "planned",
+    priority: "high",
+    description:
+      "Tell the model what to believe. A source registry maps each connected system to the truth domains it owns, with authority tiers, an owner, last-verified dates and applies-to scope. Retrieval orders and tags context by authority, flags conflicts instead of silently resolving them, and surfaces stale knowledge.",
+    acceptance: [
+      "A source registry maps systems to truth domains with authority tier, owner, last-verified date and applies-to scope",
+      "Retrieval orders and tags context by authority so the model knows what to believe",
+      "Conflicting sources are flagged, never silently resolved",
+      "Stale knowledge past its verification lapse is surfaced, not served as current",
+      "Duplicate registry entries collapse onto a deterministic key; invalid input fails closed",
+    ],
+    dependencies: [
+      "Institutional Learning Inbox: propose, approve and record reusable corrections",
+    ],
+    start:
+      "src/lib/revenue-os/knowledge.ts for grounded retrieval; src/lib/revenue-os/claims.ts for provenance; src/lib/revenue-os/memory.ts for authority tiers on learned policies",
+    guardrails:
+      "Authority is configured explicitly, never inferred from volume or recency. A missing registry entry fails closed to low authority, never to silent trust. No production deployment or provider sends from test fixtures.",
+    labels: ["learning", "knowledge"],
+    verification:
+      "a scoped source-authority test covering registry CRUD, tier ordering, conflict flagging, staleness surfacing, idempotent replay and invalid input; npm run verify:agent-contract; npx tsc --noEmit; npm run lint; reviewed desktop and mobile screenshots of the registry surface; npm run build.",
+    initiative: "Institutional Learning",
+    workSpec: {
+      businessValue:
+        "Tell the model what to believe: explicit source authority behind every retrieval.",
+      currentBehavior:
+        "Retrieval returns text without authority: a Slack message weighs the same as an approved policy, conflicts resolve silently, and stale knowledge serves as current.",
+      requiredCapabilities: [],
+      scope: [
+        "Register each connected system against the truth domains it owns with tier, owner, last-verified date and applies-to scope.",
+        "Order and tag retrieval context by authority so models prefer approved current information.",
+        "Flag conflicting sources instead of silently resolving them.",
+        "Surface stale knowledge past its verification lapse instead of serving it as current.",
+      ],
+      exclusions: [
+        "No automatic authority inference from volume or recency; no new providers.",
+        "Propagation of authority changes to workers belongs in learning-propagation, not here.",
+      ],
+      references: [
+        {
+          path: "src/lib/revenue-os/knowledge.ts",
+          reason: "Thread authority ordering and tagging through grounded retrieval.",
+          revision: "d6d9831ef80040bc9be29092a4f31fda2fdc68ef",
+        },
+        {
+          path: "src/lib/revenue-os/claims.ts",
+          reason: "Reuse provenance for source evidence linkage.",
+          revision: "d6d9831ef80040bc9be29092a4f31fda2fdc68ef",
+        },
+      ],
+      northstar: { phase: "B", layers: ["Remember", "Learn"], contribution: "Institutional Learning: retrieval carries explicit source authority instead of silent equivalence." },
+      acceptance: [
+        { id: "AC1", criterion: "Source registry maps systems to truth domains with tier, owner, verification and scope.", environment: "local" },
+        { id: "AC2", criterion: "Retrieval orders and tags by authority; conflicts flagged, never silently resolved.", environment: "local" },
+        { id: "AC3", criterion: "Stale knowledge is surfaced, not served as current.", environment: "local" },
+      ],
+      workflow: [
+        "Build the source registry with tiers, ownership, verification dates and scope.",
+        "Thread authority ordering, tagging, conflict flags and staleness into retrieval.",
+        "Prove registry, ordering, conflicts, staleness, replay and invalid input with fixtures.",
+        "Run the named checks, attach evidence per acceptance ID and submit the exact commit for review.",
+      ],
+      failureModes: [
+        "Unregistered sources default to low authority; ambiguous input fails closed.",
+        "Stale entries flag rather than serve; audit records registry changes.",
+      ],
+      verification: [
+        { command: "npm run verify:agent-contract", expected: "Pass.", environment: "local" },
+        { command: "npx tsc --noEmit", expected: "Exit zero.", environment: "local" },
+        { command: "npm run lint", expected: "Exit zero.", environment: "local" },
+        { command: "npm run build", expected: "Exit zero.", environment: "local" },
+      ],
+      repository: {
+        url: "https://github.com/JohnConnorCode/accelerate-site.git",
+        baseBranch: "main",
+        baseCommit: "d6d9831ef80040bc9be29092a4f31fda2fdc68ef",
+      },
+      businessValue: "Explicit source authority behind every retrieval.",
+      packetVersion: 2,
+    },
+  }),
+  card({
     key: "trust-graduation-engine",
     title: "Propose trust promotion on evidence and demote automatically on failure",
     workstream: "ai",
