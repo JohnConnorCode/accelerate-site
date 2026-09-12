@@ -190,7 +190,7 @@ BEGIN
    IF coalesce(p_payload#>>'{fillMissing,onlyWhenActionMissing}','false') NOT IN ('true','false') THEN RAISE EXCEPTION 'Invalid intake scheduling mode'; END IF;
    IF coalesce(p_payload#>>'{fillMissing,onlyWhenActionMissing}','false')='false' OR nullif(old.next_action,'') IS NULL THEN
    IF nullif(old.next_action,'') IS NULL AND p_payload->'fillMissing' ? 'next_action' THEN patch:=patch||jsonb_build_object('next_action',p_payload#>'{fillMissing,next_action}'); END IF;
-   IF old.next_action_at IS NULL AND p_payload->'fillMissing' ? 'next_action_at' THEN patch:=patch||jsonb_build_object('next_action_at',p_payload#>'{fillMissing,next_action_at}'); END IF;
+   IF (old.next_action_at IS NULL OR p_payload#>>'{fillMissing,onlyWhenActionMissing}'='true') AND p_payload->'fillMissing' ? 'next_action_at' THEN patch:=patch||jsonb_build_object('next_action_at',p_payload#>'{fillMissing,next_action_at}'); END IF;
    END IF;
   END IF;
   updated:=jsonb_populate_record(old,patch);

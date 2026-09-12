@@ -796,6 +796,61 @@ try {
   );
   assert.equal(sql(context() + "SELECT reorder_kanban_items('content','[]');"), "0");
   assert.equal(sql(machineContext + "SELECT reorder_kanban_items('features','[]');"), "0");
+  const intakeState = () =>
+    JSON.parse(sql(`SELECT to_jsonb(o) FROM opportunities o WHERE id='${opportunityCreated.id}';`));
+  sql(
+    `UPDATE opportunities SET next_action='Human follow-up',next_action_at=NULL WHERE id='${opportunityCreated.id}';`,
+  );
+  const qualificationDefaults = {
+    opportunityId: opportunityCreated.id,
+    expectedState: intakeState(),
+    patch: { qualified: true },
+    fillMissing: {
+      next_action: "Qualification follow-up",
+      next_action_at: "now",
+      onlyWhenActionMissing: true,
+    },
+  };
+  const scheduled = JSON.parse(
+    sql(
+      pipelineCall(
+        stage("update_opportunity_intake", qualificationDefaults),
+        "update_opportunity_intake",
+        qualificationDefaults,
+      ),
+    ),
+  ).opportunity;
+  assert.equal(scheduled.next_action, "Human follow-up");
+  assert.equal(scheduled.next_action_at, null);
+  sql(
+    `UPDATE opportunities SET next_action=NULL,next_action_at='2020-01-01' WHERE id='${opportunityCreated.id}';`,
+  );
+  const missingActionDefaults = { ...qualificationDefaults, expectedState: intakeState() };
+  const restoredSchedule = JSON.parse(
+    sql(
+      pipelineCall(
+        stage("update_opportunity_intake", missingActionDefaults),
+        "update_opportunity_intake",
+        missingActionDefaults,
+      ),
+    ),
+  ).opportunity;
+  assert.equal(restoredSchedule.next_action, "Qualification follow-up");
+  assert.ok(new Date(restoredSchedule.next_action_at).getUTCFullYear() > 2020);
+  const cancellationMismatch = {
+    opportunityId: opportunityCreated.id,
+    expectedState: intakeState(),
+    expectedCalendlyInviteeUri: "different-booking",
+    patch: { canceled_at: "now", scheduled_at: null },
+  };
+  denied(
+    pipelineCall(
+      stage("update_opportunity_record", cancellationMismatch),
+      "update_opportunity_record",
+      cancellationMismatch,
+    ),
+    "old cancellation must not affect different booking",
+  );
   const invalidRecord = {
     opportunityId: opportunityCreated.id,
     expectedState: JSON.parse(

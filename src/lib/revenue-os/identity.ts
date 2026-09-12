@@ -77,7 +77,18 @@ export async function findCanonicalContactByPhone(
 /** JavaScript remains the normalization owner; SQL owns the atomic identity write. */
 export function normalizedIdentityInput(input: ResolveIdentityInput) {
   const email = normalizeEmail(input.email);
-  return { ...input, email, domain: domainFromEmailOrWebsite(email, input.website) };
+  return {
+    name: input.name,
+    email,
+    domain: domainFromEmailOrWebsite(email, input.website),
+    phone: input.phone ?? null,
+    companyName: input.companyName ?? null,
+    website: input.website ?? null,
+    industry: input.industry ?? null,
+    source: input.source,
+    sourceRecordType: input.sourceRecordType ?? null,
+    sourceRecordId: input.sourceRecordId ?? null,
+  };
 }
 
 export async function resolveOrCreateIdentity(
