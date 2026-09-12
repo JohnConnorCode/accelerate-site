@@ -211,8 +211,8 @@ body.admin-notifications-open {
   --admin-accent-soft: color-mix(in srgb, var(--admin-accent) 10%, transparent);
   --admin-sidebar: #e8dfd2;
   --admin-nav-ink: #342b23;
-  --admin-nav-muted: #675b50;
-  --admin-nav-faint: #675b50;
+  --admin-nav-muted: #5e5147;
+  --admin-nav-faint: #5e5147;
   --admin-nav-hover: color-mix(in srgb, var(--admin-nav-ink) 6%, transparent);
   --admin-nav-rule: color-mix(in srgb, var(--admin-nav-ink) 10%, transparent);
   --admin-nav-active-bg: #d9c5b8;

@@ -62,7 +62,12 @@ html[data-admin-density="compact"]
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  :is(.admin-shell, .admin-overlay-token-scope) {
+  :is(
+    .admin-shell,
+    .admin-overlay-token-scope,
+    body.admin-dialog-open,
+    body.admin-notifications-open
+  ) {
     --admin-motion-fast: 0ms;
     --admin-motion-enter: 0ms;
   }

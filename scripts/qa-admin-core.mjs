@@ -353,6 +353,24 @@ try {
             await workspace.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2),
           );
           await workspace.waitForTimeout(350);
+          if (width === 1440) {
+            if (!(await workspace.evaluate(() => Boolean(window.axe))))
+              await workspace.addScriptTag({ path: require.resolve("axe-core") });
+            const audit = await workspace.evaluate(async () =>
+              window.axe.run(document.querySelector(".admin-shell"), {
+                runOnly: { type: "rule", values: ["color-contrast", "label", "button-name"] },
+              }),
+            );
+            writeFileSync(
+              `${out}/workspace-accessibility-${theme.id}.json`,
+              JSON.stringify(audit.violations, null, 2),
+            );
+            assert.equal(
+              audit.violations.length,
+              0,
+              `${theme.id} workspace: ${JSON.stringify(audit.violations)}`,
+            );
+          }
           await workspace.screenshot({
             path: `${out}/workspace-${theme.id}-${width}.png`,
             fullPage: true,
