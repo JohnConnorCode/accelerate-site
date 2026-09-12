@@ -42,7 +42,7 @@ The starter contains a fictional Harbor Operations identity in `src/config/tenan
 
 All original public assets, article collections, team biographies and work examples are omitted. Business-owned content collections start empty; editable page sections use neutral placeholders. The shared runtime, fictional admin scenarios, extension code and product documentation remain. Supply assets you have rights to publish and update your own page content before public release.
 
-A fresh starter has no hosting target and no enabled scheduler. Generate a target for your own account with the command above when ready to configure hosting. No provider credentials or recipient data are copied.
+A fresh starter has no hosting target, inherited CI workflow or scheduled hosting triggers. Configure CI and scheduler jobs explicitly in accounts you control. Generate a target for your own account with the command above when ready to configure hosting. No provider credentials or recipient data are copied.
 
 ## Verification and recovery
 

@@ -11,6 +11,7 @@ import {
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { loadInclusionManifest, starterFiles } from "./lib/neutral-distribution.mjs";
 
 const safePath = (path) =>
@@ -42,6 +43,13 @@ export function exportNeutralStarter(root, output) {
   if (inside === "" || (!inside.startsWith(`..${sep}`) && inside !== ".." && !isAbsolute(inside))) {
     throw new Error("Starter output must be outside the source checkout.");
   }
+  const sourceCommit = execFileSync("git", ["rev-parse", "HEAD"], {
+    cwd: root,
+    encoding: "utf8",
+  }).trim();
+  const sourceDirty = Boolean(
+    execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }).trim(),
+  );
   const manifest = loadInclusionManifest(root);
   const replacements = manifest.replacements || {};
   const files = starterFiles(root).filter((file) => !forbidden(file));
@@ -87,7 +95,11 @@ export function exportNeutralStarter(root, output) {
   writeFileSync(resolve(output, ".env"), "NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral\n");
   writeFileSync(
     resolve(output, "neutral-starter-receipt.json"),
-    JSON.stringify({ schemaVersion: 1, profile: "neutral", files: receipts }, null, 2) + "\n",
+    JSON.stringify(
+      { schemaVersion: 1, profile: "neutral", sourceCommit, sourceDirty, files: receipts },
+      null,
+      2,
+    ) + "\n",
   );
   return { output, files: receipts.length, receipt: "neutral-starter-receipt.json" };
 }

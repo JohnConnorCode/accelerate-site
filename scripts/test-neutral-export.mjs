@@ -34,6 +34,20 @@ try {
   file("public/customer.jpg", "PRIVATE MEDIA");
   file(".env.local", "PRIVATE TEST SECRET");
   execFileSync("git", ["add", "."], { cwd: root });
+  execFileSync(
+    "git",
+    [
+      "-c",
+      "user.name=Fixture",
+      "-c",
+      "user.email=fixture@example.com",
+      "commit",
+      "--quiet",
+      "-m",
+      "Fixture",
+    ],
+    { cwd: root },
+  );
   file("unknown.txt", "untracked data");
   const output = join(temp, "starter");
   exportNeutralStarter(root, output);
