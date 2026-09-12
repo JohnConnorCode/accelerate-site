@@ -109,6 +109,10 @@ prove(
       canonicalUrl: "https://harbor.test",
     });
     assert.equal(written.projectName, "harbor-os");
+    for (const canonicalUrl of ["https://ACCELERATEWITH.US/", "http://www.acceleratewith.us:80/path", "https://acceleratewith.us./"]) {
+      assert.throws(() => assertForkHosting({ ...written, canonicalUrl }), /original installation/);
+    }
+    assert.throws(() => assertForkHosting({ ...written, canonicalUrl: "https://user:pass@harbor.test" }), /without credentials/);
     const example = JSON.parse(readFileSync("deployment-target.example.json", "utf8"));
     assert.notEqual(example.projectId, original.projectId);
     const preflight = readFileSync("scripts/deployment-preflight.mjs", "utf8");

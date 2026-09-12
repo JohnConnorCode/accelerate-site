@@ -26,10 +26,17 @@ export function starterFiles(root = process.cwd()) {
 }
 
 export function assertForkHosting(target, original = loadOriginalHosting()) {
+  const host = (value) => {
+    const url = new URL(value);
+    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) {
+      throw new Error("Fork hosting requires an HTTP(S) URL without credentials.");
+    }
+    return url.hostname.toLowerCase().replace(/^www\./, "").replace(/\.$/, "");
+  };
   if (
     target.projectId === original.projectId ||
     target.teamId === original.teamId ||
-    target.canonicalUrl === original.canonicalUrl
+    host(target.canonicalUrl) === host(original.canonicalUrl)
   ) {
     throw new Error(
       "Neutral hosting cannot use the original installation project, team or canonical URL. Copy deployment-target.example.json and fill your own IDs.",

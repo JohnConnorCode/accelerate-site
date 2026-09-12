@@ -1,3 +1,4 @@
+import { distributionProfile } from "@/lib/distribution/profile";
 import { readPublicWebsite } from "@/lib/site-studio/website-public";
 import { notFound } from "next/navigation";
 import { MarketingChrome } from "@/components/layout/MarketingChrome";
@@ -7,6 +8,7 @@ export default async function MarketingLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  if (distributionProfile() === "neutral") return <>{children}</>;
   const website = await readPublicWebsite();
   if (website.mode === "unpublished") notFound();
   if (website.mode === "unavailable")

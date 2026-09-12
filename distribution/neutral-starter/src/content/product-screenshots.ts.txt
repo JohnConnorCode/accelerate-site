@@ -1,0 +1,6 @@
+// Empty business-owned content. Add only material you have rights to publish.
+import type { WorkImage } from "./work";
+export type ProductScreenshot = WorkImage & {
+    demoHref: string;
+};
+export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [];

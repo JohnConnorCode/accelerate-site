@@ -1,3 +1,5 @@
+import { tenant } from "@/config/tenant";
+import { distributionProfile } from "@/lib/distribution/profile";
 export const dynamic = "force-dynamic";
 import { readPublicWebsite } from "@/lib/site-studio/website-public";
 import { tenant } from "@/config/tenant";
@@ -16,6 +18,7 @@ const BASE_URL = tenant.brand.siteUrl.replace(/\/$/, "");
 const LAST_CONTENT_UPDATE = "2026-03-06";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  if (distributionProfile() === "neutral") return [{ url: tenant.brand.siteUrl }];
   const website = await readPublicWebsite();
   if (website.mode === "unpublished") return [];
   if (website.mode === "unavailable")

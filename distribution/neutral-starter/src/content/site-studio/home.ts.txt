@@ -1,0 +1,409 @@
+// Neutral sample content: replace these placeholders with your own business facts.
+export const homeCommandCenterContent = {
+  "eyebrow": "Configure this section",
+  "headingStart": "Configure this section",
+  "headingEnd": "Configure this section",
+  "body": "Configure this section",
+  "introduction": "Configure this section",
+  "groupLabel": "Configure this section",
+  "slides": [
+    {
+      "kind": "image",
+      "src": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder",
+      "caption": "Configure this section",
+      "width": 1400,
+      "height": 875,
+      "presentation": "interface",
+      "demoHref": "/"
+    },
+    {
+      "kind": "image",
+      "src": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder",
+      "caption": "Configure this section",
+      "width": 1400,
+      "height": 875,
+      "presentation": "interface",
+      "demoHref": "/"
+    },
+    {
+      "kind": "image",
+      "src": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder",
+      "caption": "Configure this section",
+      "width": 1400,
+      "height": 875,
+      "presentation": "interface",
+      "demoHref": "/"
+    },
+    {
+      "kind": "image",
+      "src": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder",
+      "caption": "Configure this section",
+      "width": 1400,
+      "height": 875,
+      "presentation": "interface",
+      "demoHref": "/"
+    },
+    {
+      "kind": "image",
+      "src": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder",
+      "caption": "Configure this section",
+      "width": 1400,
+      "height": 875,
+      "presentation": "interface",
+      "demoHref": "/"
+    },
+    {
+      "kind": "image",
+      "src": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder",
+      "caption": "Configure this section",
+      "width": 1400,
+      "height": 875,
+      "presentation": "interface",
+      "demoHref": "/"
+    },
+    {
+      "kind": "image",
+      "src": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder",
+      "caption": "Configure this section",
+      "width": 1400,
+      "height": 875,
+      "presentation": "interface",
+      "demoHref": "/"
+    }
+  ],
+  "links": [
+    {
+      "label": "Configure this section",
+      "href": "/"
+    },
+    {
+      "label": "Configure this section",
+      "href": "/"
+    },
+    {
+      "label": "Configure this section",
+      "href": "/"
+    }
+  ]
+};
+export const homeFaqContent = {
+  "eyebrow": "Configure this section",
+  "title": "Configure this section",
+  "questions": [
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section"
+  ],
+  "answers": [
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section"
+  ]
+};
+export const homeFinalCtaContent = {
+  "eyebrow": "Configure this section",
+  "headingStart": "Configure this section",
+  "headingEnd": "Configure this section",
+  "body": "Configure this section",
+  "ctaLabel": "Configure this section",
+  "ctaHref": "/"
+};
+export const homeHeroContent = {
+  "eyebrow": "Configure this section",
+  "prefix": "Configure this section",
+  "highlighted": "Configure this section",
+  "suffix": "Configure this section",
+  "replacedWord": "Configure this section",
+  "finalWord": "Configure this section",
+  "ctaLabel": "Configure this section",
+  "ctaHref": "/"
+};
+export const homeMarqueeContent = {
+  "items": [
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section"
+  ]
+};
+export const homePlanContent = {
+  "eyebrow": "Configure this section",
+  "heading": "Configure this section",
+  "body": "Configure this section",
+  "items": [
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section",
+    "Configure this section"
+  ],
+  "deck": {
+    "label": "Configure this section",
+    "business": "Configure this section",
+    "swipeLabel": "Configure this section",
+    "pages": [
+      {
+        "title": "Configure this section",
+        "sub": "Configure this section",
+        "rows": [
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section",
+            "mute": true
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          }
+        ],
+        "note": "Configure this section"
+      },
+      {
+        "title": "Configure this section",
+        "sub": "Configure this section",
+        "rows": [
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section",
+            "mute": true
+          }
+        ],
+        "note": "Configure this section"
+      },
+      {
+        "title": "Configure this section",
+        "sub": "Configure this section",
+        "rows": [
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          },
+          {
+            "label": "Configure this section",
+            "detail": "Configure this section",
+            "value": "Configure this section"
+          }
+        ],
+        "note": "Configure this section"
+      }
+    ]
+  },
+  "ctaLabel": "Configure this section",
+  "ctaHref": "/"
+};
+export const homeProcessContent = {
+  "eyebrow": "Configure this section",
+  "headingStart": "Configure this section",
+  "headingMiddle": "Configure this section",
+  "headingEnd": "Configure this section",
+  "body": "Configure this section",
+  "steps": [
+    {
+      "n": "01",
+      "title": "Configure this section",
+      "tag": "Configure this section",
+      "body": "Configure this section"
+    },
+    {
+      "n": "02",
+      "title": "Configure this section",
+      "tag": "Configure this section",
+      "body": "Configure this section"
+    },
+    {
+      "n": "03",
+      "title": "Configure this section",
+      "tag": "Configure this section",
+      "body": "Configure this section"
+    },
+    {
+      "n": "04",
+      "title": "Configure this section",
+      "tag": "Configure this section",
+      "body": "Configure this section"
+    }
+  ]
+};
+export const homeStatementContent = {
+  "eyebrow": "Configure this section",
+  "heading": "Configure this section",
+  "body": "Configure this section",
+  "systemsLabel": "Configure this section",
+  "systemsHref": "/",
+  "workLabel": "Configure this section",
+  "workHref": "/",
+  "productLabel": "Configure this section",
+  "productHref": "/"
+};
+export const homeSystemsContent = {
+  "eyebrow": "Configure this section",
+  "headingStart": "Configure this section",
+  "headingMiddle": "Configure this section",
+  "headingEnd": "Configure this section",
+  "body": "Configure this section",
+  "listLabel": "Configure this section",
+  "modes": [
+    {
+      "key": "strategy",
+      "label": "Configure this section",
+      "title": "Configure this section",
+      "description": "Configure this section",
+      "example": "Configure this section",
+      "href": "/"
+    },
+    {
+      "key": "build",
+      "label": "Configure this section",
+      "title": "Configure this section",
+      "description": "Configure this section",
+      "example": "Configure this section",
+      "href": "/"
+    },
+    {
+      "key": "execute",
+      "label": "Configure this section",
+      "title": "Configure this section",
+      "description": "Configure this section",
+      "example": "Configure this section",
+      "href": "/"
+    },
+    {
+      "key": "improve",
+      "label": "Configure this section",
+      "title": "Configure this section",
+      "description": "Configure this section",
+      "example": "Configure this section",
+      "href": "/"
+    }
+  ],
+  "note": "Configure this section"
+};
+export const homeTradesContent = {
+  "eyebrow": "Configure this section",
+  "headingStart": "Configure this section",
+  "headingMiddle": "Configure this section",
+  "headingEnd": "Configure this section",
+  "trades": [
+    {
+      "href": "/",
+      "name": "Your business",
+      "promise": "Configure this section",
+      "image": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder"
+    },
+    {
+      "href": "/",
+      "name": "Your business",
+      "promise": "Configure this section",
+      "image": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder"
+    },
+    {
+      "href": "/",
+      "name": "Your business",
+      "promise": "Configure this section",
+      "image": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder"
+    },
+    {
+      "href": "/",
+      "name": "Your business",
+      "promise": "Configure this section",
+      "image": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder"
+    },
+    {
+      "href": "/",
+      "name": "Your business",
+      "promise": "Configure this section",
+      "image": "/neutral-placeholder.svg",
+      "alt": "Neutral placeholder"
+    }
+  ]
+};
+export const homeWhoContent = {
+  "eyebrow": "Configure this section",
+  "headingStart": "Configure this section",
+  "headingMiddle": "Configure this section",
+  "headingEnd": "Configure this section",
+  "years": "0",
+  "yearsLabel": "Configure this section",
+  "body": "Configure this section",
+  "detail": "Configure this section",
+  "linkLabel": "Configure this section",
+  "linkHref": "/"
+};
+export const homeWorkContent = {
+  "eyebrow": "Configure this section",
+  "heading": "Configure this section",
+  "body": "Configure this section",
+  "ctaLabel": "Configure this section",
+  "ctaHref": "/"
+};

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3018";
-const output = "/tmp/accelerate-turnkey-qa";
+const neutral = process.argv.includes("--neutral");
+const output = neutral ? "/tmp/accelerate-neutral-qa" : "/tmp/accelerate-turnkey-qa";
 mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
@@ -12,6 +13,54 @@ try {
   ]) {
     const context = await browser.newContext({ viewport, reducedMotion: motion });
     const page = await context.newPage();
+    if (neutral) {
+      const escaped = [], errors = [];
+      page.on("pageerror", error => errors.push(error.message));
+      page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+      await page.route("**/*", route => {
+        const url = new URL(route.request().url());
+        if (url.origin !== new URL(base).origin) { escaped.push(url.origin + url.pathname); return route.abort(); }
+        return route.continue();
+      });
+      try {
+        assert.equal((await page.goto(base)).status(), 200);
+        await page.getByRole("heading", { name: "Harbor Operations", exact: true }).waitFor();
+        assert.equal(await page.title(), "Harbor Operations");
+        assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), "https://harbor.example");
+        await page.screenshot({ path: `${output}/${label}-entry.png`, fullPage: true });
+        await page.getByRole("link", { name: "Open your workspace", exact: true }).focus();
+        await page.keyboard.press("Enter");
+        await page.getByRole("heading", { name: "Connect your Supabase project" }).waitFor();
+        await page.screenshot({ path: `${output}/${label}-setup.png`, fullPage: true });
+        const demo = base + "/demo/command-center/northline-roofing";
+        await page.goto(demo + "/pipeline");
+        await page.getByPlaceholder("Search company, person, or email").waitFor();
+        await page.waitForFunction(() => Boolean(window.__accelerateAdminDemoRuntime));
+        assert.ok(await page.locator(".kanban-card").count() > 0, "Fictional populated pipeline");
+        await page.screenshot({ path: `${output}/${label}-populated.png`, fullPage: true });
+        await page.getByPlaceholder("Search company, person, or email").fill("no-matching-neutral-fixture-81725");
+        await page.getByText("No matching opportunities", { exact: true }).waitFor();
+        await page.screenshot({ path: `${output}/${label}-empty.png`, fullPage: true });
+        await page.goto(demo + "/branding");
+        await page.getByLabel("Display name", { exact: true }).fill("Harbor Demo Team");
+        await page.getByRole("button", { name: "Save branding", exact: true }).focus();
+        await page.keyboard.press("Enter");
+        await page.getByRole("button", { name: "Save branding", exact: true }).and(page.locator(":disabled")).waitFor();
+        await page.reload();
+        await page.getByLabel("Display name", { exact: true }).waitFor();
+        assert.equal(await page.getByLabel("Display name", { exact: true }).inputValue(), "Harbor Demo Team");
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true);
+        await page.screenshot({ path: `${output}/${label}-branding.png`, fullPage: true });
+        assert.deepEqual(escaped, [], "No escaped external requests, including original installation domains");
+        assert.deepEqual(errors, [], "No browser console or runtime errors");
+        writeFileSync(`${output}/${label}.json`, JSON.stringify({ passed: true, viewport, motion, escaped, errors, evidence: ["configured entry metadata", "setup boundary", "fictional populated pipeline", "filtered empty state", "saved demo branding survives reload"] }, null, 2));
+      } catch (error) {
+        await page.screenshot({ path: `${output}/${label}-failure.png`, fullPage: true });
+        writeFileSync(`${output}/${label}.json`, JSON.stringify({ passed: false, message: error.message, escaped, errors }, null, 2));
+        throw error;
+      } finally { await context.close(); }
+      continue;
+    }
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("console", (m) => {

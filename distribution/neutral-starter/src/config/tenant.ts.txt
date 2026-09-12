@@ -1,0 +1,115 @@
+import type { WorkspaceBrand } from "@/lib/revenue-os/branding-contract";
+export interface TenantBrand extends Partial<WorkspaceBrand> {
+    name: string;
+    domain: string;
+    siteUrl: string;
+    logoMark: string;
+    accentColor: string;
+    tagline: string;
+    emailFooter: string;
+}
+export interface TenantFounder {
+    name: string;
+    fullName: string;
+    email: string;
+    systemActorEmail: string;
+}
+export interface TenantPlaybook {
+    key: string;
+    label: string;
+    industry: string;
+    sourceTag: string;
+    path: string;
+    nextAction: string;
+}
+export interface TenantCapabilities {
+    publicBooking: boolean;
+}
+export interface TenantConfig {
+    brand: TenantBrand;
+    founder: TenantFounder;
+    capabilities: TenantCapabilities;
+    ai: {
+        businessDescriptor: string;
+        voice: string;
+        positioning: string;
+    };
+    booking: {
+        url: string;
+        path: string;
+        schedulerUrl: string | null;
+    };
+    pipeline: {
+        stageLabels: Record<string, string>;
+    };
+    playbooks: TenantPlaybook[];
+    modules?: Partial<Record<string, boolean>>;
+    external: {
+        vercelProjectUrl: string | null;
+        supabaseProjectRef: string | null;
+    };
+}
+export const tenant: TenantConfig = {
+  "brand": {
+    "name": "Harbor Operations",
+    "domain": "harbor.example",
+    "siteUrl": "https://harbor.example",
+    "logoMark": "H",
+    "accentColor": "#2563eb",
+    "tagline": "Our business workspace",
+    "emailFooter": "Harbor Operations"
+  },
+  "founder": {
+    "name": "Owner",
+    "fullName": "Workspace Owner",
+    "email": "owner@harbor.example",
+    "systemActorEmail": "system@harbor.example"
+  },
+  "capabilities": {
+    "publicBooking": false
+  },
+  "ai": {
+    "businessDescriptor": "Harbor Operations, a fictional sample business",
+    "voice": "Be clear and factual.",
+    "positioning": "Help our team organize and complete its work."
+  },
+  "booking": {
+    "url": "https://harbor.example",
+    "path": "/",
+    "schedulerUrl": null
+  },
+  "pipeline": {
+    "stageLabels": {}
+  },
+  "playbooks": [],
+  "external": {
+    "vercelProjectUrl": null,
+    "supabaseProjectRef": null
+  }
+};
+export function resolvePlaybook(key?: string | null): TenantPlaybook {
+    const configured = tenant.playbooks.find((playbook) => playbook.key === key);
+    if (configured)
+        return configured;
+    if (!key && tenant.playbooks[0])
+        return tenant.playbooks[0];
+    const resolved = key || "roofing";
+    return {
+        key: resolved,
+        label: resolved.charAt(0).toUpperCase() + resolved.slice(1),
+        industry: resolved,
+        sourceTag: `${resolved}_qualifier`,
+        path: `/${resolved}`,
+        nextAction: `Respond to qualified ${resolved} audit request`,
+    };
+}
+export const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL || tenant.brand.siteUrl;
+export const adminEmail = () => process.env.ADMIN_EMAIL || tenant.founder.email;
+export const fromEmail = () => process.env.RESEND_FROM_EMAIL || `${tenant.brand.name} <${tenant.founder.email}>`;
+export const analyticsDomain = () => process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || tenant.brand.domain;
+export function supabaseDashboard(path = ""): string {
+    const ref = tenant.external.supabaseProjectRef;
+    return ref
+        ? `https://supabase.com/dashboard/project/${ref}${path}`
+        : "https://supabase.com/dashboard/projects";
+}
