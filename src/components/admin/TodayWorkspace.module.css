@@ -33,6 +33,7 @@
     background var(--admin-motion-fast),
     box-shadow var(--admin-motion-fast),
     transform var(--admin-motion-fast);
+  transition-timing-function: var(--admin-motion-ease);
 }
 .button {
   background: var(--admin-surface);
