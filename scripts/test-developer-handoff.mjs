@@ -514,6 +514,16 @@ test("credit exhaustion resumes isolated source; predecessor CLI stays fenced an
     );
     const legacyPath = join(repositoryContext(f.clone).sessions, `${f.card.id}.json`);
     const legacyToken = JSON.parse(readFileSync(legacyPath, "utf8")).claimToken;
+    // Pre-migration/manual --no-worktree sessions retained credentials but no path.
+    const attemptPath = join(
+      repositoryContext(f.clone).sessions,
+      `attempt-${first.attemptId}.json`,
+    );
+    for (const path of [legacyPath, attemptPath]) {
+      const session = JSON.parse(readFileSync(path, "utf8"));
+      session.worktree = null;
+      writeFileSync(path, JSON.stringify(session));
+    }
     writeFileSync(join(first.worktree, "README.md"), "Interrupted tracked source\n");
     writeFileSync(join(first.worktree, "new.ts"), "export const kept = true;\n");
     const checkpointFile = join(f.dir, "checkpoint.json");
@@ -525,6 +535,29 @@ test("credit exhaustion resumes isolated source; predecessor CLI stays fenced an
         remaining: ["Verify task"],
       }),
     );
+    const beforeRejectedAttachment = posts;
+    const protectedAttachment = await cli(
+      f.clone,
+      [
+        "checkpoint",
+        "--card",
+        f.card.seed_key,
+        "--attempt",
+        first.attemptId,
+        "--worktree",
+        f.clone,
+        "--checkpoint-file",
+        checkpointFile,
+      ],
+      env("old"),
+    );
+    assert.notEqual(protectedAttachment.code, 0);
+    assert.match(protectedAttachment.stderr, /WORKSPACE_PROTECTED/);
+    assert.equal(
+      posts,
+      beforeRejectedAttachment,
+      "invalid source attachment must not mutate ownership",
+    );
     await run(
       f.clone,
       [
@@ -535,9 +568,12 @@ test("credit exhaustion resumes isolated source; predecessor CLI stays fenced an
         first.attemptId,
         "--checkpoint-file",
         checkpointFile,
+        "--worktree",
+        first.worktree,
       ],
       "old",
     );
+    assert.equal(JSON.parse(readFileSync(attemptPath, "utf8")).worktree, first.worktree);
     f.card.lease_expires_at = new Date(Date.now() - 1000).toISOString();
     const requestKey = randomUUID();
     const second = await run(f.clone, ["next", "--json", "--request-key", requestKey], "new");
