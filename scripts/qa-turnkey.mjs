@@ -5,7 +5,7 @@ const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3018";
 const neutral = process.argv.includes("--neutral");
 const output = neutral ? "/tmp/accelerate-neutral-qa" : "/tmp/accelerate-turnkey-qa";
 mkdirSync(output, { recursive: true });
-async function captureNeutral(page, name) {
+async function captureNeutral(page, name, fullPage = true) {
   await page.evaluate(async () => {
     await document.fonts.ready;
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -16,7 +16,7 @@ async function captureNeutral(page, name) {
         .map((animation) => animation.finished.catch(() => undefined)),
     );
   });
-  await page.screenshot({ path: `${output}/${name}.png`, fullPage: true });
+  await page.screenshot({ path: `${output}/${name}.png`, fullPage });
 }
 const browser = await chromium.launch({ headless: true });
 try {
@@ -95,7 +95,8 @@ try {
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2),
           true,
         );
-        await captureNeutral(page, `${label}-branding`);
+        await page.getByLabel("Display name", { exact: true }).scrollIntoViewIfNeeded();
+        await captureNeutral(page, `${label}-branding`, false);
         await page.goto(base + "/docs/workspace/setup");
         await page
           .getByRole("heading", { name: "Set up a working workspace", exact: true })
