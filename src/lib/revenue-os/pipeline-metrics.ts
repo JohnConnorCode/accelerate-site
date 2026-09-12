@@ -1,7 +1,7 @@
 import type { PipelineStageResolver } from "./pipeline-stage-resolver";
 /** Shared pipeline totals use stored probabilities and configured stage roles. */
 export function pipelineMetrics(
-  rows: Array<{ stage: string; estimated_value: unknown; probability: unknown }>,
+  rows: Array<{ stage: string; estimated_value?: unknown; probability?: unknown }>,
   stages: PipelineStageResolver,
 ) {
   const open = rows.filter((row) => {
