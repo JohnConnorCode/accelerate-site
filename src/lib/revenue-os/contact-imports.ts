@@ -6,6 +6,9 @@ import { recordAudit } from "./audit";
 import { isMissingRevenueSchema, normalizeEmail, safeErrorMessage } from "./db";
 import {
   importApprovedContact,
+  businessDomain,
+  contactImportReviewRow,
+  ContactImportRowEffectError,
   inspectContactImportIdentity,
   type ApprovedImportedContact,
 } from "./identity";
@@ -681,7 +684,7 @@ export async function analyzeContactImport(
         confidence,
         raw_data: rawRow ?? { source: "AI extracted from unstructured input" },
         proposed_data: validated.data,
-        reviewed_data: validated.data,
+        reviewed_data: { ...validated.data, identityDomain: businessDomain(validated.data) },
         warnings,
         errors,
         match_reason: match.reason,
@@ -704,7 +707,7 @@ export async function analyzeContactImport(
       );
     if (inserted.error) throw new Error(inserted.error.message);
     const rows = inserted.data as ContactImportRowView[];
-    const reviewDigest = digest(rows.map(reviewDigestRow));
+    const reviewDigest = digest(rows.map(contactImportReviewRow));
     const summary = batchSummary(rows);
     const selected = rows.filter((row) => row.included && row.action !== "skip").length;
     const updated = await supabase
@@ -757,29 +760,6 @@ export async function analyzeContactImport(
   }
 }
 
-function reviewDigestRow(
-  row: Pick<
-    ContactImportRowView,
-    | "id"
-    | "row_index"
-    | "action"
-    | "included"
-    | "reviewed_data"
-    | "matched_contact_id"
-    | "matched_company_id"
-  >,
-) {
-  return {
-    id: row.id,
-    rowIndex: row.row_index,
-    action: row.action,
-    included: row.included,
-    data: row.reviewed_data,
-    matchedContactId: row.matched_contact_id,
-    matchedCompanyId: row.matched_company_id,
-  };
-}
-
 export async function saveContactImportReview(
   supabase: SupabaseClient,
   input: {
@@ -808,6 +788,10 @@ export async function saveContactImportReview(
     if (!["create", "update", "skip"].includes(change.action))
       throw new Error("Invalid import action");
     const existing = currentById.get(change.id)!;
+    if (existing.status === "imported") {
+      reviewed.push(existing);
+      continue;
+    }
     const validated = validateContactImportFields(change.data);
     const match = await inspectContactImportIdentity(supabase, validated.data);
     const errors = [...validated.errors, ...(match.status === "ambiguous" ? [match.reason] : [])];
@@ -815,7 +799,7 @@ export async function saveContactImportReview(
     if (action !== "skip") action = match.status === "exact" ? "update" : "create";
     const included = Boolean(change.included) && action !== "skip" && !errors.length;
     const update = {
-      reviewed_data: validated.data,
+      reviewed_data: { ...validated.data, identityDomain: businessDomain(validated.data) },
       action,
       included,
       status: included ? "proposed" : errors.length ? "needs_review" : "skipped",
@@ -839,7 +823,7 @@ export async function saveContactImportReview(
     reviewed.push(saved.data as ContactImportRowView);
   }
   reviewed.sort((a, b) => a.row_index - b.row_index);
-  const reviewDigest = digest(reviewed.map(reviewDigestRow));
+  const reviewDigest = digest(reviewed.map(contactImportReviewRow));
   const selected = reviewed.filter((row) => row.included && row.action !== "skip").length;
   const summary = batchSummary(reviewed);
   const batchUpdate = await supabase
@@ -881,7 +865,7 @@ export async function approveContactImport(
   if (!batch) throw new Error("Import batch not found");
   if (batch.status !== "ready") throw new Error(`A ${batch.status} batch cannot be approved`);
   const rows = batch.rows ?? [];
-  const currentDigest = digest(rows.map(reviewDigestRow));
+  const currentDigest = digest(rows.map(contactImportReviewRow));
   if (currentDigest !== batch.review_digest || input.expectedDigest !== currentDigest)
     throw new Error("The review changed. Save and inspect the latest rows before approving.");
   const selected = rows.filter((row) => row.included && row.action !== "skip");
@@ -940,31 +924,14 @@ export async function executeContactImport(
     throw new Error(
       "This batch is not approved, is stale, is already executing, or is already complete",
     );
-  await event(supabase, input.batchId, "execution_started", input.actorEmail, {
-    approval_digest: claimed.approval_digest,
-  });
   const batch = await getContactImportBatch(supabase, input.batchId);
   if (!batch) throw new Error("Import batch disappeared after claim");
   const pending = (batch.rows ?? []).filter(
     (row) => row.included && row.action !== "skip" && row.status !== "imported",
   );
-  let imported = (batch.rows ?? []).filter((row) => row.status === "imported").length;
-  let failed = 0;
   for (const row of pending) {
-    const rowClaim = await supabase
-      .from("contact_import_rows")
-      .update({ status: "importing", error: null })
-      .eq("id", row.id)
-      .eq("batch_id", input.batchId)
-      .in("status", ["proposed", "failed"])
-      .select("id")
-      .maybeSingle();
-    if (rowClaim.error || !rowClaim.data) {
-      failed++;
-      continue;
-    }
     try {
-      const result = await importApprovedContact(supabase, {
+      await importApprovedContact(supabase, {
         rowId: row.id,
         batchId: input.batchId,
         actorEmail: input.actorEmail,
@@ -973,75 +940,17 @@ export async function executeContactImport(
         expectedCompanyId: row.matched_company_id,
         data: row.reviewed_data,
       });
-      const saved = await supabase
-        .from("contact_import_rows")
-        .update({
-          status: "imported",
-          imported_contact_id: result.contactId,
-          imported_company_id: result.companyId,
-          result_summary: { replayed: result.replayed, changed_fields: result.changedFields },
-          error: null,
-          imported_at: new Date().toISOString(),
-        })
-        .eq("id", row.id);
-      if (saved.error) throw new Error(saved.error.message);
-      imported++;
-      await event(
-        supabase,
-        input.batchId,
-        "row_imported",
-        input.actorEmail,
-        {
-          action: row.action,
-          contact_id: result.contactId,
-          company_id: result.companyId,
-          replayed: result.replayed,
-        },
-        row.id,
-      );
     } catch (error) {
-      failed++;
-      const message = safeImportError(error);
-      await supabase
-        .from("contact_import_rows")
-        .update({ status: "failed", error: message })
-        .eq("id", row.id);
-      await event(
-        supabase,
-        input.batchId,
-        "row_failed",
-        input.actorEmail,
-        { error: message },
-        row.id,
-      ).catch(() => undefined);
+      // The row transaction records an effect failure with its rollback. A
+      // transport or authority refusal must not overwrite a concurrent receipt.
+      if (!(error instanceof ContactImportRowEffectError)) throw error;
     }
   }
-  const status = failed ? "partial" : "completed";
-  const summary = {
-    imported,
-    failed,
-    skipped: (batch.rows ?? []).length - imported - failed,
-    selected: claimed.selected_row_count,
-  };
-  const finished = await supabase
-    .from("contact_import_batches")
-    .update({
-      status,
-      summary,
-      error: failed ? `${failed} row${failed === 1 ? "" : "s"} need attention` : null,
-      completed_at: status === "completed" ? new Date().toISOString() : null,
-    })
-    .eq("id", input.batchId)
-    .eq("status", "executing");
-  if (finished.error) throw new Error(finished.error.message);
-  await event(supabase, input.batchId, status, input.actorEmail, summary);
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: `contact_import.${status}`,
-    entityType: "contact_import_batch",
-    entityId: input.batchId,
-    after: summary,
+  const finished = await supabase.rpc("finish_contact_import_batch", {
+    p_batch_id: input.batchId,
+    p_actor_email: input.actorEmail,
   });
+  if (finished.error) throw new Error(finished.error.message);
   return getContactImportBatch(supabase, input.batchId);
 }
 

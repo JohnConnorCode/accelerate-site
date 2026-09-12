@@ -1494,6 +1494,231 @@ try {
     "t",
   );
 
+  const importPlan = (overrides = {}, action = "create", match = null) => {
+    const data = {
+      fullName: "Import Human",
+      email: "person@import-native.test",
+      phone: "555-0100",
+      companyName: "Import Company",
+      role: "Owner",
+      website: "https://import-native.test",
+      industry: "Services",
+      source: "native-import",
+      notes: 'Keep \\" unicode 雪',
+      identityDomain: "import-native.test",
+      ...overrides,
+    };
+    const batchId = sql(
+      `INSERT INTO contact_import_batches(tenant_id,status,source_type,source_digest,created_by,approved_by,approved_at,selected_row_count) VALUES('${a}','approved','csv','native','owner@example.test','owner@example.test',now(),1) RETURNING id;`,
+    );
+    const rowId = sql(
+      `INSERT INTO contact_import_rows(tenant_id,batch_id,row_index,status,action,included,reviewed_data,matched_contact_id) VALUES('${a}','${batchId}',0,'proposed',${quote(action)},true,${quote(JSON.stringify(data))}::jsonb,${match ? quote(match) : "NULL"}) RETURNING id;`,
+    );
+    const snapshot = JSON.stringify([
+      {
+        id: rowId,
+        rowIndex: 0,
+        action,
+        included: true,
+        data,
+        matchedContactId: match,
+        matchedCompanyId: null,
+      },
+    ]);
+    const hash = createHash("sha256").update(snapshot).digest("hex");
+    sql(
+      `UPDATE contact_import_batches SET review_digest='${hash}',approval_digest='${hash}' WHERE id='${batchId}';`,
+    );
+    return { batchId, rowId, snapshot, data };
+  };
+  const importClaim = (p) =>
+    context() + `SELECT claim_contact_import_batch('${p.batchId}','owner@example.test');`;
+  const importEffect = (p, tenant = a, actor = "owner@example.test") =>
+    context(tenant, u, actor) +
+    `SELECT apply_contact_import_row('${p.batchId}','${p.rowId}',${quote(actor)},${quote(p.snapshot)});`;
+  const importedPlan = importPlan();
+  sql(importClaim(importedPlan));
+  sql(importClaim(importedPlan)); // supported re-entry after death before any effect
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM contact_import_events WHERE batch_id='${importedPlan.batchId}' AND event_type='execution_started';`,
+    ),
+    "1",
+  );
+  sql(
+    `CREATE FUNCTION public.refuse_import_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action='contact.imported' THEN RAISE EXCEPTION 'injected import receipt failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER native_import_failure BEFORE INSERT ON audit_log FOR EACH ROW EXECUTE FUNCTION public.refuse_import_audit();`,
+  );
+  assert.match(JSON.parse(sql(importEffect(importedPlan))).error, /injected import/);
+  assert.equal(
+    sql(`SELECT count(*) FROM contacts WHERE source_record_id='${importedPlan.rowId}';`),
+    "0",
+  );
+  assert.equal(
+    sql(`SELECT count(*) FROM companies WHERE source_record_id='${importedPlan.rowId}';`),
+    "0",
+  );
+  assert.equal(
+    sql(`SELECT status FROM contact_import_rows WHERE id='${importedPlan.rowId}';`),
+    "failed",
+  );
+  assert.equal(
+    JSON.parse(
+      sql(
+        context() +
+          `SELECT finish_contact_import_batch('${importedPlan.batchId}','owner@example.test');`,
+      ),
+    ).failed,
+    1,
+  );
+  sql(importClaim(importedPlan));
+  sql(
+    `DROP TRIGGER native_import_failure ON audit_log; DROP FUNCTION public.refuse_import_audit();`,
+  );
+  const importedPerson = JSON.parse(sql(importEffect(importedPlan)));
+  assert.equal(importedPerson.replayed, false);
+  assert.equal(JSON.parse(sql(importEffect(importedPlan))).contactId, importedPerson.contactId);
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM contact_import_events WHERE row_id='${importedPlan.rowId}' AND event_type='row_imported';`,
+    ),
+    "1",
+  );
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM audit_log WHERE action='contact.imported' AND entity_id='${importedPerson.contactId}';`,
+    ),
+    "1",
+  );
+  const finishImport =
+    context() +
+    `SELECT finish_contact_import_batch('${importedPlan.batchId}','owner@example.test');`;
+  assert.equal(sql(finishImport), sql(finishImport));
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM contact_import_events WHERE batch_id='${importedPlan.batchId}' AND event_type='completed';`,
+    ),
+    "1",
+  );
+  const enrichPlan = importPlan(
+    {
+      fullName: "Must Preserve Human",
+      phone: "replacement",
+      role: "replacement",
+      notes: "approved enrichment",
+    },
+    "update",
+    importedPerson.contactId,
+  );
+  sql(importClaim(enrichPlan));
+  assert.equal(JSON.parse(sql(importEffect(enrichPlan))).contactId, importedPerson.contactId);
+  assert.equal(
+    sql(
+      `SELECT full_name||':'||phone||':'||title FROM contacts WHERE id='${importedPerson.contactId}';`,
+    ),
+    "Import Human:555-0100:Owner",
+  );
+  const staleImport = importPlan({ email: "stale@import-native.test" });
+  sql(importClaim(staleImport));
+  sql(
+    `UPDATE contact_import_rows SET reviewed_data=reviewed_data||'{"phone":"changed"}' WHERE id='${staleImport.rowId}';`,
+  );
+  denied(importEffect(staleImport), "reviewed row mutation cannot retain old approval digest");
+  denied(importEffect(importedPlan, b), "import foreign tenant refusal");
+  denied(
+    importEffect(importedPlan, a, "other@example.test"),
+    "import exact actor refusal even on replay",
+  );
+  const revokedImport = importPlan({ email: "revoked@import-native.test" });
+  sql(importClaim(revokedImport));
+  sql(
+    `INSERT INTO autonomy_policies(tenant_id,action_key,label,level,source) VALUES('${a}','crm.write','Import denied','prohibited','system');`,
+  );
+  denied(importEffect(revokedImport), "import policy revoked before effect");
+  assert.equal(
+    sql(`SELECT count(*) FROM contacts WHERE source_record_id='${revokedImport.rowId}';`),
+    "0",
+  );
+  sql(`DELETE FROM autonomy_policies WHERE tenant_id='${a}' AND action_key='crm.write';`);
+  const legacyImport = importPlan({
+    identityDomain: undefined,
+    email: "legacy@import-native.test",
+  });
+  denied(
+    importClaim(legacyImport),
+    "legacy approval requires explicit re-review of normalized company identity",
+  );
+  assert.equal(
+    sql(`SELECT status FROM contact_import_batches WHERE id='${legacyImport.batchId}';`),
+    "approved",
+  );
+  const duplicateImport = importPlan({ email: "person@import-native.test" });
+  sql(importClaim(duplicateImport));
+  assert.match(JSON.parse(sql(importEffect(duplicateImport))).error, /identity changed/i);
+  assert.equal(
+    sql(`SELECT count(*) FROM contacts WHERE primary_email='person@import-native.test';`),
+    "1",
+  );
+  const concurrentImport = importPlan({ email: "concurrent@import-native.test" });
+  sql(importClaim(concurrentImport));
+  const importAttempt = (statement) =>
+    new Promise((resolve) => {
+      const child = spawn("psql", args, { stdio: ["pipe", "ignore", "ignore"] });
+      child.on("close", resolve);
+      child.stdin.end(statement);
+    });
+  await Promise.all([
+    importAttempt(importEffect(concurrentImport)),
+    importAttempt(
+      context() +
+        `SELECT finish_contact_import_batch('${concurrentImport.batchId}','owner@example.test');`,
+    ),
+  ]);
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM contact_import_batches b JOIN contact_import_rows r ON r.batch_id=b.id WHERE b.id='${concurrentImport.batchId}' AND b.status='completed' AND r.status<>'imported';`,
+    ),
+    "0",
+    "concurrent finish never claims an unfinished row completed",
+  );
+  sql(importClaim(concurrentImport));
+  assert.ok(JSON.parse(sql(importEffect(concurrentImport))).contactId);
+  sql(
+    context() +
+      `SELECT finish_contact_import_batch('${concurrentImport.batchId}','owner@example.test');`,
+  );
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM contact_import_events WHERE batch_id='${concurrentImport.batchId}' AND event_type='completed';`,
+    ),
+    "1",
+  );
+  const alternateImportContact = sql(
+    `INSERT INTO contacts(tenant_id,full_name,primary_email,alternate_emails) VALUES('${a}','Alternate import conflict','different@import-native.test',ARRAY['person@import-native.test']) RETURNING id;`,
+  );
+  const ambiguousImport = importPlan({}, "update");
+  sql(importClaim(ambiguousImport));
+  assert.match(JSON.parse(sql(importEffect(ambiguousImport))).error, /multiple contacts/);
+  const chosenImport = importPlan(
+    { email: "PERSON@IMPORT-NATIVE.TEST" },
+    "update",
+    alternateImportContact,
+  );
+  sql(importClaim(chosenImport));
+  assert.equal(JSON.parse(sql(importEffect(chosenImport))).contactId, alternateImportContact);
+  const literalImport = importPlan({
+    email: "literal%_@import-native.test",
+    companyName: null,
+    identityDomain: null,
+  });
+  sql(importClaim(literalImport));
+  assert.ok(JSON.parse(sql(importEffect(literalImport))).contactId);
+  assert.equal(
+    sql(
+      `SELECT bool_and(NOT prosecdef) FROM pg_proc WHERE proname IN ('apply_contact_import_row','claim_contact_import_batch','finish_contact_import_batch');`,
+    ),
+    "t",
+  );
+
   sql(`UPDATE tenant_memberships SET status='revoked' WHERE tenant_id='${a}' AND user_id='${u}';`);
   denied(call(failId, failPayload, true), "revoked member even on undo replay");
   assert.equal(sql(`SELECT prosecdef FROM pg_proc WHERE proname='apply_local_action';`), "f");
@@ -1503,6 +1728,10 @@ try {
       proofs: [
         "full-business-catalog-twice",
         "six-seeded-inverses",
+        "approved-import-row-atomic-rollback-and-replay",
+        "import-human-fields-and-exact-review-preserved",
+        "import-tenant-actor-policy-and-domain-approval",
+        "interrupted-import-batch-and-single-terminal-receipt",
         "identity-parent-creation-link-evidence-atomic-rollback",
         "identity-no-match-and-defer-permanent-receipts",
         "identity-human-create-no-merge-personal-domain-and-email-parity",

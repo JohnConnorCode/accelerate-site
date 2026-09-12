@@ -108,6 +108,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260912205240-atomic-conversation-actions.sql",
   "migrations/20260912212656-effective-action-policy.sql",
   "migrations/20260912214429-atomic-identity-review-decisions.sql",
+  "migrations/20260912221951-atomic-contact-import-rows.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

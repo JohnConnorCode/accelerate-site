@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "atomic-contact-import-rows",
+    slug: "atomic-contact-import-rows",
+    title: "Continue approved imports from saved row receipts",
+    description:
+      "Contact imports now save each approved row and its history together. Interrupted batches can continue without repeating imported rows, company matching stays bound to the reviewed snapshot, and existing human-maintained fields remain intact. Older approvals may require a specific re-review before execution.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "atomic-identity-review",
     slug: "atomic-identity-review",
     title: "Save identity decisions with their evidence",
