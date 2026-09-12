@@ -136,7 +136,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "93afea22aa539d27056a1328ed1469f2e3d764ccedf4bfe40eb67d4eed2ea3e4",
+      contractHash: "6f6e7987d7835c8dcf83cb50f4f231f100abcf40d637dde02c9585d76e214c54",
       tools: [
         {
           operation: "prepare-workflow",
@@ -421,7 +421,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "0f4d6c9d5d93e235f5c4b41848695dbcb55cd918fd8fda1171e1480b8fa53d6b",
+      contractHash: "d909d77828166eaf546f6b29d9f9f5d76910b9aff0a77acf09a492684061bb32",
       tools: [
         {
           operation: "prepare-workflow",
@@ -901,6 +901,87 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     docsUrl: "/docs/plugins/site-studio",
   },
   {
+    id: "social-marketing",
+    name: "Social Marketing",
+    description:
+      "Prepare and approve LinkedIn company-page posts, schedule publication and verify provider receipts.",
+    category: "revenue",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["social-marketing"],
+    aiToolNames: [
+      "get_social_workspace",
+      "prepare_social_week",
+      "preview_social_change",
+      "propose_social_change",
+    ],
+    routes: ["/admin/social"],
+    historyRoute: "/admin/social/history",
+    setupChecks: [],
+    upstream: {
+      repository: "https://github.com/gitroomhq/postiz-app",
+      license: "AGPL-3.0",
+      revision: "3cbe20b86bf3b2243843d51bb63dcec8773babf7",
+      connector: "postiz",
+      deploymentGuide: "plugins/social-marketing/deployment/README.md",
+    },
+    docsUrl: "/docs/plugins/social-marketing",
+    settings: [
+      {
+        key: "brandGuidance",
+        label: "Brand guidance",
+        type: "string",
+        description:
+          "Audience, voice, approved claims and topics to avoid. Review every generated draft.",
+        default: "",
+      },
+      {
+        key: "timeZone",
+        label: "Time zone",
+        type: "string",
+        default: "America/Chicago",
+        description: "IANA time zone used when reviewing publication times.",
+      },
+      {
+        key: "prepareWeekly",
+        label: "Prepare weekly drafts",
+        type: "boolean",
+        default: false,
+        description:
+          "Create three editable source-excerpt drafts each week. Never approves or publishes.",
+      },
+      {
+        key: "weeklyChannelId",
+        label: "Weekly LinkedIn page ID",
+        type: "string",
+        default: "",
+        description: "Copy an active page ID from Social Marketing Setup.",
+      },
+      {
+        key: "weeklySourceTitle",
+        label: "Weekly source title",
+        type: "string",
+        default: "",
+        description: "Title of the reviewed source used for weekly draft suggestions.",
+      },
+      {
+        key: "weeklySourceUrl",
+        label: "Weekly source URL",
+        type: "url",
+        default: "",
+        description: "Public HTTPS URL supporting the suggested posts.",
+      },
+      {
+        key: "weeklySourceText",
+        label: "Weekly source paragraphs",
+        type: "string",
+        default: "",
+        description:
+          "Three reviewed paragraphs separated by blank lines. Update regularly; the scheduler preserves excerpts verbatim.",
+      },
+    ],
+  },
+  {
     id: "stripe-invoicing",
     name: "Stripe invoicing",
     description:
@@ -1005,7 +1086,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "0b6f2e366392e98f0e6f1dc672cbefbd93e2e03d4e35f681d277f9fb58506aa4",
+      contractHash: "58d149e33c0440f5f171f2e2450aa5988bd0dc34f72fc423abbd31e47d6343a2",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1355,6 +1436,15 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     icon: "Globe2",
     description: "Private page drafts and previews",
     moreGroup: "Delivery",
+  },
+  {
+    moduleId: "social-marketing",
+    id: "social-marketing",
+    label: "Social Marketing",
+    href: "/admin/social",
+    icon: "Globe2",
+    description: "Drafts, calendar, publication results and setup.",
+    moreGroup: "Revenue",
   },
   {
     moduleId: "stripe-invoicing",

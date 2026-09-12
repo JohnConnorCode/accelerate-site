@@ -64,6 +64,14 @@ export interface ModuleSettingField {
 }
 
 export interface RevenueOSModule {
+  upstream?: {
+    repository: string;
+    license: string;
+    revision: string;
+    imageDigest?: string;
+    connector: string;
+    deploymentGuide: string;
+  };
   /** Optional source-backed participation in the daily workspace. */
   today?: { source: "collection_case" | "radar_opportunity"; href: string };
   /** Unique stable module key. */

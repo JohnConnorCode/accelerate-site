@@ -1,3 +1,4 @@
+import { scheduleSocialReconciliation, scheduleSocialWeeklyDrafts } from "./social-marketing-work";
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -212,6 +213,12 @@ export async function scheduleRecurringWork(
   supabase: SupabaseClient,
 ): Promise<WorkSchedulerSummary> {
   const daily = await scheduleDailyWork(supabase);
+  try {
+    await scheduleSocialWeeklyDrafts(supabase);
+    await scheduleSocialReconciliation(supabase);
+  } catch {
+    daily.errors.push("Social reconciliation could not be scheduled");
+  }
 
   // Monday = day 1 in ISO weekday.
   const isMonday = new Date().getUTCDay() === 1;

@@ -125,6 +125,21 @@ function fail(file, message) {
 }
 
 function validateManifest(file, manifest, seenIds, seenNavIds, coreIds) {
+  if (manifest.upstream) {
+    const u = manifest.upstream;
+    if (
+      !/^https:\/\//.test(u.repository ?? "") ||
+      !/^[a-f0-9]{40}$/.test(u.revision ?? "") ||
+      !u.license ||
+      !/^[a-z][a-z0-9-]+$/.test(u.connector ?? "") ||
+      !/^plugins\/[a-z0-9-]+\/[a-zA-Z0-9/-]+\.md$/.test(u.deploymentGuide ?? "") ||
+      (u.imageDigest && !/^sha256:[a-f0-9]{64}$/.test(u.imageDigest))
+    )
+      fail(file, "Invalid upstream service metadata");
+    else if (!existsSync(join(repoRoot, u.deploymentGuide)))
+      fail(file, "Upstream deployment guide is missing");
+  }
+
   if (manifest.today) {
     if (!["collection_case", "radar_opportunity"].includes(manifest.today.source))
       fail(file, "Today contributions require a supported host source adapter");
@@ -422,6 +437,7 @@ const modules = manifests.map((manifest) => ({
   routes: manifest.routes ?? [],
   ...(manifest.historyRoute ? { historyRoute: manifest.historyRoute } : {}),
   setupChecks: manifest.setupChecks ?? [],
+  ...(manifest.upstream ? { upstream: manifest.upstream } : {}),
   ...(manifest.docsUrl ? { docsUrl: manifest.docsUrl } : {}),
   ...(manifest.settings?.length ? { settings: manifest.settings } : {}),
   ...(manifest.settingsContract ? { settingsContract: manifest.settingsContract } : {}),

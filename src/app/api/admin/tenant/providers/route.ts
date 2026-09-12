@@ -18,6 +18,7 @@ import {
 import type { AdminAuthorization } from "@/lib/admin/auth";
 
 const providerSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("configure_postiz"), apiKey: z.string().trim().min(20).max(2000) }),
   z.object({ action: z.literal("configure_stripe"), apiKey: z.string().trim().min(20).max(256) }),
   z.object({
     action: z.literal("configure_resend"),
@@ -58,6 +59,7 @@ const providerSchema = z.discriminatedUnion("action", [
       "whatsapp",
       "hubspot",
       "stripe",
+      "postiz",
     ]),
   }),
 ]);
@@ -197,7 +199,7 @@ async function configureAdapterProvider(
   const encryptedCredentials = buildEncryptedCredentials(
     adapter,
     credentials,
-    provider === "stripe"
+    provider === "stripe" || provider === "postiz"
       ? (value, field) => encryptTenantSecret(value, authorization.tenant.id, provider, field)
       : encryptSecret,
   );
@@ -220,7 +222,14 @@ async function configureAdapterProvider(
     )
     .select("id,provider,status,credential_version,connected_at,updated_at")
     .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error)
+    return NextResponse.json(
+      {
+        error:
+          "Provider connection could not be saved. A Postiz organization can belong to only one workspace.",
+      },
+      { status: 409 },
+    );
   await recordAudit(authorization.database, {
     actorEmail: authorization.user.email,
     action: "provider.credentials_rotated",
@@ -273,19 +282,21 @@ export async function POST(request: NextRequest) {
   }
   const now = new Date().toISOString();
   const provider =
-    parsed.data.action === "configure_stripe"
-      ? "stripe"
-      : parsed.data.action === "configure_calendly"
-        ? "calendly"
-        : parsed.data.action === "configure_openrouter"
-          ? "openrouter"
-          : parsed.data.action === "configure_mcp"
-            ? "mcp"
-            : parsed.data.action === "configure_whatsapp"
-              ? "whatsapp"
-              : parsed.data.action === "configure_hubspot"
-                ? "hubspot"
-                : "resend";
+    parsed.data.action === "configure_postiz"
+      ? "postiz"
+      : parsed.data.action === "configure_stripe"
+        ? "stripe"
+        : parsed.data.action === "configure_calendly"
+          ? "calendly"
+          : parsed.data.action === "configure_openrouter"
+            ? "openrouter"
+            : parsed.data.action === "configure_mcp"
+              ? "mcp"
+              : parsed.data.action === "configure_whatsapp"
+                ? "whatsapp"
+                : parsed.data.action === "configure_hubspot"
+                  ? "hubspot"
+                  : "resend";
   const { data: existing } = await authorization.database
     .from("integration_connections")
     .select("credential_version,status,settings")
@@ -339,7 +350,8 @@ export async function POST(request: NextRequest) {
   if (
     parsed.data.action === "configure_whatsapp" ||
     parsed.data.action === "configure_hubspot" ||
-    parsed.data.action === "configure_stripe"
+    parsed.data.action === "configure_stripe" ||
+    parsed.data.action === "configure_postiz"
   ) {
     const provider = parsed.data.action.slice("configure_".length);
     const credentials: Record<string, unknown> = { ...parsed.data };

@@ -1,0 +1,86 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "social-marketing",
+  "name": "Social Marketing",
+  "description": "Prepare and approve LinkedIn company-page posts, schedule publication and verify provider receipts.",
+  "category": "revenue",
+  "defaultEnabled": false,
+  "navLinks": [
+    {
+      "id": "social-marketing",
+      "label": "Social Marketing",
+      "href": "/admin/social",
+      "icon": "Globe2",
+      "description": "Drafts, calendar, publication results and setup.",
+      "moreGroup": "Revenue"
+    }
+  ],
+  "routes": ["/admin/social"],
+  "historyRoute": "/admin/social/history",
+  "aiToolNames": [
+    "get_social_workspace",
+    "prepare_social_week",
+    "preview_social_change",
+    "propose_social_change"
+  ],
+  "setupChecks": [],
+  "settings": [
+    {
+      "key": "brandGuidance",
+      "label": "Brand guidance",
+      "type": "string",
+      "description": "Audience, voice, approved claims and topics to avoid. Review every generated draft.",
+      "default": ""
+    },
+    {
+      "key": "timeZone",
+      "label": "Time zone",
+      "type": "string",
+      "default": "America/Chicago",
+      "description": "IANA time zone used when reviewing publication times."
+    },
+    {
+      "key": "prepareWeekly",
+      "label": "Prepare weekly drafts",
+      "type": "boolean",
+      "default": false,
+      "description": "Create three editable source-excerpt drafts each week. Never approves or publishes."
+    },
+    {
+      "key": "weeklyChannelId",
+      "label": "Weekly LinkedIn page ID",
+      "type": "string",
+      "default": "",
+      "description": "Copy an active page ID from Social Marketing Setup."
+    },
+    {
+      "key": "weeklySourceTitle",
+      "label": "Weekly source title",
+      "type": "string",
+      "default": "",
+      "description": "Title of the reviewed source used for weekly draft suggestions."
+    },
+    {
+      "key": "weeklySourceUrl",
+      "label": "Weekly source URL",
+      "type": "url",
+      "default": "",
+      "description": "Public HTTPS URL supporting the suggested posts."
+    },
+    {
+      "key": "weeklySourceText",
+      "label": "Weekly source paragraphs",
+      "type": "string",
+      "default": "",
+      "description": "Three reviewed paragraphs separated by blank lines. Update regularly; the scheduler preserves excerpts verbatim."
+    }
+  ],
+  "docsUrl": "/docs/plugins/social-marketing",
+  "upstream": {
+    "repository": "https://github.com/gitroomhq/postiz-app",
+    "license": "AGPL-3.0",
+    "revision": "3cbe20b86bf3b2243843d51bb63dcec8773babf7",
+    "connector": "postiz",
+    "deploymentGuide": "plugins/social-marketing/deployment/README.md"
+  }
+}

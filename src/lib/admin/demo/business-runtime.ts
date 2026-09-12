@@ -1,3 +1,4 @@
+import { handleDemoSocial, type DemoSocialState } from "./social-runtime";
 import { getLayoutScope } from "@/lib/admin/layout-scopes";
 import { validateAdminTheme } from "@/lib/admin/theme-definition";
 import {
@@ -27,6 +28,7 @@ import { REVENUE_OS_MODULES, type ModuleSettingsConfig } from "@/lib/revenue-os/
 
 export const DEMO_BUSINESS_MODULES = {
   "site-studio": true,
+  "social-marketing": true,
   "opportunity-radar": true,
   "receivables-collections": true,
   "stripe-invoicing": true,
@@ -71,6 +73,7 @@ type Page = {
   design: InvoiceDesign;
 };
 export type DemoBusinessState = {
+  social?: DemoSocialState;
   radar?: DemoRadarState;
   collections?: CollectionCaseView[];
   version: 1;
@@ -241,6 +244,8 @@ export async function handleDemoBusinessRequest(
   save: () => void,
   moduleSettings: ModuleSettingsConfig = {},
 ): Promise<Response | null> {
+  const socialResponse = await handleDemoSocial(pack, state, modules, url, method, body, save);
+  if (socialResponse) return socialResponse;
   const radarResponse = await handleDemoRadar(
     pack,
     state,

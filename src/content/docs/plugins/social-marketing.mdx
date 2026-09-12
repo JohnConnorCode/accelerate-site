@@ -1,0 +1,53 @@
+---
+title: "Social Marketing"
+description: "Prepare LinkedIn posts, approve their content and time, and follow publication receipts from your workspace."
+updated: "2026-09-12"
+---
+
+Your team has useful material to share, but turning it into a consistent publishing week means finding the source, checking the copy, choosing the right company page and remembering the schedule. Social Marketing keeps that work together, so you can review a batch once and follow each post through to its publication receipt.
+
+<DocsFigure
+  src="/images/docs/plugins/social-marketing.png"
+  alt="Social Marketing in the fictional Northline Roofing workspace, showing source-backed drafts and their publication schedules."
+  width={1440}
+  height={1000}
+  caption="Social Marketing drafts in the fictional Northline Roofing workspace. Approvals and schedules are simulated; the data is fictional."
+/>
+
+## Connect your company page
+
+Enable **Social Marketing** in **Plugins**, then open **Social Marketing → Setup**. Your operator supplies the Postiz publishing service, while each workspace connects its own Postiz organization and LinkedIn company page. Enter that organization's API key in the secure connection field, then choose **Verify and connect** to check its identity.
+
+The plugin settings hold your brand guidance, display time zone and optional weekly draft preparation. Keep API keys in the connection field, because ordinary settings are visible to people using the workspace. Your operator can follow the [Postiz deployment guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/social-marketing/deployment/README.md) for the separate host, source archive and backup procedure.
+
+## Prepare a week you can review
+
+Choose **New draft** to write a post with its source title, HTTPS URL and supporting excerpt, or use **Prepare three-post week** when you already have three reviewed paragraphs. For example, fictional Northline Roofing might supply separate paragraphs about inspection timing, drainage maintenance and records to keep after a storm, all supported by its own maintenance guide.
+
+Weekly preparation preserves those paragraphs as three editable posts with source links, spaced two days apart. You can also enable **Prepare weekly drafts** in plugin settings and supply the source, page ID and paragraphs there. The scheduled worker prepares that week's drafts automatically, and you update the source material as your editorial plan changes.
+
+<Callout title="Review the exact public version">
+  Edit the text, choose a company page and time, and optionally attach one PNG or JPEG image up to 3
+  MB. Saving an edit removes the earlier publication approval, so the version you review remains the
+  version that can be scheduled.
+</Callout>
+
+Select the posts you want to publish and choose **Review selected**. The review shows each post's text, image, company page, date and time zone before you approve the exact batch. **Calendar** then gives you the retained schedule, and the background worker submits each post when its approved time arrives.
+
+## Follow the publication result
+
+Open **Results** to see the provider's progress. An accepted submission means Postiz received the request; the published state includes the LinkedIn URL returned by the provider. Available metrics are refreshed daily, while unavailable engagement data stays explicitly unavailable.
+
+If a connection fails after submission, the attempt retains an unknown outcome so the worker cannot silently send a duplicate. Inspect the organization's history in Postiz, enter the exact post ID in **Results**, and review the matching receipt before associating it with the attempt. That operation records the provider result without submitting another post.
+
+You can cancel a schedule before dispatch. Disabling the plugin stops new draft preparation and submissions, while the history page preserves authorized reads and background receipt checks. After configuration changes, credential changes or missed schedules, edit the time and approve a fresh version so the worker has current authority.
+
+## Work through AI or MCP
+
+Ask the assistant to inspect the social workspace, prepare a source-backed week, preview a draft change or propose a publication schedule. These operations use the same records and approval flow as the screens, so a conversational edit receives the same checks and receipts. Publication remains an exact human-approved action because it creates public content.
+
+Excerpt preparation is deterministic and has no model charge. Ordinary AI conversations use your configured model and budget, while the separate Postiz host and connected provider can incur their own costs. Plugin developers can reuse the manifest's upstream repository, license, pinned revision and deployment-guide fields when packaging another open-source service.
+
+## What to check
+
+Verify the host, LinkedIn application access, separate organizations, backup restoration and a real approved publication before activating a customer workspace. The full admin demo uses fictional session data, so use its screenshots to learn the workflow and real provider receipts to establish operational readiness. Check dates around daylight-saving changes, refresh source paragraphs regularly, and complete the internal pilot before offering the plugin to selected customers.

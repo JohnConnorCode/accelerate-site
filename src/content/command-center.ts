@@ -187,6 +187,15 @@ export const capabilities: Capability[] = [
     gated: true,
   },
 
+  {
+    id: "social-marketing",
+    category: "act",
+    title: "Social Marketing: reviewed LinkedIn publishing",
+    detail:
+      "Prepare source-backed drafts, approve exact content and schedules, and follow Postiz acceptance through to verified LinkedIn publication. Each workspace connects its own organization; uncertain submissions retain their receipts for review.",
+    gated: true,
+  },
+
   // Act
   {
     id: "collections",
@@ -546,6 +555,6 @@ export const CURRENT_SURFACES = [
     n: "08",
     label: "Run per tenant",
     title: "Shared infrastructure, isolated workspaces",
-    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Eleven bundled plugin examples have public guides covering setup, approvals, costs, and recovery.",
+    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Twelve bundled plugin examples have public guides covering setup, approvals, costs, and recovery.",
   },
 ];
