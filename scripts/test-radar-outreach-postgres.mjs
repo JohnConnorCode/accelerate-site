@@ -108,7 +108,11 @@ assert.deepEqual(JSON.parse(sql(reconcile(winner))), receipt);
 assert.equal(receipt.message_id, message);
 sql(`UPDATE tenants SET config=${json(cfg)} WHERE id='${tenant}';`);
 fails(reserve(loser), /cooldown/);
-assert.equal(sql(context(foreign) + "SELECT count(*) FROM radar_outreach_attempts;"), "0");
+// RLS belongs to the authenticated caller; Supabase service_role bypasses RLS.
+fails(
+  `SET request.headers='{"x-tenant-id":"${foreign}"}'; SET request.jwt.claim.sub='11111111-1111-4111-8111-111111111111'; SET request.jwt.claim.role='authenticated'; SET ROLE authenticated; SELECT count(*) FROM radar_outreach_attempts;`,
+  /tenant access forbidden/,
+);
 fails(context() + "DELETE FROM radar_outreach_attempts;", /permission denied/);
 fails(`SET ROLE authenticated; SELECT reserve_radar_outreach('${a}');`, /permission denied/);
 // A recorded pre-dispatch failure releases the hold only through observation.

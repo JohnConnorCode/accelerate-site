@@ -119,7 +119,9 @@ assert.equal(
   "1",
 );
 assert.equal(
-  sql(context(a) + `SELECT count(*) FROM collection_cases WHERE tenant_id='${b}';`),
+  sql(
+    `SET request.headers='{"x-tenant-id":"${a}"}'; SET request.jwt.claim.sub='11111111-1111-4111-8111-111111111111'; SET request.jwt.claim.role='authenticated'; SET ROLE authenticated; SELECT count(*) FROM collection_cases WHERE tenant_id='${b}';`,
+  ),
   "0",
 );
 fail(

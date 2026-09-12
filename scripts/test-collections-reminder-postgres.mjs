@@ -67,7 +67,11 @@ assert.equal(
 );
 fails(reserve(second), /unresolved/);
 fails(context() + `DELETE FROM collection_reminder_attempts;`, /permission denied/);
-assert.equal(sql(context(foreign) + "SELECT count(*) FROM collection_reminder_attempts;"), "0");
+// RLS belongs to the authenticated caller; Supabase service_role bypasses RLS.
+fails(
+  `SET request.headers='{"x-tenant-id":"${foreign}"}'; SET request.jwt.claim.sub='11111111-1111-4111-8111-111111111111'; SET request.jwt.claim.role='authenticated'; SET ROLE authenticated; SELECT count(*) FROM collection_reminder_attempts;`,
+  /tenant access forbidden/,
+);
 const conversation = randomUUID(),
   message = randomUUID();
 sql(
