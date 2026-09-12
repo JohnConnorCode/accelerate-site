@@ -4,6 +4,8 @@ type SocialCardProps = {
   description?: string;
   imageUrl?: string;
   accent?: string;
+  businessDomain?: string;
+  businessTagline?: string;
 };
 
 export function SocialCard({
@@ -12,6 +14,8 @@ export function SocialCard({
   description,
   imageUrl,
   accent = "#0b0b0b",
+  businessDomain = "acceleratewith.us",
+  businessTagline = "Strategy · Systems · Execution",
 }: SocialCardProps) {
   const hasImage = Boolean(imageUrl);
   return (
@@ -109,8 +113,8 @@ export function SocialCard({
             textTransform: "uppercase",
           }}
         >
-          <span>Strategy · Systems · Execution</span>
-          <span>acceleratewith.us</span>
+          <span>{businessTagline}</span>
+          <span>{businessDomain}</span>
         </div>
       </div>
       {hasImage ? (

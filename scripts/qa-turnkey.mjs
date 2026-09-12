@@ -5,6 +5,19 @@ const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3018";
 const neutral = process.argv.includes("--neutral");
 const output = neutral ? "/tmp/accelerate-neutral-qa" : "/tmp/accelerate-turnkey-qa";
 mkdirSync(output, { recursive: true });
+async function captureNeutral(page, name) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await Promise.all(
+      document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getTiming().iterations !== Infinity)
+        .map((animation) => animation.finished.catch(() => undefined)),
+    );
+  });
+  await page.screenshot({ path: `${output}/${name}.png`, fullPage: true });
+}
 const browser = await chromium.launch({ headless: true });
 try {
   for (const [label, viewport, motion] of [
@@ -32,26 +45,34 @@ try {
         assert.equal((await page.goto(base)).status(), 200);
         await page.getByRole("heading", { name: "Harbor Operations", exact: true }).waitFor();
         assert.equal(await page.title(), "Harbor Operations");
+        const social = await page.request.get(base + "/api/og");
+        assert.equal(social.status(), 200);
+        assert.match(social.headers()["content-type"], /image\/png/);
+        writeFileSync(`${output}/${label}-social.png`, await social.body());
         assert.equal(
           await page.locator('link[rel="canonical"]').getAttribute("href"),
           "https://harbor.example",
         );
-        await page.screenshot({ path: `${output}/${label}-entry.png`, fullPage: true });
+        await captureNeutral(page, `${label}-entry`);
         await page.getByRole("link", { name: "Open your workspace", exact: true }).focus();
         await page.keyboard.press("Enter");
         await page.getByRole("heading", { name: "Connect your Supabase project" }).waitFor();
-        await page.screenshot({ path: `${output}/${label}-setup.png`, fullPage: true });
+        await captureNeutral(page, `${label}-setup`);
         const demo = base + "/demo/command-center/northline-roofing";
         await page.goto(demo + "/pipeline");
         await page.getByPlaceholder("Search company, person, or email").waitFor();
         await page.waitForFunction(() => Boolean(window.__accelerateAdminDemoRuntime));
-        assert.ok((await page.locator(".kanban-card").count()) > 0, "Fictional populated pipeline");
-        await page.screenshot({ path: `${output}/${label}-populated.png`, fullPage: true });
+        await page.locator(".kanban-scroller [data-opportunity-id]").first().waitFor();
+        assert.ok(
+          (await page.locator(".kanban-scroller [data-opportunity-id]").count()) > 0,
+          "Fictional populated pipeline",
+        );
+        await captureNeutral(page, `${label}-populated`);
         await page
           .getByPlaceholder("Search company, person, or email")
           .fill("no-matching-neutral-fixture-81725");
         await page.getByText("No matching opportunities", { exact: true }).waitFor();
-        await page.screenshot({ path: `${output}/${label}-empty.png`, fullPage: true });
+        await captureNeutral(page, `${label}-empty`);
         await page.goto(demo + "/branding");
         await page.getByLabel("Display name", { exact: true }).fill("Harbor Demo Team");
         await page.getByRole("button", { name: "Save branding", exact: true }).focus();
@@ -70,7 +91,7 @@ try {
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2),
           true,
         );
-        await page.screenshot({ path: `${output}/${label}-branding.png`, fullPage: true });
+        await captureNeutral(page, `${label}-branding`);
         assert.deepEqual(
           escaped,
           [],

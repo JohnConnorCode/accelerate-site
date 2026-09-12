@@ -73,13 +73,11 @@ export const metadata: Metadata = identity
         siteName: identity.name,
         title: identity.title,
         description: identity.description,
-        images: [{ url: defaultSocialImage, width: 1200, height: 630, alt: identity.name }],
       },
       twitter: {
         card: "summary_large_image",
         title: identity.title,
         description: identity.description,
-        images: [defaultSocialImage],
       },
       robots: {
         index: true,

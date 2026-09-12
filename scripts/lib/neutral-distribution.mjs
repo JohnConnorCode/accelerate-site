@@ -22,7 +22,13 @@ export function isExcluded(path, prefixes) {
 
 export function starterFiles(root = process.cwd()) {
   const manifest = loadInclusionManifest(root);
-  return gitFiles(root).filter((path) => !isExcluded(path, manifest.excludePrefixes));
+  return gitFiles(root).filter(
+    (path) =>
+      !isExcluded(path, manifest.excludePrefixes) ||
+      (manifest.includePaths || []).some((allowed) =>
+        allowed.endsWith("/") ? path.startsWith(allowed) : path === allowed,
+      ),
+  );
 }
 
 export function assertForkHosting(target, original = loadOriginalHosting()) {

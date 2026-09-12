@@ -57,6 +57,17 @@ for (const path of [
 ])
   assert.equal(existsSync(path), false, path);
 assert.doesNotMatch(readFileSync("src/content/team.ts", "utf8"), /John Connor|linkedin\.com/);
+const setupTemplate = readFileSync(".env.example", "utf8");
+for (const key of [
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "SUPABASE_DB_HOST",
+  "ADMIN_EMAIL",
+  "BOOTSTRAP_FOUNDER_EMAIL",
+])
+  assert.ok(setupTemplate.includes(`${key}=`), key);
+assert.match(setupTemplate, /^SUPABASE_SERVICE_ROLE_KEY=$/m);
+assert.match(setupTemplate, /^OPENROUTER_API_KEY=$/m);
 const hosting = JSON.parse(readFileSync("vercel.json", "utf8"));
 assert.equal(hosting.git.deploymentEnabled, false);
 assert.deepEqual(hosting.crons, []);

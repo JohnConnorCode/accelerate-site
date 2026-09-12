@@ -59,7 +59,11 @@ export function exportNeutralStarter(root, output) {
       !safePath(target) ||
       !safePath(source) ||
       !source.startsWith("distribution/neutral-starter/") ||
-      forbidden(target) ||
+      (forbidden(target) &&
+        !(
+          target === ".env.example" &&
+          source === "distribution/neutral-starter/environment.example.txt"
+        )) ||
       forbidden(source)
     )
       throw new Error("Unsafe starter replacement path.");
