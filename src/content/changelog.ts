@@ -2,6 +2,33 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "admin-guidance-clarity",
+    slug: "admin-guidance-clarity",
+    title: "Find the same names and guidance across Command Center",
+    description:
+      "Navigation, search, headings and breadcrumbs share consistent destination names. Architect, Blueprints and Learning Inbox include workflow help and linked guides. Help panels stay within the phone screen and keep longer guidance scrollable.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "services-strategy-page",
+    slug: "services-strategy-page",
+    title: "Explore strategy, custom builds and ongoing support",
+    description:
+      "The Services page explains how Accelerate helps identify useful work, build custom systems, support ongoing execution and improve results. Section links connect the offer, example work and engagement process; Command Center remains one option within that broader service.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "kanban-scroll-continuity",
+    slug: "kanban-scroll-continuity",
+    title: "Keep your place on shared boards",
+    description:
+      "Feature Board, Pipeline and Content Calendar keep manual horizontal scrolling under your control. Column buttons remain available on phones, tablets and desktops, keyboard focus reaches the board, and returning from an opportunity restores its board position. Shared loading and refresh regions retain their spacing across appearances.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "atomic-conversation-actions",
     slug: "atomic-conversation-actions",
     title: "Keep conversation edits and evidence together",

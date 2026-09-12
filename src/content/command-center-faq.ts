@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I navigate boards without dragging cards?",
+    answer:
+      "Yes. Scroll across the columns or Tab to a column button and press Enter. The board itself accepts keyboard focus for arrow-key scrolling, and reduced motion makes column jumps immediate. Refreshing or closing an editor keeps your place; browser Back restores the Pipeline board after you open an opportunity. Existing stage controls and work permissions still govern card changes.",
+  },
+  {
     question: "Can I actually work with clients in the demo?",
     answer:
       "Yes. Search or filter clients, open an account, save notes and add a follow-up. Open the saved follow-up in Tasks & approvals or follow a contact timeline to its specific conversation or opportunity. Changes persist in that fictional business session and never contact customers.",

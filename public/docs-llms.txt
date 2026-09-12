@@ -72,7 +72,7 @@ Clients, bookings, content, and resources after the sale.
 - [Delivery](https://www.acceleratewith.us/docs/delivery/overview) (updated 2026-09-09): The workspace for what happens after a deal is won: retainers, meetings, publishing, downloads.
 - [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-09-09): Find an account, check what it's actually worth, and open its delivery record.
 - [Review bookings](https://www.acceleratewith.us/docs/delivery/bookings) (updated 2026-09-09): Prep for the call, then record what actually happened once it's over.
-- [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-09): Track a brief from idea to published, and verify a review actually caught what mattered.
+- [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-12): Track a brief from idea to published, and verify a review actually caught what mattered.
 - [Review resource downloads](https://www.acceleratewith.us/docs/delivery/resources) (updated 2026-09-09): Find who requested a resource, when, and whether that's worth a real follow-up.
 
 ## Sources

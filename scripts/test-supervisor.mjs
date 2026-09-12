@@ -1,7 +1,16 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync, spawn } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync, existsSync } from "node:fs";
+import {
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+  readFileSync,
+  mkdirSync,
+  existsSync,
+  realpathSync,
+  copyFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -518,4 +527,216 @@ test("Recovery ignores superseded history, preserves paused owners and rejects s
   );
   policy.resumeProducer(owner);
   sessions.endSession(owner.threadId, "opencode");
+});
+
+test("AC5/6 exact original-thread adapters never select latest, fork or bypass permissions", async () => {
+  const { providerResumeCommand } = await import("./supervisor/adapters.mjs");
+  const dir = join(root, "providers");
+  mkdirSync(dir);
+  for (const provider of ["codex", "claude", "opencode"])
+    copyFileSync(process.execPath, join(dir, provider));
+  const oldPath = process.env.PATH;
+  process.env.PATH = `${dir}:${oldPath}`;
+  try {
+    for (const provider of ["codex", "claude", "opencode"]) {
+      const command = providerResumeCommand(provider, "original-thread-123");
+      assert(command.args.includes("original-thread-123"));
+      assert(
+        !command.args.some((arg) => /^(--last|--continue|--fork|--auto|--dangerously)/.test(arg)),
+      );
+    }
+    assert.throws(() => providerResumeCommand("codex", "--last"), /original thread/);
+    assert.throws(() => providerResumeCommand("unknown", "original"), /supports/);
+    process.env.PATH = root;
+    assert.throws(() => providerResumeCommand("codex", "original"), /SETUP_REQUIRED/);
+  } finally {
+    process.env.PATH = oldPath;
+  }
+});
+
+test("AC5 foreground exec preserves registered PID and failed exec leaves truthful state", async () => {
+  resetQueue();
+  const dir = join(root, "providers");
+  const oldPath = process.env.PATH;
+  process.env.PATH = `${dir}:${oldPath}`;
+  const dead = await sleepChild();
+  const original = sessions.registerSession({
+    provider: "codex",
+    threadId: "exec-fixture",
+    repo: root,
+    pid: dead.pid,
+  });
+  dead.kill("SIGTERM");
+  await new Promise((resolve) => dead.once("exit", resolve));
+  saveConfig({ enrolledRepos: [root] });
+  const cwd = process.cwd();
+  try {
+    assert.throws(
+      () => recover.continueOriginalThread("codex", "exec-fixture", { exec: null }),
+      /process.execve/,
+    );
+    assert.throws(
+      () =>
+        recover.continueOriginalThread("codex", "exec-fixture", {
+          exec(executable, args) {
+            assert.equal(sessions.findSession("exec-fixture", "codex").pid, process.pid);
+            assert.equal(readJson("continuation.json", null).pid, process.pid);
+            assert.equal(process.cwd(), realpathSync(root));
+            assert(args.includes(original.threadId));
+            assert(executable.endsWith("codex"));
+            throw new Error("fixture exec failure");
+          },
+        }),
+      /fixture exec failure/,
+    );
+    assert.equal(sessions.findSession("exec-fixture", "codex").status, "interrupted");
+    assert.equal(readJson("continuation.json", null), null);
+    assert.throws(() => recover.continueOriginalThread("codex", "exec-fixture"), /live owner/);
+  } finally {
+    sessions.endSession("exec-fixture", "codex");
+    process.chdir(cwd);
+    process.env.PATH = oldPath;
+  }
+});
+
+test("AC7 uninstall refuses pressure and resumes actual stopped owner before disabling", async () => {
+  resetQueue();
+  saveConfig({ manageHeavyJobs: true });
+  const child = await sleepChild();
+  const session = sessions.registerSession({
+    provider: "other",
+    threadId: "uninstall-fixture",
+    repo: root,
+    pid: child.pid,
+  });
+  // Model a crash after SIGSTOP but before the registry writes paused status.
+  process.kill(child.pid, "SIGSTOP");
+  for (let i = 0; i < 30 && !identity.processState(child.pid)?.includes("T"); i++)
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  queue.setPressureSource(() => ({ ...normalSample, diskAvailGiB: 1 }));
+  assert.throws(() => policy.uninstallManagement(), /Pressure/);
+  assert.equal(loadConfig().manageHeavyJobs, true);
+  assert(identity.processState(child.pid).includes("T"));
+  queue.setPressureSource(() => normalSample);
+  const receipt = policy.uninstallManagement();
+  assert.equal(receipt.manageHeavyJobs, false);
+  assert(receipt.resumed.some((item) => item.pid === child.pid));
+  assert(!identity.processState(child.pid).includes("T"));
+  assert.equal(sessions.findSession(session.threadId).status, "running");
+  sessions.endSession(session.threadId);
+  saveConfig({ manageHeavyJobs: true });
+});
+
+test("AC5/8 competing foreground recoverers exec exactly one original provider owner", async () => {
+  resetQueue();
+  saveConfig({ manageHeavyJobs: true, enrolledRepos: [root] });
+  const dead = await sleepChild();
+  sessions.registerSession({
+    provider: "codex",
+    threadId: "concurrent-original",
+    repo: root,
+    pid: dead.pid,
+  });
+  dead.kill("SIGTERM");
+  await new Promise((resolve) => dead.once("exit", resolve));
+  const marker = join(root, "provider-started");
+  const providerScript = join(root, "provider-fixture.mjs");
+  writeFileSync(
+    providerScript,
+    'import {appendFileSync} from "node:fs"; appendFileSync(process.env.SUPERVISOR_FIXTURE_MARKER, process.pid+"\\n"); setTimeout(()=>{},1000);',
+  );
+  const entry = join(root, "resume-fixture.mjs");
+  writeFileSync(
+    entry,
+    `import {setPressureSource} from ${JSON.stringify(here + "supervisor/queue.mjs")};
+import {continueOriginalThread} from ${JSON.stringify(here + "supervisor/recover.mjs")};
+setPressureSource(()=>(${JSON.stringify(normalSample)}));
+try { continueOriginalThread("codex", "concurrent-original", { commandFor: () => ({ executable: process.execPath, args: [${JSON.stringify(providerScript)}, "concurrent-original"] }) }); } catch(e) { console.error(e.message); process.exitCode=1; }
+`,
+  );
+  const runners = [0, 1].map(() =>
+    spawn(process.execPath, [entry], {
+      env: {
+        ...process.env,
+        PATH: `${join(root, "providers")}:${process.env.PATH}`,
+        SUPERVISOR_FIXTURE_MARKER: marker,
+      },
+      stdio: ["ignore", "ignore", "pipe"],
+    }),
+  );
+  children.push(...runners);
+  const outcomes = await Promise.all(
+    runners.map((child) => new Promise((resolve) => child.once("exit", (code) => resolve(code)))),
+  );
+  assert.deepEqual(outcomes.sort(), [0, 1]);
+  const launched = readFileSync(marker, "utf8").trim().split("\n");
+  assert.equal(launched.length, 1);
+  const recorded = sessions.findSession("concurrent-original", "codex");
+  assert.equal(recorded.pid, Number(launched[0]), "exec retains registered PID");
+  assert.equal(recorded.threadId, "concurrent-original");
+  assert.equal(
+    recover.planRecovery().find((item) => item.threadId === recorded.threadId).disposition,
+    "owner_dead",
+  );
+  recover.applyRecovery();
+  assert.equal(
+    sessions.findSession(recorded.threadId, "codex").status,
+    "interrupted",
+    "dead identity does not invent provider success",
+  );
+  sessions.endSession(recorded.threadId, "codex");
+});
+
+test("AC7 uninstall preserves live heavy ownership and clears only a dead stale holder", async () => {
+  resetQueue();
+  saveConfig({ manageHeavyJobs: true });
+  const live = queue.requestTicket({ repo: root, kind: "fixture" });
+  assert(queue.admitTicket(live.ticket).admitted);
+  assert.throws(() => policy.uninstallManagement(), /heavy job still owns/);
+  assert.equal(loadConfig().manageHeavyJobs, true);
+  assert.equal(queue.queueStatus().holder.ticket, live.ticket);
+  queue.releaseTicket(live.ticket);
+  const child = await sleepChild();
+  const stale = queue.requestTicket({
+    repo: root,
+    kind: "fixture",
+    requester: { pid: child.pid, startTime: identity.processStartTime(child.pid) },
+  });
+  assert(queue.admitTicket(stale.ticket).admitted);
+  child.kill("SIGTERM");
+  await new Promise((resolve) => child.once("exit", resolve));
+  assert.equal(policy.uninstallManagement().manageHeavyJobs, false);
+  assert.equal(existsSync(queue.lockPath()), false);
+  saveConfig({ manageHeavyJobs: true });
+});
+
+test("AC7 uninstall handles ended stopped owners and preserves resumed state on later refusal", async () => {
+  resetQueue();
+  saveConfig({ manageHeavyJobs: true });
+  const ended = await sleepChild();
+  const active = await sleepChild();
+  sessions.registerSession({
+    provider: "other",
+    threadId: "ended-stopped",
+    repo: root,
+    pid: ended.pid,
+  });
+  sessions.endSession("ended-stopped", "other");
+  sessions.registerSession({
+    provider: "other",
+    threadId: "resumed-before-refusal",
+    repo: root,
+    pid: active.pid,
+  });
+  policy.pauseProducer(sessions.findSession("resumed-before-refusal", "other"));
+  process.kill(ended.pid, "SIGSTOP");
+  const ticket = queue.requestTicket({ repo: root, kind: "uninstall-refusal" });
+  assert(queue.admitTicket(ticket.ticket).admitted);
+  assert.throws(() => policy.uninstallManagement(), /heavy job still owns/);
+  assert(!identity.processState(ended.pid).includes("T"));
+  assert(!identity.processState(active.pid).includes("T"));
+  assert.equal(sessions.findSession("resumed-before-refusal", "other").status, "running");
+  assert.equal(loadConfig().manageHeavyJobs, true);
+  queue.releaseTicket(ticket.ticket);
+  sessions.endSession("resumed-before-refusal", "other");
 });
