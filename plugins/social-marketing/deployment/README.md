@@ -91,14 +91,20 @@ and backup procedure; do not add the flag back to make an upgrade start.
 
 The **Postiz service verification** GitHub workflow builds the exact modified
 upstream application and runs `verify-service.sh` on a temporary Linux runner.
-It uses random fixture credentials and empty organizations, binds test ports to
+It uses random fixture credentials and synthetic channel records with unusable
+provider tokens, binds test ports to
 loopback and removes its own Compose volumes on exit. No real LinkedIn app,
 page, customer data or deployment credentials belong in this run.
 
 The script records image identities and JSON receipts for bootstrap, restart and
 application database/upload restoration. It exercises both organization identities,
 invalid keys, public registration denial, public media denial and rejection of a
-foreign organization's media reference. Private fixture credentials and database
+foreign organization's media reference. Each organization creates an unpublished
+draft through the actual API. The checks prove channel/draft list separation,
+refusal of foreign channel settings and destinations, and refusal of foreign post
+deletion before and after restart and restoration. Channel fixture records are
+seeded only in the disposable database; real OAuth and publication are separate
+acceptance requirements. Missing or foreign post reads return a scoped 404. Private fixture credentials and database
 archives are removed even after failure, and arbitrary service logs are excluded
 from uploaded artifacts. Each receipt lists remaining release proof explicitly.
 

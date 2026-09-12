@@ -51,6 +51,14 @@
      if (!body?.posts?.every((p) => p?.integration?.id)) {
        throw new BadRequestException('All posts must have an integration id');
      }
+@@ -531,6 +552,7 @@
+
+   async getPost(orgId: string, id: string, convertToJPEG = false) {
+     const posts = await this.getPostsRecursively(id, true, orgId, true);
++    if (!posts.length) throw new NotFoundException('Post not found');
+     const list = {
+       group: posts?.[0]?.group,
+       posts: await Promise.all(
 --- a/package.json
 +++ b/package.json
 @@ -31,7 +31,7 @@
