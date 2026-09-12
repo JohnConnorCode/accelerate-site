@@ -20,6 +20,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-12",
   },
   {
+    id: "kanban-scroll-continuity",
+    slug: "kanban-scroll-continuity",
+    title: "Keep your place on shared boards",
+    description:
+      "Feature Board, Pipeline and Content Calendar keep manual horizontal scrolling under your control. Column buttons remain available on phones, tablets and desktops, keyboard focus reaches the board, and returning from an opportunity restores its board position. Shared loading and refresh regions retain their spacing across appearances.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "social-marketing-postiz",
     slug: "social-marketing-postiz",
     title: "Prepare and review LinkedIn publishing in Social Marketing",

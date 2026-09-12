@@ -209,7 +209,7 @@
     "src/components/admin/LeadsChart.tsx": "35471c65770f8be8b5002a777be7f79dd761af2111663a969e2fd06589054900",
     "src/components/admin/LeadsTable.tsx": "3f2b114b588e4e6a9497ce5f0b79e6539e14f5febbdbd09490cd3fb7cb216636",
     "src/components/admin/LegacyToday.tsx": "247a50ae8f8feb84c7c1cc1844b31687ebc281e985f2e48e9b85f273a8756135",
-    "src/components/admin/LoadingSkeleton.tsx": "0c9b51497627bcf9cc703d3e1b7a1d80c85ef94738019b3c2fe714ccb204ae12",
+    "src/components/admin/LoadingSkeleton.tsx": "bd08a210a066cc92a0fc51e09fcdb892a152ed9973c800cc422a89a5314e4aa9",
     "src/components/admin/MRRChart.tsx": "c053302eec2b71ba8eb02ab2a7f84d7fb89c3b106543faf9acaf6d56a0c86447",
     "src/components/admin/ModuleDisabledNotice.tsx": "4f584cccf0f294945129a7a6e7ada45c8a15f041be6b0d355779b29ab4fc4fd5",
     "src/components/admin/ModuleSettingsForm.tsx": "07ba6bb965cf8bacb40be797e3b4d967c6db19bd7f4b03a134c9f3b8d02b2077",
