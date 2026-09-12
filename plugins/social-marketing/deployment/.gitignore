@@ -2,3 +2,6 @@
 upstream/
 source/
 backups/
+evidence/
+verification.override.yaml
+private-verification-fixtures.json

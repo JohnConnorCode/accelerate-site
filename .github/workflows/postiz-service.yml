@@ -1,0 +1,40 @@
+name: Postiz service verification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - plugins/social-marketing/deployment/**
+      - .github/workflows/postiz-service.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: postiz-service-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  service:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v7
+      - name: Prepare exact patched source
+        working-directory: plugins/social-marketing/deployment
+        run: ./prepare-source.sh
+      - name: Build actual upstream application
+        working-directory: plugins/social-marketing/deployment
+        run: |
+          docker build --build-arg NEXT_PUBLIC_VERSION=accelerate-3cbe20b-1 \
+            -f upstream/Dockerfile.dev -t accelerate-postiz:verification upstream
+      - name: Verify isolated service and recovery
+        working-directory: plugins/social-marketing/deployment
+        run: ./verify-service.sh
+      - name: Retain bounded verification receipts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: postiz-service-evidence
+          path: plugins/social-marketing/deployment/evidence/
+          retention-days: 14
