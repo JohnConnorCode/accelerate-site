@@ -11,6 +11,33 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-12",
   },
   {
+    id: "admin-guidance-clarity",
+    slug: "admin-guidance-clarity",
+    title: "Find the same names and guidance across Command Center",
+    description:
+      "Navigation, search, headings and breadcrumbs share consistent destination names. Architect, Blueprints and Learning Inbox include workflow help and linked guides. Help panels stay within the phone screen and keep longer guidance scrollable.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "services-strategy-page",
+    slug: "services-strategy-page",
+    title: "Explore strategy, custom builds and ongoing support",
+    description:
+      "The Services page explains how Accelerate helps identify useful work, build custom systems, support ongoing execution and improve results. Section links connect the offer, example work and engagement process; Command Center remains one option within that broader service.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "kanban-scroll-continuity",
+    slug: "kanban-scroll-continuity",
+    title: "Keep your place on shared boards",
+    description:
+      "Feature Board, Pipeline and Content Calendar keep manual horizontal scrolling under your control. Column buttons remain available on phones, tablets and desktops, keyboard focus reaches the board, and returning from an opportunity restores its board position. Shared loading and refresh regions retain their spacing across appearances.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "social-marketing-postiz",
     slug: "social-marketing-postiz",
     title: "Prepare and review LinkedIn publishing in Social Marketing",
@@ -204,7 +231,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "local-agent-supervisor",
     title: "Coordinate local agent jobs with durable ownership and recovery",
     description:
-      "Optional developer supervision adds a shared queue and process identity registry. Cross-process state updates are transactional; stale releases preserve replacement owners and recovery keeps paused agents paused. Cancellation requires an explicitly registered disposable child and enabled policy. Management starts off; provider hooks and OS isolation remain separate.",
+      "Optional developer supervision adds a shared queue and process identity registry. Cross-process state updates are transactional; stale releases preserve replacement owners. Registered interrupted threads resume through the original provider with one foreground owner, and uninstall safely resumes owned paused processes or refuses with a precise reason. Cancellation requires an explicitly registered disposable child and enabled policy. Management starts off; provider hooks and OS isolation remain separate.",
     category: "feature",
     publishedAt: "2026-09-08",
   },

@@ -12,7 +12,8 @@ import {
   type CSSProperties,
 } from "react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { resolveAdminPathname } from "@/lib/admin/navigation-paths";
 import { AdminConfirmationProvider } from "@/components/admin/AdminConfirmationProvider";
 import { AdminThemeProvider } from "@/components/admin/AdminThemeProvider";
 import type { AdminThemeDefinition } from "@/lib/admin/theme-definition";
@@ -63,6 +64,7 @@ import {
   applyNavLayoutOverride,
   filterNavSectionsByTenant,
   resolveAdminNavLink,
+  searchAdminNavLinks,
   type AdminNavLink,
   type AdminNavSection,
 } from "@/lib/admin/navigation";
@@ -76,22 +78,6 @@ import {
   isDemoScenarioId,
   type DemoScenarioId,
 } from "@/lib/admin/demo/scenarios";
-
-function resolveAdminPathname(
-  pathname: string,
-  scenarioId: DemoScenarioId | null,
-  demoRoute: string | null,
-) {
-  const workspacePath = pathname.match(/^\/t\/[^/]+\/admin(?:\/(.*))?$/);
-  if (workspacePath) return `/admin/${workspacePath[1] || "today"}`;
-  if (!scenarioId) return pathname;
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) return pathname;
-  const publicPrefix = `/demo/command-center/${scenarioId}`;
-  if (pathname === publicPrefix) return "/admin/today";
-  if (pathname.startsWith(`${publicPrefix}/`))
-    return `/admin/${pathname.slice(publicPrefix.length + 1) || "today"}`;
-  return `/admin/${demoRoute || "today"}`;
-}
 
 function resolveAdminPageTitle(pathname: string) {
   if (pathname.startsWith("/admin/contacts/") && pathname !== "/admin/contacts")
@@ -147,12 +133,14 @@ export default function AdminShell({
   moduleConfig?: { modules?: Partial<Record<string, boolean>> } | null;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const pathnameScenario = pathname.match(/^\/demo\/command-center\/([^/]+)/)?.[1] || "";
   const scenarioId = isDemoScenarioId(pathnameScenario) ? pathnameScenario : demoScenarioId;
   // The server route is the hydration-safe fallback. After client navigation,
   // the persistent layout must follow the current public demo URL or its
   // breadcrumb and active navigation state remain stuck on the first route.
   const effectivePathname = resolveAdminPathname(pathname, scenarioId, demoRoute);
+  const identityHref = `${effectivePathname}?${searchParams.toString()}`;
   const demo = useAdminDemo();
   const effectiveModuleConfig = demo?.moduleConfig ?? moduleConfig;
   const visibleNavSections = useMemo(() => {
@@ -260,7 +248,7 @@ export default function AdminShell({
         ?.querySelector("h1")
         ?.textContent?.replace(/\s+/g, " ")
         .trim();
-      const pageTitle = renderedHeading || resolveAdminPageTitle(effectivePathname);
+      const pageTitle = renderedHeading || resolveAdminPageTitle(identityHref);
       const expectedTitle = scenarioId
         ? `${pageTitle} | ${DEMO_SCENARIOS[scenarioId].name} Demo`
         : `${pageTitle} | ${tenant.brand.name} Admin`;
@@ -281,7 +269,7 @@ export default function AdminShell({
       window.clearTimeout(timer);
       titleObserver.disconnect();
     };
-  }, [effectivePathname, scenarioId]);
+  }, [effectivePathname, identityHref, scenarioId]);
 
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
@@ -479,8 +467,7 @@ export default function AdminShell({
     window.location.replace("/admin/login");
   };
 
-  const isActive = (href: string) =>
-    effectivePathname === href || (href !== "/admin" && effectivePathname.startsWith(href));
+  const isActive = (href: string) => resolveAdminNavLink(identityHref)?.href === href;
   const pendingAdminPath = pendingHref
     ? resolveAdminPathname(
         new URL(pendingHref, "http://accelerate.local").pathname,
@@ -602,13 +589,7 @@ export default function AdminShell({
   ];
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
-  const filteredLinks = normalizedQuery
-    ? visibleNavLinks.filter((link) =>
-        `${link.label} ${link.description} ${link.keywords || ""}`
-          .toLowerCase()
-          .includes(normalizedQuery),
-      )
-    : visibleNavLinks.slice(0, 7);
+  const filteredLinks = searchAdminNavLinks(visibleNavLinks, searchQuery);
   const filteredActions = normalizedQuery
     ? commandActions.filter((action) =>
         `${action.label} ${action.description} ${action.keywords}`
@@ -616,7 +597,7 @@ export default function AdminShell({
           .includes(normalizedQuery),
       )
     : commandActions;
-  const breadcrumbs = getAdminBreadcrumbs(effectivePathname);
+  const breadcrumbs = getAdminBreadcrumbs(identityHref);
 
   return (
     <AdminQueryProvider key={scenarioId || workspaceSlug} scope={scenarioId || workspaceSlug}>

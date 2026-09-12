@@ -18,6 +18,7 @@ import {
 import type { KanbanColumnMetadata, KanbanColumnRecord } from "@/lib/kanban/types";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
+import { useNavigationRuntime } from "@/components/navigation/NavigationRuntime";
 import { useReducedMotion } from "framer-motion";
 import { AddColumnInline } from "./AddColumnInline";
 import { KanbanColumn } from "./KanbanColumn";
@@ -105,6 +106,7 @@ export function KanbanBoard<T>({
   footer,
 }: KanbanBoardProps<T>) {
   const reducedMotion = useReducedMotion();
+  const { registerScrollRegion } = useNavigationRuntime();
   const {
     getColumnItems,
     sensors,
@@ -222,6 +224,11 @@ export function KanbanBoard<T>({
   // caught by the kanban browser QA (error boundary screenshot) and fixed
   // by stabilizing this reference.
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const boardKey = columns[0]?.board_key;
+  useEffect(() => {
+    if (!boardKey || !scrollerRef.current) return;
+    return registerScrollRegion(`kanban:${boardKey}`, scrollerRef.current);
+  }, [boardKey, registerScrollRegion]);
   const [activeColumnKey, setActiveColumnKey] = useState(columns[0]?.column_key ?? null);
   const columnCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -323,11 +330,12 @@ export function KanbanBoard<T>({
           <div
             ref={scrollerRef}
             className={cn(
-              "kanban-scroller flex gap-4 overflow-x-auto pb-4",
+              "kanban-scroller flex gap-4 overflow-x-auto pb-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--admin-action)]",
               activeId ? "is-dragging" : "",
             )}
             role="region"
             aria-label="Kanban board"
+            tabIndex={0}
           >
             {columns.map((column) => (
               <KanbanColumn

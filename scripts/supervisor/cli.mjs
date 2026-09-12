@@ -18,8 +18,8 @@ import {
   findSession,
   listSessions,
 } from "./sessions.mjs";
-import { enforceOverload, pauseProducer, resumeProducer } from "./policy.mjs";
-import { applyRecovery, planRecovery } from "./recover.mjs";
+import { enforceOverload, pauseProducer, resumeProducer, uninstallManagement } from "./policy.mjs";
+import { applyRecovery, planRecovery, continueOriginalThread } from "./recover.mjs";
 import {
   coverageReport,
   detectAdapters,
@@ -40,14 +40,15 @@ function usage() {
   end --thread <tid>             Mark a session ended (clean close)
   pause --thread <tid>         SIGSTOP an owned session (preserves memory)
   resume --thread <tid>        SIGCONT a paused session
-  recover [--clear-stale-lock] Plan/apply restart recovery, one session at a time
+  recover [--provider <id> --thread <id>] Continue one original dead provider thread
+                               Without selection, reconcile process state only
   enroll --repo <path>         Opt a repository into supervision (config only)
   unenroll --repo <path>
   coverage [--json]            Exact adapter coverage and bypasses
   register-disposable --id <id> --pid <n> --start <identity>
                                Explicitly mark one exact non-agent process disposable
   install                      Create per-user state and enable heavy-job management
-  uninstall                    Disable management; never touches sessions or repos`;
+  uninstall                    Safely resume owned paused producers, then disable`;
 }
 
 function args(argv) {
@@ -168,6 +169,12 @@ async function main() {
         break;
       }
       case "recover": {
+        if (opts.thread || opts.provider) {
+          if (!opts.thread || !opts.provider)
+            return fail("--provider and --thread are required together");
+          continueOriginalThread(opts.provider, opts.thread);
+          break;
+        }
         if (opts["clear-stale-lock"]) {
           emit({ ok: true, ...clearStaleLock() });
           break;
@@ -222,9 +229,7 @@ async function main() {
         break;
       }
       case "uninstall": {
-        saveConfig({ manageHeavyJobs: false });
-        audit("supervisor.uninstalled", {});
-        emit({ ok: true, manageHeavyJobs: false });
+        emit({ ok: true, ...uninstallManagement() });
         break;
       }
       default:

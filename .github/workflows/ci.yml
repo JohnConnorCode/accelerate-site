@@ -111,6 +111,12 @@ jobs:
           npm run verify:runtime-boundaries
           node --test scripts/test-runtime-error-adoption.mjs
 
+      - name: Verify admin language and route identity
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          node scripts/audit-admin-language.mjs --check
+          node --import tsx scripts/test-admin-language.ts
+
       - name: Lint
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run lint -- --max-warnings=0
@@ -288,6 +294,7 @@ jobs:
             DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
+            node scripts/qa-public-navigation-profile.mjs --services-only
             node scripts/qa-demo-business-workflows.mjs
           ) &
           public_qa_pid=$!
@@ -296,11 +303,11 @@ jobs:
             node scripts/qa-social-marketing.mjs
             node scripts/qa-collections-workspace.mjs
             node scripts/qa-universal-work-board.mjs
-            node scripts/qa-admin-polish.mjs
-            node scripts/qa-admin-polish-interactions.mjs
-            node scripts/qa-admin-polish-touch.mjs
-            node scripts/qa-admin-polish-theme-editor.mjs
-            node scripts/qa-admin-polish-navigation.mjs
+            polish_status=0
+            for polish_suite in qa-admin-polish qa-admin-polish-interactions qa-admin-polish-touch qa-admin-polish-theme-editor qa-admin-polish-navigation qa-admin-overhaul; do
+              if ! node "scripts/${polish_suite}.mjs"; then polish_status=1; fi
+            done
+            if [ "$polish_status" -ne 0 ]; then exit "$polish_status"; fi
             node scripts/qa-contact-review-copy.mjs
             node scripts/qa-demo-marketing.mjs
             node scripts/qa-theme-persistence.mjs
@@ -330,6 +337,7 @@ jobs:
             /tmp/accelerate-demo-business/
             /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-work-portfolio-qa/
+            /tmp/accelerate-public-navigation-profile/
             /tmp/accelerate-collections-workspace/
             /tmp/accelerate-radar-workspace/
             /tmp/accelerate-operator-workspace/
@@ -338,6 +346,7 @@ jobs:
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
             /tmp/accelerate-client-interactions/
+            /tmp/accelerate-admin-language/
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/
             /tmp/accelerate-theme-persistence/

@@ -27,6 +27,7 @@ interface NavigationRuntimeValue {
   shouldAnimateRoute: boolean;
   beginNavigation: (intent: NavigationIntent) => void;
   registerAdminScroller: (node: HTMLElement | null) => void;
+  registerScrollRegion: (key: string, node: HTMLElement) => () => void;
   registerLoadingBoundary: (id: string, active: boolean) => void;
 }
 
@@ -126,6 +127,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
   const intent = useRef<NavigationIntent | null>(null);
   const popTargetId = useRef<string | null>(null);
   const adminScroller = useRef<HTMLElement | null>(null);
+  const scrollRegions = useRef(new Map<HTMLElement, () => void>());
   const [pending, setPending] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [loadingBoundaries, setLoadingBoundaries] = useState<Set<string>>(() => new Set());
@@ -149,6 +151,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
   const saveCurrentPosition = useCallback(() => {
     if (!currentEntryId.current) return;
     writePosition(currentEntryId.current, getScrollPosition());
+    for (const save of scrollRegions.current.values()) save();
   }, [getScrollPosition]);
 
   const beginNavigation = useCallback(
@@ -164,6 +167,26 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
 
   const registerAdminScroller = useCallback((node: HTMLElement | null) => {
     adminScroller.current = node;
+  }, []);
+
+  // Reuse the same bounded numeric receipts as page scrolling. Each mounted
+  // region captures its own history entry, so an old route's cleanup cannot
+  // overwrite the destination when React commits navigation.
+  const registerScrollRegion = useCallback((key: string, node: HTMLElement) => {
+    const entryId = currentEntryId.current || ensureEntryId();
+    const receiptKey = `${entryId}:region:${key}`;
+    const position = readPositions().get(receiptKey);
+    if (position !== undefined) node.scrollTo({ left: position, behavior: "instant" });
+    const save = () => {
+      if (node.isConnected) writePosition(receiptKey, node.scrollLeft);
+    };
+    scrollRegions.current.set(node, save);
+    node.addEventListener("scroll", save, { passive: true });
+    return () => {
+      save();
+      node.removeEventListener("scroll", save);
+      scrollRegions.current.delete(node);
+    };
   }, []);
 
   const registerLoadingBoundary = useCallback((id: string, active: boolean) => {
@@ -342,6 +365,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       shouldAnimateRoute: hasNavigated,
       beginNavigation,
       registerAdminScroller,
+      registerScrollRegion,
       registerLoadingBoundary,
     }),
     [
@@ -351,6 +375,7 @@ export function NavigationRuntime({ children }: { children: React.ReactNode }) {
       pending,
       pendingHref,
       registerAdminScroller,
+      registerScrollRegion,
       registerLoadingBoundary,
     ],
   );
