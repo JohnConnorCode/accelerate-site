@@ -76,14 +76,18 @@ export async function writeWebsite(
 ): Promise<WebsiteReceipt> {
   assertWebsiteOwner(auth);
   const command = parseWebsiteCommand(input);
-  const { data, error } = await callWebsiteRpc(auth.database, {
-    p_operation: command.operation,
-    p_request_key: command.requestKey,
-    p_expected_version: command.expectedVersion,
-    p_revision_id: "revisionId" in command ? command.revisionId : null,
-    p_document: command.operation === "save" ? command.document : null,
-    p_actor_email: auth.user.email ?? auth.user.id,
-  });
+  const { data, error } = await callWebsiteRpc(
+    auth.database,
+    {
+      p_operation: command.operation,
+      p_request_key: command.requestKey,
+      p_expected_version: command.expectedVersion,
+      p_revision_id: "revisionId" in command ? command.revisionId : null,
+      p_document: command.operation === "save" ? command.document : null,
+      p_actor_email: auth.user.email ?? auth.user.id,
+    },
+    auth,
+  );
   if (error) {
     if (/stale|request key reused|current saved draft/i.test(error.message))
       throw new WebsiteConflictError(

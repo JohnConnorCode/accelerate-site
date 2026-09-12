@@ -35,7 +35,8 @@ edit shared work.
 2. Keep board lifecycle commands in the printed control checkout, even when a
    worker’s approved base predates the current runner. The emitted lifecycle
    packet supplies the command arguments and working directory.
-3. Accept the selected card, worktree, approved base, lease and packet returned
+3. Continue the current attempt, or accept the selected recovery/ready card,
+   worktree, approved base, lease and packet returned
    by the runner. Work only in that isolated worktree.
 4. Implement every acceptance item and preserve the packet's exclusions,
    dependencies, canonical services, plugin boundaries and tenant rules.
@@ -55,7 +56,10 @@ An explicit work request authorizes its scoped claim and implementation. Work vo
 is advisory and cannot require the founder to clear a slot. For a named expired
 attempt, inspect its retained checkout and use `agent:go -- --card <key> --json`;
 the service atomically fences the old token and records the continuation. Preserve
-uncommitted work rather than resetting it. Live ownership, project scope,
+uncommitted work in the predecessor and use the printed isolated successor.
+Include new source files explicitly with `--checkpoint-file`; unknown untracked
+files remain in the predecessor and are reported. Automatic pickup still requires
+a recorded checkpoint and enabled project recovery policy. Live ownership, project scope,
 dependencies, verification and release requirements still apply.
 
 ## Setup and recovery
@@ -78,6 +82,7 @@ is never committed):
   "version": 1,
   "transport": "local-operator",
   "project": "accelerate",
+  "capabilities": ["code"],
   "envFile": "/absolute/path/to/.env.local"
 }
 ```
@@ -95,6 +100,54 @@ If a parent directory contains a dirty feature checkout, leave it intact and
 start new sessions from a clean checkout of published main. A reusable parent
 entrypoint is in [Parent agent entrypoint](PARENT-AGENT-ENTRYPOINT.md). Existing
 claimed tasks continue in their retained worker checkout.
+
+## Preserve work between agents
+
+The ordinary request stays “continue the work.” `agent:go` resolves the current
+worktree/thread attempt, then eligible expired work, then ready backlog. Lifecycle
+commands include an attempt ID so two agents sharing a profile cannot overwrite
+each other's session. Keep the printed control checkout and command arguments.
+
+Initial pickup publishes a checkpoint of the approved source. `agent:progress`
+saves tracked changes with the handoff message. Before a long check or handoff,
+explicitly include new source files using a local JSON file:
+
+```json
+{
+  "summary": "Validation is implemented; the concurrency check remains.",
+  "completed": ["Added request validation"],
+  "remaining": ["Run the concurrent retry scenario"],
+  "artifacts": [],
+  "files": ["src/lib/example-validation.ts"]
+}
+```
+
+```bash
+npm run agent:checkpoint -- --card <key> --attempt <uuid> --checkpoint-file /tmp/checkpoint.json
+npm run agent:run -- --card <key> --attempt <uuid> --timeout-ms 1800000 -- npm run test:core
+```
+
+The checkpoint creates a separate commit using a temporary private index and
+publishes an immutable repository branch. HEAD, the original index and working
+files are preserved. Newly created files omitted from `files` are reported;
+inspect that list before handing off. Credentials, environment files, dependencies
+and generated output do not belong in a source checkpoint. A failed publication
+retains local source and reports the recovery gap.
+
+The job wrapper checks ownership before launch and renews every five minutes
+only while that explicit command runs. Its default deadline is 30 minutes and
+maximum is one hour. It ends renewal when the command finishes or ownership is
+lost. Use normal resource-gated checks inside the wrapper; it does not replace
+the shared heavy-job limit.
+
+A replacement worker can resume an expired lease when compatible schema, the
+named project's recovery policy, dependencies and checkpoint are ready. The old
+attempt is fenced permanently. Keep its checkout and private session for source
+inspection; never overwrite a legacy secret file. Missing checkpoint source needs
+reconciliation rather than another generic request for founder permission.
+The operator enables recovery once through the audited project policy operation;
+workers gain no review authority. Applying that migration and enabling a local
+policy do not establish a hosted application release.
 
 ## Provider compatibility
 
