@@ -75,7 +75,7 @@ node verify-service.mjs restart
 "${compose[@]}" exec -T postgres pg_restore -U postiz -d postiz < evidence/fixture-db.dump
 "${compose[@]}" run --rm --no-deps --entrypoint sh postiz -c 'find /uploads -mindepth 1 -delete'
 "${compose[@]}" run --rm -T --no-deps --entrypoint tar postiz -xzf - -C /uploads < evidence/fixture-uploads.tar.gz
-"${compose[@]}" start temporal postiz
+"${compose[@]}" up -d postiz
 wait_ready
 node verify-service.mjs restore
 # Fixture credentials and database contents do not belong in CI artifacts.

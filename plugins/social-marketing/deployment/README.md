@@ -11,8 +11,9 @@ Accelerate tenant. Customer groups do not provide tenant isolation.
 1. Run `./prepare-source.sh` in this directory. It checks out upstream commit
    `3cbe20b86bf3b2243843d51bb63dcec8773babf7` and applies `identity.patch` plus `service-hardening.patch`. The patches
    add organization identity, organization-owned media validation, private local
-   image reads and refusal of automatic destructive schema changes; an unpatched
-   upstream service is deliberately refused by the Accelerate adapter.
+   image reads and refusal of automatic destructive schema changes; the Accelerate adapter requires protocol 2, so earlier identity-only builds
+   and unpatched upstream services are refused. Upgrade the service from both
+   patches before activating this host adapter.
 2. Build from that source using `docker build -f upstream/Dockerfile.dev
 --build-arg NEXT_PUBLIC_VERSION=accelerate-3cbe20b-2 -t <registry>/postiz:<release>
 upstream`. Push to your registry and resolve the resulting image digest.
@@ -48,10 +49,23 @@ upstream`. Push to your registry and resolve the resulting image digest.
    through **Social Marketing → Setup**. The organization identity must match,
    and the same organization cannot be attached to two Accelerate tenants.
 
+For an upgrade from the earlier identity-only service, keep Social Marketing
+disabled while deploying protocol 2 to both Postiz and the Accelerate host.
+Requests fail closed while their protocol versions differ. After both are healthy,
+re-enable the plugin, check retained Results and approve fresh times for any
+missed schedules. Preserve unresolved attempts rather than resubmitting them.
+
 The supplied `API_LIMIT=30` caps Postiz create-post requests at thirty per hour per organization in the pinned upstream guard. Other reads are not counted by that guard. Size publishing batches and service capacity accordingly; increasing this setting does not increase LinkedIn permissions or quotas.
 
 The supplied Compose uses Temporal's PostgreSQL visibility store rather than
-Elasticsearch. Validate the pinned service startup and publication workflow on
+Elasticsearch. Temporal's demo search attributes are disabled because they consume
+Text-field slots required by Postiz's organization and post identifiers. Postiz
+waits for the namespace's search-attribute API before startup. On an existing
+installation, this flag does not remove previously created demo fields: inspect
+the namespace with Temporal's operator CLI, back up history and remove only
+confirmed unused demo attributes through that CLI before restarting Postiz.
+Do not delete workflow history or reset a live volume to recover field capacity.
+Validate the pinned service startup and publication workflow on
 an isolated host before release. Source preparation and a valid Compose file do
 not establish that a live host or LinkedIn application is ready.
 

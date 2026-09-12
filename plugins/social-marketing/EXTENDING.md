@@ -115,3 +115,8 @@ LinkedIn image bytes come from the private local volume. A new provider that
 requires a publicly fetched image needs an explicit, scoped delivery design and
 isolation tests before enabling it. Run `verify-hardening.mjs` against newly
 prepared source and the disposable service workflow before recording a new image.
+
+Advance `accelerateProtocol` in the service identity patch and host adapter when
+a required boundary changes, and prove the previous version is refused. Coordinate
+both deployments with dispatch disabled, then reconcile receipts and reapprove
+missed schedules before restoring automation.

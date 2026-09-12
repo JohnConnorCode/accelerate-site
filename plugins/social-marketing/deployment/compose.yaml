@@ -40,7 +40,7 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
-      temporal: { condition: service_started }
+      temporal: { condition: service_healthy }
     healthcheck:
       test: ["CMD", "node", "/opt/accelerate-healthcheck.mjs"]
       interval: 30s
@@ -92,7 +92,27 @@ services:
       POSTGRES_PWD: ${TEMPORAL_DB_PASSWORD}
       POSTGRES_SEEDS: temporal-db
       ENABLE_ES: "false"
-      TEMPORAL_NAMESPACE: default
+      DEFAULT_NAMESPACE: default
+      # Postiz needs two Text fields; Temporal's demo attributes consume the
+      # PostgreSQL visibility store's limited Text slots before Postiz starts.
+      SKIP_ADD_CUSTOM_SEARCH_ATTRIBUTES: "true"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "temporal",
+          "operator",
+          "search-attribute",
+          "list",
+          "--address",
+          "127.0.0.1:7233",
+          "--namespace",
+          "default",
+        ]
+      interval: 5s
+      timeout: 5s
+      start_period: 60s
+      retries: 30
     depends_on:
       temporal-db: { condition: service_healthy }
 volumes:

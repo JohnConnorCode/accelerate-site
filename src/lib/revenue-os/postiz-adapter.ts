@@ -17,7 +17,7 @@ export type PostizChannel = z.infer<typeof channelSchema>;
 const identitySchema = z.object({
   connected: z.literal(true),
   organizationId: id,
-  accelerateProtocol: z.literal(1),
+  accelerateProtocol: z.literal(2),
 });
 const postSchema = z.object({
   id,
@@ -147,7 +147,7 @@ export const postizAdapter: IntegrationAdapter = {
         valid: false,
         provider: "postiz",
         error:
-          "Verify the Postiz host, organization API key and organization identity patch (protocol 1).",
+          "Verify the Postiz host, organization API key and identity and service-hardening patches (protocol 2).",
       };
     }
   },

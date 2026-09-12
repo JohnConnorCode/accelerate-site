@@ -65,7 +65,7 @@ for (const fixture of fixtures) {
   const headers = { authorization: fixture.key };
   const identity = await json("/api/public/v1/is-connected", { headers });
   assert.equal(identity.organizationId, fixture.org);
-  assert.equal(identity.accelerateProtocol, 1);
+  assert.equal(identity.accelerateProtocol, 2);
   assert.deepEqual(await json("/api/public/v1/integrations", { headers }), []);
   const mediaPath = new URL(fixture.media.path).pathname;
   const publicImage = await request(mediaPath);
