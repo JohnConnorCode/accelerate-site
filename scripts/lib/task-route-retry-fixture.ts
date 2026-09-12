@@ -90,7 +90,9 @@ export async function testTaskRouteRetries() {
       new NextRequest(`https://example.test/api/admin/${route}`, {
         method: "PATCH",
         body: JSON.stringify(
-          route === "bookings" ? { id, stage: "proposal" } : { id, lead_status: "contacted" },
+          route === "bookings"
+            ? { id, stage: "proposal", estimatedValue: 7500 }
+            : { id, lead_status: "contacted" },
         ),
       });
     const failed = await exports.PATCH!(request());
@@ -111,6 +113,7 @@ export async function testTaskRouteRetries() {
     assert.equal((await exports.PATCH!(request())).status, 200);
     assert.equal(mem.rows("tasks").length, 1, "Retry preserves completed follow-up identity");
     if (route === "bookings") {
+      assert.equal(mem.rows("opportunities")[0]?.estimated_value, 7500);
       assert.equal(
         mem.rows("stage_events").length,
         1,
@@ -118,8 +121,8 @@ export async function testTaskRouteRetries() {
       );
       assert.equal(
         mem.rpcCalls.filter((call) => call.name === "apply_pipeline_action").length,
-        3,
-        "Actual booking adapter reaches canonical pipeline executor on each attempt",
+        6,
+        "Actual booking stage and value adapters reach canonical pipeline executor on each attempt",
       );
     }
   }

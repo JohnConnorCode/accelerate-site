@@ -206,7 +206,11 @@ export async function refreshOpportunityIntake(
     id: string;
     actorEmail: string;
     patch: Record<string, unknown>;
-    fillMissing?: { next_action?: string; next_action_at?: string };
+    fillMissing?: {
+      next_action?: string;
+      next_action_at?: string;
+      onlyWhenActionMissing?: boolean;
+    };
     effectKey: string;
   },
 ) {

@@ -338,7 +338,11 @@ export async function ingestPlaybookQualification(
     effectKey: `${sourceEffect}:identity`,
     patch: { contact_id: identity.contact.id, company_id: identity.company.id },
     fillMissing: input.qualification.qualified
-      ? { next_action: matchedPlaybook.nextAction, next_action_at: "now" }
+      ? {
+          next_action: matchedPlaybook.nextAction,
+          next_action_at: "now",
+          onlyWhenActionMissing: true,
+        }
       : undefined,
   });
 

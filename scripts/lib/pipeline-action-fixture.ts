@@ -54,14 +54,12 @@ export function installPipelineActionFixture(mem: MemorySupabase) {
           .select("*")
           .single();
         if (error) throw new Error(error.message);
-        await db
-          .from("stage_events")
-          .insert({
-            opportunity_id: data.id,
-            from_stage: null,
-            to_stage: "new",
-            actor_email: p_actor,
-          });
+        await db.from("stage_events").insert({
+          opportunity_id: data.id,
+          from_stage: null,
+          to_stage: "new",
+          actor_email: p_actor,
+        });
         if (action) Object.assign(action, { status: "executed", result: data });
         return { opportunity: data, changed: true };
       }

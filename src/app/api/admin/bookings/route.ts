@@ -1,7 +1,11 @@
 import { createRevenueTask } from "@/lib/revenue-os/tasks";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
-import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
+import {
+  transitionOpportunity,
+  transitionStatusFromError,
+  updateOpportunityRecord,
+} from "@/lib/revenue-os/pipeline";
 import { sendNoShowRebookEmail } from "@/lib/email/booking";
 import { resolvePlaybook, tenant } from "@/config/tenant";
 

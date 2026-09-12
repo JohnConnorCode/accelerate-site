@@ -582,19 +582,23 @@ try {
   assert.equal(sql("SELECT count(*) FROM companies WHERE domain='atomic.example';"), "0");
   assert.equal(sql("SELECT count(*) FROM opportunities WHERE name='Atomic creation';"), "0");
   sql("DROP TRIGGER native_create_failure ON audit_log; DROP FUNCTION public.fail_create_audit();");
-  const created = JSON.parse(
+  const opportunityCreated = JSON.parse(
     sql(pipelineCall(creationId, "create_opportunity", creationInput)),
   ).opportunity;
-  assert.equal(created.stage, "new");
-  assert.equal(created.estimated_value, 4200);
-  assert.equal(created.qualified, false);
+  assert.equal(opportunityCreated.stage, "new");
+  assert.equal(opportunityCreated.estimated_value, 4200);
+  assert.equal(opportunityCreated.qualified, false);
   assert.equal(
     JSON.parse(sql(pipelineCall(creationId, "create_opportunity", creationInput))).opportunity.id,
-    created.id,
+    opportunityCreated.id,
   );
-  assert.equal(sql(`SELECT count(*) FROM stage_events WHERE opportunity_id='${created.id}';`), "1");
+  assert.equal(
+    sql(`SELECT count(*) FROM stage_events WHERE opportunity_id='${opportunityCreated.id}';`),
+    "1",
+  );
   denied(
-    context(b) + `SELECT resolve_revenue_identity('${JSON.stringify(creationInput.identity)}');`,
+    context(b, "33333333-3333-4333-8333-333333333333") +
+      `SELECT resolve_revenue_identity('${JSON.stringify(creationInput.identity)}');`,
     "identity tenant membership required",
   );
   const sourceCreation = {
@@ -628,6 +632,9 @@ try {
   assert.equal(sourceReused.opportunity.id, sourceCreated.id);
   assert.equal(sourceReused.opportunity.name, "Human correction");
   assert.equal(sourceReused.changed, false);
+  sql(
+    `INSERT INTO contacts(tenant_id,full_name,primary_email) VALUES('${a}','Different literal address','wild_Z@example.test');`,
+  );
   const wildcardIdentity = {
     name: "Literal email",
     email: "wild_%@example.test",
@@ -649,13 +656,53 @@ try {
   );
   assert.equal(preserved.contact.id, literal.contact.id);
   assert.equal(preserved.contact.full_name, "Human-confirmed name");
+  sql(
+    `UPDATE contacts SET source_record_type='native',source_record_id='55555555-5555-4555-8555-555555555555' WHERE id='${literal.contact.id}';`,
+  );
+  const sourceFirstIdentity = {
+    ...creationInput.identity,
+    sourceRecordType: "native",
+    sourceRecordId: "55555555-5555-4555-8555-555555555555",
+  };
+  assert.equal(
+    JSON.parse(
+      sql(
+        context() +
+          `SELECT resolve_revenue_identity(${quote(JSON.stringify(sourceFirstIdentity))}::jsonb);`,
+      ),
+    ).contact.id,
+    literal.contact.id,
+  );
+  const importedPayload = {
+    record: {
+      name: "Imported deal",
+      source: "hubspot_import",
+      source_detail: "hubspot:source-1",
+      metadata: { hubspot_deal_id: "source-1" },
+    },
+    effectKey: "hubspot:source-1:create",
+  };
+  const importedOpportunity = JSON.parse(
+    sql(pipelineCall(null, "create_opportunity", importedPayload, true)),
+  ).opportunity;
+  assert.equal(importedOpportunity.owner_email, null);
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM activities WHERE opportunity_id='${importedOpportunity.id}' AND external_id='hubspot:deal:source-1' AND metadata->>'hubspot_deal_id'='source-1';`,
+    ),
+    "1",
+  );
+  assert.equal(
+    JSON.parse(sql(pipelineCall(null, "create_opportunity", importedPayload, true))).opportunity.id,
+    importedOpportunity.id,
+  );
   const sameIdentity = JSON.parse(
     sql(
       context() + `SELECT resolve_revenue_identity('${JSON.stringify(creationInput.identity)}');`,
     ),
   );
-  assert.equal(sameIdentity.contact.id, created.contact_id);
-  assert.equal(sameIdentity.company.id, created.company_id);
+  assert.equal(sameIdentity.contact.id, opportunityCreated.contact_id);
+  assert.equal(sameIdentity.company.id, opportunityCreated.company_id);
   assert.equal(sql("SELECT prosecdef FROM pg_proc WHERE proname='resolve_revenue_identity';"), "f");
   // Distinct primary/alternate matches are ambiguous and cannot leave a company behind.
   sql(
@@ -670,7 +717,7 @@ try {
   const reorderRows = () =>
     JSON.parse(
       sql(
-        `SELECT jsonb_agg(to_jsonb(o) ORDER BY id) FROM opportunities o WHERE id IN ('${old.id}','${created.id}');`,
+        `SELECT jsonb_agg(to_jsonb(o) ORDER BY id) FROM opportunities o WHERE id IN ('${old.id}','${opportunityCreated.id}');`,
       ),
     );
   const reorderPayload = {
@@ -702,8 +749,8 @@ try {
   );
   const wrongStage = {
     expectedPipeline: pipelineColumns(),
-    updates: [{ id: created.id, column_key: "won", sort_order: 99 }],
-    expectedState: reorderRows().filter((o) => o.id === created.id),
+    updates: [{ id: opportunityCreated.id, column_key: "won", sort_order: 99 }],
+    expectedState: reorderRows().filter((o) => o.id === opportunityCreated.id),
   };
   denied(
     pipelineCall(stage("reorder_opportunities", wrongStage), "reorder_opportunities", wrongStage),
@@ -712,10 +759,10 @@ try {
   const missingReorder = {
     expectedPipeline: pipelineColumns(),
     updates: [
-      { id: created.id, column_key: "new", sort_order: 99 },
+      { id: opportunityCreated.id, column_key: "new", sort_order: 99 },
       { id: "77777777-7777-4777-8777-777777777777", column_key: "new", sort_order: 99 },
     ],
-    expectedState: reorderRows().filter((o) => o.id === created.id),
+    expectedState: reorderRows().filter((o) => o.id === opportunityCreated.id),
   };
   denied(
     pipelineCall(
@@ -725,7 +772,10 @@ try {
     ),
     "missing row rejects whole reorder",
   );
-  assert.equal(sql(`SELECT sort_order FROM opportunities WHERE id='${created.id}';`), "15");
+  assert.equal(
+    sql(`SELECT sort_order FROM opportunities WHERE id='${opportunityCreated.id}';`),
+    "15",
+  );
   const duplicateReorder = {
     expectedPipeline: pipelineColumns(),
     updates: [wrongStage.updates[0], wrongStage.updates[0]],
@@ -747,9 +797,9 @@ try {
   assert.equal(sql(context() + "SELECT reorder_kanban_items('content','[]');"), "0");
   assert.equal(sql(machineContext + "SELECT reorder_kanban_items('features','[]');"), "0");
   const invalidRecord = {
-    opportunityId: created.id,
+    opportunityId: opportunityCreated.id,
     expectedState: JSON.parse(
-      sql(`SELECT to_jsonb(o) FROM opportunities o WHERE id='${created.id}';`),
+      sql(`SELECT to_jsonb(o) FROM opportunities o WHERE id='${opportunityCreated.id}';`),
     ),
     patch: { tenant_id: b, stage: "won" },
   };

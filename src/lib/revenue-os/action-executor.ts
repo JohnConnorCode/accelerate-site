@@ -497,10 +497,14 @@ export async function executePipelineChange(
   if (!systemSource)
     return runOperatorAction(database, {
       actionType,
-      title:
-        actionType === "transition_opportunity"
-          ? "Change opportunity stage"
-          : "Update opportunity details",
+      title: {
+        transition_opportunity: "Change opportunity stage",
+        update_opportunity_details: "Update opportunity details",
+        create_opportunity: "Create opportunity",
+        update_opportunity_record: "Update opportunity fields",
+        update_opportunity_intake: "Update opportunity intake and identity",
+        reorder_opportunities: "Reorder opportunities",
+      }[actionType],
       payload,
       actorEmail,
     });
