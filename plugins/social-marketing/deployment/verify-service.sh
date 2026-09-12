@@ -46,7 +46,7 @@ cleanup() {
   node diagnose-service.mjs || true
   # Do not upload arbitrary service logs, which may contain bootstrap tokens.
   "${compose[@]}" down -v --remove-orphans >/dev/null || true
-  rm -f verification.override.yaml private-verification-fixtures.json evidence/fixture-db.dump evidence/fixture-uploads.tar.gz
+  rm -f verification.override.yaml private-verification-fixtures.json evidence/fixture-db.dump evidence/fixture-uploads.tar.gz evidence/fixture-temporal.dump evidence/fixture-temporal_visibility.dump private-temporal-history.json
   exit "$code"
 }
 trap cleanup EXIT
@@ -65,18 +65,28 @@ node verify-service.mjs bootstrap
 "${compose[@]}" restart postiz
 wait_ready
 node verify-service.mjs restart
+node verify-temporal-restore.mjs before
 # Quiesce all writers before the matching DB + upload snapshot.
 "${compose[@]}" stop postiz temporal
 "${compose[@]}" exec -T postgres pg_dump -U postiz -d postiz -Fc > evidence/fixture-db.dump
+for database in temporal temporal_visibility; do
+  "${compose[@]}" exec -T temporal-db pg_dump -U temporal -d "$database" -Fc > "evidence/fixture-$database.dump"
+done
 "${compose[@]}" run --rm --no-deps --entrypoint tar postiz -czf - -C /uploads . > evidence/fixture-uploads.tar.gz
 # Recreate only this disposable project's application data, then restore it.
-"${compose[@]}" exec -T postgres dropdb -U postiz postiz
+"${compose[@]}" exec -T postgres dropdb --force -U postiz postiz
 "${compose[@]}" exec -T postgres createdb -U postiz postiz
 "${compose[@]}" exec -T postgres pg_restore -U postiz -d postiz < evidence/fixture-db.dump
+for database in temporal temporal_visibility; do
+  "${compose[@]}" exec -T temporal-db dropdb --force -U temporal "$database"
+  "${compose[@]}" exec -T temporal-db createdb -U temporal "$database"
+  "${compose[@]}" exec -T temporal-db pg_restore -U temporal -d "$database" < "evidence/fixture-$database.dump"
+done
 "${compose[@]}" run --rm --no-deps --entrypoint sh postiz -c 'find /uploads -mindepth 1 -delete'
 "${compose[@]}" run --rm -T --no-deps --entrypoint tar postiz -xzf - -C /uploads < evidence/fixture-uploads.tar.gz
 "${compose[@]}" up -d postiz
 wait_ready
+node verify-temporal-restore.mjs after
 node verify-service.mjs restore
 # Fixture credentials and database contents do not belong in CI artifacts.
-rm -f evidence/fixture-db.dump evidence/fixture-uploads.tar.gz private-verification-fixtures.json
+rm -f evidence/fixture-db.dump evidence/fixture-uploads.tar.gz evidence/fixture-temporal.dump evidence/fixture-temporal_visibility.dump private-temporal-history.json private-verification-fixtures.json

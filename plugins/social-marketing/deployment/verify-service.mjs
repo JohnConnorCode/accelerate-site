@@ -212,6 +212,11 @@ for (const fixture of fixtures) {
   assert.equal(retained[0].id, fixture.post);
   assert.equal(retained[0].state, "DRAFT");
 }
+if (phase === "restore")
+  assert.equal(
+    JSON.parse(readFileSync("evidence/temporal-restore.json", "utf8")).historyMatches,
+    true,
+  );
 writeFileSync(
   `evidence/${phase}.json`,
   JSON.stringify(
@@ -223,6 +228,7 @@ writeFileSync(
       syntheticChannelAndDraftIsolation: true,
       foreignPostDeleteRefused: true,
       realLinkedInConnection: false,
+      temporalHistoryRestored: phase === "restore",
       invalidCredentialRefused: true,
       storedUploadBytesMatch: true,
       publicUploadURLsDenied: true,
@@ -231,7 +237,10 @@ writeFileSync(
       productionReady: false,
       remaining: [
         "Real LinkedIn authorization and an exact approved publication remain unverified; channel fixtures use unusable synthetic credentials.",
-        "Temporal history and full host restoration remain unverified.",
+        ...(phase === "restore"
+          ? []
+          : ["Temporal history restoration is not yet verified at this stage."]),
+        "Persistent-host and encrypted off-host backup restoration remain unverified.",
         "LinkedIn access and persistent HTTPS host are not configured.",
       ],
     },

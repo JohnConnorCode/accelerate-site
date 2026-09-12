@@ -97,14 +97,16 @@ loopback and removes its own Compose volumes on exit. No real LinkedIn app,
 page, customer data or deployment credentials belong in this run.
 
 The script records image identities and JSON receipts for bootstrap, restart and
-application database/upload restoration. It exercises both organization identities,
+application database/upload restoration and Temporal history restoration. It exercises both organization identities,
 invalid keys, public registration denial, public media denial and rejection of a
 foreign organization's media reference. Each organization creates an unpublished
 draft through the actual API. The checks prove channel/draft list separation,
 refusal of foreign channel settings and destinations, and refusal of foreign post
 deletion before and after restart and restoration. Channel fixture records are
 seeded only in the disposable database; real OAuth and publication are separate
-acceptance requirements. Missing or foreign post reads return a scoped 404. Private fixture credentials and database
+acceptance requirements. Missing or foreign post reads return a scoped 404. A harmless workflow is placed on an unserved fixture queue; after restoring both
+Temporal databases, its event-history checksum must match exactly. No provider
+activity can run on that queue. Private fixture credentials and database
 archives are removed even after failure, and arbitrary service logs are excluded
 from uploaded artifacts. Each receipt lists remaining release proof explicitly.
 
@@ -113,8 +115,8 @@ memory and disk to build upstream. Run `prepare-source.sh`, build
 `accelerate-postiz:verification` as above, then run `verify-service.sh`. From a
 repository with its developer dependencies installed, `node
 plugins/social-marketing/deployment/verify-hardening.mjs` separately tests the
-applied local media reader's path and symlink protections. Keep the full database,
-Temporal history, HTTPS and real connected-page checks in the host acceptance;
+applied local media reader's path and symlink protections. Keep persistent-host recovery, encrypted off-host backups, HTTPS and real
+connected-page checks in the host acceptance;
 the disposable fixture check covers only the evidence stated in its receipts.
 
 ## Back up and prove restoration
