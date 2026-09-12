@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "neutral-fork-distribution",
+    slug: "neutral-fork-distribution",
+    title: "Run a fork as your business, not ours",
+    description:
+      "A documented neutral profile keeps the same admin and runtime while entry pages, authentication chrome and hosting IDs come from the configured business. Protected agency media stays out of the starter file list. The original branded installation remains the default.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "social-marketing-postiz",
     slug: "social-marketing-postiz",
     title: "Prepare and review LinkedIn publishing in Social Marketing",

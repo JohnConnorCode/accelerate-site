@@ -5,6 +5,9 @@ import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { NavigationRuntime } from "@/components/navigation/NavigationRuntime";
 import { MotionRuntime } from "@/components/motion/MotionRuntime";
 import { marketingPositioning } from "@/content/marketing-positioning";
+import { tenant } from "@/config/tenant";
+import { distributionProfile } from "@/lib/distribution/profile";
+import { neutralPublicIdentity } from "@/lib/distribution/public-identity";
 import "./globals.css";
 
 // High-contrast editorial type system: Inter Tight (display), Inter (body),
@@ -52,97 +55,136 @@ export const viewport: Viewport = {
 const defaultSocialImage =
   "/api/og?eyebrow=AI-ENABLED%20OPERATIONS&title=Build%20the%20right%20system%20for%20the%20business.&description=AI%20strategy%2C%20custom%20systems%2C%20and%20execution%20built%20around%20how%20the%20business%20actually%20works.";
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://www.acceleratewith.us"),
-  title: {
-    default: "Accelerate | Custom AI Strategy, Solutions & Execution",
-    template: "%s | Accelerate",
-  },
-  description: marketingPositioning.shortOffer,
-  applicationName: "Accelerate",
-  authors: [{ name: "Accelerate", url: "https://www.acceleratewith.us" }],
-  creator: "Accelerate",
-  publisher: "Accelerate",
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://www.acceleratewith.us",
-    siteName: "Accelerate",
-    title: "Accelerate | Custom AI Strategy, Solutions & Execution",
-    description: marketingPositioning.shortOffer,
-    images: [
-      {
-        url: defaultSocialImage,
-        width: 1200,
-        height: 630,
-        alt: "Accelerate builds AI-enabled operating systems around how the business actually works",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@accelerateAIops",
-    creator: "@accelerateAIops",
-    title: "Accelerate | Custom AI Strategy, Solutions & Execution",
-    description: marketingPositioning.shortOffer,
-    images: [defaultSocialImage],
-  },
-  verification: {
-    google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-};
+const identity = distributionProfile() === "neutral" ? neutralPublicIdentity(tenant) : null;
 
-const organizationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "@id": "https://www.acceleratewith.us/#organization",
-  name: "Accelerate",
-  url: "https://www.acceleratewith.us",
-  logo: {
-    "@type": "ImageObject",
-    url: "https://www.acceleratewith.us/logo.png",
-    width: 512,
-    height: 512,
-  },
-  description: marketingPositioning.coreOffer,
-  founder: {
-    "@type": "Person",
-    name: "John Connor",
-  },
-  email: "john@acceleratewith.us",
-  contactPoint: {
-    "@type": "ContactPoint",
-    contactType: "sales",
-    email: "john@acceleratewith.us",
-    url: "https://www.acceleratewith.us/contact",
-  },
-  areaServed: {
-    "@type": "Country",
-    name: "United States",
-  },
-  knowsAbout: [
-    "Artificial Intelligence",
-    "AI Strategy",
-    "Workflow Automation",
-    "Sales Automation",
-    "Customer Engagement",
-    "Content Creation",
-    "Business Intelligence",
-    "Small Business Operations",
-  ],
-  sameAs: ["https://www.linkedin.com/company/acceleratewith/"],
-};
+export const metadata: Metadata = identity
+  ? {
+      metadataBase: identity.metadataBase,
+      title: { default: identity.title, template: identity.titleTemplate },
+      description: identity.description,
+      applicationName: identity.applicationName,
+      authors: [{ name: identity.name, url: identity.siteUrl }],
+      creator: identity.name,
+      publisher: identity.name,
+      openGraph: {
+        type: "website",
+        locale: "en_US",
+        url: identity.siteUrl,
+        siteName: identity.name,
+        title: identity.title,
+        description: identity.description,
+        images: [{ url: defaultSocialImage, width: 1200, height: 630, alt: identity.name }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: identity.title,
+        description: identity.description,
+        images: [defaultSocialImage],
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
+    }
+  : {
+      metadataBase: new URL("https://www.acceleratewith.us"),
+      title: {
+        default: "Accelerate | Custom AI Strategy, Solutions & Execution",
+        template: "%s | Accelerate",
+      },
+      description: marketingPositioning.shortOffer,
+      applicationName: "Accelerate",
+      authors: [{ name: "Accelerate", url: "https://www.acceleratewith.us" }],
+      creator: "Accelerate",
+      publisher: "Accelerate",
+      openGraph: {
+        type: "website",
+        locale: "en_US",
+        url: "https://www.acceleratewith.us",
+        siteName: "Accelerate",
+        title: "Accelerate | Custom AI Strategy, Solutions & Execution",
+        description: marketingPositioning.shortOffer,
+        images: [
+          {
+            url: defaultSocialImage,
+            width: 1200,
+            height: 630,
+            alt: "Accelerate builds AI-enabled operating systems around how the business actually works",
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        site: "@accelerateAIops",
+        creator: "@accelerateAIops",
+        title: "Accelerate | Custom AI Strategy, Solutions & Execution",
+        description: marketingPositioning.shortOffer,
+        images: [defaultSocialImage],
+      },
+      verification: {
+        google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      },
+    };
+
+const organizationJsonLd = identity
+  ? {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": `${identity.siteUrl}/#organization`,
+      name: identity.name,
+      url: identity.siteUrl,
+    }
+  : {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://www.acceleratewith.us/#organization",
+      name: "Accelerate",
+      url: "https://www.acceleratewith.us",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://www.acceleratewith.us/logo.png",
+        width: 512,
+        height: 512,
+      },
+      description: marketingPositioning.coreOffer,
+      founder: {
+        "@type": "Person",
+        name: "John Connor",
+      },
+      email: "john@acceleratewith.us",
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "sales",
+        email: "john@acceleratewith.us",
+        url: "https://www.acceleratewith.us/contact",
+      },
+      areaServed: {
+        "@type": "Country",
+        name: "United States",
+      },
+      knowsAbout: [
+        "Artificial Intelligence",
+        "AI Strategy",
+        "Workflow Automation",
+        "Sales Automation",
+        "Customer Engagement",
+        "Content Creation",
+        "Business Intelligence",
+        "Small Business Operations",
+      ],
+      sameAs: ["https://www.linkedin.com/company/acceleratewith/"],
+    };
 
 export default function RootLayout({
   children,
