@@ -335,11 +335,28 @@ async function runServicesProfile(label, viewport, reducedMotion = "no-preferenc
       await section.elementHandle(),
     );
     for (const child of await section.locator("[data-reveal-state]").all()) {
-      await child.scrollIntoViewIfNeeded();
-      await page.waitForFunction(
-        (node) => Number(getComputedStyle(node).opacity) >= 0.99,
-        await child.elementHandle(),
-      );
+      // A fully visible node can still sit below the shared 78% reveal line.
+      // Move it through that line as a reader scrolling the page would.
+      await child.evaluate((node) => node.scrollIntoView({ block: "center", behavior: "instant" }));
+      try {
+        await page.waitForFunction(
+          (node) => Number(getComputedStyle(node).opacity) >= 0.99,
+          await child.elementHandle(),
+        );
+      } catch (error) {
+        await page.screenshot({ path: join(output, `services-${label}-${id}-failed.png`) });
+        const state = await child.evaluate((node) => ({
+          tag: node.tagName,
+          classes: node.className,
+          reveal: node.getAttribute("data-reveal-state"),
+          opacity: getComputedStyle(node).opacity,
+          top: node.getBoundingClientRect().top,
+          viewport: innerHeight,
+        }));
+        throw new Error(`Services ${label}/${id} reveal did not settle: ${JSON.stringify(state)}`, {
+          cause: error,
+        });
+      }
     }
     const measured = await section.evaluate((node) => ({
       heading: node.querySelector("h2")?.textContent?.trim(),
@@ -351,7 +368,7 @@ async function runServicesProfile(label, viewport, reducedMotion = "no-preferenc
     revealedSections.push({ id, ...measured });
   }
   for (const group of await page.locator("footer [data-footer-section]").all()) {
-    await group.scrollIntoViewIfNeeded();
+    await group.evaluate((node) => node.scrollIntoView({ block: "center", behavior: "instant" }));
     await page.waitForFunction(
       (node) => Number(getComputedStyle(node).opacity) >= 0.99,
       await group.elementHandle(),
