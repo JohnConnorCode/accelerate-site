@@ -8,73 +8,73 @@ export const homeCommandCenterContent = {
   "groupLabel": "Configure this section",
   "slides": [
     {
-      "kind": "image",
+      "kind": "image" as const,
       "src": "/neutral-placeholder.svg",
       "alt": "Neutral placeholder",
       "caption": "Configure this section",
       "width": 1400,
       "height": 875,
-      "presentation": "interface",
+      "presentation": "interface" as const,
       "demoHref": "/"
     },
     {
-      "kind": "image",
+      "kind": "image" as const,
       "src": "/neutral-placeholder.svg",
       "alt": "Neutral placeholder",
       "caption": "Configure this section",
       "width": 1400,
       "height": 875,
-      "presentation": "interface",
+      "presentation": "interface" as const,
       "demoHref": "/"
     },
     {
-      "kind": "image",
+      "kind": "image" as const,
       "src": "/neutral-placeholder.svg",
       "alt": "Neutral placeholder",
       "caption": "Configure this section",
       "width": 1400,
       "height": 875,
-      "presentation": "interface",
+      "presentation": "interface" as const,
       "demoHref": "/"
     },
     {
-      "kind": "image",
+      "kind": "image" as const,
       "src": "/neutral-placeholder.svg",
       "alt": "Neutral placeholder",
       "caption": "Configure this section",
       "width": 1400,
       "height": 875,
-      "presentation": "interface",
+      "presentation": "interface" as const,
       "demoHref": "/"
     },
     {
-      "kind": "image",
+      "kind": "image" as const,
       "src": "/neutral-placeholder.svg",
       "alt": "Neutral placeholder",
       "caption": "Configure this section",
       "width": 1400,
       "height": 875,
-      "presentation": "interface",
+      "presentation": "interface" as const,
       "demoHref": "/"
     },
     {
-      "kind": "image",
+      "kind": "image" as const,
       "src": "/neutral-placeholder.svg",
       "alt": "Neutral placeholder",
       "caption": "Configure this section",
       "width": 1400,
       "height": 875,
-      "presentation": "interface",
+      "presentation": "interface" as const,
       "demoHref": "/"
     },
     {
-      "kind": "image",
+      "kind": "image" as const,
       "src": "/neutral-placeholder.svg",
       "alt": "Neutral placeholder",
       "caption": "Configure this section",
       "width": 1400,
       "height": 875,
-      "presentation": "interface",
+      "presentation": "interface" as const,
       "demoHref": "/"
     }
   ],
@@ -311,7 +311,7 @@ export const homeSystemsContent = {
   "listLabel": "Configure this section",
   "modes": [
     {
-      "key": "strategy",
+      "key": "strategy" as const,
       "label": "Configure this section",
       "title": "Configure this section",
       "description": "Configure this section",
@@ -319,7 +319,7 @@ export const homeSystemsContent = {
       "href": "/"
     },
     {
-      "key": "build",
+      "key": "build" as const,
       "label": "Configure this section",
       "title": "Configure this section",
       "description": "Configure this section",
@@ -327,7 +327,7 @@ export const homeSystemsContent = {
       "href": "/"
     },
     {
-      "key": "execute",
+      "key": "execute" as const,
       "label": "Configure this section",
       "title": "Configure this section",
       "description": "Configure this section",
@@ -335,7 +335,7 @@ export const homeSystemsContent = {
       "href": "/"
     },
     {
-      "key": "improve",
+      "key": "improve" as const,
       "label": "Configure this section",
       "title": "Configure this section",
       "description": "Configure this section",

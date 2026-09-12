@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { tenant, fromEmail } from "../src/config/tenant";
+import { distributionProfile } from "../src/lib/distribution/profile";
 import { SYSTEM_PROMPT } from "../src/lib/chat/system-prompt";
 import { emailWrapper } from "../src/lib/email/templates";
 import { generatePlanHTML } from "../src/lib/plan-document";
@@ -13,6 +14,11 @@ assert.equal(
   tenant.brand.name,
   "Harbor Operations",
   "Run this check inside the actual exported starter",
+);
+assert.equal(
+  distributionProfile({}),
+  "neutral",
+  "A fresh clone stays neutral without ignored environment files",
 );
 const metric = {
   estimatedLeadIncrease: "Not estimated",
@@ -51,6 +57,10 @@ for (const path of [
 ])
   assert.equal(existsSync(path), false, path);
 assert.doesNotMatch(readFileSync("src/content/team.ts", "utf8"), /John Connor|linkedin\.com/);
+const hosting = JSON.parse(readFileSync("vercel.json", "utf8"));
+assert.equal(hosting.git.deploymentEnabled, false);
+assert.deepEqual(hosting.crons, []);
+assert.equal(existsSync(".github/workflows/ci.yml"), false);
 assert.equal(tenant.capabilities.publicBooking, false);
 assert.equal(tenant.booking.schedulerUrl, null);
 console.log(

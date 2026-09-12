@@ -145,7 +145,7 @@ export function generatePlanHTML(
 <body>
   <div class="header">
     <div class="logo">${safeBrand}</div>
-    <div class="subtitle">AI Strategy & Systems for Small Business</div>
+    <div class="subtitle">${escapeHtml(identity.brand.tagline)}</div>
   </div>
 
   <div class="plan-for">
