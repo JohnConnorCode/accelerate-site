@@ -66,7 +66,7 @@
     "src/app/api/admin/activity/route.ts": "ee9f15fedfb7aa0151bcaeb01414ed6407658cf22e224b7ca4fdef02376a38f8",
     "src/app/api/admin/blueprints/[id]/route.ts": "0f320be38283c086d60f7bc49c8138abba4e99ca967b14c90c20bb2a7047f67f",
     "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",
-    "src/app/api/admin/bookings/route.ts": "e54127ddfb1954dec26f3f9b3f64ca81ddf79b0f7c1ee43531d64de4f741e775",
+    "src/app/api/admin/bookings/route.ts": "eae8f3d5b5266e3dec2874a281650c354deb8cd0bcaa8461c9d77c2a23953026",
     "src/app/api/admin/chat-leads/route.ts": "8712c08abc9a1e130bdbf50d3a19cc19956246056bf9eeac186cd06a0a4eaa70",
     "src/app/api/admin/clients/route.ts": "e0b0db321d70eb56f11965e0f71b3235c5832a407f522123d536c8bfb3326e1c",
     "src/app/api/admin/collections/reminders/route.ts": "04216824ae8bab39007829cd39dc033a7c55407b16040e739cfbc68aae5d302d",
@@ -123,7 +123,7 @@
     "src/app/api/admin/revenue-os/identity-review/route.ts": "2236f24ce31d1a8ccedc1ef29e7101ede67e992af4d860ef5a67f4df3a9b3952",
     "src/app/api/admin/revenue-os/layout/route.ts": "5bf242d5b14c5dcbcaf9fbaa22c3f503862fc91f0210394a1021d74dd882c5e4",
     "src/app/api/admin/revenue-os/overview/route.ts": "8cbca9c90a9175a7e27d3f6a18df668839b5197b61d07a61979eedd07c2ed97a",
-    "src/app/api/admin/revenue-os/pipeline/route.ts": "6dda6ba64af9a42010d6a0efaacb89565a12500bd6ad34e37ce30e6c7f0e4c30",
+    "src/app/api/admin/revenue-os/pipeline/route.ts": "5d28f07800c04dd0912163970c3454b696d50e68bfbafd32ef9e7a94ce6d08d6",
     "src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts": "bef9ce8396d295bb1ec3aa98cb5be52aead4e845559262b74d4fd0e670ca0384",
     "src/app/api/admin/revenue-os/recovery/route.ts": "618f42369e72b357efd35a846c19cfa21b1e32f06d405a20ccf7cf650fc8f288",
     "src/app/api/admin/revenue-os/tasks/route.ts": "342c2e36c31e200393d53bb1e7e3ef3da65356162889a14196c09241169bb88a",
@@ -260,8 +260,8 @@
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
     "src/lib/revenue-os/README.md": "0d148876ff6989e76fe84c945ab48d3e6db4166f653e17b23c4adaf057633f58",
-    "src/lib/revenue-os/action-executor.ts": "89bfca60208cfaf7bc6daa616c394e61d52604afd6cfe26ede9781f0191ad1ee",
-    "src/lib/revenue-os/actions.ts": "01dde56277c695d3467143fe19d07890b535d9d139835962277366ba2ed76e21",
+    "src/lib/revenue-os/action-executor.ts": "c44e012cc6934450279afc2228d1588d494d5588ebd1957752b11054c1f9ab08",
+    "src/lib/revenue-os/actions.ts": "4543c721d98e20f998b55ec15d2827d0986f21e1249473b56188bcb6deea62be",
     "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
@@ -283,7 +283,7 @@
     "src/lib/revenue-os/collections.ts": "a05af80ab775b9459d8799350b6cfb5e51799374bdab8e8264dadfe517a25c73",
     "src/lib/revenue-os/communications.ts": "86a48ad957fe47f6c9db0f2d50645068ebcfdacaece907aaa30a722abc80aca9",
     "src/lib/revenue-os/contact-imports.ts": "f59146dec4f9045903e33c377a977ffa4cb1358ee2acad27a57b305bf0716017",
-    "src/lib/revenue-os/conversations.ts": "6be8f7e1052a99c7dd938b4770308a74ba9d6057baaaf728709bcfa46d4dd25a",
+    "src/lib/revenue-os/conversations.ts": "038aef59737d17a7a36221877171d7d84272d429db7fdd017a1211e0e7bdfe3b",
     "src/lib/revenue-os/db.ts": "167cc018fe0d8387547c174be0fc105edb9efbee6608bf93e2d0e9ca05d038cb",
     "src/lib/revenue-os/delivery-handoff-contract.ts": "fdaddaa73123e99c372bb279626a3ab3072a2cc13418c10bb8244f791d1cbace",
     "src/lib/revenue-os/delivery-handoff.ts": "eb6284e7b352259df2f18d8c1f23231d12082a74ae1d8cf8b8d6cc5ce8c5788d",
@@ -293,8 +293,8 @@
     "src/lib/revenue-os/google.ts": "7b9dfc2b18baf5b973a93f36b2d977d342c8e74d9fc5ebcf35102ec27096b209",
     "src/lib/revenue-os/health.ts": "d2aec6b40a32001b1a6f89d07fb29d00f5fca19d051ca301cdecd3fac3220d92",
     "src/lib/revenue-os/identity-review.ts": "3e488e1925758428bbf97f9f5cf70bdd88877e4fcb944a40acd353fa1a10e8f4",
-    "src/lib/revenue-os/inbound.ts": "1e76577f5df236409f273c34bea53b7fe9eef910844053e2883a529517d93e66",
-    "src/lib/revenue-os/integration-adapters.ts": "a7e669ce16fa3151a385485e0a537404bb4fe65b6e43e3c54511fa200c89f96b",
+    "src/lib/revenue-os/inbound.ts": "9ab1fc8e78c7d562e2f4b934bc67a391108857eb64ee2b5072bd0da62307e0df",
+    "src/lib/revenue-os/integration-adapters.ts": "444afb9b8f77df5b443bd859743bb02ef321fde989d5adca5d12954f9486e40a",
     "src/lib/revenue-os/integrations.ts": "38673d0ab3959857063045b2e466cc2c970768d04752188bd3cf8686ac4bae96",
     "src/lib/revenue-os/invoice-page-contract.ts": "350da047e7317f8e8e6d73cbce19749be9dd40bda82f180f8f0b8bd037da8baa",
     "src/lib/revenue-os/invoice-pages.ts": "4013847e70cc17d744cea8ef8392c4e3b4c87fc7720c6f35c1dbec2774f6c428",
@@ -306,7 +306,7 @@
     "src/lib/revenue-os/modules.ts": "c9c0ddd81f66765e47c197b318e85ae9802c3637e864790d0ef0301f14477052",
     "src/lib/revenue-os/pipeline-metrics.ts": "6299e90a3489ff2025da89228f9e495b0866febb5c411f8fa386094a2a3dc353",
     "src/lib/revenue-os/pipeline-stage-resolver.ts": "3581116b6b179a7955feba43e7b535fdfd7febc5f5823eebf804113665486f94",
-    "src/lib/revenue-os/pipeline.ts": "0d3f83f4e1bb0753aaae7a9ef22b979f569c441e763cd9af3c096f8cdfc859e0",
+    "src/lib/revenue-os/pipeline.ts": "9ca2408382ee9d87d23c22605e649d43b71945ece5a5bdf82869a5ee767cf1e5",
     "src/lib/revenue-os/proposals.ts": "462a8771b759116a7b87401d03eda126752bc53120a704f37c208893deaac7b5",
     "src/lib/revenue-os/queue.ts": "35207fce4f1457920ea1dec57850bdbcee228c64c82f76db9bf05b5a71e6be18",
     "src/lib/revenue-os/radar-workspace.ts": "e5724bd2d26018f6e9582c58cf47402b56dd0dc76143a474d08d66ff246f66c8",
@@ -314,7 +314,7 @@
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/runs.ts": "94ea4fe446cc959aaf90cb4ab968f9b0baf0c165f3c393081b9fd6e4d8015fdd",
-    "src/lib/revenue-os/schema-contract.ts": "5ae94ff68f19a5567e6ec45891ca193e08a747d864c3a692f2392bec33ad4eca",
+    "src/lib/revenue-os/schema-contract.ts": "cd3c6fed51f48eb9622e2f9e552b0de0b4a58698b6724db7b48fa8c18ae1a9e5",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/tasks.ts": "af5243e4c43453da2bf7f87f24f505bb8e1626f9a10c13e5030c518d55a91cbd",
@@ -857,13 +857,7 @@
             "@/lib/revenue-os/pipeline",
             "@/lib/revenue-os/pipeline-stage-resolver"
           ],
-          "directTables": [
-            "calendar_events",
-            "companies",
-            "contacts",
-            "kanban_columns",
-            "opportunities"
-          ]
+          "directTables": ["calendar_events", "companies", "contacts", "opportunities"]
         }
       ],
       "boundary": "Conversation and Google services own triage and threaded replies.",
@@ -1222,13 +1216,7 @@
             "@/lib/revenue-os/pipeline",
             "@/lib/revenue-os/pipeline-stage-resolver"
           ],
-          "directTables": [
-            "calendar_events",
-            "companies",
-            "contacts",
-            "kanban_columns",
-            "opportunities"
-          ]
+          "directTables": ["calendar_events", "companies", "contacts", "opportunities"]
         }
       ],
       "boundary": "Canonical pipeline services own opportunity transitions and terminal-stage policy. Shared Kanban separates stage and order saves, reconciles partial results and retains authoritative state; demo mutations stay in scenario storage.",

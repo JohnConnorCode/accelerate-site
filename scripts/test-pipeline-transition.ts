@@ -5,6 +5,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   transitionOpportunity,
+  createOpportunity,
+  reorderOpportunities,
   transitionStatusFromError,
   applyPipelineEffect,
 } from "../src/lib/revenue-os/pipeline";
@@ -313,9 +315,36 @@ async function run() {
     /Bound tenant system context required/,
     "Caller text cannot supply service provenance",
   );
+  const created = await createOpportunity(db.client, {
+    actorEmail: "founder@example.com",
+    name: "New client",
+    email: "new-client@example.test",
+    estimatedValue: 100,
+  });
+  assert.equal(created.stage, "new");
+  assert.ok(
+    rows(db, "action_queue").some(
+      (a) => a.action_type === "create_opportunity" && a.status === "executed",
+    ),
+  );
+  const reordered = await reorderOpportunities(db.client, "founder@example.com", [
+    { id: created.id, column_key: "new", sort_order: 20 },
+  ]);
+  assert.equal(reordered.affected, 1);
+  assert.equal(rows(db, "opportunities").find((o) => o.id === created.id)?.stage, "new");
+  await assert.rejects(
+    () =>
+      reorderOpportunities(db.client, "founder@example.com", [
+        { id: created.id, column_key: "won", sort_order: 40 },
+      ]),
+    /changed|unavailable/,
+  );
+  assert.equal(rows(db, "opportunities").find((o) => o.id === created.id)?.sort_order, 20);
   console.log(
     JSON.stringify({
       checks: [
+        "creation and reorder share the approved pipeline executor",
+        "reorder cannot change stage",
         "loss reason is required for lost",
         "reopen policy blocks by default",
         "reopen requires reason",

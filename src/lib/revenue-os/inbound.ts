@@ -6,7 +6,11 @@ import { safeAttribution } from "@/lib/opportunities";
 import type { UTMData } from "@/lib/utm";
 import { recordAudit } from "./audit";
 import { resolveOrCreateIdentity } from "./identity";
-import { transitionOpportunity } from "./pipeline";
+import {
+  transitionOpportunity,
+  createSourceOpportunity,
+  refreshOpportunityIntake,
+} from "./pipeline";
 import { loadPipelineStages } from "./pipeline-stage-resolver";
 import { createRevenueTask } from "./tasks";
 import { createQualifyLeadWork } from "./sales-coworker";
@@ -114,51 +118,36 @@ export async function ingestInboundLead(supabase: SupabaseClient, input: Canonic
         ? "Qualify manually created lead"
         : "Reply to new inquiry";
   if (opportunity) {
-    const { data, error } = await supabase
-      .from("opportunities")
-      .update({
+    opportunity = await refreshOpportunityIntake(supabase, {
+      id: opportunity.id,
+      actorEmail: tenant.founder.systemActorEmail,
+      effectKey: `inbound:${input.source}:${input.sourceRecordId}:refresh`,
+      patch: {
         contact_id: identity.contact.id,
         company_id: identity.company.id,
         source: attribution.utm_source || "website",
         source_detail: attribution.utm_campaign || input.source,
-        next_action: opportunity.next_action || nextAction,
-        next_action_at: opportunity.next_action_at || new Date().toISOString(),
         ...attribution,
-      })
-      .eq("id", opportunity.id)
-      .select("*")
-      .single();
-    if (error) throw new Error(error.message);
-    opportunity = data;
+      },
+      fillMissing: { next_action: nextAction, next_action_at: "now" },
+    });
   } else {
-    const { data, error } = await supabase
-      .from("opportunities")
-      .insert({
+    opportunity = await createSourceOpportunity(supabase, {
+      actorEmail: tenant.founder.systemActorEmail,
+      effectKey: `inbound:${input.source}:${input.sourceRecordId}:create`,
+      record: {
         name: input.companyName || identity.company.name,
         email,
         contact_id: identity.contact.id,
         company_id: identity.company.id,
-        stage: "new",
-        pipeline: "sales",
-        probability: 10,
         source: attribution.utm_source || "website",
         source_detail: attribution.utm_campaign || input.source,
         source_record_type: input.source,
         source_record_id: input.sourceRecordId,
         next_action: nextAction,
-        next_action_at: new Date().toISOString(),
+        next_action_at: "now",
         ...attribution,
-      })
-      .select("*")
-      .single();
-    if (error) throw new Error(error.message);
-    opportunity = data;
-    await supabase.from("stage_events").insert({
-      opportunity_id: opportunity.id,
-      from_stage: null,
-      to_stage: "new",
-      source: input.source,
-      reason: "Inbound inquiry created",
+      },
     });
   }
   const externalId = `${input.source}:${input.sourceRecordId}`;
@@ -312,34 +301,29 @@ export async function ingestPlaybookQualification(
     next_action: string | null;
     next_action_at: string | null;
   };
+  const sourceEffect = `qualification:${input.email}:${createHash("sha256")
+    .update(JSON.stringify({ ...input, qualifierToken: undefined }))
+    .digest("hex")}`;
   if (existing) {
-    const { data, error } = await supabase
-      .from("opportunities")
-      .update(legacyFields)
-      .eq("id", existing.id)
-      .select("id,tenant_id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
-      .single();
-    if (error) throw new Error(error.message);
-    opportunity = data;
+    opportunity = await refreshOpportunityIntake(supabase, {
+      id: existing.id,
+      actorEmail: tenant.founder.systemActorEmail,
+      effectKey: `${sourceEffect}:fields`,
+      patch: legacyFields,
+    });
   } else {
-    const { data, error } = await supabase
-      .from("opportunities")
-      .insert({
+    opportunity = await createSourceOpportunity(supabase, {
+      actorEmail: tenant.founder.systemActorEmail,
+      effectKey: `${sourceEffect}:create`,
+      record: {
         ...legacyFields,
-        stage: "new",
-        pipeline: "sales",
-        probability: 10,
         next_action: input.qualification.qualified
           ? matchedPlaybook.nextAction
           : "Review nurture qualification",
-        next_action_at: new Date().toISOString(),
-      })
-      .select("id,tenant_id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
-      .single();
-    if (error) throw new Error(error.message);
-    opportunity = data;
+        next_action_at: "now",
+      },
+    });
   }
-
   const identity = await resolveOrCreateIdentity(supabase, {
     name: contactNameFromEmail(input.email),
     email: input.email,
@@ -348,22 +332,15 @@ export async function ingestPlaybookQualification(
     industry: matchedPlaybook.industry,
     source: matchedPlaybook.sourceTag,
   });
-  const linkPatch: Record<string, unknown> = {
-    contact_id: identity.contact.id,
-    company_id: identity.company.id,
-  };
-  if (!opportunity.next_action && input.qualification.qualified) {
-    linkPatch.next_action = matchedPlaybook.nextAction;
-    linkPatch.next_action_at = new Date().toISOString();
-  }
-  const { data: linked, error: linkError } = await supabase
-    .from("opportunities")
-    .update(linkPatch)
-    .eq("id", opportunity.id)
-    .select("id,tenant_id,qualifier_token,stage,contact_id,company_id,next_action,next_action_at")
-    .single();
-  if (linkError) throw new Error(linkError.message);
-  opportunity = linked;
+  opportunity = await refreshOpportunityIntake(supabase, {
+    id: opportunity.id,
+    actorEmail: tenant.founder.systemActorEmail,
+    effectKey: `${sourceEffect}:identity`,
+    patch: { contact_id: identity.contact.id, company_id: identity.company.id },
+    fillMissing: input.qualification.qualified
+      ? { next_action: matchedPlaybook.nextAction, next_action_at: "now" }
+      : undefined,
+  });
 
   const stages = await loadPipelineStages(supabase, opportunity.tenant_id);
   const currentStage = stages.canonicalStage(opportunity.stage);

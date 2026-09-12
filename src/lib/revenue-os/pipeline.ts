@@ -1,10 +1,8 @@
 import "server-only";
 import { systemSourceForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { recordAudit } from "./audit";
-import { resolveOrCreateIdentity } from "./identity";
+import { normalizedIdentityInput } from "./identity";
 import { normalizeEmail } from "./db";
-import { recordActivity } from "./activities";
 import { createDetectOverduePaymentsWork } from "./finance-coworker";
 import { createRevenueStageAuditWork } from "./finance-coworker";
 import { createDetectStaleDealsWork } from "./business-pulse-coworker";
@@ -25,72 +23,32 @@ export async function createOpportunity(
     nextAction?: string | null;
     nextActionAt?: string | null;
     source?: string;
+    effectKey?: string;
+    sourceRecordType?: string;
+    sourceRecordId?: string;
+    nextActionDelayHours?: 24;
   },
 ) {
   const name = input.name.trim();
   const email = normalizeEmail(input.email);
   if (!name || !email) throw new Error("Name and email are required");
   const source = input.source ?? "manual";
-  const identity = await resolveOrCreateIdentity(supabase, {
-    name,
-    email,
-    phone: input.phone ?? null,
-    companyName: input.companyName ?? null,
-    website: input.website ?? null,
-    industry: input.industry ?? null,
-    source,
-  });
-  const { data, error } = await supabase
-    .from("opportunities")
-    .insert({
-      name: input.opportunityName?.trim() || identity.company.name,
-      contact_id: identity.contact.id,
-      company_id: identity.company.id,
+  const { executePipelineChange } = await import("./action-executor");
+  return executePipelineChange(supabase, "create_opportunity", input.actorEmail, {
+    identity: normalizedIdentityInput({ ...input, name, email, source }),
+    record: {
+      name: input.opportunityName?.trim() || null,
       email,
-      stage: "new",
       source,
+      source_record_type: input.sourceRecordType,
+      source_record_id: input.sourceRecordId,
       estimated_value: Math.max(0, Number(input.estimatedValue) || 0),
       next_action: input.nextAction?.trim() || null,
-      // An empty string (the common case: the create form's date field left
-      // blank) is not a valid timestamp — Postgres rejects it outright,
-      // unlike a genuinely absent field. Only a non-empty value is passed
-      // through.
-      next_action_at: input.nextActionAt?.trim() ? input.nextActionAt : null,
-      owner_email: input.actorEmail,
-    })
-    .select("*")
-    .single();
-  if (error) throw new Error(error.message);
-
-  await Promise.all([
-    recordAudit(supabase, {
-      actorEmail: input.actorEmail,
-      action: "opportunity.created",
-      entityType: "opportunity",
-      entityId: data.id,
-      after: data,
-    }),
-    supabase.from("stage_events").insert({
-      opportunity_id: data.id,
-      from_stage: null,
-      to_stage: "new",
-      source,
-      actor_email: input.actorEmail,
-      reason: "Opportunity created",
-    }),
-    recordActivity(supabase, {
-      activityType: "opportunity_created",
-      title: `Opportunity created: ${data.name || identity.company.name}`,
-      opportunityId: data.id,
-      contactId: identity.contact.id,
-      companyId: identity.company.id,
-      source,
-      actorEmail: input.actorEmail,
-      externalId: `opportunity:${data.id}:created`,
-      metadata: { stage: "new", estimated_value: data.estimated_value },
-    }),
-  ]);
-  return data;
+      next_action_at: input.nextActionAt?.trim() || null,
+    },
+    effectKey: input.effectKey,
+    nextActionDelayHours: input.nextActionDelayHours,
+  });
 }
 
 export interface OpportunityDetailsInput {
@@ -180,6 +138,10 @@ export async function applyPipelineEffect(
     p_system_source: systemSource,
   });
   if (error) throw new Error(error.message);
+  if (actionType === "reorder_opportunities") {
+    if (!data?.result) throw new Error("Pipeline reorder returned no receipt");
+    return data.result;
+  }
   if (!data?.opportunity) throw new Error("Pipeline effect returned no opportunity receipt");
   if (data.changed && actionType === "transition_opportunity") {
     if (data.toRole === "won") {
@@ -200,4 +162,70 @@ export async function applyPipelineEffect(
 export function transitionStatusFromError(error: unknown): number {
   const message = error instanceof Error ? error.message : String(error ?? "");
   return /changed while you were editing/i.test(message) ? 409 : 400;
+}
+
+export async function reorderOpportunities(
+  database: SupabaseClient,
+  actorEmail: string,
+  updates: { id: string; column_key: string; sort_order: number }[],
+) {
+  if (
+    !updates.length ||
+    updates.length > 250 ||
+    new Set(updates.map((item) => item.id)).size !== updates.length ||
+    updates.some((item) => !item.id || !item.column_key || !Number.isFinite(item.sort_order))
+  )
+    throw new Error("Invalid reorder payload");
+  const { executePipelineChange } = await import("./action-executor");
+  return executePipelineChange(database, "reorder_opportunities", actorEmail, { updates });
+}
+
+export async function updateOpportunityRecord(
+  database: SupabaseClient,
+  input: {
+    id: string;
+    actorEmail: string;
+    patch: Record<string, unknown>;
+    effectKey?: string;
+    expectedCalendlyInviteeUri?: string;
+  },
+) {
+  const { executePipelineChange } = await import("./action-executor");
+  return executePipelineChange(database, "update_opportunity_record", input.actorEmail, {
+    opportunityId: input.id,
+    patch: input.patch,
+    effectKey: input.effectKey,
+    expectedCalendlyInviteeUri: input.expectedCalendlyInviteeUri,
+  });
+}
+
+/** Source intake alone may attach canonical identity and attribution. */
+export async function refreshOpportunityIntake(
+  database: SupabaseClient,
+  input: {
+    id: string;
+    actorEmail: string;
+    patch: Record<string, unknown>;
+    fillMissing?: { next_action?: string; next_action_at?: string };
+    effectKey: string;
+  },
+) {
+  const { executePipelineChange } = await import("./action-executor");
+  return executePipelineChange(database, "update_opportunity_intake", input.actorEmail, {
+    opportunityId: input.id,
+    patch: input.patch,
+    fillMissing: input.fillMissing,
+    effectKey: input.effectKey,
+  });
+}
+
+export async function createSourceOpportunity(
+  database: SupabaseClient,
+  input: { actorEmail: string; record: Record<string, unknown>; effectKey: string },
+) {
+  const { executePipelineChange } = await import("./action-executor");
+  return executePipelineChange(database, "create_opportunity", input.actorEmail, {
+    record: input.record,
+    effectKey: input.effectKey,
+  });
 }

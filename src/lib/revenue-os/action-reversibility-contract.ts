@@ -11,6 +11,33 @@ interface ActionReversibility {
 
 export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
+    actionType: "create_opportunity",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Identity and opportunity creation share one receipt; subsequent business changes require a new reviewed correction, not automatic identity deletion.",
+  },
+  {
+    actionType: "update_opportunity_intake",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Correct canonical identity links and intake attribution through a newly reviewed current-state operation.",
+  },
+  {
+    actionType: "update_opportunity_record",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale: "Restore prior opportunity fields with a new reviewed update against current state.",
+  },
+  {
+    actionType: "reorder_opportunities",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore prior positions with a new reviewed same-stage reorder against current state.",
+  },
+  {
     actionType: "update_opportunity_details",
     impact: "internal_write",
     reversibility: "compensable",

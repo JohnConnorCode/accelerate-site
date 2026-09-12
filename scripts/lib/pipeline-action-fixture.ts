@@ -1,3 +1,5 @@
+import { resolveIdentityFixture } from "./identity-action-fixture";
+import type { ResolveIdentityInput } from "../../src/lib/revenue-os/identity";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isDeepStrictEqual } from "node:util";
 import { MemorySupabase, type Row } from "./memory-supabase";
@@ -7,6 +9,9 @@ import { requireReopenEligibility } from "../../src/lib/revenue-os/pipeline-tran
 /** Transport fixture only. Native tests prove the actual SQL authority/transaction. */
 export function installPipelineActionFixture(mem: MemorySupabase) {
   const db = mem.client as SupabaseClient;
+  mem.rpc("resolve_revenue_identity", ({ p_input }) =>
+    resolveIdentityFixture(db, p_input as ResolveIdentityInput),
+  );
   for (const a of mem.rows("action_queue")) {
     if (!["transition_opportunity", "update_opportunity_details"].includes(String(a.action_type)))
       continue;
@@ -19,6 +24,69 @@ export function installPipelineActionFixture(mem: MemorySupabase) {
     async ({ p_action_id, p_operation, p_payload, p_actor, p_system_source }) => {
       const payload = p_payload as Row;
       const action = mem.rows("action_queue").find((a) => a.id === p_action_id);
+      if (action?.status === "executed")
+        return {
+          [p_operation === "reorder_opportunities" ? "result" : "opportunity"]: action.result,
+          changed: false,
+        };
+      if (p_operation === "create_opportunity") {
+        const record = { ...(payload.record as Row) };
+        if (payload.identity) {
+          const identity = await resolveIdentityFixture(
+            db,
+            payload.identity as unknown as ResolveIdentityInput,
+          );
+          Object.assign(record, {
+            contact_id: identity.contact.id,
+            company_id: identity.company.id,
+            name: record.name || identity.company.name,
+          });
+        }
+        const { data, error } = await db
+          .from("opportunities")
+          .insert({
+            ...record,
+            stage: "new",
+            pipeline: "sales",
+            probability: 10,
+            owner_email: p_actor,
+          })
+          .select("*")
+          .single();
+        if (error) throw new Error(error.message);
+        await db
+          .from("stage_events")
+          .insert({
+            opportunity_id: data.id,
+            from_stage: null,
+            to_stage: "new",
+            actor_email: p_actor,
+          });
+        if (action) Object.assign(action, { status: "executed", result: data });
+        return { opportunity: data, changed: true };
+      }
+      if (p_operation === "reorder_opportunities") {
+        const updates = payload.updates as Row[];
+        const rows = mem
+          .rows("opportunities")
+          .filter((row) => updates.some((item) => item.id === row.id))
+          .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+        if (
+          new Set(updates.map((item) => item.id)).size !== updates.length ||
+          rows.length !== updates.length ||
+          !isDeepStrictEqual(rows, payload.expectedState) ||
+          updates.some((item) => rows.find((row) => row.id === item.id)?.stage !== item.column_key)
+        )
+          throw new Error("Opportunities changed or are unavailable; refresh before reordering");
+        for (const item of updates)
+          Object.assign(
+            rows.find((row) => row.id === item.id)!,
+            { sort_order: item.sort_order },
+          );
+        const result = { affected: rows.length, opportunities: structuredClone(rows) };
+        if (action) Object.assign(action, { status: "executed", result });
+        return { result, changed: true };
+      }
       const current = mem.rows("opportunities").find((r) => r.id === payload.opportunityId);
       if (!current) throw new Error("Target opportunity not found");
       if (action?.status === "executed") return { opportunity: action.result, changed: false };

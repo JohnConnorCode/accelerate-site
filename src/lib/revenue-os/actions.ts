@@ -80,6 +80,8 @@ export async function proposeAction(
       "update_next_action",
       "transition_opportunity",
       "update_opportunity_details",
+      "update_opportunity_record",
+      "update_opportunity_intake",
     ].includes(input.actionType)
   ) {
     const table = ["update_task", "delete_task"].includes(input.actionType)
@@ -95,7 +97,33 @@ export async function proposeAction(
       throw new Error("Record changed since preview; prepare a new proposal");
     input = { ...input, payload: { ...input.payload, expectedState: structuredClone(data) } };
   }
-  if (input.actionType === "transition_opportunity") {
+  if (input.actionType === "reorder_opportunities") {
+    const updates = input.payload.updates as { id: string }[];
+    if (
+      !Array.isArray(updates) ||
+      !updates.length ||
+      updates.length > 250 ||
+      new Set(updates.map((item) => item.id)).size !== updates.length
+    )
+      throw new Error("Invalid reorder payload");
+    const { data, error } = await supabase
+      .from("opportunities")
+      .select("*")
+      .in(
+        "id",
+        updates.map((item) => item.id),
+      )
+      .order("id");
+    if (error || data?.length !== updates.length)
+      throw new Error("Reorder targets are unavailable");
+    if (
+      input.payload.expectedState !== undefined &&
+      !isDeepStrictEqual(input.payload.expectedState, data)
+    )
+      throw new Error("Opportunities changed since preview");
+    input = { ...input, payload: { ...input.payload, expectedState: structuredClone(data) } };
+  }
+  if (["transition_opportunity", "reorder_opportunities"].includes(input.actionType)) {
     const { data, error } = await supabase
       .from("kanban_columns")
       .select("column_key,label,metadata")

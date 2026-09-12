@@ -74,97 +74,26 @@ export async function findCanonicalContactByPhone(
   return data?.[0] ?? null;
 }
 
+/** JavaScript remains the normalization owner; SQL owns the atomic identity write. */
+export function normalizedIdentityInput(input: ResolveIdentityInput) {
+  const email = normalizeEmail(input.email);
+  return { ...input, email, domain: domainFromEmailOrWebsite(email, input.website) };
+}
+
 export async function resolveOrCreateIdentity(
   supabase: SupabaseClient,
   input: ResolveIdentityInput,
-) {
-  const email = normalizeEmail(input.email);
-  const domain = domainFromEmailOrWebsite(email, input.website);
-
-  let company: { id: string; name: string; domain: string | null } | null = null;
-  if (input.sourceRecordType && input.sourceRecordId) {
-    const { data, error } = await supabase
-      .from("companies")
-      .select("id,name,domain")
-      .eq("source_record_type", input.sourceRecordType)
-      .eq("source_record_id", input.sourceRecordId)
-      .limit(2);
-    if (error) throw new Error(error.message);
-    if ((data?.length ?? 0) > 1)
-      throw new Error(
-        `Ambiguous company source identity for ${input.sourceRecordType}:${input.sourceRecordId}`,
-      );
-    company = data?.[0] ?? null;
-  }
-  if (!company && domain) {
-    const { data, error } = await supabase
-      .from("companies")
-      .select("id, name, domain")
-      .ilike("domain", exactIlike(domain))
-      .limit(2);
-    if (error) throw new Error(error.message);
-    if ((data?.length ?? 0) > 1) throw new Error(`Ambiguous company identity for ${domain}`);
-    company = data?.[0] ?? null;
-  }
-  if (!company) {
-    const companyName = input.companyName?.trim() || domain || `${input.name.trim()} company`;
-    const { data, error } = await supabase
-      .from("companies")
-      .insert({
-        name: companyName,
-        domain,
-        website: input.website || null,
-        industry: input.industry || null,
-        source: input.source,
-        source_record_type: input.sourceRecordType || null,
-        source_record_id: input.sourceRecordId || null,
-      })
-      .select("id, name, domain")
-      .single();
-    if (error) throw new Error(error.message);
-    company = data;
-  }
-
-  let contact: { id: string; full_name: string; primary_email: string | null } | null = null;
-  if (input.sourceRecordType && input.sourceRecordId) {
-    const { data, error } = await supabase
-      .from("contacts")
-      .select("id,full_name,primary_email")
-      .eq("source_record_type", input.sourceRecordType)
-      .eq("source_record_id", input.sourceRecordId)
-      .limit(2);
-    if (error) throw new Error(error.message);
-    if ((data?.length ?? 0) > 1)
-      throw new Error(
-        `Ambiguous contact source identity for ${input.sourceRecordType}:${input.sourceRecordId}`,
-      );
-    contact = data?.[0] ?? null;
-  }
-  if (!contact && email) {
-    contact = await findCanonicalContactByEmail(supabase, email);
-  }
-  if (!contact && input.phone) {
-    contact = await findCanonicalContactByPhone(supabase, input.phone);
-  }
-  if (!contact) {
-    const { data, error } = await supabase
-      .from("contacts")
-      .insert({
-        full_name: input.name.trim(),
-        primary_email: email,
-        phone: input.phone || null,
-        company_id: company.id,
-        source: input.source,
-        source_record_type: input.sourceRecordType || null,
-        source_record_id: input.sourceRecordId || null,
-      })
-      .select("id, full_name, primary_email")
-      .single();
-    if (error) throw new Error(error.message);
-    contact = data;
-  }
-
-  return { contact, company };
+): Promise<{
+  contact: CanonicalEmailMatch;
+  company: { id: string; name: string; domain: string | null };
+}> {
+  const { data, error } = await supabase.rpc("resolve_revenue_identity", {
+    p_input: normalizedIdentityInput(input),
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.contact?.id || !data?.company?.id)
+    throw new Error("Identity resolution returned no canonical records");
+  return data;
 }
 
 const PERSONAL_EMAIL_DOMAINS = new Set([

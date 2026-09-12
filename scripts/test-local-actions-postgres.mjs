@@ -551,6 +551,226 @@ try {
       `SELECT apply_pipeline_action('${rollbackMoveId}','transition_opportunity',${quote(JSON.stringify(rollbackMove))}::jsonb,'owner@example.test',NULL);`,
     "pipeline cross tenant receipt unavailable",
   );
+  // Opportunity creation and identity resolution share the exact same transaction.
+  const creationInput = {
+    identity: {
+      name: "New Contact",
+      email: "new-contact@atomic.example",
+      domain: "atomic.example",
+      source: "manual",
+    },
+    record: {
+      name: "Atomic creation",
+      email: "new-contact@atomic.example",
+      source: "manual",
+      estimated_value: 4200,
+      next_action_at: null,
+    },
+  };
+  const creationId = stage("create_opportunity", creationInput);
+  sql(
+    `CREATE FUNCTION public.fail_create_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action='opportunity.created' THEN RAISE EXCEPTION 'injected creation receipt failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER native_create_failure BEFORE INSERT ON audit_log FOR EACH ROW EXECUTE FUNCTION public.fail_create_audit();`,
+  );
+  denied(
+    pipelineCall(creationId, "create_opportunity", creationInput),
+    "creation receipt rollback",
+  );
+  assert.equal(
+    sql("SELECT count(*) FROM contacts WHERE primary_email='new-contact@atomic.example';"),
+    "0",
+  );
+  assert.equal(sql("SELECT count(*) FROM companies WHERE domain='atomic.example';"), "0");
+  assert.equal(sql("SELECT count(*) FROM opportunities WHERE name='Atomic creation';"), "0");
+  sql("DROP TRIGGER native_create_failure ON audit_log; DROP FUNCTION public.fail_create_audit();");
+  const created = JSON.parse(
+    sql(pipelineCall(creationId, "create_opportunity", creationInput)),
+  ).opportunity;
+  assert.equal(created.stage, "new");
+  assert.equal(created.estimated_value, 4200);
+  assert.equal(created.qualified, false);
+  assert.equal(
+    JSON.parse(sql(pipelineCall(creationId, "create_opportunity", creationInput))).opportunity.id,
+    created.id,
+  );
+  assert.equal(sql(`SELECT count(*) FROM stage_events WHERE opportunity_id='${created.id}';`), "1");
+  denied(
+    context(b) + `SELECT resolve_revenue_identity('${JSON.stringify(creationInput.identity)}');`,
+    "identity tenant membership required",
+  );
+  const sourceCreation = {
+    ...creationInput,
+    identity: undefined,
+    record: {
+      ...creationInput.record,
+      source_record_type: "conversation",
+      source_record_id: "66666666-6666-4666-8666-666666666666",
+    },
+  };
+  const sourceCreated = JSON.parse(
+    sql(
+      pipelineCall(
+        stage("create_opportunity", sourceCreation),
+        "create_opportunity",
+        sourceCreation,
+      ),
+    ),
+  ).opportunity;
+  sql(`UPDATE opportunities SET name='Human correction' WHERE id='${sourceCreated.id}';`);
+  const sourceReused = JSON.parse(
+    sql(
+      pipelineCall(
+        stage("create_opportunity", sourceCreation),
+        "create_opportunity",
+        sourceCreation,
+      ),
+    ),
+  );
+  assert.equal(sourceReused.opportunity.id, sourceCreated.id);
+  assert.equal(sourceReused.opportunity.name, "Human correction");
+  assert.equal(sourceReused.changed, false);
+  const wildcardIdentity = {
+    name: "Literal email",
+    email: "wild_%@example.test",
+    domain: "wildcard.example",
+    source: "native",
+  };
+  const literal = JSON.parse(
+    sql(
+      context() +
+        `SELECT resolve_revenue_identity(${quote(JSON.stringify(wildcardIdentity))}::jsonb);`,
+    ),
+  );
+  sql(`UPDATE contacts SET full_name='Human-confirmed name' WHERE id='${literal.contact.id}';`);
+  const preserved = JSON.parse(
+    sql(
+      context() +
+        `SELECT resolve_revenue_identity(${quote(JSON.stringify({ ...wildcardIdentity, name: "Incoming name" }))}::jsonb);`,
+    ),
+  );
+  assert.equal(preserved.contact.id, literal.contact.id);
+  assert.equal(preserved.contact.full_name, "Human-confirmed name");
+  const sameIdentity = JSON.parse(
+    sql(
+      context() + `SELECT resolve_revenue_identity('${JSON.stringify(creationInput.identity)}');`,
+    ),
+  );
+  assert.equal(sameIdentity.contact.id, created.contact_id);
+  assert.equal(sameIdentity.company.id, created.company_id);
+  assert.equal(sql("SELECT prosecdef FROM pg_proc WHERE proname='resolve_revenue_identity';"), "f");
+  // Distinct primary/alternate matches are ambiguous and cannot leave a company behind.
+  sql(
+    `INSERT INTO contacts(tenant_id,full_name,primary_email,alternate_emails) VALUES('${a}','Conflicting alias','other-atomic@example.test',ARRAY['new-contact@atomic.example']);`,
+  );
+  const ambiguityInput = { ...creationInput.identity, domain: "must-rollback.example" };
+  denied(
+    context() + `SELECT resolve_revenue_identity(${quote(JSON.stringify(ambiguityInput))}::jsonb);`,
+    "ambiguous identity refuses whole transaction",
+  );
+  assert.equal(sql("SELECT count(*) FROM companies WHERE domain='must-rollback.example';"), "0");
+  const reorderRows = () =>
+    JSON.parse(
+      sql(
+        `SELECT jsonb_agg(to_jsonb(o) ORDER BY id) FROM opportunities o WHERE id IN ('${old.id}','${created.id}');`,
+      ),
+    );
+  const reorderPayload = {
+    expectedPipeline: pipelineColumns(),
+    updates: reorderRows().map((o) => ({ id: o.id, column_key: o.stage, sort_order: 15 })),
+    expectedState: reorderRows(),
+  };
+  const staleReorder = { ...reorderPayload, expectedPipeline: [] };
+  denied(
+    pipelineCall(
+      stage("reorder_opportunities", staleReorder),
+      "reorder_opportunities",
+      staleReorder,
+    ),
+    "stale column snapshot rejects reorder",
+  );
+  const reorderId = stage("reorder_opportunities", reorderPayload);
+  const reordered = JSON.parse(
+    sql(pipelineCall(reorderId, "reorder_opportunities", reorderPayload)),
+  ).result;
+  assert.equal(reordered.affected, 2);
+  assert.deepEqual(
+    reordered.opportunities.map((o) => o.stage),
+    reorderPayload.expectedState.map((o) => o.stage),
+  );
+  assert.equal(
+    JSON.parse(sql(pipelineCall(reorderId, "reorder_opportunities", reorderPayload))).changed,
+    false,
+  );
+  const wrongStage = {
+    expectedPipeline: pipelineColumns(),
+    updates: [{ id: created.id, column_key: "won", sort_order: 99 }],
+    expectedState: reorderRows().filter((o) => o.id === created.id),
+  };
+  denied(
+    pipelineCall(stage("reorder_opportunities", wrongStage), "reorder_opportunities", wrongStage),
+    "reorder cannot bypass stage policy",
+  );
+  const missingReorder = {
+    expectedPipeline: pipelineColumns(),
+    updates: [
+      { id: created.id, column_key: "new", sort_order: 99 },
+      { id: "77777777-7777-4777-8777-777777777777", column_key: "new", sort_order: 99 },
+    ],
+    expectedState: reorderRows().filter((o) => o.id === created.id),
+  };
+  denied(
+    pipelineCall(
+      stage("reorder_opportunities", missingReorder),
+      "reorder_opportunities",
+      missingReorder,
+    ),
+    "missing row rejects whole reorder",
+  );
+  assert.equal(sql(`SELECT sort_order FROM opportunities WHERE id='${created.id}';`), "15");
+  const duplicateReorder = {
+    expectedPipeline: pipelineColumns(),
+    updates: [wrongStage.updates[0], wrongStage.updates[0]],
+    expectedState: wrongStage.expectedState,
+  };
+  denied(
+    pipelineCall(
+      stage("reorder_opportunities", duplicateReorder),
+      "reorder_opportunities",
+      duplicateReorder,
+    ),
+    "duplicate IDs refused",
+  );
+  denied(
+    context() +
+      `SELECT reorder_kanban_items('pipeline',${quote(JSON.stringify(reorderPayload.updates))}::jsonb);`,
+    "old direct pipeline reorder refused",
+  );
+  assert.equal(sql(context() + "SELECT reorder_kanban_items('content','[]');"), "0");
+  assert.equal(sql(machineContext + "SELECT reorder_kanban_items('features','[]');"), "0");
+  const invalidRecord = {
+    opportunityId: created.id,
+    expectedState: JSON.parse(
+      sql(`SELECT to_jsonb(o) FROM opportunities o WHERE id='${created.id}';`),
+    ),
+    patch: { tenant_id: b, stage: "won" },
+  };
+  denied(
+    pipelineCall(
+      stage("update_opportunity_record", invalidRecord),
+      "update_opportunity_record",
+      invalidRecord,
+    ),
+    "record operation cannot mutate tenant/stage",
+  );
+  const wrongIdentity = { ...invalidRecord, patch: { contact_id: old.id } };
+  denied(
+    pipelineCall(
+      stage("update_opportunity_record", wrongIdentity),
+      "update_opportunity_record",
+      wrongIdentity,
+    ),
+    "ordinary record operation cannot relink identity",
+  );
+
   sql(`UPDATE tenant_memberships SET status='revoked' WHERE tenant_id='${a}' AND user_id='${u}';`);
   denied(call(failId, failPayload, true), "revoked member even on undo replay");
   assert.equal(sql(`SELECT prosecdef FROM pg_proc WHERE proname='apply_local_action';`), "f");
@@ -560,6 +780,11 @@ try {
       proofs: [
         "full-business-catalog-twice",
         "four-seeded-inverses",
+        "atomic-opportunity-and-identity-rollback-replay",
+        "identity-ambiguity-and-tenant-authority",
+        "same-stage-reorder-complete-batch-and-replay",
+        "old-pipeline-reorder-bypass-refused",
+        "fixed-opportunity-fields-and-identity-boundary",
         "pipeline-owner-atomic-authority-state-and-replay",
         "pipeline-live-column-and-terminal-policy",
         "pipeline-source-provenance-and-null-details",

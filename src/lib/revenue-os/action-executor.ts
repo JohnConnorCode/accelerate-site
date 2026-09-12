@@ -64,6 +64,10 @@ export const APPROVABLE_ACTIONS = [
   "send_gmail_reply",
   "transition_opportunity",
   "update_opportunity_details",
+  "create_opportunity",
+  "update_opportunity_record",
+  "update_opportunity_intake",
+  "reorder_opportunities",
   "create_task",
   "update_task",
   "delete_task",
@@ -289,6 +293,10 @@ export async function approveAndExecuteAction(
       }
       case "transition_opportunity":
       case "update_opportunity_details":
+      case "create_opportunity":
+      case "update_opportunity_record":
+      case "update_opportunity_intake":
+      case "reorder_opportunities":
         return await applyPipelineEffect(
           supabase,
           String(action.action_type),
@@ -425,7 +433,11 @@ export async function runOperatorAction(
       | "delete_task"
       | "update_next_action"
       | "transition_opportunity"
-      | "update_opportunity_details";
+      | "update_opportunity_details"
+      | "create_opportunity"
+      | "update_opportunity_record"
+      | "update_opportunity_intake"
+      | "reorder_opportunities";
     title: string;
     payload: Record<string, unknown>;
     actorEmail: string;
@@ -471,7 +483,13 @@ export async function executeTaskCreation(database: SupabaseClient, input: Reven
 /** Existing pipeline callers retain their actor or bound deterministic provenance. */
 export async function executePipelineChange(
   database: SupabaseClient,
-  actionType: "transition_opportunity" | "update_opportunity_details",
+  actionType:
+    | "transition_opportunity"
+    | "update_opportunity_details"
+    | "create_opportunity"
+    | "update_opportunity_record"
+    | "update_opportunity_intake"
+    | "reorder_opportunities",
   actorEmail: string,
   payload: Record<string, unknown>,
 ) {
@@ -486,14 +504,30 @@ export async function executePipelineChange(
       payload,
       actorEmail,
     });
-  const { data, error } = await database
-    .from("opportunities")
-    .select("*")
-    .eq("id", payload.opportunityId)
-    .maybeSingle();
-  if (error || !data) throw new Error(error?.message ?? "Opportunity not found");
+  let data: unknown;
+  if (actionType === "reorder_opportunities") {
+    const result = await database
+      .from("opportunities")
+      .select("*")
+      .in(
+        "id",
+        (payload.updates as { id: string }[]).map((item) => item.id),
+      )
+      .order("id");
+    if (result.error) throw new Error(result.error.message);
+    data = result.data;
+  } else if (actionType !== "create_opportunity") {
+    const result = await database
+      .from("opportunities")
+      .select("*")
+      .eq("id", payload.opportunityId)
+      .maybeSingle();
+    if (result.error || !result.data)
+      throw new Error(result.error?.message ?? "Opportunity not found");
+    data = result.data;
+  }
   let expectedPipeline;
-  if (actionType === "transition_opportunity") {
+  if (["transition_opportunity", "reorder_opportunities"].includes(actionType)) {
     const columns = await database
       .from("kanban_columns")
       .select("column_key,label,metadata")

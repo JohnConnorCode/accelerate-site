@@ -44,7 +44,7 @@ Opportunities, stages, value, and closed revenue in one operating view.
 
 - [Pipeline](https://www.acceleratewith.us/docs/pipeline/overview) (updated 2026-09-09): Every open deal on one board, ranked by what actually moves revenue next.
 - [Understand revenue figures](https://www.acceleratewith.us/docs/pipeline/revenue) (updated 2026-09-09): Where each number on the revenue screen actually comes from, and how to chase a discrepancy.
-- [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-09): Drag a card when the evidence actually changed, and leave the next action clear behind it.
+- [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-12): Drag a card when the evidence actually changed, and leave the next action clear behind it.
 
 ## Proposals
 Drafts, pricing validation, decisions, and follow-up.
