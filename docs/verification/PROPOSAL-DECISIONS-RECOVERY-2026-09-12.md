@@ -25,9 +25,12 @@ panel displays the server's recorded decision, including an opposing race winner
   business upgrade CI suite, verifies actual PostgreSQL locks, receipts, rollback,
   tenant/role isolation, optional public reasons and required admin reasons.
 - `qa-proposal-public-decisions.mjs` renders the actual response component with
-  production CSS at 1440 and 390 pixels. Controlled HTTP responses verify blank
-  decline, keyboard access, authoritative terminal replay, expiry errors, overflow
-  and browser exceptions. It does not claim a connected customer transaction.
+  production CSS at 1440 and 390 pixels in light and dark themes, using the public
+  proposal parent surface and installed font classes. Controlled HTTP responses
+  verify blank decline, keyboard access, authoritative terminal replay, expiry
+  errors, overflow, browser exceptions and determinate text contrast. Shared
+  semantic colors keep controls and terminal messages readable in both themes.
+  It does not claim a connected customer transaction.
 - Production build/typecheck, lint, complete core tests and migration catalog run
   on the exact remote candidate. CI artifacts hold screenshots and result JSON.
 

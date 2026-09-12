@@ -46,15 +46,15 @@ export function ProposalDecision({
   if (decision)
     return (
       <section
-        className={`mt-12 rounded-2xl border p-6 text-center ${decision === "accepted" ? "border-emerald-400/25 bg-emerald-400/10" : "border-white/10 bg-white/[0.035]"}`}
+        className={`mt-12 rounded-2xl border p-6 text-center ${decision === "accepted" ? "border-emerald-400/25 bg-emerald-400/10" : "border-border-glass bg-[var(--surface-bg)]"}`}
       >
         <span
-          className={`mx-auto grid size-11 place-items-center rounded-full ${decision === "accepted" ? "bg-emerald-400 text-black" : "bg-white/10 text-white"}`}
+          className={`mx-auto grid size-11 place-items-center rounded-full ${decision === "accepted" ? "bg-emerald-400 text-black" : "bg-[var(--surface-bg-strong)] text-white-primary"}`}
         >
           {decision === "accepted" ? <Check className="size-5" /> : <X className="size-5" />}
         </span>
-        <h2 className="mt-4 text-xl font-semibold text-white">Proposal {decision}</h2>
-        <p className="mt-2 text-sm text-white/60">
+        <h2 className="mt-4 text-xl font-semibold text-white-primary">Proposal {decision}</h2>
+        <p className="mt-2 text-sm text-white-muted">
           {decision === "accepted"
             ? `Thank you. ${tenant.founder.name} has been notified and will contact you with next steps.`
             : `Thank you for the feedback. ${tenant.founder.name} has been notified and will close the loop personally.`}
@@ -62,12 +62,12 @@ export function ProposalDecision({
       </section>
     );
   return (
-    <section className="mt-12 rounded-2xl border border-white/10 bg-white/[0.035] p-6 sm:p-8">
+    <section className="mt-12 rounded-2xl border border-border-glass bg-[var(--surface-bg)] p-6 sm:p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold-light">
         Your decision
       </p>
-      <h2 className="mt-2 text-2xl font-semibold text-white">Ready to move forward?</h2>
-      <p className="mt-2 text-sm leading-6 text-white/60">
+      <h2 className="mt-2 text-2xl font-semibold text-white-primary">Ready to move forward?</h2>
+      <p className="mt-2 text-sm leading-6 text-white-muted">
         Accepting confirms the proposed scope and starts a direct next-steps conversation. No
         payment is collected here.
       </p>
@@ -79,16 +79,20 @@ export function ProposalDecision({
           maxLength={1000}
           aria-label="Reason for declining (optional)"
           placeholder="What made this proposal not the right fit? (Optional)"
-          className="mt-5 w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-sm text-white outline-none transition-[border-color,box-shadow] focus:border-gold-light focus:ring-2 focus:ring-gold-light/10"
+          className="mt-5 w-full rounded-xl border border-border-glass bg-bg-base px-4 py-3 text-sm text-white-primary placeholder:text-white-muted outline-none transition-[border-color,box-shadow] focus:border-gold-light focus:ring-2 focus:ring-gold-light/10"
         />
       )}
-      {error && <p className="mt-3 text-sm text-rose-300">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-white-primary">
+          {error}
+        </p>
+      )}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
           onClick={() => void respond("accepted")}
           disabled={loading}
-          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-gold px-5 text-sm font-semibold text-black transition-[filter,transform,opacity] hover:brightness-105 active:scale-[0.96] disabled:opacity-50"
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--fg)] px-5 text-sm font-semibold text-[var(--bg)] transition-[filter,transform,opacity] hover:brightness-105 active:scale-[0.96] disabled:opacity-50"
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{" "}
           Accept proposal
@@ -97,7 +101,7 @@ export function ProposalDecision({
           type="button"
           onClick={() => (declining ? void respond("declined") : setDeclining(true))}
           disabled={loading}
-          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-white/15 px-5 text-sm font-semibold text-white transition-[background-color,transform,opacity] hover:bg-white/[0.06] active:scale-[0.96] disabled:opacity-50"
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-border-glass px-5 text-sm font-semibold text-white-primary transition-[background-color,transform,opacity] hover:bg-[var(--surface-bg-strong)] active:scale-[0.96] disabled:opacity-50"
         >
           <X className="size-4" /> {declining ? "Confirm decline" : "Decline"}
         </button>
