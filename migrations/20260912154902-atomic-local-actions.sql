@@ -32,7 +32,7 @@ BEGIN
   IF approved_item IS NULL OR p_input->>'source' IS DISTINCT FROM 'plugin'
     OR p_input->>'opportunityId' IS DISTINCT FROM parent.payload->>'opportunityId'
     OR p_input->>'relatedId' IS DISTINCT FROM coalesce(parent.payload->>'opportunityId',parent.payload->>'meetingId')
-    OR p_input->>'relatedType' IS DISTINCT FROM CASE WHEN parent.payload ? 'opportunityId' THEN 'opportunity' ELSE 'calendar_event' END
+    OR p_input->>'relatedType' IS DISTINCT FROM (CASE WHEN parent.payload ? 'opportunityId' THEN 'opportunity' ELSE 'calendar_event' END)
     OR EXISTS(SELECT 1 FROM jsonb_object_keys(p_input) k WHERE k NOT IN ('title','description','dueDate','assigneeUserId','source','dedupeKey','opportunityId','relatedType','relatedId','relatedName')) THEN RAISE EXCEPTION 'Task is outside the exact approved batch'; END IF;
   -- Match the existing workflowTaskEffectKey serialization, preserving old
   -- cross-proposal task identity instead of accepting a caller's fresh key.

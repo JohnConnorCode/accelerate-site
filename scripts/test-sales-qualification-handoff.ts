@@ -153,7 +153,12 @@ export async function verifySalesQualificationHandoff() {
     assert.equal(f.db.rows("tasks").length, 1);
     assert.equal(f.db.rows("tasks")[0]!.source, "work_engine");
     assert.ok(f.db.rows("activities").some((row) => row.activity_type === "task_created"));
-    assert.equal(f.db.rows("action_queue").length, 0);
+    assert.ok(
+      f.db
+        .rows("action_queue")
+        .every((action) => action.action_type === "create_task" && action.status === "executed"),
+      "Only the inbox task effect enters the local queue; no outbound action is proposed",
+    );
     cases.push(
       "AI qualification persists a tenant-owned draft WorkItem and inbox receipt without sending",
     );
