@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAdminNavigation } from "@/components/admin/AdminLink";
 import { Bot, History, MessageSquare, Wrench } from "lucide-react";
+import { adminPageName } from "@/lib/admin/navigation";
 import { PageHeader } from "./PageHeader";
 import { AdminAIChat } from "./AdminAIChat";
 import { AIRunHistory } from "./AIRunHistory";
@@ -55,7 +56,7 @@ export function AdminAIWorkspace() {
   return (
     <div className="pb-10">
       <PageHeader
-        title={purpose === "architect" ? "Workspace Architect" : "AI Workspace"}
+        title={purpose === "architect" ? adminPageName("architect") : adminPageName("ai")}
         subtitle={
           purpose === "architect"
             ? "Teach the workspace how the business works. Chat stays the control plane; attachments and connected sources are inspectable evidence, never executable instruction."
