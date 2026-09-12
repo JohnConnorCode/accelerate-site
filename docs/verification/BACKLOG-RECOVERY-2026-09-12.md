@@ -73,3 +73,19 @@ required CI must be verified before integration.
 
 This recovery cohort is still in progress. Untouched backlog organization and
 remaining started-task completion must continue through the same live-board flow.
+
+## Subsequent review and classification
+
+Independent PR 82 review returned stage-history-analytics-reconciliation,
+workspace-architect-generated-operations and services-strategy-rebuild to planning
+with exact gaps recorded through canonical review. Proposal public decisions meets
+its domain criteria, but its candidate still requires successful integration CI.
+The recovery initiative now declares all 31 original started cards and both
+recovery-system prerequisites as dependencies.
+
+Nine untouched cards received missing legacy phase labels; the AI evaluation
+card's three capabilities were reduced to the existing learning/testing pair.
+Existing planning horizons, priorities, scope and acceptance were preserved.
+Incomplete packets retain explicit refinement notes and remain unclaimable.
+An unrelated database-advisor RLS finding was recorded separately for assessment,
+without changing live permissions.

@@ -96,7 +96,16 @@ export function createCheckpoint(cwd, card, attemptId, input = {}, { publish = t
     (file) => !explicit.includes(file),
   );
   const temporary = mkdtempSync(resolve(tmpdir(), "agent-checkpoint-"));
-  const env = { ...process.env, GIT_INDEX_FILE: resolve(temporary, "index") };
+  // Checkpoints are automated, unverified snapshots, not the worker's final commits.
+  // Give them an explicit identity without requiring or changing user Git settings.
+  const env = {
+    ...process.env,
+    GIT_INDEX_FILE: resolve(temporary, "index"),
+    GIT_AUTHOR_NAME: "Accelerate checkpoint",
+    GIT_AUTHOR_EMAIL: "checkpoint@accelerate.invalid",
+    GIT_COMMITTER_NAME: "Accelerate checkpoint",
+    GIT_COMMITTER_EMAIL: "checkpoint@accelerate.invalid",
+  };
   const run = (args) => {
     try {
       return execFileSync("git", args, {

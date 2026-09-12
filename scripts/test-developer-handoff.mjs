@@ -492,6 +492,8 @@ test("credit exhaustion resumes isolated source; predecessor CLI stays fenced an
   });
   await new Promise((done) => server.listen(0, "127.0.0.1", done));
   const env = (session) => ({
+    GIT_CONFIG_GLOBAL: "/dev/null",
+    GIT_CONFIG_NOSYSTEM: "1",
     ACCELERATE_AGENT_NO_PROFILE: "1",
     ACCELERATE_AGENT_SESSION_ID: session,
     WORK_BOARD_URL: `http://127.0.0.1:${server.address().port}`,
@@ -505,6 +507,10 @@ test("credit exhaustion resumes isolated source; predecessor CLI stays fenced an
   try {
     const first = await run(f.clone, ["next", "--json"], "old");
     assert(f.card.work_checkpoint, "initial source is checkpointed without another user step");
+    assert.equal(
+      git(first.worktree, ["show", "-s", "--format=%an <%ae>", f.card.work_checkpoint.commitSha]),
+      "Accelerate checkpoint <checkpoint@accelerate.invalid>",
+    );
     const legacyPath = join(repositoryContext(f.clone).sessions, `${f.card.id}.json`);
     const legacyToken = JSON.parse(readFileSync(legacyPath, "utf8")).claimToken;
     writeFileSync(join(first.worktree, "README.md"), "Interrupted tracked source\n");
