@@ -1256,6 +1256,87 @@ try {
     "t",
   );
 
+  // Full human identity decisions finish inside the existing parent transaction.
+  const reviewConversationId = sql(`INSERT INTO conversations(tenant_id,channel,subject,metadata) VALUES('${a}','manual','Full identity review','{"note":"retain"}') RETURNING id;`);
+  const reviewState = () => JSON.parse(sql(`SELECT to_jsonb(c) FROM conversations c WHERE id='${reviewConversationId}';`));
+  const identityPayload = (decision, overrides = {}) => ({ conversation_id: reviewConversationId,
+    participant_email: 'review@identity.native', candidates: [], conversationState: reviewState(),
+    approvedDecision: { decision, contactId: null, companyId: null, fullName: 'Reviewed Human', phone: null,
+      companyName: null, companyDomain: 'identity.native' }, ...overrides });
+  const identityCall = (id, payload, tenant = a, actor = 'owner@example.test') => context(tenant, u, actor) + `SELECT apply_identity_review_action('${id}',${quote(JSON.stringify(payload))}::jsonb,${quote(actor)});`;
+  const humanCreation = identityPayload('create');
+  humanCreation.approvedDecision.companyName = 'Reviewed Company';
+  humanCreation.approvedDecision.phone = '+1 555 0198';
+  const humanCreationAction = stage('identity_review', humanCreation);
+  sql(`CREATE FUNCTION public.refuse_identity_receipt() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action='identity_review.resolved' THEN RAISE EXCEPTION 'injected identity receipt failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER native_identity_failure BEFORE INSERT ON audit_log FOR EACH ROW EXECUTE FUNCTION public.refuse_identity_receipt();`);
+  denied(identityCall(humanCreationAction, humanCreation), 'identity, link and evidence roll back on parent receipt failure');
+  assert.equal(sql(`SELECT count(*) FROM contacts WHERE source_record_id='${humanCreationAction}';`), '0');
+  assert.equal(sql(`SELECT count(*) FROM companies WHERE source_record_id='${humanCreationAction}';`), '0');
+  assert.equal(sql(`SELECT count(*) FROM claims WHERE entity_id='${reviewConversationId}';`), '0');
+  assert.equal(sql(`SELECT result IS NULL FROM action_queue WHERE id='${humanCreationAction}';`), 't');
+  assert.equal(reviewState().contact_id, null);
+  sql(`DROP TRIGGER native_identity_failure ON audit_log; DROP FUNCTION public.refuse_identity_receipt();`);
+  const humanCreated = JSON.parse(sql(identityCall(humanCreationAction, humanCreation)));
+  assert.equal(humanCreated.decision, 'create');
+  assert.equal(reviewState().contact_id, humanCreated.contact_id);
+  assert.equal(reviewState().company_id, humanCreated.company_id);
+  assert.deepEqual(reviewState().metadata, { note: 'retain' });
+  assert.equal(sql(`SELECT first_name||':'||last_name||':'||phone FROM contacts WHERE id='${humanCreated.contact_id}';`), 'Reviewed:Human:+1 555 0198');
+  assert.equal(sql(`SELECT domain FROM companies WHERE id='${humanCreated.company_id}';`), 'identity.native');
+  assert.deepEqual(JSON.parse(sql(identityCall(humanCreationAction, humanCreation))), humanCreated);
+  assert.equal(sql(`SELECT count(*) FROM audit_log WHERE entity_id='${humanCreationAction}' AND action='action.executed';`), '1');
+  assert.equal(sql(`SELECT count(*) FROM activities WHERE external_id='identity_create:${humanCreationAction}';`), '1');
+  const noMatchPayload = identityPayload('no_match', { participant_email: 'stranger@identity.native' });
+  const noMatchAction = stage('identity_review', noMatchPayload);
+  const noMatchResult = JSON.parse(sql(identityCall(noMatchAction, noMatchPayload)));
+  assert.equal(noMatchResult.decision, 'no_match');
+  assert.equal(reviewState().contact_id, humanCreated.contact_id, 'no-match preserves existing human links');
+  assert.equal(sql(`SELECT count(*) FROM evidence WHERE source_id='identity-review:${noMatchAction}:no-match';`), '1');
+  assert.deepEqual(JSON.parse(sql(identityCall(noMatchAction, noMatchPayload))), noMatchResult);
+  const deferredPayload = identityPayload('defer');
+  const deferredAction = stage('identity_review', deferredPayload);
+  const deferredResult = sql(identityCall(deferredAction, deferredPayload));
+  assert.equal(sql(`SELECT status||':'||(approved_by IS NULL)::text FROM action_queue WHERE id='${deferredAction}';`), 'pending:true');
+  assert.equal(sql(identityCall(deferredAction, deferredPayload)), deferredResult);
+  assert.equal(sql(`SELECT count(*) FROM activities WHERE external_id='identity_defer:${deferredAction}';`), '1');
+  const linkedPayload = identityPayload('link');
+  linkedPayload.approvedDecision.contactId = humanCreated.contact_id;
+  linkedPayload.candidates = [{ id: humanCreated.contact_id }];
+  const linkedReview = stage('identity_review', linkedPayload);
+  assert.equal(JSON.parse(sql(identityCall(linkedReview, linkedPayload))).contact_id, humanCreated.contact_id);
+  const otherLink = identityPayload('link');
+  otherLink.approvedDecision.contactId = otherTenantContact;
+  otherLink.candidates = [{ id: otherTenantContact }];
+  denied(identityCall(stage('identity_review', otherLink), otherLink), 'identity review rejects foreign canonical links');
+  denied(identityCall(linkedReview, linkedPayload, b), 'identity parent is tenant bound');
+  const personal = identityPayload('create', { participant_email: 'reviewer@gmail.com' });
+  personal.approvedDecision.companyName = 'Not a business identity'; personal.approvedDecision.companyDomain = 'gmail.com';
+  denied(identityCall(stage('identity_review', personal), personal), 'personal domains cannot seed a company');
+  const alreadyKnown = identityPayload('create');
+  denied(identityCall(stage('identity_review', alreadyKnown), alreadyKnown), 'human create refuses existing identity rather than merging');
+  sql(`INSERT INTO contacts(tenant_id,full_name,primary_email,alternate_emails) VALUES('${a}','Alternate One','alternate-one@identity.native',ARRAY['ambiguous@identity.native']),('${a}','Alternate Two','alternate-two@identity.native',ARRAY['ambiguous@identity.native']);`);
+  const ambiguousCreate = identityPayload('create', { participant_email: 'ambiguous@identity.native' });
+  denied(identityCall(stage('identity_review', ambiguousCreate), ambiguousCreate), 'alternate-email ambiguity never silently creates');
+  const literalCreate = identityPayload('create', { participant_email: 'review_%@identity.native' });
+  const literalReview = stage('identity_review', literalCreate);
+  assert.ok(JSON.parse(sql(identityCall(literalReview, literalCreate))).contact_id, 'wildcard email is an exact literal');
+  const staleReviewPayload = identityPayload('no_match');
+  const staleReviewAction = stage('identity_review', staleReviewPayload);
+  sql(`UPDATE conversations SET metadata=metadata||'{"human":"newer"}' WHERE id='${reviewConversationId}';`);
+  denied(identityCall(staleReviewAction, staleReviewPayload), 'newer human conversation state fences identity decision');
+  const prohibitedReviewPayload = identityPayload('no_match');
+  const prohibitedReview = stage('identity_review', prohibitedReviewPayload);
+  sql(`INSERT INTO autonomy_policies(tenant_id,action_key,label,level,source) VALUES('${a}','crm.write','Identity capability denied','prohibited','system');`);
+  denied(identityCall(prohibitedReview, prohibitedReviewPayload), 'identity capability revoked at effect');
+  sql(`DELETE FROM autonomy_policies WHERE tenant_id='${a}' AND action_key='crm.write';`);
+  denied(identityCall(prohibitedReview, { ...prohibitedReviewPayload, approvedDecision: {} }), 'malformed changed identity decision');
+  denied(identityCall(prohibitedReview, prohibitedReviewPayload, a, 'spoofed@example.test'), 'identity actor must match exact parent approval');
+  const wrongEvidencePayload = identityPayload('link');
+  wrongEvidencePayload.approvedDecision.contactId = humanCreated.contact_id;
+  const wrongEvidenceAction = stage('identity_review', wrongEvidencePayload);
+  denied(context() + `SELECT * FROM private.record_evidence_effect('conversation','${reviewConversationId}','identity_review_decision','${wrongEvidenceAction}','operator_review','Founder decided review@identity.native matches no canonical record','human_entered','identity-review:${wrongEvidenceAction}:no-match',jsonb_build_object('conversation_id','${reviewConversationId}'::uuid,'action_id','${wrongEvidenceAction}'::uuid),NULL,NULL,'${wrongEvidenceAction}',${quote(JSON.stringify(wrongEvidencePayload))}::jsonb,'owner@example.test');`, 'a link approval cannot manufacture no-match evidence');
+  assert.equal(sql(`SELECT bool_and(NOT prosecdef) FROM pg_proc WHERE proname IN ('apply_identity_review_action','require_identity_review_action');`), 't');
+
   sql(`UPDATE tenant_memberships SET status='revoked' WHERE tenant_id='${a}' AND user_id='${u}';`);
   denied(call(failId, failPayload, true), "revoked member even on undo replay");
   assert.equal(sql(`SELECT prosecdef FROM pg_proc WHERE proname='apply_local_action';`), "f");
@@ -1265,6 +1346,11 @@ try {
       proofs: [
         "full-business-catalog-twice",
         "six-seeded-inverses",
+        "identity-parent-creation-link-evidence-atomic-rollback",
+        "identity-no-match-and-defer-permanent-receipts",
+        "identity-human-create-no-merge-personal-domain-and-email-parity",
+        "identity-tenant-actor-policy-and-stale-state",
+        "identity-exact-parent-evidence-binding",
         "completed-proposal-followup-permanent-replay",
         "capability-policy-at-task-pipeline-and-undo-effect",
         "standing-policy-and-capability-precedence",

@@ -1,4 +1,7 @@
-import { conversationActionFixture } from "./lib/conversation-action-fixture";
+import {
+  conversationActionFixture,
+  identityReviewActionFixture,
+} from "./lib/conversation-action-fixture";
 import assert from "node:assert/strict";
 import {
   listIdentityReviewItems,
@@ -47,6 +50,14 @@ class MockSupabase {
           | null,
         onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
       ): Promise<TResult1 | TResult2> {
+        if (fn === "apply_identity_review_action") {
+          return Promise.resolve()
+            .then(() => ({
+              data: identityReviewActionFixture((table) => (tables[table] ??= []), params),
+              error: null,
+            }))
+            .then(onfulfilled, onrejected);
+        }
         if (fn === "apply_conversation_action") {
           return Promise.resolve()
             .then(() => ({
