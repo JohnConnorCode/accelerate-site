@@ -21,10 +21,6 @@ export function ProposalDecision({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const respond = async (next: "accepted" | "declined") => {
-    if (next === "declined" && !reason.trim()) {
-      setError("Please share a short reason so we can close the loop properly.");
-      return;
-    }
     setLoading(true);
     setError("");
     try {
@@ -35,7 +31,9 @@ export function ProposalDecision({
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Could not record your response");
-      setDecision(next);
+      if (payload.status !== "accepted" && payload.status !== "declined")
+        throw new Error("Could not confirm the recorded response");
+      setDecision(payload.status);
       setDeclining(false);
     } catch (responseError) {
       setError(
@@ -78,7 +76,9 @@ export function ProposalDecision({
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           rows={3}
-          placeholder="What made this proposal not the right fit?"
+          maxLength={1000}
+          aria-label="Reason for declining (optional)"
+          placeholder="What made this proposal not the right fit? (Optional)"
           className="mt-5 w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-sm text-white outline-none transition-[border-color,box-shadow] focus:border-gold-light focus:ring-2 focus:ring-gold-light/10"
         />
       )}
