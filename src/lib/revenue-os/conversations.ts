@@ -10,6 +10,7 @@ import { isMissingRevenueSchema } from "./db";
 import { findCanonicalContactByEmail, exactIlike } from "./identity";
 import { recordEvidence } from "./claims";
 import { proposeAction } from "./actions";
+import { runOperatorAction } from "./action-executor";
 
 export const CONVERSATIONS_CONTRACT = "revenue-os-conversations.v1";
 
@@ -521,48 +522,12 @@ export async function updateConversationStatus(
     throw new Error(`Invalid status: ${input.status}`);
   }
 
-  const patch: Record<string, unknown> = {
-    status: input.status,
-    updated_at: new Date().toISOString(),
-  };
-
-  if (input.status === "resolved" || input.status === "archived") {
-    patch.unread_count = 0;
-  }
-
-  const { data, error } = await supabase
-    .from("conversations")
-    .update(patch)
-    .eq("id", id)
-    .select("*")
-    .single();
-
-  if (error) throw new Error(`Could not update conversation status: ${error.message}`);
-
-  await Promise.all([
-    recordAudit(supabase, {
-      actorEmail: input.actorEmail,
-      action: `conversation.status_${input.status}`,
-      entityType: "conversation",
-      entityId: id,
-      after: data,
-    }),
-    recordActivity(supabase, {
-      activityType: "conversation_status_updated",
-      title: `Conversation marked as ${input.status}`,
-      summary: `Operator updated conversation status to ${input.status}.`,
-      conversationId: id,
-      opportunityId: data.opportunity_id || null,
-      contactId: data.contact_id || null,
-      companyId: data.company_id || null,
-      actorEmail: input.actorEmail,
-      source: "operator",
-      externalId: `conv_status:${id}:${input.status}:${Date.now()}`,
-      occurredAt: new Date().toISOString(),
-    }),
-  ]);
-
-  return data as ConversationItem;
+  return (await runOperatorAction(supabase, {
+    actionType: "update_conversation_status",
+    title: `Mark conversation as ${input.status}`,
+    payload: { conversationId: id, status: input.status },
+    actorEmail: input.actorEmail,
+  })) as ConversationItem;
 }
 
 /**
@@ -589,55 +554,13 @@ export async function assignConversation(
       throw new Error(`Invalid assignee email ${JSON.stringify(input.assigneeEmail)}`);
   }
 
-  const { data: current, error: readError } = await supabase
-    .from("conversations")
-    .select("id,metadata,opportunity_id,contact_id,company_id")
-    .eq("id", id)
-    .maybeSingle();
-  if (readError) throw new Error(`Could not load conversation: ${readError.message}`);
-  if (!current) throw new Error("Conversation not found");
-  const before =
-    ((current.metadata as Record<string, unknown> | null)?.assigned_to as string) || null;
-
-  const { data, error } = await supabase
-    .from("conversations")
-    .update({
-      metadata: { ...((current.metadata as Record<string, unknown>) || {}), assigned_to: assignee },
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id)
-    .select("*")
-    .single();
-
-  if (error) throw new Error(`Could not assign conversation: ${error.message}`);
-
-  await Promise.all([
-    recordAudit(supabase, {
-      actorEmail: input.actorEmail,
-      action: assignee ? "conversation.assigned" : "conversation.unassigned",
-      entityType: "conversation",
-      entityId: id,
-      before: { assigned_to: before },
-      after: { assigned_to: assignee },
-    }),
-    recordActivity(supabase, {
-      activityType: "conversation_assigned",
-      title: assignee ? `Conversation assigned to ${assignee}` : "Conversation unassigned",
-      summary: assignee
-        ? `Operator routed the thread to ${assignee}.`
-        : "Operator cleared the thread assignment.",
-      conversationId: id,
-      opportunityId: data.opportunity_id || null,
-      contactId: data.contact_id || null,
-      companyId: data.company_id || null,
-      actorEmail: input.actorEmail,
-      source: "operator",
-      externalId: `conv_assign:${id}:${assignee || "none"}:${Date.now()}`,
-      occurredAt: new Date().toISOString(),
-    }),
-  ]);
-
-  return { ...(data as Record<string, unknown>), assignee_email: assignee } as ConversationItem;
+  const data = (await runOperatorAction(supabase, {
+    actionType: "assign_conversation",
+    title: assignee ? `Assign conversation to ${assignee}` : "Clear conversation assignment",
+    payload: { conversationId: id, assigneeEmail: assignee },
+    actorEmail: input.actorEmail,
+  })) as ConversationItem;
+  return { ...data, assignee_email: assignee };
 }
 
 /**
@@ -651,75 +574,41 @@ export async function linkConversationRecord(
     contactId?: string | null;
     companyId?: string | null;
     actorEmail: string;
+    /** Already approved identity review; the database validates its exact decision. */
+    identityReviewActionId?: string;
   },
 ): Promise<ConversationItem> {
   const id = input.conversationId.trim();
   if (!id) throw new Error("Conversation id is required");
-
-  const patch: Record<string, unknown> = {
-    updated_at: new Date().toISOString(),
-  };
-
+  const patch: Record<string, unknown> = {};
   if (input.opportunityId !== undefined) patch.opportunity_id = input.opportunityId;
   if (input.contactId !== undefined) patch.contact_id = input.contactId;
   if (input.companyId !== undefined) patch.company_id = input.companyId;
-
-  const { data, error } = await supabase
-    .from("conversations")
-    .update(patch)
-    .eq("id", id)
-    .select("*")
-    .single();
-
-  if (error) throw new Error(`Could not link conversation record: ${error.message}`);
-  if (!data) throw new Error("Conversation not found");
-
-  // A manual link is human truth: it outranks any later automated inference,
-  // so it is recorded on the evidence ledger as well as audit/activity.
-  const manualLinks: Array<{ field: string; value: string }> = [];
-  if (typeof input.contactId === "string" && input.contactId.trim())
-    manualLinks.push({ field: "contact_id", value: input.contactId.trim() });
-  if (typeof input.companyId === "string" && input.companyId.trim())
-    manualLinks.push({ field: "company_id", value: input.companyId.trim() });
-  if (typeof input.opportunityId === "string" && input.opportunityId.trim())
-    manualLinks.push({ field: "opportunity_id", value: input.opportunityId.trim() });
-  for (const link of manualLinks) {
-    await recordEvidence(supabase, {
-      entityType: "conversation",
-      entityId: id,
-      field: link.field,
-      proposedValue: link.value,
-      sourceType: "operator_link",
-      observation: `Founder linked conversation to ${link.field} ${link.value}`,
-      strength: "human_entered",
-      provenance: { conversation_id: id },
-      actorEmail: input.actorEmail,
-    });
+  if (!Object.keys(patch).length) throw new Error("Choose a record link to change");
+  const payload: Record<string, unknown> = { conversationId: id, patch };
+  if (input.identityReviewActionId) {
+    const { data, error } = await supabase.from("action_queue").select("payload")
+      .eq("id", input.identityReviewActionId).single();
+    if (error || !data) throw new Error("Identity review is unavailable");
+    payload.expectedState = data.payload?.conversationState;
+    return applyConversationEffect(supabase, input.identityReviewActionId,
+      "link_conversation_record", payload, input.actorEmail);
   }
+  return (await runOperatorAction(supabase, {
+    actionType: "link_conversation_record", title: "Link conversation to business records",
+    payload, actorEmail: input.actorEmail,
+  })) as ConversationItem;
+}
 
-  await Promise.all([
-    recordAudit(supabase, {
-      actorEmail: input.actorEmail,
-      action: "conversation.linked_record",
-      entityType: "conversation",
-      entityId: id,
-      after: data,
-    }),
-    recordActivity(supabase, {
-      activityType: "conversation_linked",
-      title: "Conversation linked to business record",
-      summary: `Linked to opportunity: ${input.opportunityId || "none"}, contact: ${input.contactId || "none"}.`,
-      conversationId: id,
-      opportunityId: data.opportunity_id || null,
-      contactId: data.contact_id || null,
-      companyId: data.company_id || null,
-      actorEmail: input.actorEmail,
-      source: "operator",
-      externalId: `conv_link:${id}:${Date.now()}`,
-      occurredAt: new Date().toISOString(),
-    }),
-  ]);
-
+/** Sole adapter for approved conversation effects, including a bounded identity-review parent. */
+export async function applyConversationEffect(
+  supabase: SupabaseClient, actionId: string, operation: string,
+  payload: Record<string, unknown>, actorEmail: string,
+): Promise<ConversationItem> {
+  const { data, error } = await supabase.rpc("apply_conversation_action", {
+    p_id: actionId, p_operation: operation, p_payload: payload, p_actor: actorEmail,
+  });
+  if (error) throw new Error(error.message);
   return data as ConversationItem;
 }
 
@@ -872,7 +761,7 @@ export async function associateConversationParticipants(
 
   const { data: conversation, error: convError } = await supabase
     .from("conversations")
-    .select("id,contact_id,company_id,opportunity_id,metadata")
+    .select("id,contact_id,company_id,opportunity_id,metadata,updated_at")
     .eq("id", conversationId)
     .maybeSingle();
   if (convError) throw new Error(convError.message);
@@ -962,7 +851,7 @@ export async function associateConversationParticipants(
       )?.id ?? null;
   }
 
-  const contactId = primary?.contactId ?? (conversation.contact_id as string) ?? null;
+  const contactId = (conversation.contact_id as string) ?? primary?.contactId ?? null;
 
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (!conversation.contact_id && contactId) patch.contact_id = contactId;
@@ -984,11 +873,17 @@ export async function associateConversationParticipants(
     associated_at: new Date().toISOString(),
   };
   patch.metadata = { ...((conversation.metadata as Record<string, unknown>) ?? {}), association };
-  const { error: patchError } = await supabase
-    .from("conversations")
-    .update(patch)
-    .eq("id", conversationId);
+  // A concurrent human link or assignment must win over this earlier inference.
+  let associationWrite = supabase.from("conversations").update(patch).eq("id", conversationId);
+  for (const field of ["contact_id", "company_id", "opportunity_id"] as const)
+    associationWrite = conversation[field] == null
+      ? associationWrite.is(field, null) : associationWrite.eq(field, conversation[field]);
+  associationWrite = conversation.metadata == null ? associationWrite.is("metadata", null)
+    : associationWrite.eq("metadata", JSON.stringify(conversation.metadata));
+  if (conversation.updated_at) associationWrite = associationWrite.eq("updated_at", conversation.updated_at);
+  const { data: associated, error: patchError } = await associationWrite.select("id").maybeSingle();
   if (patchError) throw new Error(patchError.message);
+  if (!associated) throw new Error("Conversation changed during association; retry against current human edits");
 
   for (const participant of participants) {
     if (!participant.contactId) continue;

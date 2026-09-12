@@ -263,7 +263,18 @@ export async function resolveIdentityReview(
     };
   if (row.status !== "pending") throw new Error("This review was already handled");
 
-  const claimed = await claimApprovedAction(supabase, actionId, actorEmail);
+  if (input.decision === "link" && !input.contactId?.trim()) throw new Error("Link requires a canonical contact id");
+  if (input.decision === "create" && !input.fullName?.trim()) throw new Error("Create requires the contact's full name");
+  const expectedPayload = (row.payload as Record<string, unknown> | null) ?? {};
+  const { data: conversationState, error: conversationError } = await supabase
+    .from("conversations").select("*").eq("id", expectedPayload.conversation_id).maybeSingle();
+  if (conversationError || !conversationState) throw new Error("Review conversation is unavailable");
+  const claimed = await claimApprovedAction(supabase, actionId, actorEmail, "approved", {
+    expectedPayload, conversationState,
+    decision: { decision: input.decision, contactId: input.contactId?.trim() || null,
+      companyId: input.companyId?.trim() || null, fullName: input.fullName?.trim() || null,
+      phone: input.phone?.trim() || null, companyName: input.companyName?.trim() || null },
+  });
   const payload = (claimed.payload as Record<string, unknown> | null) ?? {};
   const conversationId =
     typeof payload.conversation_id === "string" ? (payload.conversation_id as string) : null;
@@ -404,6 +415,7 @@ export async function resolveIdentityReview(
           "Conversation was linked elsewhere while under review; re-review before linking",
         );
       await linkConversationRecord(supabase, {
+      identityReviewActionId: actionId,
         conversationId,
         contactId,
         companyId,
@@ -523,6 +535,7 @@ export async function resolveIdentityReview(
       });
     }
     await linkConversationRecord(supabase, {
+      identityReviewActionId: actionId,
       conversationId,
       contactId,
       companyId,

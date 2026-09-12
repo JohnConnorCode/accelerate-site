@@ -882,6 +882,77 @@ try {
     "ordinary record operation cannot relink identity",
   );
 
+  // Conversation actions: actual authenticated RLS, exact decisions and receipts.
+  const conversationId = sql(`INSERT INTO conversations(tenant_id,channel,subject,unread_count,metadata) VALUES('${a}','manual','Conversation action proof',4,'{"retained":"human note"}') RETURNING id;`);
+  const conversationState = () => JSON.parse(sql(`SELECT to_jsonb(c) FROM conversations c WHERE id='${conversationId}';`));
+  const conversationCall = (id, operation, payload, undo = false, tenant = a, actor = 'owner@example.test') => context(tenant, u, actor) + `SELECT apply_conversation_action('${id}',${quote(operation)},${quote(JSON.stringify(payload))}::jsonb,${quote(actor)},${undo});`;
+  const statusPayload = { conversationId, status: 'resolved', expectedState: conversationState() };
+  const statusAction = stage('update_conversation_status', statusPayload);
+  const conversationResolved = JSON.parse(sql(conversationCall(statusAction, 'update_conversation_status', statusPayload)));
+  assert.equal(conversationResolved.unread_count, 0);
+  assert.equal(conversationResolved.status, 'resolved');
+  assert.deepEqual(JSON.parse(sql(conversationCall(statusAction, 'update_conversation_status', statusPayload))), conversationResolved);
+  denied(conversationCall(statusAction, 'update_conversation_status', statusPayload, true, a, 'another@example.test'), 'undo requires the exact approved actor');
+  sql(`INSERT INTO autonomy_policies(tenant_id,action_key,label,level,source) VALUES('${a}','crm.write','Conversation test','prohibited','system');`);
+  denied(conversationCall(statusAction, 'update_conversation_status', statusPayload, true), 'revoked capability forbids undo writes');
+  assert.equal(conversationState().status, 'resolved');
+  sql(`DELETE FROM autonomy_policies WHERE tenant_id='${a}' AND action_key='crm.write';`);
+  const statusUndo = sql(conversationCall(statusAction, 'update_conversation_status', statusPayload, true));
+  assert.equal(sql(conversationCall(statusAction, 'update_conversation_status', statusPayload, true)), statusUndo);
+  assert.equal(conversationState().status, 'open');
+  assert.equal(conversationState().unread_count, 4);
+  assert.equal(sql(`SELECT count(*) FROM audit_log WHERE action='action.compensated' AND entity_id='${statusAction}';`), '1');
+  const assignPayload = { conversationId, assigneeEmail: 'owner@example.test', expectedState: conversationState() };
+  const assignAction = stage('assign_conversation', assignPayload);
+  const assignedConversation = JSON.parse(sql(conversationCall(assignAction, 'assign_conversation', assignPayload)));
+  assert.equal(assignedConversation.metadata.assigned_to, 'owner@example.test');
+  assert.equal(assignedConversation.metadata.retained, 'human note');
+  sql(conversationCall(assignAction, 'assign_conversation', assignPayload, true));
+  assert.deepEqual(conversationState().metadata, { retained: 'human note' });
+  const outsiderAssignment = { conversationId, assigneeEmail: 'outsider@example.test', expectedState: conversationState() };
+  denied(conversationCall(stage('assign_conversation', outsiderAssignment), 'assign_conversation', outsiderAssignment), 'assignment requires live same-tenant membership');
+  assert.deepEqual(conversationState().metadata, { retained: 'human note' });
+  const staleConversation = { conversationId, status: 'archived', expectedState: conversationState() };
+  const staleConversationAction = stage('update_conversation_status', staleConversation);
+  sql(`UPDATE conversations SET metadata=metadata||'{"newHumanNote":"preserve"}' WHERE id='${conversationId}';`);
+  denied(conversationCall(staleConversationAction, 'update_conversation_status', staleConversation), 'stale conversation preview');
+  denied(conversationCall(staleConversationAction, 'update_conversation_status', staleConversation, false, b), 'foreign tenant conversation');
+  const conversationContact = sql(`INSERT INTO contacts(tenant_id,full_name,primary_email) VALUES('${a}','Conversation Contact','conversation@example.test') RETURNING id;`);
+  const otherTenantContact = sql(`INSERT INTO contacts(tenant_id,full_name,primary_email) VALUES('${b}','Other Conversation Contact','conversation@example.test') RETURNING id;`);
+  const badLink = { conversationId, patch: { contact_id: otherTenantContact }, expectedState: conversationState() };
+  denied(conversationCall(stage('link_conversation_record', badLink), 'link_conversation_record', badLink), 'foreign tenant linked target');
+  const linkPayload = { conversationId, patch: { contact_id: conversationContact }, expectedState: conversationState() };
+  const linkAction = stage('link_conversation_record', linkPayload);
+  const conversationEvidenceBefore = sql(`SELECT count(*) FROM evidence;`);
+  sql(`CREATE FUNCTION public.fail_conversation_receipt() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.action='conversation.linked_record' THEN RAISE EXCEPTION 'injected conversation receipt failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER native_conversation_failure BEFORE INSERT ON audit_log FOR EACH ROW EXECUTE FUNCTION public.fail_conversation_receipt();`);
+  denied(conversationCall(linkAction, 'link_conversation_record', linkPayload), 'link/evidence/audit share rollback');
+  assert.equal(conversationState().contact_id, null);
+  assert.equal(sql(`SELECT count(*) FROM evidence;`), conversationEvidenceBefore);
+  assert.equal(sql(`SELECT status FROM action_queue WHERE id='${linkAction}';`), 'executing');
+  sql(`DROP TRIGGER native_conversation_failure ON audit_log; DROP FUNCTION public.fail_conversation_receipt();`);
+  const conversationLinked = sql(conversationCall(linkAction, 'link_conversation_record', linkPayload));
+  assert.equal(sql(conversationCall(linkAction, 'link_conversation_record', linkPayload)), conversationLinked);
+  assert.equal(sql(`SELECT count(*) FROM evidence WHERE source_id='conversation-action:${linkAction}:contact_id';`), '1');
+  assert.equal(sql(`SELECT best_evidence FROM claims WHERE tenant_id='${a}' AND entity_id='${conversationId}' AND field='contact_id';`), 'human_entered');
+  assert.equal(sql(`SELECT count(*) FROM activities WHERE external_id='conversation-action:${linkAction}';`), '1');
+  denied(context() + `SELECT * FROM record_evidence('conversation','${conversationId}','contact_id','${conversationContact}','operator_link','forged','human_entered');`, 'public ingestion RPC stays service-only');
+  denied(context() + `SELECT * FROM private.record_evidence_effect('conversation','${conversationId}','contact_id','${conversationContact}','operator_link','forged','human_entered');`, 'private evidence writer requires executing exact action');
+  denied(context() + `SELECT * FROM private.record_evidence_effect('conversation','${conversationId}','contact_id','${conversationContact}','operator_link','Founder linked conversation to contact_id ${conversationContact}','human_entered','conversation-action:${linkAction}:contact_id',jsonb_build_object('conversation_id','${conversationId}'::uuid,'actionId','${linkAction}'::uuid),NULL,NULL,'${linkAction}',${quote(JSON.stringify(linkPayload))}::jsonb,'owner@example.test');`, 'executed approval cannot manufacture new evidence');
+  sql(machineContext + `SELECT * FROM record_evidence('conversation','${conversationId}','contact_id','${conversationContact}','gmail_thread','Exact external email match','verified_external','native-thread');`);
+  assert.equal(sql(`SELECT best_evidence FROM claims WHERE tenant_id='${a}' AND entity_id='${conversationId}' AND field='contact_id';`), 'human_entered');
+  const parentPayload = { conversation_id: conversationId, participant_email: 'conversation@example.test', candidates: [{ id: conversationContact }], approvedDecision: { decision: 'link', contactId: conversationContact, companyId: null }, conversationState: conversationState() };
+  const parentLink = { conversationId, patch: { contact_id: conversationContact, company_id: null }, expectedState: parentPayload.conversationState };
+  const identityParent = stage('identity_review', parentPayload);
+  const parentApplied = sql(conversationCall(identityParent, 'link_conversation_record', parentLink));
+  assert.equal(sql(conversationCall(identityParent, 'link_conversation_record', parentLink)), parentApplied);
+  assert.equal(sql(`SELECT status FROM action_queue WHERE id='${identityParent}';`), 'executing', 'child link does not finish its parent');
+  assert.equal(sql(`SELECT count(*) FROM evidence WHERE source_id='conversation-action:${identityParent}:contact_id';`), '1');
+  const malformedParent = { ...parentPayload, approvedDecision: {}, conversationState: conversationState() };
+  denied(conversationCall(stage('identity_review', malformedParent), 'link_conversation_record', { ...parentLink, expectedState: malformedParent.conversationState }), 'missing decision fails closed');
+  const changedChoice = { ...parentPayload, approvedDecision: { decision: 'link', contactId: otherTenantContact }, conversationState: conversationState() };
+  denied(conversationCall(stage('identity_review', changedChoice), 'link_conversation_record', { ...parentLink, expectedState: changedChoice.conversationState }), 'parent cannot substitute unapproved chosen contact');
+  assert.equal(sql(`SELECT bool_and(NOT prosecdef) FROM pg_proc WHERE proname IN ('apply_conversation_action','record_evidence','record_evidence_effect','require_conversation_action');`), 't');
+
   sql(`UPDATE tenant_memberships SET status='revoked' WHERE tenant_id='${a}' AND user_id='${u}';`);
   denied(call(failId, failPayload, true), "revoked member even on undo replay");
   assert.equal(sql(`SELECT prosecdef FROM pg_proc WHERE proname='apply_local_action';`), "f");
@@ -890,7 +961,13 @@ try {
       result: "passed",
       proofs: [
         "full-business-catalog-twice",
-        "four-seeded-inverses",
+        "six-seeded-inverses",
+        "conversation-exact-parent-decision-and-replay",
+        "conversation-link-evidence-atomic-rollback",
+        "conversation-live-actor-capability-assignee-and-tenant",
+        "conversation-stale-preview-and-single-undo-receipt",
+        "evidence-service-compatibility-and-human-precedence",
+        "evidence-direct-write-refused",
         "atomic-opportunity-and-identity-rollback-replay",
         "identity-ambiguity-and-tenant-authority",
         "same-stage-reorder-complete-batch-and-replay",

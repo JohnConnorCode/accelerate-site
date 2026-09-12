@@ -1,3 +1,4 @@
+import { conversationActionFixture } from "./lib/conversation-action-fixture";
 import assert from "node:assert/strict";
 import {
   listIdentityReviewItems,
@@ -46,6 +47,12 @@ class MockSupabase {
           | null,
         onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
       ): Promise<TResult1 | TResult2> {
+        if (fn === "apply_conversation_action") {
+          return Promise.resolve().then(() => ({ data: conversationActionFixture((table) => tables[table] ??= [], params), error: null })).then(onfulfilled, onrejected);
+        }
+        if (fn === "check_autonomy") {
+          return Promise.resolve({ data: { action_key: params.p_action_key, allowed: false, level: "always_ask", requires_approval: true, hard_floor: false, reason: "Human approval required" }, error: null }).then(onfulfilled, onrejected);
+        }
         if (fn === "record_evidence") {
           if (!tables["claims"]) tables["claims"] = [];
           if (!tables["evidence"]) tables["evidence"] = [];
@@ -119,7 +126,7 @@ class MockQueryBuilder implements PromiseLike<{
   }
 
   eq(col: string, val: unknown) {
-    this.filters.push((row) => row[col] === val);
+    this.filters.push((row) => typeof row[col] === "object" && row[col] !== null && typeof val === "string" ? JSON.stringify(row[col]) === val : row[col] === val);
     return this;
   }
 
