@@ -65,18 +65,30 @@ assert.equal(
   "proposal",
   "regression: furthest reached is proposal, the highest rank ever recorded",
 );
-assert.equal(regressiveResult.timeInStage.length, 5, "regression: re-entering a stage opens a new segment");
+assert.equal(
+  regressiveResult.timeInStage.length,
+  5,
+  "regression: re-entering a stage opens a new segment",
+);
 
 // --- Fixture 3: two events sharing one created_at timestamp are ordered by
-// their given (insertion) order, a documented, deterministic tie-break. ---
+// stable event IDs, independent of the database response order. ---
 const sameTime: StageEventInput[] = [
-  { from_stage: "new", to_stage: "qualified", created_at: "2026-03-01T00:00:00Z" },
-  { from_stage: "qualified", to_stage: "meeting", created_at: "2026-03-01T00:00:00Z" },
+  { id: "001", from_stage: "new", to_stage: "qualified", created_at: "2026-03-01T00:00:00Z" },
+  { id: "002", from_stage: "qualified", to_stage: "meeting", created_at: "2026-03-01T00:00:00Z" },
 ];
 const sameTimeResult = computeStageHistory(sameTime, "meeting", stages);
-assert.equal(sameTimeResult.regressions.length, 0, "same-time: forward order preserved, no regression");
+assert.equal(
+  sameTimeResult.regressions.length,
+  0,
+  "same-time: forward order preserved, no regression",
+);
 assert.equal(sameTimeResult.furthestStageFromHistory, "meeting", "same-time: furthest is meeting");
-assert.equal(sameTimeResult.impossibleEvents.length, 0, "same-time: both events are valid movement");
+assert.equal(
+  sameTimeResult.impossibleEvents.length,
+  0,
+  "same-time: both events are valid movement",
+);
 
 // --- Fixture 4: a fully custom, tenant-defined stage set (no default stage
 // names at all) still ranks correctly by column order, and an unrecognized
@@ -109,14 +121,25 @@ const customEvents: StageEventInput[] = [
   { from_stage: "demo", to_stage: "contract", created_at: "2026-04-03T00:00:00Z" },
   { from_stage: "contract", to_stage: "closed_won", created_at: "2026-04-04T00:00:00Z" },
   // A stage this tenant no longer has (renamed/removed) — reported, not guessed.
-  { from_stage: "closed_won", to_stage: "legacy_stage_that_no_longer_exists", created_at: "2026-04-05T00:00:00Z" },
+  {
+    from_stage: "closed_won",
+    to_stage: "legacy_stage_that_no_longer_exists",
+    created_at: "2026-04-05T00:00:00Z",
+  },
 ];
 const customResult = computeStageHistory(customEvents, "closed_won", custom);
-assert.equal(customResult.furthestStageFromHistory, "closed_won", "custom: ranks by tenant column order");
+assert.equal(
+  customResult.furthestStageFromHistory,
+  "closed_won",
+  "custom: ranks by tenant column order",
+);
 assert.equal(customResult.impossibleEvents.length, 1, "custom: unrecognized stage is reported");
 assert.equal(customResult.impossibleEvents[0]!.reason, "unrecognized_to");
 const customWonProgress = resolveFunnelProgress(customResult, custom);
-assert.deepEqual(customWonProgress, { rank: custom.stageKeys.indexOf("closed_won"), source: "history" });
+assert.deepEqual(customWonProgress, {
+  rank: custom.stageKeys.indexOf("closed_won"),
+  source: "history",
+});
 
 // A deal that reached "contract" before it was marked lost still counts as
 // having reached contract for funnel purposes — "lost" itself is excluded
@@ -245,7 +268,11 @@ assert.equal(
   "every opportunity reached qualified: two via recorded history, one via the current-stage fallback",
 );
 assert.equal(withHistory.funnel.won, 1, "won is current-stage/role based, unchanged");
-assert.equal(withHistory.quality.stageHistory.missingHistory, 1, "exactly one record has no stage_events");
+assert.equal(
+  withHistory.quality.stageHistory.missingHistory,
+  1,
+  "exactly one record has no stage_events",
+);
 assert.equal(withHistory.quality.stageHistory.withHistory, 2);
 assert.equal(withHistory.quality.stageHistory.regressions, 0);
 
@@ -262,3 +289,47 @@ assert.equal(
 assert.equal(withoutHistory.quality.stageHistory.missingHistory, 3);
 
 console.log("summarizeRevenueAnalytics stage-history integration passed.");
+
+// Recovery regressions: deterministic ties, gaps, invalid freshness and capped reads.
+assert.deepEqual(computeStageHistory([...sameTime].reverse(), "meeting", stages), sameTimeResult);
+const broken = computeStageHistory(
+  [
+    { id: "1", from_stage: null, to_stage: "new", created_at: "2026-01-01T00:00:00Z" },
+    { id: "2", from_stage: "meeting", to_stage: "proposal", created_at: "2026-01-03T00:00:00Z" },
+  ],
+  "proposal",
+  stages,
+);
+assert.equal(broken.status, "incomplete");
+assert.ok(broken.issues.includes("broken_chain"));
+assert.equal(broken.timeInStage[0]!.durationMs, null);
+const invalid = computeStageHistory(
+  [
+    ...forward,
+    { from_stage: "won", to_stage: "won", created_at: "2026-08-01T00:00:00Z" },
+    { from_stage: "won", to_stage: "missing", created_at: "2026-08-02T00:00:00Z" },
+  ],
+  "won",
+  stages,
+);
+assert.equal(invalid.lastEventAt, "2026-01-05T00:00:00Z");
+assert.equal(invalid.status, "incomplete");
+assert.ok(
+  computeStageHistory(forward, "proposal", stages).issues.includes("current_stage_mismatch"),
+);
+assert.equal(computeStageHistory([], "new", stages).status, "missing");
+for (const input of ["truncated", "unavailable"] as const) {
+  const h = computeStageHistory([], "new", stages, new Date(), input);
+  assert.equal(h.status, "incomplete");
+  assert.equal(resolveFunnelProgress(h, stages).source, "unknown");
+}
+const unusable = computeStageHistory(
+  [{ from_stage: null, to_stage: "removed", created_at: "2026-01-01T00:00:00Z" }],
+  "new",
+  stages,
+);
+assert.equal(unusable.hasHistory, false);
+assert.equal(unusable.status, "incomplete");
+console.log(
+  "Stage-history recovery ordering, integrity, stale movement and incomplete-read cases passed.",
+);

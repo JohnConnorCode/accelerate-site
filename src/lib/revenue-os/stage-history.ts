@@ -5,7 +5,7 @@ import type { PipelineStageResolver } from "./pipeline-stage-resolver";
  * Canonical stage-history computation, shared by every reader that needs
  * "furthest stage reached", "time in stage", "regression", or "impossible
  * sequence" facts — Analytics, the Today overview, the Pipeline board, and
- * (once the AI tool layer carries a per-request tenant id) the assistant.
+ * the assistant.
  *
  * Hard rule: this module never invents a `stage_events` row and never lets
  * the live `opportunities.stage` column silently stand in for recorded
@@ -14,6 +14,7 @@ import type { PipelineStageResolver } from "./pipeline-stage-resolver";
  */
 
 export interface StageEventInput {
+  id?: string;
   from_stage: string | null;
   to_stage: string;
   created_at: string;
@@ -40,7 +41,7 @@ export interface ImpossibleStageEvent {
   fromStage: string | null;
   toStage: string;
   at: string;
-  reason: "unrecognized_from" | "unrecognized_to" | "no_movement";
+  reason: "unrecognized_from" | "unrecognized_to" | "no_movement" | "invalid_time" | "broken_chain";
 }
 
 export interface StageHistoryResult {
@@ -48,6 +49,8 @@ export interface StageHistoryResult {
    * opportunity right now" never derives from stage_events. Null only when
    * the stored value matches no stage the tenant currently recognizes. */
   currentStage: string | null;
+  status: "complete" | "incomplete" | "missing";
+  issues: string[];
   /** True when at least one usable stage_events row exists for this record. */
   hasHistory: boolean;
   /** The highest-ranked canonical stage any recorded event actually reached.
@@ -65,24 +68,30 @@ export interface StageHistoryResult {
 }
 
 /**
- * Walks one opportunity's stage_events in time order and derives history
- * facts purely from those rows. `asOf` only affects the still-open final
- * segment's elapsed duration; it never changes which stages were reached.
+ * Walks recorded events in timestamp and ID order. Future/invalid events and
+ * disconnected segments never fabricate durations; incomplete reads stay visible.
  */
 export function computeStageHistory(
   events: StageEventInput[],
   currentStageRaw: string,
   stages: PipelineStageResolver,
   asOf: Date = new Date(),
+  inputStatus: "complete" | "truncated" | "unavailable" = "complete",
 ): StageHistoryResult {
   const currentStage = stages.canonicalStage(currentStageRaw);
   const rankOf = (key: string) => stages.stageKeys.indexOf(key);
 
-  // Array.sort is stable in the JS engines this runs on (Node/V8), so
-  // same-timestamp events keep the order the caller supplied them in —
-  // typically insertion/id order from the query, which is the best
-  // available tie-break when two events share a created_at value.
-  const ordered = [...events].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+  const issues = new Set<string>();
+  if (inputStatus !== "complete") issues.add(inputStatus);
+  const ordered = [...events].sort(
+    (a, b) =>
+      Date.parse(a.created_at) - Date.parse(b.created_at) ||
+      a.created_at.localeCompare(b.created_at) ||
+      (a.id ?? `${a.from_stage}:${a.to_stage}`).localeCompare(
+        b.id ?? `${b.from_stage}:${b.to_stage}`,
+      ),
+  );
+  let lastEventAt: string | null = null;
 
   const reached = new Map<string, number>();
   const regressions: StageRegression[] = [];
@@ -94,7 +103,24 @@ export function computeStageHistory(
   let segmentStage: string | null = null;
   let segmentEnteredAt: string | null = null;
 
-  for (const event of ordered) {
+  for (const [index, event] of ordered.entries()) {
+    const at = Date.parse(event.created_at);
+    if (!Number.isFinite(at) || at > asOf.getTime()) {
+      impossibleEvents.push({
+        fromStage: event.from_stage,
+        toStage: event.to_stage,
+        at: event.created_at,
+        reason: "invalid_time",
+      });
+      issues.add("invalid_event");
+      continue;
+    }
+    if (
+      index > 0 &&
+      ordered[index - 1]!.created_at === event.created_at &&
+      (!event.id || !ordered[index - 1]!.id)
+    )
+      issues.add("unordered_tie");
     const fromCanonical = event.from_stage ? stages.canonicalStage(event.from_stage) : null;
     const toCanonical = stages.canonicalStage(event.to_stage);
 
@@ -114,7 +140,7 @@ export function computeStageHistory(
         at: event.created_at,
         reason: "unrecognized_from",
       });
-      // The destination is still valid, so keep processing this event below.
+      continue;
     }
     if (fromCanonical && fromCanonical === toCanonical) {
       impossibleEvents.push({
@@ -126,23 +152,35 @@ export function computeStageHistory(
       continue;
     }
 
+    const connected = previousCanonicalTo === null || fromCanonical === previousCanonicalTo;
+    if (!connected) {
+      impossibleEvents.push({
+        fromStage: event.from_stage,
+        toStage: event.to_stage,
+        at: event.created_at,
+        reason: "broken_chain",
+      });
+      issues.add("broken_chain");
+    }
+    if (previousCanonicalTo === null && fromCanonical !== null) issues.add("missing_prefix");
     if (segmentStage && segmentEnteredAt) {
       timeInStage.push({
         stage: segmentStage,
         enteredAt: segmentEnteredAt,
-        exitedAt: event.created_at,
-        durationMs: Date.parse(event.created_at) - Date.parse(segmentEnteredAt),
+        exitedAt: connected ? event.created_at : null,
+        durationMs: connected ? Date.parse(event.created_at) - Date.parse(segmentEnteredAt) : null,
       });
     }
     segmentStage = toCanonical;
     segmentEnteredAt = event.created_at;
 
     const toRank = rankOf(toCanonical);
-    if (previousCanonicalTo && toRank < previousRank) {
+    if (connected && previousCanonicalTo && toRank < previousRank) {
       regressions.push({ from: previousCanonicalTo, to: toCanonical, at: event.created_at });
     }
     previousCanonicalTo = toCanonical;
     previousRank = toRank;
+    lastEventAt = event.created_at;
 
     if (!reached.has(toCanonical)) reached.set(toCanonical, toRank);
   }
@@ -165,18 +203,22 @@ export function computeStageHistory(
     }
   }
 
-  void asOf; // Reserved for callers that want "elapsed so far" on the open segment.
+  if (impossibleEvents.length) issues.add("invalid_event");
+  if (lastEventAt && previousCanonicalTo !== currentStage) issues.add("current_stage_mismatch");
+  const status = issues.size ? "incomplete" : lastEventAt ? "complete" : "missing";
 
   return {
     currentStage,
-    hasHistory: ordered.length > 0,
+    status,
+    issues: [...issues],
+    hasHistory: lastEventAt !== null,
     furthestStageFromHistory,
     furthestRankFromHistory,
     reachedStages: [...reached.keys()],
     timeInStage,
     regressions,
     impossibleEvents,
-    lastEventAt: ordered.length ? ordered[ordered.length - 1]!.created_at : null,
+    lastEventAt,
   };
 }
 
@@ -211,7 +253,7 @@ export function resolveFunnelProgress(
     .map((stage) => stages.stageKeys.indexOf(stage));
   if (openWonRanks.length) return { rank: Math.max(...openWonRanks), source: "history" };
 
-  if (!history.hasHistory && history.currentStage) {
+  if (history.status === "missing" && history.currentStage) {
     const role = stages.role(history.currentStage);
     if (role === "open" || role === "won") {
       return { rank: stages.stageKeys.indexOf(history.currentStage), source: "current_fallback" };
