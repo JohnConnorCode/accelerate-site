@@ -45,6 +45,10 @@ REVOKE ALL ON FUNCTION private.require_conversation_action(uuid,text,jsonb,text,
 GRANT EXECUTE ON FUNCTION private.require_conversation_action(uuid,text,jsonb,text,boolean) TO authenticated,service_role;
 
 -- Preserve one evidence algorithm and the service-only ingestion interface.
+-- The old definer RPC supplied these service permissions implicitly. Its invoker
+-- replacement keeps that existing ingestion authority without granting a new
+-- authenticated direct-table path or bypassing caller RLS.
+GRANT SELECT,INSERT,UPDATE ON public.claims,public.evidence TO service_role;
 CREATE OR REPLACE FUNCTION private.record_evidence_effect(
   p_entity_type TEXT,
   p_entity_id UUID,
@@ -280,7 +284,7 @@ BEGIN
   END IF;
  END IF;
  IF p_operation='assign_conversation' AND assignee IS NOT NULL THEN
-  PERFORM 1 FROM public.tenant_memberships WHERE tenant_id=t AND lower(invited_email)=assignee AND status='active' FOR SHARE;
+  PERFORM 1 FROM public.tenant_memberships WHERE tenant_id=t AND lower(invited_email)=assignee AND status='active';
   IF NOT FOUND THEN RAISE EXCEPTION 'Conversation assignee must be an active member of this workspace'; END IF;
  END IF;
  UPDATE public.conversations SET status=updated.status,unread_count=updated.unread_count,metadata=updated.metadata,

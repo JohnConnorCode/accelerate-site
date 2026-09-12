@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   approveAndExecuteAction,
   runOperatorAction,
@@ -26,6 +27,39 @@ function pendingAction(overrides: Record<string, unknown> = {}) {
 }
 
 async function main() {
+  const previousRule = readFileSync(
+    "migrations/20260904-runtime-policy-enforcement.sql",
+    "utf8",
+  ).match(/AS \$\$([\s\S]*?)\$\$;/)![1];
+  const extractedRule = readFileSync(
+    "migrations/20260912212656-effective-action-policy.sql",
+    "utf8",
+  ).match(/AS \$\$([\s\S]*?)\$\$;/)![1];
+  assert.equal(
+    extractedRule,
+    previousRule,
+    "single-rule tenant/coworker/standing semantics are preserved verbatim",
+  );
+  const policySource = readFileSync("src/lib/revenue-os/autonomy-policy.ts", "utf8")
+    .split("const ACTION_CAPABILITIES")[1]!
+    .split("const HARD_FLOOR_KEYS")[0]!;
+  const policyMigration = readFileSync(
+    "migrations/20260912212656-effective-action-policy.sql",
+    "utf8",
+  )
+    .split("FROM (VALUES")[1]!
+    .split(") mapping")[0]!;
+  const tsPolicies = [...policySource.matchAll(/^  ([a-z_]+): "([a-z.]+)",$/gm)]
+    .map((match) => `${match[1]}:${match[2]}`)
+    .sort();
+  const sqlPolicies = [...policyMigration.matchAll(/\('([a-z_]+)','([a-z.]+)'\)/g)]
+    .map((match) => `${match[1]}:${match[2]}`)
+    .sort();
+  assert.deepEqual(
+    sqlPolicies,
+    tsPolicies,
+    "atomic SQL and TypeScript enforce the same capability restrictions",
+  );
   // 1. Registry completeness: every executable action declares exactly one
   // reversibility class, and impact stays a separate declared axis.
   assert.equal(
@@ -244,6 +278,7 @@ async function main() {
       result: "passed",
       checks: [
         "registry-completeness",
+        "sql-typescript-capability-policy-parity",
         "ui-programmatic-executor-parity",
         "autonomous-irreversible-refusal",
         "replay-idempotency",
