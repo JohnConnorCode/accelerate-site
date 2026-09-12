@@ -181,6 +181,12 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
 
+      - name: Verify Social Marketing adapter and publication transactions
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          npm run test:social-postiz
+          PATH="$(pg_config --bindir):$PATH" npm run test:social-postgres
+
       - name: Verify installation migrations
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: |
@@ -286,6 +292,7 @@ jobs:
           public_qa_pid=$!
           (
             set -e
+            node scripts/qa-social-marketing.mjs
             node scripts/qa-collections-workspace.mjs
             node scripts/qa-universal-work-board.mjs
             node scripts/qa-admin-polish.mjs
@@ -309,6 +316,7 @@ jobs:
         with:
           name: credential-free-browser-evidence
           path: |
+            /tmp/accelerate-social-qa/
             /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-website-editor/
             /tmp/accelerate-website-authoring/

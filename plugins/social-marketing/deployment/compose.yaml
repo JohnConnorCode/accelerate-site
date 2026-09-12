@@ -1,0 +1,108 @@
+name: accelerate-postiz
+services:
+  proxy:
+    image: ${CADDY_IMAGE:?Set a digest-pinned Caddy image}
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      POSTIZ_HOST: ${POSTIZ_HOST:?Set the public hostname}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./source:/srv/source:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [postiz]
+  postiz:
+    image: ${POSTIZ_IMAGE:?Set the digest-pinned patched Postiz image}
+    restart: unless-stopped
+    environment:
+      MAIN_URL: https://${POSTIZ_HOST}
+      FRONTEND_URL: https://${POSTIZ_HOST}
+      NEXT_PUBLIC_BACKEND_URL: https://${POSTIZ_HOST}/api
+      POSTIZ_SOURCE_URL: https://${POSTIZ_HOST}/source/postiz-source.tar.gz
+      JWT_SECRET: ${POSTIZ_JWT_SECRET:?Generate a private signing secret}
+      DATABASE_URL: postgresql://postiz:${POSTIZ_DB_PASSWORD:?Set a private URL-safe database password}@postgres:5432/postiz
+      REDIS_URL: redis://redis:6379
+      BACKEND_INTERNAL_URL: http://localhost:3000
+      TEMPORAL_ADDRESS: temporal:7233
+      IS_GENERAL: "true"
+      DISABLE_REGISTRATION: "true"
+      STORAGE_PROVIDER: local
+      UPLOAD_DIRECTORY: /uploads
+      NEXT_PUBLIC_UPLOAD_DIRECTORY: /uploads
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID:?Configure the LinkedIn application}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET:?Configure the LinkedIn application}
+      API_LIMIT: "30"
+    volumes: ["postiz-config:/config", "postiz-uploads:/uploads"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      temporal: { condition: service_started }
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:5000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 120s
+      retries: 5
+  postgres:
+    image: ${POSTGRES_IMAGE:?Set a digest-pinned Postgres 17 image}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postiz
+      POSTGRES_PASSWORD: ${POSTIZ_DB_PASSWORD}
+      POSTGRES_DB: postiz
+    volumes: ["postiz-db:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postiz -d postiz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: ${REDIS_IMAGE:?Set a digest-pinned Redis 7 image}
+    command: ["redis-server", "--appendonly", "yes"]
+    restart: unless-stopped
+    volumes: ["redis-data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+  temporal-db:
+    image: ${TEMPORAL_POSTGRES_IMAGE:?Set a digest-pinned Postgres 16 image}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: ${TEMPORAL_DB_PASSWORD:?Set a private database password}
+    volumes: ["temporal-db:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+  temporal:
+    image: ${TEMPORAL_IMAGE:?Set a digest-pinned Temporal auto-setup 1.28.1 image}
+    restart: unless-stopped
+    environment:
+      DB: postgres12
+      DB_PORT: "5432"
+      POSTGRES_USER: temporal
+      POSTGRES_PWD: ${TEMPORAL_DB_PASSWORD}
+      POSTGRES_SEEDS: temporal-db
+      ENABLE_ES: "false"
+      TEMPORAL_NAMESPACE: default
+    depends_on:
+      temporal-db: { condition: service_healthy }
+volumes:
+  postiz-db:
+  postiz-config:
+  postiz-uploads:
+  redis-data:
+  temporal-db:
+  caddy-data:
+  caddy-config:
