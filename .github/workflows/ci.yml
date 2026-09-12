@@ -302,6 +302,7 @@ jobs:
           (
             set -e
             DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
+            node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
             node scripts/qa-public-navigation-profile.mjs --services-only
             node scripts/qa-demo-business-workflows.mjs
@@ -333,6 +334,7 @@ jobs:
         with:
           name: credential-free-browser-evidence
           path: |
+            /tmp/accelerate-proposal-decisions/
             /tmp/accelerate-social-qa/
             /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-website-editor/
