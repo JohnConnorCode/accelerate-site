@@ -75,6 +75,7 @@ type ProposalRow = Record<string, unknown> & {
   share_token?: string;
   expires_at?: string | null;
   opportunity_id?: string | null;
+  decline_reason?: string | null;
   client_name?: string;
   title?: string;
 };

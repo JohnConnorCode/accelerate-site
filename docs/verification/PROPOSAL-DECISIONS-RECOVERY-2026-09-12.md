@@ -39,6 +39,10 @@ Updated the existing changelog and regenerated `public/docs-llms.txt`.
 Reviewed `src/content/command-center.ts` and `src/content/command-center-faq.ts`:
 their existing proposal version, receipt and recovery descriptions remain accurate
 and make no required customer explanation claim, so no copy change is needed.
+Reviewed admin callers of proposals/tasks: admin reasons remain required and task
+replay resolves the existing dedupe winner. Refreshed only those two source
+fingerprints; route ownership and authorization declarations are unchanged.
+The existing source-stat verifier records 94 migrations and 239 named checks.
 
 Application deployment and live migration delivery remain separate from source
 verification. Exact CI evidence and any environment delivery receipt accompany
