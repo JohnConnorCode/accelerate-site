@@ -153,7 +153,7 @@
     "src/components/admin/AdminAIPanel.tsx": "b7153809b5422c884a719a0ae3210eace4223838e4be334fc0b8340884ac647a",
     "src/components/admin/AdminAIProvider.tsx": "a900d0feb64b8a00f94f4f8ef8fe1e2f0c0ec73a60359f7e23ee8f0fa8adee69",
     "src/components/admin/AdminAIWorkspace.tsx": "53cc59f860889e4e1b3295f2e7b6e8498c6dde8a62bd59d993f018a35ed0cd1a",
-    "src/components/admin/AdminAppearancePicker.tsx": "d654548e49264ad88a25203d48d06c09b3a78f7033ed40947f9180f70745c060",
+    "src/components/admin/AdminAppearancePicker.tsx": "2f999424ec4d1262c3a7fc555f12be18664fdebdfe47eae51a21fddcb90a09c6",
     "src/components/admin/AdminAsyncRegion.tsx": "5b21040c6982b10aa211e83a5dfa6cfe41d1e75ac09f17436f0edef2b9386682",
     "src/components/admin/AdminAuthLayout.tsx": "919c168dcb2e0122b971c8bb0158d745647a40c399e8e0cfdcdb918dabab2ee0",
     "src/components/admin/AdminButton.tsx": "d31ec6fd7aa2d9778b08d5c5ebf14afee9ce0a3abf72edc1dbe858aa162d320d",

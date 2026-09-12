@@ -245,6 +245,7 @@ try {
     await context.close();
   }
   if (process.env.QA_SKIP_PREVIEW !== "1") {
+    const identities = {};
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     const page = await context.newPage();
     await page.goto(`${base}/dev/admin-design`, { waitUntil: "networkidle", timeout: 90000 });
@@ -286,6 +287,20 @@ try {
               "Preview must not overflow",
             );
             if (viewport === 1440) {
+              if (density === "Comfortable")
+                identities[theme.id] = await page.evaluate(() => {
+                  const title = getComputedStyle(document.querySelector("h1"));
+                  const surface = getComputedStyle(document.querySelector(".admin-surface"));
+                  const button = getComputedStyle(document.querySelector(".admin-button--primary"));
+                  return {
+                    font: title.fontFamily,
+                    titleWeight: title.fontWeight,
+                    surfaceRadius: surface.borderRadius,
+                    surfaceShadow: surface.boxShadow,
+                    controlRadius: button.borderRadius,
+                    surfaceFill: surface.backgroundColor,
+                  };
+                });
               if (!(await page.evaluate(() => Boolean(window.axe))))
                 await page.addScriptTag({ path: require.resolve("axe-core") });
               const audit = await page.evaluate(async () =>
@@ -308,6 +323,55 @@ try {
               fullPage: true,
             });
           }
+    }
+    if (!smoke) {
+      writeFileSync(`${out}/theme-identities.json`, JSON.stringify(identities, null, 2));
+      for (const property of ["font", "surfaceRadius", "surfaceShadow", "controlRadius"])
+        assert.notEqual(
+          identities.material[property],
+          identities.mac[property],
+          `Material/macOS ${property}`,
+        );
+      const workspace = await context.newPage();
+      await workspace.goto(`${base}/demo/command-center/hearthline-realty/today`, {
+        waitUntil: "networkidle",
+      });
+      for (const theme of themes) {
+        await workspace.setViewportSize({ width: 1440, height: 1000 });
+        await workspace.getByRole("button", { name: /^Appearance:/ }).click();
+        await workspace.getByRole("radio", { name: new RegExp(`^${theme.label}`) }).click();
+        await workspace.waitForFunction(
+          (id) => document.documentElement.dataset.theme === id,
+          theme.id,
+        );
+        for (const width of [1440, 390]) {
+          await workspace.setViewportSize({ width, height: 1000 });
+          assert(
+            await workspace.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2),
+          );
+          await workspace.screenshot({
+            path: `${out}/workspace-${theme.id}-${width}.png`,
+            fullPage: true,
+          });
+        }
+      }
+      await workspace.setViewportSize({ width: 1440, height: 1000 });
+      await workspace.getByRole("button", { name: /^Appearance:/ }).click();
+      const picker = workspace.getByRole("dialog", { name: "Choose admin appearance" });
+      await picker.getByRole("radio", { checked: true }).focus();
+      await workspace.keyboard.press("Home");
+      assert.equal(
+        await picker.getByRole("radio", { checked: true }).getAttribute("tabindex"),
+        "0",
+      );
+      await workspace.keyboard.press("ArrowRight");
+      await workspace.waitForFunction(() => document.documentElement.dataset.theme === "dark");
+      await workspace.screenshot({ path: `${out}/appearance-picker.png`, fullPage: true });
+      await workspace.keyboard.press("Escape");
+      assert(
+        (await workspace.locator(":focus").getAttribute("aria-label"))?.startsWith("Appearance:"),
+      );
+      await workspace.close();
     }
     const second = await context.newPage();
     await second.goto(`${base}/dev/admin-design`, { waitUntil: "networkidle" });
@@ -336,6 +400,12 @@ try {
     });
     const restrictedPage = await restricted.newPage();
     await restrictedPage.goto(`${base}/dev/admin-design`, { waitUntil: "networkidle" });
+    assert.equal(
+      await restrictedPage
+        .locator(".admin-shell")
+        .evaluate((el) => getComputedStyle(el).getPropertyValue("--admin-motion-fast").trim()),
+      "0ms",
+    );
     await restrictedPage.getByRole("radio", { name: "Compact", exact: true }).check();
     assert.equal(
       await restrictedPage.locator("html").getAttribute("data-admin-density"),

@@ -27,9 +27,9 @@
   --admin-page-gutter: clamp(16px, 3vw, 40px);
   --admin-page-width: 1440px;
   --admin-grid-min: 280px;
-  --admin-motion-fast: 150ms;
-  --admin-motion-enter: 280ms;
-  --admin-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --admin-motion-fast: var(--admin-skin-motion-fast);
+  --admin-motion-enter: var(--admin-skin-motion-enter);
+  --admin-motion-ease: var(--admin-skin-motion-ease);
   --admin-focus-ring: 0 0 0 3px color-mix(in srgb, var(--admin-action) 25%, transparent);
   --admin-inset-radius: max(4px, calc(var(--admin-surface-radius) - var(--admin-space-2)));
   font-size: var(--admin-text-body);
