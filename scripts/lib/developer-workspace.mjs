@@ -99,7 +99,11 @@ export function prepareWorkspace(
       throw new Error(
         "The target worktree path is already occupied. Preserve it and resolve ownership before claiming.",
       );
-    if (git(path, ["status", "--porcelain"]) && !preserveRetainedChanges)
+    const dirty = git(path, ["status", "--porcelain"]).split("\n").filter(Boolean);
+    const evidenceOnly = dirty.every((line) =>
+      /^\?\? (?:[a-zA-Z0-9_-]+-evidence\.json|\.agent-evidence-[a-zA-Z0-9_-]+\.json)$/.test(line),
+    );
+    if (dirty.length && !evidenceOnly && !preserveRetainedChanges)
       throw new Error(
         "The retained worktree has uncommitted changes. Review and preserve that handoff before claiming, or deliberately use --no-worktree for manual preparation.",
       );

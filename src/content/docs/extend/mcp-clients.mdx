@@ -23,7 +23,7 @@ Client configuration screens differ. Use your client's current MCP instructions 
 
 Append `?profile=ops` to the workspace endpoint for the Daily profile, or `?profile=core` for a smaller set of daily reads and discovery tools. Use `?profile=full` or the bare endpoint for the complete registered list. Existing bare endpoints retain the full list.
 
-Profiles change what the client loads initially. They do not grant permissions or disable other registered operations. Each profile retains tool discovery so an assistant can find the schema of an omitted operation; execution still checks the workspace, module, connection and approval rules. If a client cannot load the full list, reconnect using the smaller profile and verify the same bounded read.
+Profiles change what the client loads initially. They do not grant permissions or disable other registered operations. Discovery tells the client which other operations are available. If your MCP client needs the input definitions for an omitted tool, reconnect with the full profile. Bundle activation returns tool names, while `tools/list` continues to return the selected profile. Accelerate’s command host loads activated definitions from the shared registry. Execution still checks the workspace, module, connection and approval rules. If a client cannot load the full list, reconnect using the smaller profile and verify the same bounded read.
 
 ## Understand what the connection permits
 

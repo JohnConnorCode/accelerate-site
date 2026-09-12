@@ -38,3 +38,9 @@ assert.throws(() =>
   }),
 );
 console.log("Local operator transport boundaries and evidence environment passed");
+
+const capable = localWorkActor("accelerate", ["typescript", "postgres"]);
+assert.deepEqual(capable.capabilities, ["typescript", "postgres"]);
+assert.equal(capable.reviewer, false);
+assert(capable.scopes.includes("resume") && capable.scopes.includes("checkpoint"));
+assert.throws(() => localWorkActor("accelerate", ["*"]));

@@ -5,6 +5,7 @@ import {
   accelerateSystemContext,
   getTenantRequestContext,
   type TenantSystemContext,
+  type TenantActorContext,
 } from "@/lib/tenancy/context";
 import { TENANT_SCOPED_TABLES } from "@/lib/revenue-os/schema-contract";
 
@@ -212,13 +213,29 @@ export async function callProposalHostRpc(database: SupabaseClient, args: Record
 }
 
 /** Private Site Studio draft writes, validated by the shared domain before this boundary. */
-export async function callSiteDraftRpc(database: SupabaseClient, args: Record<string, unknown>) {
-  return callVerifiedHostRpc(database, "write_site_draft", args);
+export async function callSiteDraftRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+  actor: TenantActorContext,
+) {
+  assertSiteActor(actor, args);
+  return callVerifiedHostRpc(database, "write_site_draft", args, actor);
 }
 
 /** Installation website commands are additionally owner-gated by website-store. */
-export async function callWebsiteRpc(database: SupabaseClient, args: Record<string, unknown>) {
-  return callVerifiedHostRpc(database, "write_site_website", args);
+export async function callWebsiteRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+  actor: TenantActorContext,
+) {
+  assertSiteActor(actor, args);
+  if (!actor.isPlatformAdmin) throw new Error("Installation owner required for website writes");
+  return callVerifiedHostRpc(database, "write_site_website", args, actor);
+}
+
+function assertSiteActor(actor: TenantActorContext, args: Record<string, unknown>) {
+  if (actor?.kind !== "actor" || args.p_actor_email !== (actor.user.email ?? actor.user.id))
+    throw new Error("Site Studio write actor does not match verified identity");
 }
 
 export async function callContactBulkRpc(
@@ -259,10 +276,11 @@ async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,
   args: Record<string, unknown>,
+  verifiedActor?: TenantActorContext,
 ) {
   const tenantId = tenantIdForDatabase(database);
   if (!tenantId) throw new Error("Collection host requires a tenant-bound database");
-  const context = getTenantRequestContext();
+  const context = verifiedActor ?? getTenantRequestContext();
   // Background hosts already carry their explicit service context. Never
   // elevate an arbitrary database simply because no actor context exists.
   if (context?.kind !== "actor") return database.rpc(operation, args);

@@ -26,7 +26,8 @@ Founder sessions use `/api/admin/features`. Founder-only credential management i
 `/api/admin/features/agents`: POST `{name,projects,scopes,days}` returns a random
 credential once; GET lists metadata; DELETE `{id}` revokes it. Credentials expire
 in at most 90 days, are stored only as SHA-256 hashes and cannot grant review,
-recovery, archive, wildcard projects or tenant access. Project and operation scopes
+operator recovery, recovery-policy changes, archive, wildcard projects or tenant access.
+Workers may receive `resume` and `checkpoint` scopes for the approved project policy. Project and operation scopes
 are resolved on every request, including MCP calls. Never put credentials in cards,
 logs, command arguments, Git, screenshots or prompts.
 
@@ -51,11 +52,11 @@ references block readiness and must be resolved explicitly.
 Backlog and planned cards with an outcome, acceptance, no explicit blocker and all
 prerequisites verified are claimable. Initiative roll-ups are never executable.
 Readiness is computed in SQL for both lists and claims. Work volume is advisory,
-never a claim admission limit. Other active or expired claims do not block new
-authorized work. Explicitly requesting an expired card continues that card through
-an atomic revision-checked claim with a new token; its prior owner, checkout and
-execution history remain recorded. Automatic backlog selection does not take over
-expired cards. A live claim still excludes other workers.
+never an admission limit. Live claims still exclude other workers. An explicit
+request for a named expired card permits a fresh revision-checked `claim` without
+another recovery approval. It rotates the token and records the predecessor attempt.
+Automatic `resume` additionally requires a durable checkpoint and the enabled
+project policy; its readiness preserves dependency, contract and capability checks.
 
 ## Mutations and execution
 
@@ -67,11 +68,29 @@ for the same logical operation; a different payload using that key conflicts.
 A receipt and before-state are recorded atomically in an immutable event ledger.
 
 Claim requires a fresh random 32-byte base64url claimToken generated and retained
-by the caller before sending. Only its hash is stored on the card. Heartbeat,
-progress, block, release and submit require that token, the authenticated actor,
+by the caller before sending. Its hash is stored privately on the card and attempt; hashes never enter card
+responses or event payloads. Heartbeat, checkpoint, progress, block, release and
+submit require that token, the authenticated actor,
 an unexpired lease and in_progress status. Leases last 30 minutes. A stale worker
-cannot renew or complete a later worker's attempt. An explicitly requested expired
-task continues through a fresh claim without another recovery approval.
+cannot renew or complete a later worker's attempt. Every successor uses a token
+never used on that card, including when two sessions share the same credential.
+Heartbeat adopts a legacy claim into a durable attempt before its first checkpoint.
+
+`resume` requires the card revision, an expired lease, a valid checkpoint and the
+project's enabled automatic-recovery policy. It atomically creates a successor
+attempt, records its predecessor and fences the old owner under the existing
+board lock. Replaying the same request returns the same receipt. Project access,
+capabilities and dependencies are checked again during takeover. Workers retain
+execution authority only; `recover`, `reopen` and review remain operator actions.
+
+`checkpoint` requires the current revision and token plus source commit, approved
+base, canonical branch, summary, completed/remaining steps and artifact references.
+The branch belongs to the same card and attempt. Checkpoints are incomplete source,
+not verification or acceptance evidence. Immutable events preserve every checkpoint;
+the card points to the latest one. Inspect retained source when no usable checkpoint
+exists. Automatic pickup reports that gap. An explicit named continuation can preserve
+retained source through the same checkpoint machinery and create an isolated
+successor; uncertain source or base mismatches remain precise reconciliation errors.
 
 Lifecycle: backlog/planned → claim → in_progress → submit → in_review → accepted
 verification (the legacy `shipped` key). Rejection returns work to planning with a
@@ -85,14 +104,26 @@ requires its named operations. Labels/colors/order are presentation; arbitrary
 new columns cannot create lifecycle states or bypass the server.
 
 The internal `agent:go` runner resolves the configured private transport and
-claims the next eligible card without requiring a key. For explicit/manual
+continues the current attempt, then eligible interrupted work, then the next
+ready card without requiring a key. For explicit/manual
 compatibility, `npm run agent:next -- --card <key>` claims work. A worktree requires the card's
 repository base commit and branch. Existing worktrees must match the expected
 branch and ancestry; errors preserve the claim/worktree for inspection. The CLI
 never falls back into an unrelated checkout and never removes a worktree.
-Use `agent:heartbeat`, `agent:release`, and `agent:complete -- --card <key>
+Use the emitted attempt-scoped commands: `agent:heartbeat`, `agent:release`, and `agent:complete -- --card <key>
 --evidence-file <local.json>`. Complete submits for review. Session secrets live
 under the Git common directory with private permissions, outside tracked files.
+A new claim publishes an initial checkpoint; `agent:progress` checkpoints current
+tracked source and its handoff summary. Explicit `agent:checkpoint` input includes
+new source paths. Publication uses a temporary private Git index and an immutable
+`agent/checkpoints/<card>/<attempt>/<checkpoint>` branch, preserving HEAD, the
+original index and working files. Secrets and generated output are excluded.
+The successor uses isolated source; the original checkout and session stay intact.
+
+For a long check, `agent:run -- --card <key> --attempt <uuid> -- <command>` renews
+every five minutes while that explicit job is alive. The default deadline is 30
+minutes, configurable up to one hour. It stops renewal when the job exits or the
+claim is lost; no detached heartbeat daemon keeps abandoned work reserved.
 Cleanup, merge and deployment remain separate deliberate actions.
 
 ## Imports and exports
@@ -126,6 +157,23 @@ lease fencing, dependency cycles/readiness, evidence, reviewer authority, projec
 scope, revocation and immutable history. Browser QA covers desktop/mobile,
 light/dark, keyboard and reduced motion. Demo uses the same admin page and a
 session-local transport; no provider or protected platform writes are allowed.
+
+### Resumable-attempt rollout
+
+Apply `20260912145031-work-board-resumable-attempts.sql` through the migration
+runner after controlled PostgreSQL verification. The additive migration leaves
+`automatic_recovery_projects` empty. An operator enables a named project with the
+revision-checked `recovery-policy` operation on a card in that project, recording
+`enabled` and a reason. Disable through the same operation to stop new takeovers
+while retaining active work and checkpoints.
+
+Lists advertise `resumableAttempts.version` and scoped `automaticRecoveryProjects`.
+An older schema reports version 0; use compatible service and CLI versions before
+enabling takeover. A local service check, an applied migration and hosted deployment
+are separate receipts. This change alone does not establish hosted activation.
+Run `test:work-board-resume` against an isolated PostgreSQL 15+ instance through
+the resource gate for migration replay, takeover races, token reuse, checkpoint
+ownership, capabilities, project policy and active WIP behavior.
 
 ## Execution packet v2
 

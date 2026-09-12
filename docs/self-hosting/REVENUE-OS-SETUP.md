@@ -8,6 +8,8 @@ Use `npm run db:migrate:all`. The ordered catalog and explicit historical exclus
 
 The migration ledger records each file and checksum atomically with its schema changes. Repeat runs verify completed files and resume pending files; they never replay seed updates. Changed recorded files and unknown database history fail closed. Existing installations without a ledger require reviewed baseline adoption before upgrading. See [Self-hosting](SELF-HOSTING.md) for first-owner ordering and hosted Supabase setup.
 
+The resumable-attempts migration adds fenced ownership and durable checkpoint metadata to the existing work board. Deploy compatible service and worker code before a reviewer enables automatic recovery for a named project through `recovery-policy`. Recovery is off by default; applying the schema alone does not enable takeover. Retain the migration ledger and existing claim history.
+
 The message upsert migration (`20260914-message-upsert-conflict-targets.sql`) adds workspace-scoped indexes used by the shared sender and message synchronization. Apply the current catalog before testing a send. If an earlier attempt failed before creating a message receipt, verify the schema before retrying; an uncertain provider result still requires receipt reconciliation.
 
 The AI command runtime migration adds founder-owned conversation history, replay-safe client message IDs, and run linkage for provider, tool-pack, duration, and conversation observability. Apply it before enabling `/admin/ai`; until then the command UI fails closed with a setup message and no schema is created from a request path.
@@ -271,3 +273,24 @@ For local Command Center verification, run `npm run test:admin-recovery`, `npm r
 ## Developer work board
 
 Clean installs include `20260906-universal-work-board.sql` and `20260907-work-packet-quality.sql` in the ordered catalog. The latter supplies packet validation and ordered card reads. Applying schema alone does not activate an older deployment: release compatible adapters, verify canonical writes and then check `npm run dev:doctor -- --board` with an issued worker credential. See [developer start](../contributing/DEVELOPER-START.md).
+
+## Site Studio write-boundary upgrade
+
+For an installation with `20260912-site-studio-authenticated-writes.sql` already
+recorded, preserve that migration and its checksum exactly. The corrective
+`20260912152325-site-studio-verified-host-writes.sql` restores service-only execution
+for the two Site Studio write operations; it does not remove drafts or revisions.
+
+Deploy the compatible application with explicit verified Site Studio actor context
+first, using the separate founder-authorized release process. Confirm an owner can
+save a private website revision and an authorized workspace admin can save a private
+draft through the service bridge. Then apply the corrective migration through the
+normal migration runner, confirm direct authenticated RPC writes are denied, and
+repeat those authorized saves. Keep their exact revision receipts and audit actors.
+Do not apply the live revocation before the compatible application is serving saves.
+A fresh installation applies the complete catalog before opening to users.
+
+Source integration and controlled PostgreSQL proof do not establish this live
+rollout. If the deployed application still relies on the temporary grants, retain
+that current state until the compatible release; do not rewrite recorded history
+or broaden the RPC grants to make a failing save appear successful.
