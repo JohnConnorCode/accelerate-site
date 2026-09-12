@@ -63,7 +63,7 @@ it contains only the named project and env-file path. The natural-language reque
 [Natural-language agent execution](NATURAL-LANGUAGE-AGENT.md) is the normal
 user interface after setup.
 
-The board doctor makes only authenticated GET requests. It reports incompatible deployments, missing scopes and unfinished strict-write rollout. Resolve blocked checks with the maintainer before unattended shared dispatch. Per-ticket dependencies, capability requirements and WIP limits still apply.
+The board doctor makes only authenticated GET requests. It reports incompatible deployments, missing scopes and unfinished strict-write rollout. Resolve blocked checks with the maintainer before unattended shared dispatch. Per-ticket dependencies, capability requirements and live claim ownership still apply. Work volume does not block claims; explicitly requested expired tasks continue with a fresh revision and token.
 
 Pickup checks the repository identity and exact approved base before claiming. If needed it fetches the declared branch from the existing matching `origin`; it never invents a branch, adopts a different repository or changes remote configuration. If the base exists only on the maintainer's machine, publish it first. A retained dirty or mismatched worktree needs inspection before reuse. `--no-worktree` is an explicit manual-preparation option, not automatic readiness proof.
 
