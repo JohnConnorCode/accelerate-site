@@ -54,7 +54,11 @@ Cancellation is off by default. A reviewed integration can explicitly register a
 
 ## Recovery and verification
 
-Run `plan-recovery` to inspect registered sessions, then `recover` to apply current classifications. Application rechecks each identity and refuses a changed plan. Resume paused producers explicitly after pressure clears. Dead providers must restore their original thread through their own supported resume mechanism; the supervisor cannot reconstruct lost context.
+Run `plan-recovery` to inspect registered sessions, then `recover` to apply current classifications. Application rechecks each identity and refuses a changed plan. Resume paused producers explicitly after pressure clears. For a proven-dead registered owner, run `recover --provider codex --thread <original-id>` (or `claude` / `opencode`). This launches the provider’s supported explicit-ID continuation in the retained enrolled checkout. The foreground process replaces itself with the provider, retaining the registered PID and process identity. One continuation runs at a time; a live owner is never replaced. Node must support `process.execve`; missing executables or capability fail before launch. Existing provider permissions remain in force. No latest-session selector, fork, new worktree or transcript copying is used.
+
+Provider authentication, credit and original saved conversation must still be available. A provider error does not create a replacement conversation. After the provider exits, `recover` classifies its dead process as interrupted/unknown outcome: process death alone does not establish whether the task finished. Context after the last durable provider save remains unknown.
+
+`uninstall` first resumes owned stopped producers serially through the existing pressure gate. It checks actual stopped process state, including a crash before the paused status was recorded. Unsafe resume, a running continuation, live heavy holder or live waiting job refuses uninstall and keeps management enabled. Only proven-dead admission holders are cleared. Session history, audit and repositories remain intact.
 
 A heavy-slot directory left by a proven-dead owner is different from a database transaction lock. `recover --clear-stale-lock` clears only a proven-dead holder. A live or replacement holder is preserved, including when an older ticket or direct gate tries to release it. Unreadable ownership needs inspection; it is not permission to remove the directory.
 

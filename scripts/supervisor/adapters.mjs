@@ -1,5 +1,15 @@
-import { existsSync, accessSync, constants, realpathSync } from "node:fs";
-import { join, delimiter } from "node:path";
+import { createRequire } from "node:module";
+import {
+  existsSync,
+  accessSync,
+  constants,
+  realpathSync,
+  readFileSync,
+  openSync,
+  readSync,
+  closeSync,
+} from "node:fs";
+import { join, delimiter, dirname } from "node:path";
 import { homedir } from "node:os";
 import { audit, loadConfig, saveConfig } from "./state.mjs";
 import { listProcesses } from "./identity.mjs";
@@ -16,21 +26,24 @@ const ADAPTERS = [
     kind: "agent",
     probes: ["codex"],
     launchPaths: ["codex CLI sessions", "codex unattended runs"],
-    managedHow: "Register the session; wrap heavy commands with the supervised runner.",
+    managedHow:
+      "Resume the registered original thread with supervisor recover --provider <id> --thread <id>; run its heavy tools through scripts/resource-run.mjs.",
   },
   {
     id: "claude",
     kind: "agent",
     probes: ["claude"],
     launchPaths: ["claude CLI sessions", "claude non-interactive runs"],
-    managedHow: "Register the session; wrap heavy commands with the supervised runner.",
+    managedHow:
+      "Resume the registered original thread with supervisor recover --provider <id> --thread <id>; run its heavy tools through scripts/resource-run.mjs.",
   },
   {
     id: "opencode",
     kind: "agent",
     probes: ["opencode"],
     launchPaths: ["opencode interactive and headless sessions"],
-    managedHow: "Register the session; wrap heavy commands with the supervised runner.",
+    managedHow:
+      "Resume the registered original thread with supervisor recover --provider <id> --thread <id>; run its heavy tools through scripts/resource-run.mjs.",
   },
   {
     id: "npm",
@@ -122,6 +135,13 @@ export function coverageReport(options = {}) {
       managedHow,
     })),
     bypasses,
+    continuation: {
+      mode: "foreground-execve",
+      supported: typeof process.execve === "function",
+      originalThreadOnly: true,
+      providerAccountAndHistory: "not-probed",
+    },
+    toolEntryPoint: "node scripts/resource-run.mjs <command> [args...]",
     universalEnforcement: false,
     hardEnforcementRequires: [
       "OS-level sandboxing (macOS Seatbelt profile or Linux containers/cgroups) around agent runtimes.",
@@ -185,4 +205,79 @@ export function inventoryHeavyProcesses({ processes = null } = {}) {
 
 export function githubRoots() {
   return [join(homedir(), "Documents", "GitHub")].filter((root) => existsSync(root));
+}
+
+/** Fixed provider commands preserve the original ID and the provider's permissions. */
+export function providerResumeCommand(provider, threadId) {
+  if (typeof threadId !== "string" || !/^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,199}$/.test(threadId))
+    throw new Error("A valid exact original thread ID is required");
+  const prompt =
+    "Continue the existing authorized task from the saved conversation. Inspect retained work before changing it; report missing context honestly.";
+  const args = {
+    codex: ["exec", "resume", threadId, prompt],
+    claude: ["--resume", threadId, "--print", prompt],
+    opencode: ["run", "--session", threadId, prompt],
+  }[provider];
+  if (!args) throw new Error("Original-thread continuation supports codex, claude and opencode");
+  const executable = whichBinary(provider)[0];
+  if (!executable) throw new Error(`SETUP_REQUIRED: ${provider} CLI is unavailable on PATH`);
+  return { executable: directProviderExecutable(provider, executable), args };
+}
+
+function nativeExecutable(path) {
+  const fd = openSync(path, "r");
+  try {
+    const bytes = Buffer.alloc(4);
+    readSync(fd, bytes, 0, 4, 0);
+    return [
+      "7f454c46",
+      "cffaedfe",
+      "cefaedfe",
+      "feedfacf",
+      "feedface",
+      "cafebabe",
+      "bebafeca",
+    ].includes(bytes.toString("hex"));
+  } finally {
+    closeSync(fd);
+  }
+}
+export function directProviderExecutable(provider, executable) {
+  let path = realpathSync(executable);
+  if (nativeExecutable(path)) return path;
+  // The official Codex npm shim spawns its native producer. Execute that
+  // packaged binary directly so SIGSTOP reaches the registered producer PID.
+  if (provider === "codex") {
+    const packageRoot = dirname(dirname(path));
+    const manifest = join(packageRoot, "package.json");
+    try {
+      if (JSON.parse(readFileSync(manifest, "utf8")).name !== "@openai/codex")
+        throw new Error("Unrecognized Codex launcher");
+      const architecture = { arm64: "aarch64", x64: "x86_64" }[process.arch];
+      const target =
+        process.platform === "darwin"
+          ? `${architecture}-apple-darwin`
+          : process.platform === "linux"
+            ? `${architecture}-unknown-linux-musl`
+            : null;
+      if (!architecture || !target) throw new Error("Unsupported native provider platform");
+      let vendor = join(packageRoot, "vendor");
+      try {
+        const nativePackage = createRequire(manifest).resolve(
+          `@openai/codex-${process.platform}-${process.arch}/package.json`,
+        );
+        vendor = join(dirname(nativePackage), "vendor");
+      } catch {
+        /* Older official packages contain vendor directly. */
+      }
+      path = realpathSync(join(vendor, target, "bin", "codex"));
+      accessSync(path, constants.X_OK);
+      if (nativeExecutable(path)) return path;
+    } catch {
+      /* Never fall back to signaling a spawning wrapper. */
+    }
+  }
+  throw new Error(
+    `SETUP_REQUIRED: ${provider} needs a direct native executable; launcher wrappers cannot preserve producer ownership`,
+  );
 }

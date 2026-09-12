@@ -415,7 +415,7 @@ export function KanbanColumn<T>({
 
   return (
     <section
-      className={cn("kanban-column min-w-0 shrink-0 snap-start")}
+      className={cn("kanban-column min-w-0 shrink-0")}
       aria-labelledby={`column-${column.column_key}`}
     >
       <div className="mb-2.5 flex items-start justify-between gap-2 px-1">
