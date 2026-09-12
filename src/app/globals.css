@@ -1798,7 +1798,10 @@ a.tag:active {
   margin-bottom: clamp(28px, 4vw, 40px);
   border: 1px solid var(--rule);
   background: var(--rule);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* CATEGORY_META has 6 entries; 3 columns gives two even rows. A 4-column
+     grid leaves the last row two cells short, and those unfilled grid areas
+     show the container's line-color background as a solid block. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .svc-cc-step {
   display: flex;

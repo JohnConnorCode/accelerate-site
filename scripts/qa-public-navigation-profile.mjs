@@ -21,11 +21,16 @@ if (!Number.isFinite(iterations) || iterations < 4)
 if (!Number.isFinite(cpuRate) || cpuRate < 1) throw new Error("--cpu-rate must be at least 1");
 await mkdir(output, { recursive: true });
 
+// Kept in sync with the top-level mobile nav items in src/content/navigation.ts
+// (primaryLinks). "/learn" was previously a top-level item; it now lives only
+// under the footer's "Articles & guides" link, so this harness rotated to the
+// current top-level "/docs" entry to keep testing a real direct nav link
+// rather than one that no longer exists in the mobile drawer.
 const routes = [
   { href: "/services", label: "Services" },
   { href: "/command-center", label: "Command Center" },
   { href: "/work", label: "Work" },
-  { href: "/learn", label: "Learn" },
+  { href: "/docs", label: "Docs" },
 ];
 
 const percentile = (values, fraction) => {
@@ -239,6 +244,16 @@ async function runServicesProfile(label, viewport, reducedMotion = "no-preferenc
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport, reducedMotion });
   const page = await context.newPage();
+  // The client-side analytics beacon 500s in any worktree without a
+  // .env.local (worktrees never inherit environment files -- see
+  // AGENTS.md), page-agnostically, because no Supabase credentials are
+  // configured. That is a pre-existing local-verification artifact of this
+  // isolated checkout, not a Services regression, so it is stubbed out
+  // rather than left to fail and pollute the console-error assertion below.
+  await context.route("**/api/analytics/events", (route) =>
+    route.fulfill({ status: 204, body: "" }),
+  );
+
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => {
@@ -262,16 +277,13 @@ async function runServicesProfile(label, viewport, reducedMotion = "no-preferenc
   }, [...new Set([...servicesAnchors, ...servicesFooterAnchors, ...servicesLegacyCatalogAnchors])]);
 
   await page.getByRole("navigation", { name: "Services page sections" }).waitFor();
-  const quickNavLink = page.locator('.services-subnav-link[href="#build"]');
-  await quickNavLink.evaluate((node) => node.click());
-  await page.waitForTimeout(reducedMotion === "reduce" ? 0 : 260);
-  const buildInView = await page.evaluate(() => {
-    const node = document.getElementById("build");
-    if (!node) return false;
-    const rect = node.getBoundingClientRect();
-    return rect.top < window.innerHeight && rect.bottom > 0;
-  });
 
+  // Keyboard reachability first, from a clean load: a hash-anchor click below
+  // resets document focus to <body> and the browser's forward-tab starting
+  // point follows the scroll target, which would make the quick-nav rail
+  // (earlier in DOM order, near the hero) unreachable by further Tabs for a
+  // reason unrelated to keyboard support. Testing tab order before any
+  // anchor click keeps this a real check of the natural keyboard path.
   await page.keyboard.press("Tab");
   let reachedQuickNav = false;
   for (let i = 0; i < 40 && !reachedQuickNav; i += 1) {
@@ -287,6 +299,16 @@ async function runServicesProfile(label, viewport, reducedMotion = "no-preferenc
         return `${style.outlineStyle} ${style.outlineWidth}`;
       })
     : "unreached";
+
+  const quickNavLink = page.locator('.services-subnav-link[href="#build"]');
+  await quickNavLink.evaluate((node) => node.click());
+  await page.waitForTimeout(reducedMotion === "reduce" ? 0 : 260);
+  const buildInView = await page.evaluate(() => {
+    const node = document.getElementById("build");
+    if (!node) return false;
+    const rect = node.getBoundingClientRect();
+    return rect.top < window.innerHeight && rect.bottom > 0;
+  });
 
   await page.waitForTimeout(reducedMotion === "reduce" ? 0 : 200);
   const longTasks = await page.evaluate(() => window.__accelerateServicesQa.longTasks);
