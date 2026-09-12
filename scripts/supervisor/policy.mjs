@@ -1,7 +1,7 @@
-import { queueStatus } from "./queue.mjs";
+import { queueStatus, clearStaleLock } from "./queue.mjs";
 import { execFileSync } from "node:child_process";
-import { audit, loadConfig, readJson, withStateTransaction } from "./state.mjs";
-import { assertOwned } from "./identity.mjs";
+import { audit, loadConfig, readJson, withStateTransaction, saveConfig } from "./state.mjs";
+import { assertOwned, pidOwned, processState } from "./identity.mjs";
 import { listSessions, findSession, setSessionStatus } from "./sessions.mjs";
 
 // Overload policy, in escalating tiers. The inviolable rules:
@@ -196,4 +196,76 @@ function assertDisposable(job) {
   if (!registered.parentStartTime) throw new Error("Disposable parent identity unavailable");
   assertOwned(registered.parentPid, registered.parentStartTime, "disposable parent ownership");
   assertOwned(job.pid, job.startTime, "disposable cancellation");
+}
+
+/** Disable only after every owned stopped producer is safely running again. */
+export function uninstallManagement() {
+  const resumed = [];
+  // Each completed signal/status receipt commits independently. A later
+  // refusal must not roll back the registry for an already-resumed producer.
+  for (const session of listSessions()) {
+    if (!session.live) continue;
+    withStateTransaction(() => {
+      if (!pidOwned(session.pid, session.startTime).owned) return;
+      const actual = processState(session.pid);
+      if (!actual)
+        throw new Error(`Cannot inspect thread ${session.threadId}; management remains enabled`);
+      if (!actual.includes("T")) return;
+      if (queueStatus().level !== "normal")
+        throw new Error("Pressure has not cleared; producer remains paused");
+      // Even an ended registration may still own a stopped process. A signal
+      // is authorized by retained exact PID identity, never the status label.
+      if (
+        !listSessions().some(
+          (current) => current.pid === session.pid && current.startTime === session.startTime,
+        )
+      )
+        throw new Error("Session ownership changed; management remains enabled");
+      audit("producer.resume_intent", {
+        provider: session.provider,
+        threadId: session.threadId,
+        pid: session.pid,
+      });
+      signalOwned(session.pid, session.startTime, "SIGCONT", "supervisor uninstall");
+      const current = findSession(session.threadId, session.provider);
+      if (current?.pid === session.pid && current.startTime === session.startTime)
+        setSessionStatus(session.threadId, "running", session.provider, session);
+      audit("producer.resumed", {
+        provider: session.provider,
+        threadId: session.threadId,
+        pid: session.pid,
+      });
+      resumed.push({ provider: session.provider, threadId: session.threadId, pid: session.pid });
+    });
+  }
+  return withStateTransaction(() => {
+    const continuation = readJson("continuation.json", null);
+    if (continuation && pidOwned(continuation.pid, continuation.startTime).owned)
+      throw new Error(
+        "A supervised provider continuation is running; leave management enabled until it exits",
+      );
+    for (const session of listSessions()) {
+      if (!session.live) continue;
+      const actual = processState(session.pid);
+      if (!actual || actual.includes("T"))
+        throw new Error(
+          "An owned producer is still stopped or unreadable; management remains enabled",
+        );
+    }
+    const status = queueStatus();
+    if (status.holder) {
+      if (status.holder.liveness.live)
+        throw new Error(
+          "A heavy job still owns the slot; management remains enabled until it releases",
+        );
+      clearStaleLock();
+    }
+    if (queueStatus().waiting.length)
+      throw new Error(
+        "Heavy jobs are still waiting; management remains enabled until they finish or withdraw",
+      );
+    saveConfig({ manageHeavyJobs: false });
+    audit("supervisor.uninstalled", { resumed });
+    return { manageHeavyJobs: false, resumed };
+  });
 }
