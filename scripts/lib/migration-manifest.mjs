@@ -100,6 +100,8 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260912-site-studio-authenticated-writes.sql",
   "migrations/20260912152325-site-studio-verified-host-writes.sql",
   "migrations/20260912153548-work-board-claim-continuity.sql",
+  "migrations/20260912170924-social-marketing.sql",
+  "migrations/20260912190757-social-marketing-function-privileges.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

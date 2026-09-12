@@ -260,6 +260,18 @@ export async function callDeliveryTemplateRpc(
   return callVerifiedHostRpc(database, "publish_onboarding_template", args);
 }
 
+export async function callSocialRpc(
+  database: SupabaseClient,
+  operation:
+    | "execute_social_command"
+    | "claim_social_publication"
+    | "record_social_publication"
+    | "assert_social_dispatch",
+  args: Record<string, unknown>,
+) {
+  return callVerifiedHostRpc(database, operation, args);
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

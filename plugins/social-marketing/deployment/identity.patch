@@ -1,0 +1,10 @@
+diff --git a/apps/backend/src/public-api/routes/v1/public.integrations.controller.ts b/apps/backend/src/public-api/routes/v1/public.integrations.controller.ts
+--- a/apps/backend/src/public-api/routes/v1/public.integrations.controller.ts
++++ b/apps/backend/src/public-api/routes/v1/public.integrations.controller.ts
+@@ -290,5 +290,5 @@
+   @Get('/is-connected')
+   async getActiveIntegrations(@GetOrgFromRequest() org: Organization) {
+     Sentry.metrics.count('public_api-request', 1);
+-    return { connected: true };
++    return { connected: true, organizationId: org.id, accelerateProtocol: 1 };
+   }

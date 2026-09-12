@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-12",
   },
   {
+    id: "social-marketing-postiz",
+    slug: "social-marketing-postiz",
+    title: "Prepare and review LinkedIn publishing in Social Marketing",
+    description:
+      "An optional Postiz-backed plugin adds source-backed drafts, weekly preparation, exact batch approval, durable scheduling and publication receipts. Each tenant connects a separate organization. Hosting, LinkedIn access and the internal pilot require verified setup before customer activation.",
+    category: "feature",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "resumable-agent-work",
     slug: "resumable-agent-work",
     title: "Continue unfinished agent work from saved checkpoints",

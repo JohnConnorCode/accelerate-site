@@ -415,6 +415,7 @@ const sectionTitles: Record<string, string> = {
   "More tools": "Other tools",
 };
 const marketingIds = new Set([
+  "social-marketing",
   "emails",
   "campaigns",
   "delivery-runs",
