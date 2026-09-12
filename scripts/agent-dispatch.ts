@@ -134,6 +134,7 @@ async function main() {
       );
     card =
       previous?.card ??
+      card ??
       (await cards()).find(
         (c) =>
           c.readiness?.length === 0 &&
