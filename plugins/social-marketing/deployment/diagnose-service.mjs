@@ -54,6 +54,27 @@ try {
 } catch {
   health = { probe: clean(state) };
 }
-const report = { health, errors };
+let temporalHealth;
+try {
+  const id = run(["ps", "--all", "-q", "temporal"]).trim();
+  if (!/^[a-f0-9]+$/.test(id)) throw new Error("Container unavailable");
+  const details = JSON.parse(
+    execFileSync("docker", ["inspect", "--format", "{{json .State.Health}}", id], {
+      encoding: "utf8",
+      timeout: 3000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }),
+  );
+  temporalHealth = {
+    status: details?.Status,
+    failures: (details?.Log || [])
+      .filter((entry) => entry.ExitCode !== 0)
+      .slice(-2)
+      .map((entry) => ({ exitCode: entry.ExitCode, output: clean(entry.Output) })),
+  };
+} catch {
+  temporalHealth = { status: "unavailable" };
+}
+const report = { health, temporalHealth, errors };
 writeFileSync("evidence/startup-diagnostics.json", JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report));
