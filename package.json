@@ -207,6 +207,7 @@
     "test:health-expectation": "npx tsx scripts/test-health-expectation.ts",
     "qa:founder-notes": "node --env-file=.env.local scripts/qa-founder-note.mjs",
     "qa:conversations": "node --env-file=.env.local scripts/qa-conversations.mjs",
+    "test:local-actions:postgres": "node scripts/test-local-actions-postgres.mjs",
     "test:action-reversibility": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-action-reversibility.ts",
     "test:plugin-isolate": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-plugin-isolate.ts",
     "test:runtime-consolidation": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-runtime-consolidation.ts",

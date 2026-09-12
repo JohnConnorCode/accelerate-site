@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "atomic-task-execution",
+    slug: "atomic-task-execution",
+    title: "Keep task changes and recovery receipts together",
+    description:
+      "Work task controls and approved task proposals now use the same executor. Local task and next-action changes save their result and captured inverse together. Stale proposals and restoration over newer edits refuse; repeated execution cannot apply the same action twice. Layout restoration remains a separately reviewed change.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",

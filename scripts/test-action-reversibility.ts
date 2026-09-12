@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { approveAndExecuteAction, APPROVABLE_ACTIONS } from "../src/lib/revenue-os/action-executor";
+import {
+  approveAndExecuteAction,
+  runOperatorAction,
+  APPROVABLE_ACTIONS,
+} from "../src/lib/revenue-os/action-executor";
 import {
   ACTION_REVERSIBILITY,
   compensateAction,
@@ -100,7 +104,7 @@ async function main() {
   const stored = mem.rows("action_queue").find((r) => r.id === "a-task") as Record<string, unknown>;
   assert.equal(stored.status, "executed");
   assert.equal(stored.reversibility, "reversible");
-  assert.equal((stored.compensation as Record<string, unknown>)?.createdTaskId, created!.id);
+  assert.equal((stored.compensation as Record<string, unknown>)?.targetId, created!.id);
   const undone = await compensateAction(db, "a-task", ACTOR);
   assert.equal(undone.undone, "create_task");
   assert.equal(
@@ -118,7 +122,11 @@ async function main() {
     ...pendingAction({
       id: "a-next",
       action_type: "update_next_action",
-      payload: { opportunityId: "o9", nextAction: "Send contract" },
+      payload: {
+        opportunityId: "o9",
+        nextAction: "Send contract",
+        expectedState: structuredClone(mem.rows("opportunities")[0]),
+      },
     }),
   });
   await approveAndExecuteAction(db, "a-next", ACTOR);
@@ -144,7 +152,11 @@ async function main() {
     ...pendingAction({
       id: "a-complete",
       action_type: "update_task",
-      payload: { taskId: "t9", changeType: "complete" },
+      payload: {
+        taskId: "t9",
+        changeType: "complete",
+        expectedState: structuredClone(mem.rows("tasks").find((r) => r.id === "t9")),
+      },
     }),
   });
   await approveAndExecuteAction(db, "a-complete", ACTOR);
@@ -162,11 +174,36 @@ async function main() {
   });
   await assert.rejects(() => compensateAction(db, "a-sent", ACTOR), /irreversible/);
 
+  // A UI decision and a separately approved programmatic proposal must invoke
+  // the identical registered local executor primitive, with durable queue IDs.
+  const priorCalls = mem.rpcCalls.filter((c) => c.name === "apply_local_action").length;
+  await runOperatorAction(db, {
+    actionType: "create_task",
+    title: "UI task",
+    payload: { title: "UI task" },
+    actorEmail: ACTOR,
+  });
+  const proposed = await proposeAction(db, {
+    actionType: "create_task",
+    title: "Programmatic task",
+    payload: { title: "Programmatic task" },
+    sourceContext: "admin_ai",
+    proposedBy: ACTOR,
+  });
+  await approveAndExecuteAction(db, proposed.id, ACTOR);
+  assert.equal(mem.rpcCalls.filter((c) => c.name === "apply_local_action").length - priorCalls, 2);
+  assert.equal(
+    mem.rows("tasks").filter((t) => ["UI task", "Programmatic task"].includes(String(t.title)))
+      .length,
+    2,
+  );
+
   console.log(
     JSON.stringify({
       result: "passed",
       checks: [
         "registry-completeness",
+        "ui-programmatic-executor-parity",
         "autonomous-irreversible-refusal",
         "replay-idempotency",
         "create-task-compensator",

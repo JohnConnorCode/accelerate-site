@@ -138,7 +138,7 @@
     "src/app/api/admin/site/website/suggest/route.ts": "5efc8fcbfe8c552ce9332b10143576689acfdf5001e0005c57231dbc00624835",
     "src/app/api/admin/subscribers/export/route.ts": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63",
     "src/app/api/admin/subscribers/route.ts": "dadb0fc001e5ecc9e1340a1d363e0c24771f492e7e88650aa8e78f2d5a6a18e0",
-    "src/app/api/admin/tasks/route.ts": "6482ce152c7f1d849703fb24d63f9cff97d94058ab4968efd64a6ef50f356804",
+    "src/app/api/admin/tasks/route.ts": "f391072317f70009985b6e5220e0d9ede5b3913fc84d6929deece040bbf15049",
     "src/app/api/admin/tenant/branding/route.ts": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5",
     "src/app/api/admin/tenant/modules/route.ts": "33e9b419aac5552c0a74663ab7851787289ad62dce4d6cd48bc4828a73dd38f1",
     "src/app/api/admin/tenant/providers/route.ts": "98503390c35407133985a8d8353e5dd782a689a4bd4ab6dd55bacdf557975e48",
@@ -259,9 +259,9 @@
     "src/lib/email/registry.ts": "a05a9e35ecbd464aa69f8ec16e675328a7db93ef9b7ef8e90c46777550da5bda",
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
-    "src/lib/revenue-os/README.md": "94d2ac533e7ff97a6e8c2911ea15211615303fb9d4012268e8abb7f78480da15",
-    "src/lib/revenue-os/action-executor.ts": "fb2953bbfb217e14ab55802922d6e3be22f2a4e31aec99036323408b0787f059",
-    "src/lib/revenue-os/actions.ts": "4b8f06cdbdf696ac3e7aa61799073f49302f9b3ce377983e043daef74c535a8b",
+    "src/lib/revenue-os/README.md": "283a7518ad456ce818b98481b609a5b0a056da8678f4cb83b3d832320aef773b",
+    "src/lib/revenue-os/action-executor.ts": "b5e1ce9028eeb788d4001f11973e2153349461ee6052182f17862861d31a9591",
+    "src/lib/revenue-os/actions.ts": "f3f035ecb8fcf11350913fc35a9341fb747d22d683237689a4691cae4b301610",
     "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
@@ -270,7 +270,7 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
     "src/lib/revenue-os/ai-operations.ts": "ae39bc1112700f7af976bdf68a1308d7c720747ed82191d589817ba78b4aa945",
     "src/lib/revenue-os/ai-stream-contract.ts": "813ce466f99ba479b50cfee912921003a8e21bf812dba9e16494a4df3b5d00c7",
-    "src/lib/revenue-os/ai-tools.ts": "4871c439be098ea2e28ce0d4bb04b2d8cfad9b777d2f50ffaa6b7575d36b7f1e",
+    "src/lib/revenue-os/ai-tools.ts": "ee3bd77fddc1a4b51dd832c1bcc85f9ad04dcb9d2692ca478ca8f5bca18fa758",
     "src/lib/revenue-os/analytics.ts": "d57c3a867c3926e1fed1a64c110f0f28c8569e96a3c177b033e4eb11967764fb",
     "src/lib/revenue-os/architect-understanding.ts": "5e0764b46aaacd1f9d4e9d519d38348f8617b2d639fc3e4716b50de84ea39a18",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
@@ -314,10 +314,10 @@
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/runs.ts": "94ea4fe446cc959aaf90cb4ab968f9b0baf0c165f3c393081b9fd6e4d8015fdd",
-    "src/lib/revenue-os/schema-contract.ts": "cdc68cd1d30ecf71f1426c5afd3b28c339cd69ca31ad8d0dbc08beaf69567abd",
+    "src/lib/revenue-os/schema-contract.ts": "8510cd70176326f0065740a8a3f8cb1a74d286ad842b41795d565c1de6547070",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
-    "src/lib/revenue-os/tasks.ts": "ddca6cc4af840c5758270c65f37eaf14bd3865cf08f1e17eba898ef4c7a164dc",
+    "src/lib/revenue-os/tasks.ts": "33ddfe02aa289eb5576f51c8a2990b2c2c57170a48a45c9e381a59bf4f6a3d5a",
     "src/lib/revenue-os/tool-profiles.ts": "c72d9e318dc7b157af57b7e34adef41fa9153fda94a5f09116fe1b5debb8c1ce",
     "src/lib/revenue-os/types.ts": "7c2ef713990b2180acd4c76507e708431288fd46d98fab1072cc6451a15e44bd",
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
@@ -997,7 +997,7 @@
         },
         {
           "path": "src/app/api/admin/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/tasks"],
+          "domainImports": ["@/lib/revenue-os/action-executor", "@/lib/revenue-os/tasks"],
           "directTables": ["tasks"]
         }
       ],
@@ -1695,7 +1695,7 @@
       "adapters": [
         {
           "path": "src/app/api/admin/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/tasks"],
+          "domainImports": ["@/lib/revenue-os/action-executor", "@/lib/revenue-os/tasks"],
           "directTables": ["tasks"]
         },
         {

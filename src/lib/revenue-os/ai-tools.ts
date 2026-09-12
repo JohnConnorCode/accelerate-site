@@ -1281,7 +1281,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "propose_task_update",
     description:
-      "Stage a change to an existing task for approval: mark it complete, snooze it to a later date, or edit its title, priority, or due date. Never changes the task directly; the founder approves it from the review queue like every other proposal.",
+      "Stage a change to an existing task for approval: mark it complete, snooze it to a later date, or edit its title, description, priority, or due date. Never changes the task directly; the founder approves it from the review queue like every other proposal.",
     inputSchema: {
       type: "object",
       properties: {
@@ -1296,6 +1296,7 @@ const registry: AiToolRegistration[] = [
           description: "Snooze target date (YYYY-MM-DD), required when changeType is snooze.",
         },
         title: { type: "string", description: "New title, only used when changeType is edit." },
+        description: { type: "string", description: "New task description." },
         priority: { type: "string", enum: ["high", "medium", "low"] },
         dueDate: {
           type: "string",
@@ -1322,6 +1323,7 @@ const registry: AiToolRegistration[] = [
         changeType === "edit" &&
         !value(input, "title") &&
         !value(input, "priority") &&
+        input.description === undefined &&
         input.dueDate === undefined
       )
         throw new Error('changeType "edit" requires at least one of title, priority, or dueDate');
@@ -1342,6 +1344,7 @@ const registry: AiToolRegistration[] = [
           changeType,
           until: value(input, "until"),
           title: value(input, "title"),
+          description: input.description,
           priority: value(input, "priority"),
           dueDate: input.dueDate === "" ? null : value(input, "dueDate"),
         },

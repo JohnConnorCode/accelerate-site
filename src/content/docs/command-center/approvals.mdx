@@ -43,3 +43,13 @@ Six things never climb this ladder, regardless of how much trust everything else
 - An external assistant connected through MCP cannot approve its own staged proposal. Its own confirmation prompt is not the same thing as your approval inside Command Center, and the action still waits here regardless of what it told you.
 - Do not assume repeated approvals have quietly removed a gate on their own; check the current autonomy setting for that action type if you are unsure whether it still needs your review.
 - If an approved action's outcome is unclear, inspect [Activity](/docs/command-center/activity) and the action's own result before creating a second attempt. Retrying blind risks a duplicate send.
+
+## Task changes and restoration
+
+Creating, editing, completing, snoozing or deleting a task through Work uses the same executor as an approved task proposal. The saved action records its result and the state needed for restoration together. A task changed after the proposal was prepared requires a new review.
+
+Task and next-action restoration checks the exact state left by the original action. Newer edits stop restoration so another person's work is preserved. Repeating the same restoration returns its existing receipt. Older actions without a verified inverse require a separately reviewed restorative change; layout history also uses that separate review path.
+
+Impact describes how far a change reaches. Reversibility describes whether its prior state can be restored. An internal change is not automatically reversible, and a sent message still cannot be recalled.
+
+This currently covers Work task controls and approved task proposals. Conversation follow-ups, intake and scheduled task creation are still being reconciled with the shared executor; this is not a claim of universal write coverage.

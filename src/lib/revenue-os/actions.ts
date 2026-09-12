@@ -1,4 +1,5 @@
 import "server-only";
+import { isDeepStrictEqual } from "node:util";
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
@@ -71,6 +72,22 @@ export async function proposeAction(
     evidence?: Record<string, unknown>;
   },
 ) {
+  // Capture target state when proposing, never when approving an old proposal.
+  if (["update_task", "delete_task", "update_next_action"].includes(input.actionType)) {
+    const table = input.actionType === "update_next_action" ? "opportunities" : "tasks";
+    const id =
+      input.actionType === "update_next_action"
+        ? input.payload.opportunityId
+        : input.payload.taskId;
+    const { data, error } = await supabase.from(table).select("*").eq("id", id).maybeSingle();
+    if (error || !data) throw new Error("Proposal target is unavailable");
+    if (
+      input.payload.expectedState !== undefined &&
+      !isDeepStrictEqual(input.payload.expectedState, data)
+    )
+      throw new Error("Record changed since preview; prepare a new proposal");
+    input = { ...input, payload: { ...input.payload, expectedState: structuredClone(data) } };
+  }
   // Learned observations remain reviewable context. Authority is evaluated
   // from structured autonomy policies at execution, never from prose keywords.
   const row = {

@@ -1,7 +1,9 @@
 import { MemorySupabase, type Row } from "./memory-supabase";
+import { installLocalActionFixture } from "./local-action-fixture";
 export class AuthorizedMemorySupabase extends MemorySupabase {
   constructor(seed: Record<string, Row[]> = {}) {
     super(seed);
+    installLocalActionFixture(this);
     this.rpc("check_autonomy", ({ p_action_key }) => ({
       action_key: p_action_key,
       allowed: false,

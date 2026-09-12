@@ -299,7 +299,15 @@ async function main() {
       payload: { to: "alex@example.com", subject: "Hello", body: "Hi" },
     }),
   );
-  (abandoned.tables.action_queue ??= []).push(pending({ id: "fresh-after-recovery" }));
+  (abandoned.tables.action_queue ??= []).push(
+    pending({
+      id: "fresh-after-recovery",
+      payload: {
+        ...(pending().payload as Row),
+        expectedState: structuredClone(abandoned.rows("opportunities")[0]),
+      },
+    }),
+  );
   const recoveredCount = await recoverStaleExecutingActions(abandoned.client);
   assert.equal(
     recoveredCount,

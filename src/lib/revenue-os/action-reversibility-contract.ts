@@ -122,6 +122,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     rationale: "Prior field values are captured at execution and restored.",
   },
   {
+    actionType: "delete_task",
+    impact: "internal_write",
+    reversibility: "reversible",
+    rationale:
+      "An atomic full-row inverse restores the task identity; dependency or state changes refuse.",
+  },
+  {
     actionType: "update_next_action",
     impact: "internal_write",
     reversibility: "reversible",
@@ -164,8 +171,9 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
   {
     actionType: "admin_layout_change",
     impact: "internal_write",
-    reversibility: "reversible",
-    rationale: "revertLayoutChange restores the prior doc from audit history.",
+    reversibility: "compensable",
+    rationale:
+      "Layout history supports a separately reviewed restore; automatic exact-state undo is not available.",
   },
   {
     actionType: "create_founder_note",

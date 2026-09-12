@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createRevenueTask, patchOperatorTask, deleteOperatorTask } from "@/lib/revenue-os/tasks";
+import { runOperatorAction } from "@/lib/revenue-os/action-executor";
+import { patchOperatorTask, deleteOperatorTask } from "@/lib/revenue-os/tasks";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -76,16 +77,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await createRevenueTask(supabase, {
+    const result = await runOperatorAction(supabase, {
+      actionType: "create_task",
       title,
-      description,
-      dueDate: due_date,
-      dueTime: due_time,
-      priority: ["high", "medium", "low"].includes(priority) ? priority : "medium",
-      relatedType: related_type,
-      relatedId: related_id,
-      relatedName: related_name,
-      source: "manual",
+      payload: {
+        title,
+        description,
+        dueDate: due_date,
+        dueTime: due_time,
+        priority: ["high", "medium", "low"].includes(priority) ? priority : "medium",
+        relatedType: related_type,
+        relatedId: related_id,
+        relatedName: related_name,
+      },
       actorEmail: auth.user.email || "founder",
     });
     return NextResponse.json(result);

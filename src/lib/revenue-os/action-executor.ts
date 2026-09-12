@@ -13,7 +13,13 @@ import { executeInvoicePagePublication } from "./invoice-pages";
 import { executeWorkflowTaskBatch } from "./workflow-tasks";
 import { executeStripeInvoiceAction } from "./stripe-invoicing";
 import { assertPluginActionAllowed } from "./workflow-plugins";
-import { claimApprovedAction, denyAction, failAction, finishAction } from "./actions";
+import {
+  claimApprovedAction,
+  denyAction,
+  failAction,
+  finishAction,
+  proposeAction,
+} from "./actions";
 import { executeRuntimeAction } from "./runtime-actions";
 import { checkAutonomy } from "./autonomy-policy";
 import { recordAudit } from "./audit";
@@ -22,12 +28,6 @@ import { sendRecordedEmail } from "./communications";
 import { transitionOpportunity } from "./pipeline";
 import { activateCampaign, duplicateCampaign } from "./campaigns";
 import { sendGmailReply } from "./google";
-import {
-  createRevenueTask,
-  completeOperatorTask,
-  snoozeOperatorTask,
-  updateOperatorTask,
-} from "./tasks";
 import { applyLayoutChange } from "./admin-layout";
 import { captureFounderNote } from "./notes";
 
@@ -63,6 +63,7 @@ export const APPROVABLE_ACTIONS = [
   "transition_opportunity",
   "create_task",
   "update_task",
+  "delete_task",
   "update_next_action",
   "activate_campaign",
   "duplicate_campaign",
@@ -313,98 +314,19 @@ export async function approveAndExecuteAction(
         });
         break;
       }
-      case "create_task": {
-        result = await createRevenueTask(supabase, {
-          title: stringValue(payload, "title")!,
-          description: stringValue(payload, "description", false),
-          dueDate: stringValue(payload, "dueDate", false),
-          priority: ["high", "medium", "low"].includes(String(payload.priority))
-            ? (payload.priority as "high" | "medium" | "low")
-            : "medium",
-          opportunityId: stringValue(payload, "opportunityId", false),
-          source: "ai",
-          dedupeKey: stringValue(payload, "dedupeKey", false) ?? `action:${id}`,
-          actorEmail,
-        });
-        compensation.createdTaskId = (result as { task?: { id?: unknown } })?.task?.id ?? null;
-        break;
-      }
-      case "update_task": {
-        const taskId = stringValue(payload, "taskId")!;
-        const { data: taskBefore } = await supabase
-          .from("tasks")
-          .select("id,title,priority,due_date,status,snoozed_until,completed_at")
-          .eq("id", taskId)
-          .maybeSingle();
-        // Copy primitives now: some clients hand back live row references
-        // that later writes mutate in place, which would poison the inverse.
-        const before = taskBefore as Record<string, unknown> | null;
-        compensation.before = before
-          ? {
-              title: before.title,
-              priority: before.priority,
-              due_date: before.due_date ?? null,
-              status: before.status,
-              snoozed_until: before.snoozed_until ?? null,
-              completed_at: before.completed_at ?? null,
-            }
-          : null;
-        const changeType = stringValue(payload, "changeType")!;
-        if (changeType === "complete") {
-          result = await completeOperatorTask(supabase, { id: taskId, actorEmail });
-        } else if (changeType === "snooze") {
-          result = await snoozeOperatorTask(supabase, {
-            id: taskId,
-            until: stringValue(payload, "until")!,
-            actorEmail,
-          });
-        } else if (changeType === "edit") {
-          const priorityRaw = payload.priority;
-          result = await updateOperatorTask(supabase, {
-            id: taskId,
-            title: stringValue(payload, "title", false),
-            priority: ["high", "medium", "low"].includes(String(priorityRaw))
-              ? (priorityRaw as "high" | "medium" | "low")
-              : undefined,
-            dueDate:
-              payload.dueDate === null
-                ? null
-                : (stringValue(payload, "dueDate", false) ?? undefined),
-            actorEmail,
-          });
-        } else {
-          throw new Error(`Unknown task update changeType "${changeType}"`);
-        }
-        break;
-      }
+      case "create_task":
+      case "update_task":
+      case "delete_task":
       case "update_next_action": {
-        const opportunityId = stringValue(payload, "opportunityId")!;
-        const { data: actionBefore } = await supabase
-          .from("opportunities")
-          .select("next_action,next_action_at")
-          .eq("id", opportunityId)
-          .maybeSingle();
-        // Copy primitives now (see update_task above): live references would
-        // reflect the update we are about to make, not the prior state.
-        const priorRow = actionBefore as Record<string, unknown> | null;
-        compensation.prior = priorRow
-          ? {
-              next_action: priorRow.next_action ?? null,
-              next_action_at: priorRow.next_action_at ?? null,
-            }
-          : null;
-        const { data, error } = await supabase
-          .from("opportunities")
-          .update({
-            next_action: stringValue(payload, "nextAction")!,
-            next_action_at: stringValue(payload, "nextActionAt", false) ?? null,
-          })
-          .eq("id", opportunityId)
-          .select("id,next_action,next_action_at")
-          .single();
+        // The local effect, inverse and terminal receipt share one transaction.
+        const { data, error } = await supabase.rpc("apply_local_action", {
+          p_id: id,
+          p_payload: payload,
+          p_actor: actorEmail,
+          p_undo: false,
+        });
         if (error) throw new Error(error.message);
-        result = data;
-        break;
+        return data;
       }
       case "activate_campaign": {
         const campaignId = stringValue(payload, "campaignId")!;
@@ -509,4 +431,27 @@ export async function approveAndExecuteAction(
       await failAction(supabase, id, error instanceof Error ? error.message : "Action failed");
     throw error;
   }
+}
+
+/** Operator decisions stage the same proposal as AI; the authenticated UI approves it. */
+export async function runOperatorAction(
+  supabase: SupabaseClient,
+  input: {
+    actionType: "create_task" | "update_task" | "delete_task" | "update_next_action";
+    title: string;
+    payload: Record<string, unknown>;
+    actorEmail: string;
+    dedupeKey?: string;
+  },
+) {
+  const action = await proposeAction(supabase, {
+    actionType: input.actionType,
+    title: input.title,
+    payload: input.payload,
+    proposedBy: input.actorEmail,
+    sourceContext: "operator_ui",
+    dedupeKey: input.dedupeKey,
+    expiresAt: new Date(Date.now() + 3600000).toISOString(),
+  });
+  return approveAndExecuteAction(supabase, String(action.id), input.actorEmail);
 }

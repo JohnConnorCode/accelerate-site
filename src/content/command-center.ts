@@ -447,7 +447,7 @@ export const LOOP_STEPS = [
     n: "03",
     title: "You approve",
     tag: "your call, every time",
-    body: "One queue. Approve, edit, or throw it out. A morning of admin clears in about the time it takes to drink a coffee.",
+    body: "Approve, edit, or reject proposed work in one queue. Work task controls and approved task proposals use the same executor, with local changes and recovery receipts saved together.",
   },
   {
     n: "04",

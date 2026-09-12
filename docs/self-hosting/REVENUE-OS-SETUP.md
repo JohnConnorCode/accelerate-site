@@ -271,3 +271,11 @@ For local Command Center verification, run `npm run test:admin-recovery`, `npm r
 ## Developer work board
 
 Clean installs include `20260906-universal-work-board.sql` and `20260907-work-packet-quality.sql` in the ordered catalog. The latter supplies packet validation and ordered card reads. Applying schema alone does not activate an older deployment: release compatible adapters, verify canonical writes and then check `npm run dev:doctor -- --board` with an issued worker credential. See [developer start](../contributing/DEVELOPER-START.md).
+
+### Atomic local action upgrade
+
+`migrations/20260912154902-atomic-local-actions.sql` extends the existing action queue with the `apply_local_action` transaction. Apply it through the ordered migration runner before deploying the updated executor, then verify schema readiness. It retains existing queue statuses, pending deduplication and history. The function uses the caller's database permissions and checks the active tenant and administrator; it does not obtain service-role access.
+
+Old pending task or next-action proposals without captured target state require a fresh proposal. Old executed actions without a versioned inverse require a separately reviewed restoration. Do not manufacture an inverse from current data. No hosted migration or deployment is implied by local verification.
+
+Run `npm run resources:run -- npm run test:local-actions:postgres` with PostgreSQL tools on PATH for the isolated native proof. It applies the actual business catalog twice, excluding only the Supabase scheduler extensions, then tests seeded restoration, stale state, concurrent/replayed execution, tenant/actor refusal and rollback when audit insertion fails.

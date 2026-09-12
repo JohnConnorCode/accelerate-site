@@ -78,7 +78,7 @@ export class MemorySupabase {
       rpc: (name: string, args: Record<string, unknown>) => {
         this.rpcCalls.push({ name, args });
         const handler = this.procedures[name];
-        const settle = (
+        const settle = async (
           resolve: (result: { data: unknown; error: unknown; count?: number }) => unknown,
         ) => {
           if (!handler)
@@ -87,7 +87,7 @@ export class MemorySupabase {
               error: { message: `memory-supabase: no stub registered for rpc "${name}"` },
             });
           try {
-            const value = handler(args);
+            const value = await handler(args);
             // A handler may return `{ error }` to simulate a failing function.
             if (value && typeof value === "object" && "error" in (value as Row))
               return resolve(value as { data: unknown; error: unknown });

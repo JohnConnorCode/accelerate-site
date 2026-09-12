@@ -1,5 +1,5 @@
 import "server-only";
-import { prepareOperatorTaskPatch, validateOperatorTaskPatch } from "./operator-task-patch";
+import { validateOperatorTaskPatch } from "./operator-task-patch";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
@@ -170,70 +170,26 @@ export async function patchOperatorTask(
   requireOpen = false,
 ): Promise<OperatorTask> {
   validateOperatorTaskPatch(input);
-  const { data: before, error: readError } = await supabase
-    .from("tasks")
-    .select("*")
-    .eq("id", input.id)
-    .maybeSingle();
-  if (readError) throw new Error(readError.message);
-  const patch = prepareOperatorTaskPatch(before, input, requireOpen);
-  const changed = Object.keys(patch).filter((key) => patch[key] !== before[key]);
-  if (!changed.length) return before;
-  const { data: task, error } = await supabase
-    .from("tasks")
-    .update(patch)
-    .eq("id", input.id)
-    .eq("status", before.status)
-    .select("*")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!task) throw new Error("This task changed while you were working. Refresh and try again.");
-  const action =
-    patch.status === "completed" ? "completed" : patch.status === "snoozed" ? "snoozed" : "updated";
-  await recordAudit(supabase, {
+  const { runOperatorAction } = await import("./action-executor");
+  const patch = Object.fromEntries(
+    ["status", "snoozed_until", "title", "description", "due_date", "priority"]
+      .filter((key) => input[key as keyof typeof input] !== undefined)
+      .map((key) => [key, input[key as keyof typeof input]]),
+  );
+  return runOperatorAction(supabase, {
+    actionType: "update_task",
+    title: "Update task",
     actorEmail: input.actorEmail,
-    action: `task.${action}`,
-    entityType: "task",
-    entityId: input.id,
-    before,
-    after: task,
-    metadata: { changed },
+    payload: { taskId: input.id, changeType: "patch", patch, requireOpen },
   });
-  await recordActivity(supabase, {
-    activityType: `task_${action}`,
-    title: `Task ${action}: ${task.title}`,
-    opportunityId: task.opportunity_id,
-    source: "admin",
-    actorEmail: input.actorEmail,
-    externalId: `task:${input.id}:${action}:${task.completed_at ?? Date.now()}`,
-    metadata: { task_id: input.id, changed },
-  });
-  return task;
 }
 
 export async function deleteOperatorTask(supabase: SupabaseClient, id: string, actorEmail: string) {
-  if (!id || typeof id !== "string") throw new Error("Task id is required");
-  const { data: before, error: readError } = await supabase
-    .from("tasks")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-  if (readError) throw new Error(readError.message);
-  if (!before) return;
-  const { data, error } = await supabase
-    .from("tasks")
-    .delete()
-    .eq("id", id)
-    .eq("status", before.status)
-    .select("id")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Task changed before deletion");
-  await recordAudit(supabase, {
+  const { runOperatorAction } = await import("./action-executor");
+  return runOperatorAction(supabase, {
+    actionType: "delete_task",
+    title: "Delete task",
     actorEmail,
-    action: "task.deleted",
-    entityType: "task",
-    entityId: id,
-    before,
+    payload: { taskId: id },
   });
 }
