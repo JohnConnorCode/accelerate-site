@@ -185,6 +185,12 @@ export async function recordProposalView(
   const r = await command(db, { ...input, operation: "view", actorEmail: "public_link" });
   return { proposal: r.proposal, alreadyViewed: r.replayed || !r.changed };
 }
+/** Public explanations are optional, bounded plain text; no customer reason is invented. */
+export function normalizeProposalReason(value: unknown): string | null {
+  const reason = z.string().max(1000).nullish().parse(value);
+  return reason?.replaceAll(/\p{Cc}/gu, " ").trim() || null;
+}
+
 /** The transaction records the decision first. Canonical activity/task/pipeline
  * follow-up is separately idempotent and reruns on receipt replay after interruption. */
 export async function decideProposal(
@@ -198,10 +204,25 @@ export async function decideProposal(
   },
 ) {
   const decision = z.enum(["accepted", "declined"]).parse(input.decision);
-  const reason = input.reason?.trim() ?? null;
-  if (decision === "declined") z.string().min(1).max(1000).parse(reason);
   const source = input.source ?? "public_link";
-  await expireIfDue(db, await loadProposal(db, input.id), source);
+  const reason = normalizeProposalReason(input.reason);
+  if (decision === "declined" && source !== "public_link")
+    z.string().min(1).max(1000).parse(reason);
+  const before = await loadProposal(db, input.id);
+  const statusBeforeExpiryCheck = before.status;
+  const afterExpiryCheck = await expireIfDue(db, before, source);
+  // Distinguish "this request is the one that just retired the link" from
+  // "it was already expired" so callers on the public link can surface a
+  // specific, actionable refusal (410) instead of the generic terminal-state
+  // conflict a decision on an already-settled link gets. Read the status
+  // before expireIfDue runs into a local, not off `before` afterward - some
+  // callers hand back the same row reference they mutated.
+  if (
+    ["sent", "viewed"].includes(statusBeforeExpiryCheck) &&
+    afterExpiryCheck.status === "expired"
+  ) {
+    throw new Error("Proposal is no longer open for a response; it just expired");
+  }
   const r = await command(db, {
     ...input,
     source,
@@ -210,10 +231,11 @@ export async function decideProposal(
   });
   const p = r.proposal,
     at = String(p.responded_at);
+  const recordedReason = decision === "declined" ? (p.decline_reason ?? null) : reason;
   await recordActivity(db, {
     activityType: `proposal_${decision}`,
     title: `${p.client_name} ${decision} ${p.title}`,
-    summary: reason,
+    summary: recordedReason,
     opportunityId: p.opportunity_id ?? null,
     proposalId: p.id,
     source,
@@ -223,7 +245,7 @@ export async function decideProposal(
   });
   await createRevenueTask(db, {
     title: `${decision === "accepted" ? "Start next steps with" : "Review decline from"} ${p.client_name}`,
-    description: reason ?? `Proposal ${decision}. Follow up personally.`,
+    description: recordedReason ?? `Proposal ${decision}. Follow up personally.`,
     dueDate: new Date(Date.parse(at) + 86400000).toISOString().slice(0, 10),
     priority: "high",
     relatedType: "proposal",
@@ -234,7 +256,7 @@ export async function decideProposal(
     dedupeKey: `proposal-response:${p.id}`,
     actorEmail: input.actorEmail,
   });
-  await syncOpportunity(db, p, decision, reason, input.actorEmail, source);
+  await syncOpportunity(db, p, decision, recordedReason, input.actorEmail, source);
   return { proposal: p, alreadyResponded: r.replayed || !r.changed };
 }
 export async function updateProposalDraft(
@@ -313,6 +335,7 @@ async function syncOpportunity(
     actorEmail,
     source,
     reason: decision === "accepted" ? "Client accepted proposal" : "Client declined proposal",
-    lossReason: decision === "declined" ? reason?.trim().slice(0, 1000) : undefined,
+    lossReason:
+      decision === "declined" ? reason || `Proposal declined (${proposal.id})` : undefined,
   });
 }

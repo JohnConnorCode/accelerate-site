@@ -50,7 +50,7 @@ Opportunities, stages, value, and closed revenue in one operating view.
 Drafts, pricing validation, decisions, and follow-up.
 
 - [Proposals](https://www.acceleratewith.us/docs/proposals/overview) (updated 2026-09-09): Drafts, sends, and decisions on one ledger, with pricing checked against your catalog.
-- [Drafting and sending](https://www.acceleratewith.us/docs/proposals/send) (updated 2026-09-09): Draft, share an unguessable link, and record a decision that writes its own audit row.
+- [Drafting and sending](https://www.acceleratewith.us/docs/proposals/send) (updated 2026-09-12): Draft, share an unguessable link, and record a decision that writes its own audit row.
 
 ## Follow-up
 The discipline that decides most inquiries: respond first, follow through, and let nothing wait.

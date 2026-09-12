@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "public-proposal-decisions",
+    slug: "public-proposal-decisions",
+    title: "Keep public proposal decisions consistent when requests repeat",
+    description:
+      "Public proposal views share one receipt, repeated responses show the recorded decision, and expired or replaced links refuse new decisions. Customers can decline without an explanation; an optional reason stays bounded and the original decision is preserved when a response is retried.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "social-marketing-postiz",
     slug: "social-marketing-postiz",
     title: "Prepare and review LinkedIn publishing in Social Marketing",
