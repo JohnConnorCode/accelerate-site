@@ -50,6 +50,18 @@ Review acceptance, merge, deployment and production proof are separate recorded
 operations. Never invent authority or bypass a lease, approval, repository base,
 strict-write gate or provider receipt to make the request appear complete.
 
+## Work continuity
+
+An explicit work request authorizes its scoped claim and implementation. Work volume
+is advisory and cannot require the founder to clear a slot. For a named expired
+attempt, inspect its retained checkout and use `agent:go -- --card <key> --json`;
+the service atomically fences the old token and records the continuation. Preserve
+uncommitted work in the predecessor and use the printed isolated successor.
+Include new source files explicitly with `--checkpoint-file`; unknown untracked
+files remain in the predecessor and are reported. Automatic pickup still requires
+a recorded checkpoint and enabled project recovery policy. Live ownership, project scope,
+dependencies, verification and release requirements still apply.
+
 ## Setup and recovery
 
 The first connected checkout may need one private transport profile. A remote

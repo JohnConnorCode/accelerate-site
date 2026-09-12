@@ -6,6 +6,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { mutateWorkBoard, type WorkActor } from "../src/lib/revenue-os/work-board";
 const port = process.env.WORK_TEST_PG_PORT;
 if (!port || !/^\d+$/.test(port)) throw new Error("Use isolated PostgreSQL runner");
+const database = process.env.WORK_TEST_PG_DATABASE;
+if (!database || !/^[a-z0-9_]+$/.test(database))
+  throw new Error("Use isolated PostgreSQL runner database");
 const exec = promisify(execFile);
 const lit = (v: unknown) => (v === null ? "NULL" : `'${String(v).replaceAll("'", "''")}'`);
 async function sql(query: string) {
@@ -18,7 +21,7 @@ async function sql(query: string) {
     "-U",
     "postgres",
     "-d",
-    "postgres",
+    database!,
     "-v",
     "ON_ERROR_STOP=1",
     "-q",
@@ -322,7 +325,50 @@ async function main() {
     call("resume", legacy.id, { claimToken: successorToken }, rev, other),
     /recovery is disabled/,
   );
-  // Six expired cards do not consume any active slot; the seventh live claim is blocked.
+  // Explicit continuation works with policy disabled and no checkpoint, but
+  // the predecessor is adopted and fenced. No automatic fallback is permitted.
+  const uncheckpointed = await create();
+  const { digest } = await import("../src/lib/revenue-os/work-board");
+  await sql(
+    `UPDATE feature_requests SET status='in_progress',lease_owner='worker:a',claim_token_hash=${lit(digest(token))},lease_expires_at=clock_timestamp()-interval '1 second' WHERE id=${lit(uncheckpointed.id)}`,
+  );
+  const expiredRevision = Number(
+    await sql(`SELECT revision FROM feature_requests WHERE id=${lit(uncheckpointed.id)}`),
+  );
+  await reject(
+    call("claim", uncheckpointed.id, { claimToken: successorToken }, expiredRevision - 1, other),
+    /Revision conflict/,
+  );
+  await reject(
+    call("claim", uncheckpointed.id, { claimToken: successorToken }, undefined, other),
+    /Revision conflict/,
+  );
+  const continued = await call(
+    "claim",
+    uncheckpointed.id,
+    { claimToken: successorToken },
+    expiredRevision,
+    other,
+  );
+  assert.ok(continued.card.work_attempt_id);
+  assert.equal(
+    await sql(`SELECT count(*) FROM work_board_attempts WHERE card_id=${lit(uncheckpointed.id)}`),
+    "2",
+  );
+  assert.equal(
+    await sql(
+      `SELECT count(*) FROM work_board_attempts successor JOIN work_board_attempts predecessor ON predecessor.id=successor.predecessor_id WHERE successor.card_id=${lit(uncheckpointed.id)} AND predecessor.ended_at IS NOT NULL AND predecessor.claim_token_hash=${lit(digest(token))}`,
+    ),
+    "1",
+  );
+  assert.equal(continued.card.work_checkpoint, null);
+  passed++;
+  await reject(call("heartbeat", uncheckpointed.id, { claimToken: token }), /does not own|expired/);
+  await reject(
+    call("claim", uncheckpointed.id, { claimToken: "C".repeat(43) }, continued.card.revision),
+    /Not ready/,
+  );
+  // Work volume is advisory: a seventh active claim is still admitted.
   await sql(
     `UPDATE feature_requests SET lease_expires_at=clock_timestamp()-interval '1 second' WHERE status='in_progress'`,
   );
@@ -331,7 +377,11 @@ async function main() {
     await call("claim", row.id, { claimToken: token });
   }
   const overflow = await create();
-  await reject(call("claim", overflow.id, { claimToken: token }), /Active WIP limit/);
+  assert.equal(
+    (await call("claim", overflow.id, { claimToken: token })).card.status,
+    "in_progress",
+  );
+  passed++;
   assert.equal(await sql(`SELECT count(*) FROM work_board_events WHERE operation='resume'`), "2");
   passed++;
   assert.equal(
@@ -359,7 +409,8 @@ async function main() {
         "operator policy",
         "checkpoint preservation",
         "missing checkpoint",
-        "active WIP",
+        "advisory work volume",
+        "explicit legacy expired continuation",
         "restricted SQL privileges",
         "idempotent migration",
       ],

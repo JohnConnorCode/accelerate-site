@@ -36,8 +36,18 @@ export function repositoryContext(cwd) {
   return { root, common, sessions: resolve(common, "work-board-sessions") };
 }
 
+/** Only a specifically requested expired attempt is eligible for continuation. */
+export function isExpiredWorkClaim(card, now = Date.now()) {
+  const expiresAt = Date.parse(card?.lease_expires_at ?? "");
+  return card?.status === "in_progress" && Number.isFinite(expiresAt) && expiresAt <= now;
+}
+
 /** Validate before claiming. Fetches only the declared origin branch when explicitly enabled. */
-export function prepareWorkspace(cwd, card, { fetchBase = false } = {}) {
+export function prepareWorkspace(
+  cwd,
+  card,
+  { fetchBase = false, preserveRetainedChanges = false } = {},
+) {
   const { root, common } = repositoryContext(cwd);
   const repo = card.work_spec?.repository;
   if (
@@ -93,7 +103,7 @@ export function prepareWorkspace(cwd, card, { fetchBase = false } = {}) {
     const evidenceOnly = dirty.every((line) =>
       /^\?\? (?:[a-zA-Z0-9_-]+-evidence\.json|\.agent-evidence-[a-zA-Z0-9_-]+\.json)$/.test(line),
     );
-    if (dirty.length && !evidenceOnly)
+    if (dirty.length && !evidenceOnly && !preserveRetainedChanges)
       throw new Error(
         "The retained worktree has uncommitted changes. Review and preserve that handoff before claiming, or deliberately use --no-worktree for manual preparation.",
       );

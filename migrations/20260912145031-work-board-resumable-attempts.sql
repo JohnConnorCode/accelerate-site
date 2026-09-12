@@ -85,7 +85,7 @@ BEGIN
   END IF;
   IF c.archived_at IS NOT NULL THEN RAISE EXCEPTION 'Archived work is read only'; END IF;
   -- Upgrade legacy sessions before checkpoint publication or any terminal transition.
-  IF c.work_attempt_id IS NULL AND c.claim_token_hash IS NOT NULL AND p_operation IN ('heartbeat','block','release','submit','recover') THEN
+  IF c.work_attempt_id IS NULL AND c.claim_token_hash IS NOT NULL AND (p_operation IN ('heartbeat','block','release','submit','recover') OR (p_operation IN ('claim','resume') AND c.status='in_progress' AND c.lease_expires_at<=effective_now)) THEN
    c.work_attempt_id:=gen_random_uuid();
    INSERT INTO work_board_attempts(id,card_id,predecessor_id,actor,started_at,claim_token_hash) VALUES(c.work_attempt_id,c.id,NULL,c.lease_owner,coalesce(c.claimed_at,effective_now),c.claim_token_hash);
   END IF;
@@ -134,6 +134,13 @@ BEGIN
    c.work_checkpoint:=checkpoint||jsonb_build_object('id',gen_random_uuid(),'attemptId',c.work_attempt_id,'createdAt',effective_now);
   ELSIF p_operation='claim' OR p_operation='resume' THEN
    reasons:=work_board_readiness(c.id);
+   -- Explicit expired claim continuation; never selected by automatic pickup.
+   IF p_operation='claim' AND p_id IS NOT NULL AND c.status='in_progress' AND c.lease_expires_at IS NOT NULL AND c.lease_expires_at<=effective_now THEN
+    IF p_expected_revision IS NULL OR p_expected_revision<>c.revision THEN
+     RAISE EXCEPTION 'Revision conflict; refresh expired work before resuming' USING ERRCODE='PT409';
+    END IF;
+    reasons:=array_remove(reasons,'status:in_progress');
+   END IF;
    IF p_operation='resume' THEN
     IF NOT EXISTS(SELECT 1 FROM work_board_settings WHERE singleton AND c.project_key=ANY(automatic_recovery_projects)) THEN RAISE EXCEPTION 'Automatic recovery is disabled for this project' USING ERRCODE='42501'; END IF;
     IF c.status<>'in_progress' OR c.lease_expires_at IS NULL OR c.lease_expires_at>effective_now THEN RAISE EXCEPTION 'Resume requires an expired execution lease' USING ERRCODE='PT409'; END IF;
@@ -144,7 +151,7 @@ BEGIN
    END IF;
    IF NOT (coalesce(p_payload->'worker_capabilities','[]') ? '*') AND EXISTS(SELECT 1 FROM jsonb_array_elements_text(coalesce(c.work_spec->'requiredCapabilities','[]')) required WHERE NOT (coalesce(p_payload->'worker_capabilities','[]') ? required)) THEN RAISE EXCEPTION 'Worker lacks required capabilities'; END IF;
    IF cardinality(reasons)>0 THEN RAISE EXCEPTION 'Not ready: %',array_to_string(reasons,', ') USING ERRCODE='PT409'; END IF;
-   IF (SELECT count(*) FROM feature_requests WHERE status='in_progress' AND archived_at IS NULL AND lease_expires_at>effective_now)>=6 THEN RAISE EXCEPTION 'Active WIP limit reached'; END IF;
+   -- Work volume never blocks an otherwise authorized claim.
    IF nullif(p_payload->>'claim_token_hash','') IS NULL THEN RAISE EXCEPTION 'Claim token required'; END IF;
    IF c.claim_token_hash IS NOT DISTINCT FROM p_payload->>'claim_token_hash' OR EXISTS(SELECT 1 FROM work_board_attempts WHERE card_id=c.id AND claim_token_hash=p_payload->>'claim_token_hash') THEN RAISE EXCEPTION 'Successor must rotate the claim token' USING ERRCODE='42501'; END IF;
    previous_attempt:=c.work_attempt_id;

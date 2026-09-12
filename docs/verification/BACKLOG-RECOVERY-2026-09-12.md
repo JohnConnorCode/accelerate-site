@@ -45,8 +45,8 @@ The implementation extends the existing canonical board. Normal pickup continues
 owned work, resumes eligible interrupted work, or selects a ready card. Atomic
 attempt ownership fences late predecessor writes. Durable checkpoints retain
 source in immutable Git refs and restore it into isolated successor worktrees.
-Private credentials are never placed in checkpoints or board events. Expired
-claims do not consume active WIP capacity.
+Private credentials are never placed in checkpoints or board events. Work volume
+is advisory and does not block an otherwise authorized claim.
 
 The project recovery policy defaults off. Schema installation, compatible
 service/worker code, and a scoped reviewer policy action are distinct activation
@@ -113,3 +113,26 @@ The corrective revocation is staged for after compatible application release.
 The resumable-attempt schema can be applied through its own catalog entry after
 integration; automatic recovery still requires the scoped policy operation.
 No production deployment is included in this batch.
+
+## Claim continuity integration
+
+The integration preserves the published PR 84 migration
+`20260912153548-work-board-claim-continuity.sql` byte for byte. The pending
+attempt migration retains its advisory work-volume behavior. An explicit named
+expired claim requires the current revision and a new token, records the
+predecessor attempt, and fences the predecessor token. Automatic resume continues
+to require an enabled project policy and a durable checkpoint.
+
+The CLI snapshots retained tracked changes through the existing checkpoint
+mechanism and creates an isolated successor. Unknown untracked files remain in
+the predecessor and are reported; explicit checkpoint input can include them.
+The old checkout, index and source are preserved. Checkpoint source is unverified
+until the normal acceptance checks succeed.
+
+Focused local proof passes for expired-claim selection, dirty-source preservation,
+credit-exhaustion fencing, demo continuity, migration catalog, inventories and
+agent contracts. The native PostgreSQL suite now runs separate fresh-catalog
+(core then PR 84) and live-upgrade (PR 84 then core) fixtures, including repeated
+application, predecessor adoption, stale-token rejection and seventh-claim
+admission. Both migration-order runs and final heavy verification require the
+exact integration commit's remote CI; no live database was changed here.

@@ -51,11 +51,12 @@ references block readiness and must be resolved explicitly.
 
 Backlog and planned cards with an outcome, acceptance, no explicit blocker and all
 prerequisites verified are claimable. Initiative roll-ups are never executable.
-Readiness is computed in SQL for both lists and claims. The global WIP cap is six active, unexpired leases. Expired work remains visible
-without consuming a live slot. `resume_readiness` retains contract, dependency,
-capability, checkpoint and policy requirements so clients can select interrupted
-work without guessing. Normal readiness still marks in-progress work unavailable
-for a fresh claim.
+Readiness is computed in SQL for both lists and claims. Work volume is advisory,
+never an admission limit. Live claims still exclude other workers. An explicit
+request for a named expired card permits a fresh revision-checked `claim` without
+another recovery approval. It rotates the token and records the predecessor attempt.
+Automatic `resume` additionally requires a durable checkpoint and the enabled
+project policy; its readiness preserves dependency, contract and capability checks.
 
 ## Mutations and execution
 
@@ -87,7 +88,9 @@ base, canonical branch, summary, completed/remaining steps and artifact referenc
 The branch belongs to the same card and attempt. Checkpoints are incomplete source,
 not verification or acceptance evidence. Immutable events preserve every checkpoint;
 the card points to the latest one. Inspect retained source when no usable checkpoint
-exists. Record the recovery gap and use the narrowly authorized operator path.
+exists. Automatic pickup reports that gap. An explicit named continuation can preserve
+retained source through the same checkpoint machinery and create an isolated
+successor; uncertain source or base mismatches remain precise reconciliation errors.
 
 Lifecycle: backlog/planned → claim → in_progress → submit → in_review → accepted
 verification (the legacy `shipped` key). Rejection returns work to planning with a

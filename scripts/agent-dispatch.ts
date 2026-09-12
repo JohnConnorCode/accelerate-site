@@ -12,6 +12,7 @@ import { createCheckpoint, prepareSuccessor } from "./lib/agent-checkpoint.mjs";
 import { readinessSummary, resumableCard } from "./lib/agent-readiness.mjs";
 import {
   repositoryContext,
+  isExpiredWorkClaim,
   prepareWorkspace,
   createWorkspace,
   boardEndpoint,
@@ -304,7 +305,7 @@ async function main() {
     const unavailable: { key: string; reason: string }[] = [];
     let resumeCandidate: FeatureRequest | undefined;
     let resumePlan;
-    if (!previous)
+    if (!previous && (!flags.card || command === "resume"))
       for (const candidate of rows.filter((c) => resumableCard(c, resumeSupport))) {
         try {
           resumePlan = flags["no-worktree"]
@@ -333,17 +334,75 @@ async function main() {
         ? undefined
         : rows.find(
             (c) =>
-              c.readiness?.length === 0 &&
-              ["planned", "backlog"].includes(c.status) &&
+              (c.readiness?.length === 0 ||
+                (flags.card &&
+                  isExpiredWorkClaim(c) &&
+                  c.readiness?.every((reason) => reason === "status:in_progress"))) &&
+              (["planned", "backlog"].includes(c.status) ||
+                (flags.card && isExpiredWorkClaim(c))) &&
               c.labels.some((l) => ["milestone:now", "milestone:next"].includes(l)),
           ));
     if (!card)
       throw new Error(
         `No ready Now/Next ticket is available. ${JSON.stringify(readinessSummary(rows))}. Use agent:audit for specific blockers; missing capabilities require a configured profile, not broader review rights.`,
       );
-    const takingOver = previous?.body?.operation === "resume" || resumableCard(card, resumeSupport);
+    const explicitContinuation = Boolean(
+      flags.card && isExpiredWorkClaim(card) && command !== "resume",
+    );
+    const takingOver =
+      previous?.body?.operation === "resume" ||
+      (!explicitContinuation && resumableCard(card, resumeSupport));
+    let explicitPlan;
+    if (!previous && explicitContinuation && !flags["no-worktree"]) {
+      const retainedSession = localSessions.find(
+        ({ session }) =>
+          session.endpoint === transport &&
+          session.card.id === card!.id &&
+          session.attemptId === card!.work_attempt_id,
+      )?.session;
+      const retained =
+        retainedSession?.worktree && existsSync(retainedSession.worktree)
+          ? { path: retainedSession.worktree, mode: "reuse" }
+          : prepareWorkspace(root, card, { fetchBase: true, preserveRetainedChanges: true });
+      if (retained.mode === "reuse") {
+        const input = flags["checkpoint-file"]
+          ? JSON.parse(readFileSync(flags["checkpoint-file"], "utf8"))
+          : {
+              summary:
+                "Retained source preserved for explicitly requested expired continuation; unverified.",
+              remaining: [
+                "Continue the frozen acceptance criteria; verification is not yet complete.",
+              ],
+            };
+        const saved = await createCheckpoint(
+          retained.path,
+          card,
+          card.work_attempt_id ?? retainedSession?.attemptId ?? randomUUID(),
+          input,
+        );
+        if (saved.omittedUntracked.length)
+          console.error(
+            JSON.stringify({
+              retainedUntracked: saved.omittedUntracked,
+              message:
+                "New files remain in the predecessor. Include required source explicitly with --checkpoint-file.",
+            }),
+          );
+        explicitPlan = prepareSuccessor(
+          root,
+          { ...card, work_checkpoint: { ...saved.checkpoint, id: randomUUID() } },
+          requestKey,
+        );
+      } else if (card.work_checkpoint) explicitPlan = prepareSuccessor(root, card, requestKey);
+      else if (retained.mode === "create") explicitPlan = retained;
+      else
+        throw new Error(
+          "Retained branch has no worktree or checkpoint. Preserve and inspect its source before explicit continuation.",
+        );
+    }
     const plan =
       previous?.plan ??
+      explicitPlan ??
       (flags["no-worktree"]
         ? undefined
         : takingOver

@@ -49,31 +49,45 @@ try {
   run("psql", [
     ...args,
     "-c",
-    `CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
-    CREATE TABLE kanban_columns(tenant_id uuid,board_key text,column_key text,label text,color text,sort_order numeric,is_default boolean,metadata jsonb);`,
+    "CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;",
   ]);
-  run("psql", [...args, "-f", "migrations/20260816-feature-board.sql"]);
-  run("psql", [
-    ...args,
-    "-c",
-    `ALTER TABLE feature_requests DROP CONSTRAINT feature_requests_status_check;
-    ALTER TABLE feature_requests ADD COLUMN lease_owner text, ADD COLUMN lease_expires_at timestamptz, ADD COLUMN claimed_at timestamptz, ADD COLUMN subtasks jsonb NOT NULL DEFAULT '[]';`,
-  ]);
-  for (const migration of [
-    "20260906-universal-work-board.sql",
-    "20260907-work-packet-quality.sql",
-    "20260912145031-work-board-resumable-attempts.sql",
-    "20260912145031-work-board-resumable-attempts.sql",
-  ])
-    run("psql", [...args, "-f", `migrations/${migration}`]);
-  const output = run("npx", ["tsx", "scripts/test-work-board-resume.ts"], {
-    env: {
-      ...process.env,
-      NODE_OPTIONS: "--conditions=react-server",
-      WORK_TEST_PG_PORT: String(port),
-    },
-  });
-  console.log(output.trim());
+  const core = "20260912145031-work-board-resumable-attempts.sql";
+  const continuity = "20260912153548-work-board-claim-continuity.sql";
+  for (const [database, migrations] of [
+    ["fresh", [core, core, continuity, continuity]],
+    ["live84_upgrade", [continuity, continuity, core, core, continuity]],
+  ]) {
+    run("psql", [...args, "-c", `CREATE DATABASE ${database}`]);
+    const connection = [...args];
+    connection[connection.indexOf("-d") + 1] = database;
+    run("psql", [
+      ...connection,
+      "-c",
+      "CREATE TABLE kanban_columns(tenant_id uuid,board_key text,column_key text,label text,color text,sort_order numeric,is_default boolean,metadata jsonb);",
+    ]);
+    run("psql", [...connection, "-f", "migrations/20260816-feature-board.sql"]);
+    run("psql", [
+      ...connection,
+      "-c",
+      `ALTER TABLE feature_requests DROP CONSTRAINT feature_requests_status_check;
+      ALTER TABLE feature_requests ADD COLUMN lease_owner text, ADD COLUMN lease_expires_at timestamptz, ADD COLUMN claimed_at timestamptz, ADD COLUMN subtasks jsonb NOT NULL DEFAULT '[]';`,
+    ]);
+    for (const migration of [
+      "20260906-universal-work-board.sql",
+      "20260907-work-packet-quality.sql",
+      ...migrations,
+    ])
+      run("psql", [...connection, "-f", `migrations/${migration}`]);
+    const output = run("npx", ["tsx", "scripts/test-work-board-resume.ts"], {
+      env: {
+        ...process.env,
+        NODE_OPTIONS: "--conditions=react-server",
+        WORK_TEST_PG_PORT: String(port),
+        WORK_TEST_PG_DATABASE: database,
+      },
+    });
+    console.log(`${database}: ${output.trim()}`);
+  }
 } catch (error) {
   if (!started) {
     try {

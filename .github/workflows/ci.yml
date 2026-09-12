@@ -193,6 +193,7 @@ jobs:
         run: |
           npm run test:developer-handoff
           npm run test:agent-checkpoint
+          NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-demo-work-continuity.ts
 
       - name: Verify resource gate behavior
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}

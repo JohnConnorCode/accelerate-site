@@ -113,6 +113,11 @@ With compatible schema and the project's recovery policy enabled, `agent:go`
 resumes an expired attempt from its checkpoint with new ownership. Missing source
 requires inspection of the retained work, not another routine permission request.
 Preserve old checkouts and sessions; there is no force bypass.
+An explicit request for a named expired task also permits normal revision-checked
+claim continuation without another approval. Work volume never blocks an authorized
+claim. The new attempt rotates ownership and preserves its predecessor; the CLI
+uses retained source to prepare an isolated successor without overwriting the old
+checkout. Automatic selection still requires checkpoint and project-policy readiness.
 
 ## Read in this order
 
@@ -195,9 +200,10 @@ exception. Update the source inventory after reviewing changed route operations.
   use is reserved for requested visual/interaction verification. Preserve actor
   permissions, revision checks, leases and immutable receipts; direct row updates
   are not a replacement for lifecycle operations.
-- Carry explicit founder recovery authorization through the scoped recover/reopen
-  operations and normal reclaim in the same task. Do not repeat the permission
-  question. Keep operator recovery authority separate from worker review rights.
+- Continue a specifically requested expired task through the normal claim path,
+  preserving its checkout and fencing the old token. Do not require review rights
+  or another founder confirmation. Reopening accepted/submitted work remains a
+  separate operation; never infer review authority from claim continuation.
 - Read one relevant card with `agent:show -- --card <key> --json`; summarize only
   the fields needed for the next decision. Do not dump the full board for a
   specific task. Reuse prior inspection and batch independent bounded reads.
