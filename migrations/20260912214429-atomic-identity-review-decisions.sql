@@ -8,7 +8,7 @@ BEGIN
  SELECT * INTO a FROM public.action_queue WHERE tenant_id=t AND id=p_id FOR UPDATE;
  IF NOT FOUND OR a.action_type IS DISTINCT FROM 'identity_review' OR a.payload IS DISTINCT FROM p_payload OR p_payload#>>'{approvedDecision,decision}' IS NULL OR p_payload#>>'{approvedDecision,decision}' NOT IN ('link','create','no_match','defer') OR nullif(btrim(p_payload->>'participant_email'),'') IS NULL OR jsonb_typeof(p_payload->'conversationState') IS DISTINCT FROM 'object' THEN RAISE EXCEPTION 'Current exact identity decision required'; END IF;
  IF a.status='executed' OR (a.status='pending' AND a.result->>'decision'='defer' AND p_payload#>>'{approvedDecision,decision}'='defer') THEN RETURN a; END IF;
- IF a.status<>'executing' OR a.approved_by IS DISTINCT FROM p_actor OR a.approved_at IS NULL OR (a.expires_at IS NOT NULL AND a.expires_at<=clock_timestamp()) THEN RAISE EXCEPTION 'Current exact human identity approval required'; END IF;
+ IF a.status NOT IN ('executing','failed') OR a.approved_by IS DISTINCT FROM p_actor OR a.approved_at IS NULL OR (a.expires_at IS NOT NULL AND a.expires_at<=clock_timestamp()) THEN RAISE EXCEPTION 'Current exact human identity approval required'; END IF;
  SELECT * INTO policy FROM public.check_autonomy('identity_review',CASE WHEN a.proposed_by LIKE 'coworker:%' THEN substring(a.proposed_by FROM 10) ELSE NULL END);
  IF policy.hard_floor OR policy.level='prohibited' THEN RAISE EXCEPTION 'Identity decision prohibited by current policy'; END IF;
  RETURN a;
@@ -252,6 +252,7 @@ DECLARE
 BEGIN
  a:=private.require_identity_review_action(p_id,p_payload,p_actor);
  IF a.status='executed' OR (a.status='pending' AND a.result->>'decision'='defer') THEN RETURN a.result; END IF;
+ IF a.status='failed' THEN UPDATE public.action_queue SET status='executing',error=NULL WHERE tenant_id=t AND id=a.id; a.status:='executing'; END IF;
  decision:=p_payload->'approvedDecision'; choice:=decision->>'decision'; email:=lower(btrim(p_payload->>'participant_email'));
  SELECT * INTO conversation FROM public.conversations WHERE tenant_id=t AND id=(p_payload->>'conversation_id')::uuid FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Conversation unavailable'; END IF;

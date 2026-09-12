@@ -238,7 +238,7 @@ export async function resolveIdentityReview(
 
   const { data: current, error: readError } = await supabase
     .from("action_queue")
-    .select("id,status,action_type,payload,result")
+    .select("id,status,action_type,payload,result,approved_by")
     .eq("id", actionId)
     .maybeSingle();
   if (readError) throw new Error(readError.message);
@@ -262,38 +262,54 @@ export async function resolveIdentityReview(
       contactId: ((row.result as Record<string, unknown> | null)?.contact_id as string) ?? null,
       companyId: ((row.result as Record<string, unknown> | null)?.company_id as string) ?? null,
     };
-  if (row.status !== "pending") throw new Error("This review was already handled");
+  if (!["pending", "executing", "failed"].includes(row.status))
+    throw new Error("This review was already handled");
 
   if (input.decision === "link" && !input.contactId?.trim())
     throw new Error("Link requires a canonical contact id");
   if (input.decision === "create" && !input.fullName?.trim())
     throw new Error("Create requires the contact's full name");
   const expectedPayload = (row.payload as Record<string, unknown> | null) ?? {};
-  const { data: conversationState, error: conversationError } = await supabase
-    .from("conversations")
-    .select("*")
-    .eq("id", expectedPayload.conversation_id)
-    .maybeSingle();
-  if (conversationError || !conversationState)
-    throw new Error("Review conversation is unavailable");
   const participantEmail = normalizeEmail(
     typeof expectedPayload.participant_email === "string" ? expectedPayload.participant_email : "",
   );
   if (!participantEmail) throw new Error("Review payload has no participant email");
   const companyDomain = domainFromEmailOrWebsite(participantEmail, null);
-  const claimed = await claimApprovedAction(supabase, actionId, actorEmail, "approved", {
-    expectedPayload,
-    conversationState,
-    decision: {
-      decision: input.decision,
-      contactId: input.contactId?.trim() || null,
-      companyId: input.companyId?.trim() || null,
-      fullName: input.fullName?.trim() || null,
-      phone: input.phone?.trim() || null,
-      companyName: input.companyName?.trim() || null,
-      companyDomain,
-    },
-  });
+  const decision = {
+    decision: input.decision,
+    contactId: input.contactId?.trim() || null,
+    companyId: input.companyId?.trim() || null,
+    fullName: input.fullName?.trim() || null,
+    phone: input.phone?.trim() || null,
+    companyName: input.companyName?.trim() || null,
+    companyDomain,
+  };
+  let claimedPayload = expectedPayload;
+  if (row.status === "pending") {
+    const { data: conversationState, error: conversationError } = await supabase
+      .from("conversations")
+      .select("*")
+      .eq("id", expectedPayload.conversation_id)
+      .maybeSingle();
+    if (conversationError || !conversationState)
+      throw new Error("Review conversation is unavailable");
+    const claimed = await claimApprovedAction(supabase, actionId, actorEmail, "approved", {
+      expectedPayload,
+      conversationState,
+      decision,
+    });
+    claimedPayload = claimed.payload;
+  } else {
+    const approved = expectedPayload.approvedDecision as Record<string, unknown> | undefined;
+    if (
+      row.approved_by !== actorEmail ||
+      !approved ||
+      Object.entries(decision).some(([key, value]) => approved[key] !== value)
+    )
+      throw new Error(
+        "This review was already handled; retry requires the same approved decision and actor",
+      );
+  }
   try {
     if (
       input.decision === "create" &&
@@ -307,7 +323,7 @@ export async function resolveIdentityReview(
 
     const { data, error } = await supabase.rpc("apply_identity_review_action", {
       p_id: actionId,
-      p_payload: claimed.payload,
+      p_payload: claimedPayload,
       p_actor: actorEmail,
     });
     if (error) throw new Error(error.message);
@@ -325,11 +341,12 @@ export async function resolveIdentityReview(
       companyId: result.company_id,
     };
   } catch (error) {
-    await failAction(
-      supabase,
-      actionId,
-      error instanceof Error ? error.message : "Resolution failed",
-    );
+    if (row.status !== "failed")
+      await failAction(
+        supabase,
+        actionId,
+        error instanceof Error ? error.message : "Resolution failed",
+      );
     throw error;
   }
 }

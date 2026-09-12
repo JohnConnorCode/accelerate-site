@@ -776,7 +776,60 @@ async function runIdentityReviewSuite() {
     assert.equal(db.tables.activities!.length, 0, "Invalid input must write nothing");
   }
 
-  console.log("All 12 Identity Review tests passed successfully!");
+  // Interrupted exact decisions reuse their approval and captured snapshot.
+  for (const status of ["executing", "failed"]) {
+    const db = new MockSupabase();
+    const supabase = db as unknown as SupabaseClient;
+    const conversation = { id: "conv-1", contact_id: null, metadata: {} };
+    db.tables.conversations!.push(conversation);
+    seedReviewAction(db, { id: "review-1", status });
+    const action = db.tables.action_queue!.find((a) => a.id === "review-1")!;
+    action.approved_by = "founder@test.local";
+    action.approved_at = new Date().toISOString();
+    action.payload = {
+      ...(action.payload as Record<string, unknown>),
+      conversationState: structuredClone(conversation),
+      approvedDecision: {
+        decision: "no_match",
+        contactId: null,
+        companyId: null,
+        fullName: null,
+        phone: null,
+        companyName: null,
+        companyDomain: "example.com",
+      },
+    };
+    await assert.rejects(
+      resolveIdentityReview(supabase, {
+        actionId: "review-1",
+        decision: "defer",
+        actorEmail: "founder@test.local",
+      }),
+      /same approved decision/,
+    );
+    await assert.rejects(
+      resolveIdentityReview(supabase, {
+        actionId: "review-1",
+        decision: "no_match",
+        actorEmail: "other@test.local",
+      }),
+      /same approved decision/,
+    );
+    assert.equal(action.status, status, "Denied retries preserve the owned action");
+    const result = await resolveIdentityReview(supabase, {
+      actionId: "review-1",
+      decision: "no_match",
+      actorEmail: "founder@test.local",
+    });
+    assert.equal(result.decision, "no_match");
+    assert.equal(action.status, "executed");
+    assert.equal(
+      db.tables.audit_log!.filter((a) => a.action === "action.approved").length,
+      0,
+      "Retry does not manufacture another approval",
+    );
+  }
+  console.log("All 13 Identity Review tests passed successfully!");
 }
 
 runIdentityReviewSuite().catch((err) => {

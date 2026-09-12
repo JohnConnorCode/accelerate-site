@@ -1407,6 +1407,13 @@ try {
     "1",
   );
 
+  const failedPayload = identityPayload("no_match");
+  const failedReview = stage("identity_review", failedPayload);
+  sql(
+    `UPDATE action_queue SET status='failed',error='worker interrupted' WHERE id='${failedReview}';`,
+  );
+  assert.equal(JSON.parse(sql(identityCall(failedReview, failedPayload))).decision, "no_match");
+  assert.equal(sql(`SELECT status FROM action_queue WHERE id='${failedReview}';`), "executed");
   const otherLink = identityPayload("link");
   otherLink.approvedDecision.contactId = otherTenantContact;
   otherLink.candidates = [{ id: otherTenantContact }];
