@@ -1,0 +1,22 @@
+import type { FAQ } from "@/lib/types";
+export interface OpenSourcePath {
+    id: string;
+    eyebrow: string;
+    title: string;
+    scope: string;
+    description: string;
+    included: string[];
+    ctaText: string;
+    ctaHref: string;
+    external?: boolean;
+}
+export interface OpenSourceStat {
+    value: string;
+    label: string;
+    detail: string;
+}
+export const OPEN_SOURCE_PATHS: OpenSourcePath[] = [];
+export const OPEN_SOURCE_STATS: OpenSourceStat[] = [];
+export const TECH_STACK: string[] = [];
+export const QUICK_START = "npm ci\nnpm run dev";
+export const openSourceFaqs: FAQ[] = [];

@@ -167,15 +167,23 @@ try {
   reset();
   check("CI aggregate fails on every failed, cancelled or skipped dependency", () => {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
-    assert.match(workflow, /verify:\s+if: \$\{\{ always\(\) \}\}\s+needs: \[checks, build\]/);
+    assert.match(
+      workflow,
+      /verify:\s+if: \$\{\{ always\(\) \}\}\s+needs: \[checks, build, neutral-starter\]/,
+    );
     const command = workflow.match(/run: (test "\$CHECKS_RESULT"[^\n]+)/)?.[1];
     assert.ok(command);
     for (const checks of ["success", "failure", "cancelled", "skipped"]) {
       for (const build of ["success", "failure", "cancelled", "skipped"]) {
-        const result = spawnSync("sh", ["-c", command], {
-          env: { ...env, CHECKS_RESULT: checks, BUILD_RESULT: build },
-        });
-        assert.equal(result.status === 0, checks === "success" && build === "success");
+        for (const neutral of ["success", "failure", "cancelled", "skipped"]) {
+          const result = spawnSync("sh", ["-c", command], {
+            env: { ...env, CHECKS_RESULT: checks, BUILD_RESULT: build, NEUTRAL_RESULT: neutral },
+          });
+          assert.equal(
+            result.status === 0,
+            checks === "success" && build === "success" && neutral === "success",
+          );
+        }
       }
     }
     assert.match(workflow, /merge_group:/);
@@ -193,7 +201,7 @@ try {
     assert.equal(run("git", ["config", "--get", "core.hooksPath"]).status, 1);
     assert.match(readFileSync(legacyHook, "utf8"), /preserved legacy hook/);
   });
-  console.log(JSON.stringify({ result: "passed", cases, aggregateCombinations: 16 }));
+  console.log(JSON.stringify({ result: "passed", cases, aggregateCombinations: 64 }));
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }

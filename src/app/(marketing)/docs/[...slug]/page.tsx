@@ -54,7 +54,7 @@ export async function generateMetadata({
   return seoMetadata({
     title: page.frontmatter.title,
     description: page.frontmatter.description,
-    alternates: { canonical: `https://www.acceleratewith.us/docs/${page.entry.slug.join("/")}` },
+    path: `/docs/${page.entry.slug.join("/")}`,
   });
 }
 

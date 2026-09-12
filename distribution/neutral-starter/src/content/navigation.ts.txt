@@ -1,0 +1,7 @@
+import type { NavItem } from "@/lib/types";
+export const navItems: NavItem[] = [
+  { label: "Workspace", href: "/admin" },
+  { label: "Demo workspaces", href: "/demo/command-center" },
+  { label: "Documentation", href: "/docs" },
+];
+export const footerLinks = [{ heading: "Workspace", links: navItems }];

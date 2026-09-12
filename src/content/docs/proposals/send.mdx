@@ -1,14 +1,14 @@
 ---
 title: "Drafting and sending"
 description: "Draft, share an unguessable link, and record a decision that writes its own audit row."
-updated: "2026-09-09"
+updated: "2026-09-12"
 ---
 
 Open `/admin/proposals` and create a draft attached to the client and the opportunity it belongs to, then review the title, scope, and totals carefully before you mark it sent and share its public link. That review is the last checkpoint before a customer sees a number; there is no undo on a price they've already read.
 
 ## Sharing and recording a decision
 
-A draft link never exposes the proposal's content, so sharing one early does not leak your pricing. Once a proposal is marked sent, its unguessable public link lets the recipient view it, accept it, or decline it, and a decline requires a reason so the follow-up has something real to work with. An expired or superseded proposal can no longer receive a new decision, on purpose, since a stale decision on old terms would be worse than no decision at all.
+A draft link never exposes the proposal's content, so sharing one early does not leak your pricing. Once a proposal is marked sent, its unguessable public link lets the recipient view it, accept it, or decline it, and declining can include an optional short reason. If no explanation is supplied, the customer reason stays empty and the pipeline records that the proposal was declined. An expired or superseded proposal can no longer receive a new decision, on purpose, since a stale decision on old terms would be worse than no decision at all.
 
 Every lifecycle change records its event and audit evidence in the same transaction, so the two can never drift apart. Repeating the same operation returns its existing receipt rather than creating a duplicate, and if a save fails, refresh the record and retry the same intended change instead of starting a fresh proposal.
 

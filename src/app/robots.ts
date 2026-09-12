@@ -1,6 +1,14 @@
+import { tenant } from "@/config/tenant";
+import { distributionProfile } from "@/lib/distribution/profile";
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
+  if (distributionProfile() === "neutral")
+    return {
+      rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/admin/", "/demo/"] },
+      host: tenant.brand.siteUrl,
+      sitemap: `${tenant.brand.siteUrl}/sitemap.xml`,
+    };
   return {
     rules: [
       {

@@ -102,6 +102,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260912153548-work-board-claim-continuity.sql",
   "migrations/20260912170924-social-marketing.sql",
   "migrations/20260912190757-social-marketing-function-privileges.sql",
+  "migrations/20260912204004-optional-public-proposal-decline.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

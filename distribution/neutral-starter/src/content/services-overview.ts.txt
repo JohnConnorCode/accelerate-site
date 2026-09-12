@@ -1,0 +1,2 @@
+import type { ServiceOverviewItem } from "@/lib/types";
+export const serviceOverviewItems: ServiceOverviewItem[] = [];

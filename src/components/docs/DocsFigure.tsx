@@ -1,3 +1,4 @@
+import { distributionProfile } from "@/lib/distribution/profile";
 import Image from "next/image";
 
 export function DocsFigure({
@@ -13,6 +14,8 @@ export function DocsFigure({
   width?: number;
   height?: number;
 }) {
+  // Original guide screenshots are omitted from the neutral distribution.
+  if (distributionProfile() === "neutral" && src.startsWith("/images/docs/")) return null;
   return (
     <figure className="not-prose my-8">
       <a

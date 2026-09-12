@@ -19,12 +19,17 @@ No stage events, production data, authorization rules or migrations are changed.
 Local checks passed: typecheck, scoped lint, agent contract, docs, both inventories,
 source stats, analytics decision model, AI gates including custom stages, and
 stage-history fixtures including the actual capped/unavailable analytics loader.
-Final committed CI, independent review and opened browser evidence are pending.
+Final candidate fbfc9e4d passed checks/build/verify in CI34720529393.
+Independent source review resolved gap-duration and first-event regression cases.
+Desktop1440 and reduced-motion mobile390 Analytics screenshots were opened;
+missing history18 and incomplete history0 are readable with keyboard/containment
+and no-console-error proof. Normal PR97 merge0ade3457 matches the verified tree;
+canonical acceptance and merged-delivery receipts were recorded.
 The existing Analytics browser script has a credential-free demo mode; its live
 authenticated mode remains available. Fictional UI evidence and pure calculation
 proof are identified separately.
 
-| Before                                                   | After to verify                                                                     |
+| Before                                                   | Verified after                                                                      |
 | -------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | History gaps were absent from the Analytics quality rows | Missing and incomplete history appear beside the same current-value screen          |
 | AI counted hardcoded stage names                         | Custom terminal stages are excluded through the shared configured-stage calculation |

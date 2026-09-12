@@ -2,12 +2,31 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "public-proposal-decisions",
+    slug: "public-proposal-decisions",
+    title: "Keep public proposal decisions consistent when requests repeat",
+    description:
+      "Public proposal views share one receipt, repeated responses show the recorded decision, and expired or replaced links refuse new decisions. Customers can decline without an explanation; an optional reason stays bounded and the original decision is preserved when a response is retried.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+
+  {
     id: "stage-history-reconciliation",
     slug: "stage-history-reconciliation",
     title: "See recorded pipeline progress and history gaps",
     description:
       "Analytics separates recorded progress from current pipeline position and shows missing or incomplete history. Invalid events cannot make old movement look recent, and the assistant uses the shared calculation for custom pipeline stages.",
     category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "neutral-fork-distribution",
+    slug: "neutral-fork-distribution",
+    title: "Run a fork as your business, not ours",
+    description:
+      "A manifest-driven exporter creates a separate neutral starter with configured business identity, empty business collections and sample page content. Protected media and original hosting targets are omitted. The same admin and runtime remain, with fresh artifact build and fictional desktop/mobile checks in CI. The original branded installation remains the default.",
+    category: "improvement",
     publishedAt: "2026-09-12",
   },
   {

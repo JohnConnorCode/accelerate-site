@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { assertForkHosting } from "./lib/neutral-distribution.mjs";
 
 export function verifyDeploymentTarget({ target, linked, env = process.env, request }) {
   if (!target.projectId || !target.teamId || !target.projectName) {
@@ -33,6 +34,7 @@ export function verifyDeploymentTarget({ target, linked, env = process.env, requ
 
 export function deploymentPreflight() {
   const target = JSON.parse(readFileSync("deployment-target.json", "utf8"));
+  if (process.env.NEXT_PUBLIC_DISTRIBUTION_PROFILE === "neutral") assertForkHosting(target);
   let linked;
   try {
     linked = JSON.parse(readFileSync(".vercel/project.json", "utf8"));

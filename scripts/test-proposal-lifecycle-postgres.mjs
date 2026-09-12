@@ -130,6 +130,47 @@ try {
 }
 const recovered = JSON.parse(sql(command(edit)));
 assert.equal(recovered.successor.version, 2);
+const viewed = seed("sent");
+const viewInput = { id: viewed, operation: "view", patch: {}, source: "public_link" };
+const views = await Promise.all([concurrent(command(viewInput)), concurrent(command(viewInput))]);
+assert.deepEqual(views.map((r) => r.replayed).sort(), [false, true]);
+assert.equal(
+  sql(
+    `SELECT count(*) FROM proposal_events WHERE proposal_id='${viewed}' AND event_type='viewed';`,
+  ),
+  "1",
+);
+const privateView = JSON.parse(
+  sql(
+    `SELECT metadata FROM proposal_events WHERE proposal_id='${viewed}' AND event_type='viewed';`,
+  ),
+);
+assert.deepEqual(Object.keys(privateView).sort(), ["operation_key", "successor_id"]);
+const auditView = JSON.parse(
+  sql(
+    `SELECT after_state FROM audit_log WHERE entity_id='${viewed}' AND action='proposal.viewed';`,
+  ),
+);
+assert.equal("share_token" in auditView, false);
+assert.equal("content" in auditView, false);
+const racing = seed("sent");
+const decisionRace = await Promise.allSettled([
+  concurrent(command({ id: racing, operation: "accept", patch: {}, source: "public_link" })),
+  concurrent(
+    command({ id: racing, operation: "decline", patch: {}, source: "public_link", reason: null }),
+  ),
+]);
+assert.equal(decisionRace.filter((result) => result.status === "fulfilled").length, 1);
+assert.match(
+  String(decisionRace.find((result) => result.status === "rejected").reason),
+  /no longer/,
+);
+assert.equal(
+  sql(
+    `SELECT count(*) FROM proposal_events WHERE proposal_id='${racing}' AND event_type IN ('accepted','declined');`,
+  ),
+  "1",
+);
 const accepted = seed("sent");
 assert.equal(
   JSON.parse(sql(command({ id: accepted, operation: "accept", patch: {}, source: "public_link" })))
@@ -139,6 +180,58 @@ assert.equal(
 assert.match(
   fail(command({ id: accepted, operation: "decline", patch: {}, reason: "Changed mind" })),
   /no longer/,
+);
+// Public explanations remain optional while direct admin commands still require one.
+for (const reason of [undefined, null, "  ", "\n\t"]) {
+  const publicId = seed("sent");
+  const decline = { id: publicId, operation: "decline", patch: {}, source: "public_link", reason };
+  const first = JSON.parse(sql(command(decline)));
+  assert.equal(first.proposal.status, "declined");
+  assert.equal(first.proposal.decline_reason, null);
+  assert.equal(JSON.parse(sql(command(decline))).replayed, true);
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM proposal_events WHERE proposal_id='${publicId}' AND event_type='declined';`,
+    ),
+    "1",
+  );
+  assert.match(fail(command({ ...decline, operation: "accept" })), /no longer/);
+}
+for (const reason of [undefined, null, "  ", "\n\t"]) {
+  const adminId = seed("sent");
+  assert.match(
+    fail(command({ id: adminId, operation: "decline", patch: {}, source: "admin", reason })),
+    /decline reason/,
+  );
+  assert.equal(sql(`SELECT status FROM proposals WHERE id='${adminId}';`), "sent");
+}
+for (const reason of [{ malformed: true }, 42, "x".repeat(1001)]) {
+  const malformedId = seed("sent");
+  assert.match(
+    fail(
+      command({ id: malformedId, operation: "decline", patch: {}, source: "public_link", reason }),
+    ),
+    /decline reason/,
+  );
+  assert.equal(
+    sql(`SELECT count(*) FROM proposal_lifecycle_receipts WHERE proposal_id='${malformedId}';`),
+    "0",
+  );
+}
+const explainedId = seed("sent");
+assert.equal(
+  JSON.parse(
+    sql(
+      command({
+        id: explainedId,
+        operation: "decline",
+        patch: {},
+        source: "public_link",
+        reason: "  Budget\nchanged  ",
+      }),
+    ),
+  ).proposal.decline_reason,
+  "Budget changed",
 );
 const expired = seed("sent");
 sql(`UPDATE proposals SET expires_at=now()-interval '1 hour' WHERE id='${expired}';`);
