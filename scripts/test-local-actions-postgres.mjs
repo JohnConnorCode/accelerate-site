@@ -1610,7 +1610,8 @@ try {
     importedPerson.contactId,
   );
   sql(importClaim(enrichPlan));
-  assert.equal(JSON.parse(sql(importEffect(enrichPlan))).contactId, importedPerson.contactId);
+  const enrichedResult = JSON.parse(sql(importEffect(enrichPlan)));
+  assert.equal(enrichedResult.contactId, importedPerson.contactId, JSON.stringify(enrichedResult));
   assert.equal(
     sql(
       `SELECT full_name||':'||phone||':'||title FROM contacts WHERE id='${importedPerson.contactId}';`,

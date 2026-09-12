@@ -55,7 +55,7 @@ BEGIN
    IF nullif(c.phone,'') IS NULL AND nullif(data->>'phone','') IS NOT NULL THEN changes:=array_append(changes,'phone'); END IF;
    IF nullif(c.title,'') IS NULL AND nullif(data->>'role','') IS NOT NULL THEN changes:=array_append(changes,'role'); END IF;
    IF c.company_id IS NULL AND v_company_id IS NOT NULL THEN changes:=array_append(changes,'company'); END IF;
-   UPDATE public.contacts SET phone=coalesce(nullif(c.phone,''),data->>'phone'),title=coalesce(nullif(c.title,''),data->>'role'),company_id=coalesce(c.company_id,apply_contact_import_row.v_company_id),metadata=coalesce(c.metadata,'{}')||jsonb_build_object('last_contact_import_batch_id',b.id)||CASE WHEN nullif(data->>'notes','') IS NULL THEN '{}'::jsonb ELSE jsonb_build_object('import_notes',data->>'notes') END||CASE WHEN nullif(data->>'source','') IS NULL THEN '{}'::jsonb ELSE jsonb_build_object('imported_source',data->>'source') END WHERE tenant_id=t AND id=v_contact_id;
+   UPDATE public.contacts SET phone=coalesce(nullif(c.phone,''),data->>'phone'),title=coalesce(nullif(c.title,''),data->>'role'),company_id=coalesce(c.company_id,v_company_id),metadata=coalesce(c.metadata,'{}')||jsonb_build_object('last_contact_import_batch_id',b.id)||CASE WHEN nullif(data->>'notes','') IS NULL THEN '{}'::jsonb ELSE jsonb_build_object('import_notes',data->>'notes') END||CASE WHEN nullif(data->>'source','') IS NULL THEN '{}'::jsonb ELSE jsonb_build_object('imported_source',data->>'source') END WHERE tenant_id=t AND id=v_contact_id;
   ELSE
    names:=regexp_split_to_array(btrim(data->>'fullName'),'\s+');
    INSERT INTO public.contacts(tenant_id,first_name,last_name,full_name,primary_email,phone,title,company_id,source,source_record_type,source_record_id,metadata)

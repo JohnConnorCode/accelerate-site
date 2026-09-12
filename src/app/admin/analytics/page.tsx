@@ -61,6 +61,7 @@ type Data = {
     missingNextAction: number;
     unrecognizedStage: number;
     impossibleStageSequences: number | null;
+    stageHistory?: { missingHistory: number; incompleteHistory: number; inputStatus: string };
   };
   filterOptions: { sources: string[]; owners: string[]; campaigns: string[]; stages: string[] };
   appliedFilters: {
@@ -275,9 +276,19 @@ export default function AnalyticsPage() {
           detail: "Current stage cannot be canonicalized",
         },
         {
-          label: "Impossible stage event",
+          label: "Missing stage history",
+          count: data.quality.stageHistory?.missingHistory ?? null,
+          detail: "No usable recorded movement; current stage is shown separately",
+        },
+        {
+          label: "Incomplete stage history",
+          count: data.quality.stageHistory?.incompleteHistory ?? null,
+          detail: "History has gaps, invalid events, or an incomplete read",
+        },
+        {
+          label: "Invalid stage event",
           count: data.quality.impossibleStageSequences,
-          detail: "Unknown or no-op transition in stage history",
+          detail: "Invalid or disconnected recorded transitions",
         },
       ]
     : [];

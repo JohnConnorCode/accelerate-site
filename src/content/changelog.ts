@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "stage-history-reconciliation",
+    slug: "stage-history-reconciliation",
+    title: "See recorded pipeline progress and history gaps",
+    description:
+      "Analytics separates recorded progress from current pipeline position and shows missing or incomplete history. Invalid events cannot make old movement look recent, and the assistant uses the shared calculation for custom pipeline stages.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "atomic-contact-import-rows",
     slug: "atomic-contact-import-rows",
     title: "Continue approved imports from saved row receipts",

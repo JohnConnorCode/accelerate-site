@@ -9,6 +9,7 @@ import {
   updateOpportunityDetails,
 } from "@/lib/revenue-os/pipeline";
 import { loadPipelineStages } from "@/lib/revenue-os/pipeline-stage-resolver";
+import { computeStageHistory, type StageEventInput } from "@/lib/revenue-os/stage-history";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     ...new Set((result.data ?? []).map((item) => item.company_id).filter(Boolean)),
   ];
   const opportunityIds = (result.data ?? []).map((item) => item.id);
-  const [contacts, companies, meetings] = await Promise.all([
+  const [contacts, companies, meetings, stageEvents] = await Promise.all([
     contactIds.length
       ? supabase.from("contacts").select("*").in("id", contactIds)
       : Promise.resolve({ data: [], error: null }),
@@ -65,6 +66,15 @@ export async function GET(request: NextRequest) {
           .order("start_at", { ascending: true })
           .limit(500)
       : Promise.resolve({ data: [], error: null }),
+    opportunityIds.length
+      ? supabase
+          .from("stage_events")
+          .select("id,opportunity_id,from_stage,to_stage,created_at", { count: "exact" })
+          .in("opportunity_id", opportunityIds)
+          .order("created_at", { ascending: true })
+          .order("id", { ascending: true })
+          .limit(10000)
+      : Promise.resolve({ data: [], error: null, count: 0 }),
   ]);
   const contactMap = new Map((contacts.data ?? []).map((item) => [item.id, item]));
   const companyMap = new Map((companies.data ?? []).map((item) => [item.id, item]));
@@ -73,17 +83,52 @@ export async function GET(request: NextRequest) {
     if (meeting.opportunity_id && !meetingMap.has(meeting.opportunity_id))
       meetingMap.set(meeting.opportunity_id, meeting.start_at);
   }
+  // Shared with Analytics/Today (src/lib/revenue-os/stage-history.ts) — the
+  // board's own current-stage column drives which kanban column a card sits
+  // in, but the "furthest stage reached" annotation below never overwrites
+  // that; it only surfaces recorded stage_events history alongside it.
+  const stageEventsByOpportunity = new Map<string, StageEventInput[]>();
+  if (!stageEvents.error) {
+    for (const row of stageEvents.data ?? []) {
+      const list = stageEventsByOpportunity.get(row.opportunity_id) ?? [];
+      list.push({
+        id: row.id,
+        from_stage: row.from_stage,
+        to_stage: row.to_stage,
+        created_at: row.created_at,
+      });
+      stageEventsByOpportunity.set(row.opportunity_id, list);
+    }
+  }
   const stages = await loadPipelineStages(supabase, auth.tenant.id);
   return NextResponse.json({
     schemaReady: true,
-    signalsReady: { calendar: !meetings.error },
-    opportunities: (result.data ?? []).map((item) => ({
-      ...item,
-      canonical_stage: stages.canonicalStage(item.stage),
-      next_meeting_at: meetingMap.get(item.id) ?? null,
-      contact: contactMap.get(item.contact_id) ?? null,
-      company: companyMap.get(item.company_id) ?? null,
-    })),
+    signalsReady: { calendar: !meetings.error, stageHistory: !stageEvents.error },
+    opportunities: (result.data ?? []).map((item) => {
+      const history = stageEvents.error
+        ? null
+        : computeStageHistory(
+            stageEventsByOpportunity.get(item.id) ?? [],
+            item.stage,
+            stages,
+            new Date(),
+            (stageEvents.count ?? 0) > (stageEvents.data?.length ?? 0) ||
+              (stageEvents.data?.length ?? 0) >= 10000
+              ? "truncated"
+              : "complete",
+          );
+      return {
+        ...item,
+        canonical_stage: stages.canonicalStage(item.stage),
+        furthest_stage: history?.furthestStageFromHistory ?? null,
+        has_stage_history: history?.hasHistory ?? false,
+        stage_history_status: history?.status ?? "unavailable",
+        stage_history_issues: history?.issues ?? ["unavailable"],
+        next_meeting_at: meetingMap.get(item.id) ?? null,
+        contact: contactMap.get(item.contact_id) ?? null,
+        company: companyMap.get(item.company_id) ?? null,
+      };
+    }),
   });
 }
 
