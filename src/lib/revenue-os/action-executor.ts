@@ -27,7 +27,7 @@ import { checkAutonomy } from "./autonomy-policy";
 import { recordAudit } from "./audit";
 import { reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
-import { transitionOpportunity } from "./pipeline";
+import { applyPipelineEffect } from "./pipeline";
 import { activateCampaign, duplicateCampaign } from "./campaigns";
 import { sendGmailReply } from "./google";
 import { applyLayoutChange } from "./admin-layout";
@@ -63,6 +63,7 @@ export const APPROVABLE_ACTIONS = [
   "send_email",
   "send_gmail_reply",
   "transition_opportunity",
+  "update_opportunity_details",
   "create_task",
   "update_task",
   "delete_task",
@@ -286,36 +287,16 @@ export async function approveAndExecuteAction(
         });
         break;
       }
-      case "transition_opportunity": {
-        const stage = stringValue(payload, "stage")!;
-        const oppId = stringValue(payload, "opportunityId")!;
-        const { data: currentOpp, error: oppError } = await supabase
-          .from("opportunities")
-          .select("id,stage")
-          .eq("id", oppId)
-          .maybeSingle();
-        if (oppError) throw new Error(oppError.message);
-        if (!currentOpp) {
-          throw new Error("Target opportunity not found");
-        }
-        if (payload.expectedStage && currentOpp.stage !== payload.expectedStage) {
-          throw new Error(
-            `Underlying opportunity state changed: expected stage "${payload.expectedStage}", but currently "${currentOpp.stage}". Proposal has expired.`,
-          );
-        }
-        if (currentOpp.stage === stage) {
-          throw new Error(`Opportunity is already in stage "${stage}"`);
-        }
-        result = await transitionOpportunity(supabase, {
-          id: oppId,
-          to: stage,
+      case "transition_opportunity":
+      case "update_opportunity_details":
+        return await applyPipelineEffect(
+          supabase,
+          String(action.action_type),
+          payload,
           actorEmail,
-          source: "ai",
-          reason: stringValue(payload, "reason", false),
-          lossReason: stringValue(payload, "lossReason", false),
-        });
-        break;
-      }
+          id,
+          null,
+        );
       case "create_task":
       case "update_task":
       case "delete_task":
@@ -439,7 +420,13 @@ export async function approveAndExecuteAction(
 export async function runOperatorAction(
   supabase: SupabaseClient,
   input: {
-    actionType: "create_task" | "update_task" | "delete_task" | "update_next_action";
+    actionType:
+      | "create_task"
+      | "update_task"
+      | "delete_task"
+      | "update_next_action"
+      | "transition_opportunity"
+      | "update_opportunity_details";
     title: string;
     payload: Record<string, unknown>;
     actorEmail: string;
@@ -480,4 +467,48 @@ export async function executeTaskCreation(database: SupabaseClient, input: Reven
   });
   if (error) throw new Error(error.message);
   return data;
+}
+
+/** Existing pipeline callers retain their actor or bound deterministic provenance. */
+export async function executePipelineChange(
+  database: SupabaseClient,
+  actionType: "transition_opportunity" | "update_opportunity_details",
+  actorEmail: string,
+  payload: Record<string, unknown>,
+) {
+  const systemSource = systemSourceForDatabase(database);
+  if (!systemSource)
+    return runOperatorAction(database, {
+      actionType,
+      title:
+        actionType === "transition_opportunity"
+          ? "Change opportunity stage"
+          : "Update opportunity details",
+      payload,
+      actorEmail,
+    });
+  const { data, error } = await database
+    .from("opportunities")
+    .select("*")
+    .eq("id", payload.opportunityId)
+    .maybeSingle();
+  if (error || !data) throw new Error(error?.message ?? "Opportunity not found");
+  let expectedPipeline;
+  if (actionType === "transition_opportunity") {
+    const columns = await database
+      .from("kanban_columns")
+      .select("column_key,label,metadata")
+      .eq("board_key", "pipeline")
+      .order("column_key");
+    if (columns.error) throw new Error(columns.error.message);
+    expectedPipeline = columns.data ?? [];
+  }
+  return applyPipelineEffect(
+    database,
+    actionType,
+    { ...payload, expectedState: data, ...(expectedPipeline ? { expectedPipeline } : {}) },
+    actorEmail,
+    null,
+    systemSource,
+  );
 }
