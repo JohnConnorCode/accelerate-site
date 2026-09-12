@@ -5,7 +5,11 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { randomUUID } from "node:crypto";
-import { createCheckpoint, prepareSuccessor } from "./lib/agent-checkpoint.mjs";
+import {
+  createCheckpoint,
+  prepareSuccessor,
+  retainedCheckpointWorkspace,
+} from "./lib/agent-checkpoint.mjs";
 import { createWorkspace } from "./lib/developer-workspace.mjs";
 const temp = mkdtempSync(resolve(tmpdir(), "checkpoint-test-"));
 const root = resolve(temp, "source");
@@ -66,6 +70,23 @@ try {
   writeFileSync(resolve(root, "source.txt"), "late predecessor edit\n");
   const plan = prepareSuccessor(root, saved, randomUUID());
   createWorkspace(plan);
+  assert.equal(retainedCheckpointWorkspace(root, card, plan.path), plan.path);
+  assert.throws(() => retainedCheckpointWorkspace(root, card, root), /WORKSPACE_PROTECTED/);
+  assert.throws(() => retainedCheckpointWorkspace(root, card, remote), /Git|WORKSPACE_MISMATCH/);
+  assert.throws(
+    () =>
+      retainedCheckpointWorkspace(
+        root,
+        {
+          ...card,
+          work_spec: {
+            repository: { ...card.work_spec.repository, url: "https://example.invalid/other.git" },
+          },
+        },
+        plan.path,
+      ),
+    /ORIGIN_MISMATCH/,
+  );
   assert.equal(readFileSync(resolve(plan.path, "source.txt"), "utf8"), "dirty\n");
   assert.equal(readFileSync(resolve(root, "source.txt"), "utf8"), "late predecessor edit\n");
   assert.throws(
