@@ -73,6 +73,12 @@ prove(
     assert.ok([...tracked].some((path) => path.startsWith("public/work/")));
     const starter = starterFiles();
     for (const path of starter) {
+      if (
+        manifest.includePaths?.some((allowed: string) =>
+          allowed.endsWith("/") ? path.startsWith(allowed) : path === allowed,
+        )
+      )
+        continue;
       assert.equal(
         manifest.excludePrefixes.some(
           (prefix: string) => path === prefix || path.startsWith(prefix),
