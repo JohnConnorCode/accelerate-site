@@ -258,8 +258,7 @@ async function runServicesProfile(label, viewport, reducedMotion = "no-preferenc
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => {
-    if (message.type() === "error" && !message.text().includes("net::ERR_FAILED"))
-      errors.push(message.text());
+    if (message.type() === "error") errors.push(message.text());
   });
 
   await page.addInitScript(() => {
