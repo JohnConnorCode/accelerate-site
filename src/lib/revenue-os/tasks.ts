@@ -50,10 +50,9 @@ export async function createRevenueTask(
   const findExisting = async () => {
     if (!input.dedupeKey) return null;
     let query = supabase.from("tasks").select("*").eq("dedupe_key", input.dedupeKey);
-    query =
-      input.source === "delivery_handoff"
-        ? query.eq("source", "delivery_handoff")
-        : query.in("status", ["pending", "snoozed"]);
+    query = ["delivery_handoff", "proposal_response"].includes(input.source)
+      ? query.eq("source", input.source).order("created_at", { ascending: true }).limit(1)
+      : query.in("status", ["pending", "snoozed"]);
     const { data, error } = await query.maybeSingle();
     if (error) throw new Error(error.message);
     return data;

@@ -466,6 +466,28 @@ async function json(response: Response) {
     assert.equal(db.rows("tasks").length, 1, "no second follow-up task on replay");
   }
 
+  checks.push("replaying a decision after its follow-up is completed does not create another task");
+  for (const decision of ["accepted", "declined"] as const) {
+    const db = harness();
+    const ip = freshIp();
+    const first = post("tok-1", { decision }, ip);
+    assert.equal(
+      (await run(db, () => handleProposalPost(first.request, { params: first.params }))).status,
+      200,
+    );
+    const originalTask = db.rows("tasks")[0]!;
+    originalTask.status = "completed";
+    const replay = post("tok-1", { decision }, ip);
+    const response = await run(db, () =>
+      handleProposalPost(replay.request, { params: replay.params }),
+    );
+    assert.equal(response.status, 200);
+    assert.equal((await json(response)).alreadyResponded, true);
+    assert.equal(db.rows("tasks").length, 1);
+    assert.equal(db.rows("tasks")[0]!.id, originalTask.id);
+    assert.equal(db.rows("tasks")[0]!.status, "completed");
+  }
+
   checks.push("decline after accept returns the existing accepted outcome, does not flip it");
   {
     const db = harness();

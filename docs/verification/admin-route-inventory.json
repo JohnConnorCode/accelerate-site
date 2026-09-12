@@ -323,7 +323,7 @@
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/social-marketing.ts": "a5421a504fd070c4826a0fb62037abe6f83786781c0dd7c21f4d27c94b901ea8",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
-    "src/lib/revenue-os/tasks.ts": "0e8c351e9e9ef90797a5fc1af76aed35ab2f639619642e58647665e21128b462",
+    "src/lib/revenue-os/tasks.ts": "4f36195de08c315ea629c3299e85f9f68bc3541a7c382b911bd57bb45c77e09a",
     "src/lib/revenue-os/tool-profiles.ts": "c72d9e318dc7b157af57b7e34adef41fa9153fda94a5f09116fe1b5debb8c1ce",
     "src/lib/revenue-os/types.ts": "7c2ef713990b2180acd4c76507e708431288fd46d98fab1072cc6451a15e44bd",
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",

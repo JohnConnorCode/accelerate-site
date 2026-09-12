@@ -40,7 +40,8 @@ Reviewed `src/content/command-center.ts` and `src/content/command-center-faq.ts`
 their existing proposal version, receipt and recovery descriptions remain accurate
 and make no required customer explanation claim, so no copy change is needed.
 Reviewed admin callers of proposals/tasks: admin reasons remain required and task
-replay resolves the existing dedupe winner. Refreshed only those two source
+replay resolves the existing dedupe winner. Proposal-response task keys are permanent,
+including completed tasks; legacy duplicates resolve to the oldest existing task. Refreshed only those two source
 fingerprints; route ownership and authorization declarations are unchanged.
 The existing source-stat verifier records 94 migrations and 239 named checks.
 
