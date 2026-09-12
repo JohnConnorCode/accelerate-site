@@ -21,11 +21,16 @@ if (!Number.isFinite(iterations) || iterations < 4)
 if (!Number.isFinite(cpuRate) || cpuRate < 1) throw new Error("--cpu-rate must be at least 1");
 await mkdir(output, { recursive: true });
 
+// Kept in sync with the top-level mobile nav items in src/content/navigation.ts
+// (primaryLinks). "/learn" was previously a top-level item; it now lives only
+// under the footer's "Articles & guides" link, so this harness rotated to the
+// current top-level "/docs" entry to keep testing a real direct nav link
+// rather than one that no longer exists in the mobile drawer.
 const routes = [
   { href: "/services", label: "Services" },
   { href: "/command-center", label: "Command Center" },
   { href: "/work", label: "Work" },
-  { href: "/learn", label: "Learn" },
+  { href: "/docs", label: "Docs" },
 ];
 
 const percentile = (values, fraction) => {
@@ -218,6 +223,139 @@ async function runProfile(
   return { summary, steps };
 }
 
+// Scoped Services page checks: desktop/mobile layout, every quick-nav and
+// footer anchor resolves to a real element, keyboard focus reaches the
+// quick-nav rail, and reduced motion settles without a stray long task.
+const servicesAnchors = ["start", "how", "build", "platform", "stack", "work", "shapes"];
+const servicesFooterAnchors = ["strategy", "automation", "sales", "reporting", "build", "work"];
+// Legacy /content/services.ts catalog hrefs (rendered on /work case studies,
+// search results and services JSON-LD) that must keep resolving to a real
+// element on the rebuilt page.
+const servicesLegacyCatalogAnchors = [
+  "strategy",
+  "automation",
+  "sales",
+  "engagement",
+  "content",
+  "reporting",
+];
+
+async function runServicesProfile(label, viewport, reducedMotion = "no-preference") {
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext({ viewport, reducedMotion });
+  const page = await context.newPage();
+  // The client-side analytics beacon 500s in any worktree without a
+  // .env.local (worktrees never inherit environment files -- see
+  // AGENTS.md), page-agnostically, because no Supabase credentials are
+  // configured. That is a pre-existing local-verification artifact of this
+  // isolated checkout, not a Services regression, so it is stubbed out
+  // rather than left to fail and pollute the console-error assertion below.
+  await context.route("**/api/analytics/events", (route) =>
+    route.fulfill({ status: 204, body: "" }),
+  );
+
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error" && !message.text().includes("net::ERR_FAILED"))
+      errors.push(message.text());
+  });
+
+  await page.addInitScript(() => {
+    window.__accelerateServicesQa = { longTasks: [] };
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        window.__accelerateServicesQa.longTasks.push(entry.duration);
+      }
+    }).observe({ type: "longtask", buffered: true });
+  });
+
+  await page.goto(`${base}/services`, { waitUntil: "networkidle", timeout: 30_000 });
+
+  const missingAnchors = await page.evaluate((ids) => {
+    return ids.filter((id) => !document.getElementById(id));
+  }, [...new Set([...servicesAnchors, ...servicesFooterAnchors, ...servicesLegacyCatalogAnchors])]);
+
+  await page.getByRole("navigation", { name: "Services page sections" }).waitFor();
+
+  // Keyboard reachability first, from a clean load: a hash-anchor click below
+  // resets document focus to <body> and the browser's forward-tab starting
+  // point follows the scroll target, which would make the quick-nav rail
+  // (earlier in DOM order, near the hero) unreachable by further Tabs for a
+  // reason unrelated to keyboard support. Testing tab order before any
+  // anchor click keeps this a real check of the natural keyboard path.
+  await page.keyboard.press("Tab");
+  let reachedQuickNav = false;
+  for (let i = 0; i < 40 && !reachedQuickNav; i += 1) {
+    reachedQuickNav = await page.evaluate(() =>
+      document.activeElement?.classList.contains("services-subnav-link"),
+    );
+    if (reachedQuickNav) break;
+    await page.keyboard.press("Tab");
+  }
+  const focusOutline = reachedQuickNav
+    ? await page.evaluate(() => {
+        const style = getComputedStyle(document.activeElement);
+        return `${style.outlineStyle} ${style.outlineWidth}`;
+      })
+    : "unreached";
+
+  const quickNavLink = page.locator('.services-subnav-link[href="#build"]');
+  await quickNavLink.evaluate((node) => node.click());
+  await page.waitForTimeout(reducedMotion === "reduce" ? 0 : 260);
+  const buildInView = await page.evaluate(() => {
+    const node = document.getElementById("build");
+    if (!node) return false;
+    const rect = node.getBoundingClientRect();
+    return rect.top < window.innerHeight && rect.bottom > 0;
+  });
+
+  await page.waitForTimeout(reducedMotion === "reduce" ? 0 : 200);
+  const longTasks = await page.evaluate(() => window.__accelerateServicesQa.longTasks);
+  const longestTaskMs = Math.max(0, ...longTasks);
+
+  await page.screenshot({ path: join(output, `services-${label}.png`), fullPage: true });
+  await context.close();
+  await browser.close();
+
+  return {
+    label,
+    reducedMotion,
+    errors,
+    missingAnchors,
+    buildInView,
+    reachedQuickNav,
+    focusOutline,
+    longestTaskMs,
+  };
+}
+
+const servicesDesktop = await runServicesProfile("desktop", { width: 1440, height: 900 });
+const servicesMobile = await runServicesProfile("mobile", { width: 390, height: 844 });
+const servicesReduced = await runServicesProfile(
+  "reduced-motion",
+  { width: 1440, height: 900 },
+  "reduce",
+);
+const servicesFailures = [];
+for (const result of [servicesDesktop, servicesMobile, servicesReduced]) {
+  if (result.errors.length)
+    servicesFailures.push(`services ${result.label}: runtime errors (${result.errors.join(" | ")})`);
+  if (result.missingAnchors.length)
+    servicesFailures.push(`services ${result.label}: missing anchor targets (${result.missingAnchors.join(", ")})`);
+  if (!result.buildInView)
+    servicesFailures.push(`services ${result.label}: #build quick-nav link did not scroll #build into view`);
+  if (!result.reachedQuickNav)
+    servicesFailures.push(`services ${result.label}: keyboard tab order never reached the quick-nav rail`);
+  else if (result.focusOutline === "none 0px")
+    servicesFailures.push(`services ${result.label}: quick-nav link has no visible focus outline`);
+  const longTaskBudget = result.reducedMotion === "reduce" ? 300 : 200;
+  if (result.longestTaskMs > longTaskBudget)
+    servicesFailures.push(
+      `services ${result.label}: ${result.longestTaskMs.toFixed(0)}ms long task exceeds ${longTaskBudget}ms`,
+    );
+}
+
 const persistent = await runProfile("persistent", profile);
 const fresh = await runProfile(
   "fresh",
@@ -284,16 +422,23 @@ if (!observeOnly) {
     );
 }
 
+const allFailures = [...failures, ...servicesFailures];
+
 const report = {
-  result: failures.length ? "failed" : "passed",
+  result: allFailures.length ? "failed" : "passed",
   persistent: persistent.summary,
   fresh: fresh.summary,
   reduced: reduced.summary,
-  failures,
+  services: {
+    desktop: servicesDesktop,
+    mobile: servicesMobile,
+    reducedMotion: servicesReduced,
+  },
+  failures: allFailures,
   artifacts: output,
 };
 await writeFile(join(output, "summary.json"), `${JSON.stringify(report, null, 2)}\n`);
-if (failures.length) {
+if (allFailures.length) {
   console.error(JSON.stringify(report, null, 2));
   process.exit(1);
 }

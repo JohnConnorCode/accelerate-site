@@ -201,7 +201,18 @@ export async function decideProposal(
   const reason = input.reason?.trim() ?? null;
   if (decision === "declined") z.string().min(1).max(1000).parse(reason);
   const source = input.source ?? "public_link";
-  await expireIfDue(db, await loadProposal(db, input.id), source);
+  const before = await loadProposal(db, input.id);
+  const statusBeforeExpiryCheck = before.status;
+  const afterExpiryCheck = await expireIfDue(db, before, source);
+  // Distinguish "this request is the one that just retired the link" from
+  // "it was already expired" so callers on the public link can surface a
+  // specific, actionable refusal (410) instead of the generic terminal-state
+  // conflict a decision on an already-settled link gets. Read the status
+  // before expireIfDue runs into a local, not off `before` afterward - some
+  // callers hand back the same row reference they mutated.
+  if (["sent", "viewed"].includes(statusBeforeExpiryCheck) && afterExpiryCheck.status === "expired") {
+    throw new Error("Proposal is no longer open for a response; it just expired");
+  }
   const r = await command(db, {
     ...input,
     source,

@@ -59,7 +59,7 @@ export const services: Service[] = [
       "Appointment scheduling automation",
       "Invoice and payment reminders",
       "Review request automation",
-      "Custom Zapier/Make integrations",
+      "Custom integrations across the tools already in use",
       "Email and SMS notification workflows",
       "Monthly performance reporting",
       "Ongoing optimization and support",

@@ -4,7 +4,7 @@ import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import { loadOperatorQueue } from "@/lib/revenue-os/queue";
 import { loadPipelineStages } from "@/lib/revenue-os/pipeline-stage-resolver";
 import { loadOperationalHealth } from "@/lib/revenue-os/health";
-import { pipelineMetrics } from "@/lib/revenue-os/pipeline-metrics";
+import { summarizePipelineTotals } from "@/lib/revenue-os/analytics";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -43,16 +43,22 @@ export async function GET() {
     if (firstError) throw firstError;
     const opportunities = opportunitiesResult.data ?? [];
     const stages = await loadPipelineStages(supabase, auth.tenant.id);
-    const metrics = pipelineMetrics(opportunities, stages);
-    const wonRevenue = opportunities.reduce((sum, item) => sum + Number(item.won_value || 0), 0);
+    // Shared with the Analytics/Revenue read model (src/lib/revenue-os/analytics.ts),
+    // which itself delegates to pipeline-metrics.ts (also used by today-snapshot.ts)
+    // for open/pipeline-value/weighted-value, so "open opportunities", "pipeline
+    // value" and "weighted forecast" cannot drift into a route-local formula that
+    // disagrees with Analytics or the Today snapshot.
+    const totals = summarizePipelineTotals(opportunities, stages);
     const integrations = integrationResult.data ?? [];
 
     return NextResponse.json({
       schemaReady: true,
       generatedAt: new Date().toISOString(),
       metrics: {
-        ...metrics,
-        wonRevenue,
+        openOpportunities: totals.openOpportunities,
+        pipelineValue: totals.pipelineValue,
+        weightedValue: totals.weightedValue,
+        wonRevenue: totals.wonRevenue,
         unreadConversations: (conversationsResult.data ?? []).reduce(
           (sum, item) => sum + Number(item.unread_count || 0),
           0,

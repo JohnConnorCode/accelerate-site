@@ -35,6 +35,11 @@ export async function handleProposalGet(
     return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
   }
 
+  // Atomicity, replay-safety and expires_at enforcement for the view path are
+  // owned by recordProposalView/apply_proposal_lifecycle (a tenant-scoped,
+  // advisory-locked DB transaction keyed by an idempotency receipt) rather
+  // than conditional updates here - see src/lib/revenue-os/proposals.ts and
+  // migrations/20260912-proposal-lifecycle.sql.
   let status = proposal.status;
   try {
     const viewed = await recordProposalView(supabase, { id: proposal.id, source: "public_link" });
@@ -97,11 +102,17 @@ export async function handleProposalPost(
     : createBootstrapServiceRoleClient("legacy-public-proposal");
   const { data: proposal, error } = await supabase
     .from("proposals")
-    .select("id,title,client_name,status,opportunity_id")
+    .select("id,title,client_name,status,opportunity_id,expires_at")
     .eq("share_token", token)
     .maybeSingle();
   if (error || !proposal)
     return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
+  // Atomicity, replay and expires_at enforcement for the decision path are
+  // owned by decideProposal/apply_proposal_lifecycle (see the comment in
+  // handleProposalGet above). decideProposal distinguishes a decision that
+  // just tripped the expiry from one that was already expired, so this
+  // route can surface the former as a specific, actionable 410 and the
+  // latter as the generic terminal-state 409 below.
   try {
     const decided = await decideProposal(supabase, {
       id: proposal.id,
@@ -127,7 +138,26 @@ export async function handleProposalPost(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not record the response";
-    if (/no longer open|already updated|expired/i.test(message))
+    if (/just expired/i.test(message))
+      return NextResponse.json(
+        { error: "This proposal has expired. Contact us for an updated proposal." },
+        { status: 410 },
+      );
+    if (/no longer open/i.test(message)) {
+      // This request lost a race to (or arrived after) a different decision
+      // on the same link. Echo whatever actually settled instead of a
+      // generic conflict when the settled outcome is one the client can act
+      // on identically; an already-expired or superseded link still 409s.
+      const { data: current } = await supabase
+        .from("proposals")
+        .select("status")
+        .eq("id", proposal.id)
+        .maybeSingle();
+      if (current && ["accepted", "declined"].includes(current.status))
+        return NextResponse.json({ success: true, status: current.status, alreadyResponded: true });
+      return NextResponse.json({ error: message }, { status: 409 });
+    }
+    if (/already updated|expired/i.test(message))
       return NextResponse.json({ error: message }, { status: 409 });
     if (/decline reason|cannot move/i.test(message))
       return NextResponse.json({ error: message }, { status: 400 });

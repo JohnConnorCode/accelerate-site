@@ -61,6 +61,28 @@ interface BlueprintDetail {
     approvals: Array<{ ref: string; key: string; reason: string }>;
     blocked: Array<{ ref: string; key: string; reason: string }>;
   };
+  operations?: {
+    navigation: Array<{ ref: string; label: string; status: string; reason: string | null }>;
+    boards: Array<{
+      ref: string;
+      name: string;
+      sourceType: string;
+      targetBoardKey: string | null;
+      status: string;
+      reason: string | null;
+    }>;
+    views: Array<{ ref: string; name: string; sourceType: string; status: string; reason: string | null }>;
+    workflows: Array<{ ref: string; name: string; approvalRequired: boolean; status: string }>;
+    coworkers: Array<{
+      ref: string;
+      name: string;
+      requiredCapabilities: string[];
+      missingCapabilities: string[];
+      status: string;
+    }>;
+    customAppBriefs: Array<{ id: string; title: string; missingKey: string; why: string; boundary: string }>;
+    canApply: boolean;
+  };
 }
 
 const STATUS_LABEL: Record<ItemStatus, string> = {
@@ -209,6 +231,36 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
     }
   };
 
+  const generateOperations = async () => {
+    if (!query.data) return;
+    setError("");
+    setNotice("");
+    setSaving(true);
+    try {
+      const result = await fetchJson<{ replayed?: boolean }>(
+        `/api/admin/blueprints/${blueprintId}/generate-operations`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            version: query.data.version,
+            requestKey: crypto.randomUUID(),
+          }),
+        },
+      );
+      setNotice(
+        result.replayed
+          ? "Operations for this version were already generated."
+          : "Boards, views, workflow and Coworker proposals staged in the existing action queue.",
+      );
+      await cache.invalidateQueries({ queryKey: ["admin", "blueprint", blueprintId] });
+    } catch (generateError) {
+      setError(generateError instanceof Error ? generateError.message : "Generate failed.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (query.isPending) return <p role="status">Loading Blueprint review…</p>;
   if (query.isError || !query.data) {
     return (
@@ -308,6 +360,14 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
           >
             Apply approved version
           </button>
+          <button
+            type="button"
+            className={button}
+            disabled={saving || detail.operations?.canApply === false}
+            onClick={() => void generateOperations()}
+          >
+            Generate boards, views &amp; Coworkers
+          </button>
         </div>
       </AdminSurface>
       {detail.compile?.customAppBriefs && detail.compile.customAppBriefs.length > 0 && (
@@ -322,6 +382,59 @@ export function BlueprintReview({ blueprintId }: { blueprintId: string }) {
               </li>
             ))}
           </ul>
+        </AdminSurface>
+      )}
+
+      {detail.operations && (
+        <AdminSurface>
+          <h2 className="mb-3 text-sm font-semibold">Generated operations</h2>
+          <p className="mb-2 text-xs text-[var(--admin-muted)]">
+            Boards reuse the existing Kanban board/column primitive; workflow and Coworker
+            recommendations reuse the existing approval queue. Nothing here is applied
+            automatically.
+          </p>
+          <ul className="space-y-2 text-xs">
+            {detail.operations.boards.map((board) => (
+              <li key={board.ref}>
+                Board · {board.name} → {board.targetBoardKey ?? "no existing board"} ·{" "}
+                <span className="font-semibold">{board.status}</span>
+                {board.reason ? ` (${board.reason})` : ""}
+              </li>
+            ))}
+            {detail.operations.views.map((view) => (
+              <li key={view.ref}>
+                View · {view.name} ({view.sourceType}) · <span className="font-semibold">{view.status}</span>
+              </li>
+            ))}
+            {detail.operations.workflows.map((workflow) => (
+              <li key={workflow.ref}>
+                Workflow · {workflow.name} ·{" "}
+                {workflow.approvalRequired ? "needs approval" : "automatic where policy allows"} ·{" "}
+                <span className="font-semibold">{workflow.status}</span>
+              </li>
+            ))}
+            {detail.operations.coworkers.map((coworker) => (
+              <li key={coworker.ref}>
+                Coworker · {coworker.name} · required: {coworker.requiredCapabilities.join(", ") || "none"}
+                {coworker.missingCapabilities.length > 0
+                  ? ` · missing: ${coworker.missingCapabilities.join(", ")}`
+                  : ""}{" "}
+                · <span className="font-semibold">{coworker.status}</span>
+              </li>
+            ))}
+          </ul>
+          {detail.operations.customAppBriefs.length > 0 && (
+            <div className="mt-3">
+              <h3 className="mb-2 text-xs font-semibold">Custom App Briefs (unsupported requirements)</h3>
+              <ul className="space-y-2 text-xs">
+                {detail.operations.customAppBriefs.map((brief) => (
+                  <li key={brief.id}>
+                    {brief.title} — {brief.why}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </AdminSurface>
       )}
 

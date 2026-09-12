@@ -106,6 +106,7 @@
     "test:email-templates": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-email-templates.ts",
     "test:email-blocks": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-email-blocks.ts",
     "test:responder-envelope": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-responder-envelope.ts",
+    "test:proposal-public-decisions": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-proposal-public-decisions.ts",
     "test:search": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-search.ts",
     "test:route-coverage": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-route-coverage.ts",
     "test:no-fabricated-claims": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-no-fabricated-claims.ts",
