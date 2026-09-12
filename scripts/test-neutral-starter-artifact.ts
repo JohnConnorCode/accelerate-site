@@ -1,3 +1,7 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { SocialCard } from "../src/components/social/SocialCard";
+import { DocsFigure } from "../src/components/docs/DocsFigure";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { tenant, fromEmail } from "../src/config/tenant";
@@ -40,7 +44,22 @@ const plan: DigitalGrowthPlan = {
   nextSteps: [],
 };
 const html = generatePlanHTML(plan, "Sample Customer", "Sample Person");
-for (const rendered of [html, emailWrapper("Fixture content"), SYSTEM_PROMPT, fromEmail()]) {
+const social = renderToStaticMarkup(
+  createElement(SocialCard, {
+    title: tenant.brand.name,
+    eyebrow: tenant.brand.name,
+    businessName: tenant.brand.name,
+    businessDomain: tenant.brand.domain,
+    businessTagline: tenant.brand.tagline,
+  }),
+);
+for (const rendered of [
+  html,
+  social,
+  emailWrapper("Fixture content"),
+  SYSTEM_PROMPT,
+  fromEmail(),
+]) {
   assert.match(rendered, /Harbor Operations/);
   assert.doesNotMatch(rendered, /Accelerate|acceleratewith\.us|John Connor|john@/i);
 }
@@ -57,6 +76,14 @@ for (const path of [
 ])
   assert.equal(existsSync(path), false, path);
 assert.doesNotMatch(readFileSync("src/content/team.ts", "utf8"), /John Connor|linkedin\.com/);
+assert.equal(
+  DocsFigure({
+    src: "/images/docs/workspace/setup.png",
+    alt: "Original screenshot",
+    caption: "Original screenshot",
+  }),
+  null,
+);
 const setupTemplate = readFileSync(".env.example", "utf8");
 for (const key of [
   "NEXT_PUBLIC_SUPABASE_URL",

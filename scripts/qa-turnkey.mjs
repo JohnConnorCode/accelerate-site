@@ -67,11 +67,15 @@ try {
           (await page.locator(".kanban-scroller [data-opportunity-id]").count()) > 0,
           "Fictional populated pipeline",
         );
+        await page.locator(".kanban-scroller").scrollIntoViewIfNeeded();
         await captureNeutral(page, `${label}-populated`);
         await page
           .getByPlaceholder("Search company, person, or email")
           .fill("no-matching-neutral-fixture-81725");
-        await page.getByText("No matching opportunities", { exact: true }).waitFor();
+        const empty = page.getByText("No opportunities in this stage.", { exact: true }).first();
+        await empty.waitFor();
+        assert.equal(await page.locator(".kanban-scroller [data-opportunity-id]").count(), 0);
+        await empty.scrollIntoViewIfNeeded();
         await captureNeutral(page, `${label}-empty`);
         await page.goto(demo + "/branding");
         await page.getByLabel("Display name", { exact: true }).fill("Harbor Demo Team");
@@ -92,6 +96,15 @@ try {
           true,
         );
         await captureNeutral(page, `${label}-branding`);
+        await page.goto(base + "/docs/workspace/setup");
+        await page
+          .getByRole("heading", { name: "Set up a working workspace", exact: true })
+          .waitFor();
+        assert.equal(
+          await page.locator('img[src*="images%2Fdocs"], img[src*="/images/docs/"]').count(),
+          0,
+        );
+        await captureNeutral(page, `${label}-docs`);
         assert.deepEqual(
           escaped,
           [],
@@ -108,7 +121,8 @@ try {
               escaped,
               errors,
               evidence: [
-                "configured entry metadata",
+                "configured entry metadata and social image",
+                "retained documentation omits protected screenshots",
                 "setup boundary",
                 "fictional populated pipeline",
                 "filtered empty state",

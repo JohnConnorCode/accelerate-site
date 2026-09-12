@@ -370,7 +370,6 @@ jobs:
         working-directory: ${{ runner.temp }}/neutral-starter
         env:
           NEXT_PUBLIC_DISTRIBUTION_PROFILE: neutral
-          NODE_OPTIONS: --conditions=react-server
         run: |
           npm ci
           npx tsx scripts/test-neutral-starter-artifact.ts

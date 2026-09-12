@@ -34,6 +34,7 @@ export function GET(request: NextRequest) {
       eyebrow={eyebrow}
       title={title}
       description={description}
+      businessName={neutral ? tenant.brand.name : undefined}
       businessDomain={neutral ? tenant.brand.domain : undefined}
       businessTagline={neutral ? tenant.brand.tagline : undefined}
     />,

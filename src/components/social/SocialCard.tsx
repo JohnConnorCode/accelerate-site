@@ -4,6 +4,7 @@ type SocialCardProps = {
   description?: string;
   imageUrl?: string;
   accent?: string;
+  businessName?: string;
   businessDomain?: string;
   businessTagline?: string;
 };
@@ -14,6 +15,7 @@ export function SocialCard({
   description,
   imageUrl,
   accent = "#0b0b0b",
+  businessName = "ACCELERATE",
   businessDomain = "acceleratewith.us",
   businessTagline = "Strategy · Systems · Execution",
 }: SocialCardProps) {
@@ -57,7 +59,7 @@ export function SocialCard({
             »»
           </div>
           <div style={{ display: "flex", fontSize: 17, fontWeight: 700, letterSpacing: 5 }}>
-            ACCELERATE
+            {businessName}
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", maxWidth: hasImage ? 680 : 980 }}>

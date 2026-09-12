@@ -17,11 +17,19 @@ const BASE_URL = tenant.brand.siteUrl.replace(/\/$/, "");
 const LAST_CONTENT_UPDATE = "2026-03-06";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  if (distributionProfile() === "neutral") return [{ url: tenant.brand.siteUrl }];
   const website = await readPublicWebsite();
   if (website.mode === "unpublished") return [];
   if (website.mode === "unavailable")
     throw new Error("Published website is temporarily unavailable");
+  if (distributionProfile() === "neutral") {
+    if (website.mode === "bootstrap") return [{ url: tenant.brand.siteUrl }];
+    return [
+      ...website.document.pages,
+      ...website.document.collections.flatMap((collection) => collection.entries),
+    ]
+      .filter((page) => !page.metadata.noIndex)
+      .map((page) => ({ url: `${BASE_URL}${page.path === "/" ? "" : page.path}` }));
+  }
   const staticPages: {
     path: string;
     priority: number;
