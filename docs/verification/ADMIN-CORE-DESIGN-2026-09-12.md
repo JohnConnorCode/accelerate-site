@@ -102,3 +102,13 @@ monitor at 15% system memory availability before compilation completed. It is no
 a successful build receipt. Remote CI verification is required before handoff;
 its existing website-editor journey now asserts primary/secondary and selected
 section differentiation on the rendered production application.
+
+The GitHub runner successfully built and typechecked implementation commit
+`7a4ddc00df2992b2386b72147e797ca7f58d8fa7` in
+[CI run 34702667808](https://github.com/JohnConnorCode/accelerate-site/actions/runs/34702667808).
+That run also identified stale admin source fingerprints and open-source counts.
+The route boundary review found no new business operations or changed adapters;
+the refreshed inventory covers 56 pages and 337 sources. Recomputed public stats
+now reflect 235 checks and 875 TypeScript source files (167K lines). Both scoped
+inventory checks pass after correction. The final handoff evidence pins the
+subsequent commit and its CI receipt.
