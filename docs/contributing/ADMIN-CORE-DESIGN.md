@@ -64,3 +64,29 @@ resource gate. It writes route geometry and screenshots to `/tmp/admin-core-qa`.
 Open the screenshots. Token completeness alone cannot establish hierarchy or
 usable layout. Verify sparse content, long labels, hidden panels, keyboard focus,
 mobile widths, overlays and saved preference restoration.
+
+## Theme expression
+
+All seven presets use the same recipes. `themes.json` also owns title and label
+families, title weight/tracking, surface fill/filter, navigation material and
+shape, control elevation, field fill and interaction timing. Keep opaque
+`--admin-surface` as the portable palette value; `--admin-surface-fill` may add a
+translucent or tonal treatment. The custom-theme compiler resets every expression
+token, so a saved version-1 definition cannot inherit the previous preset's glass
+or title styling. Its stored schema is unchanged.
+
+Paper is warm/cobalt, Night graphite/brass, Signal teal/precise, Studio
+editorial/clay, Frost icy/translucent, Material tonal/rounded and macOS
+silver/system. Material and macOS differ in type, corner geometry, elevation and
+navigation treatment. Add expression through these tokens, not `[data-theme]`
+component selectors. Today modules consume the same surface/title tokens.
+
+The appearance picker uses a roving radio focus target. Arrow keys select an
+adjacent preset without closing the panel; Home/End select the endpoints. Escape
+returns focus to the trigger. Clicking a preset applies it and closes the panel.
+
+When local resources are unavailable, run the focused visual path on GitHub:
+`gh workflow run ci.yml --ref <branch> -f admin_design_only=true`. This manual path
+retains the preview matrix, actual workspace screenshots, computed identities,
+contrast audits and picker keyboard evidence. It is separate from full CI; the
+default workflow still runs all required build and contract checks.

@@ -376,7 +376,7 @@
       "--admin-card-flat-shadow": "0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent)",
       "--admin-card-raised-shadow": "var(--admin-shadow)",
       "--admin-card-outline-shadow": "0 0 0 1px color-mix(in srgb, var(--admin-ink) 16%, transparent)",
-      "--admin-danger": "#b3261e",
+      "--admin-danger": "#9b1c35",
       "--admin-danger-soft": "rgba(179, 38, 30, 0.10)",
       "--admin-success": "#146c3a",
       "--admin-success-soft": "rgba(20, 108, 58, 0.10)",

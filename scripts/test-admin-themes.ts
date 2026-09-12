@@ -65,3 +65,30 @@ assert.ok(
 console.log(
   `Admin themes passed: ${themes.length} presets, token completeness, contrast, portable round trips, invalid definitions and legacy compatibility.`,
 );
+
+const material = themes.find((theme) => theme.id === "material")!;
+const mac = themes.find((theme) => theme.id === "mac")!;
+for (const key of [
+  "--admin-font",
+  "--admin-surface-radius",
+  "--admin-control-radius",
+  "--admin-shadow",
+] as const)
+  assert.notEqual(
+    material.tokens[key],
+    mac.tokens[key],
+    `Material and macOS must differ in ${key}`,
+  );
+for (const theme of themes) {
+  const custom = compileAdminTheme(themeFromPreset(theme.id));
+  assert.equal(
+    custom["--admin-surface-filter"],
+    "none",
+    "Portable themes must not inherit a prior preset material",
+  );
+  assert.equal(
+    custom["--admin-title-font"],
+    "var(--admin-font)",
+    "Portable typography owns its own title family",
+  );
+}

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "admin-theme-polish",
+    slug: "admin-theme-polish",
+    title: "Seven distinct appearances, one coherent workspace",
+    description:
+      "Workspace appearances now have distinct palettes, typography, geometry and depth. Material uses matte tonal surfaces while macOS uses silver chrome and tighter controls. The appearance picker previews each style and supports keyboard navigation. Shared controls, focus states, Today surfaces and reduced motion follow the same core tokens, with custom themes and density preserved.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "admin-coherent-core",
     slug: "admin-coherent-core",
     title: "A consistent core for the everyday workspace",

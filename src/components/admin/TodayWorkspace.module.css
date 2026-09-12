@@ -39,6 +39,7 @@
   box-shadow: var(--admin-shadow-border);
 }
 .primaryButton {
+  box-shadow: var(--admin-control-shadow);
   background: var(--admin-action);
   color: var(--admin-action-ink);
 }
@@ -69,7 +70,7 @@
 .editor button:focus-visible,
 .editor input:focus-visible,
 .editor select:focus-visible {
-  outline: 2px solid var(--admin-ink);
+  outline: 2px solid var(--admin-action);
   outline-offset: 3px;
 }
 .viewSelect {
@@ -105,8 +106,10 @@
 }
 
 .card {
-  border-radius: var(--admin-surface-radius, 16px);
-  background: var(--admin-surface);
+  border-radius: var(--admin-surface-radius);
+  background: var(--admin-surface-fill);
+  -webkit-backdrop-filter: var(--admin-surface-filter);
+  backdrop-filter: var(--admin-surface-filter);
   box-shadow: var(--admin-shadow);
   overflow: hidden;
   min-width: 0;
@@ -131,6 +134,7 @@
   color: var(--admin-muted);
 }
 .eyebrow {
+  font-family: var(--admin-label-font);
   font-size: var(--admin-text-caption);
   font-weight: 650;
   letter-spacing: 0.14em;
@@ -153,7 +157,7 @@
 }
 .brief {
   position: relative;
-  padding: 30px;
+  padding: var(--admin-panel-padding);
   background: linear-gradient(
     120deg,
     color-mix(in srgb, var(--today-accent) 7%, var(--admin-surface)),
@@ -167,9 +171,10 @@
   gap: 24px;
 }
 .brief h2 {
+  font-family: var(--admin-title-font);
   font-size: clamp(23px, 2.6vw, 34px);
   line-height: 1.2;
-  letter-spacing: -0.035em;
+  letter-spacing: var(--admin-title-tracking);
   max-width: 600px;
   font-weight: 550;
   margin: 6px 0 12px;
@@ -646,6 +651,7 @@
     padding-top: 18px;
   }
   .brief h2 {
+    font-family: var(--admin-title-font);
     font-size: 27px;
   }
   .briefTop {

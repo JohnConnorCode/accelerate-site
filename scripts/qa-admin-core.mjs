@@ -278,6 +278,9 @@ try {
             await page.setViewportSize({ width: viewport, height: 1000 });
             await page.getByLabel("Preview appearance").selectOption(theme.id);
             await page.getByRole("radio", { name: density, exact: true }).check();
+            // Capture the chosen identity after its short control transitions settle.
+            await page.evaluate(() => document.fonts.ready);
+            await page.waitForTimeout(350);
             const size = await page
               .getByRole("button", { name: "New project" })
               .evaluate((el) => el.getBoundingClientRect().height);
@@ -349,6 +352,7 @@ try {
           assert(
             await workspace.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2),
           );
+          await workspace.waitForTimeout(350);
           await workspace.screenshot({
             path: `${out}/workspace-${theme.id}-${width}.png`,
             fullPage: true,
