@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -78,7 +79,7 @@ try {
   // Native PostgreSQL has no Supabase Data API default ACLs. Grant the existing
   // table privileges explicitly; SET ROLE authenticated still exercises actual
   // catalog RLS. No row policies are replaced and the RPC is SECURITY INVOKER.
-  sql(`GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+  sql(`GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO authenticated,service_role;
  INSERT INTO tenants(id,slug,name,status,config) SELECT '${b}','other-actions','Other','active',config FROM tenants WHERE id='${a}';
  INSERT INTO tenant_memberships(tenant_id,user_id,invited_email,role,status) VALUES('${b}','${u}','owner@example.test','admin','active');`);
   function stage(type, payload, tenant = a) {
@@ -175,7 +176,8 @@ try {
   const original = stage("create_task", dedupePayload);
   sql(call(original, dedupePayload));
   const duplicate = stage("create_task", dedupePayload);
-  denied(call(duplicate, dedupePayload), "same logical task cannot become a new inverse");
+  assert.equal(JSON.parse(sql(call(duplicate, dedupePayload))).deduplicated, true);
+  sql(call(duplicate, dedupePayload, true));
   assert.equal(sql("SELECT count(*) FROM tasks WHERE dedupe_key='native-dedupe';"), "1");
   // Opportunity inverse uses an exact captured post-state too.
   const opp = sql(
@@ -187,6 +189,140 @@ try {
   sql(call(nextId, nextPayload));
   sql(call(nextId, nextPayload, true));
   assert.equal(sql(`SELECT next_action FROM opportunities WHERE id='${old.id}';`), "Original step");
+  // System source text never grants authority to an authenticated caller.
+  const systemPayload = {
+    title: "System follow-up",
+    source: "delivery_handoff",
+    dedupeKey: "system-task",
+    assigneeUserId: u,
+    description: "Preserved source summary",
+  };
+  const systemCall = `SELECT create_revenue_task(${quote(JSON.stringify(systemPayload))}::jsonb,'system',NULL,NULL,'native-system');`;
+  denied(context() + systemCall, "caller text cannot grant system authority");
+  const machineContext = `SET ROLE service_role; SET request.jwt.claim.role='service_role'; SET request.headers='{"x-tenant-id":"${a}"}';`;
+  const machineTask = JSON.parse(sql(machineContext + systemCall)).task;
+  assert.equal(machineTask.assigned_to, u);
+  assert.equal(machineTask.source, "delivery_handoff");
+  sql(`UPDATE tasks SET status='completed' WHERE id='${machineTask.id}';`);
+  assert.equal(JSON.parse(sql(machineContext + systemCall)).task.id, machineTask.id);
+  assert.equal(
+    sql(
+      `SELECT metadata->>'authority' FROM audit_log WHERE action='task.created' AND entity_id='${machineTask.id}';`,
+    ),
+    "deterministic_system",
+  );
+  assert.equal(
+    sql(`SELECT summary FROM activities WHERE external_id='task:${machineTask.id}:created';`),
+    "Preserved source summary",
+  );
+  const item = {
+    title: "Exact approved batch task",
+    description: "Approved detail",
+    dueDate: "2026-10-01",
+    assigneeUserId: u,
+  };
+  sql(`UPDATE opportunities SET stage='won' WHERE id='${old.id}';`);
+  const batchPayload = {
+    opportunityId: old.id,
+    expectedState: "won",
+    tasks: [item],
+    pluginOrigin: { id: "client-onboarding" },
+  };
+  const parentId = stage("create_task_batch", batchPayload);
+  const effectKey =
+    "plugin:" +
+    createHash("sha256")
+      .update(JSON.stringify({ pluginId: "client-onboarding", source: old.id, ...item }))
+      .digest("hex");
+  const child = {
+    ...item,
+    source: "plugin",
+    dedupeKey: effectKey,
+    opportunityId: old.id,
+    relatedType: "opportunity",
+    relatedId: old.id,
+    relatedName: "Native opportunity",
+  };
+  const childCall = (input = child, approved = batchPayload) =>
+    context() +
+    `SELECT create_revenue_task(${quote(JSON.stringify(input))}::jsonb,'owner@example.test','${parentId}',${quote(JSON.stringify(approved))}::jsonb,NULL);`;
+  const childTask = JSON.parse(sql(childCall())).task;
+  assert.equal(sql(`SELECT status FROM action_queue WHERE id='${parentId}';`), "executing");
+  assert.equal(
+    sql(
+      `SELECT metadata->>'authority' FROM audit_log WHERE action='task.created' AND entity_id='${childTask.id}';`,
+    ),
+    "parent_approval",
+  );
+  denied(childCall({ ...child, title: "Unapproved task" }), "child outside approved membership");
+  denied(childCall({ ...child, dedupeKey: "different-key" }), "changed effect key");
+  denied(childCall(child, { ...batchPayload, tasks: [] }), "changed parent payload");
+  sql(`UPDATE tasks SET status='completed' WHERE id='${childTask.id}';`);
+  assert.equal(JSON.parse(sql(childCall())).task.id, childTask.id);
+  const direct = (input, provenance, actor = "owner@example.test") =>
+    context() +
+    `SELECT private.create_task_effect(${quote(JSON.stringify(input))}::jsonb,${quote(actor)},${quote(JSON.stringify(provenance))}::jsonb);`;
+  denied(
+    direct(systemPayload, { authority: "human_approval" }),
+    "direct writer cannot forge human authority",
+  );
+  denied(
+    direct(systemPayload, { systemSource: "claimed-system" }),
+    "direct writer cannot forge machine authority",
+  );
+  denied(
+    direct(child, { actionId: parentId, payload: batchPayload }, "someone-else@example.test"),
+    "direct writer cannot forge actor",
+  );
+  denied(
+    direct(
+      { ...child, title: "Forged direct child" },
+      { actionId: parentId, payload: batchPayload },
+    ),
+    "direct writer enforces exact parent membership",
+  );
+  denied(
+    direct(child, { actionId: "33333333-3333-4333-8333-333333333333", payload: batchPayload }),
+    "missing parent",
+  );
+  sql(`UPDATE action_queue SET approved_at=NULL WHERE id='${parentId}';`);
+  denied(childCall(), "missing approval timestamp");
+  sql(`UPDATE action_queue SET approved_at=now(),expires_at=NULL WHERE id='${parentId}';`);
+  denied(childCall(), "missing parent expiry");
+  sql(`UPDATE action_queue SET expires_at=now()+interval '1 hour' WHERE id='${parentId}';`);
+  sql(`UPDATE opportunities SET stage='discovery' WHERE id='${old.id}';`);
+  denied(childCall(), "changed source before duplicate replay");
+  sql(`UPDATE opportunities SET stage='won' WHERE id='${old.id}';`);
+  for (const description of [null, 'Quotes " and backslash \\ and unicode 雪 ☃']) {
+    const specialItem = {
+      ...item,
+      title: `Hash parity ${description === null ? "null" : "escaped"}`,
+      description,
+    };
+    const payload = { ...batchPayload, tasks: [specialItem] };
+    const id = stage("create_task_batch", payload);
+    const key =
+      "plugin:" +
+      createHash("sha256")
+        .update(JSON.stringify({ pluginId: "client-onboarding", source: old.id, ...specialItem }))
+        .digest("hex");
+    const input = { ...child, ...specialItem, dedupeKey: key };
+    const result = JSON.parse(sql(direct(input, { actionId: id, payload })));
+    assert.equal(result.task.dedupe_key, key, "SQL serialization matches JSON.stringify exactly");
+  }
+  const missingSource = { ...batchPayload, opportunityId: "33333333-3333-4333-8333-333333333333" };
+  const missingParent = stage("create_task_batch", missingSource);
+  denied(
+    direct(
+      {
+        ...child,
+        opportunityId: missingSource.opportunityId,
+        relatedId: missingSource.opportunityId,
+      },
+      { actionId: missingParent, payload: missingSource },
+    ),
+    "missing source",
+  );
   sql(`UPDATE tenant_memberships SET status='revoked' WHERE tenant_id='${a}' AND user_id='${u}';`);
   denied(call(failId, failPayload, true), "revoked member even on undo replay");
   assert.equal(sql(`SELECT prosecdef FROM pg_proc WHERE proname='apply_local_action';`), "f");
@@ -196,6 +332,9 @@ try {
       proofs: [
         "full-business-catalog-twice",
         "four-seeded-inverses",
+        "system-provenance-and-permanent-dedupe",
+        "exact-parent-task-membership-and-key",
+        "assignment-and-activity-preserved",
         "description-and-identity-restoration",
         "execution-replay",
         "revoked-policy-at-apply",

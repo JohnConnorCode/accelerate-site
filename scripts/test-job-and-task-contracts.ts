@@ -15,6 +15,7 @@
  */
 import assert from "node:assert/strict";
 import { MemorySupabase } from "./lib/memory-supabase";
+import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
 import { failJobRun, finishJobRun, startJobRun, withJobRun } from "../src/lib/revenue-os/runs";
 import { createRevenueTask } from "../src/lib/revenue-os/tasks";
 import {
@@ -224,7 +225,7 @@ async function main() {
 
   // ---- Task dedupe --------------------------------------------------
 
-  const tasks = new MemorySupabase({ tasks: [], audit_log: [], activities: [] });
+  const tasks = new AuthorizedMemorySupabase({ tasks: [], audit_log: [], activities: [] });
   const first = await createRevenueTask(tasks.client, {
     title: "Call Northside back",
     source: "inbound",
@@ -270,7 +271,7 @@ async function main() {
   assert.equal(tasks.rows("tasks").length, 2);
 
   // A task with no dedupe key is always created; dedupe must be opt-in.
-  const undeduped = new MemorySupabase({ tasks: [], audit_log: [], activities: [] });
+  const undeduped = new AuthorizedMemorySupabase({ tasks: [], audit_log: [], activities: [] });
   await createRevenueTask(undeduped.client, {
     title: "Ad hoc",
     source: "manual",

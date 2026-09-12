@@ -1,3 +1,4 @@
+import { createRevenueTask } from "@/lib/revenue-os/tasks";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
@@ -258,15 +259,28 @@ export async function PATCH(request: NextRequest) {
   if (lead_status === "contacted" && data) {
     const followUpDate = new Date();
     followUpDate.setDate(followUpDate.getDate() + 3);
-    await supabase.from("tasks").insert({
-      title: `Follow up with ${data.contact_name}`,
-      description: `Auto-created: Lead was contacted. Follow up in 3 days.`,
-      due_date: followUpDate.toISOString().split("T")[0],
-      priority: "high",
-      related_type: "lead",
-      related_id: id,
-      related_name: data.contact_name,
-    });
+    try {
+      await createRevenueTask(supabase, {
+        title: `Follow up with ${data.contact_name}`,
+        description: `Auto-created: Lead was contacted. Follow up in 3 days.`,
+        dueDate: followUpDate.toISOString().split("T")[0],
+        priority: "high",
+        relatedType: "lead",
+        relatedId: id,
+        relatedName: data.contact_name,
+        source: "leads",
+        dedupeKey: `lead-contacted-followup:${id}`,
+        actorEmail: auth.user.email || "founder",
+      });
+    } catch {
+      return NextResponse.json(
+        {
+          error: "The lead was saved, but its follow-up task failed. Retry the follow-up.",
+          partial: true,
+        },
+        { status: 502 },
+      );
+    }
   }
 
   // Auto-create client record when status → won

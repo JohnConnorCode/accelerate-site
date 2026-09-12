@@ -1,3 +1,71 @@
+-- One task row writer, reused by governed queue actions and existing deterministic
+-- job/parent workflows. Caller permissions and tenant RLS remain in force.
+CREATE OR REPLACE FUNCTION private.create_task_effect(p_input jsonb,p_actor text,p_provenance jsonb)
+RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
+DECLARE t uuid:=private.authorized_request_tenant_id(); task public.tasks%ROWTYPE; source_name text:=coalesce(nullif(p_input->>'source',''),'ai'); effect_key text:=nullif(p_input->>'dedupeKey','');
+ parent public.action_queue%ROWTYPE; provenance jsonb; policy record; approved_item jsonb; source_state text;
+BEGIN
+ IF nullif(btrim(p_actor),'') IS NULL THEN RAISE EXCEPTION 'Actor required'; END IF;
+ IF (p_provenance->>'actionId')::uuid IS NOT NULL THEN
+  SELECT * INTO parent FROM public.action_queue WHERE id=(p_provenance->>'actionId')::uuid AND tenant_id=t FOR UPDATE;
+  IF NOT FOUND OR parent.action_type NOT IN ('create_task','create_task_batch') OR parent.status<>'executing' OR (parent.expires_at IS NOT NULL AND parent.expires_at<=clock_timestamp()) THEN RAISE EXCEPTION 'Current exact parent approval required'; END IF;
+  IF current_user<>'service_role' AND (lower(p_actor) IS DISTINCT FROM lower(auth.jwt()->>'email') OR NOT EXISTS(SELECT 1 FROM public.tenant_memberships WHERE tenant_id=t AND user_id=auth.uid() AND role='admin' AND status='active')) THEN RAISE EXCEPTION 'Current workspace administrator required'; END IF;
+  SELECT * INTO policy FROM public.check_autonomy(parent.action_type,CASE WHEN parent.proposed_by LIKE 'coworker:%' THEN substring(parent.proposed_by FROM 10) ELSE NULL END);
+  IF policy.hard_floor OR policy.level='prohibited' THEN RAISE EXCEPTION 'Parent policy was revoked'; END IF;
+  IF parent.approved_by IS NULL THEN
+   IF NOT policy.allowed OR policy.level<>'standing_permission' THEN RAISE EXCEPTION 'Current standing permission required'; END IF;
+  ELSIF parent.approved_by IS DISTINCT FROM p_actor OR parent.approved_at IS NULL THEN RAISE EXCEPTION 'A current exact human approval is required'; END IF;
+  IF parent.action_type='create_task' THEN
+   IF p_input IS DISTINCT FROM parent.payload||jsonb_build_object('source',coalesce(parent.payload->>'source',CASE WHEN parent.source_context='operator_ui' THEN 'manual' ELSE 'ai' END),'dedupeKey',coalesce(nullif(parent.payload->>'dedupeKey',''),'action:'||parent.id::text)) THEN RAISE EXCEPTION 'Task is outside the exact approved action'; END IF;
+   provenance:=jsonb_build_object('actionId',parent.id,'authority',CASE WHEN parent.approved_by IS NULL THEN 'standing_policy' ELSE 'human_approval' END);
+  ELSE
+  IF parent.approved_by IS NULL OR parent.approved_at IS NULL OR parent.expires_at IS NULL OR parent.payload IS DISTINCT FROM p_provenance->'payload' OR nullif(parent.payload#>>'{pluginOrigin,id}','') IS NULL THEN RAISE EXCEPTION 'Current exact parent approval required'; END IF;
+  IF parent.payload ? 'opportunityId' THEN
+   SELECT stage INTO source_state FROM public.opportunities WHERE tenant_id=t AND id=(parent.payload->>'opportunityId')::uuid FOR SHARE;
+  ELSE
+   SELECT status INTO source_state FROM public.calendar_events WHERE tenant_id=t AND id=(parent.payload->>'meetingId')::uuid FOR SHARE;
+  END IF;
+  IF source_state IS NULL OR source_state IS DISTINCT FROM parent.payload->>'expectedState' OR (parent.payload ? 'opportunityId' AND source_state<>'won') OR (parent.payload ? 'meetingId' AND source_state='cancelled') THEN RAISE EXCEPTION 'Parent source changed since approval'; END IF;
+  SELECT item INTO approved_item FROM jsonb_array_elements(parent.payload->'tasks') item
+   WHERE item->>'title'=p_input->>'title' AND item->>'description' IS NOT DISTINCT FROM p_input->>'description'
+    AND item->>'dueDate'=p_input->>'dueDate' AND item->>'assigneeUserId'=p_input->>'assigneeUserId' LIMIT 1;
+  IF approved_item IS NULL OR p_input->>'source' IS DISTINCT FROM 'plugin'
+    OR p_input->>'opportunityId' IS DISTINCT FROM parent.payload->>'opportunityId'
+    OR p_input->>'relatedId' IS DISTINCT FROM coalesce(parent.payload->>'opportunityId',parent.payload->>'meetingId')
+    OR p_input->>'relatedType' IS DISTINCT FROM CASE WHEN parent.payload ? 'opportunityId' THEN 'opportunity' ELSE 'calendar_event' END
+    OR EXISTS(SELECT 1 FROM jsonb_object_keys(p_input) k WHERE k NOT IN ('title','description','dueDate','assigneeUserId','source','dedupeKey','opportunityId','relatedType','relatedId','relatedName')) THEN RAISE EXCEPTION 'Task is outside the exact approved batch'; END IF;
+  -- Match the existing workflowTaskEffectKey serialization, preserving old
+  -- cross-proposal task identity instead of accepting a caller's fresh key.
+  effect_key:='plugin:'||encode(sha256(convert_to(
+   '{"pluginId":'||to_json(parent.payload#>>'{pluginOrigin,id}')::text||',"source":'||to_json(coalesce(parent.payload->>'opportunityId',parent.payload->>'meetingId'))::text||',"title":'||coalesce(to_json(approved_item->>'title')::text,'null')||',"description":'||coalesce(to_json(approved_item->>'description')::text,'null')||',"dueDate":'||coalesce(to_json(approved_item->>'dueDate')::text,'null')||',"assigneeUserId":'||coalesce(to_json(approved_item->>'assigneeUserId')::text,'null')||'}','UTF8')),'hex');
+  IF p_input->>'dedupeKey' IS DISTINCT FROM effect_key THEN RAISE EXCEPTION 'Task effect key does not match approved work'; END IF;
+  provenance:=jsonb_build_object('authority','parent_approval','actionId',parent.id);
+  END IF;
+ ELSE
+  IF current_user<>'service_role' OR nullif(btrim(p_provenance->>'systemSource'),'') IS NULL THEN RAISE EXCEPTION 'Bound tenant system context required'; END IF;
+  provenance:=jsonb_build_object('authority','deterministic_system','systemSource',p_provenance->>'systemSource');
+ END IF;
+ IF jsonb_typeof(p_input->'title') IS DISTINCT FROM 'string' OR nullif(btrim(p_input->>'title'),'') IS NULL OR length(p_input->>'title')>1000 THEN RAISE EXCEPTION 'Task title is required'; END IF;
+ IF p_input ? 'description' AND jsonb_typeof(p_input->'description') NOT IN ('string','null') THEN RAISE EXCEPTION 'Invalid description'; END IF;
+ IF nullif(p_input->>'assigneeUserId','') IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.tenant_memberships WHERE tenant_id=t AND user_id=(p_input->>'assigneeUserId')::uuid AND status='active') THEN RAISE EXCEPTION 'Task assignee must be an active member of this workspace'; END IF;
+ IF effect_key IS NOT NULL THEN
+  PERFORM pg_advisory_xact_lock(hashtextextended(t::text||':task:'||effect_key,0));
+  SELECT * INTO task FROM public.tasks WHERE tenant_id=t AND dedupe_key=effect_key
+   AND (CASE WHEN source_name IN ('delivery_handoff','plugin','bookings','leads','calendly') THEN source=source_name ELSE status IN ('pending','snoozed') END)
+   ORDER BY created_at,id LIMIT 1 FOR UPDATE;
+  IF FOUND THEN RETURN jsonb_build_object('task',to_jsonb(task),'deduplicated',true); END IF;
+ END IF;
+ INSERT INTO public.tasks(tenant_id,title,description,assigned_to,due_date,due_time,priority,related_type,related_id,related_name,opportunity_id,source,dedupe_key)
+ VALUES(t,btrim(p_input->>'title'),nullif(p_input->>'description',''),nullif(p_input->>'assigneeUserId','')::uuid,nullif(p_input->>'dueDate','')::date,nullif(p_input->>'dueTime','')::time,coalesce(p_input->>'priority','medium'),p_input->>'relatedType',nullif(p_input->>'relatedId','')::uuid,p_input->>'relatedName',nullif(p_input->>'opportunityId','')::uuid,source_name,effect_key) RETURNING * INTO task;
+ INSERT INTO public.audit_log(tenant_id,actor_email,action,entity_type,entity_id,after_state,metadata)
+ VALUES(t,p_actor,'task.created','task',task.id::text,to_jsonb(task),provenance||jsonb_build_object('source',source_name,'dedupe_key',effect_key));
+ INSERT INTO public.activities(tenant_id,activity_type,title,summary,opportunity_id,source,actor_email,external_id,metadata)
+ VALUES(t,'task_created','Task created: '||task.title,task.description,task.opportunity_id,source_name,p_actor,'task:'||task.id::text||':created',provenance||jsonb_build_object('task_id',task.id,'priority',task.priority));
+ RETURN jsonb_build_object('task',to_jsonb(task),'deduplicated',false);
+END $$;
+REVOKE ALL ON FUNCTION private.create_task_effect(jsonb,text,jsonb) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION private.create_task_effect(jsonb,text,jsonb) TO authenticated,service_role;
+
 -- Local reversible actions stay in action_queue. The mutation, inverse and terminal
 -- receipt share one transaction; undo is fenced by the captured post-state.
 CREATE OR REPLACE FUNCTION public.apply_local_action(p_id uuid, p_payload jsonb, p_actor text, p_undo boolean DEFAULT false)
@@ -28,7 +96,9 @@ BEGIN
   END IF;
   IF coalesce(after_row,'null'::jsonb) IS DISTINCT FROM a.compensation->'after' THEN RAISE EXCEPTION 'Record changed since execution; prepare a new restorative action'; END IF;
   before_row := a.compensation->'before';
-  IF a.action_type='create_task' THEN
+  IF a.action_type='create_task' AND a.compensation->>'created'='false' THEN
+   NULL; -- A reused task was never this action's effect.
+  ELSIF a.action_type='create_task' THEN
    DELETE FROM public.tasks WHERE id=target AND tenant_id=t;
   ELSIF a.action_type='delete_task' THEN
    -- No incoming task foreign keys exist in the catalog. Revalidate at runtime
@@ -59,15 +129,9 @@ BEGIN
   IF NOT policy.allowed OR policy.level<>'standing_permission' THEN RAISE EXCEPTION 'Current standing permission required'; END IF;
  ELSIF a.approved_by IS DISTINCT FROM p_actor OR a.approved_at IS NULL THEN RAISE EXCEPTION 'A current exact human approval is required'; END IF;
  IF a.action_type='create_task' THEN
-  IF p_payload ? 'description' AND jsonb_typeof(p_payload->'description') NOT IN ('string','null') THEN RAISE EXCEPTION 'Invalid description'; END IF;
-  IF jsonb_typeof(p_payload->'title') IS DISTINCT FROM 'string' OR length(p_payload->>'title')>1000 OR nullif(btrim(p_payload->>'title'),'') IS NULL THEN RAISE EXCEPTION 'Task title required'; END IF;
-  -- A pre-existing deduped task is not a created effect and must never be
-  -- offered for deletion by this action's inverse.
-  IF nullif(p_payload->>'dedupeKey','') IS NOT NULL AND EXISTS(SELECT 1 FROM public.tasks WHERE tenant_id=t AND dedupe_key=p_payload->>'dedupeKey' AND status<>'completed') THEN RAISE EXCEPTION 'Task already exists; no new effect was applied'; END IF;
-  target := gen_random_uuid();
-  INSERT INTO public.tasks(id,tenant_id,title,description,due_date,due_time,priority,related_type,related_id,related_name,opportunity_id,source,dedupe_key)
-  VALUES(target,t,btrim(p_payload->>'title'),p_payload->>'description',nullif(p_payload->>'dueDate','')::date,nullif(p_payload->>'dueTime','')::time,coalesce(p_payload->>'priority','medium'),p_payload->>'relatedType',nullif(p_payload->>'relatedId','')::uuid,p_payload->>'relatedName',nullif(p_payload->>'opportunityId','')::uuid,CASE WHEN a.source_context='operator_ui' THEN 'manual' ELSE 'ai' END,coalesce(nullif(p_payload->>'dedupeKey',''),'action:'||p_id::text)) RETURNING to_jsonb(tasks) INTO after_row;
-  v_result := jsonb_build_object('task',after_row,'deduplicated',false);
+  v_result:=private.create_task_effect(p_payload||jsonb_build_object('source',coalesce(p_payload->>'source',CASE WHEN a.source_context='operator_ui' THEN 'manual' ELSE 'ai' END),'dedupeKey',coalesce(nullif(p_payload->>'dedupeKey',''),'action:'||p_id::text)),p_actor,jsonb_build_object('actionId',p_id,'authority',CASE WHEN a.approved_by IS NULL THEN 'standing_policy' ELSE 'human_approval' END));
+  after_row:=v_result->'task'; target:=(after_row->>'id')::uuid;
+  IF (v_result->>'deduplicated')::boolean THEN before_row:=after_row; END IF;
  ELSE
   target := coalesce(p_payload->>'taskId',p_payload->>'opportunityId')::uuid;
   IF a.action_type='update_next_action' THEN
@@ -112,7 +176,7 @@ BEGIN
    v_result:=after_row;
   END IF;
  END IF;
- IF a.action_type IN ('create_task','update_task','delete_task') THEN
+ IF a.action_type IN ('update_task','delete_task') THEN
   effect:=CASE WHEN a.action_type='create_task' THEN 'created' WHEN a.action_type='delete_task' THEN 'deleted' WHEN after_row->>'status'='completed' THEN 'completed' WHEN after_row->>'status'='snoozed' THEN 'snoozed' ELSE 'updated' END;
   INSERT INTO public.audit_log(tenant_id,actor_email,action,entity_type,entity_id,before_state,after_state,metadata)
   VALUES(t,p_actor,'task.'||effect,'task',target::text,before_row,after_row,jsonb_build_object('actionId',p_id));
@@ -121,8 +185,18 @@ BEGIN
  END IF;
  INSERT INTO public.audit_log(tenant_id,actor_email,action,entity_type,entity_id,before_state,after_state,metadata)
  VALUES(t,p_actor,'action.executed','action_queue',p_id::text,before_row,after_row,jsonb_build_object('targetId',target,'actionType',a.action_type));
- UPDATE public.action_queue SET status='executed',executed_at=clock_timestamp(),result=v_result,error=NULL,reversibility='reversible',compensation=jsonb_build_object('version',1,'targetId',target,'before',before_row,'after',after_row) WHERE id=p_id AND tenant_id=t;
+ UPDATE public.action_queue SET status='executed',executed_at=clock_timestamp(),result=v_result,error=NULL,reversibility='reversible',compensation=jsonb_build_object('version',1,'targetId',target,'before',before_row,'after',after_row,'created',CASE WHEN a.action_type='create_task' THEN NOT (v_result->>'deduplicated')::boolean ELSE NULL END) WHERE id=p_id AND tenant_id=t;
  RETURN v_result;
 END $$;
 REVOKE ALL ON FUNCTION public.apply_local_action(uuid,jsonb,text,boolean) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.apply_local_action(uuid,jsonb,text,boolean) TO authenticated,service_role;
+
+-- Already approved batches do not nest another approval. Deterministic system
+-- work carries its existing bound service context and never claims human approval.
+CREATE OR REPLACE FUNCTION public.create_revenue_task(p_input jsonb,p_actor text,p_parent_action uuid DEFAULT NULL,p_parent_payload jsonb DEFAULT NULL,p_system_source text DEFAULT NULL)
+RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
+BEGIN
+ RETURN private.create_task_effect(p_input,p_actor,jsonb_build_object('actionId',p_parent_action,'payload',p_parent_payload,'systemSource',p_system_source));
+END $$;
+REVOKE ALL ON FUNCTION public.create_revenue_task(jsonb,text,uuid,jsonb,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.create_revenue_task(jsonb,text,uuid,jsonb,text) TO authenticated,service_role;

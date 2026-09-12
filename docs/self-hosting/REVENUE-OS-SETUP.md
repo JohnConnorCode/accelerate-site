@@ -274,7 +274,7 @@ Clean installs include `20260906-universal-work-board.sql` and `20260907-work-pa
 
 ### Atomic local action upgrade
 
-`migrations/20260912154902-atomic-local-actions.sql` extends the existing action queue with the `apply_local_action` transaction. Apply it through the ordered migration runner before deploying the updated executor, then verify schema readiness. It retains existing queue statuses, pending deduplication and history. The function uses the caller's database permissions and checks the active tenant and administrator; it does not obtain service-role access.
+`migrations/20260912154902-atomic-local-actions.sql` extends the existing action queue with the `apply_local_action` transaction. Apply it through the ordered migration runner before deploying the updated executor, then verify schema readiness. It retains existing queue statuses, pending deduplication and history. `private.create_task_effect` is the shared task writer; the narrow `create_revenue_task` RPC accepts either an exact approved parent task or a real service-role system context. Assignment, source, activity summaries and persistent delivery/plugin deduplication remain intact. Machine receipts record system provenance and never invent human approval. The function uses the caller's database permissions and checks the active tenant and administrator; it does not obtain service-role access.
 
 Old pending task or next-action proposals without captured target state require a fresh proposal. Old executed actions without a versioned inverse require a separately reviewed restoration. Do not manufacture an inverse from current data. No hosted migration or deployment is implied by local verification.
 

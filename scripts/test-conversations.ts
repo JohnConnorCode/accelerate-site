@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
 import {
   assignConversation,
   listConversations,
@@ -608,7 +609,8 @@ async function runConversationsSuite() {
   );
 
   // Test 9: createTaskFromConversation
-  const taskRes = await createTaskFromConversation(supabase, {
+  const taskDb = new AuthorizedMemorySupabase(structuredClone(db.tables));
+  const taskRes = await createTaskFromConversation(taskDb.client, {
     conversationId: "conv-1",
     title: "Send custom enterprise quote",
     dueDate: "2026-09-05",

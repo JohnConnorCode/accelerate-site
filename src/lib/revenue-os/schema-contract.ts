@@ -737,6 +737,8 @@ export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
   "public.apply_local_action(uuid,jsonb,text,boolean)",
+  "public.create_revenue_task(jsonb,text,uuid,jsonb,text)",
+  "private.create_task_effect(jsonb,text,jsonb)",
   "public.save_today_views(text,bigint,jsonb,uuid)",
   ...REVENUE_SCHEMA_SERVICE_FUNCTIONS.map(({ name }) => name),
   "private.advance_client_handoff_revision()",

@@ -7,6 +7,95 @@ import { prepareOperatorTaskPatch } from "../../src/lib/revenue-os/operator-task
  * authorization, state fencing and rollback proof. No production fallback. */
 export function installLocalActionFixture(mem: MemorySupabase) {
   const copy = <T>(value: T): T => structuredClone(value);
+  const createEffect = async (payload: Row, actor: unknown, provenance: Row) => {
+    const db = mem.client as SupabaseClient;
+    const tenantId = mem.rows("action_queue").find((a) => a.id === provenance.actionId)?.tenant_id;
+    if (!String(payload.title ?? "").trim()) throw new Error("Task title is required");
+    if (
+      payload.assigneeUserId &&
+      !mem
+        .rows("tenant_memberships")
+        .some((m) => m.user_id === payload.assigneeUserId && m.status === "active")
+    )
+      throw new Error("Task assignee must be an active member of this workspace");
+    const source = String(payload.source ?? "ai");
+    const existing =
+      payload.dedupeKey &&
+      mem
+        .rows("tasks")
+        .find(
+          (t) =>
+            t.dedupe_key === payload.dedupeKey &&
+            (!tenantId || t.tenant_id === tenantId) &&
+            (["delivery_handoff", "plugin", "bookings", "leads", "calendly"].includes(source)
+              ? t.source === source
+              : ["pending", "snoozed"].includes(String(t.status))),
+        );
+    if (existing) return { task: copy(existing), deduplicated: true };
+    const created = await db
+      .from("tasks")
+      .insert({
+        ...(tenantId ? { tenant_id: tenantId } : {}),
+        title: String(payload.title).trim(),
+        description: payload.description || null,
+        due_date: payload.dueDate || null,
+        due_time: payload.dueTime || null,
+        priority: payload.priority ?? "medium",
+        assigned_to: payload.assigneeUserId ?? null,
+        related_type: payload.relatedType ?? null,
+        related_id: payload.relatedId ?? null,
+        related_name: payload.relatedName ?? null,
+        opportunity_id: payload.opportunityId ?? null,
+        source,
+        dedupe_key: payload.dedupeKey ?? null,
+        status: "pending",
+      })
+      .select("*")
+      .single();
+    if (created.error?.code === "23505" && payload.dedupeKey) {
+      const concurrent = mem
+        .rows("tasks")
+        .find((t) => t.dedupe_key === payload.dedupeKey && t.source === source);
+      if (concurrent) return { task: copy(concurrent), deduplicated: true };
+    }
+    if (created.error) throw new Error(created.error.message);
+    const task = copy(created.data as Row);
+    for (const [table, row] of [
+      [
+        "audit_log",
+        {
+          action: "task.created",
+          actor_email: actor,
+          entity_type: "task",
+          entity_id: task.id,
+          after_state: task,
+          metadata: provenance,
+        },
+      ],
+      [
+        "activities",
+        {
+          activity_type: "task_created",
+          title: `Task created: ${task.title}`,
+          summary: task.description,
+          source,
+          external_id: `task:${task.id}:created`,
+          metadata: { ...provenance, task_id: task.id, priority: task.priority },
+        },
+      ],
+    ] as const) {
+      const receipt = await db.from(table).insert(row);
+      if (receipt.error) throw new Error(receipt.error.message);
+    }
+    return { task, deduplicated: false };
+  };
+  mem.rpc("create_revenue_task", ({ p_input, p_actor, p_parent_action, p_system_source }) =>
+    createEffect(p_input as Row, p_actor, {
+      authority: p_parent_action ? "parent_approval" : "deterministic_system",
+      actionId: p_parent_action,
+      systemSource: p_system_source,
+    }),
+  );
   for (const action of mem.rows("action_queue")) {
     if (!["update_task", "delete_task", "update_next_action"].includes(String(action.action_type)))
       continue;
@@ -34,9 +123,19 @@ export function installLocalActionFixture(mem: MemorySupabase) {
       if (inverse.receipt) return inverse.receipt;
       if (!isDeepStrictEqual(before, inverse.after))
         throw new Error("Record changed since execution");
-      if (a.action_type === "create_task") await write(db.from(table).delete().eq("id", target));
-      else if (a.action_type === "delete_task") await write(db.from(table).insert(inverse.before));
-      else await write(db.from(table).update(inverse.before).eq("id", target));
+      if (a.action_type === "create_task" && inverse.created === false) {
+        /* no created effect */
+      } else if (a.action_type === "create_task")
+        await write(db.from(table).delete().eq("id", target));
+      else if (a.action_type === "delete_task")
+        await write(db.from(table).insert(inverse.before as Row));
+      else
+        await write(
+          db
+            .from(table)
+            .update(inverse.before as Row)
+            .eq("id", target),
+        );
       const receipt = { undone: a.action_type, detail: { targetId: target } };
       inverse.receipt = receipt;
       await write(
@@ -47,20 +146,9 @@ export function installLocalActionFixture(mem: MemorySupabase) {
     let after: Row | null = null;
     let result: unknown;
     if (a.action_type === "create_task") {
-      if (!String(payload.title ?? "").trim()) throw new Error("Task title required");
-      const created = await db
-        .from("tasks")
-        .insert({
-          title: payload.title,
-          description: payload.description ?? null,
-          status: "pending",
-          priority: payload.priority ?? "medium",
-        })
-        .select("*")
-        .single();
-      if (created.error) throw new Error(created.error.message);
-      after = copy(created.data as Row);
-      result = { task: after, deduplicated: false };
+      const created = await createEffect(payload, p_actor, { actionId: p_id });
+      after = created.task;
+      result = created;
     } else {
       if (!before) throw new Error("This task is no longer available");
       if (!isDeepStrictEqual(before, payload.expectedState))
@@ -100,7 +188,32 @@ export function installLocalActionFixture(mem: MemorySupabase) {
         result = after;
       }
     }
-    a.compensation = { version: 1, targetId: after?.id ?? target, before, after };
+    if (["update_task", "delete_task"].includes(String(a.action_type))) {
+      const effect =
+        a.action_type === "delete_task"
+          ? "deleted"
+          : after?.status === "completed"
+            ? "completed"
+            : after?.status === "snoozed"
+              ? "snoozed"
+              : "updated";
+      await write(
+        db.from("audit_log").insert({
+          action: `task.${effect}`,
+          entity_type: "task",
+          entity_id: target,
+          before_state: before,
+          after_state: after,
+        }),
+      );
+    }
+    a.compensation = {
+      version: 1,
+      targetId: after?.id ?? target,
+      before,
+      after,
+      created: !(result as Row)?.deduplicated,
+    };
     a.reversibility = "reversible";
     a.status = "executed";
     a.error = null;

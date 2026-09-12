@@ -1,7 +1,8 @@
+import { testTaskRouteRetries } from "./lib/task-route-retry-fixture";
 import assert from "node:assert/strict";
 import { projectOperatorAttention } from "../src/lib/revenue-os/operator-attention";
 import type { OperatorQueueItem } from "../src/lib/revenue-os/types";
-import { MemorySupabase } from "./lib/memory-supabase";
+import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixture";
 import {
   patchOperatorTask,
   completeOperatorTask,
@@ -90,10 +91,11 @@ async function main() {
     /Invalid due date/,
   );
   assert.equal(
-    mem.rows("audit_log").length,
+    mem.rows("audit_log").filter((row) => String(row.action).startsWith("task.")).length,
     3,
     "Edit, snooze and completion retain distinct audit events",
   );
+  await testTaskRouteRetries();
   console.log(
     "PASS: source identities, recovery tasks, optional native custom work, duplicate projections, canonical task edits/snooze/completion and replay refusal.",
   );

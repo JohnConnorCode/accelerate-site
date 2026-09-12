@@ -1,3 +1,4 @@
+import { createRevenueTask } from "@/lib/revenue-os/tasks";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { transitionOpportunity, transitionStatusFromError } from "@/lib/revenue-os/pipeline";
@@ -124,22 +125,35 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  if (body.stage === "proposal" && current.stage !== "proposal") {
+  if (body.stage === "proposal") {
     const due = new Date();
     due.setDate(due.getDate() + 2);
-    await supabase.from("tasks").insert({
-      title: `Follow up on ${
-        tenant.playbooks.find((playbook) => playbook.sourceTag === current.source)?.label ||
-        resolvePlaybook().label
-      } proposal: ${current.email}`,
-      description:
-        "Confirm the prospect received the written plan and proposal; address the primary objection.",
-      due_date: due.toISOString().split("T")[0],
-      priority: "high",
-      related_type: "lead",
-      related_id: body.id,
-      related_name: current.email,
-    });
+    try {
+      await createRevenueTask(supabase, {
+        title: `Follow up on ${
+          tenant.playbooks.find((playbook) => playbook.sourceTag === current.source)?.label ||
+          resolvePlaybook().label
+        } proposal: ${current.email}`,
+        description:
+          "Confirm the prospect received the written plan and proposal; address the primary objection.",
+        dueDate: due.toISOString().split("T")[0],
+        priority: "high",
+        relatedType: "lead",
+        relatedId: body.id,
+        relatedName: current.email,
+        source: "bookings",
+        dedupeKey: `booking-proposal-followup:${body.id}`,
+        actorEmail: auth.user.email || "founder",
+      });
+    } catch {
+      return NextResponse.json(
+        {
+          error: "The booking was saved, but its follow-up task failed. Retry the follow-up.",
+          partial: true,
+        },
+        { status: 502 },
+      );
+    }
   }
   return NextResponse.json({ opportunity: data });
 }

@@ -126,9 +126,10 @@
         "@/lib/admin/module-guard",
         "@/lib/email/booking",
         "@/lib/revenue-os/pipeline",
+        "@/lib/revenue-os/tasks",
         "next/server"
       ],
-      "sourceSha256": "57b07eb5f5da312bc972daec1cfa68584d9e4f65f0451940dabd42f04565341e"
+      "sourceSha256": "e8fb3000622b71e240cfafb87366d90e4be12d93a9150d42add1c527515de176"
     },
     {
       "source": "src/app/api/admin/chat-leads/route.ts",
@@ -641,9 +642,10 @@
         "@/lib/revenue-os/legacy-adapter",
         "@/lib/revenue-os/pipeline",
         "@/lib/revenue-os/pipeline-stage-resolver",
+        "@/lib/revenue-os/tasks",
         "next/server"
       ],
-      "sourceSha256": "fa21cb9caaa32e8e670cc379ca07dd7712186af88706f1a9137cdf9d93212437"
+      "sourceSha256": "90e9ce6cdcb24a1151e18e5e55f4e5bff8b79d891a6a9625a753fc236b8305bc"
     },
     {
       "source": "src/app/api/admin/learning/[id]/route.ts",

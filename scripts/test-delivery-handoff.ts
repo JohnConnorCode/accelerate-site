@@ -6,7 +6,7 @@ import {
   getActiveTemplate,
 } from "../src/lib/revenue-os/delivery-handoff";
 import { loadOpportunityRecord } from "../src/lib/revenue-os/records";
-import { MemorySupabase } from "./lib/memory-supabase";
+import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixture";
 
 const TENANT = "tenant-a";
 const FOREIGN = "tenant-b";

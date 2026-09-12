@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { createRevenueTask } from "@/lib/revenue-os/tasks";
 import { NextRequest, NextResponse } from "next/server";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
@@ -253,6 +254,32 @@ export async function handleCalendlyWebhook(
     // endpoint has, so the notification result is inspected rather than
     // discarded inside Promise.all. A silent insert failure here is how a real
     // meeting goes unnoticed.
+    try {
+      await createRevenueTask(supabase, {
+        title: isBootstrapTenant
+          ? `Prepare roofing audit for ${body.payload.name || email}`
+          : `Prepare for meeting with ${body.payload.name || email}`,
+        description: isBootstrapTenant
+          ? "Review the company website, response path, and estimate follow-up before the call."
+          : "Review the contact history, open work, and agreed meeting context before the call.",
+        dueDate: scheduledAt
+          ? new Date(new Date(scheduledAt).getTime() - 86400000).toISOString().split("T")[0]
+          : null,
+        priority: "high",
+        relatedType: "lead",
+        relatedId: opportunity.id,
+        relatedName: body.payload.name || email,
+        source: "calendly",
+        dedupeKey: `calendly-prep:${body.payload.uri}`,
+        actorEmail: "calendly",
+      });
+    } catch {
+      // No webhook success receipt yet: retry the same provider event safely.
+      return NextResponse.json(
+        { error: "Booking saved but preparation task failed", partial: true },
+        { status: 502 },
+      );
+    }
     const [notification] = await Promise.all([
       supabase.from("admin_notifications").insert({
         type: "new_lead",
@@ -261,21 +288,7 @@ export async function handleCalendlyWebhook(
         link: "/admin/bookings",
         priority: "urgent",
       }),
-      supabase.from("tasks").insert({
-        title: isBootstrapTenant
-          ? `Prepare roofing audit for ${body.payload.name || email}`
-          : `Prepare for meeting with ${body.payload.name || email}`,
-        description: isBootstrapTenant
-          ? "Review the company website, response path, and estimate follow-up before the call."
-          : "Review the contact history, open work, and agreed meeting context before the call.",
-        due_date: scheduledAt
-          ? new Date(new Date(scheduledAt).getTime() - 86400000).toISOString().split("T")[0]
-          : null,
-        priority: "high",
-        related_type: "lead",
-        related_id: opportunity.id,
-        related_name: body.payload.name || email,
-      }),
+
       cancelScheduledSequences(email, "booking_nurture", { database: supabase, resend }),
       scheduledAt && isBootstrapTenant
         ? scheduleAuditPrepEmail({ email, scheduledAt, eventKey: body.payload.uri }, resend)

@@ -9,6 +9,12 @@ import {
 import { TENANT_SCOPED_TABLES } from "@/lib/revenue-os/schema-contract";
 
 const tenantScopedTableSet = new Set<string>(TENANT_SCOPED_TABLES);
+const tenantSystemSources = new WeakMap<object, string>();
+
+export function systemSourceForDatabase(database: SupabaseClient) {
+  return tenantSystemSources.get(database);
+}
+
 const tenantDatabaseScopes = new WeakMap<object, { id: string; slug?: string }>();
 
 function attachTenant(values: unknown, tenantId: string): unknown {
@@ -145,7 +151,14 @@ export function createServiceRoleClient(systemContext?: TenantSystemContext) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { global: { headers: { "x-tenant-id": systemContext.tenantId } } },
   );
-  return bindTenantDatabase(client, systemContext.tenantId, true, systemContext.tenantSlug);
+  const database = bindTenantDatabase(
+    client,
+    systemContext.tenantId,
+    true,
+    systemContext.tenantSlug,
+  );
+  tenantSystemSources.set(database, systemContext.source);
+  return database;
 }
 
 const COLLECTION_HOST_RPCS = [

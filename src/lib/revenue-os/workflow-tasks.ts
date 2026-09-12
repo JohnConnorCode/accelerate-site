@@ -98,6 +98,7 @@ export async function executeWorkflowTaskBatch(
           source: "plugin",
           dedupeKey,
           actorEmail,
+          execution: { actionId, payload: action.payload as Record<string, unknown> },
           opportunityId: batch.opportunityId ?? null,
           relatedType: batch.opportunityId ? "opportunity" : "calendar_event",
           relatedId: batch.opportunityId ?? batch.meetingId,

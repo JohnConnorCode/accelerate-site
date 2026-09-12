@@ -1,6 +1,8 @@
 import { bulkEnrollContacts, bulkSuppressContacts, bulkTagContacts } from "./contact-bulk";
 import { executeRadarOutreach } from "./radar-outreach";
 import "server-only";
+import { systemSourceForDatabase } from "@/lib/supabase/server";
+import type { RevenueTaskInput } from "./tasks";
 import { executeRadarRelationship } from "./radar-relationships";
 import { executeRadarAssessment } from "./radar-ranking";
 import { executeRadarStoreChange } from "./radar-store";
@@ -454,4 +456,28 @@ export async function runOperatorAction(
     expiresAt: new Date(Date.now() + 3600000).toISOString(),
   });
   return approveAndExecuteAction(supabase, String(action.id), input.actorEmail);
+}
+
+/** Deterministic jobs and approved batches reuse the same atomic task writer.
+ * Their authority is retained as system/parent provenance, never human approval. */
+export async function executeTaskCreation(database: SupabaseClient, input: RevenueTaskInput) {
+  const { execution, actorEmail, ...payload } = input;
+  const systemSource = systemSourceForDatabase(database);
+  if (!execution && !systemSource) {
+    return runOperatorAction(database, {
+      actionType: "create_task",
+      title: input.title,
+      payload,
+      actorEmail,
+    });
+  }
+  const { data, error } = await database.rpc("create_revenue_task", {
+    p_input: payload,
+    p_actor: actorEmail,
+    p_parent_action: execution?.actionId ?? null,
+    p_parent_payload: execution?.payload ?? null,
+    p_system_source: systemSource ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return data;
 }

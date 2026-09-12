@@ -52,4 +52,4 @@ Task and next-action restoration checks the exact state left by the original act
 
 Impact describes how far a change reaches. Reversibility describes whether its prior state can be restored. An internal change is not automatically reversible, and a sent message still cannot be recalled.
 
-This currently covers Work task controls and approved task proposals. Conversation follow-ups, intake and scheduled task creation are still being reconciled with the shared executor; this is not a claim of universal write coverage.
+Conversation follow-ups, intake and scheduled task creation share the task writer too. An approved task batch retains its original approval, while deterministic jobs retain their system source. Reused tasks keep their identity, assignment and history; they are never offered as newly created tasks to undo. This task coverage does not establish universal write coverage across every business domain.
