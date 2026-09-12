@@ -882,6 +882,93 @@ try {
     "ordinary record operation cannot relink identity",
   );
 
+  const proposalTaskInput = {
+    title: "Original proposal follow-up",
+    source: "proposal_response",
+    dedupeKey: "proposal-response:native-proof",
+  };
+  const proposalTaskCall =
+    machineContext +
+    `SELECT create_revenue_task(${quote(JSON.stringify(proposalTaskInput))}::jsonb,'system',NULL,NULL,'proposal-response');`;
+  const proposalOriginalTask = JSON.parse(sql(proposalTaskCall)).task;
+  sql(
+    `UPDATE tasks SET status='completed',completed_at=now() WHERE id='${proposalOriginalTask.id}';`,
+  );
+  const proposalTaskReplay = JSON.parse(sql(proposalTaskCall));
+  assert.equal(proposalTaskReplay.task.id, proposalOriginalTask.id);
+  assert.equal(proposalTaskReplay.task.status, "completed");
+  assert.equal(proposalTaskReplay.deduplicated, true);
+  assert.equal(
+    sql(
+      `SELECT count(*) FROM tasks WHERE tenant_id='${a}' AND source='proposal_response' AND dedupe_key='proposal-response:native-proof';`,
+    ),
+    "1",
+  );
+
+  // A capability revoked after the adapter's preview still denies inside each writer.
+  const taskCapabilityPayload = { title: "Capability must prevent task" };
+  const taskCapabilityAction = stage("create_task", taskCapabilityPayload);
+  sql(
+    `INSERT INTO autonomy_policies(tenant_id,action_key,label,level,source) VALUES('${a}','tasks.create','Capability test','prohibited','system');`,
+  );
+  denied(
+    call(taskCapabilityAction, taskCapabilityPayload),
+    "task capability revoked at native apply",
+  );
+  assert.equal(sql(`SELECT count(*) FROM tasks WHERE title='Capability must prevent task';`), "0");
+  assert.equal(
+    sql(context() + `SELECT level FROM check_autonomy('create_task',NULL);`),
+    "prohibited",
+  );
+  sql(`DELETE FROM autonomy_policies WHERE tenant_id='${a}' AND action_key='tasks.create';`);
+  const capabilityCreated = JSON.parse(sql(call(taskCapabilityAction, taskCapabilityPayload))).task;
+  sql(
+    `INSERT INTO autonomy_policies(tenant_id,action_key,label,level,source) VALUES('${a}','tasks.create','Capability test','prohibited','system');`,
+  );
+  denied(
+    call(taskCapabilityAction, taskCapabilityPayload, true),
+    "task undo rechecks current capability",
+  );
+  assert.equal(sql(`SELECT count(*) FROM tasks WHERE id='${capabilityCreated.id}';`), "1");
+  sql(`DELETE FROM autonomy_policies WHERE tenant_id='${a}' AND action_key='tasks.create';`);
+  sql(call(taskCapabilityAction, taskCapabilityPayload, true));
+  const pipelineCapabilityPayload = {
+    opportunityId: old.id,
+    patch: { next_action: "Capability must refuse" },
+    expectedState: JSON.parse(sql(`SELECT to_jsonb(o) FROM opportunities o WHERE id='${old.id}';`)),
+  };
+  const pipelineCapabilityAction = stage("update_opportunity_details", pipelineCapabilityPayload);
+  sql(
+    `INSERT INTO autonomy_policies(tenant_id,action_key,label,level,source) VALUES('${a}','crm.write','Capability test','prohibited','system');`,
+  );
+  denied(
+    pipelineCall(pipelineCapabilityAction, "update_opportunity_details", pipelineCapabilityPayload),
+    "pipeline capability revoked at native apply",
+  );
+  assert.deepEqual(
+    JSON.parse(sql(`SELECT to_jsonb(o) FROM opportunities o WHERE id='${old.id}';`)),
+    pipelineCapabilityPayload.expectedState,
+  );
+  sql(`DELETE FROM autonomy_policies WHERE tenant_id='${a}' AND action_key='crm.write';`);
+  // Existing standing approval precedence remains: default capability policy does not erase a configured exact approval.
+  sql(
+    `INSERT INTO autonomy_policies(tenant_id,action_key,label,level,source,approved_by,approved_at) VALUES('${a}','create_task','Standing test','standing_permission','system','owner@example.test',now());`,
+  );
+  assert.equal(
+    sql(context() + `SELECT level FROM check_autonomy('create_task',NULL);`),
+    "standing_permission",
+  );
+  sql(
+    `INSERT INTO autonomy_policies(tenant_id,action_key,label,level,source) VALUES('${a}','tasks.create','Capability asks','always_ask','system');`,
+  );
+  assert.equal(
+    sql(context() + `SELECT level FROM check_autonomy('create_task',NULL);`),
+    "always_ask",
+  );
+  sql(
+    `DELETE FROM autonomy_policies WHERE tenant_id='${a}' AND action_key IN ('create_task','tasks.create');`,
+  );
+
   // Conversation actions: actual authenticated RLS, exact decisions and receipts.
   const conversationId = sql(
     `INSERT INTO conversations(tenant_id,channel,subject,unread_count,metadata) VALUES('${a}','manual','Conversation action proof',4,'{"retained":"human note"}') RETURNING id;`,
@@ -1152,6 +1239,9 @@ try {
       proofs: [
         "full-business-catalog-twice",
         "six-seeded-inverses",
+        "completed-proposal-followup-permanent-replay",
+        "capability-policy-at-task-pipeline-and-undo-effect",
+        "standing-policy-and-capability-precedence",
         "conversation-exact-parent-decision-and-replay",
         "conversation-link-evidence-atomic-rollback",
         "conversation-live-actor-capability-assignee-and-tenant",
