@@ -33,3 +33,9 @@ This is source and shared-function evidence. The browser matrix in
 `scripts/qa-admin-overhaul.mjs` separately measures headings, help, contact detail
 breadcrumbs, viewport bounds and keyboard focus in the fictional demo. CI retains
 its screenshots and summary; inspect those before declaring visual acceptance.
+
+The same regression also round-trips canonical URLs through the real live, tenant
+and all six demo adapters. Compare names and enabled destinations under equivalent
+module and role inputs; platform-only permissions remain intentional. The browser
+fixture checks direct load, keyboard search, current destination, Back and module
+disable/restore in each fictional business at desktop and mobile widths.

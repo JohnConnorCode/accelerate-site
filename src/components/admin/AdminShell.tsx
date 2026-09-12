@@ -13,6 +13,7 @@ import {
 } from "react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { usePathname, useSearchParams } from "next/navigation";
+import { resolveAdminPathname } from "@/lib/admin/navigation-paths";
 import { AdminConfirmationProvider } from "@/components/admin/AdminConfirmationProvider";
 import { AdminThemeProvider } from "@/components/admin/AdminThemeProvider";
 import type { AdminThemeDefinition } from "@/lib/admin/theme-definition";
@@ -77,22 +78,6 @@ import {
   isDemoScenarioId,
   type DemoScenarioId,
 } from "@/lib/admin/demo/scenarios";
-
-function resolveAdminPathname(
-  pathname: string,
-  scenarioId: DemoScenarioId | null,
-  demoRoute: string | null,
-) {
-  const workspacePath = pathname.match(/^\/t\/[^/]+\/admin(?:\/(.*))?$/);
-  if (workspacePath) return `/admin/${workspacePath[1] || "today"}`;
-  if (!scenarioId) return pathname;
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) return pathname;
-  const publicPrefix = `/demo/command-center/${scenarioId}`;
-  if (pathname === publicPrefix) return "/admin/today";
-  if (pathname.startsWith(`${publicPrefix}/`))
-    return `/admin/${pathname.slice(publicPrefix.length + 1) || "today"}`;
-  return `/admin/${demoRoute || "today"}`;
-}
 
 function resolveAdminPageTitle(pathname: string) {
   if (pathname.startsWith("/admin/contacts/") && pathname !== "/admin/contacts")

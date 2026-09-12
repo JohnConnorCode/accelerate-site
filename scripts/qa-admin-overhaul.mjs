@@ -143,6 +143,137 @@ try {
       await context.close();
     }
   }
+  // Discover the actual launcher registry instead of maintaining a seventh copy of its list.
+  const launcher = await browser.newPage();
+  launcher.on("pageerror", (error) => failures.push(`launcher: ${error.message}`));
+  launcher.on("console", (message) => {
+    if (message.type() === "error") failures.push(`launcher: ${message.text()}`);
+  });
+  await launcher.route("**/api/admin/**", async (route) => {
+    failures.push(`launcher: Protected API escaped: ${new URL(route.request().url()).pathname}`);
+    await route.abort();
+  });
+  await launcher.goto(`${base}/demo/command-center`, { waitUntil: "networkidle" });
+  const scenarioIds = await launcher
+    .locator('a[href^="/demo/command-center/"]')
+    .evaluateAll((links) => [
+      ...new Set(links.map((link) => new URL(link.href).pathname.split("/")[3])),
+    ]);
+  assert.equal(scenarioIds.length, 6, "launcher must expose all six registered scenarios");
+  await launcher.close();
+  for (const width of [1440, 390]) {
+    for (const scenarioId of scenarioIds) {
+      const label = `routes-${width}-${scenarioId}`;
+      const context = await browser.newContext({
+        viewport: { width, height: 1000 },
+        reducedMotion: width === 390 ? "reduce" : "no-preference",
+      });
+      const page = await context.newPage();
+      page.setDefaultTimeout(15000);
+      const errors = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      page.on("console", (message) => {
+        if (message.type() === "error") errors.push(message.text());
+      });
+      await page.route("**/api/admin/**", async (route) => {
+        errors.push(
+          `Protected API escaped fictional runtime: ${new URL(route.request().url()).pathname}`,
+        );
+        await route.abort();
+      });
+      const prefix = `/demo/command-center/${scenarioId}`;
+      async function assertIdentity(name, group) {
+        await page.getByRole("heading", { name, exact: true }).first().waitFor();
+        await page.waitForFunction((title) => document.title.startsWith(title), name);
+        if (width === 390)
+          await page.getByRole("button", { name: "Open More", exact: true }).click();
+        const disclosure = page.getByRole("button", { name: group, exact: true });
+        if ((await disclosure.getAttribute("aria-expanded")) === "false") await disclosure.click();
+        const link = page.getByRole("link", { name, exact: true }).first();
+        await link.waitFor({ state: "visible" });
+        assert.equal(
+          await link.getAttribute("aria-current"),
+          "page",
+          "visible navigation is not current",
+        );
+        if (width === 390)
+          await page.getByRole("button", { name: "Close navigation", exact: true }).click();
+        assert(
+          await page
+            .locator(".admin-main")
+            .evaluate((node) => node.scrollWidth <= node.clientWidth + 1),
+        );
+      }
+      async function search(name) {
+        await page.keyboard.press("Control+k");
+        const palette = page.getByRole("dialog", { name: "Admin command palette", exact: true });
+        await palette.waitFor();
+        await palette.getByRole("textbox").fill(name);
+        return palette;
+      }
+      async function setCampaigns(enabled) {
+        const result = await page.evaluate(async (value) => {
+          const response = await fetch("/api/admin/tenant/modules", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ moduleId: "campaigns", enabled: value }),
+          });
+          return { ok: response.ok, value: await response.json() };
+        }, enabled);
+        assert(result.ok && result.value.enabled === enabled, "fictional module update failed");
+      }
+      try {
+        await page.goto(`${base}${prefix}/email-sequences`, {
+          waitUntil: "networkidle",
+          timeout: 60000,
+        });
+        await assertIdentity("Email Sequences", "Marketing");
+        const palette = await search("Architect");
+        const result = palette
+          .getByRole("button")
+          .filter({ has: page.getByText("Architect", { exact: true }) });
+        await result.focus();
+        await page.keyboard.press("Enter");
+        await page.waitForURL(
+          (url) =>
+            url.pathname === `${prefix}/ai` && url.searchParams.get("purpose") === "architect",
+        );
+        await assertIdentity("Architect", "Insights & AI");
+        await page.screenshot({ path: `${output}/${label}-architect.png` });
+        await page.goBack({ waitUntil: "networkidle" });
+        await assertIdentity("Email Sequences", "Marketing");
+        await setCampaigns(false);
+        await page.waitForFunction(
+          () => !document.querySelector('a.admin-nav-link[href$="/email-sequences"]'),
+        );
+        const disabledPalette = await search("Email Sequences");
+        assert.equal(
+          await disabledPalette.getByText("Email Sequences", { exact: true }).count(),
+          0,
+        );
+        await page.keyboard.press("Escape");
+        await setCampaigns(true);
+        await page.reload({ waitUntil: "networkidle" });
+        await assertIdentity("Email Sequences", "Marketing");
+        const restoredPalette = await search("Email Sequences");
+        await restoredPalette.getByText("Email Sequences", { exact: true }).waitFor();
+        await page.keyboard.press("Escape");
+        await page.screenshot({ path: `${output}/${label}-sequences.png` });
+        results.push({
+          width,
+          scenario: scenarioId,
+          id: "scenario-route-parity",
+          result: "passed",
+        });
+      } catch (error) {
+        failures.push(`${label}: ${error.message}`);
+        await page.screenshot({ path: `${output}/${label}-failed.png` }).catch(() => {});
+      } finally {
+        failures.push(...errors.map((error) => `${label}: ${error}`));
+        await context.close();
+      }
+    }
+  }
 } finally {
   await browser.close();
   writeFileSync(
