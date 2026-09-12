@@ -40,6 +40,8 @@ upstream`. Push to your registry and resolve the resulting image digest.
    through **Social Marketing → Setup**. The organization identity must match,
    and the same organization cannot be attached to two Accelerate tenants.
 
+The supplied `API_LIMIT=30` caps Postiz create-post requests at thirty per hour per organization in the pinned upstream guard. Other reads are not counted by that guard. Size publishing batches and service capacity accordingly; increasing this setting does not increase LinkedIn permissions or quotas.
+
 The supplied Compose uses Temporal's PostgreSQL visibility store rather than
 Elasticsearch. Validate the pinned service startup and publication workflow on
 an isolated host before release. Source preparation and a valid Compose file do

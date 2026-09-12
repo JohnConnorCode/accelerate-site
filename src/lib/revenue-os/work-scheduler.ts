@@ -216,7 +216,9 @@ export async function scheduleRecurringWork(
   try {
     await scheduleSocialWeeklyDrafts(supabase);
   } catch {
-    daily.errors.push("Social weekly drafts could not be scheduled; verify source settings and time zone");
+    daily.errors.push(
+      "Social weekly drafts could not be scheduled; verify source settings and time zone",
+    );
   }
   try {
     await scheduleSocialReconciliation(supabase);

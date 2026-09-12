@@ -85,6 +85,8 @@ try {
  CREATE TABLE audit_log(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),tenant_id uuid,actor_email text,action text,entity_type text,entity_id text,source text,metadata jsonb);
  CREATE TABLE storage.buckets(id text PRIMARY KEY,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
  CREATE TABLE storage.objects(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),bucket_id text,name text);
+ ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+ GRANT SELECT,INSERT ON storage.objects TO authenticated;
  CREATE FUNCTION storage.foldername(text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ SELECT string_to_array($1,'/') $$;
  INSERT INTO tenants(id,status,config) VALUES('${a}','active','{"modules":{"social-marketing":true}}'),('${b}','active','{"modules":{"social-marketing":true}}');
  INSERT INTO auth.users VALUES('${a}','owner@example.test'),('${b}','other@example.test');
@@ -103,6 +105,19 @@ try {
   const migration = readFileSync("migrations/20260912170924-social-marketing.sql", "utf8");
   sql(migration);
   sql(migration);
+  const storageContext = `SET ROLE authenticated; SET request.headers='{"x-tenant-id":"${a}"}'; SET request.jwt.claim.sub='${a}';`;
+  sql(
+    `${storageContext} INSERT INTO storage.objects(bucket_id,name) VALUES('workspace-media','${a}/owned.png')`,
+  );
+  fail(
+    `${storageContext} INSERT INTO storage.objects(bucket_id,name) VALUES('workspace-media','${b}/foreign.png')`,
+  );
+  sql(`INSERT INTO storage.objects(bucket_id,name) VALUES('workspace-media','${b}/private.png')`);
+  assert.equal(
+    sql(`${storageContext} SELECT count(*) FROM storage.objects`),
+    "1",
+    "Storage reads must exclude another workspace",
+  );
   const stamp = (t) => sql(`SELECT updated_at FROM tenants WHERE id='${t}'`);
   const command = (change, key = randomUUID(), t = a, action = null) =>
     `${ctx(t)} SELECT execute_social_command('${key}',${json(change)},${lit(stamp(t))},'owner@example.test',${action ? lit(action) : "NULL"});`;

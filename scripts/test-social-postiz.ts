@@ -112,7 +112,16 @@ async function main() {
           disabled: false,
         },
       ]);
-    if (url.pathname.includes("/analytics/post/")) return Response.json([{label: "Likes", data: [{total: 3, date: "2026-09-11"},{total: 7, date: "2026-09-12"}]}]);
+    if (url.pathname.includes("/analytics/post/"))
+      return Response.json([
+        {
+          label: "Likes",
+          data: [
+            { total: 3, date: "2026-09-11" },
+            { total: 7, date: "2026-09-12" },
+          ],
+        },
+      ]);
     if (url.pathname.endsWith("/posts") && init?.method === "POST") {
       if (timeout) throw new Error(`Timeout including ${secretA}`);
       if (malformed) return Response.json({ accepted: true });
@@ -129,7 +138,9 @@ async function main() {
     const clientB = await tenantPostizClient(database(b));
     assert.equal((await clientA.channels())[0]!.id, "page-0");
     assert.equal((await clientB.channels())[0]!.id, "page-1");
-    assert.deepEqual(await clientA.metrics("post-0"), [{label: "Likes", value: 7, date: "2026-09-12"}]);
+    assert.deepEqual(await clientA.metrics("post-0"), [
+      { label: "Likes", value: 7, date: "2026-09-12" },
+    ]);
     const abort = new AbortController();
     const abortedClient = await tenantPostizClient(database(a), { signal: abort.signal });
     abort.abort();
