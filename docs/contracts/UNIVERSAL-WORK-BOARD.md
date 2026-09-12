@@ -50,9 +50,12 @@ references block readiness and must be resolved explicitly.
 
 Backlog and planned cards with an outcome, acceptance, no explicit blocker and all
 prerequisites verified are claimable. Initiative roll-ups are never executable.
-Readiness is computed in SQL for both lists and claims. The global WIP cap is six;
-expired claims still occupy a slot until an operator reviews them. No background
-recovery silently gives another worker ownership of unfinished work.
+Readiness is computed in SQL for both lists and claims. Work volume is advisory,
+never a claim admission limit. Other active or expired claims do not block new
+authorized work. Explicitly requesting an expired card continues that card through
+an atomic revision-checked claim with a new token; its prior owner, checkout and
+execution history remain recorded. Automatic backlog selection does not take over
+expired cards. A live claim still excludes other workers.
 
 ## Mutations and execution
 
