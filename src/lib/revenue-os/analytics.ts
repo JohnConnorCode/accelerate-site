@@ -1,6 +1,11 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadPipelineStages, type PipelineStageResolver } from "./pipeline-stage-resolver";
+import {
+  computeStageHistory,
+  resolveFunnelProgress,
+  type StageEventInput,
+} from "./stage-history";
 
 type WebsiteEvent = {
   event_name: string;
@@ -41,20 +46,33 @@ export async function loadRevenueAnalytics(
   ]);
   if (error) throw new Error(error.message);
   const allOpportunities = data ?? [];
-  const summary = summarizeRevenueAnalytics(allOpportunities, { ...filters, since }, stages);
+  const allIds = allOpportunities.map((item) => item.id);
+  const stageEventsResult = allIds.length
+    ? await supabase
+        .from("stage_events")
+        .select("opportunity_id,from_stage,to_stage,created_at")
+        .in("opportunity_id", allIds)
+        .order("created_at", { ascending: true })
+        .limit(20000)
+    : { data: [], error: null };
+  const stageEventsByOpportunity = new Map<string, StageEventInput[]>();
+  if (!stageEventsResult.error) {
+    for (const row of stageEventsResult.data ?? []) {
+      const list = stageEventsByOpportunity.get(row.opportunity_id) ?? [];
+      list.push({ from_stage: row.from_stage, to_stage: row.to_stage, created_at: row.created_at });
+      stageEventsByOpportunity.set(row.opportunity_id, list);
+    }
+  }
+  const summary = summarizeRevenueAnalytics(
+    allOpportunities,
+    { ...filters, since },
+    stages,
+    stageEventsResult.error ? undefined : stageEventsByOpportunity,
+  );
   const opportunityIds = summary.opportunityIds;
-  const [conversations, stageEvents] = await Promise.all([
-    opportunityIds.length
-      ? supabase.from("conversations").select("id").in("opportunity_id", opportunityIds).limit(2000)
-      : Promise.resolve({ data: [], error: null }),
-    opportunityIds.length
-      ? supabase
-          .from("stage_events")
-          .select("from_stage,to_stage")
-          .in("opportunity_id", opportunityIds)
-          .limit(5000)
-      : Promise.resolve({ data: [], error: null }),
-  ]);
+  const conversations = opportunityIds.length
+    ? await supabase.from("conversations").select("id").in("opportunity_id", opportunityIds).limit(2000)
+    : { data: [], error: null };
   let communication: ReturnType<typeof summarizeReplySignals> & {
     status: "ready" | "degraded";
     reason?: string;
@@ -88,13 +106,9 @@ export async function loadRevenueAnalytics(
         }
       : { status: "ready", ...summarizeReplySignals(messages.data ?? []) };
   }
-  const impossibleStageSequences = stageEvents.error
+  const impossibleStageSequences = stageEventsResult.error
     ? null
-    : (stageEvents.data ?? []).filter((event) => {
-        const from = event.from_stage ? stages.canonicalStage(event.from_stage) : null;
-        const to = stages.canonicalStage(event.to_stage);
-        return !to || (event.from_stage && !from) || (from && to === from);
-      }).length;
+    : summary.quality.stageHistory.impossibleEvents;
   const { opportunityIds: _opportunityIds, ...publicSummary } = summary;
   void _opportunityIds;
   return {
@@ -127,10 +141,19 @@ type AnalyticsOpportunity = {
   created_at: string;
 };
 
+/** Any open opportunity whose last recorded stage movement (or, absent any
+ * history, whose creation date) is older than this is treated as stale for
+ * the forecast-quality signal. */
+const STALE_MOVEMENT_DAYS = 14;
+
 export function summarizeRevenueAnalytics(
   allOpportunities: AnalyticsOpportunity[],
   input: RevenueAnalyticsFilters & { since?: string },
   stages: PipelineStageResolver,
+  /** Ordered stage_events rows per opportunity id. Omitted (or an empty map)
+   * degrades every history-derived fact to its documented fallback — it
+   * never throws and never fabricates events. */
+  stageEventsByOpportunity?: Map<string, StageEventInput[]>,
 ) {
   const sourceOf = (item: AnalyticsOpportunity) => item.source_detail || item.source || "Unknown";
   const isWon = (item: AnalyticsOpportunity) => {
@@ -148,24 +171,40 @@ export function summarizeRevenueAnalytics(
     if (input.stage && stages.canonicalStage(item.stage) !== input.stage) return false;
     return true;
   });
-  // These four funnel buckets are tied to the default sales-path stage
-  // names (qualified -> meeting -> proposal -> negotiation -> won), not to
-  // role — there's no way to know a custom admin-added stage's position in
-  // this sequence without a "funnel position" concept the kanban unification
-  // didn't add. A tenant that renames/removes these specific stages will see
-  // funnel bucketing degrade for that stage; open/won/lost accounting above
-  // stays fully role-driven and correct regardless.
-  const qualified = opportunities.filter((item) =>
-    ["qualified", "meeting", "proposal", "negotiation", "won"].includes(
-      stages.canonicalStage(item.stage) || "",
-    ),
+
+  const events = stageEventsByOpportunity ?? new Map<string, StageEventInput[]>();
+  const historyByOpportunity = new Map(
+    opportunities.map((item) => [
+      item.id,
+      computeStageHistory(events.get(item.id) ?? [], item.stage, stages),
+    ]),
   );
-  const meetings = opportunities.filter((item) =>
-    ["meeting", "proposal", "negotiation", "won"].includes(stages.canonicalStage(item.stage) || ""),
+  const progressByOpportunity = new Map(
+    opportunities.map((item) => [
+      item.id,
+      resolveFunnelProgress(historyByOpportunity.get(item.id)!, stages),
+    ]),
   );
-  const proposals = opportunities.filter((item) =>
-    ["proposal", "negotiation", "won"].includes(stages.canonicalStage(item.stage) || ""),
-  );
+
+  // These four funnel buckets are tied to the default sales-path stage names
+  // (qualified -> meeting -> proposal -> negotiation -> won), not to role —
+  // there's no general "funnel position" concept for a fully custom admin
+  // stage set. Bucketing now counts the furthest *open/won* stage each
+  // opportunity's recorded stage_events actually reached (falling back to
+  // the live current stage, visibly, only when no history exists at all) —
+  // so an opportunity that reached "proposal" before later closing "lost"
+  // still counts as having reached proposal. A tenant that renames or
+  // removes these specific stage keys will still see bucketing degrade for
+  // that stage; open/won/lost accounting stays fully role-driven regardless.
+  const rankOf = (key: string) => stages.stageKeys.indexOf(key);
+  const reachedAtLeast = (item: AnalyticsOpportunity, stageKey: string) => {
+    const stageRank = rankOf(stageKey);
+    const progress = progressByOpportunity.get(item.id)!;
+    return stageRank >= 0 && progress.rank !== null && progress.rank >= stageRank;
+  };
+  const qualified = opportunities.filter((item) => reachedAtLeast(item, "qualified"));
+  const meetings = opportunities.filter((item) => reachedAtLeast(item, "meeting"));
+  const proposals = opportunities.filter((item) => reachedAtLeast(item, "proposal"));
   const won = opportunities.filter(isWon);
   const bySource = new Map<string, { opportunities: number; won: number; revenue: number }>();
   for (const item of opportunities) {
@@ -198,6 +237,35 @@ export function summarizeRevenueAnalytics(
       0,
     ),
   );
+
+  const staleCutoff = Date.now() - STALE_MOVEMENT_DAYS * 86400000;
+  const isStale = (item: AnalyticsOpportunity) => {
+    const history = historyByOpportunity.get(item.id)!;
+    const lastMovementAt = history.lastEventAt ?? item.created_at;
+    return Date.parse(lastMovementAt) < staleCutoff;
+  };
+  const staleOpen = open.filter(isStale);
+  const staleWeightedPipeline = Math.round(
+    staleOpen.reduce(
+      (sum, item) =>
+        sum +
+        (Number(item.estimated_value || 0) *
+          Math.min(100, Math.max(0, Number(item.probability || 0)))) /
+          100,
+      0,
+    ),
+  );
+
+  let regressionCount = 0;
+  let impossibleEvents = 0;
+  let missingHistoryCount = 0;
+  for (const item of opportunities) {
+    const history = historyByOpportunity.get(item.id)!;
+    regressionCount += history.regressions.length;
+    impossibleEvents += history.impossibleEvents.length;
+    if (!history.hasHistory) missingHistoryCount++;
+  }
+
   const filterOptions = {
     sources: [...new Set(allOpportunities.map(sourceOf))].sort(),
     owners: [...new Set(allOpportunities.map((item) => item.owner_email || "Unassigned"))].sort(),
@@ -211,7 +279,13 @@ export function summarizeRevenueAnalytics(
   return {
     windowDays: input.days,
     generatedAt: new Date().toISOString(),
-    cohort: `Opportunities created in the last ${input.days} days, filtered by current record fields. Funnel steps show the furthest stage each selected opportunity has reached.`,
+    cohort:
+      "Opportunities created in the selected window, filtered by current record fields. " +
+      "Funnel steps count the furthest open/won stage each opportunity's stage_events history " +
+      "actually reached, never the current stage alone; current-stage figures (open/won/lost " +
+      "counts, pipeline value, weighted forecast) always reflect the live record. An opportunity " +
+      "with no recorded stage_events falls back to its current stage for funnel counting — " +
+      "visibly, via quality.stageHistory.missingHistory — rather than being silently reconstructed.",
     funnel,
     rates: {
       qualified: percentage(funnel.qualified, funnel.opportunities),
@@ -229,8 +303,11 @@ export function summarizeRevenueAnalytics(
     forecast: {
       weightedPipeline,
       unweightedPipeline: funnel.pipelineValue,
+      staleWeightedPipeline,
       method:
-        "Open estimated value multiplied by each opportunity's recorded probability. This is a planning estimate, not booked revenue.",
+        "Open estimated value multiplied by each opportunity's recorded probability. This is a " +
+        "planning estimate, not booked revenue. staleWeightedPipeline is the same math restricted " +
+        `to open opportunities with no stage movement recorded in the last ${STALE_MOVEMENT_DAYS} days.`,
     },
     quality: {
       missingAttribution: opportunities.filter((item) => !item.source && !item.source_detail)
@@ -239,6 +316,13 @@ export function summarizeRevenueAnalytics(
       missingNextAction: open.filter((item) => !item.next_action?.trim() || !item.next_action_at)
         .length,
       unrecognizedStage: opportunities.filter((item) => !stages.canonicalStage(item.stage)).length,
+      staleOpenCount: staleOpen.length,
+      stageHistory: {
+        missingHistory: missingHistoryCount,
+        withHistory: opportunities.length - missingHistoryCount,
+        regressions: regressionCount,
+        impossibleEvents,
+      },
     },
     filterOptions,
     appliedFilters: {
@@ -249,6 +333,43 @@ export function summarizeRevenueAnalytics(
     },
     opportunityIds: opportunities.map((item) => item.id),
   };
+}
+
+/**
+ * Current-state pipeline totals — open count, open value, weighted forecast,
+ * recorded won revenue — shared by every reader that shows them so they
+ * cannot drift into a second, route-local formula. This is always current-
+ * stage-based (role of the live `stage` column); it never touches
+ * stage_events, matching the objective that current-stage reporting stays
+ * explicitly current state.
+ */
+export function summarizePipelineTotals(
+  opportunities: Array<{
+    stage: string;
+    estimated_value?: number | null;
+    won_value?: number | null;
+    probability?: number | null;
+  }>,
+  stages: PipelineStageResolver,
+) {
+  const isOpen = (item: { stage: string }) => {
+    const canonical = stages.canonicalStage(item.stage);
+    return canonical ? stages.role(canonical) === "open" : true;
+  };
+  const open = opportunities.filter(isOpen);
+  const pipelineValue = open.reduce((sum, item) => sum + Number(item.estimated_value || 0), 0);
+  const weightedValue = Math.round(
+    open.reduce(
+      (sum, item) =>
+        sum +
+        (Number(item.estimated_value || 0) *
+          Math.min(100, Math.max(0, Number(item.probability || 0)))) /
+          100,
+      0,
+    ),
+  );
+  const wonRevenue = opportunities.reduce((sum, item) => sum + Number(item.won_value || 0), 0);
+  return { openOpportunities: open.length, pipelineValue, weightedValue, wonRevenue };
 }
 
 export function summarizeReplySignals(
