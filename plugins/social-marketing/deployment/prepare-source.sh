@@ -13,6 +13,8 @@ git -C upstream checkout --detach "$revision"
 test "$(git -C upstream rev-parse HEAD)" = "$revision"
 git -C upstream apply --check ../identity.patch
 git -C upstream apply ../identity.patch
+git -C upstream apply --check ../service-hardening.patch
+git -C upstream apply ../service-hardening.patch
 mkdir -p source
 tar --exclude=.git -czf source/postiz-source.tar.gz -C upstream .
 printf '%s\n' "$revision" > source/UPSTREAM-REVISION

@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 export COMPOSE_PROJECT_NAME="postiz-verification-${GITHUB_RUN_ID:-$$}"
 export POSTIZ_IMAGE=accelerate-postiz:verification
-export POSTIZ_HOST=localhost
+export POSTIZ_HOST=http://:80
 export POSTIZ_JWT_SECRET=$(openssl rand -hex 32)
 export POSTIZ_DB_PASSWORD=$(openssl rand -hex 32)
 export TEMPORAL_DB_PASSWORD=$(openssl rand -hex 32)
@@ -26,10 +26,18 @@ services:
     ports: ["127.0.0.1:5000:5000"]
     environment:
       MAIN_URL: http://localhost:5000
-      FRONTEND_URL: http://localhost:5000
+      FRONTEND_URL: http://localhost:5080
       NEXT_PUBLIC_BACKEND_URL: http://localhost:5000/api
       NOT_SECURED: "true"
       DISABLE_REGISTRATION: "false"
+  verification-proxy:
+    image: ${CADDY_IMAGE}
+    ports: ["127.0.0.1:5080:80"]
+    environment:
+      POSTIZ_HOST: http://:80
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./source:/srv/source:ro
 YAML
 compose=(docker compose -f compose.yaml -f verification.override.yaml)
 cleanup() {
@@ -41,7 +49,7 @@ cleanup() {
   exit "$code"
 }
 trap cleanup EXIT
-"${compose[@]}" up -d postiz
+"${compose[@]}" up -d postiz verification-proxy
 for attempt in $(seq 1 90); do
   if curl -fsS http://localhost:5000/api/auth/can-register >/dev/null; then break; fi
   sleep 5
