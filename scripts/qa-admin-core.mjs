@@ -391,8 +391,11 @@ try {
       await workspace.waitForFunction(() => document.documentElement.dataset.theme === "dark");
       await workspace.screenshot({ path: `${out}/appearance-picker.png`, fullPage: true });
       await workspace.keyboard.press("Escape");
-      assert(
-        (await workspace.locator(":focus").getAttribute("aria-label"))?.startsWith("Appearance:"),
+      await picker.waitFor({ state: "hidden" });
+      await workspace.waitForFunction(
+        () => document.activeElement?.getAttribute("aria-label")?.startsWith("Appearance:"),
+        undefined,
+        { timeout: 3000 },
       );
       await workspace.close();
     }
