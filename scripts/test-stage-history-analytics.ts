@@ -386,3 +386,27 @@ void verifyBoundedHistoryRead()
     console.error(error);
     process.exitCode = 1;
   });
+
+const interruptedSegment = computeStageHistory(
+  [
+    { from_stage: null, to_stage: "new", created_at: "2026-01-01T00:00:00Z" },
+    { from_stage: "new", to_stage: "retired", created_at: "2026-01-02T00:00:00Z" },
+    { from_stage: "new", to_stage: "qualified", created_at: "2026-01-03T00:00:00Z" },
+  ],
+  "qualified",
+  stages,
+);
+assert.equal(
+  interruptedSegment.timeInStage[0]!.durationMs,
+  null,
+  "invalid intervening movement cannot prove uninterrupted time in stage",
+);
+const firstRegression = computeStageHistory(
+  [{ from_stage: "proposal", to_stage: "qualified", created_at: "2026-01-03T00:00:00Z" }],
+  "qualified",
+  stages,
+);
+assert.deepEqual(firstRegression.regressions, [
+  { from: "proposal", to: "qualified", at: "2026-01-03T00:00:00Z" },
+]);
+assert.ok(firstRegression.issues.includes("missing_prefix"));

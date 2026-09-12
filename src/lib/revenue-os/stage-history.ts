@@ -99,7 +99,7 @@ export function computeStageHistory(
   const timeInStage: StageSegment[] = [];
 
   let previousCanonicalTo: string | null = null;
-  let previousRank = -1;
+  let segmentReliable = true;
   let segmentStage: string | null = null;
   let segmentEnteredAt: string | null = null;
 
@@ -113,6 +113,7 @@ export function computeStageHistory(
         reason: "invalid_time",
       });
       issues.add("invalid_event");
+      segmentReliable = false;
       continue;
     }
     if (
@@ -131,6 +132,7 @@ export function computeStageHistory(
         at: event.created_at,
         reason: "unrecognized_to",
       });
+      segmentReliable = false;
       continue;
     }
     if (event.from_stage && !fromCanonical) {
@@ -140,6 +142,7 @@ export function computeStageHistory(
         at: event.created_at,
         reason: "unrecognized_from",
       });
+      segmentReliable = false;
       continue;
     }
     if (fromCanonical && fromCanonical === toCanonical) {
@@ -152,7 +155,8 @@ export function computeStageHistory(
       continue;
     }
 
-    const connected = previousCanonicalTo === null || fromCanonical === previousCanonicalTo;
+    const connected =
+      segmentReliable && (previousCanonicalTo === null || fromCanonical === previousCanonicalTo);
     if (!connected) {
       impossibleEvents.push({
         fromStage: event.from_stage,
@@ -175,11 +179,11 @@ export function computeStageHistory(
     segmentEnteredAt = event.created_at;
 
     const toRank = rankOf(toCanonical);
-    if (connected && previousCanonicalTo && toRank < previousRank) {
-      regressions.push({ from: previousCanonicalTo, to: toCanonical, at: event.created_at });
+    if (fromCanonical && toRank < rankOf(fromCanonical)) {
+      regressions.push({ from: fromCanonical, to: toCanonical, at: event.created_at });
     }
     previousCanonicalTo = toCanonical;
-    previousRank = toRank;
+    segmentReliable = true;
     lastEventAt = event.created_at;
 
     if (!reached.has(toCanonical)) reached.set(toCanonical, toRank);
