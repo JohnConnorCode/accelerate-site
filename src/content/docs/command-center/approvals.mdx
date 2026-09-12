@@ -1,7 +1,7 @@
 ---
 title: "Review and approve actions"
 description: "How approval works, how it earns more autonomy over time, and what to check after a decision."
-updated: "2026-09-09"
+updated: "2026-09-12"
 ---
 
 The first time your assistant drafts a reply, changes a pipeline stage, or prepares a reminder, it stops and asks you. That is not the system being cautious for its own sake: it is the system establishing a track record, one decision at a time, so it can eventually stop asking you about the ones you always say yes to. An approval is your decision on a specific proposed action, and it is also the unit the whole autonomy system is built from.
@@ -33,6 +33,12 @@ Every action type starts at `always_ask`: the system proposes, you decide, every
 From there, an action can reach `standing_permission`, where it runs without asking you first but still logs everything it did so you can audit it after the fact, and eventually `autonomous` for the narrowest, most consistently correct patterns. The point of the ladder is that your week gets shorter as it climbs: the third time you approve the same routine reply is also the last time you have to.
 
 Six things never climb this ladder, regardless of how much trust everything else has earned: deleting an account, changing a credential, deleting financial history, exporting your customer database, a high-value refund, and a major financial transfer. Those stay behind a human decision permanently. And whatever rung an action type is on, the reversibility of what it actually does is fixed by design, not by trust level: sending an email, activating a campaign, and sending an invoice are permanently non-autonomous actions in this product, meaning they always require your approval no matter how long you have been running the system, because an email you did not mean to send cannot be called back.
+
+## When a standing permission changes
+
+A permission belongs to one workspace and either one coworker or the workspace-wide action. Repeating registration updates that same scope. Changing its level, constraints or source clears the previous approval; changing only its label or description keeps the decision. Restoring standing permission requires an explicit human approver. Hard safety floors remain in force, including floors set for the whole workspace.
+
+If an older installation reports multiple matching policies when saving approval, have the workspace administrator apply the current migration catalog and retry the supported policy operation. The recovery keeps existing policy IDs and creation dates, records the before-and-after decision in the audit, and leaves other workspaces and coworker scopes untouched. Unknown constraints still require review even after a standing permission is saved.
 
 ## Practice it first
 

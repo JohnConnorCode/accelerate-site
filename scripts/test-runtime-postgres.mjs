@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { proveAutonomyPolicyWrites } from "./lib/autonomy-policy-write-postgres-proof.mjs";
 import { proveModelBudgets } from "./lib/model-budget-postgres-proof.mjs";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -171,6 +172,7 @@ try {
     "t",
     "a generic policy floor cannot be bypassed by a worker",
   );
+  await proveAutonomyPolicyWrites({ sql, asyncSql, context, a, b });
   const workId = "33333333-3333-4333-8333-333333333333";
   sql(
     `INSERT INTO work_items(id,tenant_id,kind,objective,reason,source) VALUES('${workId}','${a}','fixture','Test','Test','test');`,
@@ -268,6 +270,9 @@ try {
       checks: [
         ...modelChecks,
         "idempotent-migrations",
+        "policy-write-before-after-duplicates",
+        "policy-write-concurrency-and-reapproval",
+        "policy-write-history-and-authorization",
         "tenant-composite-coworkers",
         "foreign-link-refusal",
         "hard-floors-all-tenants",

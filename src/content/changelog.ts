@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "autonomy-policy-write-recovery",
+    slug: "autonomy-policy-write-recovery",
+    title: "Save and restore standing permissions reliably",
+    description:
+      "Repeated policy registration updates the intended workspace and coworker scope. Older duplicate records retain their IDs, approval can be revoked and granted again, and material policy changes clear the previous approval. Hard safety floors and audit history remain intact.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "stage-history-reconciliation",
     slug: "stage-history-reconciliation",
     title: "See recorded pipeline progress and history gaps",

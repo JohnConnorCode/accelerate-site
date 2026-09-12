@@ -294,7 +294,7 @@ export const capabilities: Capability[] = [
     category: "learn",
     title: "Autonomy you raise on purpose",
     detail:
-      "Every kind of action carries its own trust level. You raise it when the approval rate has earned it and drop it back the moment you want to.",
+      "Every kind of action carries its own trust level. Standing permission requires a human decision, and changing the policy clears that approval. Revoke or restore the intended workspace or coworker permission while retaining its audit history.",
   },
   {
     id: "brief",
