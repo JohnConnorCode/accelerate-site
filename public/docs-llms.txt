@@ -140,7 +140,7 @@ For coding agents and humans: add a module, an integration adapter, a plugin, or
 ## Self-hosting
 Run the Command Center yourself: what you need, how to start, and when to bring us in.
 
-- [Self-hosting quickstart](https://www.acceleratewith.us/docs/self-hosting/overview) (updated 2026-09-09): Explore the real interface with zero credentials, then connect a workspace you actually control.
+- [Self-hosting quickstart](https://www.acceleratewith.us/docs/self-hosting/overview) (updated 2026-09-12): Explore the real interface with zero credentials, then connect a workspace you actually control.
 - [Connect your installation](https://www.acceleratewith.us/docs/self-hosting/installation) (updated 2026-09-11): Create the owner account, apply the ordered schema, and sign in to a workspace you control.
 
 - [Documentation landing](https://www.acceleratewith.us/docs): all guides.

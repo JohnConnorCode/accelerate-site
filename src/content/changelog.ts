@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "neutral-fork-distribution",
     title: "Run a fork as your business, not ours",
     description:
-      "A documented neutral profile keeps the same admin and runtime while entry pages, authentication chrome and hosting IDs come from the configured business. Protected agency media stays out of the starter file list. The original branded installation remains the default.",
+      "A manifest-driven exporter creates a separate neutral starter with configured business identity, empty business collections and sample page content. Protected media and original hosting targets are omitted. The same admin and runtime remain, with fresh artifact build and fictional desktop/mobile checks in CI. The original branded installation remains the default.",
     category: "improvement",
     publishedAt: "2026-09-12",
   },

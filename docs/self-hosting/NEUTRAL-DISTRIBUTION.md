@@ -17,15 +17,35 @@ Copy `deployment-target.example.json` to `deployment-target.json` and fill IDs f
 node scripts/generate-fork-hosting.mjs --project prj_your_id --team team_your_id --name my-revenue-os --url https://your-business.example
 ```
 
-The generator refuses the original Accelerate project, team and canonical URL. `vercel.json` keeps automatic Git deployments off until you enable them in your project. Cron routes in that file stay disabled until you set `CRON_SECRET` and a scheduler you own. `npm run deploy:check` in the neutral profile also refuses original IDs.
+The generator refuses the original Accelerate project, team and canonical URL. `vercel.json` keeps automatic Git deployments off until you enable them in your project. Cron routes require `CRON_SECRET` and a scheduler you own; remove or configure scheduled triggers explicitly for your hosting account. `npm run deploy:check` in the neutral profile also refuses original IDs.
 
 This does not deploy the original production account.
 
-## Protected media
+## Export the starter
 
-`distribution/inclusion-manifest.json` lists agency, customer and personal media that belong to this branded repository. A starter must omit those paths; hiding a nav link while still serving the file is not enough. `npm run test:neutral-runtime-distribution` proves excluded paths stay out of the starter file list while admin, runtime, extensions and self-hosting docs remain.
+From a clean source checkout, run:
 
-Replace remaining bootstrap identity in `src/config/tenant.ts` and `BOOTSTRAP_*` with the fork's business before the first connected install.
+```bash
+node scripts/export-neutral-starter.mjs --output /absolute/new/harbor-workspace
+cd /absolute/new/harbor-workspace
+npm ci
+npm run build
+npm run start
+```
+
+The output must be a new directory outside the source checkout. Existing files are never overwritten. `neutral-starter-receipt.json` lists every copied path and its content hash, so a reviewer can identify the exact exported source. The exporter copies tracked source selected by `distribution/inclusion-manifest.json` and its explicit replacement files. It refuses path escapes and symlinks and omits private environment, repository metadata and original hosting IDs.
+
+The starter contains a fictional Harbor Operations identity in `src/config/tenant.ts`. Replace that configuration with your business name, domain, contact details and AI instructions before connecting real services. The exported public profile flag is neutral. The original checkout remains branded by default.
+
+All original public assets, article collections, team biographies and work examples are omitted. Business-owned content collections start empty; editable page sections use neutral placeholders. The shared runtime, fictional admin scenarios, extension code and product documentation remain. Supply assets you have rights to publish and update your own page content before public release.
+
+A fresh starter has no hosting target and no enabled scheduler. Generate a target for your own account with the command above when ready to configure hosting. No provider credentials or recipient data are copied.
+
+## Verification and recovery
+
+CI installs and builds the actual exported directory, then runs `scripts/qa-turnkey.mjs --neutral` at desktop and mobile widths. It records configured entry metadata, the disconnected setup boundary, populated fictional pipeline, filtered empty state and a saved demo branding change after reload. Every external browser request is rejected and recorded; no live authentication provider, recipient or deployment is exercised. Separate native checks render the actual AI prompt, email wrapper and plan document with the starter identity.
+
+If export fails, inspect the named manifest path and create a new output directory after correcting the source. If installation or build fails, retain the export receipt and exact error; never copy private environment from the original checkout to make the build pass.
 
 ## Stable extensions vs sample screens
 

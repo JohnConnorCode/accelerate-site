@@ -1,0 +1,11 @@
+import { tenant } from "@/config/tenant";
+import { navItems } from "../navigation";
+import type { WebsiteHeader, WebsiteFooter, WebsiteDock } from "@/lib/site-studio/website-chrome";
+export const websiteHeaderContent: WebsiteHeader = { ctaLabel: "Workspace", ctaHref: "/admin" };
+export const websiteNavigationContent = navItems;
+export const websiteFooterContent: WebsiteFooter = {
+  text: tenant.brand.tagline, links: [], columns: [], email: tenant.founder.email,
+  social: [], rights: tenant.brand.emailFooter,
+  newsletter: { visible: false, heading: "Updates", description: "Configure your own subscription service.", placeholder: "you@example.com", inputLabel: "Email address", buttonLabel: "Subscribe", successText: "Subscribed" },
+};
+export const websiteDockContent: WebsiteDock = { visible: false, heading: tenant.brand.name, detail: tenant.brand.tagline, ctaLabel: "Workspace", ctaHref: "/admin" };

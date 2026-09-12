@@ -1,7 +1,7 @@
 ---
 title: "Self-hosting quickstart"
 description: "Explore the real interface with zero credentials, then connect a workspace you actually control."
-updated: "2026-09-09"
+updated: "2026-09-12"
 ---
 
 You can run the real Command Center interface before you've connected a single database or provider, which is the fastest way to decide whether this is worth setting up for real. A connected installation, when you're ready for one, adds your own workspace, authentication, and provider configuration on top of that same interface.
@@ -18,6 +18,12 @@ npm run dev
 ```
 
 Open the local URL printed in the terminal, then visit `/demo/command-center`. Choose a fictional business and follow [your first workflow](/docs/start/daily-path). This path does not need email or AI provider keys.
+
+## Start with your own business identity
+
+If you are creating a separate installation, export the neutral starter into a new directory with `node scripts/export-neutral-starter.mjs --output /absolute/new/workspace`. The exporter keeps the shared application and fictional demos while replacing business-owned content with empty collections and neutral placeholders.
+
+Open `src/config/tenant.ts` in that directory and replace the fictional Harbor Operations identity with your own business details. Follow `docs/self-hosting/NEUTRAL-DISTRIBUTION.md` for installation, hosting configuration, the export receipt and verification steps. Your source checkout stays intact, and provider connections remain yours to configure.
 
 ## Connect a real workspace
 

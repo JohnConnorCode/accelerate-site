@@ -1,0 +1,51 @@
+// Neutral sample content: replace these placeholders with your own business facts.
+export const marketingPositioning = {
+  "heroEyebrow": "Configure this section",
+  "coreOffer": "Configure this section",
+  "shortOffer": "Configure this section",
+  "outcomes": [
+    "Configure this section",
+    "Configure this section",
+    "Configure this section"
+  ],
+  "docsBlurb": "Configure this section",
+  "engagementModes": [
+    {
+      "key": "strategy",
+      "label": "Configure this section",
+      "title": "Configure this section",
+      "description": "Configure this section",
+      "example": "Configure this section",
+      "href": "/"
+    },
+    {
+      "key": "build",
+      "label": "Configure this section",
+      "title": "Configure this section",
+      "description": "Configure this section",
+      "example": "Configure this section",
+      "href": "/"
+    },
+    {
+      "key": "execute",
+      "label": "Configure this section",
+      "title": "Configure this section",
+      "description": "Configure this section",
+      "example": "Configure this section",
+      "href": "/"
+    },
+    {
+      "key": "improve",
+      "label": "Configure this section",
+      "title": "Configure this section",
+      "description": "Configure this section",
+      "example": "Configure this section",
+      "href": "/"
+    }
+  ],
+  "commandCenter": {
+    "label": "Configure this section",
+    "title": "Configure this section",
+    "description": "Configure this section"
+  }
+};

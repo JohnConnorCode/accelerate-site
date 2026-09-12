@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { tenant } from "../src/config/tenant";
 import { distributionProfile } from "../src/lib/distribution/profile";
 import { neutralPublicIdentity } from "../src/lib/distribution/public-identity";
@@ -109,6 +109,17 @@ prove(
       canonicalUrl: "https://harbor.test",
     });
     assert.equal(written.projectName, "harbor-os");
+    for (const canonicalUrl of [
+      "https://ACCELERATEWITH.US/",
+      "http://www.acceleratewith.us:80/path",
+      "https://acceleratewith.us./",
+    ]) {
+      assert.throws(() => assertForkHosting({ ...written, canonicalUrl }), /original installation/);
+    }
+    assert.throws(
+      () => assertForkHosting({ ...written, canonicalUrl: "https://user:pass@harbor.test" }),
+      /without credentials/,
+    );
     const example = JSON.parse(readFileSync("deployment-target.example.json", "utf8"));
     assert.notEqual(example.projectId, original.projectId);
     const preflight = readFileSync("scripts/deployment-preflight.mjs", "utf8");
@@ -117,28 +128,7 @@ prove(
   },
 );
 
-prove("AC5", "credential-free demo and connect-project journeys remain the first-run proof", () => {
-  const turnkey = readFileSync("scripts/qa-turnkey.mjs", "utf8");
-  assert.match(turnkey, /Explore the fictional Command Center/);
-  assert.match(turnkey, /Connect your Supabase project/);
-  assert.match(turnkey, /desktop/);
-  assert.match(turnkey, /mobile/);
-  assert.equal(existsSync("scripts/qa-turnkey.mjs"), true);
-  const harbor = {
-    brand: {
-      name: "Harbor",
-      domain: "harbor.test",
-      siteUrl: "https://harbor.test",
-      logoMark: "H",
-      accentColor: "#111111",
-      tagline: "Harbor",
-      emailFooter: "Harbor",
-    },
-    ai: { businessDescriptor: "Harbor", voice: "Direct.", positioning: "Harbor." },
-  };
-  const identity = JSON.stringify(neutralPublicIdentity(harbor as typeof tenant));
-  assert.doesNotMatch(identity, /acceleratewith\.us/);
-});
+// AC5 is verified by the actual exported starter build and qa-turnkey --neutral in CI.
 
 prove("AC6", "stable extension interfaces and sample apps are documented for upgrades", () => {
   const guide = readFileSync("docs/self-hosting/NEUTRAL-DISTRIBUTION.md", "utf8");

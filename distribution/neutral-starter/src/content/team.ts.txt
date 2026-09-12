@@ -1,0 +1,19 @@
+// Empty business-owned content. Add only material you have rights to publish.
+export type TeamPortraitShape = "portrait" | "circle";
+export interface TeamMember {
+    slug: string;
+    name: string;
+    role: string;
+    group: "Leadership" | "Advisors";
+    summary: string;
+    bio: string[];
+    highlights: string[];
+    image: string;
+    imageAlt: string;
+    portraitShape?: TeamPortraitShape;
+    linkedin?: string;
+}
+export const TEAM_MEMBERS: TeamMember[] = [];
+export function getTeamMember(slug: string): TeamMember | null {
+    return TEAM_MEMBERS.find((member) => member.slug === slug) ?? null;
+}

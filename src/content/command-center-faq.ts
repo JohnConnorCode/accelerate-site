@@ -2,6 +2,10 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I run the workspace for my own business?",
+    answer: "Yes. Export the neutral starter into a new directory, replace its fictional Harbor Operations configuration with your business details, then connect services you control. It keeps the shared workspace and demo while removing protected agency media and original hosting targets. The self-hosting guide explains the export receipt, installation and recovery.",
+  },
+  {
     question: "Can I actually work with clients in the demo?",
     answer:
       "Yes. Search or filter clients, open an account, save notes and add a follow-up. Open the saved follow-up in Tasks & approvals or follow a contact timeline to its specific conversation or opportunity. Changes persist in that fictional business session and never contact customers.",

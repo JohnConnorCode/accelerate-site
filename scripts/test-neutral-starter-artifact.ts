@@ -1,0 +1,58 @@
+import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import { tenant, fromEmail } from "../src/config/tenant";
+import { SYSTEM_PROMPT } from "../src/lib/chat/system-prompt";
+import { emailWrapper } from "../src/lib/email/templates";
+import { generatePlanHTML } from "../src/lib/plan-document";
+import {
+  nativeTemplateDefaults,
+  nativeTemplateSchemas,
+} from "../src/lib/site-studio/native-templates";
+import type { DigitalGrowthPlan } from "../src/lib/types";
+assert.equal(
+  tenant.brand.name,
+  "Harbor Operations",
+  "Run this check inside the actual exported starter",
+);
+const metric = {
+  estimatedLeadIncrease: "Not estimated",
+  estimatedTimeSaved: "Not estimated",
+  estimatedRevenueImpact: "Not estimated",
+};
+const plan: DigitalGrowthPlan = {
+  executiveSummary: "Fictional fixture only.",
+  recommendations: [],
+  implementationRoadmap: [],
+  roiProjection: { ninetyDay: metric, twelveMonth: metric, disclaimer: "No promise of results." },
+  investmentSummary: {
+    oneTimeCosts: [],
+    monthlyCosts: [],
+    totalOneTime: 0,
+    totalMonthly: 0,
+    budgetNotes: "No purchase.",
+  },
+  nextSteps: [],
+};
+const html = generatePlanHTML(plan, "Sample Customer", "Sample Person");
+for (const rendered of [html, emailWrapper("Fixture content"), SYSTEM_PROMPT, fromEmail()]) {
+  assert.match(rendered, /Harbor Operations/);
+  assert.doesNotMatch(rendered, /Accelerate|acceleratewith\.us|John Connor|john@/i);
+}
+for (const [key, value] of Object.entries(nativeTemplateDefaults))
+  nativeTemplateSchemas[key]!.parse(value);
+for (const path of [
+  "public/images/john.jpg",
+  "public/work",
+  "public/resources",
+  "deployment-target.json",
+  "src/content/articles",
+  "src/app/(marketing)/team",
+  "src/app/(marketing)/work",
+])
+  assert.equal(existsSync(path), false, path);
+assert.doesNotMatch(readFileSync("src/content/team.ts", "utf8"), /John Connor|linkedin\.com/);
+assert.equal(tenant.capabilities.publicBooking, false);
+assert.equal(tenant.booking.schedulerUrl, null);
+console.log(
+  "PASS: actual artifact AI prompt, email and document render configured identity; sample content validates; protected media/content and hosting target absent; scheduler remains disabled.",
+);
