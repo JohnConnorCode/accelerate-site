@@ -16,6 +16,7 @@ export function ProposalDecision({
   const [decision, setDecision] = useState<"accepted" | "declined" | null>(
     ["accepted", "declined"].includes(status) ? (status as "accepted" | "declined") : null,
   );
+  const [expired, setExpired] = useState(status === "expired");
   const [declining, setDeclining] = useState(false);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,10 @@ export function ProposalDecision({
         body: JSON.stringify({ decision: next, reason: reason.trim() || undefined }),
       });
       const payload = await response.json();
+      if (response.status === 410) {
+        setExpired(true);
+        return;
+      }
       if (!response.ok) throw new Error(payload.error || "Could not record your response");
       if (payload.status !== "accepted" && payload.status !== "declined")
         throw new Error("Could not confirm the recorded response");
@@ -43,6 +48,18 @@ export function ProposalDecision({
       setLoading(false);
     }
   };
+  if (expired)
+    return (
+      <section
+        role="alert"
+        className="mt-12 rounded-2xl border border-border-glass bg-[var(--surface-bg)] p-6 sm:p-8"
+      >
+        <h2 className="text-2xl font-semibold text-white-primary">Proposal expired</h2>
+        <p className="mt-2 text-sm leading-6 text-white-secondary">
+          This proposal has expired. Contact us for an updated proposal.
+        </p>
+      </section>
+    );
   if (decision)
     return (
       <section

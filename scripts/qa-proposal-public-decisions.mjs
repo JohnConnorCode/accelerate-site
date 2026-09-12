@@ -125,6 +125,12 @@ try {
       await page.getByRole("heading", { name: "Proposal accepted", exact: true }).count(),
       0,
     );
+    await page.getByRole("heading", { name: "Proposal expired", exact: true }).waitFor();
+    assert.equal(await page.locator("#root").getByRole("button").count(), 0);
+    assert.equal(
+      await page.getByRole("heading", { name: "Ready to move forward?", exact: true }).count(),
+      0,
+    );
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await capture("expired");
     assert.deepEqual(errors, []);
