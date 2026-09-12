@@ -8,10 +8,9 @@
  * the ambient tenant actor database, the same seam `test-responder-envelope.ts`
  * uses, so a real request/response cycle runs (rate limiting, validation,
  * the atomic lifecycle command) without a network hop or a live Supabase
- * project. Every proposal here carries `opportunity_id: null`; the opportunity
- * stage transition triggered on decision is an existing, separately-tested
- * concern (`test:pipeline-transition`) and out of scope for this route's
- * idempotency contract.
+ * project. One linked-opportunity case verifies the optional customer reason
+ * remains null while canonical pipeline loss context identifies the proposal.
+ * General transition policy stays in `test:pipeline-transition`.
  *
  * The route delegates view/decision writes to recordProposalView/decideProposal
  * (src/lib/revenue-os/proposals.ts), which commit through a single durable,
@@ -278,6 +277,8 @@ function harness(overrides: Partial<Row> = {}) {
     activities: [],
     audit_log: [],
     opportunities: [],
+    kanban_columns: [],
+    stage_events: [],
   });
   activeDb = db;
   return db;
@@ -549,6 +550,55 @@ async function json(response: Response) {
     );
     assert.equal((await run(db, () => handleProposalPost(request, { params }))).status, 200);
     assert.equal(db.rows("proposals")[0]!.decline_reason, "Budget changed");
+  }
+
+  checks.push(
+    "blank public decline preserves null customer reason and truthful linked pipeline context",
+  );
+  {
+    const opportunityId = randomUUID();
+    const db = harness({ opportunity_id: opportunityId });
+    db.rows("opportunities").push({
+      id: opportunityId,
+      tenant_id: ACCELERATE_TENANT_ID,
+      stage: "proposal",
+      probability: 70,
+    });
+    db.rows("kanban_columns").push(
+      ...[
+        { key: "proposal", role: "open", probability: 70 },
+        { key: "lost", role: "lost", probability: 0 },
+      ].map((stage, index) => ({
+        id: randomUUID(),
+        tenant_id: ACCELERATE_TENANT_ID,
+        board_key: "pipeline",
+        column_key: stage.key,
+        label: stage.key,
+        is_default: index === 0,
+        sort_order: index,
+        metadata: { role: stage.role, probability: stage.probability },
+      })),
+    );
+    const ip = freshIp();
+    const first = post("tok-1", { decision: "declined" }, ip);
+    const response = await run(db, () =>
+      handleProposalPost(first.request, { params: first.params }),
+    );
+    assert.equal(response.status, 200, JSON.stringify(await json(response)));
+    assert.equal(db.rows("proposals")[0]!.decline_reason, null);
+    assert.equal(db.rows("opportunities")[0]!.stage, "lost");
+    assert.equal(db.rows("opportunities")[0]!.loss_reason, `Proposal declined (${PROPOSAL_ID})`);
+    const replay = post("tok-1", { decision: "declined", reason: "later explanation" }, ip);
+    assert.equal(
+      (await run(db, () => handleProposalPost(replay.request, { params: replay.params }))).status,
+      200,
+    );
+    assert.equal(db.rows("proposals")[0]!.decline_reason, null);
+    assert.equal(db.rows("stage_events").length, 1);
+    assert.equal(
+      db.rows("activities").find((row) => row.activity_type === "proposal_declined")!.summary,
+      null,
+    );
   }
 
   // --- AC3: expired or superseded links cannot change pipeline state ------
