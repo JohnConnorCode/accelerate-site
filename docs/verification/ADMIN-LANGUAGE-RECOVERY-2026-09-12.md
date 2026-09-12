@@ -99,8 +99,11 @@ matrix on desktop Paper, then changed guidance and contact parent navigation at
 1440/900/390 pixels in all seven presets. Mobile uses reduced motion. Console errors
 and escaped protected demo requests fail the suite; none occurred.
 
-The same successful CI run also passed shell motion/navigation, Contact review
-states, theme persistence and marketing/demo journeys. The subsequent published-main integration retains the language repair and gets
+The same successful CI run also passed Contact review states, theme persistence
+and marketing/demo journeys. Existing group persistence, pending navigation and
+shell motion retain the earlier exact-source PR69 evidence; this repair leaves
+that machinery intact. Current tests cover changed query-aware identity, Help
+keyboard/focus behavior and reduced-motion mobile. The subsequent published-main integration retains the language repair and gets
 its own complete CI before merge. No production deployment is part of this change.
 
 | Before                                         | After                                                                                 |
