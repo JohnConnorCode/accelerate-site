@@ -50,13 +50,38 @@ html[data-admin-density="compact"]
   --admin-section-gap: 20px;
 }
 @media (pointer: coarse) {
-  html[data-admin-density] :is(.admin-shell, .admin-overlay-token-scope),
-  .admin-shell {
+  html[data-admin-density]
+    :is(
+      .admin-shell,
+      .admin-overlay-token-scope,
+      body.admin-dialog-open,
+      body.admin-notifications-open
+    ),
+  :is(
+    .admin-shell,
+    .admin-overlay-token-scope,
+    body.admin-dialog-open,
+    body.admin-notifications-open
+  ),
+  [data-admin-density="compact"].admin-shell {
     --admin-control-height: 44px;
   }
 }
 @media (max-width: 639px) {
-  :is(.admin-shell, .admin-overlay-token-scope) {
+  html[data-admin-density]
+    :is(
+      .admin-shell,
+      .admin-overlay-token-scope,
+      body.admin-dialog-open,
+      body.admin-notifications-open
+    ),
+  :is(
+    .admin-shell,
+    .admin-overlay-token-scope,
+    body.admin-dialog-open,
+    body.admin-notifications-open
+  ),
+  [data-admin-density="compact"].admin-shell {
     --admin-panel-padding: 18px;
     --admin-section-gap: 20px;
   }
