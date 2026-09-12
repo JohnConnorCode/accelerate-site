@@ -7032,6 +7032,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   position: fixed;
   z-index: 80;
   transform-origin: top right;
+  --admin-help-top: 1rem;
+  --admin-help-anchor-right: 1rem;
   --admin-help-width: min(23rem, calc(100vw - 2rem));
   top: var(--admin-help-top);
   right: clamp(1rem, var(--admin-help-anchor-right), calc(100vw - var(--admin-help-width) - 1rem));
