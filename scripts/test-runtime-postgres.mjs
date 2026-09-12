@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { proveModelBudgets } from "./lib/model-budget-postgres-proof.mjs";
+import { provePhaseBWork } from "./lib/phase-b-work-postgres-proof.mjs";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -262,6 +263,7 @@ try {
     /unavailable/,
   );
   const modelChecks = await proveModelBudgets({ sql, asyncSql, context, a, b });
+  const phaseBChecks = await provePhaseBWork({ sql, args, context, a });
   console.log(
     JSON.stringify({
       result: "passed",
@@ -273,6 +275,7 @@ try {
         "hard-floors-all-tenants",
         "signed-standing-policy",
         "unknown-constraints-require-approval",
+        ...phaseBChecks,
         "membership-bound-policy-RPC",
         "hard-floor-RLS",
         "concurrent-budget-claim",
