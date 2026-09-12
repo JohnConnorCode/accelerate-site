@@ -85,3 +85,12 @@ Follow the verification sequence in your checkout's `docs/self-hosting/SELF-HOST
 Before importing real data, establish backup and restore ownership, update procedures, and failure reporting. Hosting requires configuring secrets in your own hosting project and verifying authentication and the canonical domain after release. A working local demo does not establish production readiness.
 
 **Next:** [Run a business pilot](/docs/start/business-owners), or [onboard agency clients](/docs/start/agencies). For failures, see [Troubleshooting](/docs/start/troubleshooting).
+
+### Continue a manually prepared agent checkout
+
+Normal backlog pickup records the worker checkout automatically. If an older claim
+was deliberately created with `--no-worktree`, review the retained source and attach
+it with `npm run agent:checkpoint -- --card <key> --worktree /path/to/worker --checkpoint-file /path/to/checkpoint.json`.
+The command checks the repository and current ownership before saving a checkpoint.
+It does not reset the checkout or grant the worker review authority. Use `agent:show`
+to read a task without changing its claim; `agent:resume` takes over eligible expired work.

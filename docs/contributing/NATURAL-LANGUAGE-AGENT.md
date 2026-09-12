@@ -127,6 +127,13 @@ npm run agent:checkpoint -- --card <key> --attempt <uuid> --checkpoint-file /tmp
 npm run agent:run -- --card <key> --attempt <uuid> --timeout-ms 1800000 -- npm run test:core
 ```
 
+A legacy claim made with `--no-worktree` may not have its prepared checkout recorded.
+After reviewing that source, run `agent:checkpoint` with the same card, checkpoint
+file and `--worktree /absolute/path/to/retained-worker`. The command verifies the
+clone, approved base and feature checkout, then rechecks the existing claim token
+before attaching it. It preserves source and Git state. Later progress uses the
+recorded checkout normally. A different already-recorded checkout is never replaced.
+
 The checkpoint creates a separate commit using a temporary private index and
 publishes an immutable repository branch. HEAD, the original index and working
 files are preserved. Newly created files omitted from `files` are reported;
