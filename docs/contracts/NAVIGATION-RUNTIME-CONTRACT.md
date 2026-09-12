@@ -30,6 +30,9 @@ routing or creating surface-specific history systems.
   history entry.
 - Public pages scroll the document. Admin and full-demo pages scroll the shared
   `.admin-main` application viewport registered by `AdminShell`.
+- Nested board scroll regions register by stable board key with this same runtime.
+  Their horizontal offsets share the existing bounded numeric receipt cache and
+  restore on remount within the same history entry, including browser Back.
 - Query and hash changes preserve the caller's explicit scroll policy. Layout
   growth after a history traversal must not permanently displace the restored
   position.

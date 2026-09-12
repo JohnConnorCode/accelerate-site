@@ -356,7 +356,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "A mobile-ready workspace",
     detail:
-      "Use Today, inbox, pipeline, records and setup from a responsive browser. Kanban offers swipeable columns, touch and keyboard dragging, and a stage control for moving a card.",
+      "Use Today, inbox, pipeline, records and setup from a responsive browser. Kanban offers freely scrollable columns, column buttons at every screen size, touch and keyboard dragging, and a stage control for moving a card.",
   },
   {
     id: "api",

@@ -7594,7 +7594,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 .kanban-scroller {
   min-width: 0;
   scroll-padding-inline: 1px;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: none;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--admin-border) transparent;

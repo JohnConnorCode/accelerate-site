@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "kanban-scroll-continuity",
+    slug: "kanban-scroll-continuity",
+    title: "Keep your place on shared boards",
+    description:
+      "Feature Board, Pipeline and Content Calendar keep manual horizontal scrolling under your control. Column buttons remain available on phones, tablets and desktops, keyboard focus reaches the board, and returning from an opportunity restores its board position. Shared loading and refresh regions retain their spacing across appearances.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",
