@@ -10,6 +10,7 @@ import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import {
   prepareWorkspace,
+  isExpiredWorkClaim,
   createWorkspace,
   repositoryContext,
   boardEndpoint,
@@ -109,6 +110,9 @@ test("fresh clone fetches a published base and uses one safe worktree path from 
     assert.equal(repositoryContext(path).sessions, repositoryContext(f.clone).sessions);
     writeFileSync(join(path, "unfinished.txt"), "preserve");
     assert.throws(() => prepareWorkspace(f.clone, f.card), /uncommitted/);
+    const resumed = prepareWorkspace(f.clone, f.card, { preserveRetainedChanges: true });
+    assert.equal(resumed.mode, "reuse");
+    assert.equal(resumed.path, path);
     assert.equal(readFileSync(join(path, "unfinished.txt"), "utf8"), "preserve");
   } finally {
     rmSync(f.dir, { recursive: true, force: true });
@@ -257,6 +261,7 @@ test("doctor proves shared protocol, operation scopes and enforcement without ma
           ...process.env,
           WORK_BOARD_URL: `http://127.0.0.1:${server.address().port}`,
           WORK_BOARD_TOKEN: "doctor-private-token",
+          ACCELERATE_AGENT_NO_PROFILE: "1",
         },
         stdio: ["ignore", "pipe", "pipe"],
       });
@@ -414,6 +419,79 @@ test("developer completes claim, progress, release, resume and evidence submissi
       receipt.map((r) => r.operation),
       ["claim", "heartbeat", "progress", "release", "claim", "submit"],
     );
+  } finally {
+    await new Promise((resolveClosed) => server.close(resolveClosed));
+    rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+test("expired continuation never treats live, missing or malformed leases as expired", () => {
+  const now = Date.parse("2026-09-12T16:00:00Z");
+  assert.equal(
+    isExpiredWorkClaim({ status: "in_progress", lease_expires_at: "2026-09-12T15:59:00Z" }, now),
+    true,
+  );
+  assert.equal(
+    isExpiredWorkClaim({ status: "in_progress", lease_expires_at: "2026-09-12T16:01:00Z" }, now),
+    false,
+  );
+  assert.equal(isExpiredWorkClaim({ status: "in_progress", lease_expires_at: null }, now), false);
+  assert.equal(
+    isExpiredWorkClaim({ status: "in_progress", lease_expires_at: "invalid" }, now),
+    false,
+  );
+  assert.equal(
+    isExpiredWorkClaim({ status: "in_review", lease_expires_at: "2026-09-12T15:59:00Z" }, now),
+    false,
+  );
+});
+
+test("explicit expired pickup preserves dirty retained work while automatic pickup skips it", async () => {
+  const f = fixture();
+  const path = createWorkspace(prepareWorkspace(f.clone, f.card));
+  writeFileSync(join(path, "unfinished.txt"), "retained implementation");
+  f.card.status = "in_progress";
+  f.card.revision = 5;
+  f.card.lease_expires_at = "2000-01-01T00:00:00Z";
+  f.card.readiness = ["status:in_progress"];
+  const bodies = [];
+  const server = createServer(async (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    if (req.method === "GET")
+      return res.end(
+        JSON.stringify({
+          protocolVersion: 2,
+          schemaReady: true,
+          features: [f.card],
+          nextOffset: null,
+        }),
+      );
+    let body = "";
+    for await (const chunk of req) body += chunk;
+    bodies.push(JSON.parse(body));
+    res.end(
+      JSON.stringify({
+        card: { ...f.card, revision: 6, lease_expires_at: "2099-01-01T00:00:00Z" },
+        replayed: false,
+      }),
+    );
+  });
+  await new Promise((resolveListening) => server.listen(0, "127.0.0.1", resolveListening));
+  const env = {
+    WORK_BOARD_URL: `http://127.0.0.1:${server.address().port}`,
+    WORK_BOARD_TOKEN: "fixture-token",
+    ACCELERATE_AGENT_NO_PROFILE: "1",
+  };
+  try {
+    const auto = await cli(f.clone, ["next", "--json"], env);
+    assert.equal(auto.code, 1);
+    assert.equal(bodies.length, 0);
+    const explicit = await cli(f.clone, ["next", "--card", f.card.seed_key, "--json"], env);
+    assert.equal(explicit.code, 0, explicit.stderr);
+    assert.equal(bodies.length, 1);
+    assert.equal(bodies[0].revision, 5);
+    assert.equal(JSON.parse(explicit.stdout).worktree, path);
+    assert.equal(readFileSync(join(path, "unfinished.txt"), "utf8"), "retained implementation");
   } finally {
     await new Promise((resolveClosed) => server.close(resolveClosed));
     rmSync(f.dir, { recursive: true, force: true });

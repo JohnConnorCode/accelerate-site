@@ -19,6 +19,12 @@ checkout printed by the runner through implementation, verification, commit and
 handoff submission. Never implement ticket work inside the control checkout.
 Resume an already claimed task in its existing worker checkout.
 
+Work volume is advisory, never a reason to stop authorized work or ask the founder
+to clear a slot. A request to resume a named expired task authorizes its atomic
+revision-checked continuation without another approval. Preserve the retained
+checkout, unfinished changes and audit history; never take over a live claim.
+Machine resource gates and separate review/release requirements still apply.
+
 The control checkout is a detached view of published `origin/main`. Before a
 new pickup, fetch main through `accelerate-site`, verify the control checkout is
 clean, and advance only that clean detached checkout to `origin/main`. If the
