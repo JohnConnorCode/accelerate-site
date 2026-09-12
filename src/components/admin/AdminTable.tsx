@@ -45,10 +45,10 @@ export function AdminTable<T>({
 }: AdminTableProps<T>) {
   return (
     <AdminSurface padding="none" className="overflow-hidden">
-      <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
-        <table className="w-full min-w-[640px] text-sm">
+      <div className="admin-table-scroll">
+        <table className="admin-table">
           <thead>
-            <tr className="border-b border-[var(--admin-border)] bg-black/[0.018] dark:bg-white/[0.025]">
+            <tr className="border-b border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]">
               {columns.map((col) => (
                 <th
                   key={col.key}
@@ -60,10 +60,7 @@ export function AdminTable<T>({
                         : "descending"
                       : undefined
                   }
-                  className={cn(
-                    "px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)]",
-                    col.className,
-                  )}
+                  className={cn("text-left", col.className)}
                 >
                   {col.sortable ? (
                     <button
@@ -100,17 +97,25 @@ export function AdminTable<T>({
               return (
                 <Fragment key={key}>
                   <motion.tr
-                    initial={{ opacity: 0 }}
+                    initial={false}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.03, duration: 0.18 }}
                     className={cn(
-                      "border-b border-[var(--admin-border)] transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025]",
+                      "border-b border-[var(--admin-border)] transition-[background-color] duration-150 hover:bg-[var(--admin-accent-soft)]",
                       onRowClick && "cursor-pointer",
                     )}
+                    tabIndex={onRowClick ? 0 : undefined}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget || !onRowClick) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onRowClick(item);
+                      }
+                    }}
                     onClick={() => onRowClick?.(item)}
                   >
                     {columns.map((col) => (
-                      <td key={col.key} className={cn("px-4 py-3", col.className)}>
+                      <td key={col.key} className={col.className}>
                         {col.render(item, index)}
                       </td>
                     ))}

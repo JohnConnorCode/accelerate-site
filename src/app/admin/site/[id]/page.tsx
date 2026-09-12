@@ -198,7 +198,7 @@ export default function AdminSiteDraftPage({ params }: { params: Promise<{ id: s
               value={titleInput ?? draft.title}
               onChange={(event) => setTitleInput(event.target.value)}
               aria-label="Draft title"
-              className="min-w-0 flex-1 rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 text-sm text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
+              className="admin-field admin-field--inline min-w-0 flex-1 rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 text-sm text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
             />
             <button
               type="button"

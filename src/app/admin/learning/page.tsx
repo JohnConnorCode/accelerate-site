@@ -167,7 +167,7 @@ export default function LearningInboxPage() {
                   <select
                     value={formType}
                     onChange={(e) => setFormType(e.target.value as LearningProposalType)}
-                    className="mt-1 block w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm"
+                    className="admin-field mt-1 block w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm"
                   >
                     {LEARNING_PROPOSAL_TYPES.map((t) => (
                       <option key={t} value={t}>
@@ -202,7 +202,7 @@ export default function LearningInboxPage() {
                       onChange={(e) =>
                         setFormConfidence(e.target.value as "high" | "medium" | "low")
                       }
-                      className="mt-1 block w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm"
+                      className="admin-field mt-1 block w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm"
                     >
                       <option value="high">High</option>
                       <option value="medium">Medium</option>

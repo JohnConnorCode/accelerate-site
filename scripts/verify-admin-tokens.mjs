@@ -14,6 +14,8 @@ walk(root);
 
 const css =
   readFileSync(join(root, "app/globals.css"), "utf8") +
+  readFileSync(join(root, "app/admin-foundations.css"), "utf8") +
+  readFileSync(join(root, "app/admin-components.css"), "utf8") +
   readFileSync(join(root, "app/admin-themes.css"), "utf8");
 const defined = new Set([...css.matchAll(/(--admin-[a-z0-9-]+)\s*:/g)].map((match) => match[1]));
 const used = new Set();
@@ -236,3 +238,9 @@ execFileSync(process.execPath, [
 console.log(
   `Admin theme contract passed: ${registryIds.length} appearances, ${requiredTokens.length} required tokens each.`,
 );
+
+// New shared presentation belongs to the owning admin sheet, not another
+// override appended to public globals. This prevents the old cascade split.
+const publicCss = readFileSync(join(root, "app/globals.css"), "utf8");
+if (/^\.admin-(?!demo-)[\w-]+[^{}]*\{/m.test(publicCss))
+  throw new Error("Shared admin recipes belong in admin-components.css, not public globals.");

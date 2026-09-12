@@ -18,10 +18,7 @@ export function RevenueSetupGate({
         {title}
       </h2>
       <p className="admin-copy mx-auto mt-2 max-w-lg text-pretty text-sm leading-6">{detail}</p>
-      <Link
-        href="/admin/setup"
-        className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] pl-4 pr-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"
-      >
+      <Link href="/admin/setup" className="admin-button admin-button--primary mt-5">
         Open Setup Center <ArrowRight className="size-3.5" />
       </Link>
     </AdminSurface>

@@ -20,27 +20,27 @@
 .button,
 .primaryButton,
 .iconButton {
-  min-height: 44px;
+  min-height: var(--admin-control-height);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 10px;
-  font-size: 12px;
+  border-radius: var(--admin-control-radius);
+  font-size: var(--admin-text-label);
   font-weight: 600;
   padding: 0 14px;
   transition:
-    background 150ms,
-    box-shadow 150ms,
-    transform 150ms;
+    background var(--admin-motion-fast),
+    box-shadow var(--admin-motion-fast),
+    transform var(--admin-motion-fast);
 }
 .button {
   background: var(--admin-surface);
   box-shadow: var(--admin-shadow-border);
 }
 .primaryButton {
-  background: var(--admin-ink);
-  color: var(--admin-surface);
+  background: var(--admin-action);
+  color: var(--admin-action-ink);
 }
 .iconButton {
   width: 40px;
@@ -76,10 +76,10 @@
   background: var(--admin-surface);
   color: var(--admin-ink);
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--admin-control-radius);
   padding: 10px 36px 10px 14px;
-  min-height: 44px;
-  font-size: 13px;
+  min-height: var(--admin-control-height);
+  font-size: var(--admin-text-body);
   font-weight: 600;
   max-width: 260px;
   box-shadow: var(--admin-shadow-border);
@@ -91,7 +91,7 @@
   align-items: center;
   padding: 9px 12px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: var(--admin-text-label);
   background: color-mix(in srgb, var(--today-accent) 10%, var(--admin-surface));
 }
 .attentionPill b {
@@ -103,24 +103,7 @@
   border-radius: 50%;
   background: var(--today-accent);
 }
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-  align-items: start;
-}
-.full {
-  grid-column: span 3;
-  min-width: 0;
-}
-.primary {
-  grid-column: span 2;
-  min-width: 0;
-}
-.support {
-  grid-column: span 1;
-  min-width: 0;
-}
+
 .card {
   border-radius: var(--admin-surface-radius, 16px);
   background: var(--admin-surface);
@@ -132,14 +115,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 22px 14px;
+  padding: var(--admin-panel-padding) var(--admin-panel-padding) var(--admin-space-3);
   gap: 12px;
 }
 .cardHeader h2 {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: var(--admin-text-section);
   font-weight: 650;
   letter-spacing: -0.02em;
   margin: 0;
@@ -148,25 +131,25 @@
   color: var(--admin-muted);
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: var(--admin-text-caption);
   font-weight: 650;
   letter-spacing: 0.14em;
   color: var(--admin-muted);
   margin: 0 0 8px;
 }
 .muted {
-  font-size: 12px;
+  font-size: var(--admin-text-label);
   line-height: 1.65;
   color: var(--admin-muted);
   text-wrap: pretty;
 }
 .count {
   color: var(--admin-muted);
-  font-size: 11px;
+  font-size: var(--admin-text-caption);
   font-variant-numeric: tabular-nums;
   background: var(--admin-surface-subtle);
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--admin-control-radius);
 }
 .brief {
   position: relative;
@@ -193,7 +176,7 @@
   text-wrap: balance;
 }
 .briefIntro {
-  font-size: 14px;
+  font-size: var(--admin-text-body);
   color: var(--admin-muted);
   max-width: 570px;
   line-height: 1.7;
@@ -223,18 +206,18 @@
   flex-direction: column;
   gap: 7px;
   min-width: 0;
-  border-radius: 8px;
+  border-radius: var(--admin-control-radius);
   padding: 2px;
 }
 .factButton strong {
-  font-size: 13px;
+  font-size: var(--admin-text-body);
   font-weight: 600;
   line-height: 1.5;
   text-wrap: pretty;
 }
 .factButton span {
   color: var(--admin-muted);
-  font-size: 11px;
+  font-size: var(--admin-text-caption);
   line-height: 1.6;
 }
 .factButton:hover strong {
@@ -247,7 +230,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  font-size: 10px;
+  font-size: var(--admin-text-caption);
   color: var(--admin-muted);
 }
 .briefMeta span {
@@ -262,7 +245,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 15px 12px;
+  padding: var(--admin-row-padding) var(--admin-space-3);
   border-top: 1px solid var(--admin-border);
 }
 .row:first-child {
@@ -274,7 +257,7 @@
   width: 32px;
   height: 32px;
   background: var(--admin-surface-subtle);
-  border-radius: 9px;
+  border-radius: var(--admin-control-radius);
   flex-shrink: 0;
   margin-top: 2px;
   color: var(--admin-muted);
@@ -287,12 +270,12 @@
 .rowMain strong {
   display: block;
   font-weight: 550;
-  font-size: 13px;
+  font-size: var(--admin-text-body);
   line-height: 1.55;
   text-wrap: pretty;
 }
 .rowMain p {
-  font-size: 12px;
+  font-size: var(--admin-text-label);
   color: var(--admin-muted);
   line-height: 1.6;
   margin: 5px 0 0;
@@ -302,20 +285,20 @@
   gap: 8px;
   align-items: center;
   margin-top: 9px;
-  font-size: 10px;
+  font-size: var(--admin-text-caption);
   color: var(--admin-muted);
   flex-wrap: wrap;
 }
 .badge {
-  border-radius: 5px;
+  border-radius: var(--admin-control-radius);
   padding: 3px 6px;
-  font-size: 10px;
+  font-size: var(--admin-text-caption);
   background: var(--admin-surface-subtle);
   color: var(--admin-muted);
   text-transform: capitalize;
 }
 .urgent {
-  background: color-mix(in srgb, #c58132 12%, var(--admin-surface));
+  background: color-mix(in srgb, var(--admin-warning) 12%, var(--admin-surface));
   color: var(--admin-ink);
 }
 .rowAction {
@@ -343,7 +326,7 @@
 .quietHero p {
   max-width: 430px;
   color: var(--admin-muted);
-  font-size: 13px;
+  font-size: var(--admin-text-body);
   line-height: 1.7;
   margin-bottom: 20px;
 }
@@ -362,14 +345,14 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 22px 17px;
-  font-size: 11px;
+  font-size: var(--admin-text-caption);
   color: var(--admin-muted);
 }
 .textLink {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: var(--admin-text-label);
   font-weight: 550;
   min-height: 40px;
 }
@@ -378,12 +361,12 @@
   text-underline-offset: 4px;
 }
 .error {
-  font-size: 12px;
+  font-size: var(--admin-text-label);
   line-height: 1.6;
   padding: 12px 16px;
   margin-bottom: 16px;
-  border-radius: 10px;
-  background: color-mix(in srgb, #c58132 10%, var(--admin-surface));
+  border-radius: var(--admin-control-radius);
+  background: color-mix(in srgb, var(--admin-warning) 10%, var(--admin-surface));
   color: var(--admin-ink);
 }
 .notice {
@@ -394,9 +377,9 @@
   padding: 8px 14px;
   margin-bottom: 16px;
   background: var(--admin-surface);
-  border-radius: 10px;
+  border-radius: var(--admin-control-radius);
   box-shadow: var(--admin-shadow-border);
-  font-size: 12px;
+  font-size: var(--admin-text-label);
 }
 .stats {
   display: grid;
@@ -406,7 +389,7 @@
 }
 .stats dt {
   color: var(--admin-muted);
-  font-size: 11px;
+  font-size: var(--admin-text-caption);
   margin: 5px 0 7px;
 }
 .stats dd {
@@ -429,9 +412,7 @@
 .compact .cardHeader {
   padding-top: 16px;
 }
-.compact .grid {
-  gap: 14px;
-}
+
 .editor {
   height: 100dvh;
   display: flex;
@@ -454,7 +435,7 @@
   font-weight: 550;
 }
 .editorHeader p:last-child {
-  font-size: 12px;
+  font-size: var(--admin-text-label);
   color: var(--admin-muted);
   margin-top: 5px;
 }
@@ -472,26 +453,26 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  font-size: 11px;
+  font-size: var(--admin-text-caption);
   color: var(--admin-muted);
 }
 .field input,
 .field select {
   width: 100%;
   min-width: 0;
-  min-height: 44px;
+  min-height: var(--admin-control-height);
   border: 1px solid var(--admin-border);
-  border-radius: 8px;
+  border-radius: var(--admin-control-radius);
   padding: 8px 10px;
   background: var(--admin-surface);
   color: var(--admin-ink);
-  font-size: 12px;
+  font-size: var(--admin-text-label);
 }
 .checkField {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 12px;
+  font-size: var(--admin-text-label);
   line-height: 1.5;
 }
 .checkField input {
@@ -503,12 +484,12 @@
   justify-content: space-between;
   align-items: center;
   margin: 28px 0 9px;
-  font-size: 13px;
+  font-size: var(--admin-text-body);
   font-weight: 600;
 }
 .sectionLabel span {
   color: var(--admin-muted);
-  font-size: 11px;
+  font-size: var(--admin-text-caption);
   font-weight: 400;
 }
 .editorModules {
@@ -519,7 +500,7 @@
 .editorModule {
   border: 1px solid var(--admin-border);
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--admin-control-radius);
 }
 .moduleControls {
   display: flex;
@@ -528,7 +509,7 @@
   margin-bottom: 8px;
 }
 .moduleControls strong {
-  font-size: 12px;
+  font-size: var(--admin-text-label);
   flex: 1;
 }
 .dragHandle {
@@ -537,14 +518,14 @@
   padding: 8px 3px;
 }
 .preview {
-  font-size: 10px;
+  font-size: var(--admin-text-caption);
   color: var(--admin-muted);
   margin-top: 12px;
   line-height: 1.5;
 }
 .arrangementPreview {
   margin: 12px 0;
-  font-size: 12px;
+  font-size: var(--admin-text-label);
 }
 .arrangementPreview summary {
   cursor: pointer;
@@ -557,14 +538,14 @@
   gap: 7px;
   padding: 10px;
   background: var(--admin-surface-subtle);
-  border-radius: 10px;
+  border-radius: var(--admin-control-radius);
 }
 .previewGrid > div {
   border: 1px solid var(--admin-border);
   background: var(--admin-surface);
   padding: 12px 8px;
-  border-radius: 6px;
-  font-size: 10px;
+  border-radius: var(--admin-control-radius);
+  font-size: var(--admin-text-caption);
 }
 .catalog {
   display: grid;
@@ -578,13 +559,13 @@
   text-align: left;
   padding: 14px 28px 14px 14px;
   border: 1px solid var(--admin-border);
-  border-radius: 10px;
+  border-radius: var(--admin-control-radius);
 }
 .catalog strong {
-  font-size: 12px;
+  font-size: var(--admin-text-label);
 }
 .catalog span {
-  font-size: 11px;
+  font-size: var(--admin-text-caption);
   color: var(--admin-muted);
   line-height: 1.6;
   margin-top: 5px;
@@ -620,14 +601,14 @@
   text-wrap: balance;
 }
 .inspector h3 {
-  font-size: 11px;
+  font-size: var(--admin-text-caption);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 26px 0 10px;
   color: var(--admin-muted);
 }
 .inspector p {
-  font-size: 13px;
+  font-size: var(--admin-text-body);
   line-height: 1.8;
 }
 .inspectorActions {
@@ -637,41 +618,18 @@
   margin-top: 24px;
 }
 .sourceBox {
-  border-radius: 10px;
+  border-radius: var(--admin-control-radius);
   padding: 14px;
   background: var(--admin-surface-subtle);
   margin: 12px 0;
-  font-size: 12px;
+  font-size: var(--admin-text-label);
 }
 .skeleton {
   height: 180px;
   background: var(--admin-surface-subtle);
-  border-radius: 16px;
-}
-@media (max-width: 1000px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .full,
-  .primary {
-    grid-column: span 2;
-  }
-  .support {
-    grid-column: span 1;
-  }
-  .briefFacts {
-    gap: 14px;
-  }
+  border-radius: var(--admin-control-radius);
 }
 @media (max-width: 640px) {
-  .grid {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .grid > * {
-    width: 100%;
-  }
   .toolbar {
     margin: 18px 0;
   }
@@ -694,7 +652,7 @@
     gap: 14px;
   }
   .briefIntro {
-    font-size: 13px;
+    font-size: var(--admin-text-body);
   }
   .sun {
     width: 38px;
@@ -726,10 +684,10 @@
     gap: 10px;
   }
   .attentionPill {
-    font-size: 11px;
+    font-size: var(--admin-text-caption);
   }
   .briefMeta {
-    font-size: 10px;
+    font-size: var(--admin-text-caption);
   }
 }
 @media (prefers-reduced-motion: reduce) {

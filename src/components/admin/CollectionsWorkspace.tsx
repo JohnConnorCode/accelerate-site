@@ -156,7 +156,7 @@ export function CollectionsWorkspace() {
       )}
       {query.data && (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="admin-grid admin-grid--metrics">
             <AdminSurface>
               <p className="text-xs text-[var(--admin-muted)]">Eligible overdue balance</p>
               <p className="mt-2 font-semibold tabular-nums">
@@ -222,7 +222,7 @@ export function CollectionsWorkspace() {
         </AdminSurface>
       )}
       {!!cases.length && (
-        <div className="grid items-start gap-5 lg:grid-cols-[minmax(220px,1fr)_minmax(0,2fr)]">
+        <div className="admin-split admin-split--master">
           <AdminSurface padding="sm">
             <h2 className="px-2 py-3 font-semibold">Accounts and currencies</h2>
             <ul className="space-y-1">

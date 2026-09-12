@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "./AdminLink";
+import { AdminDensityControl } from "./AdminDensityControl";
 import { useWorkspaceTheme } from "./AdminThemeProvider";
 import { useTheme } from "next-themes";
 import { Check, ChevronUp, Moon, Palette, Snowflake, Sparkles, Sun } from "lucide-react";
@@ -136,7 +137,7 @@ export function AdminAppearancePicker({
             exit={{ opacity: 0, y: canvas ? -6 : 6, scale: 0.98 }}
             transition={{ type: "spring", duration: 0.3, bounce: 0 }}
             className={cn(
-              "admin-appearance-panel absolute z-[70] overflow-hidden rounded-[var(--admin-surface-radius)] p-2 shadow-[var(--admin-shadow-hover)]",
+              "admin-appearance-panel absolute z-[70] max-h-[min(720px,80dvh)] overflow-y-auto rounded-[var(--admin-surface-radius)] p-2 shadow-[var(--admin-shadow-hover)]",
               canvas
                 ? "right-0 top-[calc(100%+0.5rem)] w-64"
                 : collapsed
@@ -202,6 +203,7 @@ export function AdminAppearancePicker({
                 );
               })}
             </div>
+            <AdminDensityControl />
             <Link
               href="/admin/branding#workspace-theme"
               onClick={() => setOpen(false)}

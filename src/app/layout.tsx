@@ -1,3 +1,4 @@
+import { adminDensityScript } from "@/lib/admin/density-script";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Jost, Inter, Newsreader, JetBrains_Mono } from "next/font/google";
@@ -156,6 +157,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <script dangerouslySetInnerHTML={{ __html: adminDensityScript }} />
         <script
           dangerouslySetInnerHTML={{
             __html: `document.documentElement.classList.add("motion-ready");setTimeout(function(){if(!document.documentElement.hasAttribute("data-motion-hydrated")){document.documentElement.classList.remove("motion-ready")}},4000);`,

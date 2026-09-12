@@ -180,7 +180,7 @@ export function AdminFounderNoteModal() {
               }}
               placeholder="What happened, what was decided, or what should not be forgotten?"
               rows={7}
-              className="w-full resize-none rounded-xl bg-black/[0.035] px-4 py-3 text-sm leading-6 text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] transition-[box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus-visible:shadow-[var(--admin-shadow-border-hover)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2 dark:bg-white/[0.045]"
+              className="admin-field w-full resize-none rounded-xl bg-black/[0.035] px-4 py-3 text-sm leading-6 text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] transition-[box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus-visible:shadow-[var(--admin-shadow-border-hover)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2 dark:bg-white/[0.045]"
             />
           </label>
 
@@ -201,7 +201,7 @@ export function AdminFounderNoteModal() {
                     value={personQuery}
                     onChange={(event) => searchPeople(event.target.value)}
                     placeholder="Search canonical contacts"
-                    className="min-h-11 w-full rounded-lg bg-[var(--admin-surface)] pl-9 pr-9 text-sm text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] focus-visible:shadow-[var(--admin-shadow-border-hover)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                    className="admin-field admin-field--leading-icon admin-field--trailing-icon min-h-11 w-full rounded-lg bg-[var(--admin-surface)] pl-9 pr-9 text-sm text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] focus-visible:shadow-[var(--admin-shadow-border-hover)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                   />
                   {searching && (
                     <Loader2
@@ -278,7 +278,7 @@ export function AdminFounderNoteModal() {
               type="submit"
               disabled={!note.trim() || saving}
               className={cn(
-                "inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]",
+                "admin-button admin-button--primary",
                 (!note.trim() || saving) && "cursor-not-allowed opacity-45",
               )}
             >

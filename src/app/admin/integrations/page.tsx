@@ -350,7 +350,7 @@ function ProviderCard({
                       type="button"
                       onClick={() => void onGoogleSync(action.source)}
                       disabled={isGoogleSyncing || !isGoogleConnected}
-                      className="mb-2 mr-2 inline-flex min-h-10 min-w-56 items-center gap-2 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3.5 py-2 text-left text-xs font-semibold text-[var(--admin-ink)] transition-[box-shadow,transform] duration-150 hover:bg-black/[0.04] hover:shadow-[var(--admin-shadow-border)] active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-55"
+                      className="admin-button admin-button--secondary mb-2 mr-2"
                     >
                       <SyncIcon
                         className={cn(
@@ -371,10 +371,7 @@ function ProviderCard({
               </div>
             )}
             {provider.setupHref && (
-              <Link
-                href={provider.setupHref}
-                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"
-              >
+              <Link href={provider.setupHref} className="admin-button admin-button--primary">
                 {provider.status === "planned" ? "View roadmap" : "Open setup"}{" "}
                 <ArrowRight className="size-3.5" aria-hidden="true" />
               </Link>
@@ -804,7 +801,7 @@ export default function IntegrationsPage() {
               </AdminSurface>
             )}
 
-            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="admin-grid admin-grid--metrics">
               {[
                 {
                   label: "Behaviorally ready",
@@ -885,13 +882,13 @@ export default function IntegrationsPage() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search tools or capabilities"
-                  className="min-h-11 w-full rounded-xl bg-black/[0.035] pl-9 pr-3 text-sm text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] transition-[box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:shadow-[var(--admin-shadow-border-hover)] dark:bg-white/[0.045]"
+                  className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-black/[0.035] pl-9 pr-3 text-sm text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] transition-[box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:shadow-[var(--admin-shadow-border-hover)] dark:bg-white/[0.045]"
                 />
               </label>
             </AdminSurface>
 
             {providers.length ? (
-              <section className="grid items-start gap-4 xl:grid-cols-2">
+              <section className="admin-grid admin-grid--panels">
                 {providers.map((provider) => (
                   <ProviderCard
                     key={provider.id}
@@ -930,7 +927,7 @@ export default function IntegrationsPage() {
 
         {activeTab === "modules" && (
           <>
-            <section className="grid gap-3 sm:grid-cols-3">
+            <section className="admin-grid admin-grid--metrics">
               <AdminSurface padding="md">
                 <p className="admin-eyebrow">Total Modules</p>
                 <p className="mt-3 font-mono text-3xl font-semibold tabular-nums tracking-[-0.045em] text-[var(--admin-ink)]">
@@ -991,13 +988,13 @@ export default function IntegrationsPage() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search modules or routes"
-                  className="min-h-11 w-full rounded-xl bg-black/[0.035] pl-9 pr-3 text-sm text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] transition-[box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:shadow-[var(--admin-shadow-border-hover)] dark:bg-white/[0.045]"
+                  className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-black/[0.035] pl-9 pr-3 text-sm text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] transition-[box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:shadow-[var(--admin-shadow-border-hover)] dark:bg-white/[0.045]"
                 />
               </label>
             </AdminSurface>
 
             {modules.length ? (
-              <section className="grid items-start gap-4 xl:grid-cols-2">
+              <section className="admin-grid admin-grid--panels">
                 {modules.map((mod) => (
                   <ModuleCard
                     key={mod.id}

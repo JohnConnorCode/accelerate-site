@@ -255,7 +255,7 @@ export default function IdentityReviewPage() {
                     type="button"
                     disabled={resolving || !candidateId}
                     onClick={() => resolve("link")}
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-[var(--admin-action)] px-4 py-2 text-sm font-semibold text-[var(--admin-action-ink)] disabled:opacity-50"
+                    className="admin-button admin-button--primary"
                   >
                     {resolving ? (
                       <Loader2 className="size-4 animate-spin" aria-hidden />

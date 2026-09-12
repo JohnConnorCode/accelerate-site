@@ -299,7 +299,8 @@
     "themes:generate": "node scripts/generate-admin-themes.mjs",
     "test:admin-themes": "node --import tsx scripts/test-admin-themes.ts",
     "test:kanban-position": "node --import tsx scripts/test-kanban-position.ts",
-    "qa:admin-polish": "node scripts/resource-run.mjs node scripts/qa-admin-polish-local.mjs"
+    "qa:admin-polish": "node scripts/resource-run.mjs node scripts/qa-admin-polish-local.mjs",
+    "qa:admin-core": "node scripts/resource-run.mjs node scripts/qa-admin-core.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

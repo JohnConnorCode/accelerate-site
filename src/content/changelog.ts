@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "admin-coherent-core",
+    slug: "admin-coherent-core",
+    title: "A consistent core for the everyday workspace",
+    description:
+      "Command Center uses shared typography, controls, surfaces and responsive page layouts, with a refreshed Paper appearance. Today modules reclaim available space when panels are hidden or rearranged. Comfortable and compact density stay separate from the seven workspace appearances and persist in your browser.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",

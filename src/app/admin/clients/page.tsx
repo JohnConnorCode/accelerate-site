@@ -94,7 +94,7 @@ export default function ClientsPage() {
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           aria-label="Filter by status"
-          className="min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+          className="admin-field admin-field--inline min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
         >
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -110,13 +110,13 @@ export default function ClientsPage() {
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Search clients"
             placeholder="Search clients..."
-            className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none placeholder:text-[var(--admin-muted)] focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+            className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none placeholder:text-[var(--admin-muted)] focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
           />
         </div>
       </div>
 
       {/* MRR Summary Cards */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+      <div className="mb-6 admin-grid admin-grid--metrics">
         <AdminSurface padding="sm">
           <p className="admin-eyebrow">Monthly recurring</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
@@ -168,7 +168,7 @@ export default function ClientsPage() {
             Open a client to review their history, update their plan, or add a follow-up.
           </p>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="admin-table w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]">
                   {["Business", "Contact", "Industry", "MRR", "Status", "Since", ""].map(

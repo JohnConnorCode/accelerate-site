@@ -385,7 +385,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "Make the workspace your own",
     detail:
-      "Choose a built-in appearance or preview a custom palette, typography and corner style in Branding. Import and export portable themes, or ask the connected assistant to prepare a theme for approval. Saved themes use the same workspace permissions and revision checks as branding. Demo appearance choices stay separate from the live workspace.",
+      "Choose a built-in appearance or preview a custom palette, typography and corner style in Branding. Import and export portable themes, or ask the connected assistant to prepare a theme for approval. Saved themes use the same workspace permissions and revision checks as branding. Demo appearance choices stay separate from the live workspace. Choose comfortable or compact spacing independently of your theme; shared controls and responsive layouts keep the workspace consistent.",
   },
   // Govern
   {

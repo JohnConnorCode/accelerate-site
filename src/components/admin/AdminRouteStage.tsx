@@ -1,3 +1,4 @@
+import { adminPageComposition } from "@/lib/admin/page-composition";
 /**
  * The single owner for committed admin-route motion.
  *
@@ -16,7 +17,8 @@ export function AdminRouteStage({
   return (
     <div
       key={routeKey}
-      className="admin-route-stage"
+      className={`admin-route-stage admin-page admin-page--${adminPageComposition(routeKey)}`}
+      data-admin-composition={adminPageComposition(routeKey)}
       data-admin-route-stage
       data-admin-route-key={routeKey}
     >

@@ -193,7 +193,7 @@ export default function ContactsPage() {
               <span className="tabular-nums">{total}</span> captured through the website form
             </p>
           </div>
-          <div className="grid gap-2 sm:grid-cols-[minmax(220px,1fr)_auto_auto] lg:w-[680px]">
+          <div className="admin-toolbar">
             <label className="relative">
               <span className="sr-only">Search submissions</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" />
@@ -267,7 +267,7 @@ export default function ContactsPage() {
                   <button
                     type="button"
                     onClick={(event) => openContact(contact.id, event.currentTarget)}
-                    className="group grid min-h-[76px] w-full items-center gap-3 px-4 py-3 text-left transition-[background-color,box-shadow,transform] duration-150 hover:bg-black/[0.022] hover:shadow-[inset_3px_0_0_var(--admin-ink)] active:scale-[0.995] dark:hover:bg-white/[0.025] sm:px-5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)_minmax(0,1.2fr)_auto]"
+                    className="admin-record-row group grid min-h-[76px] w-full items-center gap-3 px-4 py-3 text-left transition-[background-color,box-shadow,transform] duration-150 hover:bg-black/[0.022] hover:shadow-[inset_3px_0_0_var(--admin-ink)] active:scale-[0.995] dark:hover:bg-white/[0.025] sm:px-5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)_minmax(0,1.2fr)_auto]"
                     aria-haspopup="dialog"
                     data-contact-row-toggle={contact.id}
                   >
@@ -423,7 +423,7 @@ export default function ContactsPage() {
                 )}
                 <Link
                   href={`/admin/contacts/${encodeURIComponent(displayedContact.email)}`}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"
+                  className="admin-button admin-button--primary"
                 >
                   Open relationship <ArrowRight className="size-3.5" />
                 </Link>

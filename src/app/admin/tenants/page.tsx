@@ -282,7 +282,7 @@ export default function TenantDirectoryPage() {
                 ))}
               </section>
 
-              <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_23rem]">
+              <div className="admin-split">
                 <section
                   aria-labelledby="workspace-directory-heading"
                   className="min-w-0 space-y-3"

@@ -32,6 +32,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        data-ui-button={variant}
         className={cn(
           "inline-flex items-center justify-center font-medium cursor-pointer",
           "disabled:opacity-50 disabled:cursor-not-allowed",

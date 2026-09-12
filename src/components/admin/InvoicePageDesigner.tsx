@@ -105,7 +105,7 @@ export function InvoicePageDesigner({
           {notice}
         </p>
       )}
-      <div className="mt-6 grid items-start gap-6 xl:grid-cols-2">
+      <div className="mt-6 admin-split admin-split--equal">
         <fieldset disabled={busy} className="space-y-5">
           <legend className="sr-only">Invoice page presentation</legend>
           <div className="rounded-xl bg-[var(--admin-surface-subtle)] p-4">
