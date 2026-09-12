@@ -75,6 +75,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260906-collections-cases.sql",
   "migrations/20260906-collections-reminders.sql",
   "migrations/20260907-work-packet-quality.sql",
+  "migrations/20260912145031-work-board-resumable-attempts.sql",
   "migrations/20260908-model-call-reservations.sql",
   "migrations/20260908-runtime-record-permission-denied.sql",
   "migrations/20260909-radar-evidence-store.sql",

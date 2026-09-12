@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "resumable-agent-work",
+    slug: "resumable-agent-work",
+    title: "Continue unfinished agent work from saved checkpoints",
+    description:
+      "Repository agents can preserve source checkpoints and resume interrupted tasks through the usual backlog request. This release adds durable attempts, permanently fenced old sessions and a limit based on active leases. Automatic takeover requires the recovery migration and an enabled project policy; hosted activation remains a separate release step.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",

@@ -79,19 +79,28 @@ Run the affected checks and the repository's required verification before submit
 
 You can simply tell a coding agent: “Pick up work from the backlog and go until
 it is completed and committed. Follow protocol.” The repository entrypoint
-defines that as a complete execution request. The agent selects a ready card,
-creates its isolated worktree, follows the live packet, verifies the result,
+defines that as a complete execution request. The agent continues its current task or selects eligible interrupted work before
+starting a ready card. It uses an isolated worktree, follows the live packet, verifies the result,
 commits the exact change and submits evidence for review. Internally this uses
 `agent:go`, but you do not need to provide a ticket key or command name.
 
 Run `npm run dev:doctor` to check local readiness and `npm run dev:doctor -- --board` for a read-only board connection check. Pickup, diagnostics, heartbeat and submission reuse the configured private profile across worktrees. An owner-authorized local profile uses the existing named-project configuration. A remote contributor configures project-scoped HTTPS access once through the setup workflow and does not need the owner’s database credentials. Agents never ask you to paste secrets into chat. If a feature checkout has unfinished work, preserve it and start a new session from a clean published-main control checkout.
 
-The internal runner handles status, selection and claim for the natural-language
+If an agent runs out of time or credit, its next replacement should be able to
+continue from saved source and remaining work. With this release's recovery schema
+and project policy enabled, the runner resumes an expired task from its latest
+checkpoint, a saved copy of unfinished source. It preserves the previous checkout
+so work newer than that copy can still be inspected. Initial pickup and progress
+updates save checkpoints; newly created source files need explicit inclusion.
+
+The internal runner handles continuation, selection and claim for the natural-language
 request. For explicit diagnostics, `npm run agent:status` and
 `npm run agent:show -- --card <key>` remain available; `agent:next` is the
 compatibility command for a named card. Follow the live acceptance criteria,
-renew the lease with `agent:heartbeat`, and submit named checks and the exact
-commit with `agent:complete -- --card <key> --evidence-file <path.json>`.
+use the emitted commands to renew ownership, and submit named checks and the exact
+commit with `agent:complete`. For long checks, the bounded job wrapper keeps
+ownership current while the command runs. The [agent handoff guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/NATURAL-LANGUAGE-AGENT.md#preserve-work-between-agents)
+explains source checkpoints and attempt-specific commands.
 Submission, review, merge and deployment are separate recorded steps. The full
 command contract is in `AGENTS.md` and its linked developer handoff.
 

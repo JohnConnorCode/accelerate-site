@@ -80,7 +80,8 @@ removing active worktrees. This does not authorize production deployment.
 ## Pick up and resume work
 
 Run `npm run agent:go` for the natural-language backlog flow. It performs
-read-only setup checks, selects one ready Now/Next card, claims it atomically,
+read-only setup checks, continues the current attempt or eligible interrupted work
+before selecting a ready Now/Next card, claims new ownership atomically,
 creates the approved isolated worktree, repairs deterministic generated-report
 drift there, and prints the complete continuation packet. Use `--json` for an
 agent client and `--card <key>` only when the user explicitly names a card.
@@ -103,8 +104,15 @@ Use `agent:status`, `agent:heartbeat -- --card <key>`, and
 --evidence-file <path.json>` submits named passing checks and the exact commit
 for review. It preserves the worktree. Completion, review, merge, cleanup and
 production deployment are separate facts/actions. Keep claim session files
-private and renew within the 30-minute lease; expired work requires explicit
-operator recovery. There is no force bypass.
+private and use the emitted `--attempt` when running lifecycle commands outside
+its worker checkout. Progress records a source checkpoint; add newly created source
+paths explicitly with `agent:checkpoint -- --checkpoint-file <path.json>`.
+Renew within the 30-minute lease. For a bounded verification command, use the
+emitted `agent:run` wrapper, which renews every five minutes while that job runs.
+With compatible schema and the project's recovery policy enabled, `agent:go`
+resumes an expired attempt from its checkpoint with new ownership. Missing source
+requires inspection of the retained work, not another routine permission request.
+Preserve old checkouts and sessions; there is no force bypass.
 
 ## Read in this order
 

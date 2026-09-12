@@ -349,7 +349,7 @@ export const capabilities: Capability[] = [
     category: "govern",
     title: "Point any coding agent at the backlog",
     detail:
-      "Tell any coding agent that can read and run the repository to pick up backlog work and follow protocol. The repository entrypoint resolves the configured private transport, selects one eligible card, preserves claim ownership, creates the approved isolated worktree, supplies the live packet, and carries the work through verification, commit, and evidence submission without requiring a ticket key or internal command name.",
+      "Tell any coding agent that can read and run the repository to pick up backlog work and follow protocol. The repository entrypoint resolves the configured private transport, continues current work or selects an eligible card, preserves attempt ownership, creates the approved isolated worktree, supplies the live packet, and carries the work through verification, commit, and evidence submission without requiring a ticket key or internal command name. With the recovery migration and project policy enabled, replacement agents resume expired work from saved checkpoints.",
   },
   {
     id: "sms",
