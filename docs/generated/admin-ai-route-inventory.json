@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 107,
-  "mutationHandlerCount": 96,
+  "routeCount": 111,
+  "mutationHandlerCount": 98,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -691,6 +691,20 @@
         "next/server"
       ],
       "sourceSha256": "5a52c3e65c60164b8af12a8b36a5eb6b3ca8eba6004247c56fe5891f4f6e0d2b"
+    },
+    {
+      "source": "src/app/api/admin/media-assets/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/media-assets",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "b003702824ad4a8fdc6213d85d00aaf4710add8dc1b80c4110bbdab54c792f6a"
     },
     {
       "source": "src/app/api/admin/metrics/route.ts",
@@ -1614,6 +1628,54 @@
       "sourceSha256": "5efc8fcbfe8c552ce9332b10143576689acfdf5001e0005c57231dbc00624835"
     },
     {
+      "source": "src/app/api/admin/social-history/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/social-marketing",
+        "next/server"
+      ],
+      "sourceSha256": "6c763c4d22eeadf9cd10b64256416fb06bda6439f0fa53a38c0fb899d313ee0b"
+    },
+    {
+      "source": "src/app/api/admin/social/media/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/media-assets",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "b92ff671d16f29e17f303c4afc5f840774bc5fb14875c2ba593fa9de587150a6"
+    },
+    {
+      "source": "src/app/api/admin/social/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/social-marketing",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "3ed15ebef11c14c15ca17526cf2e03f1296cafb4090cbb20bb83593f6864a57c"
+    },
+    {
       "source": "src/app/api/admin/subscribers/export/route.ts",
       "handlers": [
         "GET"
@@ -1737,7 +1799,7 @@
         "node:crypto",
         "zod"
       ],
-      "sourceSha256": "98503390c35407133985a8d8353e5dd782a689a4bd4ab6dd55bacdf557975e48"
+      "sourceSha256": "b5996355446e9bd76ed690be6a0a43ce78dc4330001d4df3efb37aab5be36aa1"
     },
     {
       "source": "src/app/api/admin/tenants/route.ts",

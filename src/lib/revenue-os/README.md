@@ -279,3 +279,14 @@ before enabling saved views; `test:today-workspace` executes it twice in an
 owned ephemeral PostgreSQL database and tests authorization/recovery.
 
 `proposals.ts` owns proposal transitions, material-edit versions, immutable events, and acceptance/decline pipeline updates. API adapters reuse that service.
+
+## Social Marketing ownership
+
+`social-marketing.ts` owns draft validation, exact previews, proposals and
+execution; `postiz-adapter.ts` owns the tenant-scoped upstream protocol.
+`social-marketing-work.ts` registers preparation, publication and reconciliation
+with the existing work engine. `media-assets.ts` owns private immutable images.
+UI, AI and MCP reuse those services; the additive SQL transaction owns the final
+approval checks and unique publication attempt. See the
+[operator guide](../../../plugins/social-marketing/README.md) and
+[extension map](../../../plugins/social-marketing/EXTENDING.md).

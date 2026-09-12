@@ -340,7 +340,18 @@ async function runServicesProfile(label, viewport, reducedMotion = "no-preferenc
       await child.evaluate((node) => node.scrollIntoView({ block: "center", behavior: "instant" }));
       try {
         await page.waitForFunction(
-          (node) => Number(getComputedStyle(node).opacity) >= 0.99,
+          (node) => {
+            const words = [...node.querySelectorAll(".word-mask-word > span")];
+            return (
+              node.getAttribute("data-reveal-state") === "visible" &&
+              Number(getComputedStyle(node).opacity) >= 0.99 &&
+              words.every((word) => {
+                const style = getComputedStyle(word);
+                const transform = new DOMMatrixReadOnly(style.transform);
+                return Number(style.opacity) >= 0.99 && Math.abs(transform.m42) < 0.5;
+              })
+            );
+          },
           await child.elementHandle(),
         );
       } catch (error) {
