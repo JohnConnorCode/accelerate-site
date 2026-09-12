@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "atomic-identity-review",
+    slug: "atomic-identity-review",
+    title: "Save identity decisions with their evidence",
+    description:
+      "Identity review now saves confirmed contacts, conversation links, evidence and the final decision together. Failed saves roll back the whole decision, completed retries return the original receipt, and repeated deferrals keep one history entry while allowing a later decision.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "admin-guidance-clarity",
     slug: "admin-guidance-clarity",
     title: "Find the same names and guidance across Command Center",

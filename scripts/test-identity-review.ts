@@ -1,4 +1,7 @@
-import { conversationActionFixture } from "./lib/conversation-action-fixture";
+import {
+  conversationActionFixture,
+  identityReviewActionFixture,
+} from "./lib/conversation-action-fixture";
 import assert from "node:assert/strict";
 import {
   listIdentityReviewItems,
@@ -47,6 +50,14 @@ class MockSupabase {
           | null,
         onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
       ): Promise<TResult1 | TResult2> {
+        if (fn === "apply_identity_review_action") {
+          return Promise.resolve()
+            .then(() => ({
+              data: identityReviewActionFixture((table) => (tables[table] ??= []), params),
+              error: null,
+            }))
+            .then(onfulfilled, onrejected);
+        }
         if (fn === "apply_conversation_action") {
           return Promise.resolve()
             .then(() => ({
@@ -648,6 +659,21 @@ async function runIdentityReviewSuite() {
       db.tables.activities!.some((a) => a.activity_type === "identity_review_deferred"),
       "Defer must write a receipt",
     );
+    const receiptCount = db.tables.activities!.length;
+    const replay = await resolveIdentityReview(supabase, {
+      actionId: "review-1",
+      decision: "defer",
+      actorEmail: "founder@test.local",
+    });
+    assert.equal(replay.replayed, true);
+    assert.equal(db.tables.activities!.length, receiptCount, "Repeated defer keeps one receipt");
+    const resolved = await resolveIdentityReview(supabase, {
+      actionId: "review-1",
+      decision: "no_match",
+      actorEmail: "founder@test.local",
+    });
+    assert.equal(resolved.decision, "no_match");
+    assert.equal(db.tables.action_queue!.find((a) => a.id === "review-1")?.status, "executed");
   }
 
   // Test 9: replay of an executed action returns the stored result without new writes.

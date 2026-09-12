@@ -30,7 +30,7 @@ One shared operating layer for the businesses that need it, and how to run the d
 ## Conversations
 The reply-ready inbox for Gmail, forms, chat, and transcripts.
 
-- [Conversations](https://www.acceleratewith.us/docs/conversations/overview) (updated 2026-09-09): Every message from every channel, landed on the same thread, the same person, and the same deal.
+- [Conversations](https://www.acceleratewith.us/docs/conversations/overview) (updated 2026-09-12): Every message from every channel, landed on the same thread, the same person, and the same deal.
 - [Reply to a conversation](https://www.acceleratewith.us/docs/conversations/reply) (updated 2026-09-09): Find the right thread, confirm who you're actually writing to, and check that it sent.
 
 ## Contacts

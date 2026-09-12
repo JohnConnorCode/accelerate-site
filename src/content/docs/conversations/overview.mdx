@@ -1,7 +1,7 @@
 ---
 title: "Conversations"
 description: "Every message from every channel, landed on the same thread, the same person, and the same deal."
-updated: "2026-09-09"
+updated: "2026-09-12"
 ---
 
 A customer emails you Monday, texts a question Wednesday, and fills out a form on your site Friday, and if those three touches live in three separate systems, whoever answers the phone on Saturday has no idea any of it happened. Conversations at `/admin/conversations` is where Gmail, inbound forms, chat leads, and transcripts all land on the same thread, the same person, and the same deal, whenever the system can actually resolve who they are.
@@ -33,3 +33,9 @@ Status, assignment, and explicit record links use the same executor as approved 
 Assign a thread to an active member of its workspace, or clear the assignment. Status and assignment changes have a guarded undo: restoration refuses when a newer edit would be overwritten. A restored assignee must still be active.
 
 Linking a contact, company, or opportunity records human evidence in the same transaction. Correct a link with a new reviewed change; its original evidence stays in the history. Automatic participant matching preserves concurrent human links and assignments and retries against the current thread.
+
+## Resolve uncertain identities
+
+Review the participant before linking an existing contact, creating a confirmed contact, recording no match, or deferring the decision. Creation, conversation links, evidence and the final decision save together. A failed save leaves the earlier records intact, and repeating a completed decision returns its receipt.
+
+No match preserves any existing conversation links. Deferring leaves the review pending and records one receipt when repeated; you can return later and choose a different decision. If the conversation changed after review began, refresh it before deciding.
