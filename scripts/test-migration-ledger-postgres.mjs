@@ -45,7 +45,9 @@ try {
     "-v",
     "ON_ERROR_STOP=1",
     "-c",
-    "CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;",
+    // Model Supabase's actual service role, while authenticated/anon retain RLS.
+    // https://supabase.com/docs/guides/database/postgres/roles
+    "CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS;",
   ]);
   console.log(
     run(process.execPath, ["scripts/test-migration-ledger.mjs"], {
