@@ -108,12 +108,18 @@ try {
     await page.getByRole("button", { name: "Confirm decline", exact: true }).click();
     await page.getByRole("heading", { name: "Proposal declined", exact: true }).waitFor();
     assert.deepEqual(requests.at(-1), { decision: "declined" });
+    await page
+      .getByText("Your response has been saved. The team will follow up with you.", { exact: true })
+      .waitFor();
     await capture("declined");
     await page.reload();
     outcome = "accepted";
     await page.getByRole("button", { name: "Decline", exact: true }).click();
     await page.getByRole("button", { name: "Confirm decline", exact: true }).click();
     await page.getByRole("heading", { name: "Proposal accepted", exact: true }).waitFor();
+    await page
+      .getByText("Your response has been saved. The team will follow up with you.", { exact: true })
+      .waitFor();
     await capture("settled-replay");
     await page.reload();
     responseStatus = 410;

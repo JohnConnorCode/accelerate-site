@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Check, Loader2, X } from "lucide-react";
-import { tenant } from "@/config/tenant";
 
 export function ProposalDecision({
   token,
@@ -72,9 +71,7 @@ export function ProposalDecision({
         </span>
         <h2 className="mt-4 text-xl font-semibold text-white-primary">Proposal {decision}</h2>
         <p className="mt-2 text-sm text-white-secondary">
-          {decision === "accepted"
-            ? `Thank you. ${tenant.founder.name} has been notified and will contact you with next steps.`
-            : `Thank you for the feedback. ${tenant.founder.name} has been notified and will close the loop personally.`}
+          Your response has been saved. The team will follow up with you.
         </p>
       </section>
     );
