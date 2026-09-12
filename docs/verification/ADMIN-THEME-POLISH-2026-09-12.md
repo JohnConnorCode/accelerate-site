@@ -80,3 +80,9 @@ contrast audits and 14 actual-workspace captures. It then found an ambiguous tes
 locator: the appearance dialog contains separate selected theme and density
 radios. The keyboard assertion now scopes to the named Admin appearance radio
 group. This correction changes QA only, not product behavior.
+
+Run 34707608379 passed the theme/picker portion, then reached the shared 3 GiB
+process-group memory ceiling while opening the cross-tab density check. The
+focused workflow now runs core-route verification and the identity/keyboard
+matrix in separate sequential compiler processes. This releases route compilation
+memory between stages without increasing the resource limit or bypassing checks.

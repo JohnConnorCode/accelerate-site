@@ -365,9 +365,16 @@ jobs:
           npm run test:admin-themes
           npm run verify:admin-tokens
           node --check scripts/qa-admin-core.mjs
-      - name: Capture core and seven theme identities
+      - name: Verify representative core routes
         env:
           QA_ROUTES: today,contacts,conversations,settings,site/website
+          QA_SKIP_PREVIEW: "1"
+          QA_OUTPUT: /tmp/admin-core-qa/routes
+        run: npm run qa:admin-core
+      - name: Capture seven theme identities and keyboard interaction
+        env:
+          QA_ROUTES: today
+          QA_OUTPUT: /tmp/admin-core-qa/identities
         run: npm run qa:admin-core
       - name: Retain visual evidence
         if: ${{ always() }}
