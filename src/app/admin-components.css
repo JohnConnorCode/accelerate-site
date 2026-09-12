@@ -545,16 +545,15 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   transform: scale(0.96);
 }
 
-/* Existing admin pages still use the shared GlassCard component. Inside the
-   operations shell it resolves to an opaque work surface, never frosted glass. */
+/* Retained GlassCard consumers use the same theme surface material. */
 .admin-shell .glass,
 .admin-shell .glass-prominent,
 .admin-shell .glass-gold {
-  background: var(--admin-surface);
+  background: var(--admin-surface-fill);
   border-color: transparent;
   box-shadow: var(--admin-shadow);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  -webkit-backdrop-filter: var(--admin-surface-filter);
+  backdrop-filter: var(--admin-surface-filter);
 }
 .admin-shell .glass-gold {
   background: color-mix(in srgb, var(--admin-surface) 94%, var(--admin-accent) 6%);
