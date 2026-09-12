@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { MemorySupabase } from "./memory-supabase";
 import type { TenantActorContext } from "../../src/lib/tenancy/context";
 
@@ -23,7 +24,7 @@ export async function withSiteHostTransport<T>(
     assert.equal(headers.get("authorization"), "Bearer controlled-site-host-key");
     const args = JSON.parse(String(init?.body));
     assert.equal(args.p_actor_email, actor.user.email ?? actor.user.id);
-    const result = await mem.client.rpc(operation, args);
+    const result = await (mem.client as SupabaseClient).rpc(operation, args);
     return Response.json(result.error ?? result.data, { status: result.error ? 400 : 200 });
   };
   try {

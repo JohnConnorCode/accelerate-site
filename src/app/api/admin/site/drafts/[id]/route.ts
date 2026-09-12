@@ -39,11 +39,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       { status: 400 },
     );
   try {
-    const draft = await reviseSiteDraft(
-      siteDrafts(auth),
-      id,
-      parsed.data,
-    );
+    const draft = await reviseSiteDraft(siteDrafts(auth), id, parsed.data);
     return NextResponse.json({ draft });
   } catch (error) {
     if (error instanceof DraftNotFoundError)
@@ -65,11 +61,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   if (!expectedChecksum || !/^[a-f0-9]{64}$/.test(expectedChecksum))
     return NextResponse.json({ error: "Reload the draft before discarding it" }, { status: 428 });
   try {
-    const discarded = await discardSiteDraft(
-      siteDrafts(auth),
-      id,
-      expectedChecksum,
-    );
+    const discarded = await discardSiteDraft(siteDrafts(auth), id, expectedChecksum);
     return NextResponse.json({ discarded });
   } catch (error) {
     if (error instanceof DraftNotFoundError)

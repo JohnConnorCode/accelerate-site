@@ -1512,7 +1512,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "0803c35ae151aeb2a91f71f528c22159e25c874c1964eb927d1a8633913a8ece"
+      "sourceSha256": "d1b109ec287325688acdd544984e10a0d91a0742dd5be50af106ce2950317692"
     },
     {
       "source": "src/app/api/admin/site/drafts/[id]/sections/route.ts",
@@ -1558,7 +1558,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "f8465c274aec76939c623d03420995722c2630aea8ec79dd43bededc9bdcaebd"
+      "sourceSha256": "61bda1e22d51f4c939ccf8d19c949bfde0604440aa95a289a8bdc7cdfb8dc7d0"
     },
     {
       "source": "src/app/api/admin/site/models/route.ts",
