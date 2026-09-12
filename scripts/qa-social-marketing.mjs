@@ -66,6 +66,12 @@ try {
     await page.getByRole("button", { name: "New draft", exact: true }).focus();
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog", { name: "Edit social draft" });
+    await dialog.waitFor();
+    assert.notEqual(
+      await dialog.evaluate((element) => getComputedStyle(element).backgroundColor),
+      "rgba(0, 0, 0, 0)",
+      "Editor must have an opaque themed surface",
+    );
     await dialog.getByLabel("Title", { exact: true }).fill("Spring roof maintenance");
     await dialog
       .getByLabel("Post text", { exact: true })

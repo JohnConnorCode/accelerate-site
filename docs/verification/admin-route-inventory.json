@@ -229,7 +229,7 @@
     "src/components/admin/RevenueAICommand.tsx": "c2c7399460b097bc9db2705196a1f1854a89a6217bf6cf91e7c75ef4c3c16762",
     "src/components/admin/RevenueSetupGate.tsx": "3824264150a96495b2089027e11d9585aea3a822cdf98eaa39228bea2c41d4a0",
     "src/components/admin/RevenueSnapshot.tsx": "b15023b5855d1c79d4628d17ebe9e7fb63c7d9be3733650e3ab568beb39b31a0",
-    "src/components/admin/SocialMarketingWorkspace.tsx": "2e962385d7a63aa62bd97c725ea43a8fd7f9ae13f0641bc2cec9cc1bcb1ae02c",
+    "src/components/admin/SocialMarketingWorkspace.tsx": "0cead6d68a34abc1f4f3d9a45989ad75715fb387694e1526f6f0dc4e00b7c6e7",
     "src/components/admin/StatCard.tsx": "8f50517e29cabd7baa59a4d196495c1a0c6b53eede48240d7461447f47112a7b",
     "src/components/admin/StatusBadge.tsx": "3a5cc477a064efa4a14a1946819a0a6ff8f7fb64774fa2a8614681e559c7ceb1",
     "src/components/admin/TaskQuickAdd.tsx": "9eb389d6c8fd522e4e6e8b4c566b1a94a4c67f057033d1d2e5d2f4cdba6dcef1",

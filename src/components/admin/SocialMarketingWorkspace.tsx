@@ -1,7 +1,16 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
-import { CalendarDays, FileText, Globe2, Plus, RefreshCw, Settings, BarChart3 } from "lucide-react";
+import {
+  CalendarDays,
+  FileText,
+  Globe2,
+  Plus,
+  RefreshCw,
+  Settings,
+  BarChart3,
+  X,
+} from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { AdminSurface } from "./AdminSurface";
 import { AdminDialog } from "./AdminDialog";
@@ -43,9 +52,9 @@ type Preview = {
   consequences: string;
   before: Post[];
 };
-const button = "admin-btn-secondary min-h-10 px-3 py-2 text-sm disabled:opacity-50";
-const primary = "admin-btn-primary min-h-10 px-4 py-2 text-sm disabled:opacity-50";
-const field = "admin-input w-full min-h-10 px-3 py-2 text-sm";
+const button = "admin-secondary-control min-h-10 px-3 py-2 text-sm disabled:opacity-50";
+const primary = "admin-action-control min-h-10 px-4 py-2 text-sm disabled:opacity-50";
+const field = "admin-field w-full min-h-10 px-3 py-2 text-sm";
 const command = <T,>(kind: string, input: unknown) =>
   fetchJson<T>("/api/admin/social", {
     method: "POST",
@@ -244,7 +253,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                           {post.state.replaceAll("_", " ")}
                         </span>
                       </div>
-                      <p className="mt-2 text-xs admin-text-muted tabular-nums">
+                      <p className="mt-2 text-xs text-[var(--admin-muted)] tabular-nums">
                         {new Date(post.scheduled_at).toLocaleString(undefined, {
                           timeZone: post.draft.timeZone,
                         })}{" "}
@@ -264,7 +273,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                           className="mt-3 max-h-56 rounded-lg object-contain"
                         />
                       ) : null}
-                      <p className="mt-3 text-xs admin-text-muted">
+                      <p className="mt-3 text-xs text-[var(--admin-muted)]">
                         {data.channels.find((c) => c.id === post.draft.channelId)?.name ??
                           "LinkedIn company page"}{" "}
                         · revision {post.revision}
@@ -321,7 +330,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                 <AdminSurface>
                   <Globe2 className="mb-3 size-6" aria-hidden />
                   <h2 className="font-semibold">Your first reviewed post starts here</h2>
-                  <p className="mt-2 text-sm admin-text-muted">
+                  <p className="mt-2 text-sm text-[var(--admin-muted)]">
                     Connect a LinkedIn company page, add source material and save a draft. Nothing
                     publishes until you approve its content and time.
                   </p>
@@ -353,7 +362,9 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                         View published LinkedIn post
                       </a>
                     ) : null}
-                    {a.reason ? <p className="mt-2 text-sm admin-text-muted">{a.reason}</p> : null}
+                    {a.reason ? (
+                      <p className="mt-2 text-sm text-[var(--admin-muted)]">{a.reason}</p>
+                    ) : null}
                     {writable &&
                     ["unknown", "submitting"].includes(a.state) &&
                     !a.provider_post_id ? (
@@ -390,7 +401,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                         </button>
                       </div>
                     ) : null}
-                    <p className="mt-2 text-xs admin-text-muted">
+                    <p className="mt-2 text-xs text-[var(--admin-muted)]">
                       {a.metrics?.available
                         ? "Provider metrics received"
                         : "Metrics unavailable; no engagement estimate shown"}
@@ -399,7 +410,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                       <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                         {a.metrics.values?.map((metric) => (
                           <div key={metric.label}>
-                            <dt className="text-xs admin-text-muted">{metric.label}</dt>
+                            <dt className="text-xs text-[var(--admin-muted)]">{metric.label}</dt>
                             <dd className="mt-1 text-lg font-semibold tabular-nums">
                               {metric.label === "Engagement"
                                 ? new Intl.NumberFormat(undefined, {
@@ -408,7 +419,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                                   }).format(metric.value)
                                 : metric.value.toLocaleString()}
                             </dd>
-                            <p className="text-xs admin-text-muted">
+                            <p className="text-xs text-[var(--admin-muted)]">
                               Provider snapshot: {metric.date}
                             </p>
                           </div>
@@ -428,7 +439,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
             <div className="grid gap-4 lg:grid-cols-2">
               <AdminSurface>
                 <h2 className="font-semibold">Postiz connection</h2>
-                <p className="mt-2 text-sm admin-text-muted">
+                <p className="mt-2 text-sm text-[var(--admin-muted)]">
                   Each workspace needs its own Postiz organization. The server address is controlled
                   by the operator.
                 </p>
@@ -495,11 +506,13 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                   {data.channels.map((c) => (
                     <li key={c.id}>
                       {c.name} · {c.disabled ? "Reconnect in Postiz" : "Available"}
-                      <span className="block text-xs admin-text-muted">Page ID: {c.id}</span>
+                      <span className="block text-xs text-[var(--admin-muted)]">
+                        Page ID: {c.id}
+                      </span>
                     </li>
                   ))}
                 </ul>
-                <p className="mt-3 whitespace-pre-wrap text-sm admin-text-muted">
+                <p className="mt-3 whitespace-pre-wrap text-sm text-[var(--admin-muted)]">
                   {data.settings.brandGuidance ||
                     "Add your audience, voice and approved claims in plugin settings."}
                 </p>
@@ -520,7 +533,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
             </div>
           ) : null}
           {data.truncated ? (
-            <p className="text-sm admin-text-muted">
+            <p className="text-sm text-[var(--admin-muted)]">
               Showing the latest 50 records. Older history remains retained.
             </p>
           ) : null}
@@ -531,7 +544,20 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
         onClose={() => !busy && setDraft(null)}
         title="Edit social draft"
         maxWidth="lg"
+        className="rounded-2xl bg-[var(--admin-surface)] p-5 text-[var(--admin-ink)] shadow-[var(--admin-shadow-hover)] sm:p-6"
       >
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold">Edit social draft</h2>
+          <button
+            type="button"
+            className="admin-icon-button"
+            aria-label="Close edit social draft"
+            disabled={busy}
+            onClick={() => setDraft(null)}
+          >
+            <X className="size-5" aria-hidden />
+          </button>
+        </div>
         {error ? (
           <p role="alert" className="mb-3 text-sm text-[var(--admin-danger)]">
             {error}
@@ -558,6 +584,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
             <label className="block text-sm">
               LinkedIn company page
               <select
+                aria-label="LinkedIn company page"
                 className={`${field} mt-1`}
                 value={draft.channelId}
                 onChange={(e) => setDraft({ ...draft, channelId: e.target.value })}
@@ -576,6 +603,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
             <label className="block text-sm">
               Post text
               <textarea
+                aria-label="Post text"
                 className={`${field} mt-1 min-h-36`}
                 value={draft.content}
                 onChange={(e) => setDraft({ ...draft, content: e.target.value })}
@@ -607,6 +635,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                   {name}
                   {name === "excerpt" ? (
                     <textarea
+                      aria-label={name}
                       className={`${field} mt-1 min-h-24`}
                       value={draft.sources[0]![name]}
                       onChange={(e) =>
@@ -682,7 +711,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                 </button>
               </>
             ) : null}
-            <p className="text-xs admin-text-muted">
+            <p className="text-xs text-[var(--admin-muted)]">
               Saving invalidates any earlier publication approval.
             </p>
             <button className={primary} disabled={busy}>
@@ -696,7 +725,20 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
         onClose={() => !busy && setWeekly(false)}
         title="Prepare a three-post week"
         maxWidth="lg"
+        className="rounded-2xl bg-[var(--admin-surface)] p-5 text-[var(--admin-ink)] shadow-[var(--admin-shadow-hover)] sm:p-6"
       >
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold">Prepare a three-post week</h2>
+          <button
+            type="button"
+            className="admin-icon-button"
+            aria-label="Close prepare a three-post week"
+            disabled={busy}
+            onClick={() => setWeekly(false)}
+          >
+            <X className="size-5" aria-hidden />
+          </button>
+        </div>
         {error ? (
           <p role="alert" className="mb-3 text-sm text-[var(--admin-danger)]">
             {error}
@@ -717,7 +759,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
             });
           }}
         >
-          <p className="text-sm admin-text-muted">
+          <p className="text-sm text-[var(--admin-muted)]">
             Supply three reviewed paragraphs separated by blank lines. Each becomes one editable
             post with its source link, spaced two days apart. Review the copy and times before
             approving.
@@ -762,6 +804,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
           <label className="block text-sm">
             Three source paragraphs
             <textarea
+              aria-label="Three source paragraphs"
               className={`${field} min-h-40`}
               value={sourceText}
               onChange={(e) => setSourceText(e.target.value)}
@@ -788,7 +831,20 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
         onClose={() => !busy && setReview(null)}
         title="Review exact social changes"
         maxWidth="lg"
+        className="rounded-2xl bg-[var(--admin-surface)] p-5 text-[var(--admin-ink)] shadow-[var(--admin-shadow-hover)] sm:p-6"
       >
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold">Review exact social changes</h2>
+          <button
+            type="button"
+            className="admin-icon-button"
+            aria-label="Close review exact social changes"
+            disabled={busy}
+            onClick={() => setReview(null)}
+          >
+            <X className="size-5" aria-hidden />
+          </button>
+        </div>
         {error ? (
           <p role="alert" className="mb-3 text-sm text-[var(--admin-danger)]">
             {error}

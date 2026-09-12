@@ -74,6 +74,7 @@ try {
   ]);
   started = true;
   sql(`CREATE EXTENSION pgcrypto; CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN BYPASSRLS; CREATE SCHEMA private; CREATE SCHEMA auth; CREATE SCHEMA storage;
+ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO anon, authenticated;
  CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
  CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS $$ SELECT current_setting('request.jwt.claim.role',true) $$;
  CREATE TABLE tenants(id uuid PRIMARY KEY,status text,config jsonb,updated_at timestamptz DEFAULT now());
@@ -103,8 +104,26 @@ try {
   );
   sql(readFileSync("migrations/20260831-tenant-suspension-guards.sql", "utf8"));
   const migration = readFileSync("migrations/20260912170924-social-marketing.sql", "utf8");
+  const privileges = readFileSync(
+    "migrations/20260912190757-social-marketing-function-privileges.sql",
+    "utf8",
+  );
   sql(migration);
+  sql(privileges);
   sql(migration);
+  sql(privileges);
+  assert.equal(
+    sql(
+      "SELECT has_function_privilege('authenticated','public.claim_social_publication(uuid,integer)','EXECUTE')",
+    ),
+    "f",
+  );
+  assert.equal(
+    sql(
+      "SELECT has_function_privilege('anon','public.record_social_publication(uuid,text,text,text,text,jsonb)','EXECUTE')",
+    ),
+    "f",
+  );
   const storageContext = `SET ROLE authenticated; SET request.headers='{"x-tenant-id":"${a}"}'; SET request.jwt.claim.sub='${a}';`;
   sql(
     `${storageContext} INSERT INTO storage.objects(bucket_id,name) VALUES('workspace-media','${a}/owned.png')`,

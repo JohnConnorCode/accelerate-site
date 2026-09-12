@@ -76,3 +76,12 @@ provider outage can delay reconciliation; it cannot justify claiming publication
 Keep the prior immutable release and backup for rollback. Restore data only after
 reviewing effects since the backup; reverting application containers alone must
 not replay already submitted work.
+
+## Verify host-database permissions
+
+Apply both ordered Social Marketing migrations through the canonical migration
+runner. The privileges migration explicitly removes API-role function grants,
+including grants inherited from a Supabase installation's defaults. Verify that
+`authenticated` and `anon` cannot execute any of the four publication RPCs, while
+`service_role` can. The application uses its verified tenant/actor host bridge;
+RLS alone does not protect a security-definer function from an unintended grant.
