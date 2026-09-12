@@ -52,7 +52,7 @@ cleanup() {
 trap cleanup EXIT
 "${compose[@]}" up -d postiz verification-proxy
 wait_ready() {
-  for attempt in $(seq 1 90); do
+  for attempt in $(seq 1 36); do
     if "${compose[@]}" exec -T postiz node /opt/accelerate-healthcheck.mjs; then return 0; fi
     sleep 5
   done

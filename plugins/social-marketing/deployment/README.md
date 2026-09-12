@@ -160,3 +160,8 @@ including grants inherited from a Supabase installation's defaults. Verify that
 `authenticated` and `anon` cannot execute any of the four publication RPCs, while
 `service_role` can. The application uses its verified tenant/actor host bridge;
 RLS alone does not protect a security-definer function from an unintended grant.
+
+The patched backend runs directly under PM2 using the Compose environment. This
+lets PM2 observe the Node process exit and restart it; an online package-manager
+wrapper is not backend health. The disposable check allows 36 bounded readiness
+probes per start and retains sanitized backend startup logs on failure.
