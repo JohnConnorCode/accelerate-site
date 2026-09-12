@@ -1,3 +1,5 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Row } from "./memory-supabase";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
@@ -6,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AuthorizedMemorySupabase } from "./autonomy-fixture";
 import {
   transitionOpportunity,
+  updateOpportunityRecord,
   transitionStatusFromError,
 } from "../../src/lib/revenue-os/pipeline";
 import { createRevenueTask } from "../../src/lib/revenue-os/tasks";
@@ -52,7 +55,11 @@ export async function testTaskRouteRetries() {
           tenant: { id },
         }),
       },
-      "@/lib/revenue-os/pipeline": { transitionOpportunity, transitionStatusFromError },
+      "@/lib/revenue-os/pipeline": {
+        transitionOpportunity,
+        transitionStatusFromError,
+        updateOpportunityRecord,
+      },
       "@/lib/email/booking": {},
       "@/config/tenant": {
         tenant: { playbooks: [] },
@@ -150,6 +157,19 @@ export async function testCalendlyTaskRetry() {
     "@/lib/revenue-os/audit": {},
     "@/lib/revenue-os/campaign-stops": {},
     "@/lib/revenue-os/pipeline": {
+      updateOpportunityRecord: async (
+        database: SupabaseClient,
+        input: { id: string; patch: Row },
+      ) => {
+        const { data, error } = await database
+          .from("opportunities")
+          .update(input.patch)
+          .eq("id", input.id)
+          .select("*")
+          .single();
+        if (error) throw new Error(error.message);
+        return data;
+      },
       transitionOpportunity: async () => {
         mem.rows("opportunities")[0]!.stage = "booked";
       },

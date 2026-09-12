@@ -758,7 +758,10 @@ export async function createOpportunityFromConversation(
     opportunityName: input.name,
     estimatedValue: input.estimatedValue ?? 0,
     nextAction: input.nextAction ?? "Follow up on conversation inquiry",
-    nextActionAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    nextActionDelayHours: 24,
+    sourceRecordType: "conversation",
+    sourceRecordId: convId,
+    effectKey: `conversation:${convId}:opportunity`,
     source: `conversation_${conv.channel || "inbox"}`,
   });
 

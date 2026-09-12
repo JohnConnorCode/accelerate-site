@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "atomic-opportunity-records",
+    slug: "atomic-opportunity-records",
+    title: "Keep opportunity creation and ordering consistent",
+    description:
+      "Opportunity creation now saves identity and history together. Reordering saves the whole group while preserving stages, and booking, qualification, and import updates share the existing pipeline executor with source-specific retry receipts. Ambiguous identity and stale changes require review before retrying.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "atomic-pipeline-changes",
     slug: "atomic-pipeline-changes",
     title: "Keep pipeline changes and their receipts together",

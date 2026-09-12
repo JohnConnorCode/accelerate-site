@@ -11,7 +11,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { recordActivity } from "@/lib/revenue-os/activities";
 import { recordAudit } from "@/lib/revenue-os/audit";
 import { stopCampaignMemberships } from "@/lib/revenue-os/campaign-stops";
-import { transitionOpportunity } from "@/lib/revenue-os/pipeline";
+import { transitionOpportunity, updateOpportunityRecord } from "@/lib/revenue-os/pipeline";
 import { createPreCallBriefWork } from "@/lib/revenue-os/meeting-intel-coworker";
 import { ACCELERATE_TENANT_ID } from "@/lib/tenancy/constants";
 
@@ -234,22 +234,28 @@ export async function handleCalendlyWebhook(
       );
     }
 
-    const { error } = await supabase
-      .from("opportunities")
-      .update({
-        calendly_invitee_uri: body.payload.uri,
-        calendly_event_uri: body.payload.scheduled_event?.uri || body.payload.event || null,
-        scheduled_at: scheduledAt,
-        booked_at: body.created_at || new Date().toISOString(),
-        canceled_at: null,
-        utm_source: body.payload.tracking?.utm_source || undefined,
-        utm_medium: body.payload.tracking?.utm_medium || undefined,
-        utm_campaign: body.payload.tracking?.utm_campaign || undefined,
-        utm_content: body.payload.tracking?.utm_content || undefined,
-        utm_term: body.payload.tracking?.utm_term || undefined,
-      })
-      .eq("id", opportunity.id);
-    if (error) return NextResponse.json({ error: "Booking could not be stored" }, { status: 500 });
+    try {
+      await updateOpportunityRecord(supabase, {
+        id: opportunity.id,
+        actorEmail: "calendly",
+        effectKey: `calendly:${receiptId}:details`,
+        patch: {
+          calendly_invitee_uri: body.payload.uri,
+          calendly_event_uri: body.payload.scheduled_event?.uri || body.payload.event || null,
+          scheduled_at: scheduledAt,
+          booked_at: body.created_at || "now",
+          canceled_at: null,
+          utm_source: body.payload.tracking?.utm_source || undefined,
+          utm_medium: body.payload.tracking?.utm_medium || undefined,
+          utm_campaign: body.payload.tracking?.utm_campaign || undefined,
+          utm_content: body.payload.tracking?.utm_content || undefined,
+          utm_term: body.payload.tracking?.utm_term || undefined,
+        },
+      });
+    } catch (error) {
+      console.error("[calendly-webhook] canonical booking update failed", error);
+      return NextResponse.json({ error: "Booking could not be stored" }, { status: 500 });
+    }
 
     // A booking that lands without telling anyone is the worst failure this
     // endpoint has, so the notification result is inspected rather than
@@ -344,16 +350,17 @@ export async function handleCalendlyWebhook(
         );
       }
 
-      const { error } = await supabase
-        .from("opportunities")
-        .update({
-          canceled_at: body.created_at || new Date().toISOString(),
-          scheduled_at: null,
-        })
-        .eq("id", opportunity.id)
-        .eq("calendly_invitee_uri", body.payload.uri);
-      if (error)
+      try {
+        await updateOpportunityRecord(supabase, {
+          id: opportunity.id,
+          actorEmail: "calendly",
+          effectKey: `calendly:${receiptId}:details`,
+          patch: { canceled_at: body.created_at || "now", scheduled_at: null },
+        });
+      } catch (error) {
+        console.error("[calendly-webhook] canonical cancellation update failed", error);
         return NextResponse.json({ error: "Cancellation could not be stored" }, { status: 500 });
+      }
     }
   }
 

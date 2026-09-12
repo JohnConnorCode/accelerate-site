@@ -622,7 +622,13 @@ async function runConversationsSuite() {
   assert.equal(taskRes.task.opportunity_id, oppId);
 
   // Test 10: createOpportunityFromConversation
-  const oppRes = await createOpportunityFromConversation(supabase, {
+  const opportunityDb = new AuthorizedMemorySupabase(structuredClone(db.tables));
+  opportunityDb.rpc("record_evidence", async (params) => {
+    const result = await db.rpc("record_evidence", params);
+    if (result.error) throw new Error(result.error.message);
+    return result.data;
+  });
+  const oppRes = await createOpportunityFromConversation(opportunityDb.client, {
     conversationId: "conv-2",
     name: "New Inbound Contract",
     email: "lead@example.com",

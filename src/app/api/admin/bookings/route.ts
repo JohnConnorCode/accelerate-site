@@ -102,15 +102,16 @@ export async function PATCH(request: NextRequest) {
 
   let data = finalData as Record<string, unknown> | null;
   if (Object.keys(updatePatch).length > 0) {
-    const { data: patched, error: patchError } = await supabase
-      .from("opportunities")
-      .update(updatePatch)
-      .eq("id", body.id)
-      .select()
-      .single();
-    if (patchError)
+    try {
+      data = await updateOpportunityRecord(supabase, {
+        id: body.id,
+        actorEmail: auth.user.email || "founder",
+        patch: updatePatch,
+      });
+    } catch (error) {
+      console.error("[admin-bookings] canonical opportunity update failed", error);
       return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
-    data = patched;
+    }
   }
 
   if (body.stage === "no_show" && current.stage !== "no_show") {

@@ -1,9 +1,9 @@
+import { createSourceOpportunity } from "./pipeline";
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveOrCreateIdentity } from "./identity";
 import { recordActivity } from "./activities";
 import { stripeAdapter } from "./stripe-adapter";
-import { recordAudit } from "./audit";
 
 export interface IntegrationConnectionReceipt {
   provider: string;
@@ -404,49 +404,19 @@ export async function importHubSpotBatch(
         continue;
       }
 
-      const { data: inserted, error: insertError } = await supabase
-        .from("opportunities")
-        .insert({
+      await createSourceOpportunity(supabase, {
+        actorEmail,
+        effectKey: `hubspot:deal:${rawDeal.id}:create`,
+        record: {
           name: dealName,
           estimated_value: isNaN(amountNum) ? 0 : Math.max(0, amountNum),
-          stage: "new", // opportunities_stage_check has no "inquiry" value
           contact_id: canonicalContact?.id || null,
           company_id: canonicalContact?.companyId || null,
           source: "hubspot_import",
           source_detail: dealSourceDetail,
           metadata: { hubspot_deal_id: rawDeal.id },
-        })
-        .select("id,name")
-        .single();
-
-      if (insertError || !inserted) {
-        summary.dealsSkipped++;
-        summary.errors.push(
-          `HubSpot deal ${rawDeal.id} insert error: ${insertError?.message ?? "unknown error"}`,
-        );
-        continue;
-      }
-
-      await Promise.all([
-        recordAudit(supabase, {
-          actorEmail,
-          action: "opportunity.created",
-          entityType: "opportunity",
-          entityId: inserted.id,
-          after: { source: "hubspot_import", hubspot_deal_id: rawDeal.id },
-        }),
-        recordActivity(supabase, {
-          activityType: "opportunity_created",
-          title: `Opportunity created from HubSpot: ${inserted.name}`,
-          opportunityId: inserted.id,
-          contactId: canonicalContact?.id,
-          companyId: canonicalContact?.companyId ?? undefined,
-          source: "hubspot_import",
-          actorEmail,
-          externalId: `hubspot:deal:${rawDeal.id}`,
-          metadata: { hubspot_deal_id: rawDeal.id, stage: "new" },
-        }),
-      ]);
+        },
+      });
       summary.dealsImported++;
     } catch (err) {
       summary.dealsSkipped++;

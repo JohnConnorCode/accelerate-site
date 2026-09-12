@@ -1,3 +1,5 @@
+import { resolveIdentityFixture } from "./lib/identity-action-fixture";
+import type { ResolveIdentityInput } from "../src/lib/revenue-os/identity";
 import assert from "node:assert/strict";
 import {
   exactIlike,
@@ -108,6 +110,18 @@ class MemorySupabase {
   readonly touched = new Set<string>();
   private sequence = 0;
   constructor(readonly rows: Record<string, Row[]>) {}
+  async rpc(name: string, args: { p_input: ResolveIdentityInput }) {
+    if (name !== "resolve_revenue_identity") throw new Error("Unexpected identity RPC");
+    try {
+      return { data: await resolveIdentityFixture(this as never, args.p_input), error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: { message: error instanceof Error ? error.message : String(error) },
+      };
+    }
+  }
+
   nextId(table: string) {
     this.sequence += 1;
     return `${table}-${this.sequence}`;
