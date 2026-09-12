@@ -47,5 +47,13 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: postiz-service-evidence
-          path: plugins/social-marketing/deployment/evidence/
+          # Allowlist receipts even if cancellation interrupts fixture cleanup.
+          path: |
+            plugins/social-marketing/deployment/evidence/bootstrap.json
+            plugins/social-marketing/deployment/evidence/restart.json
+            plugins/social-marketing/deployment/evidence/restore.json
+            plugins/social-marketing/deployment/evidence/services.json
+            plugins/social-marketing/deployment/evidence/startup-diagnostics.json
+            plugins/social-marketing/deployment/evidence/images.txt
+            plugins/social-marketing/deployment/evidence/postiz-image-id.txt
           retention-days: 14

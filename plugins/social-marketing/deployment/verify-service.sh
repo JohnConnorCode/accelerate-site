@@ -43,6 +43,7 @@ compose=(docker compose -f compose.yaml -f verification.override.yaml)
 cleanup() {
   code=$?
   "${compose[@]}" ps --format json > evidence/services.json || true
+  node diagnose-service.mjs || true
   # Do not upload arbitrary service logs, which may contain bootstrap tokens.
   "${compose[@]}" down -v --remove-orphans >/dev/null || true
   rm -f verification.override.yaml private-verification-fixtures.json evidence/fixture-db.dump evidence/fixture-uploads.tar.gz
@@ -55,6 +56,7 @@ wait_ready() {
     if "${compose[@]}" exec -T postiz node /opt/accelerate-healthcheck.mjs; then return 0; fi
     sleep 5
   done
+  node diagnose-service.mjs || true
   echo 'Postiz frontend, backend or publishing worker did not become healthy.' >&2
   return 1
 }
