@@ -35,6 +35,29 @@ function repository(root, card) {
     throw new Error("CHECKPOINT_BASE_MISMATCH: approved base is not on its declared branch.");
   return repo;
 }
+/** Explicitly attach a manually prepared worker; never infer ownership from its name. */
+export function retainedCheckpointWorkspace(control, card, path) {
+  const candidate = realpathSync(resolve(control, path));
+  const context = repositoryContext(candidate);
+  if (
+    realpathSync(context.root) !== candidate ||
+    realpathSync(context.common) !== realpathSync(repositoryContext(control).common)
+  )
+    throw new Error("CHECKPOINT_WORKSPACE_MISMATCH: use a registered worktree of this clone.");
+  const repo = repository(candidate, card);
+  const branch = git(candidate, ["symbolic-ref", "--quiet", "--short", "HEAD"], true);
+  if (
+    !branch ||
+    !branch.startsWith("agent/") ||
+    branch.startsWith("agent/checkpoints/") ||
+    branch === repo.baseBranch
+  )
+    throw new Error("CHECKPOINT_WORKSPACE_PROTECTED: use the retained agent feature checkout.");
+  if (git(candidate, ["merge-base", "--is-ancestor", repo.baseCommit, "HEAD"], true) === null)
+    throw new Error("CHECKPOINT_BASE_MISMATCH: retained source must contain the approved base.");
+  return candidate;
+}
+
 function safePath(root, file) {
   if (
     typeof file !== "string" ||
