@@ -16,6 +16,7 @@
  * on the bug it targets is worse than no guard.
  */
 import assert from "node:assert/strict";
+import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { readFileSync } from "node:fs";
 import {
   assertImpactHonoured,
@@ -108,9 +109,10 @@ function stubSupabase(tables: Record<string, { data?: Row[]; error?: { message: 
 }
 
 function context(supabase: unknown) {
-  return { supabase, actorEmail: "test@acceleratewith.us" } as Parameters<
-    typeof executeRegisteredRevenueTool
-  >[0];
+  return {
+    supabase: bindTenantDatabaseForTest(supabase as never, "11111111-1111-4111-8111-111111111111"),
+    actorEmail: "test@acceleratewith.us",
+  } as Parameters<typeof executeRegisteredRevenueTool>[0];
 }
 
 async function rejects(run: () => Promise<unknown>, includes: string, because: string) {
@@ -541,6 +543,33 @@ async function main() {
     [],
     "a clean read must report nothing unreadable",
   );
+
+  const customSnapshot = await executeRegisteredRevenueTool(
+    context(
+      stubSupabase({
+        kanban_columns: {
+          data: [
+            { column_key: "active_custom", label: "Active", metadata: { role: "open" } },
+            { column_key: "finished_custom", label: "Finished", metadata: { role: "won" } },
+          ],
+        },
+        opportunities: {
+          data: [
+            { id: "open", stage: "active_custom", estimated_value: 123, probability: 50 },
+            { id: "closed", stage: "finished_custom", estimated_value: 900, probability: 100 },
+          ],
+        },
+      }),
+    ),
+    "get_today_snapshot",
+    {},
+  );
+  const customTotals = customSnapshot.output as {
+    openOpportunityCount: number;
+    openPipelineValue: number;
+  };
+  assert.equal(customTotals.openOpportunityCount, 1);
+  assert.equal(customTotals.openPipelineValue, 123);
 
   const bulk = Array.from({ length: 50 }, (_, index) => ({
     id: `opp-${index}`,

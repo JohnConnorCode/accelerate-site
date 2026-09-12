@@ -491,9 +491,19 @@ export function filterNavSectionsByTenant(
 }
 
 export function resolveAdminNavLink(pathname: string) {
+  const current = new URL(pathname, "https://admin.invalid");
   return [...adminNavLinks]
     .sort((left, right) => right.href.length - left.href.length)
-    .find((link) => pathname === link.href || pathname.startsWith(`${link.href}/`));
+    .find((link) => {
+      const destination = new URL(link.href, current.origin);
+      return (
+        (current.pathname === destination.pathname ||
+          current.pathname.startsWith(`${destination.pathname}/`)) &&
+        [...destination.searchParams].every(
+          ([key, value]) => current.searchParams.get(key) === value,
+        )
+      );
+    });
 }
 
 /** Root page identity comes from the same registry as sidebar and search. */
@@ -501,4 +511,16 @@ export function adminPageName(id: string): string {
   const link = adminNavLinks.find((entry) => entry.id === id);
   if (!link) throw new Error(`Unknown admin destination: ${id}`);
   return link.label;
+}
+
+/** Search uses the same labels and descriptions as the rendered navigation. */
+export function searchAdminNavLinks(links: AdminNavLink[], query: string): AdminNavLink[] {
+  const normalized = query.trim().toLowerCase();
+  return normalized
+    ? links.filter((link) =>
+        `${link.label} ${link.description} ${link.keywords || ""}`
+          .toLowerCase()
+          .includes(normalized),
+      )
+    : links.slice(0, 7);
 }

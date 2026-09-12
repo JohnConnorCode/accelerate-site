@@ -1,7 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type CSSProperties,
+} from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
@@ -40,11 +47,13 @@ export function PageHeader({
   guidance,
 }: PageHeaderProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const adminPath = pathname
     .replace(/^\/demo\/command-center\/[^/]+/, "/admin")
     .replace(/^\/t\/[^/]+\/admin/, "/admin");
-  const destination = resolveAdminNavLink(adminPath);
-  const isRoot = destination?.href === adminPath;
+  const identityHref = `${adminPath}?${searchParams.toString()}`;
+  const destination = resolveAdminNavLink(identityHref);
+  const isRoot = destination?.href.split("?")[0] === adminPath;
   const section = adminNavSections.find((item) =>
     item.links.some((link) => link.id === destination?.id),
   );
@@ -55,15 +64,15 @@ export function PageHeader({
   const description = subtitle ?? (isRoot ? help?.description : undefined);
 
   const [helpOpen, setHelpOpen] = useState(false);
-  const [helpOpenPathname, setHelpOpenPathname] = useState(pathname);
+  const [helpOpenPathname, setHelpOpenPathname] = useState(identityHref);
   const [panelPosition, setPanelPosition] = useState<{ top: number; right: number } | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Close the popover when navigating, without an Effect: adjust state
   // during render when the route we opened it on has changed.
-  if (pathname !== helpOpenPathname) {
-    setHelpOpenPathname(pathname);
+  if (identityHref !== helpOpenPathname) {
+    setHelpOpenPathname(identityHref);
     if (helpOpen) setHelpOpen(false);
   }
 
@@ -96,7 +105,8 @@ export function PageHeader({
         closeHelp(true);
       }
     }
-    function onViewportChange() {
+    function onViewportChange(event: Event) {
+      if (event.target instanceof Node && panelRef.current?.contains(event.target)) return;
       closeHelp();
     }
     document.addEventListener("mousedown", onPointerDown);
@@ -159,7 +169,12 @@ export function PageHeader({
                           role="dialog"
                           aria-label={`How ${destination?.label ?? title} works`}
                           className="admin-help-panel admin-overlay-token-scope"
-                          style={{ top: panelPosition.top, right: panelPosition.right }}
+                          style={
+                            {
+                              "--admin-help-top": `${panelPosition.top}px`,
+                              "--admin-help-anchor-right": `${panelPosition.right}px`,
+                            } as CSSProperties
+                          }
                           initial={{ opacity: 0, y: -4, scale: 0.96 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -4, scale: 0.96 }}

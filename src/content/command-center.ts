@@ -365,7 +365,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "A mobile-ready workspace",
     detail:
-      "Use Today, inbox, pipeline, records and setup from a responsive browser. Kanban offers swipeable columns, touch and keyboard dragging, and a stage control for moving a card.",
+      "Use Today, inbox, pipeline, records and setup from a responsive browser. Kanban offers freely scrollable columns, column buttons at every screen size, touch and keyboard dragging, and a stage control for moving a card.",
   },
   {
     id: "api",
@@ -543,7 +543,7 @@ export const CURRENT_SURFACES = [
     n: "06",
     label: "Measure",
     title: "Analytics that separate facts from forecasts",
-    body: "Source-to-revenue performance, reply coverage, forecast method, attribution gaps, stale data, and impossible stage events are visible without turning estimates into facts.",
+    body: "Source-to-revenue performance, reply coverage, forecast method, attribution gaps, stale data, and missing or incomplete stage history are visible without turning estimates into facts.",
   },
   {
     n: "07",

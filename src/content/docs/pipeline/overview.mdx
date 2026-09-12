@@ -1,7 +1,7 @@
 ---
 title: "Pipeline"
 description: "Every open deal on one board, ranked by what actually moves revenue next."
-updated: "2026-09-09"
+updated: "2026-09-12"
 ---
 
 A deal that has gone quiet for three weeks looks identical to a deal that is one signature away from closing, right up until someone actually opens it and checks. Pipeline at `/admin/pipeline` is the opportunity board that makes that check fast: each card is a deal carrying its stage, its value, its next action, and the people attached to it, in columns that are the live stages your workspace actually uses. Dragging a card writes a real stage change, immediately, not a suggestion.
@@ -27,3 +27,9 @@ Open opportunities, ranked for the work that moves revenue forward. Won and lost
 ## The records behind a card
 
 An opportunity links to contacts, companies, conversations, tasks, and proposals, and opening the card is how you see that whole graph in one place. Duplicate people do not get merged from this board, though; that review lives specifically under [Contacts](/docs/contacts), where the evidence for a match actually is.
+
+## Read movement and current position
+
+When an opportunity moves backwards or closes, Analytics keeps its recorded progress separate from its current position. The funnel uses the furthest recorded sales stage, while open value and weighted estimates use the current stage and stored probability. Today, Pipeline and the assistant use the same current-value calculation, including your custom stages.
+
+Check the data-quality rows alongside the funnel. Missing stage history means there is no usable recorded movement, so the report identifies its current-stage fallback. Incomplete stage history means the records contain a gap, an invalid transition, a mismatch with the current position, or an incomplete read. Open the opportunity's activity before using that history to explain a result, and ask your technical owner to inspect a persistent gap rather than adding events to make the report agree.
