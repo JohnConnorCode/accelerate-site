@@ -543,7 +543,7 @@ export const CURRENT_SURFACES = [
     n: "06",
     label: "Measure",
     title: "Analytics that separate facts from forecasts",
-    body: "Source-to-revenue performance, reply coverage, forecast method, attribution gaps, stale data, and impossible stage events are visible without turning estimates into facts.",
+    body: "Source-to-revenue performance, reply coverage, forecast method, attribution gaps, stale data, and missing or incomplete stage history are visible without turning estimates into facts.",
   },
   {
     n: "07",
