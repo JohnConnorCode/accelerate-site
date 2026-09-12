@@ -97,6 +97,8 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260909012125-installation-website-revisions.sql",
   "migrations/20260910-today-workspace.sql",
   "migrations/20260911-learning-inbox.sql",
+  "migrations/20260912-site-studio-authenticated-writes.sql",
+  "migrations/20260912152325-site-studio-verified-host-writes.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

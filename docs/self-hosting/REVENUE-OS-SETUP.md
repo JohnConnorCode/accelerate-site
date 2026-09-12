@@ -273,3 +273,24 @@ For local Command Center verification, run `npm run test:admin-recovery`, `npm r
 ## Developer work board
 
 Clean installs include `20260906-universal-work-board.sql` and `20260907-work-packet-quality.sql` in the ordered catalog. The latter supplies packet validation and ordered card reads. Applying schema alone does not activate an older deployment: release compatible adapters, verify canonical writes and then check `npm run dev:doctor -- --board` with an issued worker credential. See [developer start](../contributing/DEVELOPER-START.md).
+
+## Site Studio write-boundary upgrade
+
+For an installation with `20260912-site-studio-authenticated-writes.sql` already
+recorded, preserve that migration and its checksum exactly. The corrective
+`20260912152325-site-studio-verified-host-writes.sql` restores service-only execution
+for the two Site Studio write operations; it does not remove drafts or revisions.
+
+Deploy the compatible application with explicit verified Site Studio actor context
+first, using the separate founder-authorized release process. Confirm an owner can
+save a private website revision and an authorized workspace admin can save a private
+draft through the service bridge. Then apply the corrective migration through the
+normal migration runner, confirm direct authenticated RPC writes are denied, and
+repeat those authorized saves. Keep their exact revision receipts and audit actors.
+Do not apply the live revocation before the compatible application is serving saves.
+A fresh installation applies the complete catalog before opening to users.
+
+Source integration and controlled PostgreSQL proof do not establish this live
+rollout. If the deployed application still relies on the temporary grants, retain
+that current state until the compatible release; do not rewrite recorded history
+or broaden the RPC grants to make a failing save appear successful.

@@ -1,5 +1,5 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AdminAuthorization } from "../admin/auth";
 import { randomUUID } from "node:crypto";
 import { callSiteDraftRpc, tenantIdForDatabase } from "../supabase/server";
 import { siteDraftSchema, type SiteDraft } from "./document";
@@ -9,10 +9,15 @@ import { StaleDraftError } from "./revision";
 
 /** Production adapter: private tenant records, stable identity and atomic revisions. */
 export class DatabaseSiteDraftRepository implements SiteDraftRepository {
-  constructor(
-    private database: SupabaseClient,
-    private actorEmail: string,
-  ) {
+  private get database() {
+    return this.actor.database;
+  }
+  private get actorEmail() {
+    return this.actor.user.email ?? this.actor.user.id;
+  }
+  constructor(private actor: AdminAuthorization) {
+    const database = actor.database;
+    const actorEmail = this.actorEmail;
     if (!tenantIdForDatabase(database))
       throw new Error("Site Studio requires a tenant-bound database");
     if (!actorEmail.trim()) throw new Error("Site Studio requires an actor");
@@ -71,25 +76,33 @@ export class DatabaseSiteDraftRepository implements SiteDraftRepository {
       checksum: draftChecksum(input.document),
     });
     // Transport fields are distinct from the document envelope.
-    const { data, error } = await callSiteDraftRpc(this.database, {
-      p_operation: input.id ? "revise" : "create",
-      p_id: draft.id,
-      p_expected_checksum: input.expectedChecksum ?? null,
-      p_draft: draft,
-      p_actor_email: this.actorEmail,
-    });
+    const { data, error } = await callSiteDraftRpc(
+      this.database,
+      {
+        p_operation: input.id ? "revise" : "create",
+        p_id: draft.id,
+        p_expected_checksum: input.expectedChecksum ?? null,
+        p_draft: draft,
+        p_actor_email: this.actorEmail,
+      },
+      this.actor,
+    );
     if (error) this.refuse(error, draft.slug);
     return siteDraftSchema.parse(data);
   }
   async remove(id: string, expectedChecksum?: string): Promise<boolean> {
     if (!expectedChecksum) throw new StaleDraftError();
-    const { data, error } = await callSiteDraftRpc(this.database, {
-      p_operation: "discard",
-      p_id: id,
-      p_expected_checksum: expectedChecksum,
-      p_draft: null,
-      p_actor_email: this.actorEmail,
-    });
+    const { data, error } = await callSiteDraftRpc(
+      this.database,
+      {
+        p_operation: "discard",
+        p_id: id,
+        p_expected_checksum: expectedChecksum,
+        p_draft: null,
+        p_actor_email: this.actorEmail,
+      },
+      this.actor,
+    );
     if (error) this.refuse(error, "");
     return data === true;
   }
@@ -99,9 +112,6 @@ export class DatabaseSiteDraftRepository implements SiteDraftRepository {
     throw new Error(`Draft write failed: ${error.message}`);
   }
 }
-export function siteDrafts(
-  database: SupabaseClient,
-  actorEmail: string,
-): DatabaseSiteDraftRepository {
-  return new DatabaseSiteDraftRepository(database, actorEmail);
+export function siteDrafts(actor: AdminAuthorization): DatabaseSiteDraftRepository {
+  return new DatabaseSiteDraftRepository(actor);
 }

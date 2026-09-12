@@ -9,3 +9,12 @@ The installation editor is owner-only. Tenant draft records remain separate. Dis
 The bundled homepage has editable native sections. Other source routes remain intact until explicitly replaced by published content; wholesale import of their original layouts is not implemented. Assets reference existing paths or HTTPS images. General AI/MCP mutation tools, file uploading and scheduled publication remain unavailable.
 
 Implementation: `src/lib/site-studio`, `src/components/admin/site`, tenant-bound guards and the ordered website-revision migration. Run `test:site-studio` for domain validation, `scripts/test-website-postgres.mjs` for native database behavior, and `scripts/qa-website-editor.mjs` for browser evidence. Controlled tests do not establish production migration, provider availability or deployment.
+
+### Upgrade an installation with the temporary authenticated-write grant
+
+Retain the already-applied grant migration unchanged. Deploy the explicit verified
+actor bridge before applying `20260912152325-site-studio-verified-host-writes.sql`,
+which restores service-only RPC execution. Verify owner website saves and tenant
+admin draft saves on each side of that change; preserve receipt and audit identity.
+The [installation upgrade instructions](../../docs/self-hosting/REVENUE-OS-SETUP.md#site-studio-write-boundary-upgrade)
+explain ordering. This implementation does not authorize or prove a live release.
