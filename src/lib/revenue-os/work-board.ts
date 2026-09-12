@@ -1,5 +1,6 @@
 /** Canonical platform work service. Never import into tenant-scoped tool catalogues. */
 import { createHash, randomBytes, randomUUID } from "node:crypto";
+import type { FeatureRequest } from "../feature-board";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { EVIDENCE_ENVIRONMENTS, compareWorkOrder } from "../work-packet";
@@ -9,6 +10,9 @@ export const WORK_OPERATIONS = [
   "edit",
   "dependencies",
   "claim",
+  "resume",
+  "checkpoint",
+  "recovery-policy",
   "heartbeat",
   "progress",
   "block",
@@ -142,6 +146,25 @@ const editSchema = z
   })
   .partial()
   .strict();
+export const workCheckpointSchema = z
+  .object({
+    commitSha: z.string().regex(/^[a-f0-9]{40}$/),
+    baseCommit: z.string().regex(/^[a-f0-9]{40}$/),
+    branch: line.refine((value) => {
+      const parts = value.split("/");
+      return (
+        parts.length === 5 &&
+        parts[0] === "agent" &&
+        parts[1] === "checkpoints" &&
+        parts.slice(2).every((part) => z.string().uuid().safeParse(part).success)
+      );
+    }, "Use a canonical checkpoint branch with card, attempt, and checkpoint UUIDs"),
+    summary: z.string().trim().min(10).max(10000),
+    completed: z.array(line).max(100),
+    remaining: z.array(line).max(100),
+    artifacts: z.array(line).max(100),
+  })
+  .strict();
 export const workMutationSchema = z
   .object({
     operation: z.enum(WORK_OPERATIONS),
@@ -186,6 +209,12 @@ export function validateWorkMutation(raw: unknown) {
     !input.revision
   )
     throw new WorkBoardError("Revision required", 428);
+  if (
+    input.operation === "checkpoint" &&
+    (input.payload.checkpoint as z.infer<typeof workCheckpointSchema>).branch.split("/")[2] !==
+      input.id
+  )
+    throw new WorkBoardError("Checkpoint branch must belong to this card");
   return input;
 }
 export function workPayloadSchema(operation: WorkOperation) {
@@ -234,6 +263,15 @@ export function workPayloadSchema(operation: WorkOperation) {
       break;
     case "dependencies":
       schema = z.object({ dependencies: z.array(z.string().uuid()).max(100) }).strict();
+      break;
+    case "resume":
+      schema = z.object({ ...session, checkpointId: z.string().uuid().optional() }).strict();
+      break;
+    case "checkpoint":
+      schema = z.object({ ...session, checkpoint: workCheckpointSchema }).strict();
+      break;
+    case "recovery-policy":
+      schema = z.object({ enabled: z.boolean(), message }).strict();
       break;
     case "claim":
       schema = z.object(session).strict();
@@ -285,8 +323,10 @@ export async function mutateWorkBoard(db: SupabaseClient, actor: WorkActor, raw:
   const input = validateWorkMutation(raw);
   if (!actor.scopes.includes(input.operation) && !actor.scopes.includes("*"))
     throw new WorkBoardError("Operation not allowed by this credential", 403);
+  if (input.operation === "recovery-policy" && !actor.reviewer)
+    throw new WorkBoardError("Recovery policy requires operator authority", 403);
   const payload = { ...input.payload };
-  if (input.operation === "claim")
+  if (["claim", "resume"].includes(input.operation))
     payload.worker_capabilities = actor.reviewer ? ["*"] : (actor.capabilities ?? []);
   if (typeof payload.claimToken === "string") {
     payload.claim_token_hash = digest(payload.claimToken);
@@ -308,7 +348,9 @@ export async function mutateWorkBoard(db: SupabaseClient, actor: WorkActor, raw:
   );
   if (error)
     throw new WorkBoardError(
-      error.message,
+      ["PGRST202", "42703"].includes(error.code)
+        ? "SETUP_REQUIRED: resumable work-board schema is not installed"
+        : error.message,
       (
         { "42501": 403, P0002: 404, "40001": 409, PT409: 409, "23505": 409 } as Record<
           string,
@@ -319,7 +361,7 @@ export async function mutateWorkBoard(db: SupabaseClient, actor: WorkActor, raw:
   return data;
 }
 export const WORK_CARD_COLUMNS =
-  "id,seed_key,title,description,acceptance_criteria,notes,status,priority,labels,sort_order,owner,target_date,subtasks,source,archived_at,created_at,updated_at,revision,project_key,initiative,parent_id,work_kind,work_spec,work_delivery,work_blocker,lease_owner,lease_expires_at,claimed_at";
+  "id,seed_key,title,description,acceptance_criteria,notes,status,priority,labels,sort_order,owner,target_date,subtasks,source,archived_at,created_at,updated_at,revision,project_key,initiative,parent_id,work_kind,work_spec,work_delivery,work_blocker,lease_owner,lease_expires_at,claimed_at,work_attempt_id,work_checkpoint";
 export async function listWorkBoard(
   db: SupabaseClient,
   actor: WorkActor,
@@ -335,7 +377,23 @@ export async function listWorkBoard(
     throw new WorkBoardError("Invalid pagination");
   const offset = Math.max(0, options.offset ?? 0),
     limit = Math.min(500, Math.max(1, options.limit ?? 250));
-  let query = db.from("work_board_ordered_cards").select(WORK_CARD_COLUMNS);
+  const settings = await db
+    .from("work_board_settings")
+    .select("automatic_recovery_projects")
+    .eq("singleton", true)
+    .maybeSingle();
+  const legacySchema = settings.error && ["42703", "PGRST204"].includes(settings.error.code);
+  if (settings.error && !legacySchema) throw new WorkBoardError(settings.error.message, 500);
+  const automaticRecoveryProjects: string[] = (
+    settings.data?.automatic_recovery_projects ?? []
+  ).filter((project: string) => actor.projects.includes("*") || actor.projects.includes(project));
+  let query = db
+    .from("work_board_ordered_cards")
+    .select(
+      legacySchema
+        ? WORK_CARD_COLUMNS.replace(",work_attempt_id,work_checkpoint", "")
+        : WORK_CARD_COLUMNS,
+    );
   if (!options.id) query = query.is("archived_at", null);
   if (!actor.projects.includes("*")) query = query.in("project_key", actor.projects);
   if (options.id) query = query.eq("id", options.id);
@@ -347,7 +405,7 @@ export async function listWorkBoard(
     .order("id")
     .range(offset, offset + limit);
   if (error) throw new WorkBoardError(error.message, 500);
-  const rows = (data ?? []).slice(0, limit);
+  const rows = ((data ?? []) as unknown as FeatureRequest[]).slice(0, limit);
   const ids = rows.map((row) => row.id);
   const edges = ids.length
     ? await db.from("feature_dependencies").select("card_id,depends_on_id").in("card_id", ids)
@@ -358,19 +416,40 @@ export async function listWorkBoard(
     ? await db.rpc("work_board_readiness_many", { p_ids: ids })
     : { data: [], error: null };
   if (readiness.error) throw new WorkBoardError(readiness.error.message, 500);
+  const resumeReadiness =
+    ids.length && !legacySchema
+      ? await db.rpc("work_board_resume_readiness_many", { p_ids: ids })
+      : { data: [], error: null };
+  if (resumeReadiness.error) throw new WorkBoardError(resumeReadiness.error.message, 500);
+  const resumeReasons = new Map<string, string[]>(
+    (resumeReadiness.data ?? []).map((row: { id: string; reasons: string[] }) => [
+      row.id,
+      row.reasons,
+    ]),
+  );
   const reasons = new Map<string, string[]>(
     (readiness.data ?? []).map((row: { id: string; reasons: string[] }) => [row.id, row.reasons]),
   );
   return {
     protocolVersion: 2,
+    resumableAttempts: { version: legacySchema ? 0 : 1, automaticRecoveryProjects },
     schemaReady: true,
     features: rows
       .map((row) => ({
         ...row,
+        resume_readiness: [
+          ...(resumeReasons.get(row.id) ?? ["resumable_schema_unavailable"]),
+          ...(!actor.reviewer &&
+          ((row.work_spec?.requiredCapabilities as string[] | undefined) ?? []).some(
+            (cap: string) => !actor.capabilities?.includes(cap),
+          )
+            ? ["worker_capabilities_missing"]
+            : []),
+        ],
         readiness: [
           ...(reasons.get(row.id) ?? []),
           ...(!actor.reviewer &&
-          (row.work_spec?.requiredCapabilities ?? []).some(
+          ((row.work_spec?.requiredCapabilities as string[] | undefined) ?? []).some(
             (cap: string) => !actor.capabilities?.includes(cap),
           )
             ? ["worker_capabilities_missing"]
@@ -423,6 +502,8 @@ export async function issueWorkAgent(db: SupabaseClient, input: unknown) {
             "edit",
             "dependencies",
             "claim",
+            "resume",
+            "checkpoint",
             "heartbeat",
             "progress",
             "block",

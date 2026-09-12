@@ -6,6 +6,10 @@ export const taskConfigSchema = z.discriminatedUnion("transport", [
       version: z.literal(1),
       transport: z.literal("local-operator"),
       project: z.string().regex(/^[a-z0-9-]{1,80}$/),
+      capabilities: z
+        .array(z.string().regex(/^[a-z0-9-]{1,80}$/))
+        .max(50)
+        .optional(),
       envFile: z.string().startsWith("/").min(2),
     })
     .strict(),
@@ -45,6 +49,8 @@ type Card = {
   notes?: string | null;
   acceptance_criteria?: string | null;
   work_spec?: object;
+  work_attempt_id?: string | null;
+  work_checkpoint?: object | null;
   dependencies?: string[];
 };
 export function receipt(card: Card, operation?: string) {
@@ -69,6 +75,8 @@ export function taskPacket(card: Card) {
       ? card.acceptance_criteria
       : undefined,
     owner: card.lease_owner,
+    attemptId: card.work_attempt_id ?? null,
+    checkpoint: card.work_checkpoint ?? null,
     dependencies: card.dependencies ?? [],
     contract: card.work_spec ?? {},
     next:

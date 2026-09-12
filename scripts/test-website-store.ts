@@ -4,7 +4,9 @@ import { MemorySupabase } from "./lib/memory-supabase";
 import { websiteFixture } from "./lib/website-fixture";
 import { selectPublicWebsite } from "../src/lib/site-studio/website-public";
 import { assertWebsiteOwner, writeWebsite } from "../src/lib/site-studio/website-store";
-import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
+import { withSiteHostTransport } from "./lib/site-host-fixture";
+import { runWithTenantRequestContext } from "../src/lib/tenancy/context";
+import { bindTenantDatabaseForTest, callWebsiteRpc } from "../src/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/constants";
 import type { AdminAuthorization } from "../src/lib/admin/auth";
 
@@ -93,6 +95,10 @@ async function main() {
     () => assertWebsiteOwner({ ...auth, tenant: { ...auth.tenant, config: {} } }),
     /disabled/,
   );
+  database.tables.tenants![0]!.status = "active";
+  database.tables.tenant_memberships = [
+    { tenant_id: tenant, user_id: auth.user.id, role: "admin", status: "active" },
+  ];
   const key = randomUUID();
   database.rpc("write_site_website", (args) => {
     assert.equal(args.p_actor_email, auth.user.email);
@@ -110,12 +116,18 @@ async function main() {
   });
   assert.equal(
     (
-      await writeWebsite(auth, {
-        operation: "save",
-        requestKey: key,
-        expectedVersion: 0,
-        document: websiteFixture,
-      })
+      await withSiteHostTransport(database, auth, () =>
+        runWithTenantRequestContext(
+          { kind: "system", tenantId: foreign, tenantSlug: "other", source: "unrelated-context" },
+          () =>
+            writeWebsite(auth, {
+              operation: "save",
+              requestKey: key,
+              expectedVersion: 0,
+              document: websiteFixture,
+            }),
+        ),
+      )
     ).version,
     1,
   );
@@ -125,6 +137,29 @@ async function main() {
       { operation: "unpublish", requestKey: randomUUID(), expectedVersion: 1 },
     ),
     /installation owner/,
+  );
+  await assert.rejects(
+    callWebsiteRpc(auth.database, { p_actor_email: "forged@example.test" }, auth),
+    /verified identity/,
+  );
+  await assert.rejects(
+    callWebsiteRpc(
+      auth.database,
+      { p_actor_email: auth.user.email },
+      { ...auth, database: bindTenantDatabaseForTest(database.client as never, foreign) },
+    ),
+    /context mismatch/,
+  );
+  database.tables.tenant_memberships![0]!.status = "revoked";
+  await assert.rejects(
+    callWebsiteRpc(auth.database, { p_actor_email: auth.user.email }, auth),
+    /current active admin/,
+  );
+  database.tables.tenant_memberships![0]!.status = "active";
+  database.tables.tenants![0]!.status = "suspended";
+  await assert.rejects(
+    callWebsiteRpc(auth.database, { p_actor_email: auth.user.email }, auth),
+    /current active admin/,
   );
   assert.equal(database.rpcCalls.length, 1);
   console.log(
