@@ -94,3 +94,9 @@ it with `npm run agent:checkpoint -- --card <key> --worktree /path/to/worker --c
 The command checks the repository and current ownership before saving a checkpoint.
 It does not reset the checkout or grant the worker review authority. Use `agent:show`
 to read a task without changing its claim; `agent:resume` takes over eligible expired work.
+
+### Resume an interrupted local provider
+
+The optional machine supervisor can continue a registered original Codex, Claude Code or OpenCode thread with `node scripts/supervisor/cli.mjs recover --provider codex --thread <original-id>`. Its retained repository must be enrolled and machine pressure must have cleared. The foreground provider keeps the registered process identity; only one continuation starts at a time. Existing provider permissions and saved history remain authoritative. Missing history, credentials or credit are reported by the provider, not replaced with a new conversation.
+
+Run heavy tool commands through `node scripts/resource-run.mjs <command> [args...]`. Other launch paths remain unmanaged; `coverage` reports that boundary. `uninstall` resumes owned paused producers safely before disabling management, or explains why management must remain enabled. No repository, transcript or unrelated process is removed.

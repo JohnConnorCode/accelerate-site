@@ -186,7 +186,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "local-agent-supervisor",
     title: "Coordinate local agent jobs with durable ownership and recovery",
     description:
-      "Optional developer supervision adds a shared queue and process identity registry. Cross-process state updates are transactional; stale releases preserve replacement owners and recovery keeps paused agents paused. Cancellation requires an explicitly registered disposable child and enabled policy. Management starts off; provider hooks and OS isolation remain separate.",
+      "Optional developer supervision adds a shared queue and process identity registry. Cross-process state updates are transactional; stale releases preserve replacement owners. Registered interrupted threads resume through the original provider with one foreground owner, and uninstall safely resumes owned paused processes or refuses with a precise reason. Cancellation requires an explicitly registered disposable child and enabled policy. Management starts off; provider hooks and OS isolation remain separate.",
     category: "feature",
     publishedAt: "2026-09-08",
   },
