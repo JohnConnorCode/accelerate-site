@@ -13,6 +13,17 @@ const waitSaved = async (page) => {
   await page.locator('[data-drag-active="true"]').waitFor({ state: "hidden" });
   await page.locator("[data-kanban-overlay]").waitFor({ state: "hidden" });
 };
+async function keyboardLiftReady(page) {
+  await page.locator('[data-drag-active="true"]').waitFor();
+  // KeyboardSensor announces lift before its deferred keydown listener attaches.
+  // Yield that event-loop turn and a paint before sending the next real key.
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        setTimeout(() => requestAnimationFrame(() => resolve()), 0);
+      }),
+  );
+}
 async function move(page, card, target, after = false, cancel = false) {
   card = card.and(
     page.locator(".kanban-scroller [data-opportunity-id], .kanban-scroller [data-kanban-card]"),
@@ -291,8 +302,9 @@ try {
   );
   await featureCards.first().locator(".kanban-grip").focus();
   await page.keyboard.press("Space");
-  await page.locator('[data-drag-active="true"]').waitFor();
+  await keyboardLiftReady(page);
   await page.keyboard.press("ArrowDown");
+  await featureColumn.locator(".kanban-slot[data-insertion]").waitFor();
   await page.waitForTimeout(250);
   await page.keyboard.press("Space");
   await waitSaved(page);
@@ -311,10 +323,16 @@ try {
   const contentColumn = await contentCard.evaluate((el) =>
     el.closest("section").getAttribute("aria-labelledby"),
   );
+  await contentCard.scrollIntoViewIfNeeded();
   await contentCard.locator(".kanban-grip").focus();
   await page.keyboard.press("Space");
-  await page.locator('[data-drag-active="true"]').waitFor();
+  await keyboardLiftReady(page);
   await page.keyboard.press("ArrowRight");
+  await page
+    .locator(
+      `.kanban-scroller > section:not([aria-labelledby="${contentColumn}"]) .kanban-slot[data-insertion]`,
+    )
+    .waitFor();
   await page.waitForTimeout(250);
   await page.keyboard.press("Space");
   await waitSaved(page);

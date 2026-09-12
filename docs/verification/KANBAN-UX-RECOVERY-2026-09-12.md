@@ -44,10 +44,19 @@ overflow: fixed-width skeleton bars exceeded the three metric cells. The shared
 skeleton now constrains bars to their containing width and permits metric cells
 to shrink. State measurements and screenshots are retained before assertions.
 The same run separately hit the unchanged supervisor concurrency test's five-second
-SQLite lock timeout; its failure remains recorded and requires a passing rerun.
+SQLite lock timeout. Its unchanged rerun passed in `34715258126` at `94d2dee9`.
+That candidate also passed all 441 read-state measurements (seven appearances ×
+three boards × seven states × three widths), with zero overflow or browser errors.
+Representative screenshots were opened across all seven appearances: mobile
+Feature loading and retained-error, tablet Pipeline initial-error and empty,
+desktop Content retained-refresh/recovery and Feature ready. The loading bars
+remain contained; errors retain readable retry guidance; retained data stays visible.
 
-Final exact-source CI and screenshot inspection remain required before submission.
-No passing acceptance is inferred from this implementation or the baseline run.
+The remaining failed Content keyboard fixture sent ArrowRight before dnd-kit's
+deferred keyboard listener attached (the screenshot shows native 40px scrolling).
+The fixture now yields that setup turn and requires the target insertion marker
+before dropping, preserving the saved-column assertion. Final exact-source CI
+remains required before submission; partial suite success is not full acceptance.
 
 ## Documentation and inventory review
 
