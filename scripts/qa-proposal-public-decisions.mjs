@@ -38,6 +38,14 @@ try {
     const requests = [];
     let outcome = "declined",
       responseStatus = 200;
+    page.on("console", (message) => {
+      if (message.type() !== "error") return;
+      const expectedExpiryResponse =
+        responseStatus === 410 &&
+        message.location().url === `${base}/api/proposal/fictional-proposal` &&
+        /\b410\b/.test(message.text());
+      if (!expectedExpiryResponse) errors.push(message.text());
+    });
     await page.route("**/api/proposal/fictional-proposal", async (route) => {
       requests.push(route.request().postDataJSON());
       await route.fulfill({
