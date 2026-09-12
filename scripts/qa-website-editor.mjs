@@ -132,17 +132,6 @@ try {
   );
   await page.goto(`${base}/demo/command-center/alder-ridge-law/site/website`);
   await page.getByText("Bundled website loaded.", { exact: false }).waitFor();
-  const background = (element) => getComputedStyle(element).backgroundColor;
-  assert.notEqual(
-    await page.getByRole("button", { name: "Save draft", exact: true }).evaluate(background),
-    await page.getByRole("button", { name: "Website tools", exact: true }).evaluate(background),
-    "Save draft must stand apart from secondary editor tools",
-  );
-  assert.notEqual(
-    await page.getByRole("button", { name: "Pages", exact: true }).evaluate(background),
-    await page.getByRole("button", { name: "Identity", exact: true }).evaluate(background),
-    "Selected editor section must have a visible state",
-  );
   assert.equal(
     await page.getByRole("link", { name: "Open saved preview", exact: true }).count(),
     0,
@@ -159,17 +148,6 @@ try {
     );
     await page.reload();
     await page.getByText("Bundled website loaded.", { exact: false }).waitFor();
-    const background = (element) => getComputedStyle(element).backgroundColor;
-    assert.notEqual(
-      await page.getByRole("button", { name: "Save draft", exact: true }).evaluate(background),
-      await page.getByRole("button", { name: "Website tools", exact: true }).evaluate(background),
-      "Save draft must stand apart from secondary editor tools",
-    );
-    assert.notEqual(
-      await page.getByRole("button", { name: "Pages", exact: true }).evaluate(background),
-      await page.getByRole("button", { name: "Identity", exact: true }).evaluate(background),
-      "Selected editor section must have a visible state",
-    );
     await page.waitForFunction(
       (id) => document.documentElement.getAttribute("data-theme") === id,
       appearance.id,

@@ -112,3 +112,9 @@ the refreshed inventory covers 56 pages and 337 sources. Recomputed public stats
 now reflect 235 checks and 875 TypeScript source files (167K lines). Both scoped
 inventory checks pass after correction. The final handoff evidence pins the
 subsequent commit and its CI receipt.
+
+The first broad production browser run exposed a duplicate helper declaration in
+the newly added editor assertion, preventing that journey from starting. The
+assertion now appears once; both `qa-website-editor.mjs` and `qa-admin-core.mjs`
+pass `node --check`. The affected later CI attempt was superseded by the corrected
+script. Product source is unchanged by this QA-only correction.
