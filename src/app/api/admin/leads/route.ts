@@ -272,7 +272,8 @@ export async function PATCH(request: NextRequest) {
         dedupeKey: `lead-contacted-followup:${id}`,
         actorEmail: auth.user.email || "founder",
       });
-    } catch {
+    } catch (error) {
+      console.error("[admin-leads] follow-up task failed:", error);
       return NextResponse.json(
         {
           error: "The lead was saved, but its follow-up task failed. Retry the follow-up.",

@@ -1,4 +1,4 @@
-import { testTaskRouteRetries } from "./lib/task-route-retry-fixture";
+import { testTaskRouteRetries, testCalendlyTaskRetry } from "./lib/task-route-retry-fixture";
 import assert from "node:assert/strict";
 import { projectOperatorAttention } from "../src/lib/revenue-os/operator-attention";
 import type { OperatorQueueItem } from "../src/lib/revenue-os/types";
@@ -96,6 +96,7 @@ async function main() {
     "Edit, snooze and completion retain distinct audit events",
   );
   await testTaskRouteRetries();
+  await testCalendlyTaskRetry();
   console.log(
     "PASS: source identities, recovery tasks, optional native custom work, duplicate projections, canonical task edits/snooze/completion and replay refusal.",
   );

@@ -20,7 +20,7 @@ export function installLocalActionFixture(mem: MemorySupabase) {
       throw new Error("Task assignee must be an active member of this workspace");
     const source = String(payload.source ?? "ai");
     const existing =
-      payload.dedupeKey &&
+      typeof payload.dedupeKey === "string" &&
       mem
         .rows("tasks")
         .find(

@@ -145,7 +145,8 @@ export async function PATCH(request: NextRequest) {
         dedupeKey: `booking-proposal-followup:${body.id}`,
         actorEmail: auth.user.email || "founder",
       });
-    } catch {
+    } catch (error) {
+      console.error("[admin-bookings] follow-up task failed:", error);
       return NextResponse.json(
         {
           error: "The booking was saved, but its follow-up task failed. Retry the follow-up.",

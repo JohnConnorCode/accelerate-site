@@ -290,7 +290,7 @@ try {
   sql(`UPDATE action_queue SET approved_at=now(),expires_at=NULL WHERE id='${parentId}';`);
   denied(childCall(), "missing parent expiry");
   sql(`UPDATE action_queue SET expires_at=now()+interval '1 hour' WHERE id='${parentId}';`);
-  sql(`UPDATE opportunities SET stage='discovery' WHERE id='${old.id}';`);
+  sql(`UPDATE opportunities SET stage='qualified' WHERE id='${old.id}';`);
   denied(childCall(), "changed source before duplicate replay");
   sql(`UPDATE opportunities SET stage='won' WHERE id='${old.id}';`);
   for (const description of [null, 'Quotes " and backslash \\ and unicode 雪 ☃']) {
