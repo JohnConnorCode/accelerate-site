@@ -211,14 +211,13 @@ export async function scheduleSocialReconciliation(db: SupabaseClient) {
     .from("social_publication_attempts")
     .select("id,state,metrics_at")
     .eq("tenant_id", tenantId)
-    .in("state", ["submitting", "unknown", "submitted", "published"])
+    .in("state", ["submitted", "published"])
     .order("reconciled_at", { ascending: true, nullsFirst: true })
     .limit(20);
   if (result.error) throw new Error("Social reconciliation storage unavailable");
   for (const a of result.data ?? []) {
     if (a.state === "published" && a.metrics_at && Date.parse(a.metrics_at) > Date.now() - 86400000)
       continue;
-    if (["submitting", "unknown"].includes(a.state)) continue; // Unknown attempts need explicit operator association, never heuristic matching.
     await createWorkItem(db, {
       kind: "social_reconcile",
       objective: "Verify Postiz publication and metrics",

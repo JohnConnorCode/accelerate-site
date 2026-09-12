@@ -215,9 +215,13 @@ export async function scheduleRecurringWork(
   const daily = await scheduleDailyWork(supabase);
   try {
     await scheduleSocialWeeklyDrafts(supabase);
+  } catch {
+    daily.errors.push("Social weekly drafts could not be scheduled; verify source settings and time zone");
+  }
+  try {
     await scheduleSocialReconciliation(supabase);
   } catch {
-    daily.errors.push("Social reconciliation could not be scheduled");
+    daily.errors.push("Social publication receipts could not be scheduled for reconciliation");
   }
 
   // Monday = day 1 in ISO weekday.
