@@ -20,7 +20,7 @@ async function move(page, card, target, after = false, cancel = false) {
   await card.scrollIntoViewIfNeeded();
   const grip = card.locator(".kanban-grip");
   const start = await grip.boundingBox();
-  const end = await target.boundingBox();
+  let end = await target.boundingBox();
   assert.ok(start && end);
   await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
   await page.mouse.down();
@@ -33,9 +33,28 @@ async function move(page, card, target, after = false, cancel = false) {
   const original = await card.boundingBox();
   assert.ok(Math.abs(shape.width - original.width) < 2, "Overlay width");
   assert.ok(Math.abs(shape.height - original.height) < 2, "Overlay height");
-  await page.mouse.move(end.x + end.width / 2, end.y + end.height * (after ? 0.8 : 0.15), {
-    steps: 16,
-  });
+  // Tall Feature cards can put the drop point below the viewport. Follow the
+  // existing qa-kanban-boards gesture: park away from auto-scroll edges, reveal
+  // the target while holding the pointer, then read its current coordinates.
+  const viewport = page.viewportSize();
+  const dropY = end.y + end.height * (after ? 0.8 : 0.15);
+  if (
+    dropY < 80 ||
+    dropY > viewport.height - 80 ||
+    end.x < 0 ||
+    end.x + end.width > viewport.width
+  ) {
+    await page.mouse.move(viewport.width / 2, viewport.height / 2, { steps: 3 });
+    await target.evaluate((el) =>
+      el.scrollIntoView({ inline: "nearest", block: "center", behavior: "instant" }),
+    );
+    await page.waitForTimeout(300);
+    end = await target.boundingBox();
+    assert.ok(end, "Drag target remains available after scrolling");
+  }
+  const targetY = end.y + end.height * (after ? 0.8 : 0.15);
+  assert.ok(targetY > 0 && targetY < viewport.height, "Drop target is inside viewport");
+  await page.mouse.move(end.x + end.width / 2, targetY, { steps: 16 });
   await page.screenshot({ path: `${output}/drag-${results.length}.png` });
   if (cancel) await page.keyboard.press("Escape");
   await page.mouse.up();

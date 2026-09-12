@@ -286,11 +286,11 @@ jobs:
             set -e
             node scripts/qa-collections-workspace.mjs
             node scripts/qa-universal-work-board.mjs
-            node scripts/qa-admin-polish.mjs
-            node scripts/qa-admin-polish-interactions.mjs
-            node scripts/qa-admin-polish-touch.mjs
-            node scripts/qa-admin-polish-theme-editor.mjs
-            node scripts/qa-admin-polish-navigation.mjs
+            polish_status=0
+            for polish_suite in qa-admin-polish qa-admin-polish-interactions qa-admin-polish-touch qa-admin-polish-theme-editor qa-admin-polish-navigation; do
+              if ! node "scripts/${polish_suite}.mjs"; then polish_status=1; fi
+            done
+            if [ "$polish_status" -ne 0 ]; then exit "$polish_status"; fi
             node scripts/qa-contact-review-copy.mjs
             node scripts/qa-demo-marketing.mjs
             node scripts/qa-theme-persistence.mjs
