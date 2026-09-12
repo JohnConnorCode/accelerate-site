@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-12",
   },
   {
+    id: "decision-memory",
+    slug: "decision-memory",
+    title: "Remember why the business decided",
+    description:
+      "Record decisions with their reasons, owners, evidence and implications. Superseded decisions stay readable with forward links, and approving a new decision surfaces conflicts instead of applying implications automatically.",
+    category: "feature",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",
