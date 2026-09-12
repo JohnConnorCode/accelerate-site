@@ -135,7 +135,11 @@ const result = await withWorkItem(
       replayed: effect.replayed,
       leaseExpiresAt: item.lease_expires_at,
     });
-    if (config.mode === "interrupt") await new Promise(() => {});
+    if (config.mode === "interrupt") {
+      // Keep an actual running process at the interruption barrier. A pending
+      // Promise alone lets Node exit instead of waiting for the parent's kill.
+      await new Promise(() => setInterval(() => {}, 1_000));
+    }
     return {
       status: "completed",
       outcome: "One canonical budget reservation confirmed",
