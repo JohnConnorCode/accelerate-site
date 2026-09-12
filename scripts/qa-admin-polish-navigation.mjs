@@ -136,6 +136,9 @@ try {
       });
       await page.goto(`${base}/demo/command-center/superdebate/today`, { timeout: 120000 });
       await page.locator("h1").waitFor();
+      // The server-rendered heading can precede hydration. Install the controlled
+      // read only after the real demo boundary has installed its fictional fetch.
+      await page.waitForFunction(() => window.__accelerateAdminDemoRuntime === "superdebate");
       await page.evaluate(
         ({ endpoint, field }) => {
           const original = window.fetch;
@@ -173,7 +176,29 @@ try {
         { endpoint, field },
       );
       await navigate(page, route);
-      await page.locator('[data-admin-async-visible="true"]').waitFor();
+      try {
+        await page.locator('[data-admin-async-visible="true"]').waitFor();
+      } catch (error) {
+        const diagnostic = await page.evaluate(() => ({
+          url: location.href,
+          heading: document.querySelector("h1")?.textContent,
+          runtime: window.__accelerateAdminDemoRuntime,
+          read: {
+            mode: window.__boardRead?.mode,
+            calls: window.__boardRead?.calls,
+            held: !!window.__boardRead?.release,
+          },
+          asyncStates: [...document.querySelectorAll("[data-admin-async-state]")].map((el) =>
+            el.outerHTML.slice(0, 500),
+          ),
+        }));
+        await writeFile(
+          `${output}/state-${theme.id}-${route}-failed.json`,
+          JSON.stringify({ diagnostic, errors }, null, 2),
+        );
+        await page.screenshot({ path: `${output}/state-${theme.id}-${route}-failed.png` });
+        throw error;
+      }
       async function measure(state) {
         for (const width of [390, 768, 1440]) {
           await page.setViewportSize({ width, height: 1000 });

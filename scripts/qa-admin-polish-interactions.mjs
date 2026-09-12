@@ -376,7 +376,13 @@ try {
         return request.abort();
       });
       await page.goto(`${base}/demo/command-center/superdebate/${route}`, { timeout: 120000 });
-      const board = page.getByRole("region", { name: "Kanban board", exact: true });
+      // Modal isolation correctly hides the background from accessibility queries;
+      // read its numeric offset while open without treating it as interactive.
+      const board = page.getByRole("region", {
+        name: "Kanban board",
+        exact: true,
+        includeHidden: true,
+      });
       await board.waitFor();
       await page.locator("[data-kanban-card]").first().waitFor();
       await board.evaluate((el) => {
@@ -491,6 +497,25 @@ try {
   }
   await writeFile(`${output}/interactions.json`, JSON.stringify(results, null, 2));
   console.log(results);
+} catch (error) {
+  const page = browser
+    .contexts()
+    .flatMap((context) => context.pages())
+    .at(-1);
+  if (page) {
+    await page.screenshot({ path: `${output}/interaction-failed.png` });
+    const state = await page.evaluate(() => ({
+      url: location.href,
+      viewport: innerWidth,
+      boardOffset: document.querySelector(".kanban-scroller")?.scrollLeft,
+      dialogs: document.querySelectorAll('[data-admin-overlay="dialog"]').length,
+    }));
+    await writeFile(
+      `${output}/interaction-failed.json`,
+      JSON.stringify({ error: error.message, state, completed: results }, null, 2),
+    );
+  }
+  throw error;
 } finally {
   await browser.close();
 }
