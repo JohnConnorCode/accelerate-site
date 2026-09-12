@@ -50,9 +50,12 @@ references block readiness and must be resolved explicitly.
 
 Backlog and planned cards with an outcome, acceptance, no explicit blocker and all
 prerequisites verified are claimable. Initiative roll-ups are never executable.
-Readiness is computed in SQL for both lists and claims. The global WIP cap is six;
-expired claims still occupy a slot until an operator reviews them. No background
-recovery silently gives another worker ownership of unfinished work.
+Readiness is computed in SQL for both lists and claims. Work volume is advisory,
+never a claim admission limit. Other active or expired claims do not block new
+authorized work. Explicitly requesting an expired card continues that card through
+an atomic revision-checked claim with a new token; its prior owner, checkout and
+execution history remain recorded. Automatic backlog selection does not take over
+expired cards. A live claim still excludes other workers.
 
 ## Mutations and execution
 
@@ -67,7 +70,8 @@ Claim requires a fresh random 32-byte base64url claimToken generated and retaine
 by the caller before sending. Only its hash is stored on the card. Heartbeat,
 progress, block, release and submit require that token, the authenticated actor,
 an unexpired lease and in_progress status. Leases last 30 minutes. A stale worker
-cannot renew or complete a later worker's attempt. Expiry is explicit review work.
+cannot renew or complete a later worker's attempt. An explicitly requested expired
+task continues through a fresh claim without another recovery approval.
 
 Lifecycle: backlog/planned → claim → in_progress → submit → in_review → accepted
 verification (the legacy `shipped` key). Rejection returns work to planning with a

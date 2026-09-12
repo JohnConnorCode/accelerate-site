@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, chmodSync } from "n
 import { resolve } from "node:path";
 import {
   repositoryContext,
+  isExpiredWorkClaim,
   prepareWorkspace,
   createWorkspace,
   boardEndpoint,
@@ -136,17 +137,23 @@ async function main() {
       previous?.card ??
       (await cards()).find(
         (c) =>
-          c.readiness?.length === 0 &&
-          ["planned", "backlog"].includes(c.status) &&
+          (c.readiness?.length === 0 ||
+            (flags.card &&
+              isExpiredWorkClaim(c) &&
+              c.readiness?.every((reason) => reason === "status:in_progress"))) &&
+          (["planned", "backlog"].includes(c.status) || (flags.card && isExpiredWorkClaim(c))) &&
           c.labels.some((l) => ["milestone:now", "milestone:next"].includes(l)),
       );
     if (!card)
       throw new Error(
-        "No ready Now/Next ticket is available in your scope. Inspect agent:status; resolve dependencies, specification, capabilities or WIP before claiming.",
+        "No ready Now/Next ticket is available in your scope. Inspect agent:status; resolve the named card’s dependencies, specification or capabilities before claiming.",
       );
     const plan = flags["no-worktree"]
       ? undefined
-      : prepareWorkspace(root, card, { fetchBase: true });
+      : prepareWorkspace(root, card, {
+          fetchBase: true,
+          preserveRetainedChanges: Boolean(flags.card && isExpiredWorkClaim(card)),
+        });
     const session = previous ?? {
       endpoint: transport,
       card,

@@ -103,8 +103,10 @@ Use `agent:status`, `agent:heartbeat -- --card <key>`, and
 --evidence-file <path.json>` submits named passing checks and the exact commit
 for review. It preserves the worktree. Completion, review, merge, cleanup and
 production deployment are separate facts/actions. Keep claim session files
-private and renew within the 30-minute lease; expired work requires explicit
-operator recovery. There is no force bypass.
+private and renew within the 30-minute lease. An explicit request to resume a
+named expired task authorizes revision-checked continuation in its retained checkout;
+do not ask for another recovery approval. Other active or expired work never blocks
+a new claim. Live claim ownership and review authority remain enforced.
 
 ## Read in this order
 
@@ -187,9 +189,10 @@ exception. Update the source inventory after reviewing changed route operations.
   use is reserved for requested visual/interaction verification. Preserve actor
   permissions, revision checks, leases and immutable receipts; direct row updates
   are not a replacement for lifecycle operations.
-- Carry explicit founder recovery authorization through the scoped recover/reopen
-  operations and normal reclaim in the same task. Do not repeat the permission
-  question. Keep operator recovery authority separate from worker review rights.
+- Continue a specifically requested expired task through the normal claim path,
+  preserving its checkout and fencing the old token. Do not require review rights
+  or another founder confirmation. Reopening accepted/submitted work remains a
+  separate operation; never infer review authority from claim continuation.
 - Read one relevant card with `agent:show -- --card <key> --json`; summarize only
   the fields needed for the next decision. Do not dump the full board for a
   specific task. Reuse prior inspection and batch independent bounded reads.
