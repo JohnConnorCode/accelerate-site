@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveOrCreateIdentity } from "./identity";
 import { recordActivity } from "./activities";
+import { postizAdapter } from "./postiz-adapter";
 import { stripeAdapter } from "./stripe-adapter";
 import { recordAudit } from "./audit";
 
@@ -565,6 +566,7 @@ export const INTEGRATION_ADAPTERS: ReadonlyMap<string, IntegrationAdapter> = new
   ["whatsapp", whatsAppAdapter],
   ["hubspot", hubSpotAdapter],
   ["stripe", stripeAdapter],
+  ["postiz", postizAdapter],
 ]);
 
 /**
