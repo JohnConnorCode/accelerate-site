@@ -39,6 +39,24 @@ try {
     remote,
     "explicit worker profile takes precedence",
   );
+  for (const unexpected of [
+    { ...operator, token: "private-marker" },
+    { ...operator, secret: "private-marker" },
+    { ...remote, capabilities: ["typescript"] },
+    { ...remote, project: "accelerate" },
+  ]) {
+    writeFileSync(join(common, "work-board-agent.json"), JSON.stringify(unexpected));
+    let loads = 0;
+    assert.throws(
+      () =>
+        loadAgentConfiguration({ root, common }, {}, () => {
+          loads++;
+        }),
+      (error) =>
+        /unsupported shape/.test(error.message) && !error.message.includes("private-marker"),
+    );
+    assert.equal(loads, 0, "Reject unsupported configuration before loading its environment");
+  }
   writeFileSync(join(common, "work-board-agent.json"), "not-json-private-marker");
   assert.throws(
     () => loadAgentConfiguration({ root, common }, {}, () => {}),
@@ -80,3 +98,33 @@ for (const transport of ["null", "local-operator:other", "https://board.example.
   );
 assert.throws(() => assertClaimTransport({}, "local-operator:accelerate"), /another transport/);
 console.log("PASS: local and remote claim continuation retains exact transport and named project.");
+
+const capabilityCases = mkdtempSync(join(tmpdir(), "accelerate-capabilities-"));
+try {
+  const envFile = join(capabilityCases, "env");
+  writeFileSync(envFile, "");
+  const profileFile = join(capabilityCases, "work-board-operator.json");
+  const profile = {
+    version: 1,
+    transport: "local-operator",
+    project: "accelerate",
+    envFile,
+    capabilities: ["typescript", "postgres"],
+  };
+  writeFileSync(profileFile, JSON.stringify(profile));
+  assert.deepEqual(
+    loadAgentConfiguration({ root: capabilityCases, common: capabilityCases }, {}, () => {})
+      .capabilities,
+    ["typescript", "postgres"],
+  );
+  for (const capabilities of [["*"], "typescript", ["../escape"]]) {
+    writeFileSync(profileFile, JSON.stringify({ ...profile, capabilities }));
+    assert.throws(
+      () =>
+        loadAgentConfiguration({ root: capabilityCases, common: capabilityCases }, {}, () => {}),
+      /unsupported shape/,
+    );
+  }
+} finally {
+  rmSync(capabilityCases, { recursive: true, force: true });
+}

@@ -6,6 +6,10 @@ import type { FeatureRequest } from "../src/lib/feature-board";
 import { randomBytes, randomUUID } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, chmodSync } from "node:fs";
 import { resolve } from "node:path";
+import { readdirSync } from "node:fs";
+import { receipt } from "./lib/task-context";
+import { createCheckpoint, prepareSuccessor } from "./lib/agent-checkpoint.mjs";
+import { readinessSummary, resumableCard } from "./lib/agent-readiness.mjs";
 import {
   repositoryContext,
   prepareWorkspace,
@@ -31,6 +35,9 @@ async function main() {
     "progress",
     "block",
     "complete",
+    "resume",
+    "checkpoint",
+    "audit",
   ];
   if (!commands.includes(command))
     throw new Error("Unknown work command. Run agent-dispatch.ts help.");
@@ -43,6 +50,10 @@ async function main() {
     "request-key",
     "message",
     "evidence-file",
+    "checkpoint-file",
+    "attempt",
+    "limit",
+    "offset",
   ]);
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -59,6 +70,8 @@ async function main() {
     }
   }
 
+  if (flags.attempt && !/^[a-f0-9-]{36}$/i.test(flags.attempt))
+    throw new Error("--attempt must be a UUID");
   if (flags["request-key"] && !/^[a-f0-9-]{36}$/i.test(flags["request-key"]))
     throw new Error("--request-key must be a UUID");
   const configuration = loadAgentConfiguration(repositoryContext(process.cwd()));
@@ -72,13 +85,20 @@ async function main() {
   const endpoint = localOperator ? null : boardEndpoint(process.env);
   const token = process.env.WORK_BOARD_TOKEN;
   const request = localOperator
-    ? (await import("./lib/local-work-board")).createLocalWorkRequest(flags.project)
+    ? (await import("./lib/local-work-board")).createLocalWorkRequest(
+        flags.project,
+        configuration?.transport === "local-operator" ? (configuration.capabilities ?? []) : [],
+      )
     : (path = "", body?: unknown) => requestBoard(endpoint!, token, path, body);
   const transport = localOperator ? `local-operator:${flags.project}` : String(endpoint);
   const { root, sessions: sessionDir } = repositoryContext(process.cwd());
+  let resumeSupport: { version: number; automaticRecoveryProjects: string[] } | undefined;
+  const clientSession =
+    process.env.ACCELERATE_AGENT_SESSION_ID ?? process.env.CODEX_THREAD_ID ?? null;
   const getPage = async (path: string) => {
     const page = await request(path);
     requireBoardProtocol(page);
+    resumeSupport = page.resumableAttempts;
     return page;
   };
   let card: FeatureRequest | undefined;
@@ -109,7 +129,65 @@ async function main() {
     writeFileSync(path, JSON.stringify(value), { mode: 0o600 });
     chmodSync(path, 0o600);
   }
-  if (command === "status" || command === "show") {
+  function persistSession(session: Record<string, unknown>, live: FeatureRequest, path: string) {
+    const updated = {
+      ...session,
+      card: live,
+      attemptId: live.work_attempt_id ?? session.attemptId,
+    };
+    save(path, updated);
+    if (updated.attemptId) save(resolve(sessionDir, `attempt-${updated.attemptId}.json`), updated);
+    return updated;
+  }
+  if (command === "audit") {
+    const limit = Number(flags.limit ?? 25),
+      offset = Number(flags.offset ?? 0);
+    if (
+      !Number.isSafeInteger(limit) ||
+      limit < 1 ||
+      limit > 100 ||
+      !Number.isSafeInteger(offset) ||
+      offset < 0
+    )
+      throw new Error("Use --limit 1..100 and a nonnegative --offset.");
+    const page = await getPage(`?limit=${limit}&offset=${offset}`);
+    console.log(
+      JSON.stringify(
+        {
+          ...readinessSummary(page.features),
+          recovery: resumeSupport ?? { version: 0 },
+          pageCount: page.features.length,
+          nextOffset: page.nextOffset,
+        },
+        null,
+        2,
+      ),
+    );
+  } else if (command === "status" || command === "show") {
+    if (command === "status" && !flags.full && !card) {
+      const limit = Number(flags.limit ?? 25),
+        offset = Number(flags.offset ?? 0);
+      if (
+        !Number.isSafeInteger(limit) ||
+        limit < 1 ||
+        limit > 100 ||
+        !Number.isSafeInteger(offset) ||
+        offset < 0
+      )
+        throw new Error("Use --limit 1..100 and a nonnegative --offset.");
+      const page = await getPage(`?limit=${limit}&offset=${offset}`);
+      console.log(
+        JSON.stringify(
+          {
+            cards: page.features.map((row: FeatureRequest) => receipt(row)),
+            nextOffset: page.nextOffset,
+          },
+          null,
+          2,
+        ),
+      );
+      return;
+    }
     const rows = await cards();
     if (flags.json) console.log(JSON.stringify(flags.full ? rows : rows.map(workPacket), null, 2));
     else if (card || command === "show") console.log(rows.map(formatWorkPacket).join("\n\n"));
@@ -118,7 +196,7 @@ async function main() {
         console.log(
           `${c.seed_key ?? c.id} | ${c.status} | ${c.title}\n  ${(c.readiness ?? []).join(", ") || "Prerequisites and contract ready"}`,
         );
-  } else if (command === "next") {
+  } else if (command === "next" || command === "resume") {
     const requestKey = flags["request-key"] ?? randomUUID();
     const pendingPath = resolve(sessionDir, `pending-${requestKey}.json`);
     const previous = existsSync(pendingPath)
@@ -132,35 +210,139 @@ async function main() {
       throw new Error(
         "This request key belongs to another board or card. Preserve its session and inspect it before retrying.",
       );
+    const rows = await cards();
+    const localSessions = existsSync(sessionDir)
+      ? readdirSync(sessionDir)
+          .filter((name) => /^(?:attempt-)?[a-f0-9-]{36}\.json$/.test(name))
+          .flatMap((name) => {
+            try {
+              return [
+                {
+                  path: resolve(sessionDir, name),
+                  session: JSON.parse(readFileSync(resolve(sessionDir, name), "utf8")),
+                },
+              ];
+            } catch {
+              return [];
+            }
+          })
+      : [];
+    const ownedLiveSessions = previous
+      ? []
+      : localSessions.filter(
+          ({ session }) =>
+            session.endpoint === transport &&
+            (session.worktree === root ||
+              (clientSession && session.clientSession === clientSession) ||
+              (flags.attempt && session.attemptId === flags.attempt)) &&
+            rows.some(
+              (row) =>
+                row.id === session.card.id &&
+                row.status === "in_progress" &&
+                Date.parse(row.lease_expires_at ?? "") > Date.now(),
+            ),
+        );
+    // Exact attempt identity wins over a pre-migration pointer with an old token.
+    // Only adopt a legacy token when no known live attempt session is available.
+    const current =
+      ownedLiveSessions.find(({ session }) =>
+        rows.some((row) => row.id === session.card.id && row.work_attempt_id === session.attemptId),
+      ) ??
+      ownedLiveSessions.find(({ session }) =>
+        rows.some(
+          (row) =>
+            row.id === session.card.id && (!row.work_attempt_id || !session.card.work_attempt_id),
+        ),
+      );
+    if (current) {
+      const live = rows.find((row) => row.id === current.session.card.id)!;
+      const result = await request("", {
+        operation: "heartbeat",
+        id: live.id,
+        requestKey: randomUUID(),
+        payload: { claimToken: current.session.claimToken },
+      });
+      const continued = persistSession(current.session, result.card, current.path);
+      console.log(
+        JSON.stringify(
+          {
+            ...(flags.full ? result.card : workPacket(result.card)),
+            worktree: current.session.worktree,
+            controlCheckout: root,
+            attemptId: continued.attemptId,
+          },
+          null,
+          2,
+        ),
+      );
+      return;
+    }
+    const unavailable: { key: string; reason: string }[] = [];
+    let resumeCandidate: FeatureRequest | undefined;
+    let resumePlan;
+    if (!previous)
+      for (const candidate of rows.filter((c) => resumableCard(c, resumeSupport))) {
+        try {
+          resumePlan = flags["no-worktree"]
+            ? undefined
+            : prepareSuccessor(root, candidate, requestKey);
+          resumeCandidate = candidate;
+          break;
+        } catch (error) {
+          unavailable.push({
+            key: candidate.seed_key ?? candidate.id,
+            reason: error instanceof Error ? error.message : "Checkpoint unavailable",
+          });
+        }
+      }
+    if (unavailable.length)
+      console.error(
+        JSON.stringify({
+          unavailableCheckpoints: unavailable.slice(0, 10),
+          count: unavailable.length,
+        }),
+      );
     card =
       previous?.card ??
-      (await cards()).find(
-        (c) =>
-          c.readiness?.length === 0 &&
-          ["planned", "backlog"].includes(c.status) &&
-          c.labels.some((l) => ["milestone:now", "milestone:next"].includes(l)),
-      );
+      resumeCandidate ??
+      (command === "resume"
+        ? undefined
+        : rows.find(
+            (c) =>
+              c.readiness?.length === 0 &&
+              ["planned", "backlog"].includes(c.status) &&
+              c.labels.some((l) => ["milestone:now", "milestone:next"].includes(l)),
+          ));
     if (!card)
       throw new Error(
-        "No ready Now/Next ticket is available in your scope. Inspect agent:status; resolve dependencies, specification, capabilities or WIP before claiming.",
+        `No ready Now/Next ticket is available. ${JSON.stringify(readinessSummary(rows))}. Use agent:audit for specific blockers; missing capabilities require a configured profile, not broader review rights.`,
       );
-    const plan = flags["no-worktree"]
-      ? undefined
-      : prepareWorkspace(root, card, { fetchBase: true });
+    const takingOver = previous?.body?.operation === "resume" || resumableCard(card, resumeSupport);
+    const plan =
+      previous?.plan ??
+      (flags["no-worktree"]
+        ? undefined
+        : takingOver
+          ? (resumePlan ?? prepareSuccessor(root, card, requestKey))
+          : prepareWorkspace(root, card, { fetchBase: true }));
     const session = previous ?? {
       endpoint: transport,
       card,
       claimToken: randomBytes(32).toString("base64url"),
       requestKey,
+      clientSession,
     };
     const body = session.body ?? {
-      operation: "claim",
+      operation: takingOver ? "resume" : "claim",
       id: card.id,
       revision: card.revision,
       requestKey,
-      payload: { claimToken: session.claimToken },
+      payload: {
+        claimToken: session.claimToken,
+        ...(takingOver ? { checkpointId: card.work_checkpoint?.id } : {}),
+      },
     };
-    save(pendingPath, { ...session, body });
+    save(pendingPath, { ...session, body, plan });
     console.error(
       `Claim request key: ${requestKey}. Retry an uncertain result with --request-key ${requestKey}.`,
     );
@@ -170,14 +352,72 @@ async function main() {
       throw new Error(
         "Claim response is incomplete; preserve the printed request key for operator reconciliation.",
       );
-    save(resolve(sessionDir, `${card.id}.json`), session);
+    const attemptSession = {
+      ...session,
+      card,
+      attemptId: card.work_attempt_id ?? requestKey,
+      worktree: plan?.path ?? null,
+    };
+    save(resolve(sessionDir, `attempt-${attemptSession.attemptId}.json`), attemptSession);
+    const legacyPath = resolve(sessionDir, `${card.id}.json`);
+    if (!existsSync(legacyPath)) save(legacyPath, attemptSession);
     let path: string | undefined;
     try {
-      if (plan) path = createWorkspace(plan);
+      if (previous) {
+        const live = (await getPage(`?id=${card.id}`)).features[0];
+        if (
+          live.status !== "in_progress" ||
+          (live.work_attempt_id && live.work_attempt_id !== card.work_attempt_id)
+        )
+          throw new Error(
+            "Replayed attempt is no longer current; preserve its source and inspect the live card.",
+          );
+      }
+      if (plan) {
+        if (previous && existsSync(plan.path)) {
+          if (
+            repositoryContext(plan.path).common !== repositoryContext(root).common ||
+            (await import("./lib/developer-workspace.mjs")).git(plan.path, [
+              "branch",
+              "--show-current",
+            ]) !== plan.branch
+          )
+            throw new Error("Recorded successor is occupied by another checkout.");
+          path = plan.path;
+        } else path = createWorkspace(plan);
+      }
     } catch {
       throw new Error(
         `Claim retained for ${card.seed_key ?? card.id}; local worktree preparation failed. Inspect the target without deleting it. Use agent:release -- --card ${card.seed_key ?? card.id} if you cannot continue.`,
       );
+    }
+    let checkpointWarning: string | undefined;
+    if (resumeSupport?.version === 1 && path && card.work_attempt_id && !takingOver && !previous) {
+      try {
+        const initial = createCheckpoint(path, card, card.work_attempt_id, {
+          summary: "Initial source checkpoint; task acceptance remains unverified.",
+          remaining: ["Complete the card acceptance and record verification evidence."],
+        });
+        const recorded = await request("", {
+          operation: "checkpoint",
+          id: card.id,
+          revision: card.revision,
+          requestKey: randomUUID(),
+          payload: { claimToken: session.claimToken, checkpoint: initial.checkpoint },
+        });
+        if (!recorded.card)
+          throw new Error("Checkpoint response did not include the current card.");
+        card = recorded.card as FeatureRequest;
+        save(resolve(sessionDir, `attempt-${attemptSession.attemptId}.json`), {
+          ...attemptSession,
+          card,
+        });
+      } catch (error) {
+        checkpointWarning =
+          error instanceof Error
+            ? error.message
+            : "Initial checkpoint unavailable; preserve source and checkpoint before handoff.";
+      }
     }
     if (flags.json)
       console.log(
@@ -186,6 +426,8 @@ async function main() {
             ...(flags.full ? card : workPacket(card)),
             worktree: path ?? null,
             controlCheckout: root,
+            attemptId: attemptSession.attemptId,
+            ...(checkpointWarning ? { checkpointWarning } : {}),
           },
           null,
           2,
@@ -197,16 +439,159 @@ async function main() {
       );
   } else {
     if (!card) throw new Error("--card is required");
-    const sessionPath = resolve(sessionDir, `${card.id}.json`);
+    const ownedSession = existsSync(sessionDir)
+      ? readdirSync(sessionDir)
+          .filter((name) => /^attempt-[a-f0-9-]{36}\.json$/.test(name))
+          .flatMap((name) => {
+            try {
+              const session = JSON.parse(readFileSync(resolve(sessionDir, name), "utf8"));
+              return [{ name, session }];
+            } catch {
+              return [];
+            }
+          })
+          .find(
+            ({ session }) =>
+              session.card.id === card!.id &&
+              session.endpoint === transport &&
+              (session.worktree === root ||
+                (clientSession && session.clientSession === clientSession)) &&
+              (!card!.work_attempt_id || session.attemptId === card!.work_attempt_id),
+          )
+      : undefined;
+    const sessionPath = resolve(
+      sessionDir,
+      flags.attempt ? `attempt-${flags.attempt}.json` : (ownedSession?.name ?? `${card.id}.json`),
+    );
     if (!existsSync(sessionPath))
       throw new Error(
         "No local claim session exists for this card. Ask the maintainer to inspect ownership; never invent or replace another worker's token.",
       );
     const session = JSON.parse(readFileSync(sessionPath, "utf8"));
     assertClaimTransport(session, transport);
-    const operation = command === "complete" ? "submit" : command;
+    // A legacy heartbeat can have succeeded before its response was lost. Prove
+    // the retained token still owns the lease; never adopt a successor from a read.
+    if (
+      session.card.id === card.id &&
+      !session.card.work_attempt_id &&
+      card.work_attempt_id &&
+      session.attemptId !== card.work_attempt_id
+    ) {
+      const renewed = await request("", {
+        operation: "heartbeat",
+        id: card.id,
+        requestKey: randomUUID(),
+        payload: { claimToken: session.claimToken },
+      });
+      card = renewed.card;
+      Object.assign(session, persistSession(session, card!, sessionPath));
+    }
+
+    if (
+      session.card.id !== card.id ||
+      (card.work_attempt_id && session.attemptId !== card.work_attempt_id)
+    )
+      throw new Error(
+        "This attempt was superseded. Its credentials and source are preserved; use the successor packet.",
+      );
+    const operation =
+      command === "complete"
+        ? "submit"
+        : command === "progress" && resumeSupport?.version === 1 && session.worktree
+          ? "checkpoint"
+          : command;
     const payload: Record<string, unknown> = { claimToken: session.claimToken };
     if (["progress", "block"].includes(operation)) payload.message = flags.message;
+    const requestKey = flags["request-key"] ?? randomUUID();
+    const mutationPath = resolve(sessionDir, `mutation-${requestKey}.json`);
+    const intent = JSON.stringify({
+      operation,
+      id: card.id,
+      attempt: session.requestKey ?? session.attemptId ?? null,
+      message: flags.message,
+      evidence: flags["evidence-file"] ? readFileSync(flags["evidence-file"], "utf8") : undefined,
+      checkpoint: flags["checkpoint-file"]
+        ? readFileSync(flags["checkpoint-file"], "utf8")
+        : undefined,
+    });
+    if (existsSync(mutationPath)) {
+      const saved = JSON.parse(readFileSync(mutationPath, "utf8"));
+      if (saved.intent !== intent)
+        throw new Error("Request key belongs to another operation; preserve it.");
+      const replay = await request("", saved.mutation);
+      console.log(
+        JSON.stringify(
+          flags.full
+            ? replay
+            : { ...receipt(replay.card, operation), replayed: replay.replayed ?? false },
+          null,
+          2,
+        ),
+      );
+      return;
+    }
+    if (operation === "checkpoint") {
+      if (resumeSupport?.version !== 1)
+        throw new Error(
+          "Board does not support durable checkpoints yet; use the compatible control checkout after migration.",
+        );
+      if (!flags["checkpoint-file"] && command !== "progress")
+        throw new Error(
+          "--checkpoint-file is required: summary, completed, remaining, artifacts and explicitly included new source files.",
+        );
+      if (!session.worktree)
+        throw new Error(
+          "No retained workspace recorded; inspect and resume the task before checkpointing.",
+        );
+      if (
+        card.status !== "in_progress" ||
+        Date.parse(card.lease_expires_at ?? "") <= Date.now() ||
+        (card.work_attempt_id && card.work_attempt_id !== session.attemptId)
+      )
+        throw new Error(
+          "Claim is expired or superseded; preserve local source and resume through the canonical service.",
+        );
+      const renewed = await request("", {
+        operation: "heartbeat",
+        id: card.id,
+        requestKey: randomUUID(),
+        payload: { claimToken: session.claimToken },
+      });
+      card = renewed.card;
+      Object.assign(session, persistSession(session, renewed.card, sessionPath));
+      const input = flags["checkpoint-file"]
+        ? JSON.parse(readFileSync(flags["checkpoint-file"], "utf8"))
+        : {
+            summary: flags.message,
+            remaining: [
+              "Continue the recorded task; passing acceptance has not yet been submitted.",
+            ],
+          };
+      if (
+        typeof input.summary !== "string" ||
+        input.summary.length < 10 ||
+        input.summary.length > 4000 ||
+        !["completed", "remaining", "artifacts", "files"].every(
+          (key) =>
+            input[key] === undefined ||
+            (Array.isArray(input[key]) &&
+              input[key].length <= 100 &&
+              input[key].every((v: unknown) => typeof v === "string" && v.length <= 500)),
+        )
+      )
+        throw new Error("Invalid checkpoint description or source-file list.");
+      const result = createCheckpoint(
+        session.worktree,
+        card,
+        session.attemptId ?? session.requestKey,
+        input,
+      );
+      payload.checkpoint = result.checkpoint;
+      if (result.omittedUntracked.length)
+        console.error(
+          `Checkpoint omitted ${result.omittedUntracked.length} unselected untracked files; inspect them locally before handoff.`,
+        );
+    }
     if (operation === "submit") {
       if (!flags["evidence-file"])
         throw new Error(
@@ -214,15 +599,27 @@ async function main() {
         );
       payload.evidence = JSON.parse(readFileSync(flags["evidence-file"], "utf8"));
     }
+    const mutation = { operation, id: card!.id, revision: card!.revision, requestKey, payload };
+    save(mutationPath, { mutation, intent });
+    console.error(`Lifecycle request key: ${requestKey}`);
+    const result = await request("", mutation);
+    if (["progress", "checkpoint", "heartbeat"].includes(operation)) {
+      const updated = {
+        ...session,
+        lastProgressAt:
+          operation === "heartbeat" ? session.lastProgressAt : new Date().toISOString(),
+        card: result.card,
+        attemptId: result.card.work_attempt_id ?? session.attemptId,
+      };
+      save(sessionPath, updated);
+      if (updated.attemptId)
+        save(resolve(sessionDir, `attempt-${updated.attemptId}.json`), updated);
+    }
     console.log(
       JSON.stringify(
-        await request("", {
-          operation,
-          id: card.id,
-          revision: card.revision,
-          requestKey: flags["request-key"] ?? randomUUID(),
-          payload,
-        }),
+        flags.full
+          ? result
+          : { ...receipt(result.card, operation), replayed: result.replayed ?? false },
         null,
         2,
       ),

@@ -8,6 +8,8 @@ Use `npm run db:migrate:all`. The ordered catalog and explicit historical exclus
 
 The migration ledger records each file and checksum atomically with its schema changes. Repeat runs verify completed files and resume pending files; they never replay seed updates. Changed recorded files and unknown database history fail closed. Existing installations without a ledger require reviewed baseline adoption before upgrading. See [Self-hosting](SELF-HOSTING.md) for first-owner ordering and hosted Supabase setup.
 
+The resumable-attempts migration adds fenced ownership and durable checkpoint metadata to the existing work board. Deploy compatible service and worker code before a reviewer enables automatic recovery for a named project through `recovery-policy`. Recovery is off by default; applying the schema alone does not enable takeover. Retain the migration ledger and existing claim history.
+
 The message upsert migration (`20260914-message-upsert-conflict-targets.sql`) adds workspace-scoped indexes used by the shared sender and message synchronization. Apply the current catalog before testing a send. If an earlier attempt failed before creating a message receipt, verify the schema before retrying; an uncertain provider result still requires receipt reconciliation.
 
 The AI command runtime migration adds founder-owned conversation history, replay-safe client message IDs, and run linkage for provider, tool-pack, duration, and conversation observability. Apply it before enabling `/admin/ai`; until then the command UI fails closed with a setup message and no schema is created from a request path.

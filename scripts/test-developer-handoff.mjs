@@ -255,6 +255,7 @@ test("doctor proves shared protocol, operation scopes and enforcement without ma
         cwd: root,
         env: {
           ...process.env,
+          ACCELERATE_AGENT_NO_PROFILE: "1",
           WORK_BOARD_URL: `http://127.0.0.1:${server.address().port}`,
           WORK_BOARD_TOKEN: "doctor-private-token",
         },
@@ -289,7 +290,7 @@ test("doctor proves shared protocol, operation scopes and enforcement without ma
 test("developer completes claim, progress, release, resume and evidence submission from a clean clone", async () => {
   const f = fixture();
   const receipt = [];
-  let token, worktree;
+  let token, worktree, attemptId;
   f.card.work_spec.acceptance = [
     { id: "AC1", criterion: "Explain the fixture task", environment: "local" },
   ];
@@ -358,7 +359,11 @@ test("developer completes claim, progress, release, resume and evidence submissi
     WORK_BOARD_TOKEN: "lifecycle-worker",
   };
   async function command(args) {
-    const result = await cli(f.clone, args, env);
+    const result = await cli(
+      f.clone,
+      args[0] === "next" || !attemptId ? args : [...args, "--attempt", attemptId],
+      env,
+    );
     assert.equal(result.code, 0, result.stderr);
     assert.ok(!result.stdout.includes("lifecycle-worker"));
     if (token) assert.ok(!result.stdout.includes(token));
@@ -367,12 +372,14 @@ test("developer completes claim, progress, release, resume and evidence submissi
   try {
     const packet = await command(["next", "--card", f.card.seed_key, "--json"]);
     worktree = packet.worktree;
+    attemptId = packet.attemptId;
     await command(["heartbeat", "--card", f.card.seed_key]);
     await command(["progress", "--card", f.card.seed_key, "--message", "Inspecting the fixture"]);
     await command(["release", "--card", f.card.seed_key]);
     assert.ok(existsSync(worktree), "release preserves the checkout");
     const resumed = await command(["next", "--card", f.card.seed_key, "--json"]);
     assert.equal(resumed.worktree, worktree);
+    attemptId = resumed.attemptId;
     writeFileSync(
       join(worktree, "README.md"),
       "Open the fixture, inspect the instructions, and record the result.\n",
@@ -417,5 +424,410 @@ test("developer completes claim, progress, release, resume and evidence submissi
   } finally {
     await new Promise((resolveClosed) => server.close(resolveClosed));
     rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+test("credit exhaustion resumes isolated source; predecessor CLI stays fenced and takeover retry reuses receipt", async () => {
+  const f = fixture();
+  f.card.project_key = "fixture";
+  const attempts = new Map(),
+    receipts = new Map();
+  let token,
+    posts = 0;
+  const server = createServer(async (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    if (req.method === "GET") {
+      const expired = Date.parse(f.card.lease_expires_at ?? "") <= Date.now();
+      f.card.readiness = f.card.status === "in_progress" ? ["status:in_progress"] : [];
+      f.card.resume_readiness =
+        expired && f.card.work_checkpoint ? [] : ["resume_requires_expired_lease"];
+      res.end(
+        JSON.stringify({
+          protocolVersion: 2,
+          schemaReady: true,
+          features: [f.card],
+          nextOffset: null,
+          resumableAttempts: { version: 1, automaticRecoveryProjects: ["fixture"] },
+        }),
+      );
+      return;
+    }
+    let raw = "";
+    for await (const part of req) raw += part;
+    const body = JSON.parse(raw);
+    posts++;
+    const previous = receipts.get(body.requestKey);
+    if (previous) {
+      assert.equal(previous.raw, raw);
+      res.end(previous.response);
+      return;
+    }
+    if (body.operation === "claim" || body.operation === "resume") {
+      if (body.operation === "resume") {
+        assert(Date.parse(f.card.lease_expires_at) <= Date.now());
+        assert.equal(body.payload.checkpointId, f.card.work_checkpoint.id);
+      }
+      token = body.payload.claimToken;
+      f.card.work_attempt_id = randomUUID();
+      attempts.set(f.card.work_attempt_id, token);
+      f.card.status = "in_progress";
+    } else if (body.payload.claimToken !== token) {
+      res.statusCode = 403;
+      res.end("{}");
+      return;
+    }
+    if (body.operation === "checkpoint") {
+      assert(body.payload.checkpoint.branch.includes(f.card.work_attempt_id));
+      f.card.work_checkpoint = {
+        ...body.payload.checkpoint,
+        id: randomUUID(),
+        attemptId: f.card.work_attempt_id,
+      };
+    }
+    f.card.lease_expires_at = new Date(Date.now() + 30 * 60_000).toISOString();
+    f.card.revision++;
+    const response = JSON.stringify({ card: f.card });
+    receipts.set(body.requestKey, { raw, response });
+    res.end(response);
+  });
+  await new Promise((done) => server.listen(0, "127.0.0.1", done));
+  const env = (session) => ({
+    ACCELERATE_AGENT_NO_PROFILE: "1",
+    ACCELERATE_AGENT_SESSION_ID: session,
+    WORK_BOARD_URL: `http://127.0.0.1:${server.address().port}`,
+    WORK_BOARD_TOKEN: "fixture-worker",
+  });
+  const run = async (cwd, args, session) => {
+    const result = await cli(cwd, args, env(session));
+    assert.equal(result.code, 0, result.stderr);
+    return JSON.parse(result.stdout);
+  };
+  try {
+    const first = await run(f.clone, ["next", "--json"], "old");
+    assert(f.card.work_checkpoint, "initial source is checkpointed without another user step");
+    const legacyPath = join(repositoryContext(f.clone).sessions, `${f.card.id}.json`);
+    const legacyToken = JSON.parse(readFileSync(legacyPath, "utf8")).claimToken;
+    writeFileSync(join(first.worktree, "README.md"), "Interrupted tracked source\n");
+    writeFileSync(join(first.worktree, "new.ts"), "export const kept = true;\n");
+    const checkpointFile = join(f.dir, "checkpoint.json");
+    writeFileSync(
+      checkpointFile,
+      JSON.stringify({
+        summary: "Preserve interrupted implementation and new source",
+        files: ["new.ts"],
+        remaining: ["Verify task"],
+      }),
+    );
+    await run(
+      f.clone,
+      [
+        "checkpoint",
+        "--card",
+        f.card.seed_key,
+        "--attempt",
+        first.attemptId,
+        "--checkpoint-file",
+        checkpointFile,
+      ],
+      "old",
+    );
+    f.card.lease_expires_at = new Date(Date.now() - 1000).toISOString();
+    const requestKey = randomUUID();
+    const second = await run(f.clone, ["next", "--json", "--request-key", requestKey], "new");
+    assert.notEqual(first.worktree, second.worktree);
+    assert.equal(
+      readFileSync(join(second.worktree, "README.md"), "utf8"),
+      "Interrupted tracked source\n",
+    );
+    assert.equal(
+      readFileSync(join(second.worktree, "new.ts"), "utf8"),
+      "export const kept = true;\n",
+    );
+    assert.equal(
+      JSON.parse(readFileSync(legacyPath, "utf8")).claimToken,
+      legacyToken,
+      "old binaries never receive the successor secret",
+    );
+    writeFileSync(join(first.worktree, "README.md"), "Late predecessor write\n");
+    const before = posts;
+    const old = await cli(first.worktree, ["heartbeat", "--card", f.card.seed_key], env("old"));
+    assert.equal(old.code, 1);
+    assert.match(old.stderr, /superseded/i);
+    assert.equal(posts, before);
+    assert.equal(
+      readFileSync(join(second.worktree, "README.md"), "utf8"),
+      "Interrupted tracked source\n",
+    );
+    const retried = await run(f.clone, ["next", "--json", "--request-key", requestKey], "new");
+    assert.equal(retried.worktree, second.worktree);
+    assert.equal(retried.attemptId, second.attemptId);
+    assert.equal(attempts.size, 2);
+    // Simulate an unadopted pre-migration pointer sorting before the current session.
+    // It must not shadow the successor when both share the returning client identity.
+    const staleLegacy = JSON.parse(readFileSync(legacyPath, "utf8"));
+    delete staleLegacy.card.work_attempt_id;
+    staleLegacy.clientSession = "new";
+    writeFileSync(legacyPath, JSON.stringify(staleLegacy));
+    const continuedWithoutExplicitAttempt = await run(f.clone, ["next", "--json"], "new");
+    assert.equal(continuedWithoutExplicitAttempt.attemptId, second.attemptId);
+    const continued = await run(f.clone, ["next", "--json", "--attempt", second.attemptId], "new");
+    assert.equal(continued.worktree, second.worktree);
+    await run(
+      f.clone,
+      [
+        "progress",
+        "--card",
+        f.card.seed_key,
+        "--attempt",
+        second.attemptId,
+        "--message",
+        "Successor implementation checkpoint",
+      ],
+      "new",
+    );
+    const runBounded = (attemptId) =>
+      new Promise((done, reject) => {
+        const child = spawn(
+          process.execPath,
+          [
+            join(root, "scripts/agent-run.mjs"),
+            "--card",
+            f.card.seed_key,
+            "--attempt",
+            attemptId,
+            "--",
+            process.execPath,
+            "-e",
+            "console.log(JSON.stringify({cwd:process.cwd(),source:require('node:fs').readFileSync('README.md','utf8')}))",
+          ],
+          {
+            cwd: f.clone,
+            env: { ...process.env, ...env("new") },
+            stdio: ["ignore", "pipe", "pipe"],
+          },
+        );
+        let stdout = "",
+          stderr = "";
+        child.stdout.on("data", (data) => {
+          stdout += data;
+        });
+        child.stderr.on("data", (data) => {
+          stderr += data;
+        });
+        child.on("error", reject);
+        child.on("close", (code) => done({ code, stdout, stderr }));
+      });
+    writeFileSync(join(second.worktree, "README.md"), "Source before long verification\n");
+    const beforeRun = f.card.work_checkpoint.id;
+    const job = await runBounded(second.attemptId);
+    assert.equal(job.code, 0, job.stderr);
+    assert.deepEqual(JSON.parse(job.stdout), {
+      cwd: realpathSync(second.worktree),
+      source: "Source before long verification\n",
+    });
+    assert.notEqual(
+      f.card.work_checkpoint.id,
+      beforeRun,
+      "long job must checkpoint before starting",
+    );
+    assert.equal(
+      git(f.clone, ["show", `${f.card.work_checkpoint.commitSha}:README.md`]),
+      "Source before long verification",
+    );
+    const staleJob = await runBounded(first.attemptId);
+    assert.equal(staleJob.code, 1);
+    assert.equal(staleJob.stdout, "", "fenced attempt cannot start a verification job");
+    const audit = await run(f.clone, ["audit", "--limit", "1"], "new");
+    assert.equal(audit.pageCount, 1);
+  } finally {
+    await new Promise((done) => server.close(done));
+    rmSync(f.dir, { recursive: true, force: true });
+  }
+});
+
+async function legacyAdoptionFixture(lostOperation) {
+  const f = fixture();
+  git(f.clone, ["config", "user.name", "Fixture"]);
+  git(f.clone, ["config", "user.email", "fixture@example.test"]);
+  const oldAttempt = randomUUID(),
+    assignedAttempt = randomUUID(),
+    claimToken = "legacy-private-claim-token";
+  f.card.status = "in_progress";
+  f.card.readiness = ["status:in_progress"];
+  f.card.lease_expires_at = new Date(Date.now() + 30 * 60_000).toISOString();
+  const receipts = new Map();
+  let lost = false,
+    checkpoints = 0,
+    activeToken = claimToken;
+  const server = createServer(async (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    if (req.method === "GET")
+      return res.end(
+        JSON.stringify({
+          protocolVersion: 2,
+          schemaReady: true,
+          resumableAttempts: { version: 1, automaticRecoveryProjects: [] },
+          features: [f.card],
+          nextOffset: null,
+        }),
+      );
+    let raw = "";
+    for await (const chunk of req) raw += chunk;
+    const body = JSON.parse(raw);
+    if (body.payload.claimToken !== activeToken) {
+      res.statusCode = 403;
+      return res.end(JSON.stringify({ error: "Claim does not own this work" }));
+    }
+    if (receipts.has(body.requestKey))
+      return res.end(JSON.stringify({ ...receipts.get(body.requestKey), replayed: true }));
+    if (body.operation === "heartbeat") f.card.work_attempt_id ??= assignedAttempt;
+    else if (body.operation === "checkpoint") {
+      assert.equal(body.revision, f.card.revision);
+      assert.ok(
+        body.payload.checkpoint.branch.startsWith(
+          `agent/checkpoints/${f.card.id}/${assignedAttempt}/`,
+        ),
+      );
+      checkpoints++;
+      f.card.work_checkpoint = {
+        ...body.payload.checkpoint,
+        id: randomUUID(),
+        attemptId: assignedAttempt,
+      };
+    } else {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ error: "Unexpected operation" }));
+    }
+    f.card.revision++;
+    const result = { card: structuredClone(f.card) };
+    receipts.set(body.requestKey, result);
+    if (!lost && body.operation === lostOperation) {
+      lost = true;
+      res.statusCode = 503;
+      return res.end(JSON.stringify({ error: "Receipt saved but response lost" }));
+    }
+    res.end(JSON.stringify(result));
+  });
+  await new Promise((done) => server.listen(0, "127.0.0.1", done));
+  const env = {
+    WORK_BOARD_URL: `http://127.0.0.1:${server.address().port}`,
+    WORK_BOARD_TOKEN: "legacy-worker",
+    ACCELERATE_AGENT_SESSION_ID: randomUUID(),
+    ACCELERATE_AGENT_NO_PROFILE: "1",
+  };
+  const sessions = repositoryContext(f.clone).sessions;
+  mkdirSync(sessions, { recursive: true, mode: 0o700 });
+  const initial = {
+    endpoint: String(boardEndpoint(env)),
+    card: structuredClone(f.card),
+    claimToken,
+    requestKey: oldAttempt,
+    attemptId: oldAttempt,
+    worktree: realpathSync(f.clone),
+    clientSession: env.ACCELERATE_AGENT_SESSION_ID,
+  };
+  const alias = join(sessions, `attempt-${oldAttempt}.json`);
+  writeFileSync(alias, JSON.stringify(initial), { mode: 0o600 });
+  writeFileSync(join(sessions, `${f.card.id}.json`), JSON.stringify(initial), { mode: 0o600 });
+  return {
+    f,
+    env,
+    alias,
+    sessions,
+    oldAttempt,
+    assignedAttempt,
+    claimToken,
+    initial,
+    checkpoints: () => checkpoints,
+    supersede() {
+      f.card.work_attempt_id = randomUUID();
+      activeToken = "successor-token";
+    },
+    async close() {
+      await new Promise((done) => server.close(done));
+      rmSync(f.dir, { recursive: true, force: true });
+    },
+  };
+}
+
+test("continuing a legacy claim persists adoption before emitting its attempt packet", async () => {
+  for (const lostOperation of [undefined, "heartbeat"]) {
+    const x = await legacyAdoptionFixture(lostOperation);
+    try {
+      if (lostOperation) {
+        const lost = await cli(x.f.clone, ["next", "--json", "--attempt", x.oldAttempt], x.env);
+        assert.equal(lost.code, 1);
+      }
+      const continued = await cli(x.f.clone, ["next", "--json", "--attempt", x.oldAttempt], x.env);
+      assert.equal(continued.code, 0, continued.stderr);
+      const packet = JSON.parse(continued.stdout);
+      assert.equal(packet.attemptId, x.assignedAttempt);
+      const saved = JSON.parse(
+        readFileSync(join(x.sessions, `attempt-${packet.attemptId}.json`), "utf8"),
+      );
+      assert.equal(saved.claimToken, x.claimToken);
+      assert.equal(saved.card.work_attempt_id, packet.attemptId);
+      const renewed = await cli(
+        x.f.clone,
+        ["heartbeat", "--card", x.f.card.seed_key, "--attempt", packet.attemptId],
+        x.env,
+      );
+      assert.equal(renewed.code, 0, renewed.stderr);
+      assert.ok(!continued.stdout.includes(x.claimToken));
+    } finally {
+      await x.close();
+    }
+  }
+});
+
+test("legacy checkpoint retries survive lost adoption or checkpoint responses without adopting a successor", async () => {
+  for (const lostOperation of ["heartbeat", "checkpoint"]) {
+    const x = await legacyAdoptionFixture(lostOperation);
+    try {
+      const input = join(x.f.dir, "checkpoint.json");
+      writeFileSync(
+        input,
+        JSON.stringify({
+          summary: "Preserve legacy source before verification",
+          remaining: ["Verification remains"],
+        }),
+      );
+      const args = [
+        "checkpoint",
+        "--card",
+        x.f.card.seed_key,
+        "--attempt",
+        x.oldAttempt,
+        "--request-key",
+        randomUUID(),
+        "--checkpoint-file",
+        input,
+      ];
+      const lost = await cli(x.f.clone, args, x.env);
+      assert.equal(lost.code, 1);
+      const retry = await cli(x.f.clone, args, x.env);
+      assert.equal(retry.code, 0, retry.stderr);
+      assert.equal(x.checkpoints(), 1);
+      const alias = JSON.parse(readFileSync(x.alias, "utf8"));
+      assert.equal(alias.attemptId, x.assignedAttempt);
+      assert.equal(alias.card.work_attempt_id, x.assignedAttempt);
+      assert.equal(alias.claimToken, x.claimToken);
+      assert.ok(existsSync(join(x.sessions, `attempt-${x.assignedAttempt}.json`)));
+      x.supersede();
+      writeFileSync(x.alias, JSON.stringify(x.initial), { mode: 0o600 });
+      const denied = await cli(
+        x.f.clone,
+        ["heartbeat", "--card", x.f.card.seed_key, "--attempt", x.oldAttempt],
+        x.env,
+      );
+      assert.equal(denied.code, 1);
+      assert.equal(
+        JSON.parse(readFileSync(x.alias, "utf8")).attemptId,
+        x.oldAttempt,
+        "failed token validation must not adopt successor identity",
+      );
+    } finally {
+      await x.close();
+    }
   }
 });
