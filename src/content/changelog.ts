@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "source-authority",
+    slug: "source-authority",
+    title: "Tell the assistant what to believe",
+    description:
+      "Register which systems own which truth, from official records to contextual chatter. Retrieval now orders answers by authority, flags conflicts instead of resolving them silently, and surfaces stale knowledge instead of serving it as current.",
+    category: "feature",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",
