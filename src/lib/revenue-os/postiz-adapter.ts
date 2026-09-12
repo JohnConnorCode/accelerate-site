@@ -43,6 +43,9 @@ export function postizOrigin() {
   try {
     url = new URL(value);
   } catch {
+    console.warn(
+      "[social-marketing] Operation unavailable; details retained in the returned state or publication attempt.",
+    );
     throw new PostizError("Invalid Postiz host configuration");
   }
   if (
@@ -137,11 +140,14 @@ export const postizAdapter: IntegrationAdapter = {
       );
       return { valid: true, provider: "postiz", accountDetails: { id: identity.organizationId } };
     } catch {
+      console.warn(
+        "[social-marketing] Operation unavailable; details retained in the returned state or publication attempt.",
+      );
       return {
         valid: false,
         provider: "postiz",
         error:
-          "Verify the Postiz host, organization API key and Accelerate identity patch (protocol 1).",
+          "Verify the Postiz host, organization API key and organization identity patch (protocol 1).",
       };
     }
   },
@@ -310,7 +316,31 @@ export async function tenantPostizClient(
     },
     metrics: async (postId: string) => {
       id.parse(postId);
-      return call(`/analytics/post/${postId}?date=7`);
+      const rows = z
+        .array(
+          z.object({
+            label: z.enum([
+              "Impressions",
+              "Unique Impressions",
+              "Clicks",
+              "Likes",
+              "Comments",
+              "Shares",
+              "Engagement",
+            ]),
+            data: z
+              .array(
+                z.object({ total: z.number().finite().nonnegative(), date: z.string().max(30) }),
+              )
+              .max(100),
+          }),
+        )
+        .max(7)
+        .parse(await call(`/analytics/post/${postId}?date=7`));
+      return rows.flatMap((row) => {
+        const latest = row.data.at(-1);
+        return latest ? [{ label: row.label, value: latest.total, date: latest.date }] : [];
+      });
     },
   };
 }

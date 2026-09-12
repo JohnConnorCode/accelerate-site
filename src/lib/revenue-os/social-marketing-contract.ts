@@ -14,14 +14,12 @@ export const socialDraftSchema = z
     content: z.string().trim().min(1).max(3000),
     channelId: z.string().regex(/^[A-Za-z0-9_-]{1,128}$/),
     scheduledAt: z.iso.datetime({ offset: true }),
-    timeZone: z.string().refine((v) => {
-      try {
-        new Intl.DateTimeFormat("en", { timeZone: v });
-        return true;
-      } catch {
-        return false;
-      }
-    }, "Use an IANA time zone"),
+    timeZone: z
+      .string()
+      .refine(
+        (value) => value === "UTC" || Intl.supportedValuesOf("timeZone").includes(value),
+        "Use an IANA time zone",
+      ),
     sources: z.array(source).min(1).max(5),
     mediaId: z.uuid().nullable(),
   })

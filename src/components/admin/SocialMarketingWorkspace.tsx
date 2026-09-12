@@ -19,7 +19,10 @@ type Attempt = {
   provider_post_id: string | null;
   release_url: string | null;
   reason: string | null;
-  metrics: { available?: boolean; values?: unknown } | null;
+  metrics: {
+    available?: boolean;
+    values?: { label: string; value: number; date: string }[];
+  } | null;
 };
 type Workspace = {
   demo?: boolean;
@@ -285,6 +288,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                           </label>
                           <button
                             className={button}
+                            disabled={busy}
                             onClick={() =>
                               setDraft({ ...post.draft, id: post.id, revision: post.revision })
                             }
@@ -392,9 +396,24 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                         : "Metrics unavailable; no engagement estimate shown"}
                     </p>
                     {a.metrics?.available ? (
-                      <pre className="mt-3 overflow-auto whitespace-pre-wrap text-xs">
-                        {JSON.stringify(a.metrics.values, null, 2)}
-                      </pre>
+                      <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {a.metrics.values?.map((metric) => (
+                          <div key={metric.label}>
+                            <dt className="text-xs admin-text-muted">{metric.label}</dt>
+                            <dd className="mt-1 text-lg font-semibold tabular-nums">
+                              {metric.label === "Engagement"
+                                ? new Intl.NumberFormat(undefined, {
+                                    style: "percent",
+                                    maximumFractionDigits: 2,
+                                  }).format(metric.value)
+                                : metric.value.toLocaleString()}
+                            </dd>
+                            <p className="text-xs admin-text-muted">
+                              Provider snapshot: {metric.date}
+                            </p>
+                          </div>
+                        ))}
+                      </dl>
                     ) : null}
                   </AdminSurface>
                 ))
@@ -514,7 +533,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
         maxWidth="lg"
       >
         {error ? (
-          <p role="alert" className="mb-3 text-sm text-red-500">
+          <p role="alert" className="mb-3 text-sm text-[var(--admin-danger)]">
             {error}
           </p>
         ) : null}
@@ -679,7 +698,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
         maxWidth="lg"
       >
         {error ? (
-          <p role="alert" className="mb-3 text-sm text-red-500">
+          <p role="alert" className="mb-3 text-sm text-[var(--admin-danger)]">
             {error}
           </p>
         ) : null}
@@ -771,7 +790,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
         maxWidth="lg"
       >
         {error ? (
-          <p role="alert" className="mb-3 text-sm text-red-500">
+          <p role="alert" className="mb-3 text-sm text-[var(--admin-danger)]">
             {error}
           </p>
         ) : null}

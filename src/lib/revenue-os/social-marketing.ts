@@ -74,6 +74,9 @@ export async function readSocialWorkspace(db: SupabaseClient, raw: unknown = {})
     channels = (await client.channels()).filter((c) => c.identifier === "linkedin-page");
     connection = { organizationId: client.organizationId, version: client.credentialVersion };
   } catch {
+    console.warn(
+      "[social-marketing] Operation unavailable; details retained in the returned state or publication attempt.",
+    );
     setupError = "Connect a verified Postiz organization and LinkedIn company page in Setup.";
   }
   return {
@@ -220,7 +223,7 @@ export async function previewSocialChange(db: SupabaseClient, raw: unknown) {
     digest: socialDigest(facts),
     consequences:
       input.change.operation === "schedule"
-        ? "Approve these exact posts, images, LinkedIn pages and times. Accelerate will submit each due post to Postiz for public publication. Acceptance does not prove publication."
+        ? "Approve these exact posts, images, LinkedIn pages and times. The worker will submit each due post to Postiz for public publication. Acceptance does not prove publication."
         : input.change.operation === "cancel"
           ? "Cancel these posts before dispatch. Posts already submitted to Postiz cannot be cancelled here."
           : "Save these drafts and invalidate earlier publication approval. This does not publish.",

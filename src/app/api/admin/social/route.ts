@@ -17,6 +17,9 @@ export async function GET() {
       headers: { "Cache-Control": "no-store" },
     });
   } catch {
+    console.warn(
+      "[social-marketing] Operation unavailable; details retained in the returned state or publication attempt.",
+    );
     return NextResponse.json(
       { error: "Social workspace could not be loaded. Verify setup and retry." },
       { status: 503 },

@@ -940,7 +940,8 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         label: "Time zone",
         type: "string",
         default: "America/Chicago",
-        description: "IANA time zone used when reviewing publication times.",
+        description:
+          "IANA time zone for the automatic weekly boundary. Drafts retain their own time zone.",
       },
       {
         key: "prepareWeekly",

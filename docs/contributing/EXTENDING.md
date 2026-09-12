@@ -709,3 +709,13 @@ Ship the operator guide, public documentation link, worked example, cost and
 permission boundaries, recovery steps, extension references and task-based review
 evidence with the implementation. `verify:extensions` enforces bundled guide and
 link presence; factual review and end-to-end proof remain required.
+
+## Package an independently hosted open-source service
+
+Use the [service-plugin packaging guide](OPEN-SOURCE-SERVICE-PLUGINS.md) for
+upstream provenance, tenant organization boundaries, exact approvals, native
+screens, AI/MCP operations, durable effects and deployment evidence. Social
+Marketing/Postiz provides a concrete implementation and
+[extension map](../../plugins/social-marketing/EXTENDING.md). Its upstream
+manifest metadata is optional and does not turn arbitrary repositories into
+trusted executable plugins.

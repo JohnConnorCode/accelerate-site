@@ -34,6 +34,33 @@ not spend model credits or invent claims. Confirm times around daylight-saving
 changes. The AI tools can also draft in context using existing workspace knowledge;
 all changes still pass through preview, proposal and human approval.
 
+## Settings and automation
+
+Open **Setup → Edit plugin settings** to use the shared Integrations settings form.
+
+| Setting                     | Purpose and default                                                                                                                                                              |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Brand guidance              | Audience, voice and claims for editorial review and assistant context. Empty initially; it is not an automatic content-policy validator.                                         |
+| Time zone                   | IANA zone for the automatic weekly boundary; defaults to `America/Chicago`. Each draft stores its own zone and exact instant. The manual editor labels the browser's local zone. |
+| Prepare weekly drafts       | Off initially. When on, prepares one three-post batch per calendar week, starting two days after the worker runs.                                                                |
+| Weekly LinkedIn page ID     | Copy the page ID from Setup. Required for recurring preparation.                                                                                                                 |
+| Weekly source title and URL | Identify the reviewed public source. The URL must use HTTPS.                                                                                                                     |
+| Weekly source paragraphs    | Three reviewed paragraphs separated by blank lines. Reused until updated; no automatic fresh-topic discovery.                                                                    |
+
+Try these requests through the assistant or an authorized MCP client:
+
+- “Inspect Social Marketing and tell me which company pages are available.”
+- “Prepare three editable posts from these three approved paragraphs, with this
+  source URL, starting on this date in America/Chicago. Do not schedule them yet.”
+- “Preview scheduling these draft IDs and revisions. Show the exact text, image,
+  page and time, then propose the batch for my review.”
+- “Show unresolved publication attempts and explain which have verified URLs.”
+
+Source preparation returns drafts; saving them through AI is a proposed change.
+A manual **Prepare three-post week** action saves drafts directly. Neither
+preparation path authorizes publication. Keep the work-engine cron active and
+inspect Work for failures if a weekly batch does not appear.
+
 ## Permissions, costs and recovery
 
 UI, AI and MCP share `get_social_workspace`, `prepare_social_week`,
@@ -72,3 +99,9 @@ approvals, work items and receipts in the host runtime. See
 [Extending Accelerate](../../docs/contributing/EXTENDING.md), the
 [AI/admin contract](../../docs/contracts/ADMIN-AI-PARITY.md), `postiz-adapter.ts`,
 `social-marketing.ts`, `social-marketing-work.ts` and the additive migration.
+
+Read [Extend Social Marketing](EXTENDING.md) for the concrete service map,
+working cross-feature compositions, source-triggered automation design, adding
+channels and upgrade verification. Read the [open-source service packaging
+guide](../../docs/contributing/OPEN-SOURCE-SERVICE-PLUGINS.md) before integrating
+the next upstream project.

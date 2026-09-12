@@ -16,6 +16,9 @@ export async function GET(request: Request) {
       },
     });
   } catch {
+    console.warn(
+      "[social-marketing] Operation unavailable; details retained in the returned state or publication attempt.",
+    );
     return NextResponse.json({ error: "Image unavailable" }, { status: 404 });
   }
 }

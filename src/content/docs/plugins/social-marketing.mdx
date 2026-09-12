@@ -18,7 +18,7 @@ Your team has useful material to share, but turning it into a consistent publish
 
 Enable **Social Marketing** in **Plugins**, then open **Social Marketing → Setup**. Your operator supplies the Postiz publishing service, while each workspace connects its own Postiz organization and LinkedIn company page. Enter that organization's API key in the secure connection field, then choose **Verify and connect** to check its identity.
 
-The plugin settings hold your brand guidance, display time zone and optional weekly draft preparation. Keep API keys in the connection field, because ordinary settings are visible to people using the workspace. Your operator can follow the [Postiz deployment guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/social-marketing/deployment/README.md) for the separate host, source archive and backup procedure.
+The plugin settings hold your brand guidance, weekly scheduling time zone and optional weekly draft preparation. Keep API keys in the connection field, because ordinary settings are visible to people using the workspace. Your operator can follow the [Postiz deployment guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/social-marketing/deployment/README.md) for the separate host, source archive and backup procedure.
 
 ## Prepare a week you can review
 
@@ -47,6 +47,20 @@ You can cancel a schedule before dispatch. Disabling the plugin stops new draft 
 Ask the assistant to inspect the social workspace, prepare a source-backed week, preview a draft change or propose a publication schedule. These operations use the same records and approval flow as the screens, so a conversational edit receives the same checks and receipts. Publication remains an exact human-approved action because it creates public content.
 
 Excerpt preparation is deterministic and has no model charge. Ordinary AI conversations use your configured model and budget, while the separate Postiz host and connected provider can incur their own costs. Plugin developers can reuse the manifest's upstream repository, license, pinned revision and deployment-guide fields when packaging another open-source service.
+
+## Connect it to the rest of your work
+
+Use a published Site Studio page as a source, or ask the assistant to find reviewed material through its existing authorized workspace knowledge and Drive tools. Give social preparation the source title, public URL and supporting excerpt, then review the public wording. Private documents do not become approved public content merely because the assistant can read them.
+
+You can coordinate the post copy with an existing campaign, or review a suitable Opportunity Radar finding as editorial input. This version has no automatic Drive-to-social, website-publish-to-social or Radar-to-social trigger. It also does not enroll CRM contacts or calculate revenue attribution. Those extensions should use the existing feature services and retain source identities, permissions and approval checks.
+
+The work engine already handles weekly drafts, approved publication times and receipt checks. The optional weekly automation reuses the configured source paragraphs until you change them. Use **Work** to inspect failed preparation; use **Results** to investigate an uncertain publication.
+
+## Extend the plugin
+
+The [Social Marketing extension guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/social-marketing/EXTENDING.md) maps the implementation and explains how to add a source trigger, another channel or shared reporting. Upstream Postiz support does not automatically enable a channel in Command Center: this version supports LinkedIn company pages, text and one image, with reviewed destination and receipt rules.
+
+For another upstream project, follow the [open-source service packaging guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/OPEN-SOURCE-SERVICE-PLUGINS.md). The repeatable package includes module metadata, a narrow tenant-aware adapter, native screens and AI tools, durable jobs, public and operator docs, deployment assets and verified recovery. Enabling a plugin does not provision its external service.
 
 ## What to check
 

@@ -99,6 +99,9 @@ export async function publishSocialPost(
         "Postiz accepted the post. Publication remains unverified until a LinkedIn URL is received.",
     };
   } catch {
+    console.warn(
+      "[social-marketing] Operation unavailable; details retained in the returned state or publication attempt.",
+    );
     // Includes interruption between provider acceptance and local receipt persistence.
     // This durable attempt is never eligible for another automatic submission.
     await record(
@@ -164,8 +167,12 @@ export async function reconcileSocialPost(db: SupabaseClient, work: WorkItem): P
   if (provider.state === "PUBLISHED" && provider.releaseURL) {
     let metrics: unknown = { available: false, reason: "Provider metrics unavailable" };
     try {
-      metrics = { available: true, provider: "postiz", values: await client.metrics(provider.id) };
+      const values = await client.metrics(provider.id);
+      metrics = { available: values.length > 0, provider: "postiz", values };
     } catch {
+      console.warn(
+        "[social-marketing] Operation unavailable; details retained in the returned state or publication attempt.",
+      );
       /* Keep unavailable explicit; never invent zero engagement. */
     }
     await record(db, attempt.id, "published", provider.id, provider.releaseURL, null, metrics);

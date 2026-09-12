@@ -26,6 +26,7 @@ const server = process.env.PLAYWRIGHT_BASE_URL
 server?.stdout.pipe(log);
 server?.stderr.pipe(log);
 let browser;
+let activePage;
 try {
   for (let i = 0; i < 60; i++) {
     try {
@@ -44,6 +45,7 @@ try {
     });
     context.setDefaultTimeout(20000);
     const page = await context.newPage();
+    activePage = page;
     const errors = [],
       escaped = [];
     page.on("pageerror", (e) => errors.push(e.message));
@@ -92,6 +94,7 @@ try {
     await page.screenshot({ path: `${output}/approval-${width}.png`, fullPage: true });
     await review.getByRole("button", { name: "Approve these exact changes" }).press("Enter");
     await page.getByRole("status").filter({ hasText: "Approved change recorded" }).waitFor();
+    await page.getByRole("dialog").waitFor({ state: "hidden" });
     await page.getByRole("button", { name: "Calendar", exact: true }).click();
     await page.getByText("scheduled", { exact: true }).waitFor();
     await page.getByRole("button", { name: "Edit draft", exact: true }).click();
@@ -135,6 +138,12 @@ try {
   }
   writeFileSync(`${output}/results.json`, JSON.stringify(results, null, 2));
   console.log(JSON.stringify(results));
+} catch (error) {
+  if (activePage && !activePage.isClosed()) {
+    await activePage.screenshot({ path: `${output}/failure.png`, fullPage: true });
+    writeFileSync(`${output}/failure.txt`, await activePage.locator("body").innerText());
+  }
+  throw error;
 } finally {
   await browser?.close();
   if (server) {

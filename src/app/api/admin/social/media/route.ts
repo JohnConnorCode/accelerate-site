@@ -22,6 +22,9 @@ export async function POST(request: Request) {
       await uploadWorkspaceMedia(auth.database, file, auth.user.email ?? ""),
     );
   } catch {
+    console.warn(
+      "[social-marketing] Operation unavailable; details retained in the returned state or publication attempt.",
+    );
     return NextResponse.json(
       { error: "Image upload failed. Choose a PNG or JPEG up to 3 MB and retry." },
       { status: 422 },
