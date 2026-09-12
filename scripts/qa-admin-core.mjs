@@ -205,8 +205,14 @@ try {
         const tools = page.getByRole("button", { name: "Website tools", exact: true });
         const background = (element) => getComputedStyle(element).backgroundColor;
         assert.notEqual(await save.evaluate(background), await tools.evaluate(background));
-        const pages = page.getByRole("button", { name: "Pages", exact: true });
-        const identity = page.getByRole("button", { name: "Identity", exact: true });
+        const pages = page.getByRole("button", {
+          name: width >= 1280 ? "Pages" : "Edit content",
+          exact: true,
+        });
+        const identity = page.getByRole("button", {
+          name: width >= 1280 ? "Identity" : "Preview page",
+          exact: true,
+        });
         assert.notEqual(await pages.evaluate(background), await identity.evaluate(background));
       }
       console.log(`PASS ${route} ${width}`);

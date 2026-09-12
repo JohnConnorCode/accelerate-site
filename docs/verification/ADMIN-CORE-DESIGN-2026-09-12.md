@@ -118,3 +118,18 @@ the newly added editor assertion, preventing that journey from starting. The
 assertion now appears once; both `qa-website-editor.mjs` and `qa-admin-core.mjs`
 pass `node --check`. The affected later CI attempt was superseded by the corrected
 script. Product source is unchanged by this QA-only correction.
+
+## Completed editor visual check
+
+After system memory recovered, the corrected local editor check passed at 1440px
+and 390px. It compares computed backgrounds for Save draft versus secondary
+tools, and for selected versus unselected controls. Desktop uses section tabs;
+mobile uses Edit/Preview controls and an Editing selector, so the assertion follows
+the visible composition at each width. Both screenshots were opened and inspected.
+Artifacts: `/tmp/admin-core-editor-verified/results.json`,
+`/tmp/admin-core-editor-verified/site-website-1440.png`,
+`/tmp/admin-core-editor-verified/site-website-390.png` and
+`/tmp/admin-core-editor-verified-final.log`.
+
+Together, the local runs cover 44 distinct core routes at desktop and mobile
+widths, plus CRM detail navigation and the 56 theme/density preview combinations.
