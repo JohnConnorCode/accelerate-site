@@ -89,3 +89,27 @@ Existing planning horizons, priorities, scope and acceptance were preserved.
 Incomplete packets retain explicit refinement notes and remain unclaimable.
 An unrelated database-advisor RLS finding was recorded separately for assessment,
 without changing live permissions.
+
+## First accepted integration batch
+
+Four implementation handoffs passed their exact-source checks, application
+builds and independent source review before combination:
+
+| Card                                | Accepted source                            |
+| ----------------------------------- | ------------------------------------------ |
+| agent-resumable-attempts            | `bd60d2c28063701e143e9e1ec34c42249f8aae97` |
+| drive-content-indexing              | `056abafcc1210a2bcc8ae637573df8b27a458b06` |
+| sd-task-tool-profiles               | `2db77199dc6bc9020a975ec629bc83b9b3324fd8` |
+| site-studio-write-boundary-recovery | `5adb5566b1ae4c82e9d5951ba868d88d5addb518` |
+
+The integration combines these sources without changing their runtime logic.
+Changelog entries are retained together; the combined catalog has 90 migrations
+and the public statistics reflect that catalog. Reviewed route fingerprints keep
+both the work-board and Site Studio boundaries. Required combined CI and exact
+source-to-main tree parity must pass before merge receipts are recorded.
+
+Site Studio's original applied grant remains byte-identical in the ledger.
+The corrective revocation is staged for after compatible application release.
+The resumable-attempt schema can be applied through its own catalog entry after
+integration; automatic recovery still requires the scoped policy operation.
+No production deployment is included in this batch.
