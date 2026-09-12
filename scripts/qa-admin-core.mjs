@@ -362,10 +362,11 @@ try {
       await workspace.setViewportSize({ width: 1440, height: 1000 });
       await workspace.getByRole("button", { name: /^Appearance:/ }).click();
       const picker = workspace.getByRole("dialog", { name: "Choose admin appearance" });
-      await picker.getByRole("radio", { checked: true }).focus();
+      const choices = picker.getByRole("radiogroup", { name: "Admin appearance" });
+      await choices.getByRole("radio", { checked: true }).focus();
       await workspace.keyboard.press("Home");
       assert.equal(
-        await picker.getByRole("radio", { checked: true }).getAttribute("tabindex"),
+        await choices.getByRole("radio", { checked: true }).getAttribute("tabindex"),
         "0",
       );
       await workspace.keyboard.press("ArrowRight");
