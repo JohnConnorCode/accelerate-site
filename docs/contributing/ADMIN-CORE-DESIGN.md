@@ -90,3 +90,5 @@ When local resources are unavailable, run the focused visual path on GitHub:
 retains the preview matrix, actual workspace screenshots, computed identities,
 contrast audits and picker keyboard evidence. It is separate from full CI; the
 default workflow still runs all required build and contract checks.
+
+Mobile spacing and coarse-pointer rules must match the base shell/portal selector specificity, including the compact-density override. Navigation labels consume the label font/size tokens; shared transitions consume motion duration/easing tokens. Hover must not shift navigation text horizontally.

@@ -1,7 +1,6 @@
 /* ========================================
    ADMIN OPERATIONS SYSTEM
-   Opaque, high-clarity surfaces for dense operational work. These are scoped
-   away from the public-site glass material on purpose.
+   Shared geometry and interaction recipes; themes own visual expression.
    ======================================== */
 :is(
   .admin-shell,
@@ -48,8 +47,8 @@ body.admin-app-open {
   color: var(--admin-nav-ink);
   opacity: 1;
   transition:
-    width 240ms var(--ease-out),
-    box-shadow 180ms var(--ease-out);
+    width var(--admin-motion-enter) var(--admin-motion-ease),
+    box-shadow var(--admin-motion-fast) var(--admin-motion-ease);
   -webkit-backdrop-filter: var(--admin-nav-filter);
   backdrop-filter: var(--admin-nav-filter);
   box-shadow: var(--admin-nav-shadow);
@@ -60,8 +59,8 @@ body.admin-app-open {
   max-width: 11rem;
   opacity: 1;
   transition:
-    max-width 180ms var(--ease-out),
-    opacity 110ms var(--ease-out);
+    max-width var(--admin-motion-fast) var(--admin-motion-ease),
+    opacity var(--admin-motion-fast) var(--admin-motion-ease);
 }
 .admin-sidebar[data-collapsed="true"] .admin-nav-label {
   max-width: 0;
@@ -89,8 +88,8 @@ body.admin-app-open {
   -webkit-backdrop-filter: blur(28px) saturate(1.28);
   backdrop-filter: blur(28px) saturate(1.28);
   transition:
-    opacity 180ms var(--ease-out),
-    transform 240ms var(--ease-out);
+    opacity var(--admin-motion-fast) var(--admin-motion-ease),
+    transform var(--admin-motion-enter) var(--admin-motion-ease);
 }
 .admin-mobile-dock-item {
   z-index: 1;
@@ -113,7 +112,7 @@ body.admin-app-open {
   box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--admin-nav-accent) 78%, transparent);
   pointer-events: none;
   transform: translateX(calc(var(--admin-mobile-dock-index, 0) * 100%));
-  transition: transform 220ms var(--ease-out);
+  transition: transform var(--admin-motion-enter) var(--admin-motion-ease);
   will-change: transform;
 }
 body.admin-dialog-open .admin-mobile-dock {
@@ -277,6 +276,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 .admin-nav-link {
   color: var(--admin-nav-muted);
   border-radius: var(--admin-nav-radius);
+  transition-duration: var(--admin-motion-fast);
+  transition-timing-function: var(--admin-motion-ease);
 }
 .admin-nav-control:hover,
 .admin-nav-utility:hover,
@@ -291,6 +292,12 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 .admin-nav-link:hover svg {
   color: var(--admin-nav-ink);
 }
+.admin-nav-section-button {
+  font-family: var(--admin-label-font);
+  font-size: var(--admin-text-caption);
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
 .admin-nav-section-button[aria-expanded="true"] {
   color: var(--admin-nav-ink);
   background: color-mix(in srgb, var(--admin-nav-accent) 7%, transparent);
@@ -299,9 +306,6 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   color: var(--admin-nav-active-ink);
   background: var(--admin-nav-active-bg);
   box-shadow: var(--admin-nav-active-shadow);
-}
-.admin-nav-link:hover {
-  transform: translateX(2px);
 }
 .admin-nav-link:active {
   transform: scale(0.96);
@@ -313,8 +317,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 }
 .admin-nav-disclosure {
   transition-property: grid-template-rows, opacity;
-  transition-duration: 240ms;
-  transition-timing-function: var(--ease-out);
+  transition-duration: var(--admin-motion-enter);
+  transition-timing-function: var(--admin-motion-ease);
 }
 .admin-nav-link[aria-current="page"] svg {
   color: var(--admin-nav-active-ink);
@@ -466,7 +470,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   font-weight: 600;
   transition-property: background-color, transform, opacity;
   transition-duration: var(--admin-motion-fast);
-  transition-timing-function: var(--ease);
+  transition-timing-function: var(--admin-motion-ease);
 }
 .admin-action-control:hover {
   background: color-mix(in srgb, var(--admin-action) 86%, var(--admin-action-ink));
@@ -497,7 +501,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   font-weight: 600;
   transition-property: background-color, color, box-shadow, transform, opacity;
   transition-duration: var(--admin-motion-fast);
-  transition-timing-function: var(--ease);
+  transition-timing-function: var(--admin-motion-ease);
 }
 .admin-secondary-control:hover {
   background: var(--admin-surface-subtle);
@@ -534,8 +538,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 }
 .admin-surface-interactive {
   transition-property: box-shadow, transform;
-  transition-duration: 180ms;
-  transition-timing-function: var(--ease);
+  transition-duration: var(--admin-motion-fast);
+  transition-timing-function: var(--admin-motion-ease);
 }
 .admin-surface-interactive:hover {
   box-shadow: var(--admin-shadow-hover);
@@ -682,9 +686,9 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   font-size: var(--admin-text-body);
   font-weight: 650;
   transition:
-    color var(--admin-motion-fast) var(--ease),
-    background-color var(--admin-motion-fast) var(--ease),
-    box-shadow var(--admin-motion-fast) var(--ease);
+    color var(--admin-motion-fast) var(--admin-motion-ease),
+    background-color var(--admin-motion-fast) var(--admin-motion-ease),
+    box-shadow var(--admin-motion-fast) var(--admin-motion-ease);
 }
 .admin-help-trigger:hover {
   color: var(--admin-ink);
@@ -700,7 +704,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   outline-offset: 2px;
 }
 .admin-help-chevron {
-  transition: transform 200ms var(--ease-out);
+  transition: transform var(--admin-motion-enter) var(--admin-motion-ease);
 }
 .admin-help-panel {
   /* Portaled to document.body and positioned from the trigger's own
@@ -763,7 +767,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   color: var(--admin-accent);
   font-size: 0.8rem;
   font-weight: 650;
-  transition: gap 160ms var(--ease-out);
+  transition: gap var(--admin-motion-fast) var(--admin-motion-ease);
 }
 .admin-help-guide:hover {
   gap: 0.5rem;
@@ -802,7 +806,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   color: var(--admin-muted);
   transition-property: color, background-color, transform;
   transition-duration: var(--admin-motion-fast);
-  transition-timing-function: var(--ease);
+  transition-timing-function: var(--admin-motion-ease);
 }
 .admin-icon-button:hover {
   color: var(--admin-ink);
@@ -876,8 +880,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 @media (prefers-reduced-motion: no-preference) {
   .admin-route-frame > .admin-route-stage {
     transition:
-      opacity 110ms var(--ease-out),
-      transform 110ms var(--ease-out);
+      opacity var(--admin-motion-fast) var(--admin-motion-ease),
+      transform var(--admin-motion-fast) var(--admin-motion-ease);
   }
 
   .admin-route-frame[data-navigation-pending="true"] > .admin-route-stage {
@@ -929,7 +933,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 }
 
 .admin-route-loading {
-  animation: admin-skeleton-reveal 180ms var(--ease-out) both;
+  animation: admin-skeleton-reveal 180ms var(--admin-motion-ease) both;
 }
 
 .admin-async-region {
@@ -961,8 +965,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   background: var(--admin-surface);
   box-shadow: var(--admin-shadow-border);
   transition-property: border-color, box-shadow, background-color;
-  transition-duration: 160ms;
-  transition-timing-function: var(--ease-out);
+  transition-duration: var(--admin-motion-fast);
+  transition-timing-function: var(--admin-motion-ease);
 }
 
 .admin-composer:focus-within {
@@ -1005,8 +1009,8 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   font-size: 12px;
   font-weight: 650;
   transition-property: opacity, transform;
-  transition-duration: 150ms;
-  transition-timing-function: var(--ease-out);
+  transition-duration: var(--admin-motion-fast);
+  transition-timing-function: var(--admin-motion-ease);
 }
 
 .admin-composer-action:hover {
@@ -1062,7 +1066,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   .admin-surface-interactive,
   .admin-icon-button,
   .admin-composer-action {
-    transition-duration: 100ms;
+    transition-duration: var(--admin-motion-fast);
   }
   .admin-surface-interactive:hover {
     transform: none;
@@ -1083,7 +1087,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 }
 @media (prefers-reduced-motion: no-preference) {
   .admin-async-reveal {
-    animation: admin-async-ready 180ms var(--ease-out) both;
+    animation: admin-async-ready 180ms var(--admin-motion-ease) both;
   }
 }
 .admin-shell :is(button, a, input, select, textarea, summary):focus-visible,
@@ -1107,7 +1111,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 }
 .admin-disclosure > summary::before {
   content: "›";
-  transition: transform 150ms var(--ease-out);
+  transition: transform var(--admin-motion-fast) var(--admin-motion-ease);
 }
 .admin-disclosure[open] > summary::before {
   transform: rotate(90deg);
@@ -1140,8 +1144,8 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   font-weight: 600;
   box-shadow: var(--admin-shadow-border);
   transition:
-    background-color var(--admin-motion-fast) var(--ease-out),
-    transform var(--admin-motion-fast) var(--ease-out);
+    background-color var(--admin-motion-fast) var(--admin-motion-ease),
+    transform var(--admin-motion-fast) var(--admin-motion-ease);
 }
 .admin-theme-button:hover {
   background: var(--admin-surface-subtle);

@@ -1107,7 +1107,7 @@ function SidebarContent({
                     <button
                       type="button"
                       onClick={() => toggleSection(section.label)}
-                      className="admin-nav-section-button group flex min-h-11 w-full items-center justify-between rounded-[var(--admin-control-radius)] px-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.12em] transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
+                      className="admin-nav-section-button group flex min-h-11 w-full items-center justify-between rounded-[var(--admin-control-radius)] px-2.5 text-left font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
                       aria-expanded={expanded}
                       aria-controls={panelId}
                     >

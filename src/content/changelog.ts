@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "admin-theme-polish",
     title: "Seven distinct appearances, one coherent workspace",
     description:
-      "Workspace appearances now have distinct palettes, typography, geometry and depth. Material uses matte tonal surfaces while macOS uses silver chrome and tighter controls. The appearance picker previews each style and supports keyboard navigation. Shared controls, focus states, Today surfaces and reduced motion follow the same core tokens, with custom themes and density preserved.",
+      "Workspace appearances now have distinct palettes, typography, geometry and depth. Material uses matte tonal surfaces while macOS uses silver chrome and tighter controls. The appearance picker previews each style and supports keyboard navigation. Shared controls, focus states, Today surfaces and reduced motion follow the same core tokens, with custom themes and density preserved. Navigation labels are easier to read, theme timing applies consistently, and mobile spacing keeps compact touch controls accessible.",
     category: "improvement",
     publishedAt: "2026-09-12",
   },

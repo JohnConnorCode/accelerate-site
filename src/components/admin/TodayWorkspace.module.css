@@ -9,7 +9,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  margin: 24px 0;
+  margin: var(--admin-section-gap) 0;
 }
 .toolbarGroup {
   display: flex;
@@ -168,7 +168,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24px;
+  gap: var(--admin-section-gap);
 }
 .brief h2 {
   font-family: var(--admin-title-font);

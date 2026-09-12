@@ -122,6 +122,7 @@ try {
     const context = await browser.newContext({
       viewport: { width, height: 1000 },
       reducedMotion: "reduce",
+      hasTouch: true,
     });
     await context.addInitScript(
       ({ scenario }) => {
@@ -281,6 +282,16 @@ try {
             // Capture the chosen identity after its short control transitions settle.
             await page.evaluate(() => document.fonts.ready);
             await page.waitForTimeout(350);
+            if (viewport === 390) {
+              const spacing = await page.locator(".admin-shell").evaluate((el) => {
+                const css = getComputedStyle(el);
+                return [
+                  css.getPropertyValue("--admin-panel-padding").trim(),
+                  css.getPropertyValue("--admin-section-gap").trim(),
+                ];
+              });
+              assert.deepEqual(spacing, ["18px", "20px"], `${theme.id} ${density}: mobile spacing`);
+            }
             const size = await page
               .getByRole("button", { name: "New project" })
               .evaluate((el) => el.getBoundingClientRect().height);
@@ -411,6 +422,7 @@ try {
     const restricted = await browser.newContext({
       viewport: { width: 390, height: 844 },
       reducedMotion: "reduce",
+      hasTouch: true,
     });
     await restricted.addInitScript(() => {
       const get = Storage.prototype.getItem,
@@ -436,6 +448,13 @@ try {
     assert.equal(
       await restrictedPage.locator("html").getAttribute("data-admin-density"),
       "compact",
+    );
+    assert.equal(
+      await restrictedPage
+        .locator(".admin-shell")
+        .evaluate((el) => getComputedStyle(el).getPropertyValue("--admin-control-height").trim()),
+      "44px",
+      "Compact touch controls stay 44px",
     );
     await restrictedPage.getByRole("button", { name: "Show empty state" }).click();
     await restrictedPage.getByText("You’re all caught up").waitFor();
