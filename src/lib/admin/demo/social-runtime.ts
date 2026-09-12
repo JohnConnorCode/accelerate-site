@@ -177,11 +177,15 @@ export async function handleDemoSocial(
       const input = socialWeeklySchema.parse(body.input);
       const parts = input.source.excerpt.split(/\n\s*\n/).filter((p) => p.trim());
       if (parts.length < 3) throw new Error("Supply three source paragraphs");
+      if (parts.slice(0, 3).some((content) => `${content}\n\n${input.source.url}`.length > 3000))
+        throw new Error(
+          "Shorten the source paragraphs or URL so each complete post fits 3,000 characters",
+        );
       return json({
         drafts: parts.slice(0, 3).map((content, i) => ({
           id: crypto.randomUUID(),
           revision: 0,
-          title: `${input.source.title} ${i + 1}`,
+          title: `${input.source.title.slice(0, 198)} ${i + 1}`,
           content: `${content}\n\n${input.source.url}`,
           channelId: input.channelId,
           scheduledAt: new Date(Date.parse(input.weekStart) + i * 172800000).toISOString(),

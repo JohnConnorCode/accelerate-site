@@ -236,6 +236,59 @@ try {
     "0",
   );
   fail(`SET ROLE authenticated; ${command(save)}`.replace("SET ROLE service_role;", ""));
+  // A failed later item rolls back the entire batch, including its first valid draft.
+  const rolledBack = randomUUID();
+  fail(
+    command({
+      operation: "save",
+      drafts: [
+        { ...draft, id: rolledBack },
+        { ...draft, id: randomUUID(), mediaId: sharedMedia },
+      ],
+    }),
+  );
+  assert.equal(sql(`SELECT count(*) FROM social_posts WHERE id='${rolledBack}'`), "0");
+  const cancelled = randomUUID();
+  execute({ operation: "save", drafts: [{ ...draft, id: cancelled }] });
+  execute({ operation: "cancel", posts: [{ id: cancelled, revision: 1 }] });
+  sql(`UPDATE social_posts SET scheduled_at=now()-interval '1 second' WHERE id='${cancelled}'`);
+  assert.equal(
+    JSON.parse(sql(`${ctx()}SELECT claim_social_publication('${cancelled}',1)`)).claimed,
+    false,
+  );
+  const paused = randomUUID(),
+    pausedApproval = randomUUID();
+  execute({ operation: "save", drafts: [{ ...draft, id: paused }] });
+  const pauseSchedule = { operation: "schedule", posts: [{ id: paused, revision: 1 }] };
+  sql(
+    `INSERT INTO action_queue VALUES('${pausedApproval}','${a}','social_marketing_change','executing','owner@example.test',now(),${json({ change: pauseSchedule, connection: { version: 1, organizationId: "org-a" } })})`,
+  );
+  execute(pauseSchedule, randomUUID(), a, pausedApproval);
+  sql(
+    `UPDATE social_posts SET scheduled_at=now()-interval '1 second' WHERE id='${paused}'; UPDATE tenants SET config='{"modules":{"social-marketing":false}}' WHERE id='${a}'`,
+  );
+  assert.equal(
+    JSON.parse(sql(`${ctx()}SELECT claim_social_publication('${paused}',1)`)).claimed,
+    false,
+  );
+  sql(`UPDATE tenants SET config='{"modules":{"social-marketing":true}}' WHERE id='${a}'`);
+  assert.equal(
+    JSON.parse(sql(`${ctx()}SELECT claim_social_publication('${paused}',1)`)).claimed,
+    false,
+    "Re-enabling cannot revive an invalidated schedule",
+  );
+  execute({ operation: "save", drafts: [{ ...draft, id: paused, revision: 1 }] });
+  const overdue = { operation: "schedule", posts: [{ id: paused, revision: 2 }] };
+  sql(
+    `UPDATE action_queue SET payload=${json({ change: overdue, connection: { version: 1, organizationId: "org-a" } })} WHERE id='${pausedApproval}'`,
+  );
+  execute(overdue, randomUUID(), a, pausedApproval);
+  sql(`UPDATE social_posts SET scheduled_at=now()-interval '11 minutes' WHERE id='${paused}'`);
+  assert.equal(
+    JSON.parse(sql(`${ctx()}SELECT claim_social_publication('${paused}',2)`)).claimed,
+    false,
+  );
+  assert.equal(sql(`SELECT state FROM social_posts WHERE id='${paused}'`), "needs_review");
   console.log(
     "Passed: idempotent migration, tenant RLS/media/organization separation, exact approval, edit invalidation, durable work item, concurrent one-time dispatch, late revocation, unknown outcome fencing, truthful publication URL, immutable history and service-only writes.",
   );

@@ -40,7 +40,7 @@ type Workspace = {
   posts: Post[];
   attempts: Attempt[];
   channels: { id: string; name: string; disabled: boolean }[];
-  connection: { organizationId: string; version: number } | null;
+  connection: { organizationId: string; version: number; sourceUrl?: string } | null;
   setupError: string | null;
   settings: { brandGuidance?: string; timeZone?: string };
   truncated: boolean;
@@ -51,6 +51,7 @@ type Preview = {
   digest: string;
   consequences: string;
   before: Post[];
+  providerReceipt?: { id: string; state: string; releaseURL: string | null };
 };
 const button = "admin-secondary-control min-h-10 px-3 py-2 text-sm disabled:opacity-50";
 const primary = "admin-action-control min-h-10 px-4 py-2 text-sm disabled:opacity-50";
@@ -519,6 +520,18 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                 <AdminLink href="/admin/integrations" className="mt-4 inline-block underline">
                   Edit plugin settings
                 </AdminLink>
+                {data.connection?.sourceUrl ? (
+                  <p className="mt-3 text-sm">
+                    <a
+                      href={data.connection.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline"
+                    >
+                      Download publishing service source
+                    </a>
+                  </p>
+                ) : null}
                 <p className="mt-3 text-sm">
                   <a
                     href="/docs/plugins/social-marketing"
@@ -853,6 +866,27 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
         {review ? (
           <div className="space-y-4">
             <p className="text-sm">{review.consequences}</p>
+            {review.providerReceipt ? (
+              <AdminSurface tone="subtle">
+                <h3 className="font-semibold">Provider receipt to associate</h3>
+                <dl className="mt-3 grid gap-2 text-sm">
+                  <div>
+                    <dt className="text-[var(--admin-muted)]">Postiz post ID</dt>
+                    <dd className="break-all font-mono">{review.providerReceipt.id}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[var(--admin-muted)]">Provider state</dt>
+                    <dd>{review.providerReceipt.state}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[var(--admin-muted)]">Reported publication URL</dt>
+                    <dd className="break-all">
+                      {review.providerReceipt.releaseURL || "Not yet available"}
+                    </dd>
+                  </div>
+                </dl>
+              </AdminSurface>
+            ) : null}
             {review.before.map((post) => (
               <AdminSurface key={post.id} tone="subtle">
                 <h3 className="font-semibold">{post.draft.title}</h3>

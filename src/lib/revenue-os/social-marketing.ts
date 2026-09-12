@@ -23,7 +23,7 @@ export async function socialConfiguration(db: SupabaseClient, enabled = true) {
     .single();
   if (
     error ||
-    data.status !== "active" ||
+    data?.status !== "active" ||
     (enabled && !isModuleEnabled("social-marketing", data.config))
   )
     throw new Error("Social Marketing is disabled or unavailable");
@@ -67,12 +67,16 @@ export async function readSocialWorkspace(db: SupabaseClient, raw: unknown = {})
     throw new Error("Social Marketing storage is unavailable; verify the migration");
   let channels: Awaited<ReturnType<Awaited<ReturnType<typeof tenantPostizClient>>["channels"]>> =
     [];
-  let connection: { organizationId: string; version: number } | null = null;
+  let connection: { organizationId: string; version: number; sourceUrl: string } | null = null;
   let setupError: string | null = null;
   try {
     const client = await tenantPostizClient(db, { historyOnly: !cfg.enabled });
     channels = (await client.channels()).filter((c) => c.identifier === "linkedin-page");
-    connection = { organizationId: client.organizationId, version: client.credentialVersion };
+    connection = {
+      organizationId: client.organizationId,
+      version: client.credentialVersion,
+      sourceUrl: `${client.origin}/source/postiz-source.tar.gz`,
+    };
   } catch {
     console.warn(
       "[social-marketing] Operation unavailable; details retained in the returned state or publication attempt.",
@@ -320,6 +324,10 @@ export async function prepareSocialWeek(db: SupabaseClient, raw: unknown) {
     .filter(Boolean);
   if (fragments.length < 3)
     throw new Error("Supply three source-backed paragraphs, separated by blank lines");
+  if (fragments.slice(0, 3).some((excerpt) => `${excerpt}\n\n${input.source.url}`.length > 3000))
+    throw new Error(
+      "Shorten the source paragraphs or URL so each complete post fits 3,000 characters",
+    );
   const start = Date.parse(input.weekStart);
   if (start < Date.now()) throw new Error("Choose a future week start");
   const settings = cfg.config.moduleSettings?.["social-marketing"] ?? {};
@@ -328,8 +336,8 @@ export async function prepareSocialWeek(db: SupabaseClient, raw: unknown) {
     drafts: fragments.slice(0, 3).map((excerpt, i) => ({
       id: randomUUID(),
       revision: 0,
-      title: `${input.source.title} ${i + 1}`,
-      content: `${excerpt}\n\n${input.source.url}`.slice(0, 3000),
+      title: `${input.source.title.slice(0, 198)} ${i + 1}`,
+      content: `${excerpt}\n\n${input.source.url}`,
       channelId: input.channelId,
       scheduledAt: new Date(start + i * 2 * 86400000).toISOString(),
       timeZone: input.timeZone,

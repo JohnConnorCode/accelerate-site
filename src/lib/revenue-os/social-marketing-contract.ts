@@ -2,7 +2,10 @@ import { z } from "zod";
 const source = z
   .object({
     title: z.string().trim().min(1).max(200),
-    url: z.url().refine((v) => new URL(v).protocol === "https:"),
+    url: z
+      .url()
+      .max(2048)
+      .refine((v) => new URL(v).protocol === "https:"),
     excerpt: z.string().trim().min(1).max(2000),
   })
   .strict();

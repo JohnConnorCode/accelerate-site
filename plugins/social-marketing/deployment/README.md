@@ -24,7 +24,7 @@ upstream`. Push to your registry and resolve the resulting image digest.
    `TEMPORAL_DB_PASSWORD`, `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET`
    in private `.env`. Use long random URL-safe passwords. Never commit this file.
 5. Keep the exact modified source archive beside the running release. Caddy
-   serves `/source/postiz-source.tar.gz`; provide that link to service users.
+   serves `/source/postiz-source.tar.gz`; connected workspaces see its download link in Social Marketing Setup. Verify that download and preserve its exact release checksum.
    Upstream is AGPL-3.0; preserve its license and attribution, including this
    modification and the source/build material. See `POSTIZ-LICENSE`.
 6. Run `./validate-release.sh` with the private environment exported and inspect the exposed ports. Only HTTPS and

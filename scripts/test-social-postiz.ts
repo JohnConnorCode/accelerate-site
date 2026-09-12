@@ -8,6 +8,7 @@ import {
   postizOrigin,
   PostizError,
 } from "../src/lib/revenue-os/postiz-adapter";
+import { prepareSocialWeek } from "../src/lib/revenue-os/social-marketing";
 import { socialDraftSchema } from "../src/lib/revenue-os/social-marketing-contract";
 async function main() {
   const a = "11111111-1111-4111-8111-111111111111",
@@ -75,7 +76,7 @@ async function main() {
               error: null,
             }),
           };
-          return builder;
+          return Object.assign(builder, { single: builder.maybeSingle });
         },
       } as unknown as SupabaseClient,
       tenant,
@@ -134,6 +135,31 @@ async function main() {
   };
   try {
     assert.equal((await postizAdapter.verify({ apiKey: secretA })).accountDetails?.id, "org-0");
+    const weeklyInput = {
+      source: {
+        title: "T".repeat(200),
+        url: "https://example.test/guide",
+        excerpt: "First verified fact.\n\nSecond verified fact.\n\nThird verified fact.",
+      },
+      channelId: "page-0",
+      weekStart: new Date(Date.now() + 86400000).toISOString(),
+      timeZone: "UTC",
+    };
+    const week = await prepareSocialWeek(database(a), weeklyInput);
+    assert.equal(week.drafts.length, 3);
+    assert.equal(week.drafts[0]!.title.length, 200);
+    assert.ok(week.drafts.every((draft) => draft.content.endsWith(weeklyInput.source.url)));
+    await assert.rejects(
+      prepareSocialWeek(database(a), {
+        ...weeklyInput,
+        source: {
+          ...weeklyInput.source,
+          url: "https://example.test/" + "x".repeat(1600),
+          excerpt: "x".repeat(1500) + "\n\nSecond.\n\nThird.",
+        },
+      }),
+      /complete post fits/,
+    );
     const clientA = await tenantPostizClient(database(a));
     const clientB = await tenantPostizClient(database(b));
     assert.equal((await clientA.channels())[0]!.id, "page-0");

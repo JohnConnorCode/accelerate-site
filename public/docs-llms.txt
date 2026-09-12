@@ -130,7 +130,7 @@ For coding agents and humans: add a module, an integration adapter, a plugin, or
 - [Build Apps with a coding assistant](https://www.acceleratewith.us/docs/extend/ai-authoring) (updated 2026-09-09): A concrete brief to hand a coding assistant today, plus where the in-app builder is headed.
 - [Your first developer change](https://www.acceleratewith.us/docs/extend/first-change) (updated 2026-09-09): Run the demo, learn where code actually lives, and make one small, safe extension change.
 - [Add a module](https://www.acceleratewith.us/docs/extend/modules) (updated 2026-09-09): Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed.
-- [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-09): Verify a provider's credentials, encrypt them, and turn its inbound events into canonical records.
+- [Add an integration adapter](https://www.acceleratewith.us/docs/extend/adapters) (updated 2026-09-12): Verify a provider's credentials, encrypt them, and turn its inbound events into canonical records.
 - [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-09): Register a plugin manifest with tools and triggers that still route through real governance.
 - [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-09): Register a schema, an impact tier, and a service boundary; a mutating tool always proposes.
 - [MCP concepts](https://www.acceleratewith.us/docs/extend/mcp) (updated 2026-09-09): Bounded reads, staged writes, and tenant isolation, using the exact same registry the UI uses.

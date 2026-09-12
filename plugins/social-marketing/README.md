@@ -59,7 +59,9 @@ Try these requests through the assistant or an authorized MCP client:
 Source preparation returns drafts; saving them through AI is a proposed change.
 A manual **Prepare three-post week** action saves drafts directly. Neither
 preparation path authorizes publication. Keep the work-engine cron active and
-inspect Work for failures if a weekly batch does not appear.
+inspect Work for failures if a weekly batch does not appear. After correcting
+a failed weekly setup, use **Prepare three-post week** to create the missing
+batch; the weekly deduplication key prevents repeated automatic batches.
 
 ## Permissions, costs and recovery
 

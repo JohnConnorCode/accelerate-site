@@ -1,7 +1,7 @@
 ---
 title: "Add an integration adapter"
 description: "Verify a provider's credentials, encrypt them, and turn its inbound events into canonical records."
-updated: "2026-09-09"
+updated: "2026-09-12"
 ---
 
 Connecting a new provider well means two things happening correctly every time: its credentials get verified before anything trusts them, and whatever it sends in becomes a real canonical record rather than a pile of unlinked webhook payloads. An adapter is what does both. The contract is `IntegrationAdapter` in `src/lib/revenue-os/integration-adapters.ts`.
