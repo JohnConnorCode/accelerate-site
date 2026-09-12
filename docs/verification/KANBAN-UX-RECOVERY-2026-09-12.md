@@ -36,6 +36,16 @@ canonical `KANBAN_BOARD_KEYS` registry has exactly the three reviewed boards.
 These checks use the same page and read-region owners as authenticated routes,
 with controlled fictional responses. Connected database behavior is unchanged.
 
+Candidate `309f4ace` in CI `34713384023` passed the complete interaction
+journey, including pointer and keyboard moves for every board and all nine
+consumer/viewport retention cases with actual Pipeline detail/Back restoration.
+The controlled read-state matrix then reproduced mobile Feature Board loading
+overflow: fixed-width skeleton bars exceeded the three metric cells. The shared
+skeleton now constrains bars to their containing width and permits metric cells
+to shrink. State measurements and screenshots are retained before assertions.
+The same run separately hit the unchanged supervisor concurrency test's five-second
+SQLite lock timeout; its failure remains recorded and requires a passing rerun.
+
 Final exact-source CI and screenshot inspection remain required before submission.
 No passing acceptance is inferred from this implementation or the baseline run.
 
@@ -45,7 +55,7 @@ Reviewed and updated the Pipeline board and Content Calendar guides, shared UX
 and navigation contracts, public changelog, responsive feature description and
 keyboard-navigation FAQ. Existing Pipeline and Command Center overview links
 still direct readers to the updated guides; their task descriptions remain
-accurate. No route, mutation or AI business operation changes. Both existing
-route inventories pass without a fingerprint refresh because their owned source
-set is unchanged. Shared runtime source receives the navigation contract check
-and browser history/retention proof.
+accurate. No route, mutation or AI business operation changes. The shared loading
+skeleton remains a presentation-only route dependency; its reviewed route-inventory
+fingerprint is refreshed. The AI inventory remains current. Shared runtime source
+receives the navigation contract check and browser history/retention proof.

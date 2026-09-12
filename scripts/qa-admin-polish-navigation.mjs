@@ -221,6 +221,12 @@ try {
               cards: document.querySelectorAll("[data-kanban-card]").length,
             };
           });
+          // Retain the measured state even when its acceptance assertion fails.
+          states.push({ theme: theme.id, route, state, width, ...geometry });
+          await writeFile(`${output}/board-states.json`, JSON.stringify(states, null, 2));
+          await page.screenshot({
+            path: `${output}/state-${theme.id}-${route}-${state}-${width}.png`,
+          });
           assert.ok(
             geometry.mainScrollWidth <= geometry.mainWidth + 1,
             `${theme.id}/${route}/${state}/${width}: main overflow`,
@@ -238,10 +244,6 @@ try {
             geometry.stackGaps.every((gap) => parseFloat(gap) >= 20 && parseFloat(gap) <= 24),
             JSON.stringify(geometry),
           );
-          states.push({ theme: theme.id, route, state, width, ...geometry });
-          await page.screenshot({
-            path: `${output}/state-${theme.id}-${route}-${state}-${width}.png`,
-          });
         }
       }
       await measure("loading");
