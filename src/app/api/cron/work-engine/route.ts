@@ -1,3 +1,4 @@
+import { registerSocialWorkHandlers } from "@/lib/revenue-os/social-marketing-work";
 import { ProviderCircuit } from "@/lib/revenue-os/bounded-execution";
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
@@ -15,6 +16,7 @@ import { registerProactiveIntelHandlers } from "@/lib/revenue-os/proactive-intel
 import { withJobRun } from "@/lib/revenue-os/runs";
 
 // Register all coworker handlers on module load.
+registerSocialWorkHandlers();
 registerSalesWorkHandlers();
 registerBusinessPulseWorkHandlers();
 registerMeetingIntelWorkHandlers();

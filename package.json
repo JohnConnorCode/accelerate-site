@@ -300,6 +300,8 @@
     "test:admin-themes": "node --import tsx scripts/test-admin-themes.ts",
     "test:kanban-position": "node --import tsx scripts/test-kanban-position.ts",
     "qa:admin-polish": "node scripts/resource-run.mjs node scripts/qa-admin-polish-local.mjs",
+    "test:social-postiz": "NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-social-postiz.ts",
+    "test:social-postgres": "node scripts/test-social-postgres.mjs",
     "agent:resume": "npx tsx scripts/agent-dispatch.ts resume",
     "agent:checkpoint": "npx tsx scripts/agent-dispatch.ts checkpoint",
     "agent:audit": "npx tsx scripts/agent-dispatch.ts audit",
