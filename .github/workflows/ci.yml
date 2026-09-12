@@ -111,6 +111,12 @@ jobs:
           npm run verify:runtime-boundaries
           node --test scripts/test-runtime-error-adoption.mjs
 
+      - name: Verify admin language and route identity
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          node scripts/audit-admin-language.mjs --check
+          node --import tsx scripts/test-admin-language.ts
+
       - name: Lint
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run lint -- --max-warnings=0
@@ -300,6 +306,7 @@ jobs:
             node scripts/qa-admin-polish-touch.mjs
             node scripts/qa-admin-polish-theme-editor.mjs
             node scripts/qa-admin-polish-navigation.mjs
+            node scripts/qa-admin-overhaul.mjs
             node scripts/qa-contact-review-copy.mjs
             node scripts/qa-demo-marketing.mjs
             node scripts/qa-theme-persistence.mjs
@@ -336,6 +343,7 @@ jobs:
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
             /tmp/accelerate-client-interactions/
+            /tmp/accelerate-admin-language/
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/
             /tmp/accelerate-theme-persistence/

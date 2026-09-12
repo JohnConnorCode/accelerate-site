@@ -16,7 +16,7 @@ export function getAdminBreadcrumbs(pathname: string): AdminBreadcrumb[] {
 
   if (pathname.startsWith("/admin/contacts/") && pathname !== "/admin/contacts") {
     return [
-      { label: "Contacts", href: "/admin/contacts" },
+      { label: active.label, href: active.href },
       { label: "Timeline", href: pathname },
     ];
   }

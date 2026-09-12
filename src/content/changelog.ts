@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "admin-guidance-clarity",
+    slug: "admin-guidance-clarity",
+    title: "Find the same names and guidance across Command Center",
+    description:
+      "Navigation, search, headings and breadcrumbs share consistent destination names. Architect, Blueprints and Learning Inbox include workflow help and linked guides. Help panels stay within the phone screen and keep longer guidance scrollable.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "social-marketing-postiz",
     slug: "social-marketing-postiz",
     title: "Prepare and review LinkedIn publishing in Social Marketing",

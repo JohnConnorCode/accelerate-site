@@ -6,6 +6,31 @@ export interface AdminPageGuidance {
 }
 
 export const adminPageGuidance: Record<string, AdminPageGuidance> = {
+  architect: {
+    description:
+      "Describe your business and review the sources used to prepare a workspace proposal.",
+    steps: [
+      "Explain one workflow and attach only the sources needed for it.",
+      "Review the proposed Blueprint before approving or applying any change.",
+    ],
+    guideHref: "/docs/intelligence/workspace",
+  },
+  blueprints: {
+    description: "Review saved workspace proposals, their versions and validation results.",
+    steps: [
+      "Open a Blueprint and compare its proposed changes with your business needs.",
+      "Resolve validation findings before approving an exact version. Approval and application are separate steps.",
+    ],
+    guideHref: "/docs/intelligence/workspace",
+  },
+  learning: {
+    description: "Review reusable corrections before sharing them with future work.",
+    steps: [
+      "Read the proposed rule, its evidence and the workers it would affect.",
+      "Approve a supported correction, reject it, or keep it limited to the current conversation.",
+    ],
+    guideHref: "/docs/intelligence/learning-inbox",
+  },
   today: {
     description:
       "See urgent priorities, upcoming commitments, and the next steps that need your attention.",
