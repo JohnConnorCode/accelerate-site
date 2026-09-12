@@ -75,6 +75,17 @@ try {
 } catch {
   temporalHealth = { status: "unavailable" };
 }
-const report = { health, temporalHealth, errors };
+const backendStartup = run([
+  "exec",
+  "-T",
+  "postiz",
+  "sh",
+  "-c",
+  "tail -n 35 /root/.pm2/logs/backend-out.log /root/.pm2/logs/backend-error.log",
+])
+  .split("\n")
+  .slice(-75)
+  .map(clean);
+const report = { health, temporalHealth, errors, backendStartup };
 writeFileSync("evidence/startup-diagnostics.json", JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report));
