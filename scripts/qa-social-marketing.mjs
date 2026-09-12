@@ -129,6 +129,41 @@ try {
     await page.reload();
     await page.getByRole("button", { name: "Calendar", exact: true }).click();
     await page.getByText("cancelled", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Prepare three-post week", exact: true }).click();
+    const weekDialog = page.getByRole("dialog", { name: "Prepare a three-post week" });
+    await weekDialog.getByRole("combobox").selectOption("demo-linkedin-page");
+    await weekDialog.getByLabel("Source title", { exact: true }).fill("Weekly maintenance");
+    await weekDialog
+      .getByLabel("Source URL", { exact: true })
+      .fill("https://northline.example/maintenance");
+    await weekDialog
+      .getByLabel("Three source paragraphs", { exact: true })
+      .fill(
+        "Keep drainage routes clear.\n\nRecord completed maintenance.\n\nReview inspection records regularly.",
+      );
+    await weekDialog
+      .getByRole("button", { name: "Prepare and save drafts", exact: true })
+      .press("Enter");
+    await page.getByRole("status").filter({ hasText: "3 drafts saved" }).waitFor();
+    for (let number = 1; number <= 3; number++)
+      await page
+        .locator(".admin-surface")
+        .filter({ hasText: `Weekly maintenance ${number}` })
+        .getByRole("checkbox")
+        .check();
+    await page.getByRole("button", { name: "Review selected (3)", exact: true }).click();
+    const batch = page.getByRole("dialog", { name: "Review exact social changes" });
+    for (let number = 1; number <= 3; number++)
+      await batch
+        .getByRole("heading", { name: `Weekly maintenance ${number}`, exact: true })
+        .waitFor();
+    await page.screenshot({ path: `${output}/weekly-approval-${width}.png`, fullPage: true });
+    await batch
+      .getByRole("button", { name: "Approve these exact changes", exact: true })
+      .press("Enter");
+    await page.getByRole("status").filter({ hasText: "Approved change recorded" }).waitFor();
+    await page.getByRole("dialog").waitFor({ state: "hidden" });
+    assert.equal(await page.getByText("scheduled", { exact: true }).count(), 3);
     assert.deepEqual(escaped, [], "Demo escaped protected transport");
     assert.deepEqual(errors, [], "Unexpected browser errors");
     results.push({
@@ -137,6 +172,8 @@ try {
       approval: true,
       editInvalidatesApproval: true,
       cancellation: true,
+      weeklyDrafts: 3,
+      exactBatchApproval: true,
       reload: true,
       externalRequests: 0,
     });
