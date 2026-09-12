@@ -68,7 +68,7 @@ use the native Social Marketing workspace for content work.
 Do not expose Postiz's port 5000 directly. It bypasses the public proxy restrictions.
 The service health check requires frontend, backend and orchestrator processes to
 remain online for at least fifteen seconds, plus successful frontend and backend
-HTTP probes. A green login page alone does not prove that publishing workers run.
+HTTP probes and the orchestrator’s Temporal namespace health endpoint. A green login page alone does not prove that publishing workers run.
 The patch removes Prisma's automatic `--accept-data-loss` flag. A schema change
 that requires destructive confirmation must stop startup for a reviewed migration
 and backup procedure; do not add the flag back to make an upgrade start.
