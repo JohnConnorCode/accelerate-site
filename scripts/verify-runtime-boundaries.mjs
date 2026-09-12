@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import ts from "typescript";
+import { verifyRuntimeErrorAdoption } from "./verify-runtime-error-adoption.mjs";
 import { fileURLToPath } from "node:url";
 
 export function tenantRegistryGaps(root) {
@@ -79,9 +80,14 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     readFileSync(resolve(root, "scripts/runtime-write-baseline.json"), "utf8"),
   );
   const newWrites = Object.entries(writes).filter(([key, count]) => count > (baseline[key] ?? 0));
-  if (gaps.length || newWrites.length) {
+  const { failures: silentErrorFailures } = verifyRuntimeErrorAdoption(root);
+  if (gaps.length || newWrites.length || silentErrorFailures.length) {
     console.error(
-      JSON.stringify({ unscopedTenantTables: gaps, newRouteBusinessWrites: newWrites }, null, 2),
+      JSON.stringify(
+        { unscopedTenantTables: gaps, newRouteBusinessWrites: newWrites, silentErrorFailures },
+        null,
+        2,
+      ),
     );
     process.exitCode = 1;
   } else
