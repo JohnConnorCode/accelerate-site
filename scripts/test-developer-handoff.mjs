@@ -568,6 +568,39 @@ test("credit exhaustion resumes isolated source; predecessor CLI stays fenced an
     delete staleLegacy.card.work_attempt_id;
     staleLegacy.clientSession = "new";
     writeFileSync(legacyPath, JSON.stringify(staleLegacy));
+    const beforeExplicitOld = posts;
+    const explicitOld = await cli(
+      f.clone,
+      ["next", "--json", "--attempt", first.attemptId],
+      env("new"),
+    );
+    assert.equal(
+      explicitOld.code,
+      1,
+      "explicit predecessor cannot select the successor through their shared thread",
+    );
+    assert.match(explicitOld.stderr, /superseded/);
+    assert.equal(posts, beforeExplicitOld, "explicit predecessor never uses a successor token");
+    const explicitCurrent = await run(
+      f.clone,
+      ["next", "--json", "--attempt", second.attemptId],
+      "old",
+    );
+    assert.equal(
+      explicitCurrent.attemptId,
+      second.attemptId,
+      "explicit current attempt overrides thread fallback",
+    );
+    const missingAttempt = await cli(
+      f.clone,
+      ["next", "--json", "--attempt", randomUUID()],
+      env("new"),
+    );
+    assert.equal(
+      missingAttempt.code,
+      1,
+      "unknown explicit attempt cannot fall through into another pickup",
+    );
     const continuedWithoutExplicitAttempt = await run(f.clone, ["next", "--json"], "new");
     assert.equal(continuedWithoutExplicitAttempt.attemptId, second.attemptId);
     const continued = await run(f.clone, ["next", "--json", "--attempt", second.attemptId], "new");

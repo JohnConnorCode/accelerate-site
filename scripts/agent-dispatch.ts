@@ -210,7 +210,7 @@ async function main() {
       throw new Error(
         "This request key belongs to another board or card. Preserve its session and inspect it before retrying.",
       );
-    const rows = await cards();
+    let rows = await cards();
     const localSessions = existsSync(sessionDir)
       ? readdirSync(sessionDir)
           .filter((name) => /^(?:attempt-)?[a-f0-9-]{36}\.json$/.test(name))
@@ -227,14 +227,38 @@ async function main() {
             }
           })
       : [];
+    const explicitSession = flags.attempt
+      ? (localSessions.find(
+          ({ path }) => path === resolve(sessionDir, `attempt-${flags.attempt}.json`),
+        ) ?? localSessions.find(({ session }) => session.attemptId === flags.attempt))
+      : undefined;
+    if (flags.attempt) {
+      if (!explicitSession || explicitSession.session.endpoint !== transport)
+        throw new Error(
+          "Requested attempt session is unavailable for this board; no work was claimed.",
+        );
+      rows = rows.filter((row) => row.id === explicitSession.session.card.id);
+      if (!rows.length || (previous && previous.card.id !== explicitSession.session.card.id))
+        throw new Error(
+          "Requested attempt does not match this card or request key; no work was claimed.",
+        );
+      if (
+        rows[0]!.work_attempt_id &&
+        explicitSession.session.card.work_attempt_id &&
+        rows[0]!.work_attempt_id !== explicitSession.session.attemptId
+      )
+        throw new Error(
+          "Requested attempt was superseded; its source and credentials are preserved.",
+        );
+    }
     const ownedLiveSessions = previous
       ? []
-      : localSessions.filter(
+      : (explicitSession ? [explicitSession] : localSessions).filter(
           ({ session }) =>
             session.endpoint === transport &&
-            (session.worktree === root ||
-              (clientSession && session.clientSession === clientSession) ||
-              (flags.attempt && session.attemptId === flags.attempt)) &&
+            (Boolean(explicitSession) ||
+              session.worktree === root ||
+              (clientSession && session.clientSession === clientSession)) &&
             rows.some(
               (row) =>
                 row.id === session.card.id &&
@@ -483,8 +507,13 @@ async function main() {
         requestKey: randomUUID(),
         payload: { claimToken: session.claimToken },
       });
-      card = renewed.card;
-      Object.assign(session, persistSession(session, card!, sessionPath));
+      const renewedCard: FeatureRequest | undefined = renewed.card;
+      if (!renewedCard)
+        throw new Error(
+          "Heartbeat response omitted the current card; preserve the session and retry.",
+        );
+      card = renewedCard;
+      Object.assign(session, persistSession(session, renewedCard, sessionPath));
     }
 
     if (
