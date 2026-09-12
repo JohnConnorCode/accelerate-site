@@ -156,6 +156,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:install-runbook
 
+      - name: Verify neutral fork distribution
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:neutral-runtime-distribution
+
       - name: Retain install-runbook receipt
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

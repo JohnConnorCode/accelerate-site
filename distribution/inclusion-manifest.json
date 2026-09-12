@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "profile": "neutral-starter",
+  "description": "Files a fork may keep as the distributable starter. Excluded paths remain in this branded repository and must not be copied into a published starter.",
+  "excludePrefixes": [
+    "public/images/john.jpg",
+    "public/images/team/",
+    "public/images/home-services/",
+    "public/images/law-firms/",
+    "public/images/nonprofits/",
+    "public/images/professional-services/",
+    "public/images/real-estate/",
+    "public/work/",
+    "public/resources/",
+    "src/content/results/",
+    "src/content/team/",
+    "src/app/(marketing)/results/",
+    "src/app/(marketing)/team/"
+  ],
+  "requiredStarterPrefixes": [
+    "src/app/admin/",
+    "src/lib/revenue-os/",
+    "src/lib/distribution/",
+    "extensions/",
+    "migrations/",
+    "docs/self-hosting/"
+  ]
+}
