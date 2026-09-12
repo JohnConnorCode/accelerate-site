@@ -27,7 +27,7 @@ export const WORK_MCP_TOOLS = [
   {
     name: "work_mutate",
     description:
-      "Versioned work operations. Claim requires a client-generated 32-byte base64url claimToken; retain it and requestKey for retries. Submit passing checks and exact commit for review. No deployment or merge is implied.",
+      "Versioned work operations. Claim requires a client-generated 32-byte base64url claimToken; retain it and requestKey for retries. Resume requires an expired lease, enabled project policy, checkpoint, and revision. Checkpoint saves incomplete source without submitting. Submit passing checks and exact commit for review. No deployment or merge is implied.",
     inputSchema: {
       oneOf: WORK_OPERATIONS.map((operation) =>
         z.toJSONSchema(

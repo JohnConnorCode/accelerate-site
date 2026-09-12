@@ -117,7 +117,7 @@ See what you can build: reports, reviewed workflows and dedicated business works
 - [Pipeline follow-up](https://www.acceleratewith.us/docs/plugins/pipeline-watch) (updated 2026-09-09): Find open opportunities whose next action or update needs attention.
 - [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-09-09): Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.
 - [Stripe invoicing](https://www.acceleratewith.us/docs/plugins/stripe-invoicing) (updated 2026-09-09): Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.
-- [Draft public pages with Site Studio](https://www.acceleratewith.us/docs/plugins/site-studio) (updated 2026-09-09): Create and edit website pages, review AI suggestions, and publish saved revisions.
+- [Draft public pages with Site Studio](https://www.acceleratewith.us/docs/plugins/site-studio) (updated 2026-09-12): Create and edit website pages, review AI suggestions, and publish saved revisions.
 
 ## Build on it
 For coding agents and humans: add a module, an integration adapter, a plugin, or an MCP client without forking core.

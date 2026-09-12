@@ -1,7 +1,7 @@
 ---
 title: "Draft public pages with Site Studio"
 description: "Create and edit website pages, review AI suggestions, and publish saved revisions."
-updated: "2026-09-09"
+updated: "2026-09-12"
 ---
 
 Open **Site Studio → Edit installation website** to create pages, edit content, preview changes and publish a saved revision. The installation owner needs an active admin membership and the Site Studio plugin enabled. Apply the installation migrations before enabling the editor. Other workspace admins can use their private page drafts without gaining control of the installation's public website.
@@ -58,3 +58,12 @@ Choose **Import draft** in your own installation, review the imported content, t
 The original Site Studio draft list remains available for tenant-owned service drafts. Enter a brief, choose a built-in template or AI model, attach approved catalogue photography and create a draft. Its preview supports rename and discard. These drafts are separate from the installation website and do not publish from that screen. Section regeneration is available through its authenticated API with a required checksum and a supported model ID.
 
 In the [full admin demo](/demo/command-center), open the installation website editor to try creation, fictional AI suggestions, saving, publication receipts and rollback. Changes remain in that business scenario's browser session. They do not publish a live website, contact a provider or mutate production records. Switching scenarios isolates their drafts; resetting removes the scenario's changes.
+
+## What to check
+
+If saving fails after an installation upgrade, ask the administrator to verify the
+application and database versions together. Saves use the verified server identity
+and the current workspace membership, so your saved revision keeps the correct
+author. Existing installations with the temporary authenticated-write grant need
+the compatible application released before that grant is removed. Keep the draft
+and inspect its saved revision before retrying an uncertain response.

@@ -9,7 +9,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const auth = await requireAdminForModule("site-studio");
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  const draft = await siteDrafts(auth.database, auth.user.email ?? auth.user.id).get(id);
+  const draft = await siteDrafts(auth).get(id);
   if (!draft) return NextResponse.json({ error: "Draft not found" }, { status: 404 });
   return NextResponse.json({ draft });
 }
@@ -39,11 +39,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       { status: 400 },
     );
   try {
-    const draft = await reviseSiteDraft(
-      siteDrafts(auth.database, auth.user.email ?? auth.user.id),
-      id,
-      parsed.data,
-    );
+    const draft = await reviseSiteDraft(siteDrafts(auth), id, parsed.data);
     return NextResponse.json({ draft });
   } catch (error) {
     if (error instanceof DraftNotFoundError)
@@ -65,11 +61,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   if (!expectedChecksum || !/^[a-f0-9]{64}$/.test(expectedChecksum))
     return NextResponse.json({ error: "Reload the draft before discarding it" }, { status: 428 });
   try {
-    const discarded = await discardSiteDraft(
-      siteDrafts(auth.database, auth.user.email ?? auth.user.id),
-      id,
-      expectedChecksum,
-    );
+    const discarded = await discardSiteDraft(siteDrafts(auth), id, expectedChecksum);
     return NextResponse.json({ discarded });
   } catch (error) {
     if (error instanceof DraftNotFoundError)

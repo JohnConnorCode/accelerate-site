@@ -53,6 +53,12 @@ Select approved Google Drive folders in the Google connection settings, then ins
 
 Google Docs and Slides export as text. Sheets export the first sheet as CSV; other sheets are not included. Plain text, Markdown, CSV and JSON files are read directly. Binary Office files and PDFs remain unsupported metadata records. A file larger than the 2 MB text limit or an unreadable file is reported as inaccessible rather than indexed successfully.
 
+Repeated syncs keep the duplicate-source relationship when both files are unchanged,
+so each copy retains its own name, link and folder history. If the original changes,
+disappears or loses download access, an available unchanged copy becomes the source
+for that content instead. Unchanged copies keep their stored text without another
+extraction.
+
 A complete listing can retire a missing file from the selected folder's index. A capped or incomplete listing retains absent files until a complete listing proves their absence. Revoked download access removes the stored searchable text on the next sync. Removing a folder stops future synchronization while retaining its previous source records. Indexed text is a stored source; it does not by itself establish that every search or AI workflow retrieves Drive content.
 
 If a run is partial, inspect its counts before retrying. Check folder access and supported formats in the connected Google account. An unchanged file can skip extraction only when its provider revision matches an already indexed version.

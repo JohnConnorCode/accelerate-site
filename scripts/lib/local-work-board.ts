@@ -6,17 +6,32 @@ import {
 } from "../../src/lib/revenue-os/work-board";
 
 /** Explicit owner-operated transport. It keeps the canonical lifecycle and never grants review. */
-export function localWorkActor(project: string | undefined): WorkActor {
+export function localWorkActor(
+  project: string | undefined,
+  capabilities: string[] = [],
+): WorkActor {
   if (!project || !/^[a-z0-9-]{1,80}$/.test(project))
     throw new Error(
       "Local operator setup requires a non-empty named project; wildcard project access is not supported.",
     );
+  if (capabilities.length > 50 || capabilities.some((c) => !/^[a-z0-9-]{1,80}$/.test(c)))
+    throw new Error("Use explicitly configured named worker capabilities, never wildcards.");
   return {
     id: `operator:local:${project}`,
     projects: [project],
-    scopes: ["read", "claim", "heartbeat", "progress", "block", "release", "submit"],
+    scopes: [
+      "read",
+      "claim",
+      "heartbeat",
+      "progress",
+      "block",
+      "release",
+      "submit",
+      "resume",
+      "checkpoint",
+    ],
     reviewer: false,
-    capabilities: [],
+    capabilities,
   };
 }
 
@@ -30,8 +45,8 @@ export function localReadOptions(path: string) {
   };
 }
 
-export function createLocalWorkRequest(project: string | undefined) {
-  const actor = localWorkActor(project);
+export function createLocalWorkRequest(project: string | undefined, capabilities: string[] = []) {
+  const actor = localWorkActor(project, capabilities);
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key)

@@ -122,7 +122,9 @@ export async function indexDriveFolder(
   // and files that vanished are marked deleted, never silently dropped.
   const { data: prior, error: priorError } = await supabase
     .from("drive_documents")
-    .select("external_id,content_hash,indexed_status,provider_revision,extracted_text,metadata")
+    .select(
+      "external_id,content_hash,content_duplicate_of,indexed_status,provider_revision,extracted_text,metadata",
+    )
     .eq("tenant_id", tenantId)
     .eq("provider", "google")
     .eq("folder_id", folderId);
@@ -134,14 +136,24 @@ export async function indexDriveFolder(
   // Track content hashes we have already stored so exact duplicates across
   // distinct files are marked without removing either source.
   const seenHashes = new Map<string, string>();
-  // Include unchanged files in this complete listing, but never a vanished source.
-  for (const row of rows) {
+  // Retain an unchanged original as the owner regardless of provider listing order.
+  // If it changed or lost access, an available unchanged copy becomes the owner.
+  const unchangedOwners = [...rows].sort((a, b) => {
+    const aCopy = Boolean(priorByExternal.get(a.external_id)?.content_duplicate_of);
+    const bCopy = Boolean(priorByExternal.get(b.external_id)?.content_duplicate_of);
+    return Number(aCopy) - Number(bCopy) || a.external_id.localeCompare(b.external_id);
+  });
+  for (const row of unchangedOwners) {
     const previous = priorByExternal.get(row.external_id);
     if (
+      isSupportedDriveMimeType(row.mime_type) &&
+      row.metadata?.canDownload !== false &&
       previous?.indexed_status === "indexed" &&
+      typeof previous.extracted_text === "string" &&
       row.provider_revision &&
       row.provider_revision === previous.provider_revision &&
-      typeof previous.content_hash === "string"
+      typeof previous.content_hash === "string" &&
+      !seenHashes.has(previous.content_hash)
     )
       seenHashes.set(previous.content_hash, row.external_id);
   }
@@ -163,7 +175,10 @@ export async function indexDriveFolder(
       priorRow.indexed_status === "indexed" &&
       typeof priorRow.extracted_text === "string"
     ) {
-      await upsertDriveDocument(supabase, row, priorRow.extracted_text, "indexed");
+      const candidate = seenHashes.get(driveContentHash(priorRow.extracted_text));
+      const duplicateOf = candidate && candidate !== row.external_id ? candidate : null;
+      await upsertDriveDocument(supabase, row, priorRow.extracted_text, "indexed", duplicateOf);
+      if (duplicateOf) summary.duplicates++;
       summary.unchanged++;
       continue;
     }
