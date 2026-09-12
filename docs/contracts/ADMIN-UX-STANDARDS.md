@@ -9,11 +9,14 @@ Core pages, extensions and fictional demos must inherit them.
   the page must never widen to a column's intrinsic content size.
 - Async wrappers and grid children must have `min-width: 0`. Shared content stacks
   preserve their 20–24px region gaps through loading, refresh and errors.
-- Columns have 16px gaps, a maximum width of 320px, and a visible next-column edge
+- Columns have 16px gaps, a maximum width of 340px, and a visible next-column edge
   on small screens. Do not add route-specific negative margins or snap rules.
 - Manual scrolling stays under user control. No mandatory snapping, auto-centering
   or selection-driven ancestor scrolling. Column buttons explicitly navigate the
   board at every width; their selected state may reveal only the corresponding chip.
+- Named board scroll regions register with the existing navigation runtime. Its
+  bounded per-history-entry numeric cache restores their horizontal offsets when
+  returning from a card detail; no board owns separate history or storage.
 - Dialog focus restoration uses `preventScroll`. Drag edge scrolling is allowed
   only during a drag; clicking a card must not start a drag.
 - Controls have visible focus and at least 40px targets. Column navigation uses

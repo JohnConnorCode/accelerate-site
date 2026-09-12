@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { adminPageName } from "@/lib/admin/navigation";
 import { PageHeader } from "./PageHeader";
 import { AdminSurface } from "./AdminSurface";
 import AdminLink from "./AdminLink";
@@ -77,7 +78,7 @@ export function BlueprintsWorkspace() {
   return (
     <div>
       <PageHeader
-        title="Workspace Blueprints"
+        title={adminPageName("blueprints")}
         subtitle="Architect proposals are versioned, validated against live capabilities, and reviewed before anything is applied."
       />
       <DemoBusinessNotice />

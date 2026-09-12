@@ -2,16 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  Check,
-  ArrowUpRight,
-  Compass,
-  Workflow,
-  TrendingUp,
-  MessageCircle,
-  PenTool,
-  BarChart3,
-} from "lucide-react";
+import { ArrowUpRight, Compass, Workflow, TrendingUp, BarChart3, Check } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
@@ -28,17 +19,31 @@ import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { ApprovalQueue } from "@/components/command-center/ApprovalQueue";
 import type { LiveQueueItem } from "@/components/command-center/ApprovalQueue";
-import { services } from "@/content/services";
-import { trackConversion } from "@/lib/analytics";
+import { marketingPositioning } from "@/content/marketing-positioning";
+import { CATEGORY_META } from "@/content/command-center";
+import { workProjects } from "@/content/work";
+import {
+  problemRows,
+  buildGroups,
+  buildCapabilities,
+  integrationGroups,
+  integrationClosing,
+  engagementShapes,
+  scopingPromise,
+  featuredServiceWorkSlugs,
+  commandCenterFraming,
+} from "@/content/services-page";
 
 const iconMap: Record<string, LucideIcon> = {
-  Compass,
-  Workflow,
-  TrendingUp,
-  MessageCircle,
-  PenTool,
-  BarChart3,
+  strategy: Compass,
+  build: Workflow,
+  execute: TrendingUp,
+  improve: BarChart3,
 };
+
+// Legacy catalog anchors the homepage modes route to: engagementModes hrefs
+// (#strategy, #automation, #sales, #reporting) land on these mode cards.
+const modeAnchors = ["strategy", "automation", "sales", "reporting"];
 
 const SERVICE_QUEUE: LiveQueueItem[] = [
   {
@@ -73,64 +78,14 @@ const SERVICE_QUEUE: LiveQueueItem[] = [
   },
 ];
 
-/* One editorial service row: the service's reason first, then the concrete
-   work. This avoids repeating a decorative "live demo" in every card. */
-function ServiceBand({
-  service,
-  ordinal,
-}: {
-  service: (typeof services)[number];
-  ordinal: number;
-}) {
-  const Icon = iconMap[service.icon];
-  const ref = useReveal<HTMLElement>();
-
-  return (
-    <section ref={ref} id={service.id} className="services-band section-reveal scroll-mt-[126px]">
-      <div className="page-shell services-band-grid">
-        <div className="services-band-intro">
-          <div>
-            {Icon && (
-              <span className="services-band-icon">
-                <Icon className="h-5 w-5" strokeWidth={1.6} />
-              </span>
-            )}
-            <p className="services-band-number">{String(ordinal).padStart(2, "0")}</p>
-            <h2 className="services-band-title">{service.name}</h2>
-            <p className="services-band-problem">{service.problemStatement}</p>
-            <p className="services-band-description">{service.description}</p>
-          </div>
-        </div>
-
-        <div className="services-band-deliverables">
-          <div>
-            <p className="services-band-deliverables-label">What you get</p>
-            <ul className="services-band-deliverables-list">
-              {service.deliverables.map((d) => (
-                <li key={d}>
-                  <Check aria-hidden className="h-4 w-4 shrink-0" strokeWidth={2.25} />
-                  <span>{d}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="services-band-action">
-              <p>{service.pricingDisplay}</p>
-              <Link
-                href="/contact"
-                data-cursor="link"
-                onClick={() => trackConversion("Service Get Started", { service: service.name })}
-                className="services-band-link"
-              >
-                <span>Start a conversation</span>
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+const SECTIONS = [
+  { id: "start", label: "Where we start" },
+  { id: "how", label: "How we help" },
+  { id: "build", label: "What we build" },
+  { id: "platform", label: "Command Center" },
+  { id: "stack", label: "Your tools" },
+  { id: "work", label: "Selected work" },
+];
 
 const STEPS = [
   {
@@ -155,8 +110,263 @@ const STEPS = [
   },
 ];
 
+function ProblemBand() {
+  const ref = useReveal<HTMLElement>();
+  return (
+    <section ref={ref} id="start" className="svc-band section-reveal scroll-mt-[126px]">
+      <Container width="wide">
+        <Eyebrow className="mb-6">where we start</Eyebrow>
+        <Heading size={2} as="h2" className="mb-4 max-w-3xl">
+          Where is the business losing time, revenue, or information?
+        </Heading>
+        <p className="mb-12 max-w-2xl text-base leading-relaxed text-white-muted">
+          Every engagement opens here. We look at the operation as it actually runs before anyone
+          talks about tools.
+        </p>
+        <div className="svc-problem-grid">
+          {problemRows.map((row) => (
+            <div key={row.title} className="svc-problem-row">
+              <h3 className="svc-problem-title">{row.title}</h3>
+              <p className="svc-problem-body">{row.body}</p>
+            </div>
+          ))}
+        </div>
+        <p className="svc-problem-closing">
+          Sometimes the right answer is one automation. Sometimes it is an AI coworker, an internal
+          application, an integration, training for the team, or simply changing the process. We
+          figure that out before we build.
+        </p>
+      </Container>
+    </section>
+  );
+}
+
+function ModesBand() {
+  const ref = useReveal<HTMLElement>();
+  return (
+    <section ref={ref} id="how" className="svc-band svc-band-warm section-reveal scroll-mt-[126px]">
+      <Container width="wide">
+        <Eyebrow className="mb-6">how we help</Eyebrow>
+        <Heading size={2} as="h2" className="mb-12 max-w-3xl">
+          Four ways we work with a business.
+        </Heading>
+        <div className="svc-mode-grid">
+          {marketingPositioning.engagementModes.map((mode, index) => {
+            const Icon = iconMap[mode.key];
+            return (
+              <Link
+                key={mode.key}
+                href={mode.href}
+                id={modeAnchors[index]}
+                scroll={false}
+                data-cursor="link"
+                className="svc-mode-card"
+              >
+                <span className="svc-mode-top">
+                  <span className="svc-mode-number">{String(index + 1).padStart(2, "0")}</span>
+                  {Icon && (
+                    <span className="svc-mode-icon">
+                      <Icon className="h-4 w-4" strokeWidth={1.8} />
+                    </span>
+                  )}
+                </span>
+                <span className="svc-mode-label">{mode.label}</span>
+                <span className="svc-mode-title">{mode.title}</span>
+                <span className="svc-mode-desc">{mode.description}</span>
+                <span className="svc-mode-example">{mode.example}</span>
+              </Link>
+            );
+          })}
+        </div>
+        <p className="svc-mode-capabilities">{buildCapabilities}</p>
+      </Container>
+    </section>
+  );
+}
+
+function BuildBand() {
+  const ref = useReveal<HTMLElement>();
+  return (
+    <section ref={ref} id="build" className="svc-band section-reveal scroll-mt-[126px]">
+      <Container width="wide">
+        <Eyebrow className="mb-6">what we build</Eyebrow>
+        <Heading size={2} as="h2" className="mb-4 max-w-3xl">
+          Systems people can picture.
+        </Heading>
+        <p className="mb-12 max-w-2xl text-base leading-relaxed text-white-muted">
+          Concrete examples of work we deliver. Most projects start with one of these, not all of
+          them at once.
+        </p>
+        <div className="svc-build-grid">
+          {buildGroups.map((group) => (
+            <div key={group.id} id={group.legacyAnchor} className="svc-build-group">
+              <h3 className="svc-build-title">{group.title}</h3>
+              <ul className="svc-build-list">
+                {group.items.map((item) => (
+                  <li key={item}>
+                    <Check aria-hidden className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Container>
+    </section>
+  );
+}
+
+function PlatformBand() {
+  const ref = useReveal<HTMLElement>();
+  return (
+    <section
+      ref={ref}
+      id="platform"
+      className="svc-band svc-band-tinted section-reveal scroll-mt-[126px]"
+    >
+      <Container width="wide">
+        <Eyebrow className="mb-6">when one workflow isn&apos;t enough</Eyebrow>
+        <Heading size={2} as="h2" className="mb-4 max-w-3xl">
+          Give the business an operating layer.
+        </Heading>
+        <p className="mb-5 max-w-2xl text-base leading-relaxed text-white-secondary">
+          {commandCenterFraming}
+        </p>
+        <p className="mb-12 max-w-2xl text-base leading-relaxed text-white-muted">
+          {marketingPositioning.commandCenter.description}
+        </p>
+        <div className="svc-cc-strip">
+          {CATEGORY_META.map((category) => (
+            <div key={category.id} className="svc-cc-step">
+              <span className="svc-cc-glyph" aria-hidden>
+                {category.glyph}
+              </span>
+              <span className="svc-cc-label">{category.label}</span>
+              <span className="svc-cc-blurb">{category.blurb}</span>
+            </div>
+          ))}
+        </div>
+        <div className="svc-cc-actions">
+          <Link href="/command-center" data-cursor="link" className="svc-text-link">
+            <span>Explore the Command Center</span>
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
+          <Link href="/demo/command-center" data-cursor="link" className="svc-text-link">
+            <span>Try the live demo</span>
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </Container>
+    </section>
+  );
+}
+
+function StackBand() {
+  const ref = useReveal<HTMLElement>();
+  return (
+    <section ref={ref} id="stack" className="svc-band section-reveal scroll-mt-[126px]">
+      <Container width="wide">
+        <Eyebrow className="mb-6">built around your tools</Eyebrow>
+        <Heading size={2} as="h2" className="mb-4 max-w-3xl">
+          We connect the business before we replace anything.
+        </Heading>
+        <p className="mb-12 max-w-2xl text-base leading-relaxed text-white-muted">
+          Most of what a business needs already exists somewhere in its stack. The first job is to
+          make those systems pass information to each other.
+        </p>
+        <div className="svc-stack-grid">
+          {integrationGroups.map((group) => (
+            <div key={group.title} className="svc-stack-row">
+              <h3 className="svc-stack-title">{group.title}</h3>
+              <p className="svc-stack-body">{group.body}</p>
+            </div>
+          ))}
+        </div>
+        <p className="svc-problem-closing">{integrationClosing}</p>
+      </Container>
+    </section>
+  );
+}
+
+function WorkBand() {
+  const ref = useReveal<HTMLElement>();
+  const featured = featuredServiceWorkSlugs
+    .map((slug) => workProjects.find((project) => project.slug === slug))
+    .filter((project) => project && project.visibility === "public");
+  return (
+    <section
+      ref={ref}
+      id="work"
+      className="svc-band svc-band-warm section-reveal scroll-mt-[126px]"
+    >
+      <Container width="wide">
+        <Eyebrow className="mb-6">selected work</Eyebrow>
+        <Heading size={2} as="h2" className="mb-12 max-w-3xl">
+          Real systems, running in real businesses.
+        </Heading>
+        <div className="svc-work-grid">
+          {featured.map((project) => {
+            if (!project) return null;
+            return (
+              <Link
+                key={project.slug}
+                href={`/work/${project.slug}`}
+                data-cursor="link"
+                className="svc-work-card"
+              >
+                <span className="svc-work-category">{project.category}</span>
+                <span className="svc-work-name">{project.name}</span>
+                <span className="svc-work-headline">{project.cardHeadline}</span>
+                <span className="svc-work-desc">{project.cardDescription}</span>
+                {project.proof && project.showProofOnCard !== false && (
+                  <span className="svc-work-proof">{project.proof}</span>
+                )}
+                <span className="svc-work-link">
+                  <span>Read the case</span>
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+        <div className="mt-10">
+          <Link href="/work" data-cursor="link" className="svc-text-link">
+            <span>See all work</span>
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </Container>
+    </section>
+  );
+}
+
+function ShapesBand() {
+  const ref = useReveal<HTMLElement>();
+  return (
+    <section ref={ref} id="shapes" className="svc-band section-reveal scroll-mt-[126px]">
+      <Container width="wide">
+        <Eyebrow className="mb-6">engagement shapes</Eyebrow>
+        <Heading size={2} as="h2" className="mb-12 max-w-3xl">
+          How the work gets scoped.
+        </Heading>
+        <div className="svc-shape-grid">
+          {engagementShapes.map((shape, index) => (
+            <div key={shape.title} className="svc-shape-card">
+              <p className="svc-shape-number">{String(index + 1).padStart(2, "0")}</p>
+              <h3 className="svc-shape-title">{shape.title}</h3>
+              <p className="svc-shape-body">{shape.body}</p>
+            </div>
+          ))}
+        </div>
+        <p className="svc-shape-promise">{scopingPromise}</p>
+      </Container>
+    </section>
+  );
+}
+
 export function ServicesPageContent() {
-  const [activeId, setActiveId] = useState<string>(services[0]!.id);
+  const [activeId, setActiveId] = useState<string>(SECTIONS[0]!.id);
   const quickNavRef = useRef<HTMLDivElement>(null);
 
   // Scrollspy tracks the reading line rather than a zero-height observer
@@ -164,18 +374,18 @@ export function ServicesPageContent() {
   // viewports, leaving the rail stale while the reader continued down-page.
   useEffect(() => {
     let frame = 0;
-    const updateActiveService = () => {
+    const updateActiveSection = () => {
       frame = 0;
       const readingLine = Math.max(144, window.innerHeight * 0.38);
-      let nextId = services[0]!.id;
-      for (const service of services) {
-        const section = document.getElementById(service.id);
-        if (section && section.getBoundingClientRect().top <= readingLine) nextId = service.id;
+      let nextId = SECTIONS[0]!.id;
+      for (const section of SECTIONS) {
+        const node = document.getElementById(section.id);
+        if (node && node.getBoundingClientRect().top <= readingLine) nextId = section.id;
       }
       setActiveId((current) => (current === nextId ? current : nextId));
     };
     const scheduleUpdate = () => {
-      if (!frame) frame = requestAnimationFrame(updateActiveService);
+      if (!frame) frame = requestAnimationFrame(updateActiveSection);
     };
     scheduleUpdate();
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
@@ -191,7 +401,7 @@ export function ServicesPageContent() {
   // directly never changes the document's vertical scroll position.
   useEffect(() => {
     const rail = quickNavRef.current;
-    const activeLink = rail?.querySelector<HTMLElement>(`[data-service-id="${activeId}"]`);
+    const activeLink = rail?.querySelector<HTMLElement>(`[data-section-id="${activeId}"]`);
     if (!rail || !activeLink) return;
     const left = activeLink.offsetLeft - (rail.clientWidth - activeLink.offsetWidth) / 2;
     rail.scrollTo({ left: Math.max(0, left), behavior: "auto" });
@@ -204,32 +414,32 @@ export function ServicesPageContent() {
           <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             <div className="min-w-0">
               <HeroEntranceItem step={1}>
-                <Eyebrow className="mb-7">what we do</Eyebrow>
+                <Eyebrow className="mb-7">services</Eyebrow>
               </HeroEntranceItem>
               <HeroEntranceItem step={2}>
                 <RevealHeading
                   as="h1"
                   className={HERO_HEADING}
-                  lead="AI strategy and solutions."
-                  accent="Built around your business."
+                  lead="We find the right AI solution,"
+                  accent="then build or run it."
                   entrance="parent"
                 />
               </HeroEntranceItem>
               <HeroEntranceItem step={3}>
                 <p className="mt-7 max-w-xl text-lg leading-relaxed text-white-secondary">
-                  We help you decide where AI belongs, build the right workflows, agents, tools, and
-                  integrations, and stay involved through execution, training, and improvement.
+                  Strategy, custom systems, managed execution, training, and optimization. The work
+                  starts with how your business actually operates.
                 </p>
               </HeroEntranceItem>
               <HeroEntranceItem step={4}>
                 <div className="mt-9 flex items-center gap-6">
-                  <BookCallButton location="services_inline" />
+                  <BookCallButton location="services_hero" />
                   <Link
-                    href="#strategy"
+                    href="#build"
                     data-cursor="link"
                     className="text-sm font-medium text-white-secondary underline-offset-4 transition-colors hover:text-gold hover:underline"
                   >
-                    See how we help
+                    See what we build
                   </Link>
                 </div>
               </HeroEntranceItem>
@@ -248,34 +458,35 @@ export function ServicesPageContent() {
         </Container>
       </PublicHeroEntrance>
 
-      {/* Sticky service quick-nav — follows the current service on its own. */}
-      <nav className="services-subnav sticky z-[80]" aria-label="Service quick navigation">
+      {/* Sticky section quick-nav. */}
+      <nav className="services-subnav sticky z-[80]" aria-label="Services page sections">
         <div ref={quickNavRef} className="services-subnav-rail page-shell">
-          {services.map((service) => {
-            const Icon = iconMap[service.icon];
-            const isActive = activeId === service.id;
+          {SECTIONS.map((section) => {
+            const isActive = activeId === section.id;
             return (
               <a
-                key={service.id}
-                href={`#${service.id}`}
+                key={section.id}
+                href={`#${section.id}`}
                 data-cursor="link"
-                data-service-id={service.id}
-                onClick={() => setActiveId(service.id)}
+                data-section-id={section.id}
+                onClick={() => setActiveId(section.id)}
                 aria-current={isActive ? "location" : undefined}
                 className={`services-subnav-link ${isActive ? "is-active" : ""}`}
               >
-                {Icon && <Icon className="h-3.5 w-3.5" strokeWidth={2} />}
-                {service.name}
+                {section.label}
               </a>
             );
           })}
         </div>
       </nav>
 
-      {/* per-service bands */}
-      {services.map((service, index) => (
-        <ServiceBand key={service.id} service={service} ordinal={index + 1} />
-      ))}
+      <ProblemBand />
+      <ModesBand />
+      <BuildBand />
+      <PlatformBand />
+      <StackBand />
+      <WorkBand />
+      <ShapesBand />
 
       {/* process timeline — master language: numbered nodes + connector */}
       <Section width="wide" className="bg-[var(--bg-section-warm)]">
@@ -309,19 +520,19 @@ export function ServicesPageContent() {
         </div>
       </Section>
 
-      {/* closing CTA — master language, not the old FinalCTA */}
+      {/* closing CTA */}
       <Section width="wide" divide>
         <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
           <div>
             <Eyebrow className="mb-7">start</Eyebrow>
             <Heading size={1} as="h2">
-              Book the session. Keep the plan.
+              Not sure what you need?
             </Heading>
           </div>
           <div className="flex flex-col gap-7">
             <p className="text-lg leading-relaxed text-white-secondary">
-              A free strategy session with the engineers who would do the work. You leave with a
-              written plan. Yours to keep either way.
+              That is the point of the first session. Thirty minutes with the engineers who would do
+              the work. You leave with a written recommendation. Yours to keep either way.
             </p>
             <BookCallButton location="services_closing" />
             <CallTerms />
