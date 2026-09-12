@@ -112,6 +112,7 @@ export async function provePhaseBWork({ sql, args, context, a }) {
     const recovered = await execute("phase_b_interrupt", "complete");
     assert.equal(recovered.recoveredStale, true);
     assert.equal(recovered.persisted, true);
+    assert.equal(recovered.status, "completed", JSON.stringify(recovered));
     assert.equal(recovered.value.value.replayed, true);
     assert.equal(state(id).status, "completed");
     assert.equal(state(id).attempt_count, 2);

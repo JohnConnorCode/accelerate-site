@@ -128,7 +128,9 @@ const result = await withWorkItem(
         `SELECT to_jsonb(r) FROM claim_budget_usage('sales','vendor_api_calls',1,${literal(`phase-b:${item.id}`)},null) r;`,
       ),
     );
-    if (!effect.allowed) throw new Error("Controlled effect budget denied");
+    // Replay confirms the already-saved reservation; it deliberately does not
+    // authorize another effect. Only a new denied reservation is a failure.
+    if (!effect.allowed && !effect.replayed) throw new Error("Controlled effect budget denied");
     process.send({
       event: "effect",
       itemId: item.id,
