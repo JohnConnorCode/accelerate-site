@@ -2,6 +2,10 @@
 
 The repository supports a prebuilt Vercel release path, but every fork must link its own hosting project and configure its own environment.
 
+## Fork preview
+
+A fork must create its own Vercel project. Do not link, deploy to, or copy the original Accelerate project IDs in the table below. Those identify the reference installation only. Use the Deploy with Vercel button in README.md, or `vercel link` against a project you control, then `npm run deploy:check` on that link. Automatic Git deployments stay off until you enable them in the new project's Settings → Git. Production deployment of the original installation remains a separate maintainer action.
+
 ## Account and project preflight
 
 Read `deployment-target.json` before any hosting diagnosis. The Accelerate installation expects:

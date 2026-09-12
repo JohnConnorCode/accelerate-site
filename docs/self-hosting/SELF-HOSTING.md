@@ -78,6 +78,10 @@ restored copy before using real data. For migration-only operations, the existin
 neutral first-install defaults that a direct migration command does not derive.
 
 The installer has controlled Auth/REST and native PostgreSQL regression coverage.
+`npm run test:install-runbook` is the CI proof for a fresh checkout: it asserts
+the documented commands, refuses original identity leftovers and unclassified
+migrations, and writes `/tmp/accelerate-install-runbook.json`. It does not
+apply schema to a live database.
 A fresh hosted Auth/browser preview installation is a separate release acceptance;
 do not confuse a local fixture pass with that connected proof.
 

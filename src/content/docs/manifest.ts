@@ -643,7 +643,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["self-hosting", "installation"],
         title: "Connect your installation",
         description:
-          "Create the owner account, configure a fresh database, and verify the workspace actually works.",
+          "Create the owner account, apply the ordered schema, and sign in to a workspace you control.",
       },
     ],
   },

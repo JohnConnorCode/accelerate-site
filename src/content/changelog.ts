@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "fresh-fork-install",
+    slug: "fresh-fork-install",
+    title: "Install from a fresh fork with the setup command",
+    description:
+      "Connecting a workspace now follows the guided setup command for owner, schema and membership. Fork preview hosting is documented as a project you control, not the original Vercel IDs. CI records the command and failure matrix for a clean checkout.",
+    category: "improvement",
+    publishedAt: "2026-09-11",
+  },
+  {
     id: "learning-inbox",
     slug: "learning-inbox",
     title: "Teach Command Center with reusable corrections",
