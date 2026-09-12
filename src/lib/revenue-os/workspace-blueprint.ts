@@ -573,6 +573,10 @@ export function summarizePreflight(blueprint: WorkspaceBlueprint): BlueprintPref
 // ---------------------------------------------------------------------------
 
 const DIFFABLE_SECTIONS = [
+  "businessSummary",
+  "evidenceRefs",
+  "assumptions",
+  "unresolvedQuestions",
   "navigation",
   "entities",
   "relationships",
@@ -590,6 +594,7 @@ const DIFFABLE_SECTIONS = [
   "permissionPolicies",
   "autonomyPolicies",
   "installedAppRecommendations",
+  "migrationPlan",
 ] as const;
 
 export interface BlueprintDiff {

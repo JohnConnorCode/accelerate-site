@@ -3062,6 +3062,31 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       }
       return jsonResponse({ status: "approved", simulated: true });
     }
+    const blueprintSimulate = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)\/simulate$/i);
+    if (method === "POST" && blueprintSimulate) {
+      if (blueprintSimulate[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
+        return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
+      }
+      return jsonResponse({
+        kind: "simulation",
+        writes: [],
+        sends: [],
+        moduleEnablement: [],
+        plan: { canApply: true, customAppBriefs: [], approvals: [], blocked: [] },
+        simulated: true,
+      });
+    }
+    const blueprintPatch = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)\/patch$/i);
+    if (method === "POST" && blueprintPatch) {
+      if (blueprintPatch[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
+        return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
+      }
+      const input = body as { patch?: unknown; changeSummary?: unknown };
+      if (!input.patch || typeof input.patch !== "object" || typeof input.changeSummary !== "string") {
+        return jsonResponse({ error: "patch and changeSummary are required" }, 400);
+      }
+      return jsonResponse({ version: DEMO_BLUEPRINT_DETAIL.version + 1, diff: { added: [], removed: [], changed: ["businessSummary"] }, applied: false, simulated: true });
+    }
     const blueprintApply = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)\/apply$/i);
     if (method === "POST" && blueprintApply) {
       if (blueprintApply[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "architect-chat-blueprint-review",
+    slug: "architect-chat-blueprint-review",
+    title: "Review and simulate Blueprints inside Architect chat",
+    description:
+      "Architect chat now shows a Blueprint review panel where you can simulate a Blueprint with inspectable receipts and no live writes, or save a conversational patch as a new versioned Blueprint after showing its diff. Approval and apply stay on the Blueprint page, and entire-account context stays refused.",
+    category: "feature",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",

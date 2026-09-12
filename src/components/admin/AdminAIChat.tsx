@@ -23,6 +23,7 @@ import {
 import { useAdminAI, type AdminAIMessage } from "./AdminAIProvider";
 import { ArchitectEvidencePanel } from "./ArchitectEvidencePanel";
 import { ArchitectUnderstandingPanel } from "./ArchitectUnderstandingPanel";
+import { ArchitectBlueprintReviewHost } from "./ArchitectBlueprintReview";
 import { cn } from "@/lib/utils";
 
 const starters = [
@@ -375,6 +376,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
       </div>
       {ai.purpose === "architect" && <ArchitectEvidencePanel />}
       {ai.purpose === "architect" && <ArchitectUnderstandingPanel />}
+      {ai.purpose === "architect" && <ArchitectBlueprintReviewHost />}
       {mobileConversationBar}
       <div
         ref={scrollRef}

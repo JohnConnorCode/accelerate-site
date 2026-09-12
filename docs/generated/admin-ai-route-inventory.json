@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 106,
-  "mutationHandlerCount": 95,
+  "routeCount": 108,
+  "mutationHandlerCount": 97,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -83,6 +83,22 @@
       "sourceSha256": "fa6c3fd345c40b8ded3ece2a747c0f3adc14cd55e62980eb759e802807d6ebaf"
     },
     {
+      "source": "src/app/api/admin/blueprints/[id]/patch/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/architect-review-simulation",
+        "@/lib/revenue-os/workspace-blueprint",
+        "next/server"
+      ],
+      "sourceSha256": "2cf3e039fdcb10e792ff88703b820cffa897cb292c357163d3ed4d19718bbdbd"
+    },
+    {
       "source": "src/app/api/admin/blueprints/[id]/route.ts",
       "handlers": [
         "GET"
@@ -95,6 +111,22 @@
         "next/server"
       ],
       "sourceSha256": "0f320be38283c086d60f7bc49c8138abba4e99ca967b14c90c20bb2a7047f67f"
+    },
+    {
+      "source": "src/app/api/admin/blueprints/[id]/simulate/route.ts",
+      "handlers": [
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/architect-review-simulation",
+        "@/lib/revenue-os/workspace-blueprint",
+        "next/server"
+      ],
+      "sourceSha256": "98d2c32d760671855f3d0a2eeb82bda5ce20bb8a8a214dc7794fc39b58ac8ec1"
     },
     {
       "source": "src/app/api/admin/blueprints/route.ts",
