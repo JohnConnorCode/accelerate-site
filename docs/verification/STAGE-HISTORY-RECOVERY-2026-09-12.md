@@ -29,7 +29,7 @@ The existing Analytics browser script has a credential-free demo mode; its live
 authenticated mode remains available. Fictional UI evidence and pure calculation
 proof are identified separately.
 
-| Before                                                   | Verified after                                                                     |
+| Before                                                   | Verified after                                                                      |
 | -------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | History gaps were absent from the Analytics quality rows | Missing and incomplete history appear beside the same current-value screen          |
 | AI counted hardcoded stage names                         | Custom terminal stages are excluded through the shared configured-stage calculation |
