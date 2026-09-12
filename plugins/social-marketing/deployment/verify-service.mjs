@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { execFileSync } from "node:child_process";
+import { request as rawHttpRequest } from "node:http";
 const origin = "http://localhost:5080";
 const privateOrigin = "http://localhost:5000";
 const phase = process.argv[2];
@@ -19,6 +20,24 @@ async function request(path, options = {}) {
     signal: AbortSignal.timeout(15000),
   });
   return response;
+}
+function rawProxyRequest(path, method = "GET") {
+  // Preserve encoded/dot/slash variants which fetch() would normalize first.
+  return new Promise((resolve, reject) => {
+    const req = rawHttpRequest({ hostname: "127.0.0.1", port: 5080, path, method }, (res) => {
+      let body = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => {
+        body += chunk;
+        if (body.length > 4096) req.destroy(new Error("Unexpected proxy response size"));
+      });
+      res.on("error", reject);
+      res.on("end", () => resolve({ status: res.statusCode, body }));
+    });
+    req.setTimeout(5000, () => req.destroy(new Error("Proxy probe timed out")));
+    req.on("error", reject);
+    req.end();
+  });
 }
 async function json(path, options = {}) {
   const response = await request(path, options);
@@ -172,6 +191,28 @@ for (const path of ["/api/auth/register", "/api/auth/REGISTER", "/api/auth/regis
   const registration = await request(path, { method: "POST" });
   assert.equal(registration.status, 403, "Public first-owner bootstrap is forbidden");
 }
+for (const path of [
+  "//api/auth/register",
+  "/api//auth/register",
+  "/api/./auth/register",
+  "/api/one/../auth/register",
+  "/api/%61uth/register",
+  "/api/auth/%72egister",
+]) {
+  const response = await rawProxyRequest(path, "POST");
+  assert.equal(response.status, 403, `Normalized registration route refused: ${path}`);
+  assert.equal(response.body.trim(), "Not available");
+}
+const storedPath = new URL(fixtures[0].media.path).pathname;
+for (const path of [
+  "/" + storedPath,
+  "/ignored/.." + storedPath,
+  storedPath.replace("/uploads/", "/uploads%2f"),
+]) {
+  const response = await rawProxyRequest(path);
+  assert.equal(response.status, 403, "Normalized upload route must remain private");
+  assert.equal(response.body.trim(), "Not available");
+}
 const foreignImage = await request("/api/public/v1/posts", {
   method: "POST",
   headers: { authorization: fixtures[1].key, "content-type": "application/json" },
@@ -212,6 +253,11 @@ for (const fixture of fixtures) {
   assert.equal(retained[0].id, fixture.post);
   assert.equal(retained[0].state, "DRAFT");
 }
+if (phase === "restore")
+  assert.equal(
+    JSON.parse(readFileSync("evidence/temporal-restore.json", "utf8")).historyMatches,
+    true,
+  );
 writeFileSync(
   `evidence/${phase}.json`,
   JSON.stringify(
@@ -223,15 +269,20 @@ writeFileSync(
       syntheticChannelAndDraftIsolation: true,
       foreignPostDeleteRefused: true,
       realLinkedInConnection: false,
+      temporalHistoryRestored: phase === "restore",
       invalidCredentialRefused: true,
       storedUploadBytesMatch: true,
       publicUploadURLsDenied: true,
       foreignMediaRefused: true,
       publicRegistrationDenied: true,
+      normalizedProxyPathsDenied: true,
       productionReady: false,
       remaining: [
         "Real LinkedIn authorization and an exact approved publication remain unverified; channel fixtures use unusable synthetic credentials.",
-        "Temporal history and full host restoration remain unverified.",
+        ...(phase === "restore"
+          ? []
+          : ["Temporal history restoration is not yet verified at this stage."]),
+        "Persistent-host and encrypted off-host backup restoration remain unverified.",
         "LinkedIn access and persistent HTTPS host are not configured.",
       ],
     },

@@ -52,6 +52,7 @@ jobs:
             plugins/social-marketing/deployment/evidence/bootstrap.json
             plugins/social-marketing/deployment/evidence/restart.json
             plugins/social-marketing/deployment/evidence/restore.json
+            plugins/social-marketing/deployment/evidence/temporal-restore.json
             plugins/social-marketing/deployment/evidence/services.json
             plugins/social-marketing/deployment/evidence/startup-diagnostics.json
             plugins/social-marketing/deployment/evidence/images.txt
