@@ -1,7 +1,7 @@
 # Admin language recovery — 12 September 2026
 
 This is a source inventory of the claimed recovery candidate based on published
-`d6d9831`. It is not production or browser acceptance. Shared registry names,
+`d6d9831`. Final fictional browser acceptance is recorded below; this is not production proof. Shared registry names,
 root/detail introductions, help destinations and actual search/breadcrumb helpers
 are verified by the audit and its mutation fixtures.
 
@@ -17,7 +17,11 @@ CI run 34703821325 built successfully and rendered the matrix, exposing mobile
 Help panels anchored outside the viewport. The shared panel now clamps its anchor
 inside page gutters and scrolls within the available height. The fixture configures
 appearance only in the top-level app document, preserving sandboxed preview isolation.
-Final browser verification and screenshot inspection remain pending for this repair.
+Final source `a3d6131a95ee7b8733c3596806394b942bafc5b9` passed all CI jobs in
+[run 34708149694](https://github.com/JohnConnorCode/accelerate-site/actions/runs/34708149694).
+The language matrix passed 114 checks with zero failures. Opened screenshots cover
+390px Help in all seven presets, 900px dark Blueprints and 1440px Paper Architect.
+Panels fit the page gutters, preserve readable content and remain coherent with each theme.
 
 ## Source matrix
 
@@ -88,14 +92,19 @@ The AI route is listed twice because Architect is a query-qualified destination.
 Passing local checks: semantic inventory and shared identity/mutation fixtures.
 Scoped formatting/lint and contract checks are recorded with the commit handoff.
 
-Browser verification has been prepared, not run locally: machine pressure requires
-the exact-source CI build/server. CI runs `qa-admin-overhaul.mjs` and retains
-`/tmp/accelerate-admin-language/` in `credential-free-browser-evidence`. It covers
-the full destination matrix on desktop Paper, then changed guidance surfaces and
-contact breadcrumbs at 1440/900/390 pixels in every registered preset. Mobile
-uses reduced motion. Console errors and escaped protected demo requests fail.
+Browser verification ran against the exact-source CI build because the local machine
+resource gate had insufficient free disk. `qa-admin-overhaul.mjs` retained
+`accelerate-admin-language/` in `credential-free-browser-evidence`: the full 34-destination
+matrix on desktop Paper, then changed guidance and contact parent navigation at
+1440/900/390 pixels in all seven presets. Mobile uses reduced motion. Console errors
+and escaped protected demo requests fail the suite; none occurred.
 
-Existing shell-motion, Contact review states, theme persistence and marketing-demo
-suites remain in the same CI job. Their earlier evidence does not prove changed
-heading/help components. Screenshot inspection and final CI/build remain necessary
-before AC3–AC5 are marked passed. No production deployment is part of this change.
+The same successful CI run also passed shell motion/navigation, Contact review
+states, theme persistence and marketing/demo journeys. This dated receipt is the
+only subsequent change; application and QA inputs remain byte-identical to the
+verified source. No production deployment is part of this change.
+
+| Before | After |
+| --- | --- |
+| Mobile Help could anchor outside the viewport. | Shared Help stays within page gutters and scrolls within available height. |
+| Some headings, Help and parent names diverged. | Shared identity checks cover every core destination; contextual record titles remain. |
