@@ -5,9 +5,8 @@ import { cn } from "@/lib/utils";
 import type { KanbanColumnRecord } from "@/lib/kanban/types";
 
 /**
- * Phone-first column switcher. One column is already full-width in the
- * board scroller; these chips jump to it without requiring a horizontal
- * swipe guess. Hidden from md up, where every column is on screen.
+ * Explicit regional navigation at every width. Revealing the selected chip
+ * scrolls this strip only; manual board scrolling never navigates an ancestor.
  */
 export function KanbanColumnPager({
   columns,
@@ -32,7 +31,7 @@ export function KanbanColumnPager({
   }, [activeKey]);
   if (!columns.length) return null;
   return (
-    <div className="md:hidden">
+    <div className="min-w-0">
       <div
         ref={listRef}
         role="group"

@@ -1,7 +1,9 @@
 import { cn } from "@/lib/utils";
 
 function SkeletonBar({ className }: { className?: string }) {
-  return <span aria-hidden="true" className={cn("admin-skeleton-shape block", className)} />;
+  return (
+    <span aria-hidden="true" className={cn("admin-skeleton-shape block max-w-full", className)} />
+  );
 }
 
 interface LoadingSkeletonProps {
@@ -37,7 +39,7 @@ function Metrics({ count = 4 }: { count?: number }) {
       aria-hidden="true"
     >
       {Array.from({ length: count }, (_, index) => (
-        <div className="admin-skeleton-surface min-h-32 p-5" key={index}>
+        <div className="admin-skeleton-surface min-h-32 min-w-0 p-5" key={index}>
           <SkeletonBar className="h-2.5 w-24" />
           <SkeletonBar className="mt-5 h-8 w-28" />
           <SkeletonBar className="mt-3 h-2.5 w-32" />

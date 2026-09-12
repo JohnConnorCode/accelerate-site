@@ -46,12 +46,12 @@ export const footerLinks = [
   {
     heading: "Services",
     links: [
-      { label: "AI Strategy & Roadmap", href: "/services#strategy" },
-      { label: "Workflow Automation", href: "/services#automation" },
-      { label: "Sales & Marketing", href: "/services#sales" },
-      { label: "Customer Engagement", href: "/services#engagement" },
-      { label: "Content Creation", href: "/services#content" },
-      { label: "Data & Reporting", href: "/services#reporting" },
+      { label: "Strategy & consulting", href: "/services#strategy" },
+      { label: "Custom systems", href: "/services#automation" },
+      { label: "Managed execution", href: "/services#sales" },
+      { label: "Training & optimization", href: "/services#reporting" },
+      { label: "What we build", href: "/services#build" },
+      { label: "Selected work", href: "/services#work" },
     ],
   },
   {
