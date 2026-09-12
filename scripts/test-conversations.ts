@@ -1,3 +1,4 @@
+import { conversationActionFixture } from "./lib/conversation-action-fixture";
 import assert from "node:assert/strict";
 import { AuthorizedMemorySupabase } from "./lib/autonomy-fixture";
 import {
@@ -17,6 +18,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 type Row = Record<string, unknown>;
 
 class MockSupabase {
+  beforeConversationUpdate?: () => void;
   public tables: Record<string, Row[]> = {
     conversations: [],
     messages: [],
@@ -55,6 +57,27 @@ class MockSupabase {
           | null,
         onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
       ): Promise<TResult1 | TResult2> {
+        if (fn === "apply_conversation_action") {
+          return Promise.resolve()
+            .then(() => ({
+              data: conversationActionFixture((table) => (tables[table] ??= []), params),
+              error: null,
+            }))
+            .then(onfulfilled, onrejected);
+        }
+        if (fn === "check_autonomy") {
+          return Promise.resolve({
+            data: {
+              action_key: params.p_action_key,
+              allowed: false,
+              level: "always_ask",
+              requires_approval: true,
+              hard_floor: false,
+              reason: "Human approval required",
+            },
+            error: null,
+          }).then(onfulfilled, onrejected);
+        }
         if (fn === "record_evidence") {
           if (!tables["claims"]) tables["claims"] = [];
           if (!tables["evidence"]) tables["evidence"] = [];
@@ -127,7 +150,11 @@ class MockQueryBuilder implements PromiseLike<{
   }
 
   eq(col: string, val: unknown) {
-    this.filters.push((row) => row[col] === val);
+    this.filters.push((row) =>
+      typeof row[col] === "object" && row[col] !== null && typeof val === "string"
+        ? JSON.stringify(row[col]) === val
+        : row[col] === val,
+    );
     return this;
   }
 
@@ -197,7 +224,10 @@ class MockQueryBuilder implements PromiseLike<{
     const parts = conditions.split(",");
     this.filters.push((row) => {
       return parts.some((part) => {
-        const [field, op, val] = part.split(".");
+        const [field, op, ...rest] = part.split(".");
+        const val = rest.join(".");
+        if (field && op === "is") return val === "null" ? row[field] == null : row[field] === val;
+        if (field && op === "gt") return row[field] != null && String(row[field]) > val;
         if (field && op === "eq") {
           return String(row[field]) === val;
         }
@@ -235,6 +265,7 @@ class MockQueryBuilder implements PromiseLike<{
   }
 
   update(payload: unknown) {
+    if (this.table === "conversations") this.db.beforeConversationUpdate?.();
     this.op = "update";
     this.opPayload = payload;
     return this;
@@ -301,7 +332,7 @@ class MockQueryBuilder implements PromiseLike<{
         }
       }
       const res = {
-        data: this.isSingle ? updatedRows[0] || null : updatedRows,
+        data: this.isSingle || this.isMaybeSingle ? updatedRows[0] || null : updatedRows,
         error: null,
       };
       return Promise.resolve(res).then(onfulfilled, onrejected);
@@ -328,14 +359,14 @@ class MockQueryBuilder implements PromiseLike<{
 
     if (this.isSingle) {
       return Promise.resolve({
-        data: matched[0] || null,
+        data: structuredClone(matched[0] || null),
         error: matched[0] ? null : { message: "No rows found" },
       }).then(onfulfilled, onrejected);
     }
 
     if (this.isMaybeSingle) {
       return Promise.resolve({
-        data: matched[0] || null,
+        data: structuredClone(matched[0] || null),
         error: null,
       }).then(onfulfilled, onrejected);
     }
@@ -559,7 +590,7 @@ async function runConversationsSuite() {
         assigneeEmail: "founder@accelerate.local",
         actorEmail: "founder@accelerate.local",
       }),
-    /not found/i,
+    /not found|unavailable/i,
     "Assignment to a missing thread must fail closed",
   );
 
@@ -604,7 +635,7 @@ async function runConversationsSuite() {
         opportunityId: oppId,
         actorEmail: "founder@accelerate.local",
       }),
-    /Could not link conversation record|not found/i,
+    /Could not link conversation record|not found|unavailable/i,
     "Linking a missing thread must fail closed",
   );
 
@@ -833,7 +864,38 @@ async function runConversationsSuite() {
     /Conversation not found/,
   );
 
-  console.log("All 16 Conversations tests passed successfully!");
+  // Test 17: a human link arriving after participant lookup must survive inference.
+  db.tables.conversations!.push({
+    id: "conv-race",
+    channel: "gmail",
+    status: "open",
+    contact_id: null,
+    company_id: null,
+    opportunity_id: null,
+    metadata: {},
+    updated_at: "2026-09-02T13:00:00Z",
+  });
+  db.beforeConversationUpdate = () => {
+    db.beforeConversationUpdate = undefined;
+    const thread = db.tables.conversations!.find((row) => row.id === "conv-race")!;
+    thread.contact_id = "new-human-choice";
+    thread.metadata = { assigned_to: "human@example.test" };
+  };
+  await assert.rejects(
+    () =>
+      associateConversationParticipants(supabase, {
+        conversationId: "conv-race",
+        participantEmails: ["sarah@techcorp.io"],
+        actorEmail: "system",
+      }),
+    /changed during association/,
+  );
+  const preservedRace = db.tables.conversations!.find((row) => row.id === "conv-race")!;
+  assert.equal(preservedRace.contact_id, "new-human-choice");
+  assert.deepEqual(preservedRace.metadata, { assigned_to: "human@example.test" });
+  assert.equal(db.tables.claims!.filter((row) => row.entity_id === "conv-race").length, 0);
+
+  console.log("All 17 Conversations tests passed successfully!");
 }
 
 runConversationsSuite().catch((err) => {

@@ -105,6 +105,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260912154902-atomic-local-actions.sql",
   "migrations/20260912174637-atomic-pipeline-actions.sql",
   "migrations/20260912191919-atomic-opportunity-records.sql",
+  "migrations/20260912205240-atomic-conversation-actions.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

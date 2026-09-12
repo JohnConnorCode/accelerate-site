@@ -28,6 +28,7 @@ import { checkAutonomy } from "./autonomy-policy";
 import { recordAudit } from "./audit";
 import { reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
+import { applyConversationEffect } from "./conversations";
 import { applyPipelineEffect } from "./pipeline";
 import { activateCampaign, duplicateCampaign } from "./campaigns";
 import { sendGmailReply } from "./google";
@@ -64,6 +65,9 @@ export const APPROVABLE_ACTIONS = [
   "send_collection_reminder",
   "send_email",
   "send_gmail_reply",
+  "update_conversation_status",
+  "assign_conversation",
+  "link_conversation_record",
   "transition_opportunity",
   "update_opportunity_details",
   "create_opportunity",
@@ -298,6 +302,16 @@ export async function approveAndExecuteAction(
         });
         break;
       }
+      case "update_conversation_status":
+      case "assign_conversation":
+      case "link_conversation_record":
+        return await applyConversationEffect(
+          supabase,
+          id,
+          String(action.action_type),
+          payload,
+          actorEmail,
+        );
       case "transition_opportunity":
       case "update_opportunity_details":
       case "create_opportunity":
@@ -435,6 +449,9 @@ export async function runOperatorAction(
   supabase: SupabaseClient,
   input: {
     actionType:
+      | "update_conversation_status"
+      | "assign_conversation"
+      | "link_conversation_record"
       | "create_task"
       | "update_task"
       | "delete_task"

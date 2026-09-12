@@ -25,3 +25,11 @@ A reply you type yourself goes straight through the communication sender, with a
 ## Where this sits relative to Inbox and Today
 
 Inbox is intake for whatever has not been worked yet. Today is the ranked subset of everything, across the whole workspace, that should happen right now. Conversations is specifically where the actual reply gets written, once you've decided this is the thread that needs one.
+
+## Reliable conversation changes
+
+Status, assignment, and explicit record links use the same executor as approved proposals. Each change saves its conversation and history together. If the thread changes after a proposal was prepared, refresh it before approving a new change.
+
+Assign a thread to an active member of its workspace, or clear the assignment. Status and assignment changes have a guarded undo: restoration refuses when a newer edit would be overwritten. A restored assignee must still be active.
+
+Linking a contact, company, or opportunity records human evidence in the same transaction. Correct a link with a new reviewed change; its original evidence stays in the history. Automatic participant matching preserves concurrent human links and assignments and retries against the current thread.

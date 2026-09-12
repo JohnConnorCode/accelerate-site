@@ -50,6 +50,7 @@ async function main() {
     opportunities: [
       { id: "o9", stage: "qualified", next_action: "Call Ana", next_action_at: null },
     ],
+    conversations: [],
     tasks: [],
     action_queue: [],
     audit_log: [],
@@ -198,6 +199,46 @@ async function main() {
     2,
   );
 
+  // Every new reversible conversation class executes and restores through its RPC.
+  mem.rows("conversations").push({
+    id: "conversation-undo",
+    status: "open",
+    unread_count: 3,
+    metadata: { humanNote: "preserve" },
+    contact_id: null,
+    company_id: null,
+    opportunity_id: null,
+  });
+  for (const actionType of ["update_conversation_status", "assign_conversation"] as const) {
+    const before = structuredClone(mem.rows("conversations")[0]);
+    const proposal = await proposeAction(db, {
+      actionType,
+      title: "Conversation correction",
+      sourceContext: "admin_ai",
+      payload: {
+        conversationId: "conversation-undo",
+        ...(actionType === "assign_conversation"
+          ? { assigneeEmail: ACTOR }
+          : { status: "resolved" }),
+      },
+    });
+    await approveAndExecuteAction(db, proposal.id, ACTOR);
+    const undo = await compensateAction(db, proposal.id, ACTOR);
+    assert.deepEqual(await compensateAction(db, proposal.id, ACTOR), undo);
+    const restored = { ...mem.rows("conversations")[0] };
+    delete restored.updated_at;
+    delete before!.updated_at;
+    assert.deepEqual(restored, before);
+    assert.equal(
+      mem
+        .rows("audit_log")
+        .filter((row) => row.action === "action.compensated" && row.entity_id === proposal.id)
+        .length,
+      1,
+    );
+  }
+  assert.equal(mem.rpcCalls.filter((call) => call.name === "apply_conversation_action").length, 6);
+
   console.log(
     JSON.stringify({
       result: "passed",
@@ -209,6 +250,7 @@ async function main() {
         "create-task-compensator",
         "next-action-restore",
         "task-reopen",
+        "conversation-status-and-assignment-compensators",
         "compensation-refusals",
       ],
     }),

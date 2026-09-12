@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "atomic-conversation-actions",
+    slug: "atomic-conversation-actions",
+    title: "Keep conversation edits and evidence together",
+    description:
+      "Conversation status, assignment, and record links now save through the shared executor. Assignment requires an active workspace member, stale edits refuse, and links save their human evidence in the same transaction. Status and assignment can be restored while the thread is unchanged; correcting a link retains its original evidence history.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "atomic-opportunity-records",
     slug: "atomic-opportunity-records",
     title: "Keep opportunity creation and ordering consistent",

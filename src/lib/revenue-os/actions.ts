@@ -75,6 +75,9 @@ export async function proposeAction(
   // Capture target state when proposing, never when approving an old proposal.
   if (
     [
+      "update_conversation_status",
+      "assign_conversation",
+      "link_conversation_record",
       "update_task",
       "delete_task",
       "update_next_action",
@@ -84,10 +87,21 @@ export async function proposeAction(
       "update_opportunity_intake",
     ].includes(input.actionType)
   ) {
-    const table = ["update_task", "delete_task"].includes(input.actionType)
-      ? "tasks"
-      : "opportunities";
-    const id = table === "opportunities" ? input.payload.opportunityId : input.payload.taskId;
+    const table = [
+      "update_conversation_status",
+      "assign_conversation",
+      "link_conversation_record",
+    ].includes(input.actionType)
+      ? "conversations"
+      : ["update_task", "delete_task"].includes(input.actionType)
+        ? "tasks"
+        : "opportunities";
+    const id =
+      table === "conversations"
+        ? input.payload.conversationId
+        : table === "opportunities"
+          ? input.payload.opportunityId
+          : input.payload.taskId;
     const { data, error } = await supabase.from(table).select("*").eq("id", id).maybeSingle();
     if (error || !data) throw new Error("Proposal target is unavailable");
     if (
@@ -227,20 +241,37 @@ export async function claimApprovedAction(
   id: string,
   actorEmail: string,
   mode: "approved" | "autonomous" = "approved",
+  identityDecision?: {
+    expectedPayload: Record<string, unknown>;
+    decision: Record<string, unknown>;
+    conversationState: Record<string, unknown>;
+  },
 ) {
   await recoverStaleExecutingActions(supabase);
   const now = new Date().toISOString();
-  const { data, error } = await supabase
+  let query = supabase
     .from("action_queue")
     .update({
+      ...(identityDecision
+        ? {
+            payload: {
+              ...identityDecision.expectedPayload,
+              approvedDecision: identityDecision.decision,
+              conversationState: identityDecision.conversationState,
+            },
+          }
+        : {}),
       status: "executing",
       ...(mode === "approved" ? { approved_by: actorEmail, approved_at: now } : {}),
     })
     .eq("id", id)
     .eq("status", "pending")
-    .or(`expires_at.is.null,expires_at.gt.${now}`)
-    .select("*")
-    .maybeSingle();
+    .or(`expires_at.is.null,expires_at.gt.${now}`);
+  if (identityDecision)
+    query = query
+      .eq("action_type", "identity_review")
+      .eq("payload", JSON.stringify(identityDecision.expectedPayload));
+  const { data, error } = await query.select("*").maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("This action was already handled or has expired");
   await recordAudit(supabase, {
