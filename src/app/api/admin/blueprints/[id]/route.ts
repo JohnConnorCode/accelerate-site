@@ -9,6 +9,7 @@ import {
   validateAgainstCapabilities,
 } from "@/lib/revenue-os/workspace-blueprint";
 import { compileBlueprintPlan } from "@/lib/revenue-os/workspace-blueprint-compiler";
+import { planWorkspaceOperations } from "@/lib/revenue-os/workspace-architect-generated-operations";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -36,6 +37,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       document: blueprint,
       review: buildReviewModel(blueprint, validation),
       compile: compileBlueprintPlan(blueprint, context),
+      operations: planWorkspaceOperations(blueprint, context),
       preflight: summarizePreflight(blueprint),
       blocked: validation.blocked,
       approvals: validation.approvals,
