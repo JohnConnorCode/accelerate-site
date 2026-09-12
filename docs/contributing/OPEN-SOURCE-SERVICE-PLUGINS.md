@@ -88,3 +88,17 @@ real provider authorization, isolation evidence, restored backup proof, monitore
 receipts and a controlled pilot. Record the exact commit, image/source checksums,
 target, test identities and result without exposing secrets. Implementation,
 service readiness, pilot acceptance and customer availability are separate facts.
+
+## Verify the upstream service, not just the host adapter
+
+Social Marketing includes an isolated build-and-recovery workflow in
+`.github/workflows/postiz-service.yml`. Its deployment directory contains source
+patches, private owner bootstrap, process-aware health checks, temporary
+organization fixtures and application database/upload restoration. Reuse this
+shape for another service, with checks that match that provider's actual effects.
+
+Inspect upstream defaults before exposing a host: first-owner signup, public media
+URLs and automatic destructive schema synchronization can differ from their
+configuration labels. Keep private fixtures out of artifacts, scope cleanup to
+the verification namespace, and record unresolved provider permissions separately
+from passing container checks. Do not reuse a green adapter mock as service proof.

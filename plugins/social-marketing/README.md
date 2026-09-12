@@ -90,6 +90,12 @@ does not establish production readiness. The live host, two-tenant isolation,
 backup restoration, approved LinkedIn publication and two weekly pilot batches
 require recorded integration and observation evidence before customer launch.
 
+The hardened service deployment keeps Postiz upload URLs off the public proxy and
+refuses public owner registration. Use native Social Marketing for draft previews;
+the upstream media gallery cannot display its public upload URLs. Operators can
+run the [disposable service verification](deployment/README.md#run-the-disposable-service-verification)
+to collect startup and recovery evidence before configuring a real account.
+
 ## Extend this pattern
 
 The manifest's optional `upstream` block records repository, license, exact commit,

@@ -105,3 +105,13 @@ contracts, migration upgrades, lint, types, build and public docs.
 Live service health, LinkedIn authorization, two-organization isolation,
 backup restoration and two internal weekly batches have their own operational
 receipts. Until those exist, keep customer activation off.
+
+### Preserve the service boundary
+
+The deployment applies `identity.patch` and `service-hardening.patch` to an exact
+upstream revision. Keep the shared post-mapping media ownership checks when adding
+channels. Public upload URLs and public owner registration are denied by Caddy;
+LinkedIn image bytes come from the private local volume. A new provider that
+requires a publicly fetched image needs an explicit, scoped delivery design and
+isolation tests before enabling it. Run `verify-hardening.mjs` against newly
+prepared source and the disposable service workflow before recording a new image.

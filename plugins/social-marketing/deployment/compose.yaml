@@ -33,21 +33,18 @@ services:
       LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID:?Configure the LinkedIn application}
       LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET:?Configure the LinkedIn application}
       API_LIMIT: "30"
-    volumes: ["postiz-config:/config", "postiz-uploads:/uploads"]
+    volumes:
+      - postiz-config:/config
+      - postiz-uploads:/uploads
+      - ./healthcheck.mjs:/opt/accelerate-healthcheck.mjs:ro
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
       temporal: { condition: service_started }
     healthcheck:
-      test:
-        [
-          "CMD",
-          "node",
-          "-e",
-          "fetch('http://localhost:5000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
-        ]
+      test: ["CMD", "node", "/opt/accelerate-healthcheck.mjs"]
       interval: 30s
-      timeout: 5s
+      timeout: 8s
       start_period: 120s
       retries: 5
   postgres:

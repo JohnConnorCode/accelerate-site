@@ -192,7 +192,7 @@ export const capabilities: Capability[] = [
     category: "act",
     title: "Social Marketing: reviewed LinkedIn publishing",
     detail:
-      "Prepare source-backed drafts, approve exact content and schedules, and follow Postiz acceptance through to verified LinkedIn publication. Each workspace connects its own organization; uncertain submissions retain their receipts for review.",
+      "Prepare source-backed drafts, approve exact content and schedules, and follow Postiz acceptance through to verified LinkedIn publication. Each workspace connects its own organization, with private draft media and operator-controlled service setup; uncertain submissions retain their receipts for review.",
     gated: true,
   },
 

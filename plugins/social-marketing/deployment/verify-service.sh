@@ -50,17 +50,18 @@ cleanup() {
 }
 trap cleanup EXIT
 "${compose[@]}" up -d postiz verification-proxy
-for attempt in $(seq 1 90); do
-  if curl -fsS http://localhost:5000/api/auth/can-register >/dev/null; then break; fi
-  sleep 5
-done
-curl -fsS http://localhost:5000/api/auth/can-register >/dev/null
+wait_ready() {
+  for attempt in $(seq 1 90); do
+    if "${compose[@]}" exec -T postiz node /opt/accelerate-healthcheck.mjs; then return 0; fi
+    sleep 5
+  done
+  echo 'Postiz frontend, backend or publishing worker did not become healthy.' >&2
+  return 1
+}
+wait_ready
 node verify-service.mjs bootstrap
 "${compose[@]}" restart postiz
-for attempt in $(seq 1 60); do
-  if curl -fsS http://localhost:5000/api/auth/can-register >/dev/null; then break; fi
-  sleep 5
-done
+wait_ready
 node verify-service.mjs restart
 # Quiesce all writers before the matching DB + upload snapshot.
 "${compose[@]}" stop postiz temporal
@@ -73,10 +74,7 @@ node verify-service.mjs restart
 "${compose[@]}" run --rm --no-deps --entrypoint sh postiz -c 'find /uploads -mindepth 1 -delete'
 "${compose[@]}" run --rm -T --no-deps --entrypoint tar postiz -xzf - -C /uploads < evidence/fixture-uploads.tar.gz
 "${compose[@]}" start temporal postiz
-for attempt in $(seq 1 60); do
-  if curl -fsS http://localhost:5000/api/auth/can-register >/dev/null; then break; fi
-  sleep 5
-done
+wait_ready
 node verify-service.mjs restore
 # Fixture credentials and database contents do not belong in CI artifacts.
-rm -f evidence/fixture-db.dump evidence/fixture-uploads.tar.gz evidence/private-fixtures.json
+rm -f evidence/fixture-db.dump evidence/fixture-uploads.tar.gz private-verification-fixtures.json
