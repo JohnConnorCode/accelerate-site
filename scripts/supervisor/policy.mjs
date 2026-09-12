@@ -211,6 +211,10 @@ export function uninstallManagement() {
       if (!actual)
         throw new Error(`Cannot inspect thread ${session.threadId}; management remains enabled`);
       if (!actual.includes("T")) return;
+      if (!session.startTime)
+        throw new Error(
+          "Stopped producer has no recorded start identity; management remains enabled",
+        );
       if (queueStatus().level !== "normal")
         throw new Error("Pressure has not cleared; producer remains paused");
       // Even an ended registration may still own a stopped process. A signal
