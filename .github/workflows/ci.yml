@@ -281,6 +281,7 @@ jobs:
             set -e
             DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
             node scripts/qa-work-portfolio.mjs
+            node scripts/qa-public-navigation-profile.mjs --services-only
             node scripts/qa-demo-business-workflows.mjs
           ) &
           public_qa_pid=$!
@@ -320,6 +321,7 @@ jobs:
             /tmp/accelerate-demo-business/
             /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-work-portfolio-qa/
+            /tmp/accelerate-public-navigation-profile/
             /tmp/accelerate-collections-workspace/
             /tmp/accelerate-radar-workspace/
             /tmp/accelerate-operator-workspace/

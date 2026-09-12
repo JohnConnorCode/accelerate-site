@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "services-strategy-page",
+    slug: "services-strategy-page",
+    title: "Explore strategy, custom builds and ongoing support",
+    description:
+      "The Services page explains how Accelerate helps identify useful work, build custom systems, support ongoing execution and improve results. Section links connect the offer, example work and engagement process; Command Center remains one option within that broader service.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "resumable-agent-work",
     slug: "resumable-agent-work",
     title: "Continue unfinished agent work from saved checkpoints",
