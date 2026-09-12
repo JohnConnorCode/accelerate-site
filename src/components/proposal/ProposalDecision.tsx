@@ -54,7 +54,7 @@ export function ProposalDecision({
           {decision === "accepted" ? <Check className="size-5" /> : <X className="size-5" />}
         </span>
         <h2 className="mt-4 text-xl font-semibold text-white-primary">Proposal {decision}</h2>
-        <p className="mt-2 text-sm text-white-muted">
+        <p className="mt-2 text-sm text-white-secondary">
           {decision === "accepted"
             ? `Thank you. ${tenant.founder.name} has been notified and will contact you with next steps.`
             : `Thank you for the feedback. ${tenant.founder.name} has been notified and will close the loop personally.`}
@@ -67,7 +67,7 @@ export function ProposalDecision({
         Your decision
       </p>
       <h2 className="mt-2 text-2xl font-semibold text-white-primary">Ready to move forward?</h2>
-      <p className="mt-2 text-sm leading-6 text-white-muted">
+      <p className="mt-2 text-sm leading-6 text-white-secondary">
         Accepting confirms the proposed scope and starts a direct next-steps conversation. No
         payment is collected here.
       </p>
@@ -79,7 +79,7 @@ export function ProposalDecision({
           maxLength={1000}
           aria-label="Reason for declining (optional)"
           placeholder="What made this proposal not the right fit? (Optional)"
-          className="mt-5 w-full rounded-xl border border-border-glass bg-bg-base px-4 py-3 text-sm text-white-primary placeholder:text-white-muted outline-none transition-[border-color,box-shadow] focus:border-gold-light focus:ring-2 focus:ring-gold-light/10"
+          className="mt-5 w-full rounded-xl border border-border-glass bg-bg-base px-4 py-3 text-sm text-white-primary placeholder:text-white-secondary outline-none transition-[border-color,box-shadow] focus:border-gold-light focus:ring-2 focus:ring-gold-light/10"
         />
       )}
       {error && (
