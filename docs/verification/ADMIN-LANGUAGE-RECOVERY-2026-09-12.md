@@ -103,7 +103,7 @@ The same successful CI run also passed shell motion/navigation, Contact review
 states, theme persistence and marketing/demo journeys. The subsequent published-main integration retains the language repair and gets
 its own complete CI before merge. No production deployment is part of this change.
 
-| Before | After |
-| --- | --- |
-| Mobile Help could anchor outside the viewport. | Shared Help stays within page gutters and scrolls within available height. |
+| Before                                         | After                                                                                 |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Mobile Help could anchor outside the viewport. | Shared Help stays within page gutters and scrolls within available height.            |
 | Some headings, Help and parent names diverged. | Shared identity checks cover every core destination; contextual record titles remain. |
