@@ -15,7 +15,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "resumable-agent-work",
     title: "Continue unfinished agent work from saved checkpoints",
     description:
-      "Repository agents can preserve source checkpoints and resume interrupted tasks through the usual backlog request. This release adds durable attempts, permanently fenced old sessions and a limit based on active leases. Automatic takeover requires the recovery migration and an enabled project policy; hosted activation remains a separate release step.",
+      "Repository agents can preserve source checkpoints and resume interrupted tasks through the usual backlog request. This release adds durable attempts and permanently fenced old sessions. Active ownership stays protected, while work volume does not block an authorized claim. Automatic takeover requires the recovery migration and an enabled project policy; hosted activation remains a separate release step.",
     category: "improvement",
     publishedAt: "2026-09-12",
   },
