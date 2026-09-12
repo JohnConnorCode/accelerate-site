@@ -365,9 +365,13 @@ jobs:
         run: |
           npm ci
           npx tsx scripts/test-neutral-starter-artifact.ts
-      - name: Build the exported starter
+      - name: Build the exported starter with its own fresh source history
         working-directory: ${{ runner.temp }}/neutral-starter
-        run: npm run build
+        run: |
+          git init --quiet
+          git add .
+          git -c user.name="Neutral Starter CI" -c user.email="neutral-ci@example.com" commit --quiet -m "Verify exported neutral source"
+          npm run build
       - name: Verify actual neutral desktop and mobile journeys
         working-directory: ${{ runner.temp }}/neutral-starter
         env:

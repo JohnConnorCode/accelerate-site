@@ -8,8 +8,8 @@ export default async function MarketingLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  if (distributionProfile() === "neutral") return <>{children}</>;
   const website = await readPublicWebsite();
+  if (distributionProfile() === "neutral" && website.mode === "bootstrap") return <>{children}</>;
   if (website.mode === "unpublished") notFound();
   if (website.mode === "unavailable")
     throw new Error("The published website is temporarily unavailable.");

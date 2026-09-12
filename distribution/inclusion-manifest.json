@@ -91,7 +91,8 @@
     "src/content/who-this-is-for.ts": "distribution/neutral-starter/src/content/who-this-is-for.ts.txt",
     "src/content/why-accelerate.ts": "distribution/neutral-starter/src/content/why-accelerate.ts.txt",
     "src/content/work.ts": "distribution/neutral-starter/src/content/work.ts.txt",
-    "src/app/layout.tsx": "distribution/neutral-starter/src/app/layout.tsx.txt"
+    "src/app/layout.tsx": "distribution/neutral-starter/src/app/layout.tsx.txt",
+    "src/lib/distribution/profile.ts": "distribution/neutral-starter/src/lib/distribution/profile.ts.txt"
   },
   "environment": {
     "NEXT_PUBLIC_DISTRIBUTION_PROFILE": "neutral"

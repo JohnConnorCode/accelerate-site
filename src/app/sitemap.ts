@@ -1,4 +1,3 @@
-import { tenant } from "@/config/tenant";
 import { distributionProfile } from "@/lib/distribution/profile";
 export const dynamic = "force-dynamic";
 import { readPublicWebsite } from "@/lib/site-studio/website-public";

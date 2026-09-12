@@ -28,6 +28,9 @@ From a clean source checkout, run:
 ```bash
 node scripts/export-neutral-starter.mjs --output /absolute/new/harbor-workspace
 cd /absolute/new/harbor-workspace
+git init
+git add .
+git commit -m "Start neutral workspace"
 npm ci
 npm run build
 npm run start
@@ -35,7 +38,7 @@ npm run start
 
 The output must be a new directory outside the source checkout. Existing files are never overwritten. `neutral-starter-receipt.json` lists every copied path and its content hash, so a reviewer can identify the exact exported source. The exporter copies tracked source selected by `distribution/inclusion-manifest.json` and its explicit replacement files. It refuses path escapes and symlinks and omits private environment, repository metadata and original hosting IDs.
 
-The starter contains a fictional Harbor Operations identity in `src/config/tenant.ts`. Replace that configuration with your business name, domain, contact details and AI instructions before connecting real services. The exported public profile flag is neutral. The original checkout remains branded by default.
+The starter contains a fictional Harbor Operations identity in `src/config/tenant.ts`. Replace that configuration with your business name, domain, contact details and AI instructions before connecting real services. The exported profile defaults to neutral, including after a fresh Git clone. Start your own Git history with your configured author identity; the normal build uses that commit as its release identifier. The original checkout remains branded by default.
 
 All original public assets, article collections, team biographies and work examples are omitted. Business-owned content collections start empty; editable page sections use neutral placeholders. The shared runtime, fictional admin scenarios, extension code and product documentation remain. Supply assets you have rights to publish and update your own page content before public release.
 

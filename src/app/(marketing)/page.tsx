@@ -60,6 +60,8 @@ const serviceJsonLd = {
 };
 
 export async function generateMetadata() {
+  const published = await publishedWebsiteMetadata("/");
+  if (published) return published;
   if (distributionProfile() === "neutral") {
     const identity = neutralPublicIdentity(tenant);
     return {
@@ -68,10 +70,12 @@ export async function generateMetadata() {
       alternates: { canonical: identity.siteUrl },
     };
   }
-  return (await publishedWebsiteMetadata("/")) ?? bundledMetadata;
+  return bundledMetadata;
 }
 
 export default async function HomePage() {
+  const website = await readPublicWebsite();
+  if (website.mode !== "bootstrap") return <PublishedWebsitePage path="/" />;
   if (distributionProfile() === "neutral")
     return (
       <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 px-6 py-16">
@@ -91,8 +95,7 @@ export default async function HomePage() {
         </p>
       </main>
     );
-  const website = await readPublicWebsite();
-  if (website.mode !== "bootstrap") return <PublishedWebsitePage path="/" />;
+
   return (
     <>
       <script
