@@ -1,9 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { domainFromEmailOrWebsite, normalizeEmail } from "./db";
-import { recordAudit } from "./audit";
 import { isConfiguredAdmin } from "@/lib/admin/access";
-import { recordActivity } from "./activities";
 
 export interface ResolveIdentityInput {
   name: string;
@@ -136,6 +134,8 @@ export interface ApprovedImportedContact {
   industry: string | null;
   source: string | null;
   notes: string | null;
+  /** Server-normalized company identity included in the approved review digest. */
+  identityDomain?: string | null;
 }
 
 export interface ContactImportIdentityMatch {
@@ -162,7 +162,7 @@ export interface ContactImportIdentityMatch {
   companyCandidates: Array<{ id: string; name: string; domain: string | null }>;
 }
 
-function businessDomain(data: ApprovedImportedContact): string | null {
+export function businessDomain(data: ApprovedImportedContact): string | null {
   const domain = domainFromEmailOrWebsite(data.email, data.website);
   return domain && !PERSONAL_EMAIL_DOMAINS.has(domain) ? domain : null;
 }
@@ -262,238 +262,65 @@ export interface ImportApprovedContactInput {
   data: ApprovedImportedContact;
 }
 
-/** Applies one already-reviewed row. It deliberately fills blank fields on an
- * existing record instead of overwriting founder-maintained values. */
+/** Shared serialized review contract; its byte digest is the batch approval. */
+export function contactImportReviewRow(row: {
+  id: string;
+  row_index: number;
+  action: string;
+  included: boolean;
+  reviewed_data: ApprovedImportedContact;
+  matched_contact_id: string | null;
+  matched_company_id: string | null;
+}) {
+  return {
+    id: row.id,
+    rowIndex: row.row_index,
+    action: row.action,
+    included: row.included,
+    data: row.reviewed_data,
+    matchedContactId: row.matched_contact_id,
+    matchedCompanyId: row.matched_company_id,
+  };
+}
+
+export class ContactImportRowEffectError extends Error {}
+
+/** Applies the exact existing approved row and its receipt in one transaction. */
 export async function importApprovedContact(
   supabase: SupabaseClient,
   input: ImportApprovedContactInput,
 ) {
   if (!isConfiguredAdmin(input.actorEmail)) throw new Error("Forbidden");
-  const replay = await supabase
-    .from("contacts")
-    .select("id,company_id")
-    .eq("source_record_type", "contact_import_row")
-    .eq("source_record_id", input.rowId)
-    .maybeSingle();
-  if (replay.error) throw new Error(replay.error.message);
-  if (replay.data) {
-    await recordActivity(supabase, {
-      activityType: "contact_imported",
-      title: `Imported contact: ${input.data.fullName}`,
-      summary: "Approved contact import replay reconciled",
-      contactId: replay.data.id,
-      companyId: replay.data.company_id,
-      source: "contact_import",
-      actorEmail: input.actorEmail,
-      externalId: `row:${input.rowId}`,
-      metadata: {
-        batch_id: input.batchId,
-        row_id: input.rowId,
-        action: input.action,
-        replayed: true,
-      },
-    });
-    await recordAudit(supabase, {
-      actorEmail: input.actorEmail,
-      action: "contact.import_reconciled",
-      entityType: "contact",
-      entityId: replay.data.id,
-      source: "admin",
-      metadata: { import_batch_id: input.batchId, import_row_id: input.rowId },
-    });
-    return {
-      contactId: replay.data.id,
-      companyId: replay.data.company_id,
-      replayed: true,
-      changedFields: [] as string[],
-    };
-  }
-
-  const current = await inspectContactImportIdentity(supabase, input.data);
-  let contact = current.contact;
-  let company = current.company;
-  const hasAmbiguousContact = current.contactCandidates.length > 1;
-  const hasAmbiguousCompany = current.companyCandidates.length > 1;
-  const expectedContact = input.expectedContactId
-    ? (current.contactCandidates.find((candidate) => candidate.id === input.expectedContactId) ??
-      null)
-    : null;
-  const expectedCompany = input.expectedCompanyId
-    ? (current.companyCandidates.find((candidate) => candidate.id === input.expectedCompanyId) ??
-      null)
-    : null;
-
-  if (current.status === "ambiguous") {
-    if (hasAmbiguousContact && !expectedContact)
-      throw new Error(`Identity needs review: ${current.reason}`);
-    if (hasAmbiguousCompany && !expectedCompany)
-      throw new Error(`Identity needs review: ${current.reason}`);
-    if (expectedContact && hasAmbiguousContact) {
-      const selected = await supabase
-        .from("contacts")
-        .select("id,full_name,primary_email,phone,title,company_id,metadata")
-        .eq("id", expectedContact.id)
-        .maybeSingle();
-      if (selected.error) throw new Error(selected.error.message);
-      if (!selected.data)
-        throw new Error("Identity changed after review: the approved contact match is stale");
-      contact = selected.data;
-    }
-    if (expectedCompany && hasAmbiguousCompany) {
-      const selected = await supabase
-        .from("companies")
-        .select("id,name,domain,website,industry")
-        .eq("id", expectedCompany.id)
-        .maybeSingle();
-      if (selected.error) throw new Error(selected.error.message);
-      if (!selected.data)
-        throw new Error("Company identity changed after review; analyze the batch again");
-      company = selected.data;
-    }
-  } else {
-    if (input.expectedContactId && current.contact?.id !== input.expectedContactId) {
-      throw new Error("Identity changed after review: the approved contact match is stale");
-    }
-    if (input.expectedCompanyId && current.company?.id !== input.expectedCompanyId) {
-      throw new Error("Company identity changed after review; analyze the batch again");
-    }
-  }
-
-  if (input.action === "create" && contact)
-    throw new Error("Identity changed after review: this email now belongs to an existing contact");
-  if (input.action === "update" && !contact) {
-    throw new Error("Identity changed after review: the approved contact match is stale");
-  }
+  const { data: rows, error: readError } = await supabase
+    .from("contact_import_rows")
+    .select("id,row_index,action,included,reviewed_data,matched_contact_id,matched_company_id")
+    .eq("batch_id", input.batchId)
+    .order("row_index", { ascending: true });
+  if (readError) throw new Error(readError.message);
+  const cohort = (rows ?? []) as Parameters<typeof contactImportReviewRow>[0][];
+  const row = cohort.find((candidate) => candidate.id === input.rowId);
   if (
-    input.action === "update" &&
-    input.expectedContactId &&
-    contact?.id !== input.expectedContactId
-  ) {
-    throw new Error("Identity changed after review: the approved contact match is stale");
-  }
-
-  if (!company && current.domain && input.data.companyName) {
-    const inserted = await supabase
-      .from("companies")
-      .insert({
-        name: input.data.companyName,
-        domain: current.domain,
-        website: input.data.website,
-        industry: input.data.industry,
-        source: input.data.source || "contact_import",
-        source_record_type: "contact_import_company_row",
-        source_record_id: input.rowId,
-        metadata: { import_batch_id: input.batchId },
-      })
-      .select("id,name,domain,website,industry")
-      .single();
-    if (inserted.error) throw new Error(inserted.error.message);
-    company = inserted.data;
-  } else if (company) {
-    const companyUpdates: Record<string, unknown> = {};
-    if (!company.website && input.data.website) companyUpdates.website = input.data.website;
-    if (!company.industry && input.data.industry) companyUpdates.industry = input.data.industry;
-    if (Object.keys(companyUpdates).length) {
-      const updated = await supabase
-        .from("companies")
-        .update(companyUpdates)
-        .eq("id", company.id)
-        .select("id,name,domain,website,industry")
-        .single();
-      if (updated.error) throw new Error(updated.error.message);
-      company = updated.data;
-    }
-  }
-
-  const changedFields: string[] = [];
-  let contactId: string;
-  if (contact) {
-    const updates: Record<string, unknown> = {};
-    if (!contact.phone && input.data.phone) {
-      updates.phone = input.data.phone;
-      changedFields.push("phone");
-    }
-    if (!contact.title && input.data.role) {
-      updates.title = input.data.role;
-      changedFields.push("role");
-    }
-    if (!contact.company_id && company?.id) {
-      updates.company_id = company.id;
-      changedFields.push("company");
-    }
-    const existingMetadata =
-      contact.metadata && typeof contact.metadata === "object" ? contact.metadata : {};
-    updates.metadata = {
-      ...existingMetadata,
-      last_contact_import_batch_id: input.batchId,
-      ...(input.data.notes ? { import_notes: input.data.notes } : {}),
-      ...(input.data.source ? { imported_source: input.data.source } : {}),
-    };
-    const updated = await supabase
-      .from("contacts")
-      .update(updates)
-      .eq("id", contact.id)
-      .select("id")
-      .single();
-    if (updated.error) throw new Error(updated.error.message);
-    contactId = updated.data.id;
-  } else {
-    const names = input.data.fullName.trim().split(/\s+/);
-    const inserted = await supabase
-      .from("contacts")
-      .insert({
-        first_name: names[0] || null,
-        last_name: names.length > 1 ? names.slice(1).join(" ") : null,
-        full_name: input.data.fullName,
-        primary_email: normalizeEmail(input.data.email),
-        phone: input.data.phone,
-        title: input.data.role,
-        company_id: company?.id ?? null,
-        source: input.data.source || "contact_import",
-        source_record_type: "contact_import_row",
-        source_record_id: input.rowId,
-        metadata: {
-          import_batch_id: input.batchId,
-          ...(input.data.notes ? { import_notes: input.data.notes } : {}),
-          ...(input.data.companyName && !company
-            ? { unlinked_company_name: input.data.companyName }
-            : {}),
-        },
-      })
-      .select("id")
-      .single();
-    if (inserted.error) throw new Error(inserted.error.message);
-    contactId = inserted.data.id;
-    changedFields.push("created");
-  }
-
-  await recordActivity(supabase, {
-    activityType: "contact_imported",
-    title: `${input.action === "create" ? "Imported" : "Enriched"} contact: ${input.data.fullName}`,
-    summary: input.data.source
-      ? `Approved contact import · ${input.data.source}`
-      : "Approved contact import",
-    contactId,
-    companyId: company?.id ?? null,
-    source: "contact_import",
-    actorEmail: input.actorEmail,
-    externalId: `row:${input.rowId}`,
-    metadata: {
-      batch_id: input.batchId,
-      row_id: input.rowId,
-      action: input.action,
-      changed_fields: changedFields,
-    },
+    !row ||
+    row.action !== input.action ||
+    row.matched_contact_id !== (input.expectedContactId ?? null) ||
+    row.matched_company_id !== (input.expectedCompanyId ?? null) ||
+    Object.entries(input.data).some(
+      ([key, value]) => row.reviewed_data[key as keyof ApprovedImportedContact] !== value,
+    )
+  )
+    throw new Error("Import row differs from the reviewed choice");
+  const { data, error } = await supabase.rpc("apply_contact_import_row", {
+    p_batch_id: input.batchId,
+    p_row_id: input.rowId,
+    p_actor: input.actorEmail,
+    p_review_snapshot: JSON.stringify(cohort.map(contactImportReviewRow)),
   });
-
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: input.action === "create" ? "contact.imported" : "contact.enriched",
-    entityType: "contact",
-    entityId: contactId,
-    source: "admin",
-    after: { company_id: company?.id ?? null, changed_fields: changedFields },
-    metadata: { import_batch_id: input.batchId, import_row_id: input.rowId },
-  });
-  return { contactId, companyId: company?.id ?? null, replayed: false, changedFields };
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new ContactImportRowEffectError(String(data.error));
+  return data as {
+    contactId: string;
+    companyId: string | null;
+    replayed: boolean;
+    changedFields: string[];
+  };
 }

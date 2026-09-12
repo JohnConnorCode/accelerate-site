@@ -1,10 +1,15 @@
-import { resolveIdentityFixture } from "./lib/identity-action-fixture";
+import {
+  resolveIdentityFixture,
+  importApprovedContactFixture,
+} from "./lib/identity-action-fixture";
 import type { ResolveIdentityInput } from "../src/lib/revenue-os/identity";
 import assert from "node:assert/strict";
 import {
   exactIlike,
   findCanonicalContactByEmail,
-  importApprovedContact,
+  importApprovedContact as applyReviewedImport,
+  type ImportApprovedContactInput,
+  businessDomain,
   inspectContactImportIdentity,
   resolveOrCreateIdentity,
 } from "../src/lib/revenue-os/identity";
@@ -43,6 +48,9 @@ class MemoryQuery implements PromiseLike<QueryResult> {
         Array.isArray(row[column]) &&
         values.every((value) => (row[column] as unknown[]).includes(value)),
     );
+    return this;
+  }
+  order() {
     return this;
   }
   limit(limit: number) {
@@ -110,9 +118,33 @@ class MemorySupabase {
   readonly touched = new Set<string>();
   private sequence = 0;
   constructor(readonly rows: Record<string, Row[]>) {}
-  async rpc(name: string, args: { p_input: ResolveIdentityInput }) {
-    if (name !== "resolve_revenue_identity") throw new Error("Unexpected identity RPC");
+  async rpc(
+    name: string,
+    args: {
+      p_input?: ResolveIdentityInput;
+      p_row_id?: string;
+      p_batch_id?: string;
+      p_actor?: string;
+    },
+  ) {
     try {
+      if (name === "apply_contact_import_row") {
+        const row = this.rows.contact_import_rows!.find((row) => row.id === args.p_row_id)!;
+        return {
+          data: await importApprovedContactFixture(this as never, {
+            rowId: String(row.id),
+            batchId: String(args.p_batch_id),
+            actorEmail: String(args.p_actor),
+            action: row.action as "create" | "update",
+            expectedContactId: row.matched_contact_id as string | null,
+            expectedCompanyId: row.matched_company_id as string | null,
+            data: row.reviewed_data as ImportApprovedContactInput["data"],
+          }),
+          error: null,
+        };
+      }
+      if (name !== "resolve_revenue_identity" || !args.p_input)
+        throw new Error("Unexpected identity RPC");
       return { data: await resolveIdentityFixture(this as never, args.p_input), error: null };
     } catch (error) {
       return {
@@ -134,6 +166,23 @@ class MemorySupabase {
 
 function memorySupabase(data: Record<string, Row[]>) {
   return new MemorySupabase(data);
+}
+
+async function importApprovedContact(db: MemorySupabase, input: ImportApprovedContactInput) {
+  const rows = db.rows.contact_import_rows ?? (db.rows.contact_import_rows = []);
+  const data = { ...input.data, identityDomain: businessDomain(input.data) };
+  if (!rows.some((row) => row.id === input.rowId))
+    rows.push({
+      id: input.rowId,
+      batch_id: input.batchId,
+      row_index: rows.length,
+      action: input.action,
+      included: true,
+      reviewed_data: data,
+      matched_contact_id: input.expectedContactId ?? null,
+      matched_company_id: input.expectedCompanyId ?? null,
+    });
+  return applyReviewedImport(db as never, { ...input, data });
 }
 
 async function run() {
