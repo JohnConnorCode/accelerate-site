@@ -21,3 +21,5 @@ file. Review semantics separately. No existing exception behavior is changed her
 
 The pattern follows the SD Command audit: ratchet measurable engineering debt
 through shared verification, without copying business-specific runtime policies.
+
+Integration review on 2026-09-12 reduced the historical baseline for already-fixed handlers: business-pulse Coworker 8 to 6, meeting-intel Coworker 8 to 0 (entry removed), and sales Coworker 7 to 6. No allowance increased and no runtime error behavior changed.

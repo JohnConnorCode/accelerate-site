@@ -1,17 +1,16 @@
 {
   "src/lib/revenue-os/actions.ts": 2,
-  "src/lib/revenue-os/business-pulse-coworker.ts": 8,
+  "src/lib/revenue-os/business-pulse-coworker.ts": 6,
   "src/lib/revenue-os/contact-imports.ts": 1,
   "src/lib/revenue-os/db.ts": 1,
   "src/lib/revenue-os/finance-coworker.ts": 5,
   "src/lib/revenue-os/google.ts": 2,
   "src/lib/revenue-os/inbound.ts": 5,
   "src/lib/revenue-os/knowledge.ts": 2,
-  "src/lib/revenue-os/meeting-intel-coworker.ts": 8,
   "src/lib/revenue-os/operations-coworker.ts": 5,
   "src/lib/revenue-os/pipeline.ts": 7,
   "src/lib/revenue-os/plugins.ts": 2,
   "src/lib/revenue-os/proactive-intel.ts": 4,
-  "src/lib/revenue-os/sales-coworker.ts": 7,
+  "src/lib/revenue-os/sales-coworker.ts": 6,
   "src/lib/revenue-os/trust-graduation.ts": 2
 }
