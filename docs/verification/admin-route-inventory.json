@@ -131,9 +131,9 @@
     "src/app/api/admin/settings/route.ts": "7f2356ae469f754ec265ab3f64e759533f39d7b86c462c08b05f6f7794caa62e",
     "src/app/api/admin/settings/test/route.ts": "f6b83ed5979d5187b406f402308d12b982370adb735a2664717cf5770ea013bc",
     "src/app/api/admin/setup/route.ts": "5216a5815e962c53e4ae9214953ecbc56f3c3b37159663ded2a749a1fe2b9f67",
-    "src/app/api/admin/site/drafts/[id]/route.ts": "21df6c6c4a8bc45cf244189199c249fd6930dbe68c3f97b79362086a1eede884",
-    "src/app/api/admin/site/drafts/[id]/sections/route.ts": "54de0ee00a286b3a12e2e79f43af9b655e6ec72422065b019f2d6346458049ed",
-    "src/app/api/admin/site/drafts/route.ts": "b38eb688bf57f205f0c5469f08b72b9afec42ca05e6e8664b63b2072c6a25777",
+    "src/app/api/admin/site/drafts/[id]/route.ts": "d1b109ec287325688acdd544984e10a0d91a0742dd5be50af106ce2950317692",
+    "src/app/api/admin/site/drafts/[id]/sections/route.ts": "623fd46a4685d04e3eaa587a575fefec46a5a80882b5f890404ea042d015a992",
+    "src/app/api/admin/site/drafts/route.ts": "61bda1e22d51f4c939ccf8d19c949bfde0604440aa95a289a8bdc7cdfb8dc7d0",
     "src/app/api/admin/site/website/route.ts": "2fc0c107af46890d94e2a19b912cc2fa251747c22bacf63b5491dd04537c3a0a",
     "src/app/api/admin/site/website/suggest/route.ts": "5efc8fcbfe8c552ce9332b10143576689acfdf5001e0005c57231dbc00624835",
     "src/app/api/admin/subscribers/export/route.ts": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63",
@@ -314,18 +314,18 @@
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
     "src/lib/revenue-os/runs.ts": "94ea4fe446cc959aaf90cb4ab968f9b0baf0c165f3c393081b9fd6e4d8015fdd",
-    "src/lib/revenue-os/schema-contract.ts": "cdc68cd1d30ecf71f1426c5afd3b28c339cd69ca31ad8d0dbc08beaf69567abd",
+    "src/lib/revenue-os/schema-contract.ts": "33e42edacd23f4b8a06b7ad4f9ca947e8aef40f5cab151136ef612812d796981",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/tasks.ts": "ddca6cc4af840c5758270c65f37eaf14bd3865cf08f1e17eba898ef4c7a164dc",
     "src/lib/revenue-os/tool-profiles.ts": "c72d9e318dc7b157af57b7e34adef41fa9153fda94a5f09116fe1b5debb8c1ce",
     "src/lib/revenue-os/types.ts": "7c2ef713990b2180acd4c76507e708431288fd46d98fab1072cc6451a15e44bd",
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
-    "src/lib/revenue-os/work-board.ts": "3c59b5bf3a403b554b05675beeb44c3d985f9fea67a29f63e3a56428000e5e0e",
+    "src/lib/revenue-os/work-board.ts": "e3000cc158532d6e1ed4f6e51201a77087ded5a0b660286ac06ad1a8ccb9a697",
     "src/lib/revenue-os/workflow-plugins.ts": "7c4cd159d57272372d0d1826a97f2a9101e7fa7bd6529536dda9751fb0c1691f",
     "src/lib/revenue-os/workspace-blueprint-compiler.ts": "1550e3390a9ecf44f783b8d81926c14797a66dab7ad1ca10eef88b10b1f95cc9",
     "src/lib/revenue-os/workspace-blueprint.ts": "76a6fd8530027724236807e1baa52d45c40f0bb4fa2beacc5e68158752f42534",
-    "src/lib/site-studio/database-store.ts": "4db7724ecea8c3148c8c7bda344c3292d71c6256afa3825fff17668dfc49494f",
+    "src/lib/site-studio/database-store.ts": "14770b7c52f270ffe16f9c569e70414ca35a87d50fbfca7880d665e20f2139b7",
     "src/lib/site-studio/document.ts": "612dd8babdc38c26a5786ca59b61c7cadeda1759010538c92b260a482284d7a3",
     "src/lib/site-studio/drafts.ts": "eb016af336fa9d0efa3e7f3e628de3414f22486017b3cf8682658c4076eb6d42",
     "src/lib/site-studio/generate.ts": "b9e6d4c5031b69805b7b31ef53dcbde52548d283a96021f50eba53dc0af2c0cc",
@@ -337,7 +337,7 @@
     "src/lib/site-studio/website-commands.ts": "064486605dce783b163a46b9620947f4b0b01b8c080eb746b4e90076500ecad2",
     "src/lib/site-studio/website-document.ts": "dfb51a4524dbb4117eb4a5de5d293c8ee5c35e93d304b654965d5c078da90ed4",
     "src/lib/site-studio/website-seed.ts": "ad622943dfe8163177a2719e0c6409441b4c9cf751daba6cd6c01868438ffce9",
-    "src/lib/site-studio/website-store.ts": "9b3838157e945fd1629cabeb7ecf4d607585a5a2917653261026349f223772db",
+    "src/lib/site-studio/website-store.ts": "44ff49544e87d94198dec63e2b1ea44da0a378e3581b1dc3d7506a84ecd82876",
     "src/lib/tenancy/context.ts": "980fc542bbc744ffa66bc58cd463ef0c7508ac1d847c560f0de7a9cfefd38c7d",
     "src/lib/tenancy/lifecycle.ts": "2b2ca947757d4ff3595062f918734b1b765f89352a834e440ae28ae140de8b53",
     "src/lib/tenancy/system.ts": "28e241c788fba9c5793536d0bcf6db076c0d56f6513976f9ae387acc4b222911"
@@ -941,7 +941,7 @@
           "directTables": ["work_board_views"]
         }
       ],
-      "boundary": "Canonical work-board service owns claims and lifecycle; page is its adapter. Advanced filters and saved views share the existing validated filter state through an accessible dialog; no lifecycle or board write bypass is introduced.",
+      "boundary": "Canonical work-board service owns claims and lifecycle; page is its adapter. Advanced filters and saved views share the existing validated filter state through an accessible dialog; no lifecycle or board write bypass is introduced. Attempt takeover and durable checkpoints use the same project-scoped, revision-checked service; policy changes require separate reviewer authority and default off. Late predecessor tokens cannot mutate successor work.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1737,7 +1737,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Disabled-by-default Site Studio module. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. No operation publishes public content. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work.",
+      "boundary": "Disabled-by-default Site Studio module. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. No operation publishes public content. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1769,7 +1769,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Disabled-by-default Site Studio module. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. No operation publishes public content. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work.",
+      "boundary": "Disabled-by-default Site Studio module. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. No operation publishes public content. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1799,7 +1799,7 @@
       "route": "/admin/site/website",
       "page": "src/app/admin/site/website/page.tsx",
       "primaryAction": "Create and edit website pages; review AI suggestions and publish a saved revision",
-      "boundary": "Installation owner, active bootstrap admin membership, tenant-bound database and enabled Site Studio are required. The bounded API validates canonical commands and returns immutable idempotent receipts. AI suggestion preparation is read-only and uses the shared budget gateway with a supported chosen model; local adoption and saving are explicit. Public rendering reads only the published revision. Automatic import of remaining source layouts and governed AI/MCP mutation parity remain unfinished on the linked claim.",
+      "boundary": "Installation owner, active bootstrap admin membership, tenant-bound database and enabled Site Studio are required. The bounded API validates canonical commands and returns immutable idempotent receipts. AI suggestion preparation is read-only and uses the shared budget gateway with a supported chosen model; local adoption and saving are explicit. Public rendering reads only the published revision. Automatic import of remaining source layouts and governed AI/MCP mutation parity remain unfinished on the linked claim. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
       "followUp": {
         "id": "7b54f4b4-7519-4758-a268-eeaa17fc0d17",
         "key": "site-studio-installation-editor"

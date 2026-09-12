@@ -75,6 +75,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260906-collections-cases.sql",
   "migrations/20260906-collections-reminders.sql",
   "migrations/20260907-work-packet-quality.sql",
+  "migrations/20260912145031-work-board-resumable-attempts.sql",
   "migrations/20260908-model-call-reservations.sql",
   "migrations/20260908-runtime-record-permission-denied.sql",
   "migrations/20260909-radar-evidence-store.sql",
@@ -96,6 +97,9 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260909012125-installation-website-revisions.sql",
   "migrations/20260910-today-workspace.sql",
   "migrations/20260911-learning-inbox.sql",
+  "migrations/20260912-site-studio-authenticated-writes.sql",
+  "migrations/20260912152325-site-studio-verified-host-writes.sql",
+  "migrations/20260912153548-work-board-claim-continuity.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

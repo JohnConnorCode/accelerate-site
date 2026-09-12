@@ -38,7 +38,7 @@ npm run agent:go -- --json
 ```
 
 For an unqualified backlog request, the equivalent first action is the
-internal `npm run agent:go -- --json`; it chooses the next eligible card and
+internal `npm run agent:go -- --json`; it continues current or recoverable work before choosing the next eligible card and
 returns the same packet without requiring the user to name `<key>`.
 
 Use the configured private transport: remote workers use `WORK_BOARD_URL` and a
@@ -50,18 +50,34 @@ The selected transport atomically claims ready work through the canonical servic
 and returns the live contract. Read all referenced services/migrations before
 editing.
 The repository base branch and exact commit must be present before worktree
-creation. An expired claim needs operator review; no automatic reassignment or
-force cleanup is allowed. Renew the lease at least every 30 minutes.
+creation. With the project recovery policy enabled, expired work with a valid
+checkpoint is resumed through the canonical service. The successor has new
+ownership; preserve the original checkout and session. Inspect missing checkpoint
+source and record a precise recovery gap. Carry existing founder recovery authority
+through the supported operator path without requesting it again.
+
+Use the emitted `--attempt` for commands outside the worker checkout. A new claim
+publishes a starting checkpoint, and `agent:progress` saves tracked source plus
+remaining work. Add new source files explicitly through `agent:checkpoint`; use
+[the checkpoint example](NATURAL-LANGUAGE-AGENT.md#preserve-work-between-agents).
+Renew the 30-minute lease while making progress. Wrap a long verification command
+in the emitted `agent:run` command so renewal lasts only while that bounded job runs.
+An explicit request for a named expired task also permits normal revision-checked
+claim continuation without another approval. Work volume never blocks an authorized
+claim. The new attempt rotates ownership and preserves its predecessor; the CLI
+uses retained source to prepare an isolated successor without overwriting the old
+checkout. Automatic selection still requires checkpoint and project-policy readiness.
 
 The live board owns definitions and status. Git templates are reviewed input;
 `seed:features -- --plan /tmp/plan.json --cards <keys>` creates a proposal, and
 `--apply --plan /tmp/plan.json` applies only those versioned changes. Unlisted
 cards and live execution state survive imports.
 
-The claim service enforces WIP limits. There is no force override. If a claim is
-refused, read the reason, resolve it with the work owner, or choose another ready
-card. Keep the published control checkout for all board commands when the ticket
-uses an older application base.
+Work volume never blocks a claim. Do not ask the founder to clear a slot, review
+unrelated expired claims, or repeat authorization to resume the requested task.
+Use the named card for explicit requests and automatic selection for unqualified
+backlog requests. Keep the published control checkout for board commands when a
+worker uses an older application base.
 
 ## 2. Write the implementation contract
 
@@ -206,5 +222,6 @@ proof belongs in progress evidence, not a successful submission.
 Features and bugs need a complete packet before claim. Initiatives cannot be
 claimed; review their verified children before accepting the aggregate. Frozen
 active/submitted specifications require release or review resolution before edits.
-Prioritize useful business journeys across parallel phases; preserve the six-card
-WIP limit, lease fencing and the separate integration/release records.
+Prioritize useful business journeys across parallel phases; preserve lease fencing
+and separate integration/release records. Machine resource gates remain independent
+of board work volume.

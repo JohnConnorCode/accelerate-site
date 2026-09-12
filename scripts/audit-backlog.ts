@@ -414,7 +414,7 @@ for (const c of rows) {
   notes = notes
     .replace(
       /Claim this card by setting Owner and in_progress; keep no more than two cards in progress at once\./g,
-      "Claim through the canonical work service; the global WIP limit is six.",
+      "Claim through the canonical work service; work volume never blocks authorized work.",
     )
     .replace(
       /Agent handoff: claim the card by setting Owner[^\n]*/g,

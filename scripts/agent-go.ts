@@ -76,6 +76,8 @@ function runPickupPreflight() {
 function runDispatch(profile: Profile | null) {
   const dispatchArgs = ["tsx", "scripts/agent-dispatch.ts", "next"];
   if (card) dispatchArgs.push("--card", card);
+  const attemptIndex = args.indexOf("--attempt");
+  if (attemptIndex >= 0) dispatchArgs.push("--attempt", args[attemptIndex + 1]!);
   // Fetch the raw card once; the runner applies the compact task-context
   // projection locally and keeps --full as an explicit diagnostic escape hatch.
   dispatchArgs.push("--full");
@@ -165,6 +167,8 @@ function main() {
           "--env-file",
           "--local-operator",
           "--project",
+          "--capabilities",
+          "--attempt",
         ].includes(arg),
     )
   )
@@ -178,11 +182,15 @@ function main() {
     if (!envFile || !isAbsolute(envFile) || !existsSync(envFile))
       fail("Setup requires an existing absolute --env-file path.", "SETUP_REQUIRED");
     const localProject = project ?? "";
+    const capabilityIndex = args.indexOf("--capabilities");
+    const capabilities = capabilityIndex < 0 ? [] : (args[capabilityIndex + 1] ?? "").split(",");
+    if (capabilities.length > 50 || capabilities.some((c) => !/^[a-z0-9-]{1,80}$/.test(c)))
+      fail("Capabilities must be comma-separated named skills, never wildcards.");
     if (localOperator && !/^[a-z0-9-]{1,80}$/.test(localProject))
       fail("Local operator setup requires --project <project-key>.", "SETUP_REQUIRED");
     mkdirSync(context.common, { recursive: true });
     const profile: Profile = localOperator
-      ? { version: 1, transport: "local-operator", project: localProject, envFile }
+      ? { version: 1, transport: "local-operator", project: localProject, envFile, capabilities }
       : { version: 1, transport: "https", envFile };
     const destination = localOperator ? localOperatorProfilePath : profilePath;
     writeFileSync(destination, JSON.stringify(profile, null, 2) + "\n", { mode: 0o600 });
@@ -202,6 +210,8 @@ function main() {
     ...taskPacket(rawPacket),
     worktree: rawPacket.worktree ?? null,
     controlCheckout: rawPacket.controlCheckout ?? appRoot,
+    attemptId: rawPacket.attemptId ?? rawPacket.work_attempt_id,
+    ...(rawPacket.checkpointWarning ? { checkpointWarning: rawPacket.checkpointWarning } : {}),
   };
   const packet = full ? rawPacket : compactPacket;
   const repair = repairGeneratedReport(rawPacket.worktree);
@@ -213,6 +223,7 @@ function main() {
     lifecycle: {
       cwd: appRoot,
       card: rawPacket.seed_key ?? rawPacket.id,
+      attemptId: rawPacket.attemptId ?? rawPacket.work_attempt_id,
       heartbeat: [
         "npm",
         "run",
@@ -220,7 +231,51 @@ function main() {
         "--",
         "--card",
         rawPacket.seed_key ?? rawPacket.id,
+        ...(rawPacket.attemptId || rawPacket.work_attempt_id
+          ? ["--attempt", rawPacket.attemptId ?? rawPacket.work_attempt_id]
+          : []),
       ],
+      ...(rawPacket.attemptId || rawPacket.work_attempt_id
+        ? {
+            run: [
+              "npm",
+              "run",
+              "agent:run",
+              "--",
+              "--card",
+              rawPacket.seed_key ?? rawPacket.id,
+              "--attempt",
+              rawPacket.attemptId ?? rawPacket.work_attempt_id,
+              "--",
+              "<verification command>",
+              "<arguments>",
+            ],
+            progress: [
+              "npm",
+              "run",
+              "agent:progress",
+              "--",
+              "--card",
+              rawPacket.seed_key ?? rawPacket.id,
+              "--attempt",
+              rawPacket.attemptId ?? rawPacket.work_attempt_id,
+              "--message",
+              "<what changed and what remains>",
+            ],
+            checkpoint: [
+              "npm",
+              "run",
+              "agent:checkpoint",
+              "--",
+              "--card",
+              rawPacket.seed_key ?? rawPacket.id,
+              "--attempt",
+              rawPacket.attemptId ?? rawPacket.work_attempt_id,
+              "--checkpoint-file",
+              "<absolute JSON path including explicit new source files>",
+            ],
+          }
+        : {}),
       submit: [
         "npm",
         "run",
@@ -228,11 +283,14 @@ function main() {
         "--",
         "--card",
         rawPacket.seed_key ?? rawPacket.id,
+        ...(rawPacket.attemptId || rawPacket.work_attempt_id
+          ? ["--attempt", rawPacket.attemptId ?? rawPacket.work_attempt_id]
+          : []),
         "--evidence-file",
         "<absolute evidence file path>",
       ],
       instruction:
-        "Run board lifecycle commands from this control checkout, including for worker bases that predate profile support. Edit and verify source only in the worker checkout.",
+        "Run board lifecycle commands from this control checkout, including for worker bases that predate profile support. Edit source only in the worker checkout. agent:run resolves that workspace automatically and checkpoints tracked changes before starting verification there; use checkpoint to include explicit new source files.",
     },
     instruction:
       "Continue in the printed worktree. Implement every acceptance item, run the packet checks, repair failures, commit the exact result, create evidence, and submit it using the printed control-checkout lifecycle commands. Stop only after HANDOFF_SUBMITTED or an explicit operator-required block. Review, merge, and deployment are separate.",

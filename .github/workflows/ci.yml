@@ -107,7 +107,9 @@ jobs:
 
       - name: Verify runtime tenant and domain boundaries
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run verify:runtime-boundaries
+        run: |
+          npm run verify:runtime-boundaries
+          node --test scripts/test-runtime-error-adoption.mjs
 
       - name: Verify admin language and route identity
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -182,6 +184,7 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:tenant-lifecycle:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
 
       - name: Verify installation migrations
@@ -195,7 +198,10 @@ jobs:
 
       - name: Verify developer handoff and fresh-clone pickup
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run test:developer-handoff
+        run: |
+          npm run test:developer-handoff
+          npm run test:agent-checkpoint
+          NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-demo-work-continuity.ts
 
       - name: Verify resource gate behavior
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
