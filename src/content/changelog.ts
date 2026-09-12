@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "drive-duplicate-provenance",
+    slug: "drive-duplicate-provenance",
+    title: "Keep Drive duplicate references across repeated syncs",
+    description:
+      "Unchanged Drive files retain their duplicate-source relationship across repeated syncs and listing order changes. If the original changes, disappears or loses download access, an available unchanged copy becomes the source for that content. Each file keeps its own identity, link and folder provenance.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",
