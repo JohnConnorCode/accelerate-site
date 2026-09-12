@@ -152,6 +152,7 @@ export function computeStageHistory(
         at: event.created_at,
         reason: "no_movement",
       });
+      if (fromCanonical !== previousCanonicalTo) segmentReliable = false;
       continue;
     }
 

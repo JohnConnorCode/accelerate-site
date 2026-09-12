@@ -410,3 +410,14 @@ assert.deepEqual(firstRegression.regressions, [
   { from: "proposal", to: "qualified", at: "2026-01-03T00:00:00Z" },
 ]);
 assert.ok(firstRegression.issues.includes("missing_prefix"));
+
+const contradictoryNoop = computeStageHistory(
+  [
+    { from_stage: null, to_stage: "new", created_at: "2026-01-01T00:00:00Z" },
+    { from_stage: "qualified", to_stage: "qualified", created_at: "2026-01-02T00:00:00Z" },
+    { from_stage: "new", to_stage: "proposal", created_at: "2026-01-03T00:00:00Z" },
+  ],
+  "proposal",
+  stages,
+);
+assert.equal(contradictoryNoop.timeInStage[0]!.durationMs, null);

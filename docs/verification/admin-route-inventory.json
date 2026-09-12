@@ -321,7 +321,7 @@
     "src/lib/revenue-os/schema-contract.ts": "3fe082474363c01425e4bbde5484cf3b2864f98e04df826214f4eaf2b85c6598",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
     "src/lib/revenue-os/social-marketing.ts": "a5421a504fd070c4826a0fb62037abe6f83786781c0dd7c21f4d27c94b901ea8",
-    "src/lib/revenue-os/stage-history.ts": "6a3a1165efa04821e57ce4b351556440aeb445121b714da92158bb9c499c5c83",
+    "src/lib/revenue-os/stage-history.ts": "83ce2f34e57acab509375b99ef6042d3cd77605a859923974aecd871692608a9",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
     "src/lib/revenue-os/tasks.ts": "ddca6cc4af840c5758270c65f37eaf14bd3865cf08f1e17eba898ef4c7a164dc",
     "src/lib/revenue-os/tool-profiles.ts": "c72d9e318dc7b157af57b7e34adef41fa9153fda94a5f09116fe1b5debb8c1ce",
