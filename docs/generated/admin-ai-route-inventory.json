@@ -1280,14 +1280,14 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/revenue-os/analytics",
         "@/lib/revenue-os/db",
         "@/lib/revenue-os/health",
-        "@/lib/revenue-os/pipeline-metrics",
         "@/lib/revenue-os/pipeline-stage-resolver",
         "@/lib/revenue-os/queue",
         "next/server"
       ],
-      "sourceSha256": "8cbca9c90a9175a7e27d3f6a18df668839b5197b61d07a61979eedd07c2ed97a"
+      "sourceSha256": "a478bb52f8425dd7a07436b536002caa6c1c213a2d6ab9406538c0b41c970831"
     },
     {
       "source": "src/app/api/admin/revenue-os/pipeline/route.ts",
@@ -1305,9 +1305,10 @@
         "@/lib/revenue-os/db",
         "@/lib/revenue-os/pipeline",
         "@/lib/revenue-os/pipeline-stage-resolver",
+        "@/lib/revenue-os/stage-history",
         "next/server"
       ],
-      "sourceSha256": "6dda6ba64af9a42010d6a0efaacb89565a12500bd6ad34e37ce30e6c7f0e4c30"
+      "sourceSha256": "3aea61d20f8382ed483f6507f50c43ecf140727b054e7cebea0fbb3188724a5b"
     },
     {
       "source": "src/app/api/admin/revenue-os/priority/route.ts",
