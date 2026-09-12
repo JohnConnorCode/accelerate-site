@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 import {
   createOpportunity,
+  reorderOpportunities,
   transitionOpportunity,
   transitionStatusFromError,
   updateOpportunityDetails,
@@ -130,45 +131,17 @@ export async function PATCH(request: NextRequest) {
     if (!body.reorder.length || body.reorder.length > 250) {
       return NextResponse.json({ error: "Invalid reorder payload" }, { status: 400 });
     }
-    const { data: validColumns, error: columnsError } = await supabase
-      .from("kanban_columns")
-      .select("column_key")
-      .eq("board_key", "pipeline")
-      .eq("tenant_id", auth.tenant.id);
-    if (columnsError) return NextResponse.json({ error: columnsError.message }, { status: 500 });
-    const validColumnKeys = new Set((validColumns ?? []).map((row) => row.column_key as string));
-    const updates = body.reorder.map((item: Record<string, unknown>) => ({
-      id: typeof item.id === "string" ? item.id : "",
-      column_key: typeof item.column_key === "string" ? item.column_key : "",
-      sort_order: Number(item.sort_order),
-    }));
-    if (
-      updates.some(
-        (item: { id: string; column_key: string; sort_order: number }) =>
-          !item.id || !validColumnKeys.has(item.column_key) || !Number.isFinite(item.sort_order),
-      )
-    ) {
-      return NextResponse.json(
-        { error: "Every reordered card needs a valid id, stage, and order" },
-        { status: 400 },
-      );
+    try {
+      const updates = body.reorder.map((item: Record<string, unknown>) => ({
+        id: typeof item.id === "string" ? item.id : "",
+        column_key: typeof item.column_key === "string" ? item.column_key : "",
+        sort_order: Number(item.sort_order),
+      }));
+      const result = await reorderOpportunities(supabase, auth.user.email || "founder", updates);
+      return NextResponse.json({ success: true, affected: result.affected });
+    } catch (error) {
+      return NextResponse.json({ error: error instanceof Error ? error.message : "Could not reorder opportunities" }, { status: 409 });
     }
-    // Same-column reorder only: a cross-column stage change always goes
-    // through transitionOpportunity (below) so probability/closed_at/loss
-    // reason/audit stay correct. The kanban board only calls this endpoint
-    // for a same-column drag; a cross-column drag calls PATCH with `stage`.
-    const { data: affected, error } = await supabase.rpc("reorder_kanban_items", {
-      p_board_key: "pipeline",
-      p_updates: updates,
-    });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    if (affected !== updates.length) {
-      return NextResponse.json(
-        { error: "One or more opportunities could not be reordered. Refresh and try again." },
-        { status: 409 },
-      );
-    }
-    return NextResponse.json({ success: true, affected });
   }
 
   const id = typeof body.id === "string" ? body.id : "";
