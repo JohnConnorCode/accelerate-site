@@ -217,7 +217,6 @@ export function AccountBilling({
 
   async function saveProfile(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy("profile");
     setError("");
     setNotice("");
     try {
