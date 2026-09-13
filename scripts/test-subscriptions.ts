@@ -116,6 +116,11 @@ async function serviceFlow() {
       livemode: false,
       data: { object: { mode: "subscription", subscription: "sub_fixturetest", customer: "cus_fixturetest", metadata: { accelerate_tenant_id: tenantId, accelerate_user_id: userId, accelerate_plan_id: core.id } } },
     };
+    await assert.rejects(
+      () => processStripeWebhook(db, { ...event, id: "evt_wrongtenant", data: { object: { ...event.data.object, metadata: { ...event.data.object.metadata, accelerate_tenant_id: "99999999-9999-4999-8999-999999999999" } } } }),
+      /another workspace/,
+    );
+    assert.equal(mem.rows("billing_webhook_events").find((row) => row.event_id === "evt_wrongtenant")?.status, "failed");
     assert.deepEqual(await processStripeWebhook(db, event), { processed: true });
     assert.deepEqual(await processStripeWebhook(db, event), { duplicate: true });
     const billing = await readCustomerBilling(db, userId);
