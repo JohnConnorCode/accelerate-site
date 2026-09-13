@@ -128,7 +128,7 @@
     "src/app/api/admin/revenue-os/pipeline/route.ts": "3aea61d20f8382ed483f6507f50c43ecf140727b054e7cebea0fbb3188724a5b",
     "src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts": "bef9ce8396d295bb1ec3aa98cb5be52aead4e845559262b74d4fd0e670ca0384",
     "src/app/api/admin/revenue-os/recovery/route.ts": "618f42369e72b357efd35a846c19cfa21b1e32f06d405a20ccf7cf650fc8f288",
-    "src/app/api/admin/revenue-os/tasks/route.ts": "342c2e36c31e200393d53bb1e7e3ef3da65356162889a14196c09241169bb88a",
+    "src/app/api/admin/revenue-os/tasks/route.ts": "0ac406649d939e53d45100d122044654aa52eb228f7b07243227f66387abcb95",
     "src/app/api/admin/revenue/route.ts": "8319d9ab6e26f5f63330b651e20c8a8f4de037136d521365f1f3244b02382967",
     "src/app/api/admin/settings/route.ts": "7f2356ae469f754ec265ab3f64e759533f39d7b86c462c08b05f6f7794caa62e",
     "src/app/api/admin/settings/test/route.ts": "f6b83ed5979d5187b406f402308d12b982370adb735a2664717cf5770ea013bc",
@@ -142,7 +142,7 @@
     "src/app/api/admin/social/route.ts": "3ed15ebef11c14c15ca17526cf2e03f1296cafb4090cbb20bb83593f6864a57c",
     "src/app/api/admin/subscribers/export/route.ts": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63",
     "src/app/api/admin/subscribers/route.ts": "dadb0fc001e5ecc9e1340a1d363e0c24771f492e7e88650aa8e78f2d5a6a18e0",
-    "src/app/api/admin/tasks/route.ts": "6482ce152c7f1d849703fb24d63f9cff97d94058ab4968efd64a6ef50f356804",
+    "src/app/api/admin/tasks/route.ts": "dc148f3e6fc5d6ce6e9666696d9a1ecad25b309ad307d9503df40a24c9c793c6",
     "src/app/api/admin/tenant/branding/route.ts": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5",
     "src/app/api/admin/tenant/modules/route.ts": "33e9b419aac5552c0a74663ab7851787289ad62dce4d6cd48bc4828a73dd38f1",
     "src/app/api/admin/tenant/providers/route.ts": "b5996355446e9bd76ed690be6a0a43ce78dc4330001d4df3efb37aab5be36aa1",
@@ -265,7 +265,7 @@
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
     "src/lib/revenue-os/README.md": "eb3e7c9684ec29a2175bbf0d59ce976dc47bf60b3e2c3272fb9456a7e746a035",
-    "src/lib/revenue-os/action-executor.ts": "b178aa0cd89abef43a5fe356ec8e149aaed5ad17e631d9c4521b4670bf10feca",
+    "src/lib/revenue-os/action-executor.ts": "a3aef532d9d5096d8362e90e65681251004063d3ad2ad051109bf6986704cb19",
     "src/lib/revenue-os/actions.ts": "4b8f06cdbdf696ac3e7aa61799073f49302f9b3ce377983e043daef74c535a8b",
     "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
@@ -323,7 +323,6 @@
     "src/lib/revenue-os/social-marketing.ts": "a5421a504fd070c4826a0fb62037abe6f83786781c0dd7c21f4d27c94b901ea8",
     "src/lib/revenue-os/stage-history.ts": "83ce2f34e57acab509375b99ef6042d3cd77605a859923974aecd871692608a9",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
-    "src/lib/revenue-os/tasks.ts": "4f36195de08c315ea629c3299e85f9f68bc3541a7c382b911bd57bb45c77e09a",
     "src/lib/revenue-os/tool-profiles.ts": "c72d9e318dc7b157af57b7e34adef41fa9153fda94a5f09116fe1b5debb8c1ce",
     "src/lib/revenue-os/types.ts": "7c2ef713990b2180acd4c76507e708431288fd46d98fab1072cc6451a15e44bd",
     "src/lib/revenue-os/work-board-http.ts": "c892015dc12f051f658297d2646453f28e5201f53da3cf0f4cfb4ec5455ed1b9",
@@ -623,7 +622,7 @@
         },
         {
           "path": "src/app/api/admin/revenue-os/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/tasks"],
+          "domainImports": ["@/lib/revenue-os/action-executor"],
           "directTables": []
         }
       ],
@@ -1005,7 +1004,7 @@
         },
         {
           "path": "src/app/api/admin/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/tasks"],
+          "domainImports": ["@/lib/revenue-os/action-executor"],
           "directTables": ["tasks"]
         }
       ],
@@ -1187,7 +1186,7 @@
         },
         {
           "path": "src/app/api/admin/revenue-os/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/tasks"],
+          "domainImports": ["@/lib/revenue-os/action-executor"],
           "directTables": []
         }
       ],
@@ -1534,7 +1533,7 @@
         },
         {
           "path": "src/app/api/admin/revenue-os/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/tasks"],
+          "domainImports": ["@/lib/revenue-os/action-executor"],
           "directTables": []
         }
       ],
@@ -1705,12 +1704,12 @@
       "adapters": [
         {
           "path": "src/app/api/admin/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/tasks"],
+          "domainImports": ["@/lib/revenue-os/action-executor"],
           "directTables": ["tasks"]
         },
         {
           "path": "src/app/api/admin/revenue-os/tasks/route.ts",
-          "domainImports": ["@/lib/revenue-os/tasks"],
+          "domainImports": ["@/lib/revenue-os/action-executor"],
           "directTables": []
         },
         {

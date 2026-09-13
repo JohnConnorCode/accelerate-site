@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "unified-task-write-path",
+    slug: "unified-task-write-path",
+    title: "Task saves run through the unified executor with undo",
+    description:
+      "Creating, updating, reopening and deleting a task now travels the same approved executor path as programmatic writes, with claim, autonomy check, audit and idempotency receipts. Reversible task writes can be undone exactly once: the prior state is restored from captured data and a second undo is refused. Irreversible effects still require human approval every time.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "public-proposal-decisions",
     slug: "public-proposal-decisions",
     title: "Keep public proposal decisions consistent when requests repeat",

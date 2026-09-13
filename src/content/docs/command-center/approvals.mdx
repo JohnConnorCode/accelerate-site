@@ -38,6 +38,12 @@ Six things never climb this ladder, regardless of how much trust everything else
 
 [Try the review workflow](/docs/start/daily-path) in the fictional demo before you rely on it for real work. Its data and every action inside it are fictional, so nothing you approve or reject there reaches an actual customer.
 
+## Undoing an executed task write
+
+Creating, updating, reopening or deleting a task in the workspace runs through the same executor as any programmatic write, so every save leaves a claim, an authorization entry and an audit receipt. When the action is reversible, the prior state is captured at execution: the created row, the previous field values including the description, or the full deleted row.
+
+An executed reversible action can be undone exactly once, restoring that captured state. A second undo is refused rather than re-applied. Irreversible effects, such as a sent email or an activated campaign, can never be undone; only a human approval runs them in the first place.
+
 ## What to check
 
 - An external assistant connected through MCP cannot approve its own staged proposal. Its own confirmation prompt is not the same thing as your approval inside Command Center, and the action still waits here regardless of what it told you.

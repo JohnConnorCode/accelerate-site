@@ -53,6 +53,11 @@ export async function compensateAction(
       `${action.action_type} is ${entry.reversibility}: ${entry.rationale} Compensate it explicitly instead.`,
     );
   const compensation = (action.compensation ?? {}) as Row;
+  // State fencing: an undo is itself a state transition. A row that already
+  // carries a compensation receipt must refuse a second undo rather than
+  // re-running its compensator against post-undo state.
+  if (compensation.compensatedAt)
+    throw new Error(`Action ${id} was already compensated at ${compensation.compensatedAt}`);
   const detail: Row = { action_type: action.action_type };
 
   switch (action.action_type) {
@@ -90,6 +95,9 @@ export async function compensateAction(
         .from("tasks")
         .update({
           title: before.title,
+          // Description restores only when the capture carries it: rows
+          // executed before description capture keep their current text.
+          ...("description" in before ? { description: before.description ?? null } : {}),
           priority: before.priority,
           due_date: before.due_date ?? null,
           status: before.status,
@@ -99,6 +107,15 @@ export async function compensateAction(
         .eq("id", taskId);
       if (restoreError) throw new Error(`Could not restore task: ${restoreError.message}`);
       detail.restored_task_id = taskId;
+      break;
+    }
+    case "delete_task": {
+      const deletedRow = compensation.deletedRow as Row | undefined;
+      if (!deletedRow || typeof deletedRow.id !== "string")
+        throw new Error("Compensation data is missing the deleted row; cannot undo safely");
+      const { error: restoreError } = await supabase.from("tasks").insert(deletedRow);
+      if (restoreError) throw new Error(`Could not restore task: ${restoreError.message}`);
+      detail.restored_task_id = deletedRow.id;
       break;
     }
     case "admin_layout_change": {
@@ -124,6 +141,19 @@ export async function compensateAction(
     after: { compensated: true },
     metadata: { detail },
   });
+  // Fence the row against a second undo: the receipt above is the audit
+  // trail, this stamp is the machine fence the next compensate checks.
+  const { error: fenceError } = await supabase
+    .from("action_queue")
+    .update({
+      compensation: {
+        ...(action.compensation as Row | null),
+        compensatedAt: new Date().toISOString(),
+        compensatedBy: actorEmail,
+      },
+    })
+    .eq("id", id);
+  if (fenceError) throw new Error(`Compensation receipt was superseded: ${fenceError.message}`);
   await recordActivity(supabase, {
     activityType: "action_compensated",
     title: `Undid ${action.action_type}`,
