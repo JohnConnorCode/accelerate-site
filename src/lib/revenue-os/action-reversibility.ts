@@ -95,7 +95,9 @@ export async function compensateAction(
         .from("tasks")
         .update({
           title: before.title,
-          description: before.description ?? null,
+          // Description restores only when the capture carries it: rows
+          // executed before description capture keep their current text.
+          ...("description" in before ? { description: before.description ?? null } : {}),
           priority: before.priority,
           due_date: before.due_date ?? null,
           status: before.status,

@@ -119,6 +119,8 @@ export async function PATCH(request: NextRequest) {
       snoozed_until?: string | null;
     };
     if (!body.id) return NextResponse.json({ error: "Task id is required" }, { status: 400 });
+    if (body.status !== undefined && !["completed", "pending", "snoozed"].includes(body.status))
+      return NextResponse.json({ error: "Invalid task status" }, { status: 400 });
     const actorEmail = auth.user.email || "founder";
     // Same unified path as POST: the body selects the task operation, the
     // executor performs it. Covers every shape the UI sends today: field
