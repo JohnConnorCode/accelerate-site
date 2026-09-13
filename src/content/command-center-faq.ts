@@ -24,7 +24,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we create our own workspace theme?",
     answer:
-      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
+      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Seven built-in appearances have distinct palettes, typography, corners and depth, including matte Material and silver macOS. Comfortable and compact density adjust spacing independently of the theme. Mobile panels keep consistent spacing, touch controls stay easy to reach, and transitions respect reduced motion. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
   },
   {
     question: "How does the whole system fit together?",

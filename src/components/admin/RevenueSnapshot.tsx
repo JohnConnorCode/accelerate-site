@@ -76,7 +76,7 @@ export function RevenueSnapshot({
           </div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-3 mb-6">
+        <div className="admin-grid admin-grid--metrics mb-6">
           <div className="rounded-lg bg-white/5 p-4">
             <p className="text-xs text-white-muted mb-1">Total Pipeline</p>
             <p className="text-xl font-display font-bold text-gold-gradient">

@@ -112,7 +112,7 @@ export default function WebsiteGradesPage() {
             value={scoreFilter}
             onChange={(e) => setScoreFilter(e.target.value)}
             aria-label="Filter by score"
-            className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+            className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
           >
             <option value="all">All Scores</option>
             <option value="high">High (80+)</option>
@@ -126,7 +126,7 @@ export default function WebsiteGradesPage() {
         </div>
 
         <GlassCard padding="none" hover="none" className="overflow-clip">
-          <table className="w-full text-sm">
+          <table className="admin-table w-full text-sm">
             <thead>
               <tr className="border-b border-border-glass">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">

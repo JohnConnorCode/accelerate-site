@@ -84,7 +84,7 @@ export function ArchitectUnderstandingPanel() {
         </p>
       )}
       {model && (
-        <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <div className="mt-3 admin-grid">
           <section>
             <h3 className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
               Statements

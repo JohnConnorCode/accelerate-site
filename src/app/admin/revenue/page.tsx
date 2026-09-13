@@ -52,7 +52,7 @@ export default function RevenuePage() {
         {data && (
           <>
             {/* Key Metrics */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="admin-grid admin-grid--metrics">
               <StatCard
                 label="Monthly Recurring"
                 value={data.totalMRR}
@@ -83,7 +83,7 @@ export default function RevenuePage() {
               <MRRChart data={data.mrrTimeline} />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="admin-grid admin-grid--panels">
               {/* Revenue by Industry */}
               <AdminSurface>
                 <h3 className="mb-4 font-display text-sm font-semibold text-[var(--admin-ink)]">

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "./AdminLink";
+import { AdminDensityControl } from "./AdminDensityControl";
 import { useWorkspaceTheme } from "./AdminThemeProvider";
 import { useTheme } from "next-themes";
 import { Check, ChevronUp, Moon, Palette, Snowflake, Sparkles, Sun } from "lucide-react";
@@ -136,7 +137,7 @@ export function AdminAppearancePicker({
             exit={{ opacity: 0, y: canvas ? -6 : 6, scale: 0.98 }}
             transition={{ type: "spring", duration: 0.3, bounce: 0 }}
             className={cn(
-              "admin-appearance-panel absolute z-[70] overflow-hidden rounded-[var(--admin-surface-radius)] p-2 shadow-[var(--admin-shadow-hover)]",
+              "admin-appearance-panel absolute z-[70] max-h-[min(720px,80dvh)] overflow-y-auto rounded-[var(--admin-surface-radius)] p-2 shadow-[var(--admin-shadow-hover)]",
               canvas
                 ? "right-0 top-[calc(100%+0.5rem)] w-64"
                 : collapsed
@@ -154,7 +155,7 @@ export function AdminAppearancePicker({
             </div>
             <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="Admin appearance">
               {available.map((appearance) => {
-                const Icon = appearance.icon;
+                const tokens: Record<string, string> = appearance.tokens;
                 const selected = appearance.id === currentTheme;
                 return (
                   <button
@@ -162,6 +163,29 @@ export function AdminAppearancePicker({
                     type="button"
                     role="radio"
                     aria-checked={selected}
+                    tabIndex={selected ? 0 : -1}
+                    onKeyDown={(event) => {
+                      const offset = ["ArrowRight", "ArrowDown"].includes(event.key)
+                        ? 1
+                        : ["ArrowLeft", "ArrowUp"].includes(event.key)
+                          ? -1
+                          : 0;
+                      if (!offset && event.key !== "Home" && event.key !== "End") return;
+                      event.preventDefault();
+                      const index =
+                        event.key === "Home"
+                          ? 0
+                          : event.key === "End"
+                            ? available.length - 1
+                            : (available.indexOf(appearance) + offset + available.length) %
+                              available.length;
+                      const next = available[index]!;
+                      setTheme(next.id);
+                      if (demoScenarioId) saveDemoAppearance(demoScenarioId, next.id);
+                      panelRef.current
+                        ?.querySelectorAll<HTMLElement>('[role="radio"]')
+                        [index]?.focus();
+                    }}
                     onClick={() => {
                       setTheme(appearance.id);
                       if (demoScenarioId) saveDemoAppearance(demoScenarioId, appearance.id);
@@ -169,32 +193,53 @@ export function AdminAppearancePicker({
                       requestAnimationFrame(() => triggerRef.current?.focus());
                     }}
                     className={cn(
-                      "admin-appearance-option group relative min-h-[92px] rounded-[var(--admin-control-radius)] p-2.5 text-left transition-[background-color,color,transform] duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-nav-accent)]",
+                      "admin-appearance-option group relative min-h-[132px] rounded-[var(--admin-control-radius)] p-2.5 text-left transition-[background-color,color,transform] duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-nav-accent)]",
                       selected && "is-selected",
                     )}
                   >
                     <span
-                      style={{
-                        background: appearance.tokens["--admin-canvas"],
-                        color: appearance.tokens["--admin-ink"],
-                      }}
-                      className={cn(
-                        "mb-2 flex h-8 items-center rounded-[var(--admin-control-radius)] px-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]",
-                        "",
-                      )}
+                      aria-hidden="true"
+                      style={{ background: tokens["--admin-canvas"], color: tokens["--admin-ink"] }}
+                      className="admin-appearance-swatch"
                     >
-                      <Icon className="size-3.5" aria-hidden="true" />
-                      <span className="ml-1.5 h-1.5 w-9 rounded-full bg-current opacity-30" />
+                      <span
+                        style={{ background: tokens["--admin-sidebar"] ?? tokens["--admin-ink"] }}
+                      />
+                      <span className="admin-appearance-swatch-content">
+                        <span
+                          style={{
+                            fontFamily:
+                              tokens["--admin-title-font"] === "var(--admin-font)"
+                                ? tokens["--admin-font"]
+                                : (tokens["--admin-title-font"] ?? "inherit"),
+                          }}
+                        >
+                          Aa
+                        </span>
+                        <span
+                          style={{
+                            background: tokens["--admin-surface"] ?? tokens["--admin-canvas"],
+                            borderRadius: tokens["--admin-surface-radius"] ?? "8px",
+                          }}
+                        >
+                          <i
+                            style={{
+                              background: tokens["--admin-action"] ?? tokens["--admin-ink"],
+                              borderRadius: tokens["--admin-control-radius"] ?? "4px",
+                            }}
+                          />
+                        </span>
+                      </span>
                     </span>
-                    <span className="block pr-5 text-[11px] font-semibold text-[var(--admin-nav-ink)]">
+                    <span className="block pr-5 text-xs font-semibold text-[var(--admin-nav-ink)]">
                       {appearance.label}
                     </span>
-                    <span className="mt-0.5 block text-[9px] leading-3 text-[var(--admin-nav-muted)]">
+                    <span className="mt-1 block text-[11px] leading-4 text-[var(--admin-nav-muted)]">
                       {appearance.description}
                     </span>
                     {selected && (
                       <Check
-                        className="absolute right-2.5 top-[3.25rem] size-3.5 text-[var(--admin-nav-accent)]"
+                        className="absolute right-2.5 top-[5.25rem] size-3.5 text-[var(--admin-nav-accent)]"
                         aria-hidden="true"
                       />
                     )}
@@ -202,6 +247,7 @@ export function AdminAppearancePicker({
                 );
               })}
             </div>
+            <AdminDensityControl />
             <Link
               href="/admin/branding#workspace-theme"
               onClick={() => setOpen(false)}

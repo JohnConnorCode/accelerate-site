@@ -191,7 +191,7 @@ export default function ChatLeadsPage() {
           </div>
         ) : (
           <div className="w-[calc(100vw-2rem)] max-w-full overflow-x-auto overscroll-x-contain sm:w-full">
-            <table className="w-full table-fixed text-sm md:min-w-[720px] md:table-auto">
+            <table className="admin-table w-full table-fixed text-sm md:min-w-[720px] md:table-auto">
               <thead>
                 <tr className="border-b border-border-glass">
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted">

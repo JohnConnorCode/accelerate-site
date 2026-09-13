@@ -1,10 +1,8 @@
 "use client";
 
 /** Content controls expose data, never executable templates or a JSON editor. */
-export const websiteFieldClass =
-  "mt-1 block min-h-11 w-full rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-sm text-[var(--admin-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--admin-ink)]";
-export const websiteButtonClass =
-  "inline-flex min-h-11 items-center justify-center rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] px-3 py-2 text-sm text-[var(--admin-ink)] hover:bg-[var(--admin-surface-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--admin-ink)] disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:bg-[var(--admin-action)] aria-pressed:text-[var(--admin-action-ink)]";
+export const websiteFieldClass = "admin-field mt-1 block w-full";
+export const websiteButtonClass = "admin-button admin-button--secondary";
 const humanize = (name: string) =>
   name
     .replace(/([a-z])([A-Z])/g, "$1 $2")

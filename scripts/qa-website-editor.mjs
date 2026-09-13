@@ -25,6 +25,17 @@ try {
   });
   await page.goto(`${base}/demo/command-center/northline-roofing/site/website`);
   await page.getByText("Bundled website loaded.", { exact: false }).waitFor();
+  const background = (element) => getComputedStyle(element).backgroundColor;
+  assert.notEqual(
+    await page.getByRole("button", { name: "Save draft", exact: true }).evaluate(background),
+    await page.getByRole("button", { name: "Website tools", exact: true }).evaluate(background),
+    "Save draft must stand apart from secondary editor tools",
+  );
+  assert.notEqual(
+    await page.getByRole("button", { name: "Pages", exact: true }).evaluate(background),
+    await page.getByRole("button", { name: "Identity", exact: true }).evaluate(background),
+    "Selected editor section must have a visible state",
+  );
   const section = page
     .locator("details")
     .filter({ has: page.locator("textarea") })

@@ -22,8 +22,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
+          data-ui-input
           id={controlId}
           aria-describedby={error ? errorId : props["aria-describedby"]}
+          aria-invalid={error ? true : props["aria-invalid"]}
           className={cn(
             "w-full px-4 py-3 rounded-lg",
             "bg-bg-subtle border border-border-glass",

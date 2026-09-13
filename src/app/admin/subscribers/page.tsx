@@ -85,7 +85,7 @@ export default function SubscribersPage() {
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader title={adminPageName("subscribers")} subtitle={`${total} total`} />
 
-      <div className="grid gap-4 sm:grid-cols-3 mb-6">
+      <div className="admin-grid admin-grid--metrics mb-6">
         <StatCard label="Total" value={stats.total} icon={AtSign} index={0} />
         <StatCard
           label="Active"
@@ -114,7 +114,7 @@ export default function SubscribersPage() {
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           aria-label="Filter by status"
-          className="rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+          className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
         >
           <option value="all">All Status</option>
           <option value="active">Active</option>
@@ -127,7 +127,7 @@ export default function SubscribersPage() {
       </div>
 
       <GlassCard padding="none" hover="none" className="overflow-clip">
-        <table className="w-full text-sm">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="border-b border-border-glass">
               <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">

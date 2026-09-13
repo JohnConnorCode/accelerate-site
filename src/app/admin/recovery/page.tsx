@@ -258,7 +258,7 @@ export default function RecoveryPage() {
                   </div>
                 </div>
               </AdminSurface>
-              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+              <div className="admin-split">
                 <div className="space-y-3">
                   {data.playbooks.map((playbook) => {
                     const campaign = playbook.campaigns;
@@ -319,7 +319,7 @@ export default function RecoveryPage() {
                               type="button"
                               disabled={busy || !playbook.metrics.eligible}
                               onClick={() => void action(playbook, "activate")}
-                              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] active:scale-[.96] disabled:opacity-50"
+                              className="admin-button admin-button--primary"
                             >
                               {busy ? (
                                 <Loader2 className="size-3.5 animate-spin" />
@@ -533,7 +533,7 @@ export default function RecoveryPage() {
                       <button
                         type="submit"
                         disabled={creating}
-                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] active:scale-[.96] disabled:opacity-50"
+                        className="admin-button admin-button--primary w-full"
                       >
                         {creating ? (
                           <Loader2 className="size-3.5 animate-spin" />

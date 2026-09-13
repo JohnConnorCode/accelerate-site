@@ -913,7 +913,7 @@ export function TodayWorkspace() {
       >
         {snapshot && (
           <div
-            className={styles.grid}
+            className="admin-modules"
             onPointerEnter={() => setInteracting(true)}
             onPointerLeave={() => setInteracting(false)}
             onFocusCapture={() => setInteracting(true)}
@@ -922,7 +922,7 @@ export function TodayWorkspace() {
             }}
           >
             {allAttention && (
-              <div className={styles.full} id="today-attention">
+              <div data-width="full" id="today-attention">
                 {renderRows(
                   { ...defaultTodayView().modules[1]!, limit: items.length || 1 },
                   "attention",
@@ -932,7 +932,7 @@ export function TodayWorkspace() {
             {current.view.modules
               .filter((m) => !allAttention || m.type !== "attention")
               .map((module) => (
-                <div key={module.id} className={styles[module.width]}>
+                <div key={module.id} data-width={module.width}>
                   {moduleContent(module)}
                 </div>
               ))}

@@ -161,7 +161,7 @@ function FilterSelect({
         aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10 sm:w-auto"
+        className="admin-field min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10 sm:w-auto"
       >
         <option value="all">{label}: All</option>
         {options.map((option) => (
@@ -418,7 +418,7 @@ export default function AnalyticsPage() {
                         Facts and forecast for this cohort
                       </h2>
                     </div>
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="admin-grid admin-grid--metrics">
                       <Metric
                         label="Pipeline value"
                         value={money(funnel.pipelineValue)}
@@ -459,7 +459,7 @@ export default function AnalyticsPage() {
                         <p className="text-sm">{data.communication.reason}</p>
                       </AdminSurface>
                     ) : (
-                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                      <div className="admin-grid admin-grid--metrics">
                         <Metric
                           label="Inbound conversations"
                           value={data.communication.inboundConversations}
@@ -529,7 +529,7 @@ export default function AnalyticsPage() {
                       ))}
                     </div>
                   </AdminSurface>
-                  <div className="grid gap-4 xl:grid-cols-2">
+                  <div className="admin-grid admin-grid--panels">
                     <AdminSurface padding="none" className="overflow-hidden">
                       <div className="flex items-start justify-between gap-3 p-5">
                         <div>
@@ -624,7 +624,7 @@ export default function AnalyticsPage() {
                         Date filter only · privacy-minimised first-party capture
                       </p>
                     </div>
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="admin-grid admin-grid--metrics">
                       <Metric label="Visitors" value={web.visitors ?? "—"} icon={Users} />
                       <Metric label="Page views" value={web.pageViews ?? "—"} icon={Eye} />
                       <Metric
@@ -645,7 +645,7 @@ export default function AnalyticsPage() {
                       />
                     </div>
                   </section>
-                  <div className="grid gap-4 xl:grid-cols-3">
+                  <div className="admin-grid">
                     <RankedList title="Top conversion events" rows={web.conversionEvents} />
                     <RankedList title="Top landing pages" rows={web.topPages} suffix=" views" />
                     <RankedList title="Traffic sources" rows={web.sources} suffix=" events" />

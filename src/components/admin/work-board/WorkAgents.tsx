@@ -76,7 +76,7 @@ export function WorkAgents() {
             <input
               value={f.value}
               onChange={(e) => f.set(e.target.value)}
-              className="mt-1 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
+              className="admin-field mt-1 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
             />
           </label>
         ))}
@@ -85,7 +85,7 @@ export function WorkAgents() {
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value)}
-            className="mt-1 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
+            className="admin-field mt-1 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
           >
             <option value="read">Read only</option>
             <option value="execute">Claim and submit work</option>

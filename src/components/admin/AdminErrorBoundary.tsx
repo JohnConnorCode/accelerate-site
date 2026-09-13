@@ -59,7 +59,7 @@ export class AdminErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleReload}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"
+              className="admin-button admin-button--primary"
             >
               <RefreshCw className="size-3.5" />
               Reload

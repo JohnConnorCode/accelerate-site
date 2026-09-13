@@ -371,7 +371,7 @@ export default function TodayPage() {
               <button
                 type="button"
                 onClick={() => void refresh()}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)]"
+                className="admin-button admin-button--primary"
               >
                 <RefreshCw className="size-3.5" /> Retry
               </button>

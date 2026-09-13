@@ -136,7 +136,7 @@ export function WebsiteModelPicker({
             </span>
             <select
               aria-label="Sort models"
-              className="min-h-10 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2 text-xs"
+              className="admin-field admin-field--inline min-h-10 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2 text-xs"
               value={sort}
               onChange={(event) => setSort(event.target.value)}
             >

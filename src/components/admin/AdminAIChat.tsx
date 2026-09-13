@@ -267,7 +267,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           value={ai.activeConversationId ?? ""}
           onChange={(event) => void ai.selectConversation(event.target.value || null)}
           aria-label="AI conversation"
-          className="mt-2 min-h-10 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+          className="admin-field mt-2 min-h-10 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
         >
           <option value="">New conversation</option>
           {ai.conversations.map((conversation) => (
@@ -319,7 +319,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           <select
             value={ai.activeConversationId ?? ""}
             onChange={(event) => void ai.selectConversation(event.target.value || null)}
-            className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
+            className="admin-field min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
           >
             <option value="">New conversation</option>
             {ai.conversations.map((conversation) => (
@@ -516,7 +516,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
                     </ul>
                     <Link
                       href="/admin/today?focus=approvals"
-                      className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)]"
+                      className="admin-button admin-button--primary mt-3"
                     >
                       Review exact changes
                     </Link>

@@ -290,7 +290,7 @@ export default function OpportunityRecordPage() {
               value={handoffTemplateKey}
               disabled={handingOff || Boolean(record?.engagement?.receipt)}
               onChange={(e) => setHandoffTemplateKey(e.target.value)}
-              className="mt-1 min-h-11 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-[var(--admin-ink)]"
+              className="admin-field mt-1 min-h-11 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-[var(--admin-ink)]"
             >
               {(record?.handoff_templates ?? []).map((t) => (
                 <option key={t.key} value={t.key}>
@@ -307,7 +307,7 @@ export default function OpportunityRecordPage() {
                 value={handoffProposalId}
                 disabled={handingOff}
                 onChange={(e) => setHandoffProposalId(e.target.value)}
-                className="mt-1 min-h-11 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-[var(--admin-ink)]"
+                className="admin-field mt-1 min-h-11 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-[var(--admin-ink)]"
               >
                 <option value="">Use opportunity context without a proposal</option>
                 {(record?.proposals ?? []).map((p) => (
@@ -452,10 +452,7 @@ export default function OpportunityRecordPage() {
               ))}
             </nav>
 
-            <section
-              id="opportunity"
-              className="scroll-mt-24 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-            >
+            <section id="opportunity" className="scroll-mt-24 admin-grid admin-grid--metrics">
               {[
                 {
                   label: "Stage",
@@ -631,7 +628,7 @@ export default function OpportunityRecordPage() {
                         max="1000000000"
                         defaultValue={opportunity.estimated_value ?? 0}
                         key={`value-${opportunity.estimated_value}`}
-                        className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm tabular-nums outline-none transition-[border-color,box-shadow] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                        className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm tabular-nums outline-none transition-[border-color,box-shadow] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
                       />
                     </label>
                     <label className="block text-xs font-semibold text-[var(--admin-ink)]">
@@ -643,7 +640,7 @@ export default function OpportunityRecordPage() {
                         defaultValue={opportunity.next_action || ""}
                         key={`action-${opportunity.next_action}`}
                         placeholder="State the concrete next commitment"
-                        className="mt-1.5 w-full resize-y rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 text-sm outline-none transition-[border-color,box-shadow] placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                        className="admin-field mt-1.5 w-full resize-y rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 text-sm outline-none transition-[border-color,box-shadow] placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
                       />
                     </label>
                     <label className="block text-xs font-semibold text-[var(--admin-ink)]">
@@ -653,13 +650,13 @@ export default function OpportunityRecordPage() {
                         type="datetime-local"
                         defaultValue={localInputValue(opportunity.next_action_at)}
                         key={`date-${opportunity.next_action_at}`}
-                        className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm tabular-nums outline-none transition-[border-color,box-shadow] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                        className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm tabular-nums outline-none transition-[border-color,box-shadow] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
                       />
                     </label>
                     <button
                       type="submit"
                       disabled={saving}
-                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
+                      className="admin-button admin-button--primary w-full"
                     >
                       {saving ? (
                         <Loader2 className="size-4 animate-spin" />
@@ -751,7 +748,7 @@ export default function OpportunityRecordPage() {
                             setHandoffReview(true);
                           }}
                           disabled={handingOff}
-                          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
+                          className="admin-button admin-button--primary w-full"
                         >
                           {handingOff ? (
                             <Loader2 className="size-4 animate-spin" />

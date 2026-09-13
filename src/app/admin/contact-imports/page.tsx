@@ -327,7 +327,7 @@ export default function ContactImportsPage() {
             initial="hidden"
             animate="visible"
             exit={{ opacity: 0, y: -8 }}
-            className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]"
+            className="admin-split"
           >
             <AdminSurface padding="lg" className="overflow-hidden">
               <div className="flex flex-col gap-5">
@@ -435,7 +435,7 @@ export default function ContactImportsPage() {
             animate="visible"
             exit={{ opacity: 0, y: -8 }}
           >
-            <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mb-5 admin-grid admin-grid--metrics">
               <Metric
                 label="Selected"
                 value={selectedRows.length}
@@ -471,7 +471,7 @@ export default function ContactImportsPage() {
                 busy={busy === "execute"}
               />
             ) : (
-              <div className="grid min-h-[620px] gap-5 lg:grid-cols-[minmax(320px,0.82fr)_minmax(0,1.18fr)]">
+              <div className="admin-split admin-split--master">
                 <AdminSurface padding="none" className="overflow-hidden">
                   <div className="flex items-center justify-between gap-3 px-4 py-4 shadow-[0_1px_0_var(--admin-rule)] sm:px-5">
                     <div>

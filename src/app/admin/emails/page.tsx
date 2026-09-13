@@ -471,7 +471,7 @@ export default function EmailsPage() {
                       <button
                         type="button"
                         onClick={() => setEditing((current) => !current)}
-                        className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"
+                        className="admin-button admin-button--primary"
                       >
                         {editing ? <Eye className="size-3.5" /> : <Edit3 className="size-3.5" />}
                         {editing ? "Preview" : "Edit"}
@@ -529,7 +529,7 @@ export default function EmailsPage() {
                           type="button"
                           onClick={() => void saveDraft()}
                           disabled={working || !dirty}
-                          className="inline-flex min-h-10 items-center gap-2 rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-35"
+                          className="admin-button admin-button--primary"
                         >
                           {working ? (
                             <Loader2 className="size-3.5 animate-spin" />
@@ -666,7 +666,7 @@ export default function EmailsPage() {
               type="button"
               onClick={() => void templateAction("publish")}
               disabled={working}
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] active:scale-[0.96] disabled:opacity-50"
+              className="admin-button admin-button--primary"
             >
               {working ? (
                 <Loader2 className="size-3.5 animate-spin" />

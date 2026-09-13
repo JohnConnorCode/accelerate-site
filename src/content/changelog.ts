@@ -2,6 +2,24 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "admin-theme-polish",
+    slug: "admin-theme-polish",
+    title: "Seven distinct appearances, one coherent workspace",
+    description:
+      "Workspace appearances now have distinct palettes, typography, geometry and depth. Material uses matte tonal surfaces while macOS uses silver chrome and tighter controls. The appearance picker previews each style and supports keyboard navigation. Shared controls, focus states, Today surfaces and reduced motion follow the same core tokens, with custom themes and density preserved. Navigation labels are easier to read, theme timing applies consistently, and mobile spacing keeps compact touch controls accessible.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "admin-coherent-core",
+    slug: "admin-coherent-core",
+    title: "A consistent core for the everyday workspace",
+    description:
+      "Command Center uses shared typography, controls, surfaces and responsive page layouts, with a refreshed Paper appearance. Today modules reclaim available space when panels are hidden or rearranged. Comfortable and compact density stay separate from the seven workspace appearances and persist in your browser.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "unified-task-write-path",
     slug: "unified-task-write-path",
     title: "Task saves run through the unified executor with undo",

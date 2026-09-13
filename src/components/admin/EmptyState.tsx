@@ -21,22 +21,21 @@ export function EmptyState({
   actionHref,
   onAction,
 }: EmptyStateProps) {
-  const actionClass =
-    "inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]";
+  const actionClass = "admin-button admin-button--primary";
   return (
     <div
       className="flex flex-col items-center justify-center px-5 py-14 text-center sm:px-8"
       role="status"
     >
       <span
-        className="grid size-11 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)] dark:bg-white/[0.06]"
+        className="grid size-11 place-items-center rounded-[var(--admin-control-radius)] bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]"
         aria-hidden="true"
       >
         <Icon className="size-5" />
       </span>
       <p className="mt-4 text-sm font-semibold text-[var(--admin-ink)]">{title || message}</p>
       {(description || title) && (
-        <p className="admin-copy mt-1.5 max-w-md text-pretty text-xs leading-5">
+        <p className="admin-copy mt-1.5 max-w-md text-pretty text-sm leading-6">
           {description || message}
         </p>
       )}

@@ -177,7 +177,7 @@ export function TenantProviderControls() {
         onRetry={() => void query.refetch()}
         refreshing={query.isFetching}
         loadingFallback={
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="admin-grid admin-grid--panels">
             <LoadingSkeleton rows={4} />
             <LoadingSkeleton rows={4} />
           </div>
@@ -185,7 +185,7 @@ export function TenantProviderControls() {
         label="Loading workspace credentials"
       >
         {query.data && (
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="admin-grid admin-grid--panels">
             <ProviderCard
               icon={Bot}
               name="OpenRouter"

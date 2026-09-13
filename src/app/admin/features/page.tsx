@@ -312,7 +312,7 @@ function FeatureCard({
               value={feature.owner ?? ""}
               disabled={isOverlay || busy}
               onChange={(event) => onAssign?.(event.target.value || null)}
-              className="max-w-[11rem] rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-1.5 py-1 text-[11px] font-medium text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
+              className="admin-field admin-field--inline max-w-[11rem] rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-1.5 py-1 text-[11px] font-medium text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)]"
             >
               <option value="">Unassigned</option>
               {people.map((person) => (
@@ -334,7 +334,7 @@ function FeatureCard({
             value={feature.status}
             disabled={isOverlay || busy}
             onChange={(event) => onMove?.(event.target.value)}
-            className="min-h-9 max-w-[10rem] rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-1.5 py-1 text-[11px] font-medium text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:hidden"
+            className="admin-field admin-field--inline min-h-9 max-w-[10rem] rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-1.5 py-1 text-[11px] font-medium text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:hidden"
           >
             {columns.map((column) => (
               <option key={column.column_key} value={column.column_key}>
@@ -733,11 +733,7 @@ function FeatureDialog({
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:opacity-50"
-            >
+            <button type="submit" disabled={saving} className="admin-button admin-button--primary">
               {saving && <Loader2 className="size-3.5 animate-spin" />}
               {feature ? "Save changes" : "Add to board"}
             </button>
@@ -1190,7 +1186,7 @@ export default function FeaturesPage() {
               setOpenFeature(null);
               setFeatureDialogOpen(true);
             }}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"
+            className="admin-button admin-button--primary"
           >
             <Plus className="size-3.5" /> New feature
           </button>
@@ -1289,7 +1285,7 @@ export default function FeaturesPage() {
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Search work…"
                       aria-label="Search work"
-                      className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                      className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
                     />
                   </div>
                   <WorkViews
@@ -1318,7 +1314,7 @@ export default function FeaturesPage() {
                           value={milestone}
                           onChange={(event) => setMilestone(event.target.value)}
                           aria-label="Filter by milestone"
-                          className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
+                          className="admin-field min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
                         >
                           <option value="all">All milestones</option>
                           <option value="active">Now + Next</option>
@@ -1337,7 +1333,7 @@ export default function FeaturesPage() {
                           value={category}
                           onChange={(event) => setCategory(event.target.value)}
                           aria-label="Filter by category"
-                          className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto md:max-w-48"
+                          className="admin-field min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto md:max-w-48"
                         >
                           <option value="all">All categories</option>
                           {categories.map((value) => (
@@ -1353,7 +1349,7 @@ export default function FeaturesPage() {
                           value={capability}
                           onChange={(event) => setCapability(event.target.value)}
                           aria-label="Filter by capability"
-                          className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto md:max-w-48"
+                          className="admin-field min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto md:max-w-48"
                         >
                           <option value="all">All capabilities</option>
                           {capabilities.map((value) => (
@@ -1369,7 +1365,7 @@ export default function FeaturesPage() {
                           value={ownerFilter}
                           onChange={(event) => setOwnerFilter(event.target.value)}
                           aria-label="Filter by owner"
-                          className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
+                          className="admin-field min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
                         >
                           <option value="all">All assignments</option>
                           <option value="mine">Assigned to me</option>
@@ -1389,7 +1385,7 @@ export default function FeaturesPage() {
                             setPriority(event.target.value as "all" | FeaturePriority)
                           }
                           aria-label="Filter by priority"
-                          className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
+                          className="admin-field min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] md:w-auto"
                         >
                           <option value="all">All priorities</option>
                           {FEATURE_PRIORITIES.map((value) => (
