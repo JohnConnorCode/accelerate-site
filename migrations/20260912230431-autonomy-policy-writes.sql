@@ -45,6 +45,11 @@ BEGIN
   END IF;
   -- The action lock also serializes generic hard-floor changes with coworker grants.
   PERFORM pg_advisory_xact_lock(hashtextextended(jsonb_build_array('autonomy-policy',t,k)::text,0));
+  IF p_coworker_id IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM public.coworkers WHERE tenant_id = t AND id = p_coworker_id
+  ) THEN
+    RAISE EXCEPTION 'violates foreign key: coworker % does not belong to tenant', p_coworker_id;
+  END IF;
   PERFORM 1 FROM public.autonomy_policies p
     WHERE p.tenant_id=t AND p.action_key=k AND p.coworker_id IS NOT DISTINCT FROM p_coworker_id
     ORDER BY p.created_at,p.id FOR UPDATE;
@@ -113,6 +118,11 @@ BEGIN
   END IF;
   -- The action lock also serializes generic hard-floor changes with coworker grants.
   PERFORM pg_advisory_xact_lock(hashtextextended(jsonb_build_array('autonomy-policy',t,k)::text,0));
+  IF p_coworker_id IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM public.coworkers WHERE tenant_id = t AND id = p_coworker_id
+  ) THEN
+    RAISE EXCEPTION 'violates foreign key: coworker % does not belong to tenant', p_coworker_id;
+  END IF;
   PERFORM 1 FROM public.autonomy_policies p
     WHERE p.tenant_id=t AND p.action_key=k AND p.coworker_id IS NOT DISTINCT FROM p_coworker_id
     ORDER BY p.created_at,p.id FOR UPDATE;
