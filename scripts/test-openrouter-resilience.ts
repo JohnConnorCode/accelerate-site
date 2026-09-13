@@ -25,6 +25,7 @@ import {
   OpenRouterError,
   type OpenRouterStreamMetadata,
 } from "../src/lib/ai/openrouter";
+import { DEFAULT_OPENROUTER_MODEL } from "../src/lib/ai/openrouter-models";
 
 // Read at call time by the gateway, so setting it here is enough and no real
 // credential is involved.
@@ -207,7 +208,7 @@ async function main() {
     stubFetch([{ status: 200, body: okBody }]);
     await openRouterChat(ask);
     const body = calls[0]?.body as { models?: string[]; route?: string };
-    assert.deepEqual(body.models, ["openai/gpt-4.1-mini", "anthropic/claude-haiku-4.5"]);
+    assert.deepEqual(body.models, [DEFAULT_OPENROUTER_MODEL, "anthropic/claude-haiku-4.5"]);
     assert.equal(body.route, "fallback");
     delete process.env.OPENROUTER_FALLBACK_MODEL;
   });
@@ -342,7 +343,7 @@ async function main() {
     "strict response parsing refuses an oversized provider body without retry",
     async () => {
       stubFetch([{ status: 200, body: { ...okBody, extra: "x".repeat(150_000) } }]);
-      await assert.rejects(() => openRouterChat({ ...ask, model: okBody.model, strictPricing }));
+      await assert.rejects(() => openRouterChat({ ...ask, model: "fixture/free", strictPricing }));
       assert.equal(calls.length, 1);
     },
   );
@@ -377,7 +378,7 @@ async function main() {
       usage: { prompt_tokens: 11, completion_tokens: 4, total_tokens: 15 },
     });
     assert.deepEqual((calls[0]?.body as { models?: string[] }).models, [
-      "openai/gpt-4.1-mini",
+      DEFAULT_OPENROUTER_MODEL,
       "anthropic/claude-haiku-4.5",
     ]);
     delete process.env.OPENROUTER_FALLBACK_MODEL;

@@ -46,7 +46,7 @@ try {
   const ai = page.getByRole("dialog");
   assert.equal(
     await ai.getByRole("combobox", { name: "Model", exact: true }).inputValue(),
-    "meta/muse-spark-1.3",
+    "deepseek/deepseek-v4.1-flash",
   );
   assert.ok(
     (await ai.getByRole("combobox", { name: "Model", exact: true }).locator("option").count()) >=
@@ -173,7 +173,7 @@ try {
     status: "passed",
     checks: [
       "Create page and live preview",
-      "Live-compatible model catalogue; Muse default, latest Opus, search/provider/cost filters, empty results, refresh, and explicit free selection",
+      "Live-compatible model catalogue; DeepSeek V4.1 Flash default, latest Opus, search/provider/cost filters, empty results, refresh, and explicit free selection",
       "Review AI suggestion before local apply; undo and redo",
       "Save remains private; publish exact draft; rollback preserves newer draft",
       "Collection entry rich content preview",

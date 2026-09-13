@@ -169,10 +169,16 @@ async function main() {
   );
   assert.ok(providerApi.includes("environment_fallback_allowed: false"));
   assert.match(providerApi, /encrypted_credentials:\s*{\s*api_key:\s*encryptTenantSecret/);
+  // MCP is deliberately a one-time generated credential. Check the OpenRouter
+  // branch itself so that exception cannot hide a provider-key regression.
+  const openRouterBranch = providerApi.slice(
+    providerApi.indexOf('if (parsed.data.action === "configure_openrouter")'),
+    providerApi.indexOf("const encryptedCredentials"),
+  );
   assert.doesNotMatch(
-    providerApi,
+    openRouterBranch,
     /NextResponse\.json\([^)]*apiKey/,
-    "plaintext API keys must never be returned",
+    "plaintext OpenRouter API keys must never be returned",
   );
 
   const productCallers = [

@@ -1494,6 +1494,7 @@
         "@/config/tenant",
         "@/lib/admin/auth",
         "@/lib/ai/openrouter-credentials",
+        "@/lib/ai/openrouter-models",
         "@/lib/booking",
         "@/lib/revenue-os/ai-tools",
         "@/lib/revenue-os/encryption",
@@ -1507,7 +1508,7 @@
         "@/lib/supabase/server",
         "next/server"
       ],
-      "sourceSha256": "f43777ce435f8fe0078528e99ff878866f50ef7e4948687afd54f1424d266ebc"
+      "sourceSha256": "9d5249139666033a0ebc65c308607fa9edd19daf1cf5911fc832cc374bf8e2a4"
     },
     {
       "source": "src/app/api/admin/site/drafts/[id]/route.ts",

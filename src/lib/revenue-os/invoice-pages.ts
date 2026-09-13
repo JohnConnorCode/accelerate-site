@@ -2,7 +2,7 @@ import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { openRouterJson } from "@/lib/ai/openrouter";
+import { getOpenRouterModel, openRouterJson } from "@/lib/ai/openrouter";
 import { encryptTenantSecret, decryptTenantSecret } from "./encryption";
 import { requireEnabledPlugin } from "./plugin-host";
 import { readWorkspaceBrand } from "./branding";
@@ -102,7 +102,7 @@ export async function generateInvoiceDesign(
     surface: "invoice_page_design",
     actorEmail,
     provider: "openrouter",
-    model: "workspace-configured",
+    model: getOpenRouterModel(),
     promptPreview: creationActionId,
   });
   if (!run.id) throw new Error("An invoice design trace could not be opened");

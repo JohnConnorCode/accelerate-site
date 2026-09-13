@@ -33,6 +33,7 @@ import {
   MCP_REVENUE_OS_RESOURCES,
 } from "@/lib/revenue-os/mcp-server";
 import { resolveOpenRouterCredential } from "@/lib/ai/openrouter-credentials";
+import { DEFAULT_OPENROUTER_MODEL } from "@/lib/ai/openrouter-models";
 import { isModuleEnabled } from "@/lib/revenue-os/modules";
 
 interface SourceRunRow {
@@ -578,7 +579,7 @@ export async function GET() {
       group: "ai",
       label: "OpenRouter intelligence gateway",
       description: openRouterReady
-        ? `All AI workflows use the ${openRouterCredential?.source === "tenant" ? "encrypted workspace-owned" : "bootstrap platform-managed"} OpenRouter key${process.env.OPENROUTER_MODEL ? ` with ${process.env.OPENROUTER_MODEL}` : " with the documented default model"}${process.env.OPENROUTER_FALLBACK_MODEL ? ` and ${process.env.OPENROUTER_FALLBACK_MODEL} as the configured fallback model` : " with no model fallback override"}.`
+        ? `All AI workflows use the ${openRouterCredential?.source === "tenant" ? "encrypted workspace-owned" : "bootstrap platform-managed"} OpenRouter key${process.env.OPENROUTER_MODEL ? ` with ${process.env.OPENROUTER_MODEL}` : ` with ${DEFAULT_OPENROUTER_MODEL} as the default model`}${process.env.OPENROUTER_FALLBACK_MODEL ? ` and ${process.env.OPENROUTER_FALLBACK_MODEL} as the configured fallback model` : " with no model fallback override"}.`
         : "Add and verify this workspace's OpenRouter API key in Integrations.",
       accomplishes:
         "Runs contact cleanup, Revenue Copilot, website chat, plan generation, insights, briefs, and drafts through one governed provider gateway.",

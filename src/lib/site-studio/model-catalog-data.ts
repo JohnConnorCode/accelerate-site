@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const DEFAULT_SITE_MODEL = "meta/muse-spark-1.3";
+export const DEFAULT_SITE_MODEL = "deepseek/deepseek-v4.1-flash";
 export const SITE_MODEL_RECOMMENDATIONS = [
   DEFAULT_SITE_MODEL,
   "nex-agi/nex-n2.5-mini:free",
@@ -150,7 +150,7 @@ export function enforceSitePriceCeiling(model: SiteStudioModel, ceiling?: SitePr
 }
 
 /** Recommend the newest compatible member of each useful family. This changes
- * the menu, never the user's selected model or the explicit Muse default. */
+ * the menu, never the user's selected model or the explicit DeepSeek default. */
 export function recommendedSiteModelIds(models: SiteStudioModel[]): string[] {
   const newest = [...models].sort((a, b) => b.created - a.created || a.id.localeCompare(b.id));
   const families = [

@@ -38,7 +38,11 @@ async function main() {
       SITE_STUDIO_MODELS.some((model) => model.id === id),
       id,
     );
-  assert.equal(DEFAULT_SITE_MODEL, "meta/muse-spark-1.3");
+  assert.equal(DEFAULT_SITE_MODEL, "deepseek/deepseek-v4.1-flash");
+  assert.equal(
+    SITE_STUDIO_MODELS.find((model) => model.id === DEFAULT_SITE_MODEL)?.label,
+    "DeepSeek V4.1 Flash",
+  );
   const excluded = [
     fixture({ id: "openrouter/free" }),
     fixture({ id: "fixture/automatic", name: "Fixture: Automatic Model Router" }),

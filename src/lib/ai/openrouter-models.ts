@@ -8,7 +8,10 @@ import "server-only";
  * binding before its module body evaluates).
  */
 
-export const DEFAULT_OPENROUTER_MODEL = "openai/gpt-4.1-mini";
+/** Shared default for every OpenRouter-backed workflow. Callers may still
+ * select a model explicitly, and OPENROUTER_MODEL remains an optional
+ * installation override. */
+export const DEFAULT_OPENROUTER_MODEL = "deepseek/deepseek-v4.1-flash";
 
 export function getOpenRouterModel(preferred?: string): string {
   return preferred?.trim() || process.env.OPENROUTER_MODEL?.trim() || DEFAULT_OPENROUTER_MODEL;
