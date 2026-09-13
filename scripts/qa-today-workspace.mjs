@@ -60,6 +60,26 @@ try {
         return original(input, init);
       };
     });
+    const heading = page.locator(".admin-page-introduction");
+    assert.equal(await heading.locator(".admin-eyebrow, .admin-copy").count(), 0);
+    assert.equal(await heading.getByLabel("Today view", { exact: true }).count(), 1);
+    assert.equal(await page.locator("[data-today-module] article svg").count(), 0);
+    assert.equal(
+      await page
+        .locator('[data-today-module="brief"]')
+        .evaluate((node) => getComputedStyle(node).backgroundImage),
+      "none",
+    );
+    assert.equal(await page.locator('[data-today-module="brief"] a').count(), 4);
+    await page.getByLabel("Today view", { exact: true }).focus();
+    await page.keyboard.press("Tab");
+    assert.equal(
+      await page
+        .getByRole("button", { name: "Customize", exact: true })
+        .evaluate((node) => node === document.activeElement),
+      true,
+    );
+    await page.mouse.move(0, 0);
     const original = await page.evaluate(async () =>
       (await window.__todayTestFetch("/api/admin/revenue-os/today")).json(),
     );
@@ -116,7 +136,7 @@ try {
       await page.getByLabel("Today view", { exact: true }).locator("option:checked").innerText(),
       /Focused day/,
     );
-    await page.getByRole("button", { name: "Duplicate view", exact: true }).click();
+    await page.getByLabel("View actions", { exact: true }).selectOption("duplicate");
     await page.getByLabel("View name", { exact: true }).fill("Cancelled draft");
     await page.getByRole("button", { name: "Cancel", exact: true }).click();
     await page.getByRole("dialog", { name: "Customize Today" }).waitFor({ state: "hidden" });

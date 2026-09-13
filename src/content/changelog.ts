@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "dashboard-actionable-layout",
+    slug: "dashboard-actionable-layout",
+    title: "A compact Today dashboard with clear next actions",
+    description:
+      "Today places saved-view controls beside the heading and replaces the oversized briefing with an actionable business snapshot. Decisions, follow-up and pipeline figures open their work surfaces. Consistent cards and text actions remove repeated list icons and duplicate briefing content, while personal views and source context remain available.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "unified-task-write-path",
     slug: "unified-task-write-path",
     title: "Task saves run through the unified executor with undo",

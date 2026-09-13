@@ -1,28 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import {
-  Activity,
-  ArrowRight,
-  CalendarDays,
-  Check,
-  CheckCheck,
-  ChevronRight,
-  CircleDot,
-  Copy,
-  Focus,
-  Layers3,
-  Mail,
-  Orbit,
-  Pin,
-  Plus,
-  RefreshCw,
-  SlidersHorizontal,
-  Sparkles,
-  Sun,
-  TrendingUp,
-  X,
-} from "lucide-react";
+import { ArrowRight, Check, Pin, RefreshCw, Sparkles, X } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { AdminDialog } from "./AdminDialog";
 import { AdminAsyncRegion } from "./AdminAsyncRegion";
@@ -52,17 +31,6 @@ import type { TodaySnapshot, TodayFact, TodayRegion } from "@/lib/admin/today-da
 import type { OperatorAttentionItem } from "@/lib/revenue-os/operator-attention";
 import styles from "./TodayWorkspace.module.css";
 
-const icons = {
-  brief: Sun,
-  attention: Focus,
-  handling: Orbit,
-  upcoming: CalendarDays,
-  changes: TrendingUp,
-  metrics: TrendingUp,
-  activity: Activity,
-  apps: Layers3,
-  ai: Sparkles,
-};
 function dateLabel(value: string | null, options?: Intl.DateTimeFormatOptions) {
   if (!value || !Number.isFinite(Date.parse(value))) return "Time unavailable";
   return new Date(value).toLocaleDateString(
@@ -81,14 +49,10 @@ function Card({
   children: ReactNode;
   footer?: ReactNode;
 }) {
-  const Icon = icons[module.type];
   return (
     <section className={styles.card} data-today-module={module.type}>
       <header className={styles.cardHeader}>
-        <h2>
-          <Icon size={17} strokeWidth={1.6} />
-          {TODAY_MODULES.find((m) => m.id === module.type)?.name}
-        </h2>
+        <h2>{TODAY_MODULES.find((m) => m.id === module.type)?.name}</h2>
         {count !== undefined && <span className={styles.count}>{count}</span>}
       </header>
       {children}
@@ -196,9 +160,6 @@ export function TodayWorkspace() {
     };
   const preferences = views.personal.document;
   const items = snapshot?.attention.data ?? [];
-  const urgent = items.filter(
-    (item) => item.attentionKind === "decision" || item.urgency === "critical",
-  );
   const focus = search.get("focus");
   const focusKinds =
     focus === "approvals" || focus === "approval"
@@ -342,14 +303,6 @@ export function TodayWorkspace() {
         {displayed.length ? (
           <div className={styles.rows}>
             {displayed.map((item) => {
-              const Icon =
-                item.attentionKind === "decision"
-                  ? Focus
-                  : item.attentionKind === "upcoming"
-                    ? CalendarDays
-                    : item.sourceType === "conversation"
-                      ? Mail
-                      : CircleDot;
               return (
                 <article
                   key={attentionKey(item)}
@@ -358,9 +311,6 @@ export function TodayWorkspace() {
                   data-source-type={item.sourceType}
                   data-source-id={item.sourceId}
                 >
-                  <span className={styles.rowIcon}>
-                    <Icon size={16} />
-                  </span>
                   <button
                     className={styles.rowMain}
                     onClick={() => inspect(item)}
@@ -388,7 +338,7 @@ export function TodayWorkspace() {
                     </span>
                   </button>
                   <button
-                    className={cn(styles.iconButton, styles.rowAction)}
+                    className={cn(styles.textLink, styles.rowAction)}
                     aria-label={
                       (item.attentionKind === "decision" ? "Review " : "Open ") + item.title
                     }
@@ -396,7 +346,7 @@ export function TodayWorkspace() {
                       item.attentionKind === "decision" ? review(item) : inspect(item)
                     }
                   >
-                    <ChevronRight size={17} />
+                    {item.attentionKind === "decision" ? "Review" : "Open"}
                   </button>
                 </article>
               );
@@ -404,18 +354,15 @@ export function TodayWorkspace() {
           </div>
         ) : kind === "attention" ? (
           <div className={styles.quietHero}>
-            <span className={styles.quietMark}>
-              <CheckCheck size={21} strokeWidth={1.4} />
-            </span>
             <h3>
               {snapshot?.attention.state === "unavailable"
-                ? "Your work is still there."
-                : "A little room to focus."}
+                ? "Queue unavailable"
+                : "No attention items in this view"}
             </h3>
             <p>
               {snapshot?.attention.state === "unavailable"
                 ? "We couldn’t read the queue. You can still open your work or retry the connection."
-                : "No decisions or commitments in this view. Use the space to move something important forward."}
+                : "Open your work or choose a next step."}
             </p>
             <div className={styles.toolbarGroup}>
               <Link href="/admin/work" className={styles.button}>
@@ -437,8 +384,8 @@ export function TodayWorkspace() {
           <div className={styles.quiet}>
             <p className={styles.muted}>
               {kind === "upcoming"
-                ? "No upcoming commitments in this view. Your next meeting or deadline will appear here."
-                : "No new signals in this view. Changes appear here as your business moves."}
+                ? "No upcoming commitments in this view."
+                : "No new signals in this view."}
             </p>
           </div>
         )}
@@ -450,68 +397,60 @@ export function TodayWorkspace() {
     if (module.type === "attention" || module.type === "changes" || module.type === "upcoming")
       return renderRows(module, module.type);
     if (module.type === "brief") {
-      const facts = snapshot.facts.data.slice(0, Math.min(module.limit, 5));
       const interpretations = snapshot.brief.data?.interpretations ?? [];
       return (
         <section className={cn(styles.card, styles.brief)} data-today-module="brief">
           <div className={styles.briefTop}>
-            <div>
-              <p className={styles.eyebrow}>YOUR BUSINESS, IN FOCUS</p>
-              <h2>
-                {urgent.length
-                  ? "A few things deserve your attention."
-                  : facts.length
-                    ? "See the day. Choose your next move."
-                    : "A clear space for what comes next."}
-              </h2>
-              <p className={styles.briefIntro}>
-                {snapshot.facts.state === "unavailable"
-                  ? "Some sources are temporarily unavailable. Refresh to bring your business context back into view."
-                  : facts.length
-                    ? "The developments and decisions worth a closer look, drawn from your workspace."
-                    : "Today brings your decisions, commitments, and business context together. Start with a priority, or connect the tools you already use."}
-              </p>
-            </div>
-            <span className={styles.sun}>
-              <Sun size={24} strokeWidth={1.4} />
+            <h2>Business snapshot</h2>
+            <span className={styles.muted}>
+              Updated{" "}
+              {new Date(snapshot.generatedAt).toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit",
+              })}
             </span>
           </div>
-          {facts.length > 0 ? (
-            <div className={styles.briefFacts}>
-              {facts.slice(0, 3).map((entry, index) => (
-                <button
-                  key={entry.id}
-                  className={styles.factButton}
-                  onClick={() => {
-                    setFact(entry);
-                    setFactOpen(true);
-                  }}
-                >
-                  <span>
-                    {String(index + 1).padStart(2, "0")} · {entry.sourceType.replaceAll("_", " ")}
-                  </span>
-                  <strong>{entry.title}</strong>
-                  <span>{entry.detail}</span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className={cn(styles.toolbarGroup, "mt-5")}>
-              <button
-                className={styles.button}
-                onClick={() =>
-                  ask(
-                    "Help me capture one priority for today. Ask what I want to accomplish, then prepare a task for my approval.",
-                  )
-                }
-              >
-                <Plus size={14} /> Set a priority
-              </button>
-              <Link className={styles.textLink} href="/admin/integrations">
-                Connect your tools <ArrowRight size={14} />
-              </Link>
-            </div>
-          )}
+          <SourceState region={snapshot.attention} />
+          <SourceState region={snapshot.metrics} />
+          <div className={styles.briefFacts}>
+            <Link className={styles.factButton} href="/admin/today?focus=approval">
+              <span>Awaiting your decision</span>
+              <strong>
+                {snapshot.attention.state === "unavailable"
+                  ? "—"
+                  : items.filter((item) => item.attentionKind === "decision").length}
+              </strong>
+              <span>Review approvals</span>
+            </Link>
+            <Link className={styles.factButton} href="/admin/work">
+              <span>Needs follow-up</span>
+              <strong>
+                {snapshot.attention.state === "unavailable"
+                  ? "—"
+                  : items.filter((item) => item.attentionKind === "work").length}
+              </strong>
+              <span>Open work</span>
+            </Link>
+            <Link className={styles.factButton} href="/admin/pipeline">
+              <span>Open opportunities</span>
+              <strong>{snapshot.metrics.data?.openOpportunities ?? "—"}</strong>
+              <span>View pipeline</span>
+            </Link>
+            <Link className={styles.factButton} href="/admin/pipeline">
+              <span>Pipeline value</span>
+              <strong>
+                {snapshot.metrics.data
+                  ? new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: "USD",
+                      maximumFractionDigits: 0,
+                      notation: "compact",
+                    }).format(snapshot.metrics.data.pipelineValue)
+                  : "—"}
+              </strong>
+              <span>Explore opportunities</span>
+            </Link>
+          </div>
           {interpretations.map((entry, i) => (
             <div key={i} className={styles.sourceBox}>
               <p className={styles.eyebrow}>AI INTERPRETATION</p>
@@ -526,34 +465,11 @@ export function TodayWorkspace() {
                     setFactOpen(true);
                   }}
                 >
-                  View supporting source <ArrowRight size={12} />
+                  View supporting source
                 </button>
               ))}
             </div>
           ))}
-          <div className={styles.briefMeta}>
-            <span>
-              <span className={styles.dot} />{" "}
-              {snapshot.facts.state === "partial" ? "Partial context" : "From your workspace"}
-            </span>
-            <span>
-              Observed {dateLabel(snapshot.generatedAt)} ·{" "}
-              {new Date(snapshot.generatedAt).toLocaleTimeString([], {
-                hour: "numeric",
-                minute: "2-digit",
-              })}
-            </span>
-            <button
-              className={styles.textLink}
-              onClick={() =>
-                ask(
-                  "Explain what matters in my Today workspace, cite sources, and help prepare the most useful next action.",
-                )
-              }
-            >
-              Explore with AI <ArrowRight size={12} />
-            </button>
-          </div>
         </section>
       );
     }
@@ -566,9 +482,6 @@ export function TodayWorkspace() {
             <div className={styles.rows}>
               {work.map((item) => (
                 <article className={styles.row} key={item.id}>
-                  <span className={styles.rowIcon}>
-                    {item.status === "completed" ? <Check size={16} /> : <Orbit size={16} />}
-                  </span>
                   <div className={styles.rowMain}>
                     <Link href={item.href}>
                       <strong>{item.title}</strong>
@@ -592,10 +505,7 @@ export function TodayWorkspace() {
             </div>
           ) : (
             <div className={styles.quiet}>
-              <p className={styles.muted}>
-                Nothing is running in the background. Delegated work and completed results will
-                appear here.
-              </p>
+              <p className={styles.muted}>No delegated work or results to show.</p>
             </div>
           )}
         </Card>
@@ -609,7 +519,6 @@ export function TodayWorkspace() {
             <div className={styles.rows}>
               {snapshot.activity.data.slice(0, module.limit).map((item) => (
                 <Link key={item.id} href={item.href} className={styles.row}>
-                  <span className={styles.activityDot} />
                   <div className={styles.rowMain}>
                     <strong>{item.title}</strong>
                     <span className={styles.rowMeta}>{dateLabel(item.at)}</span>
@@ -634,7 +543,7 @@ export function TodayWorkspace() {
                 <div key={app.id}>
                   <div className={styles.cardFooter}>
                     <Link className={styles.textLink} href={app.href}>
-                      {app.name} <ArrowRight size={12} />
+                      {app.name}
                     </Link>
                     <span>
                       {app.state === "unavailable"
@@ -648,7 +557,6 @@ export function TodayWorkspace() {
                         <strong>{item.title}</strong>
                         <p>{item.detail}</p>
                       </div>
-                      <ChevronRight size={14} />
                     </Link>
                   ))}
                 </div>
@@ -702,15 +610,11 @@ export function TodayWorkspace() {
     return (
       <Card module={module}>
         <div className={styles.quietHero}>
-          <h3>Turn context into progress.</h3>
-          <p>
-            Ask about your business, work through a decision, or prepare the next action together.
-          </p>
           <div className={styles.toolbarGroup}>
             {["What should I focus on?", "Prepare a follow-up", "What changed recently?"].map(
               (prompt) => (
                 <button key={prompt} className={styles.button} onClick={() => ask(prompt)}>
-                  {prompt} <ArrowRight size={12} />
+                  {prompt}
                 </button>
               ),
             )}
@@ -746,108 +650,91 @@ export function TodayWorkspace() {
     >
       <PageHeader
         title="Today"
-        subtitle={dateLabel(new Date().toISOString(), {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-        })}
+        subtitle=""
+        eyebrow={false}
+        compact
+        utilityActions={
+          <button
+            className={styles.iconButton}
+            aria-label="Refresh Today"
+            disabled={query.isFetching}
+            onClick={() => void refresh()}
+          >
+            <RefreshCw size={16} />
+          </button>
+        }
         actions={
           <>
+            <select
+              className={styles.viewSelect}
+              aria-label="Today view"
+              value={current.key}
+              onChange={(e) => {
+                setChosenView(e.target.value);
+                setAllAttention(false);
+              }}
+            >
+              {choices.length ? (
+                choices.map((entry) => (
+                  <option key={entry.key} value={entry.key}>
+                    {entry.view.name}
+                    {entry.scope === "personal" ? " · Personal" : ""}
+                  </option>
+                ))
+              ) : (
+                <option value={current.key}>Business overview</option>
+              )}
+            </select>
             <button
               className={styles.button}
               disabled={!viewsQuery.data}
               onClick={() => customize()}
             >
-              <SlidersHorizontal size={15} /> Customize
+              Customize
             </button>
-            <button
-              className={styles.iconButton}
-              aria-label="Refresh Today"
-              disabled={query.isFetching}
-              onClick={() => void refresh()}
+            <select
+              className={styles.viewActions}
+              aria-label="View actions"
+              value=""
+              disabled={!viewsQuery.data}
+              onChange={(event) => {
+                if (event.target.value === "new")
+                  customize(
+                    { ...defaultTodayView(), id: crypto.randomUUID(), name: "My day" },
+                    "personal",
+                  );
+                if (event.target.value === "duplicate")
+                  customize(
+                    {
+                      ...current.view,
+                      id: crypto.randomUUID(),
+                      name: (current.view.name + " copy").slice(0, 60),
+                    },
+                    "personal",
+                  );
+                if (event.target.value === "delete") setConfirmDelete(true);
+                if (event.target.value === "all") {
+                  setAllAttention(true);
+                  if (focus) router.replace("/admin/today", "preserve");
+                }
+              }}
             >
-              <RefreshCw size={16} />
-            </button>
+              <option value="" disabled>
+                More
+              </option>
+              <option value="new">New view</option>
+              <option value="duplicate">Duplicate view</option>
+              <option
+                value="delete"
+                disabled={current.scope === "workspace" && !views.canManageWorkspace}
+              >
+                Delete view
+              </option>
+              <option value="all">Show all attention</option>
+            </select>
           </>
         }
       />
-      <div className={styles.toolbar}>
-        <div className={styles.toolbarGroup}>
-          <select
-            className={styles.viewSelect}
-            aria-label="Today view"
-            value={current.key}
-            onChange={(e) => {
-              setChosenView(e.target.value);
-              setAllAttention(false);
-            }}
-          >
-            {choices.length ? (
-              choices.map((entry) => (
-                <option key={entry.key} value={entry.key}>
-                  {entry.view.name}
-                  {entry.scope === "personal" ? " · Personal" : ""}
-                </option>
-              ))
-            ) : (
-              <option value={current.key}>Business overview</option>
-            )}
-          </select>
-          <button
-            className={styles.iconButton}
-            aria-label="New view"
-            disabled={!viewsQuery.data}
-            onClick={() =>
-              customize(
-                { ...defaultTodayView(), id: crypto.randomUUID(), name: "My day" },
-                "personal",
-              )
-            }
-          >
-            <Plus size={17} />
-          </button>
-          <button
-            className={styles.iconButton}
-            aria-label="Duplicate view"
-            disabled={!viewsQuery.data}
-            onClick={() =>
-              customize(
-                {
-                  ...current.view,
-                  id: crypto.randomUUID(),
-                  name: (current.view.name + " copy").slice(0, 60),
-                },
-                "personal",
-              )
-            }
-          >
-            <Copy size={15} />
-          </button>
-          <button
-            className={styles.iconButton}
-            aria-label="Delete view"
-            disabled={
-              !viewsQuery.data || (current.scope === "workspace" && !views.canManageWorkspace)
-            }
-            onClick={() => setConfirmDelete(true)}
-          >
-            <X size={15} />
-          </button>
-        </div>
-        <button
-          className={styles.attentionPill}
-          onClick={() => {
-            setAllAttention(true);
-            if (focus) router.replace("/admin/today", "preserve");
-            document
-              .getElementById("today-attention")
-              ?.scrollIntoView({ block: "center", behavior: "instant" });
-          }}
-        >
-          <span className={styles.dot} />
-          <b>{urgent.length}</b> decisions &amp; urgent items <ChevronRight size={13} />
-        </button>
-      </div>
       {(error || query.error || viewsQuery.error) && (
         <div className={styles.error} role="alert">
           {error || query.error?.message || viewsQuery.error?.message}{" "}
@@ -941,7 +828,6 @@ export function TodayWorkspace() {
       </AdminAsyncRegion>
       {viewsQuery.data && (
         <footer className={styles.cardFooter}>
-          <span>Your arrangement. Live business context.</span>
           <div className={styles.toolbarGroup}>
             {preferences.muted.length > 0 && (
               <button
@@ -1036,7 +922,7 @@ export function TodayWorkspace() {
                         className={styles.textLink}
                         onClick={() => setSelected(item)}
                       >
-                        {item.title} <ArrowRight size={12} />
+                        {item.title}
                       </button>
                     ))}
                 </>

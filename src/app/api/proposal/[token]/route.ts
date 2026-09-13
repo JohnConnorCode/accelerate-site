@@ -10,7 +10,7 @@ import {
   recordProposalView,
 } from "@/lib/revenue-os/proposals";
 
-export async function handleProposalGet(
+export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },
   tenantContext?: TenantSystemContext,
@@ -79,7 +79,7 @@ export async function handleProposalGet(
   });
 }
 
-export async function handleProposalPost(
+export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },
   tenantContext?: TenantSystemContext,
@@ -120,7 +120,7 @@ export async function handleProposalPost(
     return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
   // Atomicity, replay and expires_at enforcement for the decision path are
   // owned by decideProposal/apply_proposal_lifecycle (see the comment in
-  // handleProposalGet above). decideProposal distinguishes a decision that
+  // GET above). decideProposal distinguishes a decision that
   // just tripped the expiry from one that was already expired, so this
   // route can surface the former as a specific, actionable 410 and the
   // latter as the generic terminal-state 409 below.
@@ -176,12 +176,4 @@ export async function handleProposalPost(
       return NextResponse.json({ error: message }, { status: transitionStatusFromError(error) });
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
-
-export async function GET(request: NextRequest, context: { params: Promise<{ token: string }> }) {
-  return handleProposalGet(request, context);
-}
-
-export async function POST(request: NextRequest, context: { params: Promise<{ token: string }> }) {
-  return handleProposalPost(request, context);
 }

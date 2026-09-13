@@ -7234,8 +7234,26 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 
 .admin-page-introduction {
   margin-bottom: 1.75rem;
-  padding-bottom: 0.15rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid color-mix(in srgb, var(--admin-ink) 7%, transparent);
+}
+.admin-page-introduction-compact {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.admin-page-introduction-compact .admin-page-title {
+  font-size: 1.75rem;
+}
+@media (max-width: 639px) {
+  .admin-page-introduction-compact .admin-page-utilities {
+    right: 80px;
+  }
+  .admin-page-introduction-compact .admin-help-trigger {
+    position: absolute;
+    top: 3px;
+    right: 0;
+  }
 }
 /* A small anchored popover, not a full-width band: the trigger is sized
    like any other secondary header action. The panel portals to
