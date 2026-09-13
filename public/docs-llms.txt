@@ -23,7 +23,7 @@ One shared operating layer for the businesses that need it, and how to run the d
 - [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-09): Arrange your business brief, decisions, work and App follow-up into saved views that fit your day.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-09): Every new lead, message, and staged action that hasn't found an owner yet, in one queue.
 - [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-09): The editing view over the same tasks and approvals Today shows you, with filters and full editing.
-- [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-12): How approval works, how it earns more autonomy over time, and what to check after a decision.
+- [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-09): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-09): Trace a change back to who made it, what actually happened, and when.
 - [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-09): Ask a specific question, see the records it used to answer, and review anything it proposes.
 
