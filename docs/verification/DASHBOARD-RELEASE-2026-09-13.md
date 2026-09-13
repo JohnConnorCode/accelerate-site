@@ -161,3 +161,17 @@ defect: the mount-time scope reset discarded an already-cached snapshot. Today
 now initializes from the scoped cache and resets only when its scope changes.
 The browser regression waits for committed content before recording scroll and
 checks that Back returns to usable data at the saved reading position.
+
+The exact f8cdb523a8de production build passed all 28 Today cases and the
+operator journeys. The five-case animation filmstrip and navigation runtime
+checks passed, including slow reads, mobile throttling, reduced motion and Back
+scroll restoration. The 120-navigation persistent-profile sweep also passed with
+zero document reloads, stale RSC responses or runtime errors. The filmstrip's
+desktop target was corrected to the existing Admin navigation landmark (Primary
+navigation belongs to the mobile dock). Local production checks load the linked
+production environment as well as the artifact deployment ID; a missing runtime
+service credential correctly fails closed and is not an application regression.
+These receipts are in `/tmp/dashboard-final`, `/tmp/dashboard-final-operator`,
+`/tmp/accelerate-navigation-filmstrip`, `/tmp/accelerate-navigation-runtime`,
+and `/tmp/accelerate-persistent-profile-qa`. Merge and delivery still require the
+final SHA-specific CI and production receipts.

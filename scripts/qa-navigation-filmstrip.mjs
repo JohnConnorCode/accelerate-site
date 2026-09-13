@@ -154,7 +154,7 @@ for (const run of [
   if (!run.delay) await page.waitForLoadState("networkidle");
   const target = page
     .locator(
-      `${run.name.startsWith("mobile") ? ".admin-mobile-dock " : "nav[aria-label='Primary navigation'] "}a[href="/demo/command-center/northline-roofing/pipeline"]:visible`,
+      `${run.name.startsWith("mobile") ? ".admin-mobile-dock " : "nav[aria-label='Admin navigation'] "}a[href="/demo/command-center/northline-roofing/pipeline"]:visible`,
     )
     .first();
   await target.waitFor({ state: "visible", timeout: 15_000 });
