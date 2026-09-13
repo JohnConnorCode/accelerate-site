@@ -1,0 +1,17 @@
+---
+title: "Stripe subscriptions"
+description: "Create recurring plans, send customers through secure checkout, and manage renewals from the account portal."
+updated: "2026-09-13"
+---
+
+# Stripe subscriptions
+
+Stripe subscriptions let a workspace sell fixed recurring services without copying customer billing state into a second system. Admins create monthly or annual plans in **Subscriptions**. Each plan creates a Stripe product and price and keeps the provider IDs in the tenant-scoped billing ledger.
+
+Customers open `/t/{tenant}/subscribe`, sign in or create an account, and complete Stripe-hosted Checkout. The account page at `/t/{tenant}/account` shows the subscription, renewal date, invoices, and payment settings. Payment details stay in Stripe’s hosted billing portal.
+
+Cancellation and plan changes are scheduled for the next renewal. Stripe webhook events update the local ledger after signature verification, with durable receipts so retries are safe. A plan can be archived to stop new checkouts while existing subscriptions continue.
+
+Connect Stripe in **Integrations** before creating a plan. Store the account key and Stripe webhook signing secret there. Configure the webhook endpoint as `/api/public/{tenant}/webhooks/stripe` for the workspace slug and subscribe to checkout, subscription, and invoice events.
+
+The account and subscription presentation follows the useful customer flow in [Drink Long Life](https://github.com/JohnConnorCode/drinklonglife), adapted to Accelerate’s tenant-bound records, provider adapter, and approval and audit conventions.

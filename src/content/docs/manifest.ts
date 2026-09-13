@@ -538,6 +538,12 @@ export const docsManifest: DocsSection[] = [
           "Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.",
       },
       {
+        slug: ["plugins", "stripe-subscriptions"],
+        title: "Stripe subscriptions",
+        description:
+          "Create recurring plans, send customers through secure checkout, and manage renewals from the account portal.",
+      },
+      {
         slug: ["plugins", "site-studio"],
         title: "Draft public pages with Site Studio",
         description:

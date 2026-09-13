@@ -126,11 +126,45 @@ export const TENANT_SCOPED_TABLES = [
   "webhook_receipts",
   "website_events",
   "website_grades",
+  "billing_plans",
+  "billing_customers",
+  "billing_subscriptions",
+  "billing_operations",
+  "billing_webhook_events",
 ] as const;
 
 const TENANT_SCOPED_TABLE_SET = new Set<string>(TENANT_SCOPED_TABLES);
 
 const BASE_REVENUE_SCHEMA_TABLES = [
+  {
+    table: "billing_plans",
+    columns: ["id", "name", "currency", "interval", "amount", "stripe_price_id", "active"],
+  },
+  {
+    table: "billing_customers",
+    columns: ["id", "user_id", "email", "stripe_customer_id"],
+  },
+  {
+    table: "billing_subscriptions",
+    columns: [
+      "id",
+      "user_id",
+      "plan_id",
+      "stripe_subscription_id",
+      "status",
+      "current_period_end",
+      "cancel_at_period_end",
+      "pending_plan_id",
+    ],
+  },
+  {
+    table: "billing_operations",
+    columns: ["request_id", "operation", "status", "provider_id", "result"],
+  },
+  {
+    table: "billing_webhook_events",
+    columns: ["event_id", "event_type", "status", "received_at", "processed_at"],
+  },
   { table: "today_workspace_views", columns: ["owner_key", "revision", "document", "updated_at"] },
   {
     table: "today_view_receipts",

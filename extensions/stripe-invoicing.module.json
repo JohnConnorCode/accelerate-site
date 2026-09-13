@@ -13,9 +13,17 @@
       "icon": "FileText",
       "description": "Customer invoices and payment status",
       "moreGroup": "Revenue"
+    },
+    {
+      "id": "stripe-subscriptions",
+      "label": "Subscriptions",
+      "href": "/admin/subscriptions",
+      "icon": "Wallet",
+      "description": "Recurring plans and customer subscriptions",
+      "moreGroup": "Revenue"
     }
   ],
-  "routes": ["/admin/invoicing"],
+  "routes": ["/admin/invoicing", "/admin/subscriptions"],
   "aiToolNames": [
     "prepare_stripe_invoicing",
     "propose_stripe_invoicing",

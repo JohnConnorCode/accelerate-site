@@ -94,6 +94,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260922-architect-understanding.sql",
   "migrations/20260923-workspace-blueprints.sql",
   "migrations/20260924-workspace-blueprint-applies.sql",
+  "migrations/20260925-stripe-subscriptions.sql",
   "migrations/20260909012125-installation-website-revisions.sql",
   "migrations/20260910-today-workspace.sql",
   "migrations/20260911-learning-inbox.sql",

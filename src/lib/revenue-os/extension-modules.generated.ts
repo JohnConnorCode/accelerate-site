@@ -990,7 +990,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     category: "revenue",
     isCore: false,
     defaultEnabled: false,
-    navLinkIds: ["stripe-invoicing"],
+    navLinkIds: ["stripe-invoicing", "stripe-subscriptions"],
     aiToolNames: [
       "prepare_stripe_invoicing",
       "propose_stripe_invoicing",
@@ -998,7 +998,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       "preview_invoice_page",
       "propose_invoice_page",
     ],
-    routes: ["/admin/invoicing"],
+    routes: ["/admin/invoicing", "/admin/subscriptions"],
     setupChecks: [],
     docsUrl: "/docs/plugins/stripe-invoicing",
     workflow: {
@@ -1454,6 +1454,15 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     href: "/admin/invoicing",
     icon: "FileText",
     description: "Customer invoices and payment status",
+    moreGroup: "Revenue",
+  },
+  {
+    moduleId: "stripe-invoicing",
+    id: "stripe-subscriptions",
+    label: "Subscriptions",
+    href: "/admin/subscriptions",
+    icon: "Wallet",
+    description: "Recurring plans and customer subscriptions",
     moreGroup: "Revenue",
   },
 ] as const;
