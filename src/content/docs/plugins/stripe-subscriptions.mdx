@@ -16,11 +16,12 @@ Connect Stripe in **Integrations** before creating a plan. Store the account key
 
 ## Launch checklist
 
-1. Enable the **Stripe invoicing** module for the workspace.
-2. In **Integrations**, connect the Stripe account and verify the API key. Add the webhook signing secret from Stripe.
-3. In Stripe, create an endpoint for `/api/public/{tenant}/webhooks/stripe` and subscribe it to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, and `invoice.payment_failed`.
-4. Add the public site origin and `/auth/callback` to the Supabase Auth redirect allowlist. Test signup, email confirmation, password recovery, and sign-in.
-5. Create a test-mode plan, complete one test checkout, and confirm that the account page shows the subscription and invoice before switching the connection to live mode.
+1. Run `npm run db:migrate:all` in the deployment environment, then run `npm run db:verify-schema -- --record`. The ordered catalog includes `migrations/20260925-stripe-subscriptions.sql`, which creates the tenant billing tables and webhook receipt ledger.
+2. Enable the **Stripe invoicing** module for the workspace.
+3. In **Integrations**, connect the Stripe account and verify the API key. Add the webhook signing secret from Stripe.
+4. In Stripe, create an endpoint for `/api/public/{tenant}/webhooks/stripe` and subscribe it to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, and `invoice.payment_failed`.
+5. Add the public site origin and `/auth/callback` to the Supabase Auth redirect allowlist. Test signup, email confirmation, password recovery, and sign-in.
+6. Create a test-mode plan, complete one test checkout, and confirm that the account page shows the subscription and invoice before switching the connection to live mode.
 
 ## What customers can do
 

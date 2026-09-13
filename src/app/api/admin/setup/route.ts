@@ -33,6 +33,7 @@ import {
   MCP_REVENUE_OS_RESOURCES,
 } from "@/lib/revenue-os/mcp-server";
 import { resolveOpenRouterCredential } from "@/lib/ai/openrouter-credentials";
+import { isModuleEnabled } from "@/lib/revenue-os/modules";
 
 interface SourceRunRow {
   source_key: string;
@@ -152,9 +153,10 @@ export async function GET() {
           .limit(1)
           .maybeSingle(),
         platform.rpc("command_center_scheduler_status"),
-        supabase
+        platform
           .from("integration_connections")
           .select("status,account_email,encrypted_credentials")
+          .eq("tenant_id", auth.tenant.id)
           .eq("provider", "stripe")
           .maybeSingle(),
       ])
@@ -202,7 +204,10 @@ export async function GET() {
   const stripeWebhookReady = isTenantEncryptedSecret(
     String(stripeCredentials.webhook_secret ?? ""),
   );
-  const stripeReady = stripeApiReady && stripeWebhookReady;
+  const stripeModuleEnabled = isModuleEnabled("stripe-invoicing", {
+    modules: auth.tenant.config?.modules as Partial<Record<string, boolean>> | undefined,
+  });
+  const stripeReady = stripeModuleEnabled && stripeApiReady && stripeWebhookReady;
   // Presence, not an exact count. A hardcoded expected total drifts every time
   // the manifest changes, and detecting drift is what
   // `npm run seed:features -- --verify` is for.
@@ -609,18 +614,29 @@ export async function GET() {
       id: "stripe",
       group: "operations",
       label: "Stripe billing connection",
-      description: stripeReady
-        ? `Stripe account ${stripe.account_email} is connected with an encrypted API key and webhook signing secret.`
-        : stripeApiReady
-          ? "Stripe is connected, but the webhook signing secret is missing. Subscription status will not stay current until signed events can be verified."
-          : "Connect Stripe and add its webhook signing secret before enabling recurring billing or creating plans.",
+      description: !schemaReady
+        ? "Apply and verify the Revenue OS schema before enabling recurring billing."
+        : !stripeModuleEnabled
+          ? "Enable Stripe invoicing for this workspace before connecting an account or creating recurring plans."
+          : stripeReady
+            ? `Stripe account ${stripe.account_email} is connected with an encrypted API key and webhook signing secret.`
+            : stripeApiReady
+              ? "Stripe is connected, but the webhook signing secret is missing. Subscription status will not stay current until signed events can be verified."
+              : "Connect Stripe and add its webhook signing secret before enabling recurring billing or creating plans.",
       accomplishes:
         "Enables secure recurring checkout, payment settings, renewal updates, and durable subscription receipts.",
       status: stripeReady ? "ready" : "action",
       required: false,
-      keys: ["Stripe API key", "Stripe webhook signing secret", "/api/public/{tenant}/webhooks/stripe"],
+      keys: [
+        "migrations/20260925-stripe-subscriptions.sql",
+        "Stripe API key",
+        "Stripe webhook signing secret",
+        "/api/public/{tenant}/webhooks/stripe",
+      ],
       nextRun: setupNextRun("config"),
-      action: { label: "Configure Stripe", href: "/admin/integrations#workspace-provider-heading" },
+      action: !schemaReady
+        ? { label: "Review schema setup", href: "/admin/setup#schema" }
+        : { label: "Configure Stripe", href: "/admin/integrations#workspace-provider-heading" },
     },
     {
       id: "mcp_server",

@@ -114,8 +114,7 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   schema: {
     steps: [
-      "Use the agent-owned migration command in the documented order; agents run it directly and never require dashboard SQL pasting.",
-      "Apply migrations/20260817-schema-verification.sql after the existing Revenue OS migrations.",
+      "Run npm run db:migrate:all in the deployment environment. It applies the ordered catalog, including migrations/20260925-stripe-subscriptions.sql, and resumes safely when earlier files are already recorded.",
       "Run npm run db:verify-schema -- --record. It reads only database metadata and records a receipt for the exact deployed contract version.",
       "Return here and refresh. Ready means runtime access and the latest complete metadata receipt agree; it does not claim external integrations are healthy.",
     ],
@@ -217,9 +216,9 @@ const setupGuides: Record<string, SetupGuide> = {
   },
   stripe: {
     steps: [
-      "Open Integrations and connect the Stripe account that should own this workspace's recurring plans.",
+      "Finish the Revenue OS schema check first. The subscription tables and receipts must be present before billing can be enabled.",
+      "Open Integrations and enable Stripe invoicing for this workspace, then connect the Stripe account that should own its recurring plans.",
       "Add the Stripe webhook signing secret from the endpoint configured for /api/public/{tenant}/webhooks/stripe.",
-      "Enable Stripe invoicing for the workspace only after both the API key and signing secret verify successfully.",
       "Create one test-mode plan, complete a test checkout, and confirm the customer account and webhook receipt before switching to live mode.",
     ],
     href: "/admin/integrations#workspace-provider-heading",

@@ -27,6 +27,16 @@ const tenantScopedTableSet = new Set<string>(TENANT_SCOPED_TABLES);
 const ENTITY_REGISTRY_MIGRATION = "migrations/20260904-entity-registry-link-graph.sql";
 const DELIVERY_HANDOFF_MIGRATION = "migrations/20260905-delivery-handoff.sql";
 const releaseMigration = (table: string, column?: string) => {
+  if (
+    [
+      "billing_plans",
+      "billing_customers",
+      "billing_subscriptions",
+      "billing_operations",
+      "billing_webhook_events",
+    ].includes(table)
+  )
+    return "migrations/20260925-stripe-subscriptions.sql";
   if (["site_websites", "site_website_revisions", "site_website_receipts"].includes(table))
     return "migrations/20260909012125-installation-website-revisions.sql";
   if (["site_drafts", "site_draft_revisions"].includes(table))
@@ -83,7 +93,9 @@ const migrationFor = (table: string, column?: string): string =>
                       ? "migrations/20260830-shared-database-tenancy.sql"
                       : "migrations/20260816-revenue-os.sql");
 const migrationForIndex = (name: string) =>
-  name === "site_website_revision_history"
+  ["billing_plans_active_idx", "billing_subscriptions_customer_idx"].includes(name)
+    ? "migrations/20260925-stripe-subscriptions.sql"
+    : name === "site_website_revision_history"
     ? "migrations/20260909012125-installation-website-revisions.sql"
     : name.startsWith("site_drafts_")
       ? "migrations/20260917-site-studio-drafts.sql"
@@ -111,7 +123,15 @@ const migrationForIndex = (name: string) =>
                         ? "migrations/20260824-ai-command-runtime.sql"
                         : "migrations/20260816-revenue-os.sql";
 const migrationForPolicy = (table: string, name: string) =>
-  table === "entity_types" || table === "entity_links"
+  [
+    "billing_plans",
+    "billing_customers",
+    "billing_subscriptions",
+    "billing_operations",
+    "billing_webhook_events",
+  ].includes(table)
+    ? "migrations/20260925-stripe-subscriptions.sql"
+    : table === "entity_types" || table === "entity_links"
     ? ENTITY_REGISTRY_MIGRATION
     : table === "onboarding_templates"
       ? DELIVERY_HANDOFF_MIGRATION

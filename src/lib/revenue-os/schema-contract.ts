@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-11.3";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-25.1";
 
 export const TENANT_SCOPED_TABLES = [
   "today_view_proposals",
@@ -745,6 +745,8 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_clients_opportunity",
   "idx_clients_handoff_opportunity_unique",
   "idx_tasks_delivery_handoff_unique",
+  "billing_plans_active_idx",
+  "billing_subscriptions_customer_idx",
 ] as const;
 
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
@@ -815,6 +817,11 @@ export const REVENUE_SCHEMA_POLICIES = [
   { table: "entity_links", name: "Tenant member access" },
   { table: "onboarding_templates", name: "Service role full access" },
   { table: "onboarding_templates", name: "Tenant member access" },
+  { table: "billing_plans", name: "Tenant member billing access" },
+  { table: "billing_customers", name: "Tenant member billing access" },
+  { table: "billing_subscriptions", name: "Tenant member billing access" },
+  { table: "billing_operations", name: "Tenant member billing access" },
+  { table: "billing_webhook_events", name: "Tenant member billing access" },
 ] as const;
 
 export type RevenueSchemaStatus =
