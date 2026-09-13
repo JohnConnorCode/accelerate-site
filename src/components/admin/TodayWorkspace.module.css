@@ -650,7 +650,7 @@
   }
   .viewSelect {
     max-width: 155px;
-    padding-inline: 10px 24px;
+    padding-inline: 10px 8px;
     font-size: 12px;
   }
   .viewActions {

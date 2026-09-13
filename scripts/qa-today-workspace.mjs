@@ -71,7 +71,7 @@ try {
           context.font = `${css.fontWeight} ${css.fontSize} ${css.fontFamily}`;
           return (
             context.measureText(select.selectedOptions[0].text).width <=
-            select.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight)
+            select.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight) - 20
           );
         }),
         "Default view name is clipped on mobile",
