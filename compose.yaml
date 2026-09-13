@@ -11,36 +11,19 @@ services:
     env_file: .env
     environment:
       NEXT_PUBLIC_SITE_URL: https://${APP_HOST}
-      POSTIZ_ORIGIN: https://${POSTIZ_HOST:?Run npm run stack:up}
+      POSTIZ_ORIGIN: ""
     restart: unless-stopped
   proxy:
-    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: proxy }
+    image: ${CADDY_IMAGE:-caddy@sha256:13ba145cba2f3e28fa801994876e4c086d1b95d5aa2a520a734765ffb6b12017}
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
     environment:
       APP_HOST: ${APP_HOST}
     volumes:
       - ./deployment/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./plugins/social-marketing/deployment/Caddyfile:/etc/caddy/postiz.caddy:ro
-    depends_on: [app, postiz]
-  postiz:
-    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: postiz }
-    build:
-      context: ./plugins/social-marketing/deployment/upstream
-      dockerfile: Dockerfile.dev
-      args:
-        NEXT_PUBLIC_VERSION: accelerate-3cbe20b-2
-  postgres:
-    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: postgres }
-  redis:
-    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: redis }
-  temporal-db:
-    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: temporal-db }
-  temporal:
-    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: temporal }
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [app]
 volumes:
-  postiz-db:
-  postiz-config:
-  postiz-uploads:
-  redis-data:
-  temporal-db:
   caddy-data:
   caddy-config:

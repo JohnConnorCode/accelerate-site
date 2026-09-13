@@ -2,23 +2,28 @@
 
 Fork this repository and deploy the app and Social Marketing runtime together.
 There is no separate Postiz repository to install or hosting account to select.
-Docker Compose runs the app, bundled Postiz worker, private databases and shared
-HTTPS proxy as one stack. Workspace plugin enablement remains optional.
+Docker Compose runs the app and HTTPS proxy by default. The Postiz worker and
+private dependencies are opt-in services in the same package.
 
 1. Install Node 22, Git, Docker Engine and Docker Compose on your app host.
 2. Copy `.env.example` to `.env` and configure the existing application/Supabase
    setup as described in [self-hosting](../docs/self-hosting/SELF-HOSTING.md).
-3. Set `APP_HOST` to your application hostname. Point it and `social.APP_HOST`
-   to this same host. `POSTIZ_HOST` can override the social subdomain. These are
-   two routes into one installation, not separate hosting accounts.
+3. Set `APP_HOST` to your application hostname and point it to this host.
 4. Run `npm run stack:up` from the repository root.
 
-The command generates missing private Postiz secrets in `.env`, prepares the
-pinned patched upstream source, builds both app images and starts the stack.
-Only the shared proxy exposes ports 80/443. The app receives its Postiz origin
+The default `SOCIAL_MARKETING_ENABLED=false` starts only the app and proxy.
+It does not download or build Postiz, generate provider secrets, start its
+workers/databases, or configure a social hostname.
+
+To include Social Marketing, set `SOCIAL_MARKETING_ENABLED=true` in the same
+`.env` and run `npm run stack:up` again. Point `social.APP_HOST` at the same host
+(or set `POSTIZ_HOST` to another hostname there). This opt-in prepares the pinned
+patched source, generates missing private service secrets and starts the bundled
+workers/databases alongside the app.
+Only the shared proxy exposes ports 80/443. When enabled, the app receives its Postiz origin
 automatically. LinkedIn credentials are not required to install the package.
 The first build can take several minutes. Caddy obtains HTTPS certificates once
-both names resolve to this host and ports 80/443 are reachable.
+the configured names resolve to this host and ports 80/443 are reachable.
 
 Open the app at `https://APP_HOST`. Complete the existing workspace setup, then
 follow [Social Marketing setup](../plugins/social-marketing/README.md) to activate
@@ -31,10 +36,18 @@ the owner password afterward. The command uses this same stack and sends no
 credentials to command output. Sign in to the bundled setup screen and bind the
 organization through Social Marketing's connection settings.
 
-Use `docker compose ps` and `docker compose logs app postiz` for local diagnosis;
+Use `docker compose ps` and `docker compose logs app` for local diagnosis;
 do not publish logs containing private data. `npm run stack:down` stops the stack
 and retains its volumes. Never use `down --volumes` on an installation you need.
-`npm run stack:check` validates the configured package without printing secrets.
+`npm run stack:check` validates the selected package without printing secrets.
+
+To stop using the runtime, disable Social Marketing in affected workspaces first,
+set `SOCIAL_MARKETING_ENABLED=false`, and run `npm run stack:up`. The command removes
+services no longer selected in this Compose project, retaining named volumes,
+credentials and source. It removes the social proxy route and clears the app's
+Postiz origin. Turning the runtime back on reuses those volumes. This installation
+flag affects all workspaces; each workspace still enables its own plugin separately.
+Never store unrelated custom containers under this package's Compose project name.
 
 For updates, back up `.env`, the app database and the bundled service data first.
 Pull the reviewed app revision and run `npm run stack:up` again. Changed upstream
@@ -54,7 +67,7 @@ does not add a separate local Supabase installation.
 ## Add another service-backed plugin
 
 Keep its domain operations, native UI and tools in the app. Add its runtime to
-this Compose stack using `extends`, with private networking, named volumes and
+an opt-in Compose file using `extends`, with private networking, named volumes and
 health checks. Reuse this root startup command and shared proxy. Keep provider
 credentials and tenant activation in the plugin's existing setup flow. No new
 installer framework or arbitrary-code loader is required.

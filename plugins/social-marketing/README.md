@@ -1,7 +1,8 @@
 # Social Marketing
 
 Install this plugin runtime with [the complete app package](../../deployment/README.md).
-`npm run stack:up` includes Postiz; no separate project installation is required.
+Set `SOCIAL_MARKETING_ENABLED=true` and run `npm run stack:up` to include Postiz.
+The default app installation runs without it. No separate installation is required.
 LinkedIn authorization and tenant connection setup remain activation steps.
 
 Prepare LinkedIn company-page posts from reviewed source material, approve the

@@ -104,6 +104,6 @@ Run heavy tool commands through `node scripts/resource-run.mjs <command> [args..
 ## Deploy the complete app package
 
 For the app with the bundled Social Marketing runtime, set `APP_HOST` in `.env`
-and run `npm run stack:up`. The root Docker Compose package builds both services
+and set `SOCIAL_MARKETING_ENABLED=true` before running `npm run stack:up`. The root Docker Compose package builds both services
 and routes them through one HTTPS proxy. Postiz requires no second installation.
 See the repository `deployment/README.md` for DNS, updates and retained data.

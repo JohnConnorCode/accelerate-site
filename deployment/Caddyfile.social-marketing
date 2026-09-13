@@ -1,3 +1,4 @@
 {$APP_HOST} {
   reverse_proxy app:3000
 }
+import /etc/caddy/postiz.caddy

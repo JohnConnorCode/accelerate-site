@@ -42,7 +42,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "social-marketing-postiz",
     title: "Prepare and review LinkedIn publishing in Social Marketing",
     description:
-      "The forkable app package bundles Postiz with one configuration and startup command. Its optional plugin adds source-backed drafts, weekly preparation, exact batch approval, durable scheduling and publication receipts. Each tenant connects a separate organization. Deployment assets protect owner registration and draft media, refuse automatic destructive schema changes, and include isolated startup and recovery checks. Hosting, LinkedIn access and the internal pilot require verified setup before customer activation.",
+      "The forkable app package optionally bundles Postiz with one configuration and startup command; its services stay off by default. Its optional plugin adds source-backed drafts, weekly preparation, exact batch approval, durable scheduling and publication receipts. Each tenant connects a separate organization. Deployment assets protect owner registration and draft media, refuse automatic destructive schema changes, and include isolated startup and recovery checks. Hosting, LinkedIn access and the internal pilot require verified setup before customer activation.",
     category: "feature",
     publishedAt: "2026-09-12",
   },

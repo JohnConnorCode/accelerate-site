@@ -18,10 +18,16 @@ if (!/^[a-zA-Z0-9][a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(process.env.APP_HOST || ""
   throw new Error("Set APP_HOST to your application hostname in .env.");
 process.env.POSTIZ_HOST ||= `social.${process.env.APP_HOST}`;
 process.env.APP_REVISION ||= run("git", ["rev-parse", "--short=12", "HEAD"], true);
+const enabled = process.env.SOCIAL_MARKETING_ENABLED || "false";
+if (!["true", "false"].includes(enabled))
+  throw new Error("SOCIAL_MARKETING_ENABLED must be true or false.");
+const social = enabled === "true";
+// Compose only parses plugin dependencies when the installation opts in.
+process.env.COMPOSE_FILE = social ? "compose.yaml:compose.social-marketing.yaml" : "compose.yaml";
 const mode = process.argv[2] || "up";
 if (!["up", "down", "config", "owner"].includes(mode))
   throw new Error("Use up, down, config or owner.");
-if (mode === "up") {
+if (mode === "up" && social) {
   for (const key of ["POSTIZ_JWT_SECRET", "POSTIZ_DB_PASSWORD", "TEMPORAL_DB_PASSWORD"]) {
     if (!process.env[key]) {
       process.env[key] = randomBytes(32).toString("hex");
@@ -46,7 +52,15 @@ if (mode === "up") {
     run("bash", [base + "prepare-source.sh"]);
     writeFileSync(base + "source/PACKAGE-SHA256", stamp);
   }
-  run("docker", ["compose", "up", "--build", "--detach"]);
+}
+if (mode === "up") {
+  // Removed services are stopped, but named volumes and saved credentials remain.
+  run("docker", ["compose", "up", "--build", "--detach", "--remove-orphans"]);
 } else if (mode === "owner") {
+  if (!social) throw new Error("Enable SOCIAL_MARKETING_ENABLED before provider owner setup.");
   run("node", ["plugins/social-marketing/deployment/bootstrap-owner.mjs", "--package"]);
-} else run("docker", ["compose", ...(mode === "config" ? ["config", "--quiet"] : ["down"])]);
+} else
+  run("docker", [
+    "compose",
+    ...(mode === "config" ? ["config", "--quiet"] : ["down", "--remove-orphans"]),
+  ]);

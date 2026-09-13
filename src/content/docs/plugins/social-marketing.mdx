@@ -74,7 +74,7 @@ Use the hardened service version required by Setup, then verify the host, Linked
 ## Install with the app
 
 The forkable Docker package includes the app and Postiz runtime. Configure the app
-`.env`, set `APP_HOST`, and run `npm run stack:up`. Point the app hostname and its
+`.env`, set `APP_HOST`, and set `SOCIAL_MARKETING_ENABLED=true` before running `npm run stack:up`. Point the app hostname and its
 `social` subdomain to the same host. The package builds and connects the services;
 LinkedIn authorization and workspace connection remain setup steps. The repository
 `deployment/README.md` covers installation, updates and stopping without deleting data.

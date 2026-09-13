@@ -6,6 +6,7 @@ on:
     paths:
       - plugins/social-marketing/deployment/**
       - compose.yaml
+      - compose.social-marketing.yaml
       - Dockerfile
       - .dockerignore
       - deployment/**
