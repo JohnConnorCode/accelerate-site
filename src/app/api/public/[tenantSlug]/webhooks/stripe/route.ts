@@ -48,7 +48,11 @@ export async function POST(request: NextRequest, route: { params: Promise<{ tena
     const parsed: unknown = JSON.parse(body);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("not an object");
     event = parsed as Record<string, unknown>;
-  } catch {
+  } catch (error) {
+    console.warn(
+      "[stripe-webhook] rejected JSON payload:",
+      error instanceof Error ? error.message : error,
+    );
     return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
   }
   try {
