@@ -437,6 +437,12 @@ export const docsManifest: DocsSection[] = [
           "Turn a message, calendar event, or invoice sitting in another app into usable context here.",
       },
       {
+        slug: ["workspace", "customer-billing"],
+        title: "Manage your subscription",
+        description:
+          "Subscribe, update payment details, and understand renewals from your customer account.",
+      },
+      {
         slug: ["workspace", "setup"],
         title: "Set up a working workspace",
         description: "Verify the connections one real workflow needs, before layering on more.",

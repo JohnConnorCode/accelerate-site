@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { formatPlanInterval, formatPlanPrice } from "@/lib/revenue-os/subscriptions-contract";
 
 type Plan = { id: string; name: string; description: string; currency: string; interval: string; amount: number };
@@ -48,7 +49,7 @@ export function SubscriptionPlanGrid({ tenantSlug, plans }: { tenantSlug: string
           </article>
         ))}
       </div>
-      <p className="mt-5 text-sm leading-6 text-black/55">Plans renew automatically. Payment details are handled by Stripe, and you can change or cancel at your next renewal from your account.</p>
+      <p className="mt-5 text-sm leading-6 text-black/55">Plans renew automatically. Payment details are handled by Stripe, and you can change or cancel at your next renewal from your account. <Link className="font-semibold underline" href="/docs/workspace/customer-billing">Billing help</Link>.</p>
     </div>
   );
 }

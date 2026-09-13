@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
 import { AccountBilling } from "@/components/billing/AccountBilling";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { resolveActiveTenantSystemContext } from "@/lib/tenancy/system";
@@ -22,7 +23,7 @@ export default async function AccountPage({ params }: { params: Promise<{ tenant
           <a className="text-sm font-semibold underline" href={`/t/${tenantSlug}/subscribe`}>View plans</a>
         </div>
         <div className="mt-10"><AccountBilling tenantSlug={tenantSlug} userEmail={user.email || ""} userName={name} emailUpdates={emailUpdates} /></div>
-        <p className="mt-10 text-sm text-black/55">Need help? <a className="font-semibold underline" href="mailto:support@acceleratewith.us">Contact support</a>.</p>
+        <p className="mt-10 text-sm text-black/55">Need help? Read the <Link className="font-semibold underline" href="/docs/workspace/customer-billing">billing help</Link> or <a className="font-semibold underline" href="mailto:support@acceleratewith.us">contact support</a>.</p>
       </div>
     </main>
   );
