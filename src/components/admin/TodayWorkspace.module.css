@@ -86,6 +86,15 @@
   max-width: 260px;
   box-shadow: var(--admin-shadow-border);
 }
+.viewActions {
+  min-height: 40px;
+  max-width: 82px;
+  padding: 0 8px;
+  background: transparent;
+  color: var(--admin-muted);
+  font-size: 12px;
+  border: 0;
+}
 .attentionPill {
   display: inline-flex;
   min-height: 40px;
@@ -105,7 +114,6 @@
   border-radius: 50%;
   background: var(--today-accent);
 }
-
 .card {
   border-radius: var(--admin-surface-radius);
   background: var(--admin-surface-fill);
@@ -157,29 +165,19 @@
   border-radius: var(--admin-control-radius);
 }
 .brief {
-  position: relative;
   padding: var(--admin-panel-padding);
-  background: linear-gradient(
-    120deg,
-    color-mix(in srgb, var(--today-accent) 7%, var(--admin-surface)),
-    var(--admin-surface) 70%
-  );
 }
 .briefTop {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--admin-section-gap);
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 .brief h2 {
-  font-family: var(--admin-title-font);
-  font-size: clamp(23px, 2.6vw, 34px);
-  line-height: 1.2;
-  letter-spacing: var(--admin-title-tracking);
-  max-width: 600px;
-  font-weight: 550;
-  margin: 6px 0 12px;
-  text-wrap: balance;
+  font-size: 14px;
+  font-weight: 650;
+  margin: 0;
 }
 .briefIntro {
   font-size: var(--admin-text-body);
@@ -200,26 +198,26 @@
 }
 .briefFacts {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-  margin-top: 28px;
-  padding-top: 22px;
-  border-top: 1px solid var(--admin-border);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
 }
 .factButton {
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
   min-width: 0;
   border-radius: var(--admin-control-radius);
-  padding: 2px;
+  padding: 8px 10px;
+  margin: -8px -10px;
 }
 .factButton strong {
-  font-size: var(--admin-text-body);
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
   font-weight: 600;
-  line-height: 1.5;
-  text-wrap: pretty;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
 }
 .factButton span {
   color: var(--admin-muted);
@@ -227,8 +225,10 @@
   line-height: 1.6;
 }
 .factButton:hover strong {
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  color: var(--admin-accent);
+}
+.factButton:hover {
+  background: var(--admin-surface-subtle);
 }
 .briefMeta {
   margin-top: 22px;
@@ -251,7 +251,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: var(--admin-row-padding) var(--admin-space-3);
+  padding: 12px;
   border-top: 1px solid var(--admin-border);
 }
 .row:first-child {
@@ -273,6 +273,10 @@
   flex: 1;
   text-align: left;
 }
+.rowMain:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .rowMain strong {
   display: block;
   font-weight: 550;
@@ -290,7 +294,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-top: 9px;
+  margin-top: 6px;
   font-size: var(--admin-text-caption);
   color: var(--admin-muted);
   flex-wrap: wrap;
@@ -310,6 +314,7 @@
 .rowAction {
   align-self: center;
   flex-shrink: 0;
+  padding-inline: 8px;
 }
 .quiet {
   padding: 8px 22px 22px;
@@ -324,10 +329,9 @@
   padding: 20px 24px 28px;
 }
 .quietHero h3 {
-  font-size: 23px;
-  letter-spacing: -0.03em;
-  margin: 12px 0 8px;
-  font-weight: 500;
+  font-size: 16px;
+  margin: 0 0 8px;
+  font-weight: 550;
 }
 .quietHero p {
   max-width: 430px;
@@ -640,20 +644,24 @@
     margin: 18px 0;
   }
   .viewSelect {
-    max-width: 220px;
+    max-width: 145px;
+    padding-left: 10px;
+    font-size: 12px;
+  }
+  .viewActions {
+    max-width: 65px;
+    padding-inline: 2px;
   }
   .brief {
     padding: 22px;
   }
   .briefFacts {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
-    margin-top: 20px;
-    padding-top: 18px;
+    margin-top: 18px;
   }
   .brief h2 {
-    font-family: var(--admin-title-font);
-    font-size: 27px;
+    font-size: 14px;
   }
   .briefTop {
     gap: 14px;

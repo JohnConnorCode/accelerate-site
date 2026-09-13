@@ -668,6 +668,22 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   margin-bottom: var(--admin-section-gap);
   padding-block: var(--admin-space-2) var(--admin-space-2);
 }
+.admin-page-introduction-compact {
+  padding-block: 0;
+}
+.admin-page-introduction-compact .admin-page-title {
+  font-size: 1.75rem;
+}
+@media (max-width: 639px) {
+  .admin-page-introduction-compact .admin-page-utilities {
+    right: 90px;
+  }
+  .admin-page-introduction-compact .admin-help-trigger {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}
 /* A small anchored popover, not a full-width band: the trigger is sized
    like any other secondary header action. The panel portals to
    document.body (see PageHeader.tsx) so it floats above page content

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleProposalGet, handleProposalPost } from "@/app/api/proposal/[token]/route";
+import { GET as handleProposalGet, POST as handleProposalPost } from "@/app/api/proposal/[token]/route";
 import { resolveActiveTenantSystemContext } from "@/lib/tenancy/system";
 
 type RouteContext = { params: Promise<{ tenantSlug: string; token: string }> };

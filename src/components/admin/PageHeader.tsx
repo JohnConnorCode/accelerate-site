@@ -21,7 +21,8 @@ interface PageHeaderProps {
   subtitle?: string;
   actions?: React.ReactNode;
   utilityActions?: React.ReactNode;
-  eyebrow?: string;
+  eyebrow?: string | false;
+  compact?: boolean;
   guidance?: AdminPageGuidance | false;
 }
 
@@ -44,6 +45,7 @@ export function PageHeader({
   actions,
   utilityActions,
   eyebrow,
+  compact = false,
   guidance,
 }: PageHeaderProps) {
   const pathname = usePathname();
@@ -119,8 +121,8 @@ export function PageHeader({
   }, [helpOpen, closeHelp]);
 
   return (
-    <div className="admin-page-introduction">
-      <div className="admin-page-header relative flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div className={`admin-page-introduction${compact ? " admin-page-introduction-compact" : ""}`}>
+      <div className="admin-page-header relative flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className={utilityActions ? "min-w-0 pr-14 sm:pr-0" : "min-w-0"}>
           {eyebrow && <p className="admin-eyebrow">{eyebrow}</p>}
           <h1 className="admin-page-title">{title}</h1>
@@ -131,7 +133,7 @@ export function PageHeader({
         {(utilityActions || actions || help) && (
           <div className="contents sm:flex sm:shrink-0 sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
             {utilityActions && (
-              <div className="absolute right-0 top-0 flex items-center gap-2 sm:static">
+              <div className="admin-page-utilities absolute right-0 top-0 flex items-center gap-2 sm:static">
                 {utilityActions}
               </div>
             )}

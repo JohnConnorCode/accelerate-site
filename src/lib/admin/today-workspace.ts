@@ -11,8 +11,8 @@ export const TODAY_TOOL_NAMES = [
 export const TODAY_MODULES = [
   {
     id: "brief",
-    name: "Business brief",
-    description: "What matters, why, and what to do next.",
+    name: "Business snapshot",
+    description: "Decisions, follow-up and pipeline figures with direct actions.",
     icon: "sun",
   },
   {
@@ -41,7 +41,7 @@ export const TODAY_MODULES = [
   },
   {
     id: "metrics",
-    name: "Business snapshot",
+    name: "Pipeline snapshot",
     description: "A compact view of your current pipeline.",
     icon: "chart",
   },
