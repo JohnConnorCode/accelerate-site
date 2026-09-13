@@ -8,6 +8,9 @@ completed agent work. Integration starts at published main
 remain intact. The read-only inventory covered 98 registered worktrees; its local
 receipt is `/tmp/dashboard-release-worktrees.json`. The canonical board export is
 `/tmp/dashboard-release-board.json`.
+The local-branch inventory covers 324 branches, including 137 retained archive or
+checkpoint refs and 44 direct historical PR receipts, in
+`/tmp/dashboard-release-branches.json`.
 
 Included completed sources:
 
@@ -62,6 +65,18 @@ as GET/POST and reused by the tenant adapter without changing business logic.
 - Integrated verification-workflow suite passed 15 cases and 64 aggregate states.
 - Theme and token contracts passed. Public repository counts were reconciled to
   95 migrations, 242 check scripts and 895 TypeScript source files.
+- Combined production build and TypeScript passed on `e71ef0124b1e`; 469 static
+  pages generated. The subsequent change only updates the operator browser test
+  to use the new View actions control and adds this evidence.
+- Combined theme sweep passed 56 preview combinations, 14 desktop/mobile
+  workspace captures and 21 focused accessibility audits with zero violations.
+  Keyboard, Escape/focus return, density persistence, blocked storage and reduced
+  motion passed. Representative desktop/mobile screenshots inspected.
+- The broad route run hit the 3 GiB process-group limit. Remaining routes passed
+  in smaller three-route batches without raising or bypassing the resource cap.
+- Production-build operator journey passed shared task edits, snooze/completion,
+  exact approval inspection, source-linked activity, desktop/mobile, keyboard
+  Escape and fictional isolation for two businesses.
 
 The integration PR carries the final SHA-specific CI receipt. Merge tree parity,
 schema application and canonical hosted release identity must be recorded after
