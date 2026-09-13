@@ -81,3 +81,103 @@ as GET/POST and reused by the tenant adapter without changing business logic.
 The integration PR carries the final SHA-specific CI receipt. Merge tree parity,
 schema application and canonical hosted release identity must be recorded after
 their respective operations; this source report alone does not claim deployment.
+
+## Initial production receipt and live verification follow-up
+
+PR 100 merged as `a284d8d47c0ee8e79a6d42e02211321e69d12ea0`, with exact tree
+parity to verified candidate `1e6546e37085e668f84fc35ca9b5f8188e07b321`.
+CI 34737586399 passed every prerequisite. Its aggregate runner stalled for more
+than 17 minutes; the supported single-job retry passed on the same SHA, retaining
+the passing prerequisite results. No protection or check was bypassed.
+Postiz service CI 34737586400 passed. PR 94 was closed as proven incorporated;
+all worktrees and unfinished branches remain intact. Nine completed board items
+were accepted with revision-checked canonical review receipts.
+
+The production-configured webpack artifact deployed as
+`dpl_9L9a7HHn6wnRJZMjcLZBGaENRPGG`, READY at `https://www.acceleratewith.us`.
+The canonical document returned only release ID `1e6546e37085`. All three pending
+migrations were applied through the checksum ledger after compatible source was
+live; all 95 are present. Schema verification passed 775 requirements and
+recorded receipt `19f67e51-825a-4d2c-9aba-e72c4e8be6e3`.
+The authenticated Firefox session rendered the compact dashboard with real
+workspace data. Existing missing-coworker/automation warnings remained visible.
+The canonical demo passed all 15 initial dashboard cases.
+
+Real sparse data exposed a remaining presentation defect: ordinary flex rows
+reserved a large gap below a short primary card when its neighboring support
+card was tall. The release follow-up uses native independent desktop stacks,
+separated by full-width modules. Narrow layouts retain saved DOM and keyboard
+order. There is no measurement engine, layout dependency, data migration or
+change to saved documents. A retry outcome already present in its reason is
+shown once, and the mobile default view label has room to render completely.
+The Today guide now describes the current controls and layout.
+
+The expanded dashboard regression includes uneven column heights, exact desktop
+section gaps, narrow-screen module order, repeated-outcome suppression and mobile
+view-label width, alongside the existing saved-view and inspector journeys.
+Final follow-up CI and deployment receipts belong to its PR; the initial release
+receipt above is not proof that the follow-up is live.
+
+## Content-first replacement and shared motion
+
+The founder rejected the equal-weight card composition and approved an
+action-first plan, using Linear's priority inbox and Shopify's task-oriented
+Home as interaction references. The replacement keeps canonical actions and
+saved documents. Untouched built-in views lead with decisions and follow-up,
+followed immediately by business changes and separately labeled operational
+alerts. Two pipeline facts, upcoming commitments and automation are supporting
+context. Current automation is bounded to three visible records, with full
+details and completed results disclosed separately. Duplicate AI prompts and
+empty App promotions are absent from the standard layout. Distinct section
+icons do not become repeated list icons. Customized views retain their order.
+
+The reported sparse/error-heavy state is now an explicit browser fixture.
+The production-build dashboard passed 28 state/viewport combinations, including
+1100px and the reported one-task/two-alert/four-pending/one-completed case.
+Production screenshots were opened at desktop and mobile sizes; task editing,
+snooze/completion, approvals, source context and fictional isolation passed.
+The guide screenshot is generated from that production-build fixture.
+
+Shared motion inspection found nearly opaque entrance keyframes (92–94%), an
+arbitrary wrapper-depth stagger, and an async entrance conditional on a visible
+placeholder. AdminRouteStage now registers semantic groups before paint and
+newly inserted content during mutation delivery. One CSS sequence provides a
+true fade and six-pixel rise, with 60ms stagger capped at 180ms. A WeakSet keeps
+existing sections from replaying on refresh. Semantic CSS also covers markup
+before hydration; no full-route blur or imperative animation engine was added.
+
+The first navigation verification server was mistakenly started without the
+artifact's deployment ID. This caused full document reloads, lost in-page
+instrumentation and incorrect focus handoffs. Those failed receipts remain
+available. Subsequent runs must pass the identity read from the built server
+configuration; changing application caching or weakening navigation assertions
+is not a remedy. Final frame, persistent-profile, CI and release receipts remain
+separate from the implementation evidence above.
+
+With the correct server identity, the persistent-profile sweep passed 120
+navigations with zero document reloads, stale cached RSC responses or runtime
+errors. The focused Back journey also identified an actual Today lifecycle
+defect: the mount-time scope reset discarded an already-cached snapshot. Today
+now initializes from the scoped cache and resets only when its scope changes.
+The browser regression waits for committed content before recording scroll and
+checks that Back returns to usable data at the saved reading position.
+
+The exact f8cdb523a8de production build passed all 28 Today cases and the
+operator journeys. The five-case animation filmstrip and navigation runtime
+checks passed, including slow reads, mobile throttling, reduced motion and Back
+scroll restoration. The 120-navigation persistent-profile sweep also passed with
+zero document reloads, stale RSC responses or runtime errors. The filmstrip's
+desktop target was corrected to the existing Admin navigation landmark (Primary
+navigation belongs to the mobile dock). Local production checks load the linked
+production environment as well as the artifact deployment ID; a missing runtime
+service credential correctly fails closed and is not an application regression.
+These receipts are in `/tmp/dashboard-final`, `/tmp/dashboard-final-operator`,
+`/tmp/accelerate-navigation-filmstrip`, `/tmp/accelerate-navigation-runtime`,
+and `/tmp/accelerate-persistent-profile-qa`. Merge and delivery still require the
+final SHA-specific CI and production receipts.
+
+The broad route sweep caught a hydration warning at the AI workspace's nested
+Suspense boundary: parent entrance registration had added attributes before the
+child hydrated. Registration now writes only a route-scoped CSS stylesheet and
+retains delays in a WeakMap. It never mutates React-owned content attributes.
+The failing route and complete route matrix must be rerun against this fix.

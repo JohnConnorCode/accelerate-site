@@ -1,7 +1,21 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ArrowRight, Check, Pin, RefreshCw, Sparkles, X } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  Bot,
+  CalendarDays,
+  ChartNoAxesCombined,
+  Check,
+  CircleAlert,
+  Focus,
+  Layers,
+  Pin,
+  RefreshCw,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { AdminDialog } from "./AdminDialog";
 import { AdminAsyncRegion } from "./AdminAsyncRegion";
@@ -31,6 +45,26 @@ import type { TodaySnapshot, TodayFact, TodayRegion } from "@/lib/admin/today-da
 import type { OperatorAttentionItem } from "@/lib/revenue-os/operator-attention";
 import styles from "./TodayWorkspace.module.css";
 
+const desktopColumns = "(min-width: 1100px)";
+const sectionIcons = {
+  brief: ChartNoAxesCombined,
+  attention: Focus,
+  handling: Bot,
+  upcoming: CalendarDays,
+  changes: Activity,
+  metrics: ChartNoAxesCombined,
+  activity: Activity,
+  apps: Layers,
+  ai: Sparkles,
+};
+function subscribeColumns(notify: () => void) {
+  const media = window.matchMedia(desktopColumns);
+  media.addEventListener("change", notify);
+  return () => media.removeEventListener("change", notify);
+}
+const readColumns = () => window.matchMedia(desktopColumns).matches;
+const serverColumns = () => false;
+
 function dateLabel(value: string | null, options?: Intl.DateTimeFormatOptions) {
   if (!value || !Number.isFinite(Date.parse(value))) return "Time unavailable";
   return new Date(value).toLocaleDateString(
@@ -49,11 +83,15 @@ function Card({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  const Icon = sectionIcons[module.type];
   return (
     <section className={styles.card} data-today-module={module.type}>
       <header className={styles.cardHeader}>
-        <h2>{TODAY_MODULES.find((m) => m.id === module.type)?.name}</h2>
-        {count !== undefined && <span className={styles.count}>{count}</span>}
+        <h2>
+          <Icon size={18} aria-hidden="true" />
+          {TODAY_MODULES.find((m) => m.id === module.type)?.name}
+        </h2>
+        {count !== undefined && count > 0 && <span className={styles.count}>{count}</span>}
       </header>
       {children}
       {footer && <footer className={styles.cardFooter}>{footer}</footer>}
@@ -98,7 +136,8 @@ export function TodayWorkspace() {
   );
   const views = viewsQuery.data ?? defaultTodayViews();
   const [chosenView, setChosenView] = useState<string | null>(null);
-  const [snapshot, setSnapshot] = useState<TodaySnapshot | null>(null);
+  const [snapshot, setSnapshot] = useState<TodaySnapshot | null>(query.data ?? null);
+  const previousScope = useRef(scopeKey);
   const [interacting, setInteracting] = useState(false);
   const [editor, setEditor] = useState<{
     view: TodayView;
@@ -125,6 +164,8 @@ export function TodayWorkspace() {
     if (query.data && (!snapshot || (!editing && !interacting))) setSnapshot(query.data);
   }, [query.data, editing, interacting, snapshot]);
   useEffect(() => {
+    if (previousScope.current === scopeKey) return;
+    previousScope.current = scopeKey;
     setSnapshot(null);
     setChosenView(null);
     setSelected(null);
@@ -158,6 +199,41 @@ export function TodayWorkspace() {
       scope: "workspace" as const,
       view: defaultTodayView(),
     };
+  const useColumns = useSyncExternalStore(subscribeColumns, readColumns, serverColumns);
+  const standard = defaultTodayView();
+  const isStandard =
+    current.view.id === standard.id &&
+    current.view.name === standard.name &&
+    current.view.density === standard.density &&
+    JSON.stringify(current.view.modules) === JSON.stringify(standard.modules);
+  const visibleModules = isStandard
+    ? ["attention", "changes", "brief", "upcoming", "handling", "apps"].flatMap((type) => {
+        const instance = current.view.modules.find((entry) => entry.type === type);
+        if (
+          !instance ||
+          (type === "apps" &&
+            snapshot?.apps.state !== "unavailable" &&
+            snapshot?.apps.state !== "partial" &&
+            !snapshot?.apps.data.some((app) => app.state === "unavailable" || app.items.length))
+        )
+          return [];
+        return [
+          {
+            ...instance,
+            width: ["attention", "changes", "apps"].includes(type)
+              ? ("primary" as const)
+              : ("support" as const),
+          },
+        ];
+      })
+    : current.view.modules;
+  const moduleGroups: [TodayModule, ...TodayModule[]][] = [];
+  for (const instance of visibleModules.filter((m) => !allAttention || m.type !== "attention")) {
+    const previous = moduleGroups.at(-1);
+    if (!useColumns || instance.width === "full" || !previous || previous[0].width === "full")
+      moduleGroups.push([instance]);
+    else previous.push(instance);
+  }
   const preferences = views.personal.document;
   const items = snapshot?.attention.data ?? [];
   const focus = search.get("focus");
@@ -227,7 +303,10 @@ export function TodayWorkspace() {
     });
     setChosenView(scope + ":" + savedView.id);
   }
-  function customize(view: TodayView = current.view, scope: TodayScope = current.scope) {
+  function customize(
+    view: TodayView = { ...current.view, modules: visibleModules },
+    scope: TodayScope = current.scope,
+  ) {
     setEditor({ view: structuredClone(view), scope, session: Date.now() });
     setEditorOpen(true);
   }
@@ -280,7 +359,27 @@ export function TodayWorkspace() {
     const filtered = (
       unfiltered ? base : filterTodayItems(base, module, preferences, new Date())
     ).filter((item) => unfiltered || !focusKinds.length || focusKinds.includes(item.attentionKind));
-    return { filtered, displayed: filtered.slice(0, unfiltered ? filtered.length : module.limit) };
+    const ordered =
+      kind === "attention" && !unfiltered
+        ? [
+            ...filtered.filter((item) => item.attentionKind === "decision"),
+            ...filtered.filter((item) => item.attentionKind !== "decision"),
+          ]
+        : kind === "changes"
+          ? [
+              ...filtered.filter((item) => item.sourceType !== "operational_health"),
+              ...filtered.filter((item) => item.sourceType === "operational_health"),
+            ]
+          : kind === "upcoming"
+            ? [...filtered].sort((a, b) => (a.dueAt ?? "9999").localeCompare(b.dueAt ?? "9999"))
+            : filtered;
+    return {
+      filtered: ordered,
+      displayed: ordered.slice(
+        0,
+        unfiltered ? ordered.length : kind === "upcoming" && isStandard ? 3 : module.limit,
+      ),
+    };
   }
   function renderRows(module: TodayModule, kind: "attention" | "upcoming" | "changes") {
     const { filtered, displayed } = rows(module, kind);
@@ -302,82 +401,95 @@ export function TodayWorkspace() {
         {snapshot && <SourceState region={snapshot.attention} />}
         {displayed.length ? (
           <div className={styles.rows}>
-            {displayed.map((item) => {
+            {displayed.map((item, index) => {
+              const group =
+                kind === "attention"
+                  ? item.attentionKind === "decision"
+                    ? "Decisions"
+                    : "Follow-up"
+                  : kind === "changes" && item.sourceType === "operational_health"
+                    ? "Operational alerts"
+                    : null;
+              const previous = displayed[index - 1];
+              const showGroup =
+                group &&
+                (!previous ||
+                  (kind === "attention"
+                    ? previous.attentionKind !== item.attentionKind
+                    : previous.sourceType !== "operational_health"));
               return (
-                <article
-                  key={attentionKey(item)}
-                  className={styles.row}
-                  data-attention-kind={item.attentionKind}
-                  data-source-type={item.sourceType}
-                  data-source-id={item.sourceId}
-                >
-                  <button
-                    className={styles.rowMain}
-                    onClick={() => inspect(item)}
-                    aria-label={"Inspect " + item.title}
+                <div key={attentionKey(item)}>
+                  {showGroup && (
+                    <h3 className={styles.groupLabel}>
+                      {group === "Operational alerts" && (
+                        <CircleAlert size={14} aria-hidden="true" />
+                      )}
+                      {group}
+                    </h3>
+                  )}
+                  <article
+                    className={styles.row}
+                    data-attention-kind={item.attentionKind}
+                    data-source-type={item.sourceType}
+                    data-source-id={item.sourceId}
                   >
-                    <strong>{item.title}</strong>
-                    <p>{item.priorityReason}</p>
-                    <span className={styles.rowMeta}>
-                      <span
-                        className={cn(
-                          styles.badge,
-                          ["critical", "high"].includes(item.urgency) && styles.urgent,
+                    <button
+                      className={styles.rowMain}
+                      onClick={() => inspect(item)}
+                      aria-label={"Inspect " + item.title}
+                    >
+                      <strong>{item.title}</strong>
+                      {item.sourceType !== "operational_health" && <p>{item.priorityReason}</p>}
+                      <span className={styles.rowMeta}>
+                        {!["attention"].includes(kind) && (
+                          <span
+                            className={cn(
+                              styles.badge,
+                              ["critical", "high"].includes(item.urgency) && styles.urgent,
+                            )}
+                          >
+                            {item.attentionKind === "decision"
+                              ? "Decision"
+                              : item.urgency === "critical"
+                                ? "Urgent"
+                                : item.attentionKind === "work"
+                                  ? "Your work"
+                                  : item.sourceType.replaceAll("_", " ")}
+                          </span>
                         )}
-                      >
-                        {item.attentionKind === "decision"
-                          ? "Decision"
-                          : item.urgency === "critical"
-                            ? "Urgent"
-                            : item.attentionKind === "work"
-                              ? "Your work"
-                              : item.sourceType.replaceAll("_", " ")}
+                        {item.dueAt && <span>{dateLabel(item.dueAt)}</span>}
+                        {preferences.pins.includes(attentionKey(item)) && <Pin size={11} />}
                       </span>
-                      {item.dueAt && <span>{dateLabel(item.dueAt)}</span>}
-                      {preferences.pins.includes(attentionKey(item)) && <Pin size={11} />}
-                    </span>
-                  </button>
-                  <button
-                    className={cn(styles.textLink, styles.rowAction)}
-                    aria-label={
-                      (item.attentionKind === "decision" ? "Review " : "Open ") + item.title
-                    }
-                    onClick={() =>
-                      item.attentionKind === "decision" ? review(item) : inspect(item)
-                    }
-                  >
-                    {item.attentionKind === "decision" ? "Review" : "Open"}
-                  </button>
-                </article>
+                    </button>
+                    <button
+                      className={cn(styles.textLink, styles.rowAction)}
+                      aria-label={
+                        (item.attentionKind === "decision" ? "Review " : "Open ") + item.title
+                      }
+                      onClick={() =>
+                        item.attentionKind === "decision" ? review(item) : inspect(item)
+                      }
+                    >
+                      {item.attentionKind === "decision" ? "Review" : "Open"}
+                    </button>
+                  </article>
+                </div>
               );
             })}
           </div>
         ) : kind === "attention" ? (
-          <div className={styles.quietHero}>
-            <h3>
-              {snapshot?.attention.state === "unavailable"
-                ? "Queue unavailable"
-                : "No attention items in this view"}
-            </h3>
-            <p>
-              {snapshot?.attention.state === "unavailable"
-                ? "We couldn’t read the queue. You can still open your work or retry the connection."
-                : "Open your work or choose a next step."}
-            </p>
-            <div className={styles.toolbarGroup}>
-              <Link href="/admin/work" className={styles.button}>
-                Open work <ArrowRight size={14} />
-              </Link>
-              <button
-                className={styles.textLink}
-                onClick={() =>
-                  ask(
-                    "Help me choose the most useful next step from the available business context.",
-                  )
-                }
-              >
-                Plan my next step <Sparkles size={14} />
-              </button>
+          <div className={styles.quiet}>
+            <div>
+              <h3>
+                {snapshot?.attention.state === "unavailable"
+                  ? "Queue unavailable"
+                  : "Nothing needs your attention"}
+              </h3>
+              <div className={styles.toolbarGroup}>
+                <Link href="/admin/work" className={styles.button}>
+                  Open work <ArrowRight size={14} />
+                </Link>
+              </div>
             </div>
           </div>
         ) : (
@@ -401,40 +513,16 @@ export function TodayWorkspace() {
       return (
         <section className={cn(styles.card, styles.brief)} data-today-module="brief">
           <div className={styles.briefTop}>
-            <h2>Business snapshot</h2>
-            <span className={styles.muted}>
-              Updated{" "}
-              {new Date(snapshot.generatedAt).toLocaleTimeString([], {
-                hour: "numeric",
-                minute: "2-digit",
-              })}
-            </span>
+            <h2>
+              <ChartNoAxesCombined size={18} aria-hidden="true" />
+              Business overview
+            </h2>
           </div>
-          <SourceState region={snapshot.attention} />
           <SourceState region={snapshot.metrics} />
           <div className={styles.briefFacts}>
-            <Link className={styles.factButton} href="/admin/today?focus=approval">
-              <span>Awaiting your decision</span>
-              <strong>
-                {snapshot.attention.state === "unavailable"
-                  ? "—"
-                  : items.filter((item) => item.attentionKind === "decision").length}
-              </strong>
-              <span>Review approvals</span>
-            </Link>
-            <Link className={styles.factButton} href="/admin/work">
-              <span>Needs follow-up</span>
-              <strong>
-                {snapshot.attention.state === "unavailable"
-                  ? "—"
-                  : items.filter((item) => item.attentionKind === "work").length}
-              </strong>
-              <span>Open work</span>
-            </Link>
             <Link className={styles.factButton} href="/admin/pipeline">
               <span>Open opportunities</span>
               <strong>{snapshot.metrics.data?.openOpportunities ?? "—"}</strong>
-              <span>View pipeline</span>
             </Link>
             <Link className={styles.factButton} href="/admin/pipeline">
               <span>Pipeline value</span>
@@ -448,7 +536,6 @@ export function TodayWorkspace() {
                     }).format(snapshot.metrics.data.pipelineValue)
                   : "—"}
               </strong>
-              <span>Explore opportunities</span>
             </Link>
           </div>
           {interpretations.map((entry, i) => (
@@ -474,34 +561,60 @@ export function TodayWorkspace() {
       );
     }
     if (module.type === "handling") {
-      const work = snapshot.handling.data.slice(0, module.limit);
+      const work = snapshot.handling.data.filter((item) => item.status !== "completed");
+      const completed = snapshot.handling.data.filter((item) => item.status === "completed");
+      const renderWork = (item: (typeof work)[number]) => (
+        <article className={styles.automationRow} key={item.id}>
+          <details>
+            <summary className={styles.automationSummary}>
+              <strong>{item.title}</strong>
+              <span className={styles.automationMeta}>
+                <span className={styles.badge}>{item.status.replaceAll("_", " ")}</span>
+                {item.owner !== "Workspace" && <span>{item.owner}</span>}
+                <span className={styles.textLink}>Details</span>
+              </span>
+            </summary>
+            <div className={styles.automationDetail}>
+              {item.nextCheckAt && (
+                <p>
+                  Next check{" "}
+                  {dateLabel(item.nextCheckAt, {
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </p>
+              )}
+              {item.nextCheckReason && <p>{item.nextCheckReason}</p>}
+              {item.outcome &&
+                !item.outcome.startsWith("{") &&
+                !item.nextCheckReason?.includes(item.outcome) && <p>{item.outcome}</p>}
+              {!item.nextCheckReason && !item.outcome && (
+                <p>No additional result has been recorded.</p>
+              )}
+            </div>
+          </details>
+        </article>
+      );
       return (
         <Card module={module} count={work.length}>
           <SourceState region={snapshot.handling} />
-          {work.length ? (
+          {work.length || completed.length ? (
             <div className={styles.rows}>
-              {work.map((item) => (
-                <article className={styles.row} key={item.id}>
-                  <div className={styles.rowMain}>
-                    <Link href={item.href}>
-                      <strong>{item.title}</strong>
-                    </Link>
-                    <span className={styles.rowMeta}>
-                      <span>{item.owner}</span>
-                      <span className={styles.badge}>{item.status.replaceAll("_", " ")}</span>
-                    </span>
-                    {item.nextCheckAt && (
-                      <p>
-                        Next check {dateLabel(item.nextCheckAt)}
-                        {item.nextCheckReason ? " · " + item.nextCheckReason : ""}
-                      </p>
-                    )}
-                    {item.outcome && !item.outcome.startsWith("{") && (
-                      <p>{item.outcome.slice(0, 180)}</p>
-                    )}
-                  </div>
-                </article>
-              ))}
+              {work.slice(0, isStandard ? 3 : module.limit).map(renderWork)}
+              {work.length > (isStandard ? 3 : module.limit) && (
+                <details className={styles.moreWork}>
+                  <summary>Show all current work ({work.length})</summary>
+                  {work.slice(isStandard ? 3 : module.limit).map(renderWork)}
+                </details>
+              )}
+              {completed.length > 0 && (
+                <details className={styles.moreWork}>
+                  <summary>Completed results ({completed.length})</summary>
+                  {completed.map(renderWork)}
+                </details>
+              )}
             </div>
           ) : (
             <div className={styles.quiet}>
@@ -551,7 +664,7 @@ export function TodayWorkspace() {
                         : app.items.length + " to review"}
                     </span>
                   </div>
-                  {app.items.slice(0, module.limit).map((item) => (
+                  {app.items.slice(0, isStandard ? 3 : module.limit).map((item) => (
                     <Link key={item.id} className={styles.row} href={item.href}>
                       <div className={styles.rowMain}>
                         <strong>{item.title}</strong>
@@ -707,6 +820,7 @@ export function TodayWorkspace() {
                   customize(
                     {
                       ...current.view,
+                      modules: visibleModules,
                       id: crypto.randomUUID(),
                       name: (current.view.name + " copy").slice(0, 60),
                     },
@@ -717,6 +831,12 @@ export function TodayWorkspace() {
                   setAllAttention(true);
                   if (focus) router.replace("/admin/today", "preserve");
                 }
+                if (event.target.value === "classic" && views.canManageWorkspace)
+                  void mutate(
+                    () =>
+                      saveDocument("workspace", { ...views.workspace.document, enabled: false }),
+                    "Classic Today enabled.",
+                  );
               }}
             >
               <option value="" disabled>
@@ -731,6 +851,7 @@ export function TodayWorkspace() {
                 Delete view
               </option>
               <option value="all">Show all attention</option>
+              {views.canManageWorkspace && <option value="classic">Use classic Today</option>}
             </select>
           </>
         }
@@ -800,7 +921,7 @@ export function TodayWorkspace() {
       >
         {snapshot && (
           <div
-            className="admin-modules"
+            className={styles.moduleFlow}
             onPointerEnter={() => setInteracting(true)}
             onPointerLeave={() => setInteracting(false)}
             onFocusCapture={() => setInteracting(true)}
@@ -816,17 +937,28 @@ export function TodayWorkspace() {
                 )}
               </div>
             )}
-            {current.view.modules
-              .filter((m) => !allAttention || m.type !== "attention")
-              .map((module) => (
-                <div key={module.id} data-width={module.width}>
-                  {moduleContent(module)}
+            {moduleGroups.map((group) =>
+              !useColumns || group[0].width === "full" ? (
+                <div key={group[0].id}>{moduleContent(group[0])}</div>
+              ) : (
+                <div key={group[0].id} className={styles.columns}>
+                  {Array.from(new Set(group.map((instance) => instance.width))).map((width) => {
+                    const modules = group.filter((module) => module.width === width);
+                    return modules.length ? (
+                      <div key={width} data-width={width} className={styles.moduleFlow}>
+                        {modules.map((module) => (
+                          <div key={module.id}>{moduleContent(module)}</div>
+                        ))}
+                      </div>
+                    ) : null;
+                  })}
                 </div>
-              ))}
+              ),
+            )}
           </div>
         )}
       </AdminAsyncRegion>
-      {viewsQuery.data && (
+      {viewsQuery.data && preferences.muted.length > 0 && (
         <footer className={styles.cardFooter}>
           <div className={styles.toolbarGroup}>
             {preferences.muted.length > 0 && (
@@ -840,20 +972,6 @@ export function TodayWorkspace() {
                 }
               >
                 Restore muted findings
-              </button>
-            )}
-            {views.canManageWorkspace && (
-              <button
-                className={styles.textLink}
-                onClick={() =>
-                  void mutate(
-                    () =>
-                      saveDocument("workspace", { ...views.workspace.document, enabled: false }),
-                    "Classic Today enabled.",
-                  )
-                }
-              >
-                Use classic Today
               </button>
             )}
           </div>

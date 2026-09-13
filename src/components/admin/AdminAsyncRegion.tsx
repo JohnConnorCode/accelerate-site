@@ -42,7 +42,7 @@ export function AdminAsyncRegion({
         <div
           key="ready"
           data-admin-async-state={loading ? "refreshing" : "ready"}
-          className={cn(contentClassName, showFallback && "admin-async-reveal")}
+          className={contentClassName}
         >
           {children}
         </div>

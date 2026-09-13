@@ -1,5 +1,5 @@
 import { chromium } from "playwright";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3010";
 const output = "/tmp/accelerate-navigation-filmstrip";
@@ -20,6 +20,27 @@ for (const run of [
     reducedMotion: "no-preference",
   });
   const page = await context.newPage();
+  await page.addInitScript(() => {
+    window.__adminEntranceFrames = [];
+    document.addEventListener("animationstart", (event) => {
+      if (event.animationName !== "admin-route-section-in") return;
+      const node = event.target;
+      const sample = {
+        path: location.pathname,
+        label: node.textContent.slice(0, 70),
+        opacity: [],
+        delay: getComputedStyle(node).animationDelay,
+      };
+      window.__adminEntranceFrames.push(sample);
+      const start = performance.now();
+      const frame = () => {
+        if (!node.isConnected) return;
+        sample.opacity.push(Number(getComputedStyle(node).opacity));
+        if (performance.now() - start < 500) requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    });
+  });
   if (run.cpuRate) {
     const session = await context.newCDPSession(page);
     await session.send("Emulation.setCPUThrottlingRate", { rate: run.cpuRate });
@@ -60,7 +81,10 @@ for (const run of [
     return region
       ? {
           visible: region.getAttribute("data-admin-async-visible"),
-          opacity: Number(getComputedStyle(region).opacity),
+          opacity:
+            getComputedStyle(region).visibility === "hidden"
+              ? 0
+              : Number(getComputedStyle(region).opacity),
         }
       : null;
   });
@@ -76,7 +100,10 @@ for (const run of [
     return region
       ? {
           visible: region.getAttribute("data-admin-async-visible"),
-          opacity: Number(getComputedStyle(region).opacity),
+          opacity:
+            getComputedStyle(region).visibility === "hidden"
+              ? 0
+              : Number(getComputedStyle(region).opacity),
         }
       : null;
   });
@@ -90,10 +117,9 @@ for (const run of [
   await page.waitForFunction(
     () => {
       const stage = document.querySelector("[data-admin-route-stage]");
-      const section = stage?.querySelector(":scope > * > *");
+      const section = stage?.querySelector(".admin-page-introduction");
       return Boolean(
         stage &&
-        getComputedStyle(stage).animationName.includes("admin-route-stage-in") &&
         section &&
         getComputedStyle(section).animationName.includes("admin-route-section-in"),
       );
@@ -127,7 +153,9 @@ for (const run of [
   await page.screenshot({ path: `${output}/${run.name}-direct-entry.png` });
   if (!run.delay) await page.waitForLoadState("networkidle");
   const target = page
-    .locator('a[href="/demo/command-center/northline-roofing/pipeline"]:visible')
+    .locator(
+      `${run.name.startsWith("mobile") ? ".admin-mobile-dock " : "nav[aria-label='Admin navigation'] "}a[href="/demo/command-center/northline-roofing/pipeline"]:visible`,
+    )
     .first();
   await target.waitFor({ state: "visible", timeout: 15_000 });
   const dockIndicatorStart = run.name.startsWith("mobile")
@@ -232,9 +260,9 @@ for (const run of [
   await page.getByRole("heading", { level: 1 }).waitFor({ state: "visible", timeout: 15_000 });
   await page.waitForFunction(
     () => {
-      const stage = document.querySelector("[data-admin-route-stage]");
+      const stage = document.querySelector("[data-admin-route-stage] .admin-page-introduction");
       return Boolean(
-        stage && getComputedStyle(stage).animationName.includes("admin-route-stage-in"),
+        stage && getComputedStyle(stage).animationName.includes("admin-route-section-in"),
       );
     },
     null,
@@ -291,6 +319,15 @@ for (const run of [
   if (!state.focused) failures.push(`${run.name}: destination heading was not focused`);
   if (state.overflow) failures.push(`${run.name}: horizontal overflow`);
   if (state.y > 2) failures.push(`${run.name}: forward navigation landed at ${state.y}px`);
+  const frames = await page.evaluate(() => window.__adminEntranceFrames);
+  writeFileSync(`${output}/${run.name}-frames.json`, JSON.stringify(frames, null, 2));
+  for (const route of ["/today", "/pipeline"]) {
+    const samples = frames.filter((sample) => sample.path.endsWith(route));
+    if (!samples.some((sample) => sample.opacity.some((opacity) => opacity > 0 && opacity < 0.85)))
+      failures.push(`${run.name}: ${route} never displayed a perceptible intermediate fade frame`);
+    if (!samples.some((sample) => sample.opacity.at(-1) >= 0.99))
+      failures.push(`${run.name}: ${route} entrance did not settle`);
+  }
   if (errors.length) failures.push(`${run.name}: ${errors.join(" | ")}`);
   await context.close();
 }
@@ -312,7 +349,7 @@ for (const run of [
     window.fetch = async (input, init) => {
       const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
       if (
-        url.includes("/api/admin/revenue-os/overview") ||
+        url.includes("/api/admin/revenue-os/today") ||
         url.includes("/api/admin/revenue-os/actions")
       ) {
         await new Promise((resolve) => window.setTimeout(resolve, 650));
@@ -330,7 +367,8 @@ for (const run of [
   await page.waitForTimeout(80);
   const beforeThreshold = await region.evaluate((node) => ({
     visible: node.getAttribute("data-admin-async-visible"),
-    opacity: Number(getComputedStyle(node).opacity),
+    opacity:
+      getComputedStyle(node).visibility === "hidden" ? 0 : Number(getComputedStyle(node).opacity),
   }));
   if (beforeThreshold.opacity > 0.05) {
     failures.push(
@@ -340,21 +378,16 @@ for (const run of [
   await page.screenshot({ path: `${output}/mobile-local-data-080.png` });
   await page.waitForTimeout(150);
   const afterThreshold = await region.evaluate((node) => {
-    const summary = node.querySelector(".admin-skeleton-surface");
     return {
       visible: node.getAttribute("data-admin-async-visible"),
       opacity: Number(getComputedStyle(node).opacity),
-      shapes: node.querySelectorAll(".admin-skeleton-shape").length,
-      surfaces: node.querySelectorAll(".admin-skeleton-surface").length,
-      metricCells: summary?.children.length || 0,
+      height: node.getBoundingClientRect().height,
     };
   });
   if (
     afterThreshold.visible !== "true" ||
     afterThreshold.opacity < 0.35 ||
-    afterThreshold.shapes < 12 ||
-    afterThreshold.surfaces < 2 ||
-    afterThreshold.metricCells !== 4
+    afterThreshold.height < 100
   ) {
     failures.push(
       `slow-local-data: regional fallback was not visible and destination-shaped after 230ms (${JSON.stringify(afterThreshold)})`,

@@ -1,7 +1,30 @@
 .workspace {
+  --admin-section-gap: 20px;
   --today-accent: var(--admin-accent, #b76b32);
   color: var(--admin-ink);
   padding-bottom: 3rem;
+}
+.moduleFlow {
+  display: grid;
+  gap: var(--admin-section-gap);
+  min-width: 0;
+}
+.columns {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+.columns > [data-width="primary"] {
+  flex: 2;
+}
+.columns > [data-width="support"] {
+  flex: 1;
+}
+.workspace :global(.admin-page-introduction h1) {
+  font-family: inherit;
+  font-style: normal;
+  font-size: 28px;
+  font-weight: 650;
 }
 .toolbar {
   display: flex;
@@ -116,25 +139,41 @@
 }
 .card {
   border-radius: var(--admin-surface-radius);
-  background: var(--admin-surface-fill);
-  -webkit-backdrop-filter: var(--admin-surface-filter);
-  backdrop-filter: var(--admin-surface-filter);
-  box-shadow: var(--admin-shadow);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow-border);
   overflow: hidden;
   min-width: 0;
+}
+.card[data-today-module="attention"] {
+  border-top: 3px solid var(--admin-action);
+}
+.card[data-today-module="attention"] .cardHeader h2 {
+  font-size: 20px;
+}
+.card[data-today-module="attention"] .rowAction {
+  background: var(--admin-action);
+  color: var(--admin-action-ink);
+  border-radius: var(--admin-control-radius);
+  padding-inline: 14px;
+}
+.card[data-today-module="changes"],
+.card[data-today-module="upcoming"],
+.card[data-today-module="handling"] {
+  background: transparent;
+  box-shadow: none;
 }
 .cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--admin-panel-padding) var(--admin-panel-padding) var(--admin-space-3);
+  padding: 16px 18px 10px;
   gap: 12px;
 }
 .cardHeader h2 {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: var(--admin-text-section);
+  font-size: 15px;
   font-weight: 650;
   letter-spacing: -0.02em;
   margin: 0;
@@ -165,7 +204,7 @@
   border-radius: var(--admin-control-radius);
 }
 .brief {
-  padding: var(--admin-panel-padding);
+  padding: 18px;
 }
 .briefTop {
   display: flex;
@@ -175,6 +214,9 @@
   flex-wrap: wrap;
 }
 .brief h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   font-weight: 650;
   margin: 0;
@@ -198,9 +240,9 @@
 }
 .briefFacts {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-  margin-top: 20px;
+  margin-top: 14px;
 }
 .factButton {
   text-align: left;
@@ -245,17 +287,85 @@
   align-items: center;
 }
 .rows {
-  padding: 0 10px 10px;
+  padding: 0 18px 8px;
 }
 .row {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 12px;
+  padding: 12px 0;
   border-top: 1px solid var(--admin-border);
 }
 .row:first-child {
   border-top: 0;
+}
+.rows > div + div > .row {
+  border-top: 1px solid var(--admin-border);
+}
+.groupLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--admin-muted);
+  margin: 10px 0 0;
+}
+.automationRow {
+  border-top: 1px solid var(--admin-border);
+}
+.automationRow:first-child {
+  border-top: 0;
+}
+.automationSummary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 0;
+}
+.automationSummary::-webkit-details-marker {
+  display: none;
+}
+.automationSummary strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 550;
+  line-height: 1.45;
+}
+.automationMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--admin-muted);
+}
+.automationMeta .textLink {
+  margin-left: auto;
+  font-size: 12px;
+}
+.automationDetail {
+  padding-bottom: 12px;
+  font-size: 13px;
+  color: var(--admin-muted);
+  overflow-wrap: anywhere;
+}
+.automationDetail p + p {
+  margin-top: 8px;
+}
+.moreWork > summary {
+  padding-block: 10px;
+  min-height: 40px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--admin-muted);
+}
+.workspace summary:focus-visible {
+  outline: 2px solid var(--admin-action);
+  outline-offset: 3px;
+}
+.quiet h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 500;
 }
 .rowIcon {
   display: grid;
@@ -317,10 +427,19 @@
   padding-inline: 8px;
 }
 .quiet {
-  padding: 8px 22px 22px;
+  padding: 4px 18px 12px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
+}
+.card[data-today-module="upcoming"]:has(> .quiet) .cardHeader {
+  padding-bottom: 4px;
+}
+.card[data-today-module="apps"] .rowMain p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .quiet p {
   margin: 0;
@@ -644,8 +763,8 @@
     margin: 18px 0;
   }
   .viewSelect {
-    max-width: 145px;
-    padding-left: 10px;
+    max-width: 155px;
+    padding-inline: 10px 8px;
     font-size: 12px;
   }
   .viewActions {
@@ -653,7 +772,7 @@
     padding-inline: 2px;
   }
   .brief {
-    padding: 22px;
+    padding: 18px;
   }
   .briefFacts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -674,11 +793,11 @@
     height: 38px;
   }
   .cardHeader {
-    padding: 18px 18px 10px;
+    padding: 16px 18px 10px;
   }
   .row {
     gap: 9px;
-    padding: 13px 8px;
+    padding: 12px 0;
   }
   .rowIcon {
     width: 28px;

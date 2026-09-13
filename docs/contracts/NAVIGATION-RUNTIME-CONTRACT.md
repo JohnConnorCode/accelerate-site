@@ -82,11 +82,14 @@ routing or creating surface-specific history systems.
 - Decorative ambient drift, logo loops, and the homepage spotlight must not run
   continuously on a coarse-pointer phone. A touch may animate the spotlight for
   a bounded response, then releases its animation frame loop.
-- Route entrance state must be present in committed markup and stylesheet rules
-  before first paint. Do not start route motion from `useEffect`, a mutation
-  observer, or an imperative Web Animations call: those can expose the final
-  frame first on fast devices and cached visits. The route key restarts the one
-  declarative CSS sequence when Next commits a destination.
+- `AdminRouteStage` owns semantic entrance registration. Its layout effect marks
+  initial groups before paint; its child-list observer marks newly committed
+  async groups during mutation delivery, before their next paint. CSS owns the
+  actual sequence. Do not start motion from a post-paint `useEffect` or add a
+  second imperative animation owner. Registration uses a route-scoped stylesheet,
+  never attributes on React-owned nodes that may still be hydrating. Existing
+  group delays are recorded in a WeakMap
+  and never replayed by polling or edits. Loading placeholders are excluded.
 - Pending navigation gives the retained route subtle, immediate visual feedback
   without hiding usable content. It must not wait for route data, authentication,
   or an effect before acknowledging the destination.
@@ -115,7 +118,7 @@ routing or creating surface-specific history systems.
 - The route stage distinguishes the fallback tree from the committed tree. The
   fallback has restrained loading motion; the actual destination always receives
   the incoming opacity, rise, and bounded semantic stagger. The complete route
-  entrance, including its capped stagger, finishes within 252ms. The admin's
+  entrance, including its capped stagger, finishes within 460ms. The admin's
   initial committed tree runs this entrance once; fallback geometry does not.
 - The mobile dock owns one persistent selection indicator. Pending destination
   state changes its compositor-only transform immediately; it must not remount a

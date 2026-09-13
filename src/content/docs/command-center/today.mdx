@@ -1,14 +1,14 @@
 ---
 title: "Make Today your daily workspace"
-description: "Arrange your business brief, decisions, work and App follow-up into saved views that fit your day."
-updated: "2026-09-09"
+description: "Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day."
+updated: "2026-09-13"
 ---
 
-Some mornings need a quick decision. Others need space to work out what comes next. Today brings your business context and next actions together without requiring a full pipeline or a busy inbox to be useful. Open Today, read the brief, then choose what deserves your involvement.
+Today starts with what needs your involvement: decisions first, then follow-up. Business changes sit immediately below that queue. A quieter supporting column holds pipeline facts, upcoming commitments and automation. Open a record to inspect its context before acting.
 
 <DocsFigure
-  src="/images/docs/command-center/today.png"
-  alt="The fictional Northline Roofing Today workspace, with a sourced business brief, Needs you and Being handled modules."
+  src="/images/docs/today-dashboard.png"
+  alt="The fictional Today workspace with a primary action queue, operational alerts, compact pipeline facts and automation details."
   width={1440}
   height={1000}
   caption="A saved Today arrangement in the fictional Northline Roofing workspace. These are shared product components with fictional records, not a live customer account."
@@ -16,23 +16,25 @@ Some mornings need a quick decision. Others need space to work out what comes ne
 
 ## Make the page fit your day
 
-Choose **Customize** to rename the current view, adjust spacing, add or remove modules, and arrange them by dragging or using the arrow buttons. **Preview arrangement** shows the desktop layout before you save. Wide and narrow modules stack in the same order on a phone.
+Choose **Customize** to rename the current view, adjust spacing, add or remove modules, and arrange them by dragging or using the arrow buttons. **Preview arrangement** shows the module widths before you save. On a wide desktop, primary and supporting modules stack independently so a long list does not leave a gap below a shorter one. Full-width modules separate those groups. On narrower screens, all modules follow your saved order in one column.
+
+Untouched built-in views use the action-first arrangement. On a narrow screen that arrangement reads Needs you, Business changes, Business overview, Upcoming, Automation, then actionable App follow-up. Existing customized documents keep their arrangement. The standard view omits the duplicate Ask your workspace panel; **Ask AI** remains available in the workspace controls.
 
 Each module has a width and item limit. Attention modules also support type, source, time-horizon and task-owner filters. Save for **Just me** to keep your arrangement private, or **Everyone in this workspace** to change a shared view. The current workspace administrator role can manage shared views. Check **Open this view by default** to use it on your next visit.
 
 For example, duplicate Business overview, name the copy “Focused day,” move Needs you first, set its time horizon to Through today, and save it for Just me as your default. Reload Today: Focused day remains selected. Your colleagues' personal defaults and the original shared arrangement are unchanged. Cancel closes an unsaved draft without changing the saved view.
 
-Use the plus button to start a view, the copy button to duplicate one, and the delete button to remove its arrangement. None of those controls deletes business records. You can save up to 12 views per scope, with up to 16 module instances in each view.
+Open **More** beside Customize to create, duplicate or delete a view. None of those controls deletes business records. You can save up to 12 views per scope, with up to 16 module instances in each view.
 
 ## Read the context, then act
 
-The **Business brief** brings together source-backed attention and recorded activity. Open a fact to see its source, observation date and next step. When a completed Business Pulse brief is available, its AI interpretations are labeled separately and link to their supporting facts. An interpretation is omitted when its evidence changes or it is more than a day old.
+The **Business overview** shows open opportunities and pipeline value, with both figures linked to Pipeline. Pipeline value is not collected revenue. Decision and follow-up counts stay with their action queue instead of being repeated in the overview. When a completed Business Pulse brief is available, its AI interpretations are labeled separately and link to supporting facts. An interpretation is omitted when its evidence changes or it is more than a day old.
 
 **Needs you** holds decisions and commitments. Open an item to inspect its reason, next step and related context. Complete or reschedule a task there, review an approval's exact change, or choose **Prepare next step** to open Ask AI with the source identified. Preparing a prompt does not execute it or send a message.
 
-Pin an item to put it first within matching modules. Mute a watch finding to hide that exact evidence from your personal view; changed evidence brings it back. **Restore muted findings** clears those preferences. The decisions-and-urgent-items control opens all available attention, including items excluded by the current arrangement or personal filters.
+Pin an item to put it first within matching modules. Mute a watch finding to hide that exact evidence from your personal view; changed evidence brings it back. **Restore muted findings** clears those preferences. Choose **More → Show all attention** to include items excluded by the current arrangement or personal filters.
 
-**Being handled** shows recent coworker work, its recorded status, available outcomes and scheduled checks. **Business changes** and **Upcoming** separate watch signals from dated commitments. Add **Business snapshot** or **Recent activity** when you want pipeline totals or the recorded timeline alongside your work.
+**Automation** shows recorded statuses, not an assumption that all work is running successfully. The standard view shows three current records; **Show all current work** expands the remaining records. **Completed results** is a separate disclosure. Open **Details** for the record's full reason, outcome and scheduled check. Repeated error text appears only once. **Business changes** labels operational alerts separately from business signals. **Upcoming** shows the next three commitments. Add **Pipeline snapshot** or **Recent activity** when you want an additional summary or timeline.
 
 These are views over existing records. [Work](/docs/command-center/work) remains the editing workspace for tasks and approvals, and [Activity](/docs/command-center/activity) records what actually happened.
 
@@ -40,11 +42,13 @@ These are views over existing records. [Work](/docs/command-center/work) remains
 
 **App follow-up** shows bounded records from enabled Collections and Opportunity Radar Apps. Open an entry to continue in its native workspace. The App still owns its records, permissions and approval workflow. Disabling it removes its Today contribution without deleting its records.
 
+The standard view includes App follow-up only when it has actionable records or a source failure to report. Empty Apps do not create a promotional card.
+
 For example, a Northline billing case appears with its next action. Open it in Collections to inspect outstanding invoice evidence before preparing a reminder. Opening Today does not contact the billing provider, send a reminder or run a Radar model request.
 
 ## When there is little to show
 
-An empty brief offers **Set a priority** and **Connect your tools**. Empty work modules explain what will appear and offer a useful next step. They do not manufacture activity or treat missing connections as a healthy business.
+Empty work modules explain what is missing and offer the relevant next step. Missing snapshot data appears as unavailable, not as a healthy zero. Short modules take only the space they need; a longer neighboring list does not push the next primary module down.
 
 The page refreshes approximately every minute while active and when you return to the window. It holds the current content while you interact with a module or review a dialog. **Show updates** lets you apply new context deliberately. Your saved layout never rearranges itself because the record count changed.
 
@@ -54,5 +58,5 @@ The page refreshes approximately every minute while active and when you return t
 - If another session saves first, reload your views and review the newer arrangement before saving again. An uncertain save can be retried with the same changes without creating a second receipt.
 - Ask AI can read views and prepare exact layout or preference changes for approval. Only the proposing member can inspect the private preview and approve it. Changes still require current workspace access and the expected saved revision.
 - Factual context does not need a model request. Synthesized briefs use the existing Business Pulse worker, configured AI connection and budgets; unavailable AI falls back to facts. Viewing Today never starts a paid model call.
-- **Use classic Today** returns the workspace to its earlier page. An administrator can enable the new arrangement again without discarding saved views.
+- **More → Use classic Today** returns the workspace to its earlier page. An administrator can enable the new arrangement again without discarding saved views.
 - Self-hosted installations need the Today workspace migration and schema verification before saved views can be used. Missing storage preserves the existing preferences and reports an error; it does not silently replace them.

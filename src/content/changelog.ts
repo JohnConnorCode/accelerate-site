@@ -24,7 +24,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "dashboard-actionable-layout",
     title: "A compact Today dashboard with clear next actions",
     description:
-      "Today places saved-view controls beside the heading and replaces the oversized briefing with an actionable business snapshot. Decisions, follow-up and pipeline figures open their work surfaces. Consistent cards and text actions remove repeated list icons and duplicate briefing content, while personal views and source context remain available.",
+      "Today leads with decisions and follow-up, followed by business changes and separately labeled operational alerts. Compact pipeline facts, upcoming commitments and automation support the action queue. Automation details and completed results expand on demand; the standard layout omits duplicate AI prompts and empty App promotions. Section icons communicate distinct roles without repeated list icons. Existing custom views remain intact. A shared semantic entrance now fades and raises new admin sections in sequence, including fast and delayed data reads, without replaying existing sections during refresh.",
     category: "improvement",
     publishedAt: "2026-09-12",
   },

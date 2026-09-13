@@ -329,7 +329,7 @@ export async function loadOperatorQueue(
     items.push({
       id: `system:${concern.kind}:${concern.key}`,
       kind: "system",
-      title: `${concern.key.replaceAll("_", " ")} needs attention`,
+      title: `${concern.key.replaceAll(/[-_]/g, " ")} needs attention`,
       summary: concern.detail,
       urgency: concern.kind === "webhook" || concern.kind === "job" ? "critical" : "high",
       dueAt: concern.observedAt,
