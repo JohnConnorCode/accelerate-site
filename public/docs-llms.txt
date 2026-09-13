@@ -20,7 +20,7 @@ One shared operating layer for the businesses that need it, and how to run the d
 
 - [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-09): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-09): 47 capabilities in six categories, from what the system sees to what it never does without you.
-- [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-09): Arrange your business brief, decisions, work and App follow-up into saved views that fit your day.
+- [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-13): Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-09): Every new lead, message, and staged action that hasn't found an owner yet, in one queue.
 - [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-09): The editing view over the same tasks and approvals Today shows you, with filters and full editing.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-12): How approval works, how it earns more autonomy over time, and what to check after a decision.

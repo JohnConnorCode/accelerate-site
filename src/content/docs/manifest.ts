@@ -144,7 +144,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["command-center", "today"],
         title: "Make Today your daily workspace",
         description:
-          "Arrange your business brief, decisions, work and App follow-up into saved views that fit your day.",
+          "Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day.",
       },
       {
         slug: ["command-center", "inbox"],

@@ -24,7 +24,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "dashboard-actionable-layout",
     title: "A compact Today dashboard with clear next actions",
     description:
-      "Today places saved-view controls beside the heading and replaces the oversized briefing with an actionable business snapshot. Decisions, follow-up and pipeline figures open their work surfaces. Consistent cards and text actions remove repeated list icons and duplicate briefing content, while personal views and source context remain available.",
+      "Today places saved-view controls beside the heading and replaces the oversized briefing with an actionable business snapshot. Decisions, follow-up and pipeline figures open their work surfaces. Consistent cards and text actions remove repeated list icons and duplicate briefing content. Desktop columns stack independently to avoid gaps beside uneven lists; narrow screens retain saved module order. Personal views and source context remain available.",
     category: "improvement",
     publishedAt: "2026-09-12",
   },

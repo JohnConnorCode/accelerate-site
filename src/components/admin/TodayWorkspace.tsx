@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ArrowRight, Check, Pin, RefreshCw, Sparkles, X } from "lucide-react";
 import { PageHeader } from "./PageHeader";
@@ -30,6 +30,15 @@ import {
 import type { TodaySnapshot, TodayFact, TodayRegion } from "@/lib/admin/today-data";
 import type { OperatorAttentionItem } from "@/lib/revenue-os/operator-attention";
 import styles from "./TodayWorkspace.module.css";
+
+const desktopColumns = "(min-width: 1200px)";
+function subscribeColumns(notify: () => void) {
+  const media = window.matchMedia(desktopColumns);
+  media.addEventListener("change", notify);
+  return () => media.removeEventListener("change", notify);
+}
+const readColumns = () => window.matchMedia(desktopColumns).matches;
+const serverColumns = () => false;
 
 function dateLabel(value: string | null, options?: Intl.DateTimeFormatOptions) {
   if (!value || !Number.isFinite(Date.parse(value))) return "Time unavailable";
@@ -158,6 +167,16 @@ export function TodayWorkspace() {
       scope: "workspace" as const,
       view: defaultTodayView(),
     };
+  const useColumns = useSyncExternalStore(subscribeColumns, readColumns, serverColumns);
+  const moduleGroups: [TodayModule, ...TodayModule[]][] = [];
+  for (const instance of current.view.modules.filter(
+    (m) => !allAttention || m.type !== "attention",
+  )) {
+    const previous = moduleGroups.at(-1);
+    if (!useColumns || instance.width === "full" || !previous || previous[0].width === "full")
+      moduleGroups.push([instance]);
+    else previous.push(instance);
+  }
   const preferences = views.personal.document;
   const items = snapshot?.attention.data ?? [];
   const focus = search.get("focus");
@@ -496,9 +515,11 @@ export function TodayWorkspace() {
                         {item.nextCheckReason ? " · " + item.nextCheckReason : ""}
                       </p>
                     )}
-                    {item.outcome && !item.outcome.startsWith("{") && (
-                      <p>{item.outcome.slice(0, 180)}</p>
-                    )}
+                    {item.outcome &&
+                      !item.outcome.startsWith("{") &&
+                      !(item.nextCheckAt && item.nextCheckReason?.includes(item.outcome)) && (
+                        <p>{item.outcome.slice(0, 180)}</p>
+                      )}
                   </div>
                 </article>
               ))}
@@ -800,7 +821,7 @@ export function TodayWorkspace() {
       >
         {snapshot && (
           <div
-            className="admin-modules"
+            className={styles.moduleFlow}
             onPointerEnter={() => setInteracting(true)}
             onPointerLeave={() => setInteracting(false)}
             onFocusCapture={() => setInteracting(true)}
@@ -816,13 +837,24 @@ export function TodayWorkspace() {
                 )}
               </div>
             )}
-            {current.view.modules
-              .filter((m) => !allAttention || m.type !== "attention")
-              .map((module) => (
-                <div key={module.id} data-width={module.width}>
-                  {moduleContent(module)}
+            {moduleGroups.map((group) =>
+              !useColumns || group[0].width === "full" ? (
+                <div key={group[0].id}>{moduleContent(group[0])}</div>
+              ) : (
+                <div key={group[0].id} className="admin-modules">
+                  {Array.from(new Set(group.map((instance) => instance.width))).map((width) => {
+                    const modules = group.filter((module) => module.width === width);
+                    return modules.length ? (
+                      <div key={width} data-width={width} className={styles.moduleFlow}>
+                        {modules.map((module) => (
+                          <div key={module.id}>{moduleContent(module)}</div>
+                        ))}
+                      </div>
+                    ) : null;
+                  })}
                 </div>
-              ))}
+              ),
+            )}
           </div>
         )}
       </AdminAsyncRegion>

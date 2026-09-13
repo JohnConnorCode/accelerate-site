@@ -330,7 +330,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "The web app",
     detail:
-      "Open decisions, follow-up and pipeline work from a compact Today snapshot. Arrange decisions, commitments, coworker progress and enabled App follow-up in personal or shared views. Inspect the context and prepare the next action. Work keeps the same tasks and approvals available for editing.",
+      "Open decisions, follow-up and pipeline work from a compact Today snapshot. Arrange decisions, commitments, coworker progress and enabled App follow-up in personal or shared views. Independent desktop columns avoid empty gaps beside uneven lists; narrow screens retain saved order. Inspect the context and prepare the next action. Work keeps the same tasks and approvals available for editing.",
   },
   {
     id: "chat",

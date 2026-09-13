@@ -63,6 +63,20 @@ try {
     const heading = page.locator(".admin-page-introduction");
     assert.equal(await heading.locator(".admin-eyebrow, .admin-copy").count(), 0);
     assert.equal(await heading.getByLabel("Today view", { exact: true }).count(), 1);
+    if (width === 390) {
+      assert(
+        await page.getByLabel("Today view", { exact: true }).evaluate((select) => {
+          const css = getComputedStyle(select);
+          const context = document.createElement("canvas").getContext("2d");
+          context.font = `${css.fontWeight} ${css.fontSize} ${css.fontFamily}`;
+          return (
+            context.measureText(select.selectedOptions[0].text).width <=
+            select.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight)
+          );
+        }),
+        "Default view name is clipped on mobile",
+      );
+    }
     assert.equal(await page.locator("[data-today-module] article svg").count(), 0);
     assert.equal(
       await page
@@ -84,16 +98,32 @@ try {
       (await window.__todayTestFetch("/api/admin/revenue-os/today")).json(),
     );
     assert.ok(original.attention.data.length);
-    for (const content of ["busy", "sparse", "one", "empty", "partial"]) {
+    for (const content of ["busy", "sparse", "one", "uneven", "empty", "partial"]) {
       await page.evaluate(
         ({ original, content }) => {
           const fixture = structuredClone(original);
           const count =
-            content === "busy" ? 20 : content === "sparse" ? 2 : content === "one" ? 1 : 0;
+            content === "busy"
+              ? 20
+              : content === "sparse"
+                ? 2
+                : ["one", "uneven"].includes(content)
+                  ? 1
+                  : 0;
           fixture.generatedAt = new Date().toISOString();
           for (const name of ["attention", "facts", "handling", "activity", "apps"]) {
             fixture[name].data = fixture[name].data.slice(0, count);
             fixture[name].state = count ? "ready" : "empty";
+          }
+          if (content === "uneven") {
+            fixture.handling.data = original.handling.data;
+            fixture.handling.data[0] = {
+              ...fixture.handling.data[0],
+              status: "pending",
+              nextCheckAt: new Date().toISOString(),
+              nextCheckReason: "Source unavailable. Retrying in five minutes.",
+              outcome: "Source unavailable.",
+            };
           }
           if (content === "partial") {
             fixture.attention.state = "unavailable";
@@ -119,6 +149,45 @@ try {
         ),
       );
       assert.equal(overflow, false, width + " " + content + " overflows");
+      if (content === "uneven") {
+        assert.equal(
+          await page.getByText("Source unavailable.", { exact: true }).count(),
+          0,
+          "Handling outcome repeats the same retry reason",
+        );
+        assert.equal(
+          await page.getByText(/Source unavailable\. Retrying in five minutes\./).count(),
+          1,
+        );
+      }
+      const flow = await page.evaluate(() => {
+        const modules = [...document.querySelectorAll("[data-today-module]")];
+        const attention = document.querySelector('[data-today-module="attention"]');
+        const changes = document.querySelector('[data-today-module="changes"]');
+        return {
+          order: modules.map((node) => node.dataset.todayModule),
+          gap: changes.getBoundingClientRect().top - attention.getBoundingClientRect().bottom,
+          sectionGap: parseFloat(
+            getComputedStyle(attention).getPropertyValue("--admin-section-gap"),
+          ),
+        };
+      });
+      if (width >= 1200) {
+        assert(
+          Math.abs(flow.gap - flow.sectionGap) <= 1,
+          `${content}: primary column reserves a blank row`,
+        );
+      } else {
+        assert.deepEqual(flow.order, [
+          "brief",
+          "attention",
+          "handling",
+          "changes",
+          "upcoming",
+          "ai",
+          "apps",
+        ]);
+      }
       results.push({ width, content, overflow });
     }
     // Compose, save, reload and independently duplicate a personal view.

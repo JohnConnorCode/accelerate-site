@@ -81,3 +81,39 @@ as GET/POST and reused by the tenant adapter without changing business logic.
 The integration PR carries the final SHA-specific CI receipt. Merge tree parity,
 schema application and canonical hosted release identity must be recorded after
 their respective operations; this source report alone does not claim deployment.
+
+## Initial production receipt and live verification follow-up
+
+PR 100 merged as `a284d8d47c0ee8e79a6d42e02211321e69d12ea0`, with exact tree
+parity to verified candidate `1e6546e37085e668f84fc35ca9b5f8188e07b321`.
+CI 34737586399 passed every prerequisite. Its aggregate runner stalled for more
+than 17 minutes; the supported single-job retry passed on the same SHA, retaining
+the passing prerequisite results. No protection or check was bypassed.
+Postiz service CI 34737586400 passed. PR 94 was closed as proven incorporated;
+all worktrees and unfinished branches remain intact. Nine completed board items
+were accepted with revision-checked canonical review receipts.
+
+The production-configured webpack artifact deployed as
+`dpl_9L9a7HHn6wnRJZMjcLZBGaENRPGG`, READY at `https://www.acceleratewith.us`.
+The canonical document returned only release ID `1e6546e37085`. All three pending
+migrations were applied through the checksum ledger after compatible source was
+live; all 95 are present. Schema verification passed 775 requirements and
+recorded receipt `19f67e51-825a-4d2c-9aba-e72c4e8be6e3`.
+The authenticated Firefox session rendered the compact dashboard with real
+workspace data. Existing missing-coworker/automation warnings remained visible.
+The canonical demo passed all 15 initial dashboard cases.
+
+Real sparse data exposed a remaining presentation defect: ordinary flex rows
+reserved a large gap below a short primary card when its neighboring support
+card was tall. The release follow-up uses native independent desktop stacks,
+separated by full-width modules. Narrow layouts retain saved DOM and keyboard
+order. There is no measurement engine, layout dependency, data migration or
+change to saved documents. A retry outcome already present in its reason is
+shown once, and the mobile default view label has room to render completely.
+The Today guide now describes the current controls and layout.
+
+The expanded dashboard regression includes uneven column heights, exact desktop
+section gaps, narrow-screen module order, repeated-outcome suppression and mobile
+view-label width, alongside the existing saved-view and inspector journeys.
+Final follow-up CI and deployment receipts belong to its PR; the initial release
+receipt above is not proof that the follow-up is live.

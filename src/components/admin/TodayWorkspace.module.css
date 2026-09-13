@@ -3,6 +3,11 @@
   color: var(--admin-ink);
   padding-bottom: 3rem;
 }
+.moduleFlow {
+  display: grid;
+  gap: var(--admin-section-gap);
+  min-width: 0;
+}
 .toolbar {
   display: flex;
   align-items: center;
@@ -644,8 +649,8 @@
     margin: 18px 0;
   }
   .viewSelect {
-    max-width: 145px;
-    padding-left: 10px;
+    max-width: 155px;
+    padding-inline: 10px 24px;
     font-size: 12px;
   }
   .viewActions {
