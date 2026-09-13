@@ -10,6 +10,7 @@ import type { SetupCapability } from "@/lib/revenue-os/types";
 import { GOOGLE_SCOPES } from "@/lib/revenue-os/google";
 import {
   isEncryptedSecret,
+  isTenantEncryptedSecret,
   isGoogleTokenEncryptionKeyConfigured,
 } from "@/lib/revenue-os/encryption";
 import {
@@ -111,6 +112,7 @@ export async function GET() {
     contactImporterResult,
     schemaVerificationResult,
     schedulerResult,
+    stripeResult,
   ] = supabaseConfigured
     ? await Promise.all([
         platform
@@ -150,6 +152,11 @@ export async function GET() {
           .limit(1)
           .maybeSingle(),
         platform.rpc("command_center_scheduler_status"),
+        supabase
+          .from("integration_connections")
+          .select("status,account_email,encrypted_credentials")
+          .eq("provider", "stripe")
+          .maybeSingle(),
       ])
     : [
         { error: new Error("Supabase is not configured"), count: null },
@@ -160,6 +167,7 @@ export async function GET() {
         { data: [], error: null },
         { error: new Error("Supabase is not configured"), count: null },
         { error: new Error("Supabase is not configured"), count: null },
+        { error: new Error("Supabase is not configured"), data: null },
         { error: new Error("Supabase is not configured"), data: null },
         { error: new Error("Supabase is not configured"), data: null },
       ];
@@ -178,6 +186,23 @@ export async function GET() {
   const firstPartyAnalyticsReady = !analyticsResult.error;
   const emailStudioReady = !emailStudioResult.error;
   const contactImporterReady = !contactImporterResult.error;
+  const stripe = stripeResult.data as {
+    status?: unknown;
+    account_email?: unknown;
+    encrypted_credentials?: unknown;
+  } | null;
+  const stripeCredentials =
+    stripe?.encrypted_credentials && typeof stripe.encrypted_credentials === "object"
+      ? (stripe.encrypted_credentials as Record<string, unknown>)
+      : {};
+  const stripeApiReady =
+    stripe?.status === "connected" &&
+    typeof stripe.account_email === "string" &&
+    isTenantEncryptedSecret(String(stripeCredentials.api_key ?? ""));
+  const stripeWebhookReady = isTenantEncryptedSecret(
+    String(stripeCredentials.webhook_secret ?? ""),
+  );
+  const stripeReady = stripeApiReady && stripeWebhookReady;
   // Presence, not an exact count. A hardcoded expected total drifts every time
   // the manifest changes, and detecting drift is what
   // `npm run seed:features -- --verify` is for.
@@ -579,6 +604,23 @@ export async function GET() {
       keys: ["src/lib/revenue-os/ai-tools.ts", "action_queue"],
       nextRun: setupNextRun("config"),
       action: { label: "Inspect AI controls", href: "/admin/ai?view=capabilities" },
+    },
+    {
+      id: "stripe",
+      group: "operations",
+      label: "Stripe billing connection",
+      description: stripeReady
+        ? `Stripe account ${stripe.account_email} is connected with an encrypted API key and webhook signing secret.`
+        : stripeApiReady
+          ? "Stripe is connected, but the webhook signing secret is missing. Subscription status will not stay current until signed events can be verified."
+          : "Connect Stripe and add its webhook signing secret before enabling recurring billing or creating plans.",
+      accomplishes:
+        "Enables secure recurring checkout, payment settings, renewal updates, and durable subscription receipts.",
+      status: stripeReady ? "ready" : "action",
+      required: false,
+      keys: ["Stripe API key", "Stripe webhook signing secret", "/api/public/{tenant}/webhooks/stripe"],
+      nextRun: setupNextRun("config"),
+      action: { label: "Configure Stripe", href: "/admin/integrations#workspace-provider-heading" },
     },
     {
       id: "mcp_server",

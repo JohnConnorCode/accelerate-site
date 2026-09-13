@@ -215,6 +215,16 @@ const setupGuides: Record<string, SetupGuide> = {
     href: "/admin/integrations#workspace-provider-heading",
     linkLabel: "Configure OpenRouter",
   },
+  stripe: {
+    steps: [
+      "Open Integrations and connect the Stripe account that should own this workspace's recurring plans.",
+      "Add the Stripe webhook signing secret from the endpoint configured for /api/public/{tenant}/webhooks/stripe.",
+      "Enable Stripe invoicing for the workspace only after both the API key and signing secret verify successfully.",
+      "Create one test-mode plan, complete a test checkout, and confirm the customer account and webhook receipt before switching to live mode.",
+    ],
+    href: "/admin/integrations#workspace-provider-heading",
+    linkLabel: "Configure Stripe",
+  },
   mcp_server: {
     steps: [
       "Revenue OS includes a built-in MCP server complying with the 2024-11-05 protocol specification.",
