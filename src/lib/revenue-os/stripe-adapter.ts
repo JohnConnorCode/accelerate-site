@@ -64,7 +64,10 @@ export const stripeAdapter: IntegrationAdapter = {
   id: "stripe",
   name: "Stripe",
   category: "crm",
-  credentialFields: [{ formField: "apiKey", encryptedKey: "api_key" }],
+  credentialFields: [
+    { formField: "apiKey", encryptedKey: "api_key" },
+    { formField: "webhookSecret", encryptedKey: "webhook_secret" },
+  ],
   async verify(credentials) {
     try {
       const apiKey = typeof credentials.apiKey === "string" ? credentials.apiKey : "";
@@ -136,6 +139,10 @@ export async function tenantStripeClient(db: SupabaseClient) {
   const encrypted = (connection.encrypted_credentials as Record<string, unknown>)?.api_key;
   if (typeof encrypted !== "string") throw new Error("Stripe credential is unavailable");
   const apiKey = decryptTenantSecret(encrypted, tenantId, "stripe", "api_key");
+  const encryptedWebhook = (connection.encrypted_credentials as Record<string, unknown>)?.webhook_secret;
+  const webhookSecret = typeof encryptedWebhook === "string"
+    ? decryptTenantSecret(encryptedWebhook, tenantId, "stripe", "webhook_secret")
+    : null;
   const mode = stripeKeyMode(apiKey);
   const assertCurrentConnection = async () => {
     const current = await tenantStripeClient(db);
@@ -152,6 +159,60 @@ export async function tenantStripeClient(db: SupabaseClient) {
     credentialVersion: connection.credential_version as number,
     accountId: connection.account_email as string,
     account: () => stripeRequest(apiKey, "/account"),
+    products: () => stripeRequest(apiKey, "/products?active=true&limit=100"),
+    prices: (productId?: string) =>
+      stripeRequest(
+        apiKey,
+        `/prices?${new URLSearchParams({ active: "true", limit: "100", ...(productId ? { product: productId } : {}) })}`,
+      ),
+    createProduct: async (body: URLSearchParams, key: string) => {
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, "/products", body, key);
+    },
+    updateProduct: async (id: string, body: URLSearchParams, key: string) => {
+      if (!/^prod_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe product");
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, `/products/${id}`, body, key);
+    },
+    createPrice: async (body: URLSearchParams, key: string) => {
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, "/prices", body, key);
+    },
+    updatePrice: async (id: string, body: URLSearchParams, key: string) => {
+      if (!/^price_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe price");
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, `/prices/${id}`, body, key);
+    },
+    createCustomer: async (body: URLSearchParams, key: string) => {
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, "/customers", body, key);
+    },
+    checkoutSession: async (body: URLSearchParams, key: string) => {
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, "/checkout/sessions", body, key);
+    },
+    subscription: (id: string) => {
+      if (!/^sub_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe subscription");
+      return stripeRequest(apiKey, `/subscriptions/${id}`);
+    },
+    updateSubscription: async (id: string, body: URLSearchParams, key: string) => {
+      if (!/^sub_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe subscription");
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, `/subscriptions/${id}`, body, key);
+    },
+    subscriptionInvoices: (id: string) => {
+      if (!/^sub_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe subscription");
+      return stripeRequest(apiKey, `/invoices?subscription=${encodeURIComponent(id)}&limit=20`);
+    },
+    customerInvoices: (id: string) => {
+      if (!/^cus_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe customer");
+      return stripeRequest(apiKey, `/invoices?customer=${encodeURIComponent(id)}&limit=20`);
+    },
+    billingPortal: async (body: URLSearchParams, key: string) => {
+      await assertCurrentConnection();
+      return stripeRequest(apiKey, "/billing_portal/sessions", body, key);
+    },
+    webhookSecret,
     customers: (email?: string) =>
       stripeRequest(
         apiKey,

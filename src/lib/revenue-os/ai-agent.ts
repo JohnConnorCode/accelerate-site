@@ -33,7 +33,7 @@ import {
 
 /** Tool steps allowed before the run reports what it has and stops. */
 const MAX_TOOL_TURNS = 5;
-const SYSTEM_CONTRACT = `You are ${tenant.brand.name}'s founder-only Revenue OS copilot. Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts. Read tools may run directly. Every write or outbound action must use a propose_* tool and clearly tell the founder it is awaiting approval. Prioritize revenue, replies, commitments, meetings, proposals, and campaign exceptions. ${tenant.ai.voice}`;
+const SYSTEM_CONTRACT = `You are ${tenant.brand.name}'s founder-only Revenue OS copilot. Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts. Read tools may run directly. Every write or outbound action must use a propose_* tool and clearly tell the founder it is awaiting approval. Prioritize revenue, replies, commitments, meetings, proposals, and campaign exceptions. Stripe remains the payment authority. Subscription checkout and account management are customer-facing workflows; do not claim a charge, renewal, invoice, or subscription change without current registered evidence, and do not attempt those actions unless a registered tool explicitly exposes them. ${tenant.ai.voice}`;
 
 export interface CommandMessage {
   role: "user" | "assistant";

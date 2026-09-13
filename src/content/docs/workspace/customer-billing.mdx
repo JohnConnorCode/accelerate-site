@@ -1,0 +1,51 @@
+---
+title: "Manage your subscription"
+description: "Subscribe, update payment details, and understand renewals from your customer account."
+updated: "2026-09-13"
+---
+
+# Manage your subscription
+
+Your workspace account keeps your plan, renewal date, invoices, and billing actions together. Start from the workspace’s **Plans** page, then use your customer account whenever you need to review or change billing.
+
+The Plans and account pages use the workspace’s configured name, mark, colors, type style, tagline, and billing support address. You should see the same identity while signing in and returning from Stripe Checkout.
+
+## Subscribe
+
+1. Open the workspace’s Plans page.
+2. Choose a plan and continue to secure Stripe Checkout.
+3. Sign in or create an account if asked.
+4. Complete payment in Stripe. You return to your account when checkout finishes.
+
+If you leave Checkout before paying, you return to Plans with a clear cancellation message. A successful payment may take a moment to appear while Stripe’s webhook confirms the subscription; refresh the account page if needed.
+
+Your plan renews automatically at the interval shown on the plan. The account page is the source for the current subscription status and next renewal date.
+
+## Manage payment details
+
+Open **Manage payment method** in your account. Stripe’s secure billing portal handles card and payment details, so the workspace never asks you to paste them into its own form. The portal also provides Stripe’s available invoice and payment actions for your account.
+
+## Change or cancel
+
+Choose **Schedule change** to move to another active plan at the next renewal. Plan changes keep the current currency and do not change the current billing period.
+
+Choose **Cancel at renewal** to stop the next renewal. You keep access through the current period. If you change your mind, choose **Keep subscription** before the renewal date.
+
+The account shows the pending plan or cancellation so you can see what will happen next.
+
+## Understand the status
+
+- **Renews automatically** means the subscription is active and Stripe will attempt the next renewal.
+- **Trial in progress** means access is in a trial period; the account shows the next period date when Stripe provides one.
+- **Checkout incomplete** means Stripe is still waiting for checkout to finish. It is not an active subscription yet.
+- **Payment needs attention** means a renewal could not be collected. Update the payment method in Stripe before access is interrupted.
+- **Cancels at renewal** means cancellation is scheduled, but access continues through the current period. **Ended** means the subscription is no longer active.
+
+## If something looks wrong
+
+- **Checkout did not finish:** return to Plans and try again. An incomplete checkout does not count as an active subscription.
+- **Your subscription is missing:** refresh the account page. If it remains missing after a completed payment, contact the workspace owner with the approximate checkout time.
+- **A payment is past due:** update your payment method in the Stripe portal and check the latest invoice status.
+- **An invoice is unavailable:** the subscription can remain visible while invoice history is being refreshed. Try again later or contact the workspace owner.
+
+For account access problems, use **Forgot password?** on the sign-in page. For a billing question that is not answered here, contact the workspace owner or the support address shown on your account page.

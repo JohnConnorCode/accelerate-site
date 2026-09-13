@@ -12,11 +12,11 @@ import { CATEGORY_META, capabilities, type CapabilityCategory } from "@/content/
    LearnHub (pill row + search + AnimatePresence keyed on the filter).
 
    Rows are collapsible <details> — a version that showed every row's detail
-   text on screen at once turned 43 rows into a wall the height of several
+   text on screen at once turned the full catalog into a wall the height of several
    screens. But an earlier collapsed version showed NOTHING but the title
    when closed, several of them two words ("Companies", "An API"), which read
    as thin. This splits the difference: collapsed rows are compact (title
-   only, one line), and the two-column grid keeps even 43 of them from
+   only, one line), and the two-column grid keeps the full catalog from
    reading as an endless single-file scroll. */
 
 export function CapabilityCatalog() {
@@ -129,7 +129,7 @@ export function CapabilityCatalog() {
             </p>
           ) : (
             // Grouped while showing everything, flat once a category is picked.
-            // 43 identical rows in one run is a wall; six labelled blocks is a list.
+            // A long ungrouped run is a wall; six labelled blocks is a list.
             groups.map((g) => (
               <section key={g.id} className="mb-7 last:mb-0">
                 {showGroupHeads && (

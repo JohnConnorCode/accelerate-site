@@ -986,11 +986,11 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     id: "stripe-invoicing",
     name: "Stripe invoicing",
     description:
-      "Create reviewed invoices for CRM customers, approve sending, and track Stripe payment status.",
+      "Create reviewed invoices and recurring plans for customers, approve sending, and track Stripe payment status.",
     category: "revenue",
     isCore: false,
     defaultEnabled: false,
-    navLinkIds: ["stripe-invoicing"],
+    navLinkIds: ["stripe-invoicing", "stripe-subscriptions"],
     aiToolNames: [
       "prepare_stripe_invoicing",
       "propose_stripe_invoicing",
@@ -998,7 +998,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       "preview_invoice_page",
       "propose_invoice_page",
     ],
-    routes: ["/admin/invoicing"],
+    routes: ["/admin/invoicing", "/admin/subscriptions"],
     setupChecks: [],
     docsUrl: "/docs/plugins/stripe-invoicing",
     workflow: {
@@ -1087,13 +1087,13 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "30512ed7eb93c1470107850cf46fee7a3d491c4589d2448a054e15ea596f5216",
+      contractHash: "a099ccfc76f3f99233749c306a877c85d7e9712431044eb9ded68d1c3f302c09",
       tools: [
         {
           operation: "prepare-workflow",
           name: "prepare_stripe_invoicing",
           description:
-            "Prepare Stripe invoicing: Create reviewed invoices for CRM customers, approve sending, and track Stripe payment status.. Returns a reviewable plan, never executes it.",
+            "Prepare Stripe invoicing: Create reviewed invoices and recurring plans for customers, approve sending, and track Stripe payment status.. Returns a reviewable plan, never executes it.",
           serviceTarget: "revenue-os.workflow-plugins",
           connectionRequirement: "none",
           impact: "read",
@@ -1454,6 +1454,15 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     href: "/admin/invoicing",
     icon: "FileText",
     description: "Customer invoices and payment status",
+    moreGroup: "Revenue",
+  },
+  {
+    moduleId: "stripe-invoicing",
+    id: "stripe-subscriptions",
+    label: "Subscriptions",
+    href: "/admin/subscriptions",
+    icon: "Wallet",
+    description: "Recurring plans and customer subscriptions",
     moreGroup: "Revenue",
   },
 ] as const;

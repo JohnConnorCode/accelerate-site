@@ -76,6 +76,7 @@
     "test:runtime-record-permission-contract": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-runtime-record-permission-contract.ts",
     "test:integration-adapters": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-integration-adapters.ts",
     "test:webhook-security": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-webhook-security.ts",
+    "test:subscriptions": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-subscriptions.ts",
     "mcp:stdio": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/revenue-os-mcp.ts",
     "verify:inbound-canonical": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/verify-inbound-canonical.ts",
     "verify:recorded-send": "NODE_OPTIONS=--conditions=react-server npx tsx --env-file=.env.local scripts/verify-recorded-send.ts",

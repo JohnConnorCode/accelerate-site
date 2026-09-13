@@ -2,7 +2,7 @@
   "$schema": "./module-manifest.schema.json",
   "id": "stripe-invoicing",
   "name": "Stripe invoicing",
-  "description": "Create reviewed invoices for CRM customers, approve sending, and track Stripe payment status.",
+  "description": "Create reviewed invoices and recurring plans for customers, approve sending, and track Stripe payment status.",
   "category": "revenue",
   "defaultEnabled": false,
   "navLinks": [
@@ -13,9 +13,17 @@
       "icon": "FileText",
       "description": "Customer invoices and payment status",
       "moreGroup": "Revenue"
+    },
+    {
+      "id": "stripe-subscriptions",
+      "label": "Subscriptions",
+      "href": "/admin/subscriptions",
+      "icon": "Wallet",
+      "description": "Recurring plans and customer subscriptions",
+      "moreGroup": "Revenue"
     }
   ],
-  "routes": ["/admin/invoicing"],
+  "routes": ["/admin/invoicing", "/admin/subscriptions"],
   "aiToolNames": [
     "prepare_stripe_invoicing",
     "propose_stripe_invoicing",
@@ -76,12 +84,12 @@
       "impact": "external_action",
       "reversibility": "irreversible"
     },
-    "contractHash": "30512ed7eb93c1470107850cf46fee7a3d491c4589d2448a054e15ea596f5216",
+    "contractHash": "a099ccfc76f3f99233749c306a877c85d7e9712431044eb9ded68d1c3f302c09",
     "tools": [
       {
         "operation": "prepare-workflow",
         "name": "prepare_stripe_invoicing",
-        "description": "Prepare Stripe invoicing: Create reviewed invoices for CRM customers, approve sending, and track Stripe payment status.. Returns a reviewable plan, never executes it.",
+        "description": "Prepare Stripe invoicing: Create reviewed invoices and recurring plans for customers, approve sending, and track Stripe payment status.. Returns a reviewable plan, never executes it.",
         "serviceTarget": "revenue-os.workflow-plugins",
         "connectionRequirement": "none",
         "impact": "read",
