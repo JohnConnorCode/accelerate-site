@@ -1,0 +1,10 @@
+import type { EmailSequenceStep, EmailSequenceType } from "@/lib/types";
+// No outbound sequence is enabled in a fresh neutral starter.
+export const emailSequences: Record<EmailSequenceType, EmailSequenceStep[]> = {
+  manual_audit_followup: [],
+  booking_nurture: [],
+  roofing_nurture: [],
+  plan_nurture: [],
+  resource_welcome: [],
+  grader_followup: [],
+};

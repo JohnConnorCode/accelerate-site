@@ -48,8 +48,9 @@ Use the plain-language request described in [Natural-language agent
 execution](NATURAL-LANGUAGE-AGENT.md), which invokes the internal `agent:go`
 runner. The configured private transport (scoped WORK_BOARD_URL and WORK_BOARD_TOKEN
 for remote workers, or an owner-authorized named-project local profile), readiness, UUID
-dependencies, six-card WIP limit, revision and session fencing are enforced by
-the shared service. No implicit expired-claim reassignment, force bypass,
+dependencies, revision and session fencing are enforced by
+the shared service. Work volume is advisory; explicitly requested expired tasks
+continue without another approval. No implicit expired-claim reassignment,
 caller-HEAD worktree base or automatic worktree deletion. Completion submits
 the exact commit and passing checks for founder review.
 The execution order below remains a planning aid, not a second roadmap.

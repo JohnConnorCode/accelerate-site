@@ -80,7 +80,8 @@ removing active worktrees. This does not authorize production deployment.
 ## Pick up and resume work
 
 Run `npm run agent:go` for the natural-language backlog flow. It performs
-read-only setup checks, selects one ready Now/Next card, claims it atomically,
+read-only setup checks, continues the current attempt or eligible interrupted work
+before selecting a ready Now/Next card, claims new ownership atomically,
 creates the approved isolated worktree, repairs deterministic generated-report
 drift there, and prints the complete continuation packet. Use `--json` for an
 agent client and `--card <key>` only when the user explicitly names a card.
@@ -103,8 +104,20 @@ Use `agent:status`, `agent:heartbeat -- --card <key>`, and
 --evidence-file <path.json>` submits named passing checks and the exact commit
 for review. It preserves the worktree. Completion, review, merge, cleanup and
 production deployment are separate facts/actions. Keep claim session files
-private and renew within the 30-minute lease; expired work requires explicit
-operator recovery. There is no force bypass.
+private and use the emitted `--attempt` when running lifecycle commands outside
+its worker checkout. Progress records a source checkpoint; add newly created source
+paths explicitly with `agent:checkpoint -- --checkpoint-file <path.json>`.
+Renew within the 30-minute lease. For a bounded verification command, use the
+emitted `agent:run` wrapper, which renews every five minutes while that job runs.
+With compatible schema and the project's recovery policy enabled, `agent:go`
+resumes an expired attempt from its checkpoint with new ownership. Missing source
+requires inspection of the retained work, not another routine permission request.
+Preserve old checkouts and sessions; there is no force bypass.
+An explicit request for a named expired task also permits normal revision-checked
+claim continuation without another approval. Work volume never blocks an authorized
+claim. The new attempt rotates ownership and preserves its predecessor; the CLI
+uses retained source to prepare an isolated successor without overwriting the old
+checkout. Automatic selection still requires checkpoint and project-policy readiness.
 
 ## Read in this order
 
@@ -187,9 +200,10 @@ exception. Update the source inventory after reviewing changed route operations.
   use is reserved for requested visual/interaction verification. Preserve actor
   permissions, revision checks, leases and immutable receipts; direct row updates
   are not a replacement for lifecycle operations.
-- Carry explicit founder recovery authorization through the scoped recover/reopen
-  operations and normal reclaim in the same task. Do not repeat the permission
-  question. Keep operator recovery authority separate from worker review rights.
+- Continue a specifically requested expired task through the normal claim path,
+  preserving its checkout and fencing the old token. Do not require review rights
+  or another founder confirmation. Reopening accepted/submitted work remains a
+  separate operation; never infer review authority from claim continuation.
 - Read one relevant card with `agent:show -- --card <key> --json`; summarize only
   the fields needed for the next decision. Do not dump the full board for a
   specific task. Reuse prior inspection and batch independent bounded reads.

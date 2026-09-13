@@ -1,0 +1,27 @@
+export type ServiceProblem = {
+    title: string;
+    body: string;
+};
+export type BuildGroup = {
+    id: string;
+    title: string;
+    items: string[];
+    legacyAnchor?: string;
+};
+export type IntegrationGroup = {
+    title: string;
+    body: string;
+};
+export type EngagementShape = {
+    title: string;
+    body: string;
+};
+export const problemRows: ServiceProblem[] = [];
+export const buildGroups: BuildGroup[] = [];
+export const buildCapabilities = "Configure your services.";
+export const integrationGroups: IntegrationGroup[] = [];
+export const integrationClosing = "Configure your integrations.";
+export const engagementShapes: EngagementShape[] = [];
+export const scopingPromise = "Describe your scope.";
+export const featuredServiceWorkSlugs: string[] = [];
+export const commandCenterFraming = "Configure your business workspace.";

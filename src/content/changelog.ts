@@ -11,6 +11,97 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-12",
   },
   {
+    id: "public-proposal-decisions",
+    slug: "public-proposal-decisions",
+    title: "Keep public proposal decisions consistent when requests repeat",
+    description:
+      "Public proposal views share one receipt, repeated responses show the recorded decision, and expired or replaced links refuse new decisions. Customers can decline without an explanation; an optional reason stays bounded and the original decision is preserved when a response is retried.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+
+  {
+    id: "stage-history-reconciliation",
+    slug: "stage-history-reconciliation",
+    title: "See recorded pipeline progress and history gaps",
+    description:
+      "Analytics separates recorded progress from current pipeline position and shows missing or incomplete history. Invalid events cannot make old movement look recent, and the assistant uses the shared calculation for custom pipeline stages.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "neutral-fork-distribution",
+    slug: "neutral-fork-distribution",
+    title: "Run a fork as your business, not ours",
+    description:
+      "A manifest-driven exporter creates a separate neutral starter with configured business identity, empty business collections and sample page content. Protected media and original hosting targets are omitted. The same admin and runtime remain, with fresh artifact build and fictional desktop/mobile checks in CI. The original branded installation remains the default.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "admin-guidance-clarity",
+    slug: "admin-guidance-clarity",
+    title: "Find the same names and guidance across Command Center",
+    description:
+      "Navigation, search, headings and breadcrumbs share consistent destination names. Architect, Blueprints and Learning Inbox include workflow help and linked guides. Help panels stay within the phone screen and keep longer guidance scrollable.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "services-strategy-page",
+    slug: "services-strategy-page",
+    title: "Explore strategy, custom builds and ongoing support",
+    description:
+      "The Services page explains how Accelerate helps identify useful work, build custom systems, support ongoing execution and improve results. Section links connect the offer, example work and engagement process; Command Center remains one option within that broader service.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "kanban-scroll-continuity",
+    slug: "kanban-scroll-continuity",
+    title: "Keep your place on shared boards",
+    description:
+      "Feature Board, Pipeline and Content Calendar keep manual horizontal scrolling under your control. Column buttons remain available on phones, tablets and desktops, keyboard focus reaches the board, and returning from an opportunity restores its board position. Shared loading and refresh regions retain their spacing across appearances.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "social-marketing-postiz",
+    slug: "social-marketing-postiz",
+    title: "Prepare and review LinkedIn publishing in Social Marketing",
+    description:
+      "An optional Postiz-backed plugin adds source-backed drafts, weekly preparation, exact batch approval, durable scheduling and publication receipts. Each tenant connects a separate organization. Hosting, LinkedIn access and the internal pilot require verified setup before customer activation.",
+    category: "feature",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "resumable-agent-work",
+    slug: "resumable-agent-work",
+    title: "Continue unfinished agent work from saved checkpoints",
+    description:
+      "Repository agents can preserve source checkpoints and resume interrupted tasks through the usual backlog request. This release adds durable attempts and permanently fenced old sessions. Active ownership stays protected, while work volume does not block an authorized claim. Automatic takeover requires the recovery migration and an enabled project policy; hosted activation remains a separate release step.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "drive-duplicate-provenance",
+    slug: "drive-duplicate-provenance",
+    title: "Keep Drive duplicate references across repeated syncs",
+    description:
+      "Unchanged Drive files retain their duplicate-source relationship across repeated syncs and listing order changes. If the original changes, disappears or loses download access, an available unchanged copy becomes the source for that content. Each file keeps its own identity, link and folder provenance.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "site-studio-verified-writes",
+    slug: "site-studio-verified-writes",
+    title: "Keep Site Studio saves bound to the verified editor",
+    description:
+      "Site Studio passes the verified editor directly to its existing server write service and rechecks active workspace membership. The upgrade preserves prior migration history and restores private write permissions after the compatible application release. Saved website revisions remain installation-owner controlled; private workspace drafts keep their existing access boundary.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",
@@ -168,7 +259,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "local-agent-supervisor",
     title: "Coordinate local agent jobs with durable ownership and recovery",
     description:
-      "Optional developer supervision adds a shared queue and process identity registry. Cross-process state updates are transactional; stale releases preserve replacement owners and recovery keeps paused agents paused. Cancellation requires an explicitly registered disposable child and enabled policy. Management starts off; provider hooks and OS isolation remain separate.",
+      "Optional developer supervision adds a shared queue and process identity registry. Cross-process state updates are transactional; stale releases preserve replacement owners. Registered interrupted threads resume through the original provider with one foreground owner, and uninstall safely resumes owned paused processes or refuses with a precise reason. Cancellation requires an explicitly registered disposable child and enabled policy. Management starts off; provider hooks and OS isolation remain separate.",
     category: "feature",
     publishedAt: "2026-09-08",
   },

@@ -1,6 +1,8 @@
 "use client";
 
 import Link, { type LinkProps } from "next/link";
+import { resolveAdminHref } from "@/lib/admin/navigation-paths";
+export { resolveAdminHref } from "@/lib/admin/navigation-paths";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo, type AnchorHTMLAttributes } from "react";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
@@ -10,18 +12,6 @@ import {
 } from "@/components/navigation/NavigationRuntime";
 
 type AdminLinkProps = LinkProps & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps>;
-
-export function resolveAdminHref(
-  href: string,
-  scenarioId: string | null,
-  workspaceSlug?: string | null,
-) {
-  if (!href.startsWith("/admin")) return href;
-  const suffix = href.replace(/^\/admin\/?/, "");
-  if (scenarioId) return `/demo/command-center/${scenarioId}/${suffix || "today"}`;
-  if (workspaceSlug) return `/t/${workspaceSlug}/admin/${suffix || "today"}`;
-  return href;
-}
 
 export default function AdminLink({ href, ...props }: AdminLinkProps) {
   const demo = useAdminDemo();

@@ -367,6 +367,90 @@ async function main() {
     );
     check("foreign-identical-file-id-never-supplies-or-retires-content");
   }
+  // AC2/AC3: repeated sync retains the original and every source's provenance.
+  for (const sourceState of ["unchanged", "changed", "deleted", "inaccessible"] as const) {
+    const mem = seed();
+    const db = bound(mem);
+    const original = row({
+      external_id: "original",
+      provider_revision: "v1",
+      web_view_link: "https://drive.google.com/original",
+    });
+    const copy = row({
+      external_id: "copy",
+      provider_revision: "v1",
+      web_view_link: "https://drive.google.com/copy",
+    });
+    const run = (rows: Row[], extract: () => Promise<string | null>) =>
+      indexDriveFolder(db, {
+        folderId: "folder-a",
+        rows: rows as never,
+        listedIds: new Set(rows.map((r) => String(r.external_id))),
+        listingComplete: true,
+        extract,
+      });
+    await run([original, copy], async () => "shared content");
+    const identities = new Map(mem.rows("drive_documents").map((r) => [r.external_id, r.id]));
+    for (let repeat = 0; repeat < 2; repeat++) {
+      const summary = await run([copy, original], async () => {
+        throw new Error("unchanged files must not be extracted");
+      });
+      assert.equal(summary.unchanged, 2);
+      assert.equal(summary.duplicates, 1);
+      assert.equal(
+        mem.rows("drive_documents").find((r) => r.external_id === "copy")!.content_duplicate_of,
+        "original",
+      );
+      assert.equal(
+        mem.rows("drive_documents").find((r) => r.external_id === "original")!.content_duplicate_of,
+        null,
+      );
+    }
+    const listing =
+      sourceState === "deleted"
+        ? [copy]
+        : [
+            copy,
+            {
+              ...original,
+              ...(sourceState === "changed" ? { provider_revision: "v2" } : {}),
+              ...(sourceState === "inaccessible" ? { metadata: { canDownload: false } } : {}),
+            },
+          ];
+    let reads = 0;
+    const result = await run(listing, async () => {
+      reads++;
+      return "changed content";
+    });
+    assert.equal(reads, sourceState === "changed" ? 1 : 0);
+    const docs = mem.rows("drive_documents");
+    assert.equal(docs.length, 2);
+    for (const doc of docs) {
+      assert.equal(doc.id, identities.get(doc.external_id));
+      assert.equal(doc.folder_id, "folder-a");
+      assert.equal(doc.provider, "google");
+      assert.equal(doc.web_view_link, `https://drive.google.com/${doc.external_id}`);
+    }
+    const storedCopy = docs.find((r) => r.external_id === "copy")!;
+    const storedOriginal = docs.find((r) => r.external_id === "original")!;
+    assert.equal(storedCopy.content_duplicate_of, sourceState === "unchanged" ? "original" : null);
+    assert.equal(storedCopy.extracted_text, "shared content");
+    assert.equal(
+      storedOriginal.indexed_status,
+      sourceState === "deleted"
+        ? "deleted"
+        : sourceState === "inaccessible"
+          ? "inaccessible"
+          : "indexed",
+    );
+    if (sourceState === "deleted" || sourceState === "inaccessible")
+      assert.equal(storedOriginal.extracted_text, null);
+    if (sourceState === "changed") {
+      assert.equal(storedOriginal.extracted_text, "changed content");
+      assert.equal(result.indexed, 1);
+    }
+    check(`repeated-duplicate-sync-${sourceState}-preserves-provenance`);
+  }
   console.log(JSON.stringify({ result: "passed", checks }));
 }
 

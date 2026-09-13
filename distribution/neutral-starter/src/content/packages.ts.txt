@@ -1,0 +1,4 @@
+// Empty business-owned content. Add only material you have rights to publish.
+import type { ServicePackage, FAQ } from "@/lib/types";
+export const packages: ServicePackage[] = [];
+export const packageFaqs: FAQ[] = [];

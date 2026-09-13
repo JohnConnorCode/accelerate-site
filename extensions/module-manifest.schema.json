@@ -11,8 +11,13 @@
       "required": ["source", "href"],
       "additionalProperties": false,
       "properties": {
-        "source": { "enum": ["collection_case", "radar_opportunity"] },
-        "href": { "type": "string", "pattern": "^/admin/[a-z0-9/-]+$" }
+        "source": {
+          "enum": ["collection_case", "radar_opportunity"]
+        },
+        "href": {
+          "type": "string",
+          "pattern": "^/admin/[a-z0-9/-]+$"
+        }
       }
     },
     "$schema": {
@@ -283,6 +288,37 @@
       "type": "string",
       "pattern": "^/admin/[a-z0-9-]+(?:/[a-z0-9-]+)*$",
       "description": "Optional exact retained-record page allowed to render while disabled. This never grants API or mutation permission."
+    },
+    "upstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "license", "revision", "connector", "deploymentGuide"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "license": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "imageDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "connector": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]+$"
+        },
+        "deploymentGuide": {
+          "type": "string",
+          "pattern": "^plugins/[a-z0-9-]+/[^.].*\\.md$"
+        }
+      }
     }
   }
 }

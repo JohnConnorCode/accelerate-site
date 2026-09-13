@@ -63,7 +63,7 @@ it contains only the named project and env-file path. The natural-language reque
 [Natural-language agent execution](NATURAL-LANGUAGE-AGENT.md) is the normal
 user interface after setup.
 
-The board doctor makes only authenticated GET requests. It reports incompatible deployments, missing scopes and unfinished strict-write rollout. Resolve blocked checks with the maintainer before unattended shared dispatch. Per-ticket dependencies, capability requirements and WIP limits still apply.
+The board doctor makes only authenticated GET requests. It reports incompatible deployments, missing scopes and unfinished strict-write rollout. Resolve blocked checks with the maintainer before unattended shared dispatch. Per-ticket dependencies, capability requirements and live claim ownership still apply. Work volume does not block claims; explicitly requested expired tasks continue with a fresh revision and token.
 
 Pickup checks the repository identity and exact approved base before claiming. If needed it fetches the declared branch from the existing matching `origin`; it never invents a branch, adopts a different repository or changes remote configuration. If the base exists only on the maintainer's machine, publish it first. A retained dirty or mismatched worktree needs inspection before reuse. `--no-worktree` is an explicit manual-preparation option, not automatic readiness proof.
 
@@ -78,7 +78,7 @@ npm --prefix "$ACCELERATE_CONTROL" run agent:heartbeat -- --card <ticket-key>
 npm --prefix "$ACCELERATE_CONTROL" run agent:progress -- --card <ticket-key> --message "Implemented the scoped path; controlled failure checks remain."
 ```
 
-Renew before the 30-minute lease expires. When stepping away, release the claim and preserve the worktree. If an HTTP claim result is uncertain, retry the printed UUID with `agent:next -- --request-key <uuid>`; the exact original request and token are retained privately. Never start a second claim to guess whether the first succeeded. Expired claims require an operator's explicit recovery.
+Renew before the 30-minute lease expires. When stepping away, release the claim and preserve the worktree. If an HTTP claim result is uncertain, retry the printed UUID with `agent:next -- --request-key <uuid>`; the exact original request and token are retained privately. Never start a second claim to guess whether the first succeeded. Resume an explicitly requested expired task through the normal claim path without another recovery approval; preserve its retained checkout.
 
 Run the packet's scoped checks and the [verification workflow](VERIFICATION-WORKFLOW.md). Use the shared resource gate for heavy work; the full build includes final TypeScript validation. Commit hooks stay offline and fast. Fresh installations should use `npm ci`; locally shared dependency symlinks may require `npm run build -- --webpack` because Turbopack rejects dependencies outside its filesystem root. Do not disable compiler checks.
 

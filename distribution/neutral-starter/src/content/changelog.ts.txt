@@ -1,0 +1,2 @@
+import type { ChangelogEntry } from "@/lib/types";
+export const changelogEntries: ChangelogEntry[] = [];

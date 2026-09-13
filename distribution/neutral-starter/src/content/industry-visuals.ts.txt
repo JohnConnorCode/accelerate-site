@@ -1,0 +1,9 @@
+export type IndustryStill = { src: string; alt: string };
+export type IndustryVisual = { hero: IndustryStill; stills: IndustryStill[]; promise: string };
+export const FEATURED_INDUSTRY_SLUGS = ["home-services", "law-firms", "professional-services", "real-estate", "nonprofits"] as const;
+const placeholder: IndustryVisual = { hero: { src: "/neutral-placeholder.svg", alt: "Neutral placeholder" }, stills: [], promise: "Configure this section" };
+export const INDUSTRY_VISUALS = {
+  "home-services": placeholder, "law-firms": placeholder,
+  "professional-services": placeholder, "real-estate": placeholder, nonprofits: placeholder,
+};
+export function industryVisual(slug: string): IndustryVisual | undefined { return (INDUSTRY_VISUALS as Record<string, IndustryVisual>)[slug]; }

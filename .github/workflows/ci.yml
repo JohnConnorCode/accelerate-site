@@ -107,7 +107,15 @@ jobs:
 
       - name: Verify runtime tenant and domain boundaries
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run verify:runtime-boundaries
+        run: |
+          npm run verify:runtime-boundaries
+          node --test scripts/test-runtime-error-adoption.mjs
+
+      - name: Verify admin language and route identity
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          node scripts/audit-admin-language.mjs --check
+          node --import tsx scripts/test-admin-language.ts
 
       - name: Lint
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -156,6 +164,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:install-runbook
 
+      - name: Verify neutral fork distribution
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:neutral-runtime-distribution && node scripts/test-neutral-export.mjs
+
       - name: Retain install-runbook receipt
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -176,7 +188,14 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:tenant-lifecycle:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
+
+      - name: Verify Social Marketing adapter and publication transactions
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: |
+          npm run test:social-postiz
+          PATH="$(pg_config --bindir):$PATH" npm run test:social-postgres
 
       - name: Verify installation migrations
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -189,7 +208,10 @@ jobs:
 
       - name: Verify developer handoff and fresh-clone pickup
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run test:developer-handoff
+        run: |
+          npm run test:developer-handoff
+          npm run test:agent-checkpoint
+          NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-demo-work-continuity.ts
 
       - name: Verify resource gate behavior
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -199,9 +221,14 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:verification-workflow
 
+      - name: Verify canonical stage history
+        run: |
+          NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-stage-history-analytics.ts
+          npm run test:analytics-decision-model
+
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -263,6 +290,7 @@ jobs:
             node scripts/qa-leads-bulk.mjs
             node scripts/qa-website-editor.mjs
             node scripts/qa-website-authoring.mjs
+            node scripts/qa-analytics-workspace.mjs --demo
             node scripts/qa-radar-workspace.mjs
             node scripts/qa-operator-workspace.mjs
             node scripts/qa-today-workspace.mjs
@@ -274,19 +302,22 @@ jobs:
           (
             set -e
             DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
+            node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
+            node scripts/qa-public-navigation-profile.mjs --services-only
             node scripts/qa-demo-business-workflows.mjs
           ) &
           public_qa_pid=$!
           (
             set -e
+            node scripts/qa-social-marketing.mjs
             node scripts/qa-collections-workspace.mjs
             node scripts/qa-universal-work-board.mjs
-            node scripts/qa-admin-polish.mjs
-            node scripts/qa-admin-polish-interactions.mjs
-            node scripts/qa-admin-polish-touch.mjs
-            node scripts/qa-admin-polish-theme-editor.mjs
-            node scripts/qa-admin-polish-navigation.mjs
+            polish_status=0
+            for polish_suite in qa-admin-polish qa-admin-polish-interactions qa-admin-polish-touch qa-admin-polish-theme-editor qa-admin-polish-navigation qa-admin-overhaul; do
+              if ! node "scripts/${polish_suite}.mjs"; then polish_status=1; fi
+            done
+            if [ "$polish_status" -ne 0 ]; then exit "$polish_status"; fi
             node scripts/qa-contact-review-copy.mjs
             node scripts/qa-demo-marketing.mjs
             node scripts/qa-theme-persistence.mjs
@@ -303,6 +334,8 @@ jobs:
         with:
           name: credential-free-browser-evidence
           path: |
+            /tmp/accelerate-proposal-decisions/
+            /tmp/accelerate-social-qa/
             /tmp/accelerate-site-studio-qa/
             /tmp/accelerate-website-editor/
             /tmp/accelerate-website-authoring/
@@ -314,7 +347,9 @@ jobs:
             /tmp/accelerate-demo-business/
             /tmp/accelerate-docs-takeover-qa/
             /tmp/accelerate-work-portfolio-qa/
+            /tmp/accelerate-public-navigation-profile/
             /tmp/accelerate-collections-workspace/
+            /tmp/accelerate-analytics-workspace/
             /tmp/accelerate-radar-workspace/
             /tmp/accelerate-operator-workspace/
             /tmp/accelerate-work-board-qa/
@@ -322,16 +357,71 @@ jobs:
             /tmp/accelerate-first-run-server.log
             /tmp/admin-polish-qa/
             /tmp/accelerate-client-interactions/
+            /tmp/accelerate-admin-language/
             /tmp/accelerate-contact-review/
             /tmp/accelerate-demo-marketing/
             /tmp/accelerate-theme-persistence/
           if-no-files-found: ignore
           retention-days: 7
 
+  neutral-starter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Export one actual neutral starter from the exact checkout
+        run: node scripts/export-neutral-starter.mjs --output "$RUNNER_TEMP/neutral-starter"
+      - name: Install fresh artifact dependencies and verify rendered identity
+        working-directory: ${{ runner.temp }}/neutral-starter
+        env:
+          NEXT_PUBLIC_DISTRIBUTION_PROFILE: neutral
+        run: |
+          npm ci
+          npx tsx scripts/test-neutral-starter-artifact.ts
+      - name: Build the exported starter with its own fresh source history
+        working-directory: ${{ runner.temp }}/neutral-starter
+        run: |
+          git init --quiet
+          git add .
+          git -c user.name="Neutral Starter CI" -c user.email="neutral-ci@example.com" commit --quiet -m "Verify exported neutral source"
+          npm run build
+      - name: Verify actual neutral desktop and mobile journeys
+        working-directory: ${{ runner.temp }}/neutral-starter
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3024
+        run: |
+          npx playwright install --with-deps chromium
+          setsid npm run start -- --hostname localhost --port 3024 > /tmp/accelerate-neutral-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill -TERM -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent "$PLAYWRIGHT_BASE_URL" > /dev/null; then ready=true; break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/accelerate-neutral-server.log; exit 1; fi
+          node scripts/qa-turnkey.mjs --neutral
+      - name: Retain exact neutral artifact and browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: neutral-starter-evidence
+          path: |
+            ${{ runner.temp }}/neutral-starter/neutral-starter-receipt.json
+            /tmp/accelerate-neutral-qa/
+            /tmp/accelerate-neutral-server.log
+          if-no-files-found: ignore
+          retention-days: 7
+
   # Keep the existing required check name and fail if either job fails or skips.
   verify:
     if: ${{ always() }}
-    needs: [checks, build]
+    needs: [checks, build, neutral-starter]
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
@@ -339,4 +429,5 @@ jobs:
         env:
           CHECKS_RESULT: ${{ needs.checks.result }}
           BUILD_RESULT: ${{ needs.build.result }}
-        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success
+          NEUTRAL_RESULT: ${{ needs.neutral-starter.result }}
+        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success && test "$NEUTRAL_RESULT" = success

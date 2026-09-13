@@ -1,0 +1,3 @@
+// Empty business-owned content. Add only material you have rights to publish.
+import type { PartnerTier } from "@/lib/types";
+export const partnerTiers: PartnerTier[] = [];

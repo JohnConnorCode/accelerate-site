@@ -29,6 +29,11 @@ export const TENANT_SCOPED_TABLES = [
   "radar_discoveries",
   "radar_opportunities",
   "radar_evidence_links",
+  "media_assets",
+  "social_posts",
+  "social_post_revisions",
+  "social_publication_attempts",
+  "social_operation_receipts",
   "radar_assets",
   "radar_asset_sources",
   "radar_outcomes",
@@ -711,11 +716,11 @@ export const REVENUE_SCHEMA_INDEXES = [
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
   {
     name: "public.write_site_website(text,uuid,integer,uuid,jsonb,text)",
-    migration: "migrations/20260909012125-installation-website-revisions.sql",
+    migration: "migrations/20260912152325-site-studio-verified-host-writes.sql",
   },
   {
     name: "public.write_site_draft(text,uuid,text,jsonb,text)",
-    migration: "migrations/20260917-site-studio-drafts.sql",
+    migration: "migrations/20260912152325-site-studio-verified-host-writes.sql",
   },
   {
     name: "public.duplicate_campaign_draft(uuid,integer,uuid,text,text)",

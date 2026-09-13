@@ -68,7 +68,7 @@ export const capabilities: Capability[] = [
     category: "act",
     title: "Prepare a private page draft",
     detail:
-      "Create template or AI-assisted pages with Muse Spark 1.3 by default and a searchable, refreshable catalogue of free, low-cost and premium models. Filter by provider and price; price increases require review. Installation owners can edit pages and shared content, preview responsive widths, save private revisions and review publication or rollback. Import and export move portable content between installations. Existing source pages are preserved until explicitly replaced; automatic migration of their original layouts remains separate work.",
+      "Create template or AI-assisted pages with Muse Spark 1.3 by default and a searchable, refreshable catalogue of free, low-cost and premium models. Filter by provider and price; price increases require review. Installation owners can edit pages and shared content, preview responsive widths, save private revisions and review publication or rollback. Import and export move portable content between installations. A separate neutral starter export keeps the shared runtime while replacing business-owned content and omitting protected media and original hosting targets. Existing source pages are preserved until explicitly replaced; automatic migration of their original layouts remains separate work.",
   },
   // Capture
   {
@@ -184,6 +184,15 @@ export const capabilities: Capability[] = [
     title: "Opportunity Radar: evidence, reviewed priorities, and drafts",
     detail:
       "Keep supplied sources, reviewed opportunity estimates, CRM context, and saved drafts in one workspace. Review exact changes before saving and retain the evidence history. Optional source briefing has explicit model budgets; automatic discovery and publication remain unfinished. Configured outreach requires exact human approval, fresh contact checks and delivery receipts.",
+    gated: true,
+  },
+
+  {
+    id: "social-marketing",
+    category: "act",
+    title: "Social Marketing: reviewed LinkedIn publishing",
+    detail:
+      "Prepare source-backed drafts, approve exact content and schedules, and follow Postiz acceptance through to verified LinkedIn publication. Each workspace connects its own organization; uncertain submissions retain their receipts for review.",
     gated: true,
   },
 
@@ -349,14 +358,14 @@ export const capabilities: Capability[] = [
     category: "govern",
     title: "Point any coding agent at the backlog",
     detail:
-      "Tell any coding agent that can read and run the repository to pick up backlog work and follow protocol. The repository entrypoint resolves the configured private transport, selects one eligible card, preserves claim ownership, creates the approved isolated worktree, supplies the live packet, and carries the work through verification, commit, and evidence submission without requiring a ticket key or internal command name.",
+      "Tell any coding agent that can read and run the repository to pick up backlog work and follow protocol. The repository entrypoint resolves the configured private transport, continues current work or selects an eligible card, preserves attempt ownership, creates the approved isolated worktree, supplies the live packet, and carries the work through verification, commit, and evidence submission without requiring a ticket key or internal command name. With the recovery migration and project policy enabled, replacement agents resume expired work from saved checkpoints.",
   },
   {
     id: "sms",
     category: "connect",
     title: "A mobile-ready workspace",
     detail:
-      "Use Today, inbox, pipeline, records and setup from a responsive browser. Kanban offers swipeable columns, touch and keyboard dragging, and a stage control for moving a card.",
+      "Use Today, inbox, pipeline, records and setup from a responsive browser. Kanban offers freely scrollable columns, column buttons at every screen size, touch and keyboard dragging, and a stage control for moving a card.",
   },
   {
     id: "api",
@@ -534,7 +543,7 @@ export const CURRENT_SURFACES = [
     n: "06",
     label: "Measure",
     title: "Analytics that separate facts from forecasts",
-    body: "Source-to-revenue performance, reply coverage, forecast method, attribution gaps, stale data, and impossible stage events are visible without turning estimates into facts.",
+    body: "Source-to-revenue performance, reply coverage, forecast method, attribution gaps, stale data, and missing or incomplete stage history are visible without turning estimates into facts.",
   },
   {
     n: "07",
@@ -546,6 +555,6 @@ export const CURRENT_SURFACES = [
     n: "08",
     label: "Run per tenant",
     title: "Shared infrastructure, isolated workspaces",
-    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Eleven bundled plugin examples have public guides covering setup, approvals, costs, and recovery.",
+    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Twelve bundled plugin examples have public guides covering setup, approvals, costs, and recovery.",
   },
 ];

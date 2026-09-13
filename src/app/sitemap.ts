@@ -1,3 +1,4 @@
+import { distributionProfile } from "@/lib/distribution/profile";
 export const dynamic = "force-dynamic";
 import { readPublicWebsite } from "@/lib/site-studio/website-public";
 import { tenant } from "@/config/tenant";
@@ -20,6 +21,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (website.mode === "unpublished") return [];
   if (website.mode === "unavailable")
     throw new Error("Published website is temporarily unavailable");
+  if (distributionProfile() === "neutral") {
+    if (website.mode === "bootstrap") return [{ url: tenant.brand.siteUrl }];
+    return [
+      ...website.document.pages,
+      ...website.document.collections.flatMap((collection) => collection.entries),
+    ]
+      .filter((page) => !page.metadata.noIndex)
+      .map((page) => ({ url: `${BASE_URL}${page.path === "/" ? "" : page.path}` }));
+  }
   const staticPages: {
     path: string;
     priority: number;

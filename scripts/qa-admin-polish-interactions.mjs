@@ -13,12 +13,25 @@ const waitSaved = async (page) => {
   await page.locator('[data-drag-active="true"]').waitFor({ state: "hidden" });
   await page.locator("[data-kanban-overlay]").waitFor({ state: "hidden" });
 };
+async function keyboardLiftReady(page) {
+  await page.locator('[data-drag-active="true"]').waitFor();
+  // KeyboardSensor announces lift before its deferred keydown listener attaches.
+  // Yield that event-loop turn and a paint before sending the next real key.
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        setTimeout(() => requestAnimationFrame(() => resolve()), 0);
+      }),
+  );
+}
 async function move(page, card, target, after = false, cancel = false) {
-  card = card.and(page.locator(".kanban-scroller [data-opportunity-id]"));
+  card = card.and(
+    page.locator(".kanban-scroller [data-opportunity-id], .kanban-scroller [data-kanban-card]"),
+  );
   await card.scrollIntoViewIfNeeded();
   const grip = card.locator(".kanban-grip");
   const start = await grip.boundingBox();
-  const end = await target.boundingBox();
+  let end = await target.boundingBox();
   assert.ok(start && end);
   await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
   await page.mouse.down();
@@ -31,25 +44,57 @@ async function move(page, card, target, after = false, cancel = false) {
   const original = await card.boundingBox();
   assert.ok(Math.abs(shape.width - original.width) < 2, "Overlay width");
   assert.ok(Math.abs(shape.height - original.height) < 2, "Overlay height");
-  await page.mouse.move(end.x + end.width / 2, end.y + end.height * (after ? 0.8 : 0.15), {
-    steps: 16,
-  });
+  // Tall Feature cards can put the drop point below the viewport. Follow the
+  // existing qa-kanban-boards gesture: park away from auto-scroll edges, reveal
+  // the target while holding the pointer, then read its current coordinates.
+  const viewport = page.viewportSize();
+  const dropY = end.y + end.height * (after ? 0.8 : 0.15);
+  if (
+    dropY < 80 ||
+    dropY > viewport.height - 80 ||
+    end.x < 0 ||
+    end.x + end.width > viewport.width
+  ) {
+    await page.mouse.move(viewport.width / 2, viewport.height / 2, { steps: 3 });
+    await target.evaluate((el) =>
+      el.scrollIntoView({ inline: "nearest", block: "center", behavior: "instant" }),
+    );
+    await page.waitForTimeout(300);
+    end = await target.boundingBox();
+    assert.ok(end, "Drag target remains available after scrolling");
+  }
+  const targetY = end.y + end.height * (after ? 0.8 : 0.15);
+  assert.ok(targetY > 0 && targetY < viewport.height, "Drop target is inside viewport");
+  await page.mouse.move(end.x + end.width / 2, targetY, { steps: 16 });
   await page.screenshot({ path: `${output}/drag-${results.length}.png` });
   if (cancel) await page.keyboard.press("Escape");
   await page.mouse.up();
   await waitSaved(page);
+  const scroller = page.locator(".kanban-scroller");
+  await page.waitForTimeout(250);
+  const releasedOffset = await scroller.evaluate((el) => el.scrollLeft);
+  await page.waitForTimeout(450);
+  assert.ok(
+    Math.abs((await scroller.evaluate((el) => el.scrollLeft)) - releasedOffset) < 2,
+    "Pointer release must stop board movement",
+  );
 }
 try {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "no-preference",
   });
-  await context.addInitScript(() =>
-    sessionStorage.setItem("accelerate:admin-demo:superdebate:appearance:v1", "signal"),
+  await context.addInitScript(
+    () =>
+      window === window.top &&
+      sessionStorage.setItem("accelerate:admin-demo:superdebate:appearance:v1", "signal"),
   );
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  page.on("console", (m) => {
+    if (m.type() === "error") errors.push(m.text());
+  });
   await page.goto(`${base}/demo/command-center/superdebate/pipeline`, { timeout: 120000 });
   await page.locator("[data-opportunity-id]").first().waitFor();
   await page.evaluate(() => {
@@ -232,8 +277,88 @@ try {
     "Focus returns to card opener",
   );
   results.push("Card close/discard/reopen restores saved content and focus");
+  const clearFilters = page.getByRole("button", { name: "Clear filters", exact: true });
+  if (await clearFilters.count()) await clearFilters.click();
+  const featureColumns = page.locator(".kanban-scroller > section");
+  let featureColumn;
+  for (let index = 0; index < (await featureColumns.count()); index++) {
+    const candidate = featureColumns.nth(index);
+    if ((await candidate.locator("[data-kanban-card] .kanban-grip:not(:disabled)").count()) >= 2) {
+      featureColumn = candidate;
+      break;
+    }
+  }
+  assert.ok(featureColumn, "Fictional board supplies two reorderable cards in a column");
+  const featureCards = featureColumn.locator("[data-kanban-card]");
+  const firstFeatureId = await featureCards.first().getAttribute("data-kanban-card");
+  await move(page, featureCards.first(), featureCards.nth(1), true);
+  assert.notEqual(
+    await featureCards.first().getAttribute("data-kanban-card"),
+    firstFeatureId,
+    "Feature pointer reorder saves a changed order",
+  );
+  const featureOrder = await featureCards.evaluateAll((nodes) =>
+    nodes.map((el) => el.getAttribute("data-kanban-card")),
+  );
+  await featureCards.first().locator(".kanban-grip").focus();
+  await page.keyboard.press("Space");
+  await keyboardLiftReady(page);
+  await page.keyboard.press("ArrowDown");
+  await featureColumn.locator(".kanban-slot[data-insertion]").waitFor();
+  await page.waitForTimeout(250);
+  await page.keyboard.press("Space");
+  await waitSaved(page);
+  assert.notDeepEqual(
+    await featureCards.evaluateAll((nodes) =>
+      nodes.map((el) => el.getAttribute("data-kanban-card")),
+    ),
+    featureOrder,
+    "Feature keyboard reorder saves a changed order",
+  );
+  results.push("Feature Board pointer and keyboard reorder preserve lifecycle scope");
   await page.goto(`${base}/demo/command-center/superdebate/content`);
   await page.locator("[data-kanban-card]").first().waitFor();
+  const contentCard = page.locator(".kanban-scroller [data-kanban-card]").first();
+  const contentId = await contentCard.getAttribute("data-kanban-card");
+  const contentColumn = await contentCard.evaluate((el) =>
+    el.closest("section").getAttribute("aria-labelledby"),
+  );
+  await contentCard.scrollIntoViewIfNeeded();
+  await contentCard.locator(".kanban-grip").focus();
+  await page.keyboard.press("Space");
+  await keyboardLiftReady(page);
+  await page.keyboard.press("ArrowRight");
+  await page
+    .locator(
+      `.kanban-scroller > section:not([aria-labelledby="${contentColumn}"]) .kanban-slot[data-insertion]`,
+    )
+    .waitFor();
+  await page.waitForTimeout(250);
+  await page.keyboard.press("Space");
+  await waitSaved(page);
+  const movedContent = page.locator(`.kanban-scroller [data-kanban-card="${contentId}"]`);
+  const movedColumn = await movedContent.evaluate((el) =>
+    el.closest("section").getAttribute("aria-labelledby"),
+  );
+  assert.notEqual(movedColumn, contentColumn, "Content keyboard drop commits a different column");
+  await page.reload();
+  await movedContent.waitFor();
+  assert.equal(
+    await movedContent.evaluate((el) => el.closest("section").getAttribute("aria-labelledby")),
+    movedColumn,
+    "Content keyboard drop persists",
+  );
+  const destination = page.locator(
+    `section[aria-labelledby="${contentColumn}"] .kanban-column-body`,
+  );
+  await destination.scrollIntoViewIfNeeded();
+  await move(page, movedContent, destination);
+  assert.equal(
+    await movedContent.evaluate((el) => el.closest("section").getAttribute("aria-labelledby")),
+    contentColumn,
+    "Content pointer drop returns to intended column",
+  );
+  results.push("Content keyboard and pointer drops save the intended column");
   await page
     .locator("[data-kanban-card]")
     .first()
@@ -251,8 +376,164 @@ try {
   results.push("Content editor saves and persists on reload");
   assert.deepEqual(errors, []);
   await context.close();
+  const retention = [];
+  for (const width of [390, 768, 1440]) {
+    for (const route of ["features", "pipeline", "content"]) {
+      const context = await browser.newContext({
+        viewport: { width, height: 1000 },
+        reducedMotion: width === 768 ? "reduce" : "no-preference",
+      });
+      const page = await context.newPage();
+      const errors = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      page.on("console", (message) => {
+        if (message.type() === "error") errors.push(message.text());
+      });
+      await page.route("**/api/**", (request) => {
+        errors.push(`Protected API attempted: ${request.request().url()}`);
+        return request.abort();
+      });
+      await page.goto(`${base}/demo/command-center/superdebate/${route}`, { timeout: 120000 });
+      // Modal isolation correctly hides the background from accessibility queries;
+      // read its numeric offset while open without treating it as interactive.
+      const board = page.getByRole("region", {
+        name: "Kanban board",
+        exact: true,
+        includeHidden: true,
+      });
+      await board.waitFor();
+      await page.locator("[data-kanban-card]").first().waitFor();
+      await board.evaluate((el) => {
+        document.querySelector(".admin-main").scrollTop += el.getBoundingClientRect().top - 180;
+        el.scrollLeft = 173;
+      });
+      const offset = () => board.evaluate((el) => el.scrollLeft);
+      async function retained(action, expected = 173) {
+        await page.waitForTimeout(400);
+        assert.ok(
+          Math.abs((await offset()) - expected) < 2,
+          `${route}/${width}/${action}: scroll position ${await offset()} != ${expected}`,
+        );
+        retention.push({ route, width, action, left: await offset() });
+      }
+      await retained("manual scroll and selected-column update");
+      const mainBefore = await page
+        .locator(".admin-main")
+        .evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop }));
+      await board.evaluate((el) => el.focus({ preventScroll: true }));
+      assert.ok(
+        await board.evaluate((el) => document.activeElement === el),
+        "Scroll region takes keyboard focus",
+      );
+      await page.keyboard.press("ArrowRight");
+      await page.waitForTimeout(350);
+      assert.ok((await offset()) > 173, "Native keyboard scroll moves its region");
+      const pager = page.getByRole("group", { name: "Board columns", exact: true });
+      assert.ok(await pager.isVisible(), "Column navigation exists at every width");
+      await board.evaluate((el) => {
+        const original = el.scrollTo.bind(el);
+        el.__scrollCalls = [];
+        el.scrollTo = (...args) => {
+          el.__scrollCalls.push(args[0]);
+          return original(...args);
+        };
+      });
+      await pager
+        .getByRole("button")
+        .last()
+        .evaluate((el) => el.focus({ preventScroll: true }));
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(500);
+      assert.ok((await offset()) > 173, "Keyboard column selection moves the board");
+      assert.deepEqual(
+        await page.locator(".admin-main").evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop })),
+        mainBefore,
+        "Column navigation does not move either ancestor axis",
+      );
+      assert.equal(
+        await board.evaluate((el) => el.__scrollCalls.at(-1)?.behavior),
+        width === 768 ? "auto" : "smooth",
+      );
+      await board.evaluate((el) => {
+        el.scrollLeft = 173;
+      });
+      await retained("manual scroll after explicit selection");
+      const box = await board.boundingBox();
+      await page.mouse.move(box.x + 20, box.y + 5);
+      await page.mouse.down();
+      await page.mouse.up();
+      await retained("pointer release");
+      await page.evaluate(() => window.dispatchEvent(new Event("admin:priority-refresh")));
+      await retained("refresh");
+      // Keep the Pipeline title fully visible while retaining a manually chosen offset.
+      const actionOffset = route === "pipeline" ? 37 : 173;
+      if (route === "pipeline") {
+        await board.evaluate((el) => {
+          el.scrollLeft = 37;
+        });
+        await retained("manual detail position", actionOffset);
+      }
+      // Pick a visible action without Playwright scrolling the board to reveal it.
+      const actions =
+        route === "pipeline"
+          ? board.locator("[data-opportunity-id] a")
+          : board.getByRole("button", { name: /^Edit / });
+      let action;
+      for (let index = 0; index < (await actions.count()); index++) {
+        const candidate = actions.nth(index);
+        const bounds = await candidate.boundingBox();
+        if (
+          bounds &&
+          bounds.x >= box.x &&
+          bounds.x + bounds.width <= box.x + box.width &&
+          bounds.y > 0 &&
+          bounds.y + bounds.height < 950
+        ) {
+          action = candidate;
+          break;
+        }
+      }
+      assert.ok(action, `${route}/${width}: visible card action`);
+      await action.click();
+      if (route === "pipeline") {
+        await page.waitForURL(/pipeline\/[^/]+$/);
+        await page.locator("h1").first().waitFor();
+        await page.goBack();
+        await board.waitFor();
+      } else {
+        await page.getByRole("dialog").last().waitFor();
+        await retained("card open");
+        await page.keyboard.press("Escape");
+        await page.waitForFunction(() => !document.querySelector('[data-admin-overlay="dialog"]'));
+      }
+      await retained("card close or history return", actionOffset);
+      await page.screenshot({ path: `${output}/retention-${route}-${width}.png` });
+      assert.deepEqual(errors, []);
+      await context.close();
+      await writeFile(`${output}/board-retention.json`, JSON.stringify(retention, null, 2));
+    }
+  }
   await writeFile(`${output}/interactions.json`, JSON.stringify(results, null, 2));
   console.log(results);
+} catch (error) {
+  const page = browser
+    .contexts()
+    .flatMap((context) => context.pages())
+    .at(-1);
+  if (page) {
+    await page.screenshot({ path: `${output}/interaction-failed.png` });
+    const state = await page.evaluate(() => ({
+      url: location.href,
+      viewport: innerWidth,
+      boardOffset: document.querySelector(".kanban-scroller")?.scrollLeft,
+      dialogs: document.querySelectorAll('[data-admin-overlay="dialog"]').length,
+    }));
+    await writeFile(
+      `${output}/interaction-failed.json`,
+      JSON.stringify({ error: error.message, state, completed: results }, null, 2),
+    );
+  }
+  throw error;
 } finally {
   await browser.close();
 }

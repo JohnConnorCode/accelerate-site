@@ -1,10 +1,63 @@
 import { chromium } from "playwright";
 import { createClient } from "@supabase/supabase-js";
-import { mkdirSync } from "node:fs";
+import assert from "node:assert/strict";
+import { mkdirSync, writeFileSync } from "node:fs";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3011";
 const outDir = "/tmp/accelerate-analytics-workspace";
 mkdirSync(outDir, { recursive: true });
+if (process.argv.includes("--demo")) {
+  const browser = await chromium.launch();
+  const results = [];
+  try {
+    for (const width of [1440, 390]) {
+      const context = await browser.newContext({
+        viewport: { width, height: 1000 },
+        reducedMotion: width === 390 ? "reduce" : "no-preference",
+      });
+      const page = await context.newPage();
+      const errors = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      page.on("console", (m) => {
+        if (m.type() === "error") errors.push(m.text());
+      });
+      await page.route("**/api/admin/**", async (route) => {
+        errors.push("Protected API escaped fictional runtime");
+        await route.abort();
+      });
+      await page.goto(`${base}/demo/command-center/northline-roofing/analytics`, {
+        waitUntil: "networkidle",
+      });
+      await page.getByRole("heading", { name: "Analytics", exact: true }).waitFor();
+      const missing = page.getByText("Missing stage history", { exact: true });
+      await missing.scrollIntoViewIfNeeded();
+      assert.match(await missing.locator("../..").textContent(), /[1-9]/);
+      await page.getByText("Incomplete stage history", { exact: true }).waitFor();
+      await page
+        .getByText("History has gaps, invalid events, or an incomplete read", { exact: true })
+        .waitFor();
+      const scope = page.locator(".admin-main");
+      assert.ok(await scope.evaluate((el) => el.scrollWidth <= el.clientWidth + 1));
+      await page.screenshot({ path: `${outDir}/history-${width}.png` });
+      const source = page.getByLabel("Source", { exact: true });
+      await source.focus();
+      assert.ok(await source.evaluate((el) => el === document.activeElement));
+      assert.deepEqual(errors, []);
+      results.push({
+        width,
+        result: "passed",
+        proof:
+          "Actual fictional Analytics screen; explicit missing/incomplete history labels, nonzero missing count, keyboard, containment, no console/page errors. Shared calculation tested separately.",
+      });
+      await context.close();
+    }
+  } finally {
+    await browser.close();
+  }
+  writeFileSync(`${outDir}/summary.json`, JSON.stringify(results, null, 2));
+  console.log(JSON.stringify(results));
+  process.exit(0);
+}
 for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ADMIN_EMAIL"])
   if (!process.env[key]) throw new Error(`${key} is required`);
 const supabase = createClient(

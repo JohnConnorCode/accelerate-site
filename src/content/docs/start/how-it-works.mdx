@@ -112,6 +112,12 @@ A coding agent does not need to learn a private command or choose a card before 
 
 The repository reads the current contract and live board, selects one eligible card, creates the approved isolated worktree, supplies the acceptance packet, runs the required checks, commits the exact change, and submits evidence. A private owner profile or scoped remote profile supplies the board transport automatically; the agent never asks a user to paste a token or database key. Review, merge, and production deployment remain separate operator decisions.
 
+When an agent stops partway through a change, its saved checkpoint carries the
+source and remaining steps to a replacement. Install the recovery migration and
+enable the project's recovery policy to let the normal pickup flow resume expired
+work. The previous checkout stays available for inspection, while the board gives
+the replacement its own attempt and retains the earlier history.
+
 Read [Natural-language agent execution](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/NATURAL-LANGUAGE-AGENT.md) for the exact terminal states and [the public roadmap](/roadmap) for the current cards, dependencies, and acceptance criteria.
 
 ## Choose your next step

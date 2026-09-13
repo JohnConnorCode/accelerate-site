@@ -8,7 +8,7 @@ page is for, what requires attention, and what they can do next.
 - Use one canonical name in navigation, search, breadcrumbs, page headings and
   documentation. Stable URLs and module IDs are separate from display labels.
 - Put a brief purpose statement below the page heading. Show two short steps in
-  the shared **How this works** disclosure when the workflow needs context.
+  the shared **Help** disclosure when the workflow needs context.
 - Explain action results before confirmation when they affect a customer,
   record, or future work. Use the actual state: empty, filtered, loading,
   unavailable, failed, or previously loaded.
@@ -20,3 +20,22 @@ page is for, what requires attention, and what they can do next.
 The shared navigation registry and `PageHeader` implement this standard for core
 destinations. Extensions provide their own guidance only when their operator
 workflow is materially different.
+
+The language audit parses the navigation/guidance registries and follows rendered
+page components to inventory core root and record-detail introductions. Run
+`node scripts/audit-admin-language.mjs --check` or add `--json` for the full source
+matrix. `node --import tsx scripts/test-admin-language.ts` checks canonical root,
+search and breadcrumb identity, including query-specific destinations, and
+injects missing guidance, broken guide links and heading drift. Record details
+retain their own titles and the canonical parent breadcrumb.
+
+This is source and shared-function evidence. The browser matrix in
+`scripts/qa-admin-overhaul.mjs` separately measures headings, help, contact detail
+breadcrumbs, viewport bounds and keyboard focus in the fictional demo. CI retains
+its screenshots and summary; inspect those before declaring visual acceptance.
+
+The same regression also round-trips canonical URLs through the real live, tenant
+and all six demo adapters. Compare names and enabled destinations under equivalent
+module and role inputs; platform-only permissions remain intentional. The browser
+fixture checks direct load, keyboard search, current destination, Back and module
+disable/restore in each fictional business at desktop and mobile widths.

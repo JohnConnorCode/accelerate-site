@@ -1,0 +1,22 @@
+export type CapabilityCategory = "capture" | "organize" | "act" | "learn" | "connect" | "govern";
+export interface CategoryMeta {
+    id: CapabilityCategory;
+    label: string;
+    blurb: string;
+    glyph: string;
+    rgb: string;
+}
+export interface Capability {
+    id: string;
+    category: CapabilityCategory;
+    title: string;
+    detail: string;
+    gated?: boolean;
+}
+export const CATEGORY_META: CategoryMeta[] = [];
+export const capabilities: Capability[] = [];
+export const LOOP_STEPS: {n:string;title:string;tag:string;body:string}[] = [];
+export const TRUST_LADDER: {k:string;title:string;body:string}[] = [];
+export const MARQUEE_ITEMS: string[] = [];
+export const WHO_ITS_FOR: string[] = [];
+export const CURRENT_SURFACES: {n?:string;label?:string;title:string;body:string}[] = [];

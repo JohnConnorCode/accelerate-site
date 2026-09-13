@@ -2,6 +2,16 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I run the workspace for my own business?",
+    answer:
+      "Yes. Export the neutral starter into a new directory, replace its fictional Harbor Operations configuration with your business details, then connect services you control. It keeps the shared workspace and demo while removing protected agency media and original hosting targets. The self-hosting guide explains the export receipt, installation and recovery.",
+  },
+  {
+    question: "Can I navigate boards without dragging cards?",
+    answer:
+      "Yes. Scroll across the columns or Tab to a column button and press Enter. The board itself accepts keyboard focus for arrow-key scrolling, and reduced motion makes column jumps immediate. Refreshing or closing an editor keeps your place; browser Back restores the Pipeline board after you open an opportunity. Existing stage controls and work permissions still govern card changes.",
+  },
+  {
     question: "Can I actually work with clients in the demo?",
     answer:
       "Yes. Search or filter clients, open an account, save notes and add a follow-up. Open the saved follow-up in Tasks & approvals or follow a contact timeline to its specific conversation or opportunity. Changes persist in that fictional business session and never contact customers.",
@@ -54,12 +64,12 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I point any coding agent at the backlog?",
     answer:
-      "Yes. A plain-language request such as “pick up work from the backlog and go until it is completed and committed; follow protocol” is enough. The repository entrypoint resolves the configured private transport, chooses one eligible task, creates its approved isolated worktree, supplies the full acceptance packet, and keeps the agent moving through verification, commit and evidence submission. The agent does not need a ticket key or a special provider-specific command, and it does not ask you to paste credentials.",
+      "Yes. A plain-language request such as “pick up work from the backlog and go until it is completed and committed; follow protocol” is enough. The repository entrypoint resolves the configured private transport, continues current work or chooses an eligible task, creates its approved isolated worktree, supplies the full acceptance packet, and keeps the agent moving through verification, commit and evidence submission. The agent does not need a ticket key or a special provider-specific command, and it does not ask you to paste credentials. When the recovery migration and project policy are enabled, a replacement agent can resume an expired task from saved source and remaining steps while the earlier checkout is preserved.",
   },
   {
     question: "Where can I explore the bundled plugins?",
     answer:
-      "The public documentation includes individual guides for all eleven bundled plugins, with fictional examples, setup steps, approval requirements, costs and recovery instructions. Start at /docs/plugins to explore reports, invoice workflows, Collections and Opportunity Radar, then adapt the open-source examples to your business.",
+      "The public documentation includes individual guides for all twelve bundled plugins, with fictional examples, setup steps, approval requirements, costs and recovery instructions. Start at /docs/plugins to explore reports, invoice workflows, Collections, Opportunity Radar and Social Marketing, then adapt the open-source examples to your business.",
   },
   {
     question: "What can Opportunity Radar do today?",

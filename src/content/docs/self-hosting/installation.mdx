@@ -85,3 +85,18 @@ Follow the verification sequence in your checkout's `docs/self-hosting/SELF-HOST
 Before importing real data, establish backup and restore ownership, update procedures, and failure reporting. Hosting requires configuring secrets in your own hosting project and verifying authentication and the canonical domain after release. A working local demo does not establish production readiness.
 
 **Next:** [Run a business pilot](/docs/start/business-owners), or [onboard agency clients](/docs/start/agencies). For failures, see [Troubleshooting](/docs/start/troubleshooting).
+
+### Continue a manually prepared agent checkout
+
+Normal backlog pickup records the worker checkout automatically. If an older claim
+was deliberately created with `--no-worktree`, review the retained source and attach
+it with `npm run agent:checkpoint -- --card <key> --worktree /path/to/worker --checkpoint-file /path/to/checkpoint.json`.
+The command checks the repository and current ownership before saving a checkpoint.
+It does not reset the checkout or grant the worker review authority. Use `agent:show`
+to read a task without changing its claim; `agent:resume` takes over eligible expired work.
+
+### Resume an interrupted local provider
+
+The optional machine supervisor can continue a registered original Codex, Claude Code or OpenCode thread with `node scripts/supervisor/cli.mjs recover --provider codex --thread <original-id>`. Its retained repository must be enrolled and machine pressure must have cleared. The foreground provider keeps the registered process identity; only one continuation starts at a time. Existing provider permissions and saved history remain authoritative. Missing history, credentials or credit are reported by the provider, not replaced with a new conversation.
+
+Run heavy tool commands through `node scripts/resource-run.mjs <command> [args...]`. Other launch paths remain unmanaged; `coverage` reports that boundary. `uninstall` resumes owned paused producers safely before disabling management, or explains why management must remain enabled. No repository, transcript or unrelated process is removed.

@@ -474,7 +474,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "overview"],
         title: "Plugin examples",
         description:
-          "Eleven working examples, from a read-only report to a full business workspace, all shipped disabled.",
+          "Twelve working examples, from a read-only report to a full business workspace, all shipped disabled.",
       },
       {
         slug: ["plugins", "business-pulse"],
@@ -524,6 +524,12 @@ export const docsManifest: DocsSection[] = [
         title: "Receivables Collections",
         description:
           "Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.",
+      },
+      {
+        slug: ["plugins", "social-marketing"],
+        title: "Social Marketing",
+        description:
+          "Prepare LinkedIn posts, approve their content and time, and follow publication receipts from your workspace.",
       },
       {
         slug: ["plugins", "stripe-invoicing"],

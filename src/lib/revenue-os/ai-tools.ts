@@ -1,3 +1,15 @@
+import {
+  readSocialWorkspace,
+  previewSocialChange,
+  proposeSocialChange,
+  prepareSocialWeek,
+} from "./social-marketing";
+import {
+  socialReadSchema,
+  socialPreviewSchema,
+  socialProposalSchema,
+  socialWeeklySchema,
+} from "./social-marketing-contract";
 import { createHash } from "node:crypto";
 import { TODAY_TOOL_NAMES, todaySaveSchema } from "@/lib/admin/today-workspace";
 import { loadTodaySnapshot } from "./today-snapshot";
@@ -44,6 +56,8 @@ import {
   radarBriefInputSchema,
   radarReconcileInputSchema,
 } from "./radar-model";
+import { loadPipelineStages } from "./pipeline-stage-resolver";
+import { pipelineMetrics } from "./pipeline-metrics";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import {
   ALWAYS_LOADED_AI_TOOLS,
@@ -814,6 +828,57 @@ const registry: AiToolRegistration[] = [
       proposeRadarAssessment(supabase, input, actorEmail),
   },
   {
+    name: "get_social_workspace",
+    description: "Read tenant social drafts, calendar, publication receipts, metrics and setup.",
+    inputSchema: z.toJSONSchema(socialReadSchema),
+    parseInput: (input) => socialReadSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.social-marketing",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => readSocialWorkspace(supabase, input),
+  },
+  {
+    name: "prepare_social_week",
+    description:
+      "Prepare three source-backed weekly drafts from supplied paragraphs. Never publishes.",
+    inputSchema: z.toJSONSchema(socialWeeklySchema),
+    parseInput: (input) => socialWeeklySchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.social-marketing",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => prepareSocialWeek(supabase, input),
+  },
+  {
+    name: "preview_social_change",
+    description:
+      "Preview exact social draft changes, cancellation or publication schedule; saves nothing.",
+    inputSchema: z.toJSONSchema(socialPreviewSchema),
+    parseInput: (input) => socialPreviewSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.social-marketing",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => previewSocialChange(supabase, input),
+  },
+  {
+    name: "propose_social_change",
+    description:
+      "Queue the exact social preview for human approval. Cannot approve or publish by itself.",
+    inputSchema: z.toJSONSchema(socialProposalSchema),
+    parseInput: (input) => socialProposalSchema.parse(input),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.social-marketing",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) => proposeSocialChange(supabase, input, actorEmail),
+  },
+  {
     name: "get_radar_store",
     description:
       "Read bounded Radar source metadata, growth opportunities, current citations, draft summaries, reported outcomes and operation receipts. Supplied sources and reported outcomes are not verified recognition. No fetching, ranking, model call or external effect.",
@@ -922,29 +987,35 @@ const registry: AiToolRegistration[] = [
       // every query error with `?? []`, so a failed read became a confident
       // "you have no opportunities": hallucination by omission, invisible to
       // everyone. Summarise, cap, and report failures honestly instead.
-      const [queue, opportunities, conversations, campaigns, proposals] = await Promise.all([
-        loadOperatorQueue(supabase),
-        supabase
-          .from("opportunities")
-          .select("id,name,stage,estimated_value,won_value,next_action,next_action_at")
-          .not("stage", "in", "(won,lost)")
-          .order("next_action_at", { ascending: true, nullsFirst: false })
-          .limit(SNAPSHOT_ROW_LIMIT),
-        supabase
-          .from("conversations")
-          .select("id,unread_count,status")
-          .gt("unread_count", 0)
-          .limit(SNAPSHOT_ROW_LIMIT),
-        supabase
-          .from("campaigns")
-          .select("id,name,status,version,approved_version")
-          .limit(SNAPSHOT_ROW_LIMIT),
-        supabase
-          .from("proposals")
-          .select("id,title,status,total_one_time,total_monthly")
-          .in("status", ["sent", "viewed"])
-          .limit(SNAPSHOT_ROW_LIMIT),
-      ]);
+      const tenantId = tenantIdForDatabase(supabase);
+      if (!tenantId) throw new Error("Tenant-bound snapshot required");
+      const [queue, opportunities, conversations, campaigns, proposals, stages] = await Promise.all(
+        [
+          loadOperatorQueue(supabase),
+          supabase
+            .from("opportunities")
+            .select(
+              "id,name,stage,estimated_value,won_value,probability,next_action,next_action_at",
+            )
+            .order("next_action_at", { ascending: true, nullsFirst: false })
+            .limit(SNAPSHOT_ROW_LIMIT),
+          supabase
+            .from("conversations")
+            .select("id,unread_count,status")
+            .gt("unread_count", 0)
+            .limit(SNAPSHOT_ROW_LIMIT),
+          supabase
+            .from("campaigns")
+            .select("id,name,status,version,approved_version")
+            .limit(SNAPSHOT_ROW_LIMIT),
+          supabase
+            .from("proposals")
+            .select("id,title,status,total_one_time,total_monthly")
+            .in("status", ["sent", "viewed"])
+            .limit(SNAPSHOT_ROW_LIMIT),
+          loadPipelineStages(supabase, tenantId),
+        ],
+      );
 
       const unreadable = [
         opportunities.error && "opportunities",
@@ -953,17 +1024,19 @@ const registry: AiToolRegistration[] = [
         proposals.error && "proposals",
       ].filter(Boolean) as string[];
 
-      const openOpportunities = opportunities.data ?? [];
+      const rows = opportunities.data ?? [];
+      const totals = pipelineMetrics(rows, stages);
+      const openOpportunities = rows.filter((item) => {
+        const key = stages.canonicalStage(item.stage);
+        return key ? stages.role(key) === "open" : true;
+      });
       return {
         // Anything that could not be read is named, so the model says "I could
         // not check that" instead of reporting an empty result as a fact.
         unreadable,
         queue: queue.slice(0, 15),
-        openOpportunityCount: openOpportunities.length,
-        openPipelineValue: openOpportunities.reduce(
-          (sum, item) => sum + Number(item.estimated_value || 0),
-          0,
-        ),
+        openOpportunityCount: totals.openOpportunities,
+        openPipelineValue: totals.pipelineValue,
         topOpportunities: openOpportunities.slice(0, SNAPSHOT_DETAIL_LIMIT),
         unreadConversationCount: (conversations.data ?? []).reduce(
           (sum, item) => sum + Number(item.unread_count || 0),
@@ -977,7 +1050,7 @@ const registry: AiToolRegistration[] = [
             awaitingReapproval: item.version !== item.approved_version,
           })),
         openProposals: (proposals.data ?? []).slice(0, SNAPSHOT_DETAIL_LIMIT),
-        truncated: openOpportunities.length >= SNAPSHOT_ROW_LIMIT,
+        truncated: rows.length >= SNAPSHOT_ROW_LIMIT,
       };
     },
   },
@@ -2558,6 +2631,10 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "get_social_workspace",
+    "prepare_social_week",
+    "preview_social_change",
+    "propose_social_change",
     "prepare_radar_outreach",
     "preview_radar_outreach",
     "propose_radar_outreach",
@@ -2622,6 +2699,10 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_founder_note",
   ],
   pipeline: [
+    "get_social_workspace",
+    "prepare_social_week",
+    "preview_social_change",
+    "propose_social_change",
     ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
     ...TODAY_TOOL_NAMES,
@@ -2649,6 +2730,10 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_stage_change",
   ],
   outreach: [
+    "get_social_workspace",
+    "prepare_social_week",
+    "preview_social_change",
+    "propose_social_change",
     ...TOOL_DISCOVERY_METADATA.map((tool) => tool.name),
     ...BRANDING_TOOL_NAMES,
     ...TODAY_TOOL_NAMES,

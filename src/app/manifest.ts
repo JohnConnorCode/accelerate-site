@@ -1,6 +1,16 @@
+import { tenant } from "@/config/tenant";
+import { distributionProfile } from "@/lib/distribution/profile";
 import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
+  if (distributionProfile() === "neutral")
+    return {
+      name: tenant.brand.name,
+      short_name: tenant.brand.name,
+      description: tenant.brand.tagline,
+      start_url: "/",
+      display: "browser",
+    };
   return {
     name: "Accelerate: AI Strategy & Systems for Small Business",
     short_name: "Accelerate",

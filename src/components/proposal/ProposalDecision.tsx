@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Check, Loader2, X } from "lucide-react";
-import { tenant } from "@/config/tenant";
 
 export function ProposalDecision({
   token,
@@ -16,15 +15,12 @@ export function ProposalDecision({
   const [decision, setDecision] = useState<"accepted" | "declined" | null>(
     ["accepted", "declined"].includes(status) ? (status as "accepted" | "declined") : null,
   );
+  const [expired, setExpired] = useState(status === "expired");
   const [declining, setDeclining] = useState(false);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const respond = async (next: "accepted" | "declined") => {
-    if (next === "declined" && !reason.trim()) {
-      setError("Please share a short reason so we can close the loop properly.");
-      return;
-    }
     setLoading(true);
     setError("");
     try {
@@ -34,8 +30,14 @@ export function ProposalDecision({
         body: JSON.stringify({ decision: next, reason: reason.trim() || undefined }),
       });
       const payload = await response.json();
+      if (response.status === 410) {
+        setExpired(true);
+        return;
+      }
       if (!response.ok) throw new Error(payload.error || "Could not record your response");
-      setDecision(next);
+      if (payload.status !== "accepted" && payload.status !== "declined")
+        throw new Error("Could not confirm the recorded response");
+      setDecision(payload.status);
       setDeclining(false);
     } catch (responseError) {
       setError(
@@ -45,31 +47,41 @@ export function ProposalDecision({
       setLoading(false);
     }
   };
+  if (expired)
+    return (
+      <section
+        role="alert"
+        className="mt-12 rounded-2xl border border-border-glass bg-[var(--surface-bg)] p-6 sm:p-8"
+      >
+        <h2 className="text-2xl font-semibold text-white-primary">Proposal expired</h2>
+        <p className="mt-2 text-sm leading-6 text-white-secondary">
+          This proposal has expired. Contact us for an updated proposal.
+        </p>
+      </section>
+    );
   if (decision)
     return (
       <section
-        className={`mt-12 rounded-2xl border p-6 text-center ${decision === "accepted" ? "border-emerald-400/25 bg-emerald-400/10" : "border-white/10 bg-white/[0.035]"}`}
+        className={`mt-12 rounded-2xl border p-6 text-center ${decision === "accepted" ? "border-emerald-400/25 bg-emerald-400/10" : "border-border-glass bg-[var(--surface-bg)]"}`}
       >
         <span
-          className={`mx-auto grid size-11 place-items-center rounded-full ${decision === "accepted" ? "bg-emerald-400 text-black" : "bg-white/10 text-white"}`}
+          className={`mx-auto grid size-11 place-items-center rounded-full ${decision === "accepted" ? "bg-emerald-400 text-black" : "bg-[var(--surface-bg-strong)] text-white-primary"}`}
         >
           {decision === "accepted" ? <Check className="size-5" /> : <X className="size-5" />}
         </span>
-        <h2 className="mt-4 text-xl font-semibold text-white">Proposal {decision}</h2>
-        <p className="mt-2 text-sm text-white/60">
-          {decision === "accepted"
-            ? `Thank you. ${tenant.founder.name} has been notified and will contact you with next steps.`
-            : `Thank you for the feedback. ${tenant.founder.name} has been notified and will close the loop personally.`}
+        <h2 className="mt-4 text-xl font-semibold text-white-primary">Proposal {decision}</h2>
+        <p className="mt-2 text-sm text-white-secondary">
+          Your response has been saved. The team will follow up with you.
         </p>
       </section>
     );
   return (
-    <section className="mt-12 rounded-2xl border border-white/10 bg-white/[0.035] p-6 sm:p-8">
+    <section className="mt-12 rounded-2xl border border-border-glass bg-[var(--surface-bg)] p-6 sm:p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold-light">
         Your decision
       </p>
-      <h2 className="mt-2 text-2xl font-semibold text-white">Ready to move forward?</h2>
-      <p className="mt-2 text-sm leading-6 text-white/60">
+      <h2 className="mt-2 text-2xl font-semibold text-white-primary">Ready to move forward?</h2>
+      <p className="mt-2 text-sm leading-6 text-white-secondary">
         Accepting confirms the proposed scope and starts a direct next-steps conversation. No
         payment is collected here.
       </p>
@@ -78,17 +90,23 @@ export function ProposalDecision({
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           rows={3}
-          placeholder="What made this proposal not the right fit?"
-          className="mt-5 w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-sm text-white outline-none transition-[border-color,box-shadow] focus:border-gold-light focus:ring-2 focus:ring-gold-light/10"
+          maxLength={1000}
+          aria-label="Reason for declining (optional)"
+          placeholder="What made this proposal not the right fit? (Optional)"
+          className="mt-5 w-full rounded-xl border border-border-glass bg-bg-base px-4 py-3 text-sm text-white-primary placeholder:text-white-secondary outline-none transition-[border-color,box-shadow] focus:border-gold-light focus:ring-2 focus:ring-gold-light/10"
         />
       )}
-      {error && <p className="mt-3 text-sm text-rose-300">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-white-primary">
+          {error}
+        </p>
+      )}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
           onClick={() => void respond("accepted")}
           disabled={loading}
-          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-gold px-5 text-sm font-semibold text-black transition-[filter,transform,opacity] hover:brightness-105 active:scale-[0.96] disabled:opacity-50"
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--fg)] px-5 text-sm font-semibold text-[var(--bg)] transition-[filter,transform,opacity] hover:brightness-105 active:scale-[0.96] disabled:opacity-50"
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}{" "}
           Accept proposal
@@ -97,7 +115,7 @@ export function ProposalDecision({
           type="button"
           onClick={() => (declining ? void respond("declined") : setDeclining(true))}
           disabled={loading}
-          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-white/15 px-5 text-sm font-semibold text-white transition-[background-color,transform,opacity] hover:bg-white/[0.06] active:scale-[0.96] disabled:opacity-50"
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-border-glass px-5 text-sm font-semibold text-white-primary transition-[background-color,transform,opacity] hover:bg-[var(--surface-bg-strong)] active:scale-[0.96] disabled:opacity-50"
         >
           <X className="size-4" /> {declining ? "Confirm decline" : "Decline"}
         </button>

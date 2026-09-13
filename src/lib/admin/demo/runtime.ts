@@ -924,7 +924,8 @@ function analytics(pack: DemoScenarioPack, state: DemoState) {
   return {
     schemaReady: true,
     windowDays: 30,
-    cohort: "Fictional opportunities created in the selected window.",
+    cohort:
+      "Fictional opportunities in the selected window. This sample has no recorded stage events; funnel counts use the visible current-stage fallback.",
     funnel: {
       opportunities: rows.length,
       qualified: rows.filter((item) => !["new", "contacted"].includes(item.canonical_stage)).length,
@@ -964,6 +965,7 @@ function analytics(pack: DemoScenarioPack, state: DemoState) {
       missingNextAction: 0,
       unrecognizedStage: 0,
       impossibleStageSequences: 0,
+      stageHistory: { missingHistory: rows.length, incompleteHistory: 0, inputStatus: "complete" },
     },
     filterOptions: {
       sources: ["Website inquiry", "Referral", "Email", "Community partner"],
@@ -3209,10 +3211,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           return jsonResponse({ error: "Invalid dependency or cycle" }, 400);
         patch.dependencies = deps;
       } else if (operation === "claim") {
-        if (current!.readiness.length)
-          return jsonResponse({ error: `Not ready: ${current!.readiness.join(", ")}` }, 409);
-        if (featureBoard(pack, state).filter((c) => c.status === "in_progress").length >= 6)
-          return jsonResponse({ error: "WIP limit reached" }, 409);
+        const expired =
+          current!.status === "in_progress" &&
+          current!.lease_expires_at != null &&
+          Date.parse(current!.lease_expires_at) <= Date.now();
+        if (expired && input.revision !== current!.revision)
+          return jsonResponse(
+            { error: "Revision conflict; refresh expired work before resuming" },
+            409,
+          );
+        const readiness = current!.readiness.filter(
+          (reason) => !expired || reason !== "status:in_progress",
+        );
+        if (readiness.length)
+          return jsonResponse({ error: `Not ready: ${readiness.join(", ")}` }, 409);
         Object.assign(patch, {
           status: "in_progress",
           demoClaimToken: p.claimToken,
