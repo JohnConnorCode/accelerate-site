@@ -46,7 +46,7 @@ try {
   const ai = page.getByRole("dialog");
   assert.equal(
     await ai.getByRole("combobox", { name: "Model", exact: true }).inputValue(),
-    "meta/muse-spark-1.3",
+    "deepseek/deepseek-v4.1-flash",
   );
   assert.ok(
     (await ai.getByRole("combobox", { name: "Model", exact: true }).locator("option").count()) >=
