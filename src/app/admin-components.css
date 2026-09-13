@@ -913,13 +913,15 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 
   /* Semantic markup receives the same entrance before hydration. Registration
      adds the bounded order and covers otherwise unmarked content groups. */
-  .admin-route-stage [data-admin-enter],
+  .admin-route-stage {
+    --admin-route-entry: admin-route-section-in 280ms var(--admin-motion-ease) both;
+  }
+
   .admin-route-stage
     :where(.admin-page-introduction, .admin-surface, section, table, form, [role="tabpanel"]):not(
       :where(.admin-page-introduction, .admin-surface, section, table, form, [role="tabpanel"]) *
     ) {
-    animation: admin-route-section-in 280ms var(--admin-motion-ease) both;
-    animation-delay: var(--admin-entry-delay, 0ms);
+    animation: var(--admin-route-entry);
   }
 }
 
@@ -1065,8 +1067,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   .admin-shell {
     scroll-behavior: auto;
   }
-  .admin-route-stage,
-  .admin-route-stage [data-admin-enter] {
+  .admin-route-stage {
     opacity: 1;
     filter: none;
     transform: none;

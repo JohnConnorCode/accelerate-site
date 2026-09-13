@@ -117,7 +117,7 @@ for (const run of [
   await page.waitForFunction(
     () => {
       const stage = document.querySelector("[data-admin-route-stage]");
-      const section = stage?.querySelector("[data-admin-enter]");
+      const section = stage?.querySelector(".admin-page-introduction");
       return Boolean(
         stage &&
         section &&
@@ -260,7 +260,7 @@ for (const run of [
   await page.getByRole("heading", { level: 1 }).waitFor({ state: "visible", timeout: 15_000 });
   await page.waitForFunction(
     () => {
-      const stage = document.querySelector("[data-admin-route-stage] [data-admin-enter]");
+      const stage = document.querySelector("[data-admin-route-stage] .admin-page-introduction");
       return Boolean(
         stage && getComputedStyle(stage).animationName.includes("admin-route-section-in"),
       );

@@ -86,7 +86,9 @@ routing or creating surface-specific history systems.
   initial groups before paint; its child-list observer marks newly committed
   async groups during mutation delivery, before their next paint. CSS owns the
   actual sequence. Do not start motion from a post-paint `useEffect` or add a
-  second imperative animation owner. Existing groups are recorded in a WeakSet
+  second imperative animation owner. Registration uses a route-scoped stylesheet,
+  never attributes on React-owned nodes that may still be hydrating. Existing
+  group delays are recorded in a WeakMap
   and never replayed by polling or edits. Loading placeholders are excluded.
 - Pending navigation gives the retained route subtle, immediate visual feedback
   without hiding usable content. It must not wait for route data, authentication,

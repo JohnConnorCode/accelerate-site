@@ -65,7 +65,7 @@ const acknowledgedIn = Date.now() - started;
 check(acknowledgedIn <= 200, `Navigation: tap acknowledgement took ${acknowledgedIn}ms`);
 await page.getByRole("heading", { level: 1, name: "Pipeline" }).waitFor();
 const routeMotion = await page
-  .locator("[data-admin-route-stage] [data-admin-enter]")
+  .locator("[data-admin-route-stage] .admin-page-introduction")
   .first()
   .evaluate((node) => {
     const style = getComputedStyle(node);

@@ -174,7 +174,7 @@
     "src/components/admin/AdminQueryProvider.tsx": "64e5872bd4521ba4f391782d3f9f1d261917e8dd8bed32f99b453a9cd7335336",
     "src/components/admin/AdminReadBody.tsx": "a7a7317e0b679a3183c3151d81bbc625c2b2f749c3534361e1b192be564a7fe2",
     "src/components/admin/AdminRouteSkeleton.tsx": "0249268d08d6dc7ec8a69f78185022a89d716ea798a615e87f9c1f4e7e101e03",
-    "src/components/admin/AdminRouteStage.tsx": "f4fc4b7aa5f877532d783cd373a22940212bb9db86956e7d38fb1eb0b3dee4ee",
+    "src/components/admin/AdminRouteStage.tsx": "5fff9f23d43a219c7b2cbe238c12c8da729035de5035fd9646620af6614c5186",
     "src/components/admin/AdminShell.tsx": "118f6da2afc05bf7cfc295bfde41250d0bf5991602a0120a1830d64790d4cd48",
     "src/components/admin/AdminShortcuts.tsx": "a97d8a5bebef77c349e0dd36a11bed03c068c917cfd4fd695382cfc91992ffa2",
     "src/components/admin/AdminStatusMessage.tsx": "2a6a04a62b69e69db7100cb7a768ff328d5c2dfea3bb04763863f848141583fe",

@@ -121,7 +121,7 @@ for (const config of [
       .filter(
         (animation) =>
           animation.effect?.target instanceof Element &&
-          animation.effect.target.matches("[data-admin-enter]"),
+          document.querySelector("[data-admin-route-stage]")?.contains(animation.effect.target),
       ).length,
   }));
   if (adminEntrance.fallback)

@@ -421,7 +421,17 @@ assert.match(
   "Committed admin sections must cap their semantic stagger",
 );
 assert.match(routeStage, /useLayoutEffect/, "Mark initial semantic sections before paint");
-assert.match(routeStage, /new WeakSet/, "Refreshes must not replay existing sections");
+assert.match(routeStage, /new WeakMap/, "Refreshes must retain existing section delays");
+assert.doesNotMatch(
+  routeStage,
+  /\.setAttribute\(|\.style\.setProperty\(/,
+  "Entrance registration must not mutate React-owned markup during hydration",
+);
+assert.match(
+  routeStage,
+  /document\.adoptedStyleSheets/,
+  "Entrance order must use a route-scoped stylesheet",
+);
 const todayWorkspace = readFileSync("src/components/admin/TodayWorkspace.tsx", "utf8");
 assert.match(
   todayWorkspace,

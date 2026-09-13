@@ -175,3 +175,9 @@ These receipts are in `/tmp/dashboard-final`, `/tmp/dashboard-final-operator`,
 `/tmp/accelerate-navigation-filmstrip`, `/tmp/accelerate-navigation-runtime`,
 and `/tmp/accelerate-persistent-profile-qa`. Merge and delivery still require the
 final SHA-specific CI and production receipts.
+
+The broad route sweep caught a hydration warning at the AI workspace's nested
+Suspense boundary: parent entrance registration had added attributes before the
+child hydrated. Registration now writes only a route-scoped CSS stylesheet and
+retains delays in a WeakMap. It never mutates React-owned content attributes.
+The failing route and complete route matrix must be rerun against this fix.
