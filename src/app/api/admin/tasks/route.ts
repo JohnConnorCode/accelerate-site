@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { createRevenueTask, patchOperatorTask, deleteOperatorTask } from "@/lib/revenue-os/tasks";
+import { executeTaskWrite } from "@/lib/revenue-os/action-executor";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
@@ -76,18 +76,25 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await createRevenueTask(supabase, {
-      title,
-      description,
-      dueDate: due_date,
-      dueTime: due_time,
-      priority: ["high", "medium", "low"].includes(priority) ? priority : "medium",
-      relatedType: related_type,
-      relatedId: related_id,
-      relatedName: related_name,
-      source: "manual",
-      actorEmail: auth.user.email || "founder",
-    });
+    // Operator saves traverse the unified executor: propose into action_queue
+    // and execute approved, so UI writes carry the same claim, autonomy
+    // re-check, audit, idempotency and reversibility stamp as programmatic
+    // writes. The executor returns the underlying service result unchanged.
+    const result = (await executeTaskWrite(
+      supabase,
+      {
+        kind: "create",
+        title,
+        description,
+        dueDate: due_date,
+        dueTime: due_time,
+        priority: ["high", "medium", "low"].includes(priority) ? priority : "medium",
+        relatedType: related_type,
+        relatedId: related_id,
+        relatedName: related_name,
+      },
+      auth.user.email || "founder",
+    )) as { task: unknown; deduplicated: boolean };
     return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(
@@ -102,11 +109,39 @@ export async function PATCH(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const body = await request.json();
-    const task = await patchOperatorTask(auth.database, {
-      ...body,
-      actorEmail: auth.user.email || "founder",
-    });
+    const body = (await request.json()) as {
+      id?: string;
+      title?: string;
+      description?: string | null;
+      priority?: "high" | "medium" | "low";
+      due_date?: string | null;
+      status?: string;
+      snoozed_until?: string | null;
+    };
+    if (!body.id) return NextResponse.json({ error: "Task id is required" }, { status: 400 });
+    const actorEmail = auth.user.email || "founder";
+    // Same unified path as POST: the body selects the task operation, the
+    // executor performs it. Covers every shape the UI sends today: field
+    // edits (title/priority/due date/description), completion, snooze and
+    // reopen. Unknown status values fail closed like any unregistered write.
+    const task = (await executeTaskWrite(
+      auth.database,
+      body.status === "completed"
+        ? { kind: "complete", taskId: body.id }
+        : body.status === "pending"
+          ? { kind: "reopen", taskId: body.id }
+          : body.status === "snoozed" || body.snoozed_until
+            ? { kind: "snooze", taskId: body.id, until: body.snoozed_until ?? "" }
+            : {
+                kind: "edit",
+                taskId: body.id,
+                ...(body.title !== undefined ? { title: body.title } : {}),
+                ...(body.description !== undefined ? { description: body.description } : {}),
+                ...(body.priority !== undefined ? { priority: body.priority } : {}),
+                ...(body.due_date !== undefined ? { dueDate: body.due_date } : {}),
+              },
+      actorEmail,
+    )) as unknown;
     return NextResponse.json({ task });
   } catch (error) {
     return NextResponse.json(
@@ -129,7 +164,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
-    await deleteOperatorTask(supabase, id, auth.user.email || "founder");
+    await executeTaskWrite(supabase, { kind: "delete", taskId: id }, auth.user.email || "founder");
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(

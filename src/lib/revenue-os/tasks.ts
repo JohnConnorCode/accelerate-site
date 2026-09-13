@@ -127,24 +127,32 @@ export async function snoozeOperatorTask(
   );
 }
 
-/** AI task edits retain the open-task precondition through the shared service. */
+/** AI task edits retain the open-task precondition through the shared service.
+ * Description edits travel the same path so executor undo restores them. */
 export async function updateOperatorTask(
   supabase: SupabaseClient,
   input: {
     id: string;
     title?: string;
+    description?: string | null;
     priority?: "high" | "medium" | "low";
     dueDate?: string | null;
     actorEmail: string;
   },
 ) {
-  if (input.title === undefined && input.priority === undefined && input.dueDate === undefined)
+  if (
+    input.title === undefined &&
+    input.description === undefined &&
+    input.priority === undefined &&
+    input.dueDate === undefined
+  )
     throw new Error("No task fields were changed");
   return patchOperatorTask(
     supabase,
     {
       id: input.id,
       title: input.title,
+      description: input.description,
       priority: input.priority,
       due_date: input.dueDate,
       actorEmail: input.actorEmail,

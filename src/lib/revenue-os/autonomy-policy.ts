@@ -73,6 +73,7 @@ const ACTION_CAPABILITIES: Record<string, string> = {
   update_next_action: "crm.write",
   create_task: "tasks.create",
   update_task: "tasks.write",
+  delete_task: "tasks.write",
   create_founder_note: "crm.write",
 };
 const HARD_FLOOR_KEYS = new Set([

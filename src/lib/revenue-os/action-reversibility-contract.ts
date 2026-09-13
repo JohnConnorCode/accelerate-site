@@ -128,6 +128,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     rationale: "Prior next_action values are captured at execution and restored.",
   },
   {
+    actionType: "delete_task",
+    impact: "internal_write",
+    reversibility: "reversible",
+    rationale:
+      "The full row is captured at execution and re-inserted with its original id; deletion left no other trace.",
+  },
+  {
     actionType: "activate_campaign",
     impact: "external_action",
     reversibility: "irreversible",

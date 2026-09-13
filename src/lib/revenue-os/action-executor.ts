@@ -13,7 +13,13 @@ import { executeInvoicePagePublication } from "./invoice-pages";
 import { executeWorkflowTaskBatch } from "./workflow-tasks";
 import { executeStripeInvoiceAction } from "./stripe-invoicing";
 import { assertPluginActionAllowed } from "./workflow-plugins";
-import { claimApprovedAction, denyAction, failAction, finishAction } from "./actions";
+import {
+  claimApprovedAction,
+  denyAction,
+  failAction,
+  finishAction,
+  proposeAction,
+} from "./actions";
 import { executeRuntimeAction } from "./runtime-actions";
 import { checkAutonomy } from "./autonomy-policy";
 import { recordAudit } from "./audit";
@@ -27,6 +33,8 @@ import {
   completeOperatorTask,
   snoozeOperatorTask,
   updateOperatorTask,
+  patchOperatorTask,
+  deleteOperatorTask,
 } from "./tasks";
 import { applyLayoutChange } from "./admin-layout";
 import { captureFounderNote } from "./notes";
@@ -63,6 +71,7 @@ export const APPROVABLE_ACTIONS = [
   "transition_opportunity",
   "create_task",
   "update_task",
+  "delete_task",
   "update_next_action",
   "activate_campaign",
   "duplicate_campaign",
@@ -318,11 +327,17 @@ export async function approveAndExecuteAction(
           title: stringValue(payload, "title")!,
           description: stringValue(payload, "description", false),
           dueDate: stringValue(payload, "dueDate", false),
+          dueTime: stringValue(payload, "dueTime", false),
           priority: ["high", "medium", "low"].includes(String(payload.priority))
             ? (payload.priority as "high" | "medium" | "low")
             : "medium",
           opportunityId: stringValue(payload, "opportunityId", false),
-          source: "ai",
+          relatedType:
+            typeof payload.relatedType === "string" ? (payload.relatedType as string) : null,
+          relatedId: typeof payload.relatedId === "string" ? (payload.relatedId as string) : null,
+          relatedName:
+            typeof payload.relatedName === "string" ? (payload.relatedName as string) : null,
+          source: typeof payload.source === "string" && payload.source ? payload.source : "ai",
           dedupeKey: stringValue(payload, "dedupeKey", false) ?? `action:${id}`,
           actorEmail,
         });
@@ -333,7 +348,7 @@ export async function approveAndExecuteAction(
         const taskId = stringValue(payload, "taskId")!;
         const { data: taskBefore } = await supabase
           .from("tasks")
-          .select("id,title,priority,due_date,status,snoozed_until,completed_at")
+          .select("id,title,description,priority,due_date,status,snoozed_until,completed_at")
           .eq("id", taskId)
           .maybeSingle();
         // Copy primitives now: some clients hand back live row references
@@ -342,6 +357,7 @@ export async function approveAndExecuteAction(
         compensation.before = before
           ? {
               title: before.title,
+              description: before.description ?? null,
               priority: before.priority,
               due_date: before.due_date ?? null,
               status: before.status,
@@ -358,11 +374,24 @@ export async function approveAndExecuteAction(
             until: stringValue(payload, "until")!,
             actorEmail,
           });
+        } else if (changeType === "reopen") {
+          result = await patchOperatorTask(
+            supabase,
+            { id: taskId, status: "pending", actorEmail },
+            false,
+          );
         } else if (changeType === "edit") {
           const priorityRaw = payload.priority;
+          const descriptionRaw = payload.description;
           result = await updateOperatorTask(supabase, {
             id: taskId,
             title: stringValue(payload, "title", false),
+            description:
+              descriptionRaw === null
+                ? null
+                : descriptionRaw === undefined
+                  ? undefined
+                  : stringValue(payload, "description", false),
             priority: ["high", "medium", "low"].includes(String(priorityRaw))
               ? (priorityRaw as "high" | "medium" | "low")
               : undefined,
@@ -375,6 +404,26 @@ export async function approveAndExecuteAction(
         } else {
           throw new Error(`Unknown task update changeType "${changeType}"`);
         }
+        break;
+      }
+      case "delete_task": {
+        if (mode !== "approved") throw new Error("Task deletion requires human approval");
+        const taskId = stringValue(payload, "taskId")!;
+        const { data: deletedBefore, error: deletedReadError } = await supabase
+          .from("tasks")
+          .select("*")
+          .eq("id", taskId)
+          .maybeSingle();
+        if (deletedReadError) throw new Error(deletedReadError.message);
+        if (!deletedBefore) throw new Error("Target task not found");
+        // Copy primitives now (see update_task above): the delete removes the
+        // row, so the inverse must own its own snapshot, not a live reference.
+        compensation.deletedRow = JSON.parse(JSON.stringify(deletedBefore)) as Record<
+          string,
+          unknown
+        >;
+        await deleteOperatorTask(supabase, taskId, actorEmail);
+        result = { deleted: taskId };
         break;
       }
       case "update_next_action": {
@@ -509,4 +558,99 @@ export async function approveAndExecuteAction(
       await failAction(supabase, id, error instanceof Error ? error.message : "Action failed");
     throw error;
   }
+}
+
+/**
+ * Single write path for operator task UI adapters (and any programmatic
+ * caller that wants the same guarantees): the write is proposed into
+ * action_queue and executed by approveAndExecuteAction, so UI saves carry
+ * the same claim, autonomy re-check, audit, idempotency, reversibility
+ * stamp and truthful receipt as programmatic writes. HTTP adapters never
+ * touch task rows; they only translate request bodies into this call.
+ */
+export async function executeTaskWrite(
+  supabase: SupabaseClient,
+  input:
+    | {
+        kind: "create";
+        title: string;
+        description?: string | null;
+        dueDate?: string | null;
+        dueTime?: string | null;
+        priority?: "high" | "medium" | "low";
+        opportunityId?: string | null;
+        relatedType?: string | null;
+        relatedId?: string | null;
+        relatedName?: string | null;
+      }
+    | {
+        kind: "complete" | "reopen";
+        taskId: string;
+      }
+    | {
+        kind: "snooze";
+        taskId: string;
+        until?: string;
+      }
+    | {
+        kind: "edit";
+        taskId: string;
+        title?: string;
+        description?: string | null;
+        priority?: "high" | "medium" | "low";
+        dueDate?: string | null;
+      }
+    | { kind: "delete"; taskId: string },
+  actorEmail: string,
+): Promise<unknown> {
+  const payload: Record<string, unknown> = {};
+  let actionType: string;
+  let title: string;
+  if (input.kind === "create") {
+    actionType = "create_task";
+    title = input.title;
+    payload.title = input.title;
+    payload.source = "manual";
+    if (input.description !== undefined) payload.description = input.description;
+    if (input.dueDate !== undefined) payload.dueDate = input.dueDate;
+    if (input.dueTime !== undefined) payload.dueTime = input.dueTime;
+    if (input.priority !== undefined) payload.priority = input.priority;
+    if (input.opportunityId !== undefined) payload.opportunityId = input.opportunityId;
+    if (input.relatedType != null) payload.relatedType = input.relatedType;
+    if (input.relatedId != null) payload.relatedId = input.relatedId;
+    if (input.relatedName != null) payload.relatedName = input.relatedName;
+  } else if (input.kind === "delete") {
+    actionType = "delete_task";
+    title = `Delete task ${input.taskId}`;
+    payload.taskId = input.taskId;
+  } else {
+    actionType = "update_task";
+    title = `Update task ${input.taskId}`;
+    payload.taskId = input.taskId;
+    switch (input.kind) {
+      case "complete":
+      case "reopen":
+        payload.changeType = input.kind;
+        break;
+      case "snooze":
+        payload.changeType = "snooze";
+        payload.until = input.until;
+        break;
+      default:
+        payload.changeType = "edit";
+        if (input.title !== undefined) payload.title = input.title;
+        if (input.description !== undefined) payload.description = input.description;
+        if (input.priority !== undefined) payload.priority = input.priority;
+        if (input.dueDate !== undefined) payload.dueDate = input.dueDate;
+        break;
+    }
+  }
+  const proposed = (await proposeAction(supabase, {
+    actionType,
+    title,
+    payload,
+    sourceContext: "admin-ui",
+    proposedBy: `human:${actorEmail}`,
+  })) as { id: string };
+  return approveAndExecuteAction(supabase, proposed.id, actorEmail, { mode: "approved" });
 }
