@@ -8,7 +8,7 @@ Learn the essentials and try your first complete workflow.
 - [How Accelerate works](https://www.acceleratewith.us/docs/start/how-it-works) (updated 2026-09-09): The one path every entry point follows, from raw source data to a reviewed action and its receipt.
 - [For business owners](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-09-09): Decide whether it fits, run a small pilot, and know what to check before you rely on it.
 - [For agencies](https://www.acceleratewith.us/docs/start/agencies) (updated 2026-09-09): Plan one client pilot: who owns what, how to prove data stays separated, and how to hand it over.
-- [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-09): Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened.
+- [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-12): Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened.
 - [Core concepts](https://www.acceleratewith.us/docs/start/core-concepts) (updated 2026-09-09): The vocabulary every other guide assumes: workspace, record, approval, receipt, and how they connect.
 - [Your workspace](https://www.acceleratewith.us/docs/start/workspace) (updated 2026-09-05): Check your business context, membership, and available features.
 - [Modules](https://www.acceleratewith.us/docs/start/modules) (updated 2026-09-09): Turn a whole area of the product on or off per workspace, without forking the application.
@@ -23,7 +23,7 @@ One shared operating layer for the businesses that need it, and how to run the d
 - [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-09): Arrange your business brief, decisions, work and App follow-up into saved views that fit your day.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-09): Every new lead, message, and staged action that hasn't found an owner yet, in one queue.
 - [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-09): The editing view over the same tasks and approvals Today shows you, with filters and full editing.
-- [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-09): How approval works, how it earns more autonomy over time, and what to check after a decision.
+- [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-12): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-09): Trace a change back to who made it, what actually happened, and when.
 - [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-09): Ask a specific question, see the records it used to answer, and review anything it proposes.
 
@@ -96,7 +96,7 @@ Tenants, setup, settings, integrations, and the Feature Board.
 - [Workspace](https://www.acceleratewith.us/docs/workspace/overview) (updated 2026-09-09): How your business gets provisioned, connected, verified, and kept running.
 - [Connect your tools and data](https://www.acceleratewith.us/docs/workspace/integrations) (updated 2026-09-09): Turn a message, calendar event, or invoice sitting in another app into usable context here.
 - [Set up a working workspace](https://www.acceleratewith.us/docs/workspace/setup) (updated 2026-09-09): Verify the connections one real workflow needs, before layering on more.
-- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-09): Change a notification or your workspace's look, then confirm the change actually saved.
+- [Change workspace settings](https://www.acceleratewith.us/docs/workspace/settings) (updated 2026-09-12): Change a notification or your workspace's look, then confirm the change actually saved.
 
 ## Customize
 Configure your workspace or build around a different business process.

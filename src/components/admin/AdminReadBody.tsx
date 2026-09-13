@@ -52,7 +52,7 @@ export function AdminReadBody({
             <button
               type="button"
               onClick={() => void onRetry()}
-              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)]"
+              className="admin-button admin-button--primary mt-4"
             >
               <RefreshCw className="size-3.5" /> Retry
             </button>

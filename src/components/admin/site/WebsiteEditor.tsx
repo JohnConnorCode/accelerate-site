@@ -202,7 +202,7 @@ export function WebsiteEditor() {
           </button>
         </span>
         <button
-          className={`${button} bg-[var(--admin-action)] text-[var(--admin-action-ink)]`}
+          className="admin-button admin-button--primary"
           disabled={busy || !document}
           onClick={() => void save()}
         >

@@ -1,0 +1,94 @@
+--- a/libraries/helpers/src/utils/read.or.fetch.ts
++++ b/libraries/helpers/src/utils/read.or.fetch.ts
+@@ -1,7 +1,19 @@
+-import { readFileSync } from 'fs';
++import { readFileSync, realpathSync } from 'fs';
++import { resolve, sep } from 'path';
+ import axios from 'axios';
+
+ export const readOrFetch = async (path: string) => {
++  // Accelerate keeps local uploads off the public proxy. LinkedIn receives
++  // approved image bytes from the owned upload volume, not a public draft URL.
++  if (process.env.STORAGE_PROVIDER === 'local' && process.env.FRONTEND_URL && process.env.UPLOAD_DIRECTORY && path.startsWith('http')) {
++    const url = new URL(path);
++    if (url.origin === new URL(process.env.FRONTEND_URL).origin && url.pathname.startsWith('/uploads/')) {
++      const root = realpathSync(process.env.UPLOAD_DIRECTORY);
++      const file = realpathSync(resolve(root, decodeURIComponent(url.pathname.slice('/uploads/'.length))));
++      if (!file.startsWith(root + sep)) throw new Error('Invalid local media path');
++      return readFileSync(file);
++    }
++  }
+   if (path.indexOf('http') === 0) {
+     return (
+       await axios({
+--- a/libraries/nestjs-libraries/src/database/prisma/posts/posts.service.ts
++++ b/libraries/nestjs-libraries/src/database/prisma/posts/posts.service.ts
+@@ -250,6 +250,27 @@
+     organization: string,
+     replaceDraft: boolean = false
+   ): Promise<CreatePostDto> {
++    // A known media ID or URL is not authority to use another organization's file.
++    if (!Array.isArray(body?.posts) || body.posts.length > 10) {
++      throw new BadRequestException('Invalid posts');
++    }
++    for (const post of body.posts) {
++      if (!Array.isArray(post?.value) || post.value.length > 10) {
++        throw new BadRequestException('Invalid post values');
++      }
++      for (const value of post.value) {
++        if (value?.image !== undefined && (!Array.isArray(value.image) || value.image.length > 10)) {
++          throw new BadRequestException('Invalid media');
++        }
++        for (const image of value?.image || []) {
++          if (typeof image?.id !== 'string') throw new BadRequestException('Upload media through this organization first');
++          const media = await this._mediaService.getMediaById(image.id);
++          if (!media || media.organizationId !== organization || media.deletedAt || media.path !== image.path) {
++            throw new BadRequestException('Media is unavailable to this organization');
++          }
++        }
++      }
++    }
+     if (!body?.posts?.every((p) => p?.integration?.id)) {
+       throw new BadRequestException('All posts must have an integration id');
+     }
+@@ -531,6 +552,7 @@
+
+   async getPost(orgId: string, id: string, convertToJPEG = false) {
+     const posts = await this.getPostsRecursively(id, true, orgId, true);
++    if (!posts.length) throw new NotFoundException('Post not found');
+     const list = {
+       group: posts?.[0]?.group,
+       posts: await Promise.all(
+--- a/package.json
++++ b/package.json
+@@ -31,7 +31,7 @@
+     "dev:docker": "docker compose -f ./docker-compose.dev.yaml up -d",
+     "commands:build:development": "pnpm --filter ./apps/commands run build",
+     "prisma-generate": "pnpm dlx prisma@6.5.0 generate --schema ./libraries/nestjs-libraries/src/database/prisma/schema.prisma",
+-    "prisma-db-push": "pnpm dlx prisma@6.5.0 db push --accept-data-loss --schema ./libraries/nestjs-libraries/src/database/prisma/schema.prisma",
++    "prisma-db-push": "pnpm dlx prisma@6.5.0 db push --schema ./libraries/nestjs-libraries/src/database/prisma/schema.prisma",
+     "prisma-db-pull": "pnpm dlx prisma@6.5.0 db pull --schema ./libraries/nestjs-libraries/src/database/prisma/schema.prisma",
+     "prisma-reset": "cd ./libraries/nestjs-libraries/src/database/prisma && pnpm dlx prisma@6.5.0 db push --force-reset && pnpx prisma@6.5.0 db push",
+     "docker-build": "./var/docker/docker-build.sh",
+--- a/apps/backend/package.json
++++ b/apps/backend/package.json
+@@ -6,7 +6,7 @@
+     "dev": "dotenv -e ../../.env -- nest start --watch --entryFile=./apps/backend/src/main",
+     "build": "cross-env NODE_ENV=production nest build",
+     "start": "dotenv -e ../../.env -- node --experimental-require-module ./dist/apps/backend/src/main.js",
+-    "pm2": "pm2 start pnpm --name backend -- start"
++    "pm2": "pm2 start ./dist/apps/backend/src/main.js --name backend --node-args=--experimental-require-module"
+   },
+   "keywords": [],
+   "author": "",
+--- a/apps/orchestrator/package.json
++++ b/apps/orchestrator/package.json
+@@ -6,7 +6,7 @@
+     "dev": "dotenv -e ../../.env -- nest start --watch --entryFile=./apps/orchestrator/src/main",
+     "build": "cross-env NODE_ENV=production nest build",
+     "start": "dotenv -e ../../.env -- node --experimental-require-module ./dist/apps/orchestrator/src/main.js",
+-    "pm2": "pm2 start pnpm --name orchestrator -- start"
++    "pm2": "pm2 start ./dist/apps/orchestrator/src/main.js --name orchestrator --node-args=--experimental-require-module"
+   },
+   "keywords": [],
+   "author": "",

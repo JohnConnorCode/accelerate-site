@@ -318,7 +318,7 @@ export default function PipelinePage() {
           <button
             type="button"
             onClick={() => setDialog("create")}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"
+            className="admin-button admin-button--primary"
           >
             <Plus className="size-4" /> New opportunity
           </button>
@@ -340,7 +340,7 @@ export default function PipelinePage() {
         ) : (
           data && (
             <>
-              <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+              <section className="admin-grid admin-grid--metrics">
                 {[
                   ["Open", metrics.open, "Active opportunities"],
                   ["Pipeline value", money(metrics.value), "Unweighted"],
@@ -446,7 +446,7 @@ export default function PipelinePage() {
                         value={state.search}
                         onChange={(event) => patchState({ search: event.target.value })}
                         placeholder="Search company, person, or email"
-                        className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm outline-none focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                        className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm outline-none focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
                       />
                     </label>{" "}
                     <div
@@ -744,7 +744,7 @@ export default function PipelinePage() {
               value={viewName}
               onChange={(event) => setViewName(event.target.value)}
               placeholder="Founder weekly review"
-              className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none"
+              className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none"
             />
           </label>
           <div className="mt-6 flex justify-end gap-2">
@@ -807,7 +807,7 @@ export default function PipelinePage() {
               value={stageLabel}
               onChange={(event) => setStageLabel(event.target.value)}
               placeholder="Trial scheduled"
-              className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none"
+              className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none"
             />
           </label>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -849,7 +849,7 @@ export default function PipelinePage() {
             <button
               type="submit"
               disabled={saving || !stageLabel.trim()}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] disabled:opacity-50"
+              className="admin-button admin-button--primary"
             >
               {saving && <Loader2 className="size-4 animate-spin" />} Add stage
             </button>
@@ -890,7 +890,7 @@ export default function PipelinePage() {
                   type={String(type)}
                   required={Boolean(required)}
                   min={type === "number" ? "0" : undefined}
-                  className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none"
+                  className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none"
                 />
               </label>
             ))}
@@ -900,7 +900,7 @@ export default function PipelinePage() {
             <input
               name="nextAction"
               placeholder="Send audit follow-up"
-              className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal"
+              className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal"
             />
           </label>
           <div className="mt-6 flex justify-end gap-2">
@@ -911,11 +911,7 @@ export default function PipelinePage() {
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] disabled:opacity-50"
-            >
+            <button type="submit" disabled={saving} className="admin-button admin-button--primary">
               {saving && <Loader2 className="size-4 animate-spin" />} Create opportunity
             </button>
           </div>
@@ -941,7 +937,7 @@ function Select({
       value={value}
       aria-label={label}
       onChange={(event) => onChange(event.target.value)}
-      className="min-h-11 min-w-[130px] flex-1 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold outline-none sm:flex-none"
+      className="admin-field admin-field--inline min-h-11 min-w-[130px] flex-1 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold outline-none sm:flex-none"
     >
       {children}
     </select>
@@ -964,7 +960,7 @@ function SelectBlock({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm outline-none"
+        className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm outline-none"
       >
         {children}
       </select>
@@ -1218,7 +1214,7 @@ function ListView({
   return (
     <div className="border-t border-[var(--admin-border)]">
       <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[820px] text-left text-sm">
+        <table className="admin-table w-full min-w-[820px] text-left text-sm">
           <thead className="bg-black/[0.018] font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
             <tr>
               <th scope="col" className="px-5 py-3.5">

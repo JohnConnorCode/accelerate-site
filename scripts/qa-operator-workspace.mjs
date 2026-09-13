@@ -27,7 +27,7 @@ try {
         await page.waitForFunction(() => Boolean(window.__accelerateAdminDemoRuntime));
         if (route === "today") {
           await page.locator("[data-today-module=brief]").waitFor();
-          await page.getByRole("button", { name: /decisions & urgent items/ }).click();
+          await page.getByLabel("View actions", { exact: true }).selectOption("all");
         }
       };
       const settleInspector = () =>

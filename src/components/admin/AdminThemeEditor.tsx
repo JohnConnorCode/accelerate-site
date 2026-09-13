@@ -70,7 +70,7 @@ export function AdminThemeEditor({
           Save and use theme <ArrowRight className="size-4" />
         </button>
       </div>
-      <div className="mt-6 grid items-start gap-6 xl:grid-cols-2">
+      <div className="mt-6 admin-split admin-split--equal">
         <div className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="admin-field-label">

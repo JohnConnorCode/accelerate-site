@@ -2,6 +2,11 @@ name: CI
 
 on:
   workflow_dispatch:
+    inputs:
+      admin_design_only:
+        description: Capture admin appearance evidence without the full CI suite
+        type: boolean
+        default: false
   pull_request:
   merge_group:
   push:
@@ -17,6 +22,7 @@ concurrency:
 
 jobs:
   checks:
+    if: ${{ !inputs.admin_design_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -227,6 +233,7 @@ jobs:
           npm run test:analytics-decision-model
 
   build:
+    if: ${{ !inputs.admin_design_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -365,6 +372,7 @@ jobs:
           retention-days: 7
 
   neutral-starter:
+    if: ${{ !inputs.admin_design_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -420,7 +428,7 @@ jobs:
 
   # Keep the existing required check name and fail if either job fails or skips.
   verify:
-    if: ${{ always() }}
+    if: ${{ always() && !inputs.admin_design_only }}
     needs: [checks, build, neutral-starter]
     runs-on: ubuntu-latest
     timeout-minutes: 1
@@ -431,3 +439,40 @@ jobs:
           BUILD_RESULT: ${{ needs.build.result }}
           NEUTRAL_RESULT: ${{ needs.neutral-starter.result }}
         run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success && test "$NEUTRAL_RESULT" = success
+
+  admin-design:
+    if: ${{ inputs.admin_design_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Verify themes and token compatibility
+        run: |
+          npm run test:admin-themes
+          npm run verify:admin-tokens
+          node --check scripts/qa-admin-core.mjs
+      - name: Verify representative core routes
+        env:
+          QA_ROUTES: today,contacts,conversations,settings,site/website
+          QA_SKIP_PREVIEW: "1"
+          QA_OUTPUT: /tmp/admin-core-qa/routes
+        run: npm run qa:admin-core
+      - name: Capture seven theme identities and keyboard interaction
+        env:
+          QA_ROUTES: today
+          QA_OUTPUT: /tmp/admin-core-qa/identities
+        run: npm run qa:admin-core
+      - name: Retain visual evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: admin-design-evidence
+          path: /tmp/admin-core-qa/
+          if-no-files-found: ignore
+          retention-days: 7

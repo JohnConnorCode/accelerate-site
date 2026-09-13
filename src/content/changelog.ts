@@ -2,6 +2,33 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "admin-theme-polish",
+    slug: "admin-theme-polish",
+    title: "Seven distinct appearances, one coherent workspace",
+    description:
+      "Workspace appearances now have distinct palettes, typography, geometry and depth. Material uses matte tonal surfaces while macOS uses silver chrome and tighter controls. The appearance picker previews each style and supports keyboard navigation. Shared controls, focus states, Today surfaces and reduced motion follow the same core tokens, with custom themes and density preserved. Navigation labels are easier to read, theme timing applies consistently, and mobile spacing keeps compact touch controls accessible.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "admin-coherent-core",
+    slug: "admin-coherent-core",
+    title: "A consistent core for the everyday workspace",
+    description:
+      "Command Center uses shared typography, controls, surfaces and responsive page layouts, with a refreshed Paper appearance. Today modules reclaim available space when panels are hidden or rearranged. Comfortable and compact density stay separate from the seven workspace appearances and persist in your browser.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
+    id: "dashboard-actionable-layout",
+    slug: "dashboard-actionable-layout",
+    title: "A compact Today dashboard with clear next actions",
+    description:
+      "Today places saved-view controls beside the heading and replaces the oversized briefing with an actionable business snapshot. Decisions, follow-up and pipeline figures open their work surfaces. Consistent cards and text actions remove repeated list icons and duplicate briefing content, while personal views and source context remain available.",
+    category: "improvement",
+    publishedAt: "2026-09-12",
+  },
+  {
     id: "unified-task-write-path",
     slug: "unified-task-write-path",
     title: "Task saves run through the unified executor with undo",
@@ -20,6 +47,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-12",
   },
 
+  {
+    id: "autonomy-policy-write-recovery",
+    slug: "autonomy-policy-write-recovery",
+    title: "Save and restore standing permissions reliably",
+    description:
+      "Repeated policy registration updates the intended workspace and coworker scope. Older duplicate records retain their IDs, approval can be revoked and granted again, and material policy changes clear the previous approval. Hard safety floors and audit history remain intact.",
+    category: "fix",
+    publishedAt: "2026-09-12",
+  },
   {
     id: "stage-history-reconciliation",
     slug: "stage-history-reconciliation",
@@ -70,7 +106,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "social-marketing-postiz",
     title: "Prepare and review LinkedIn publishing in Social Marketing",
     description:
-      "An optional Postiz-backed plugin adds source-backed drafts, weekly preparation, exact batch approval, durable scheduling and publication receipts. Each tenant connects a separate organization. Hosting, LinkedIn access and the internal pilot require verified setup before customer activation.",
+      "The forkable app package optionally bundles Postiz with one configuration and startup command; its services stay off by default. Its optional plugin adds source-backed drafts, weekly preparation, exact batch approval, durable scheduling and publication receipts. Each tenant connects a separate organization. Deployment assets protect owner registration and draft media, refuse automatic destructive schema changes, and include isolated startup and recovery checks. Hosting, LinkedIn access and the internal pilot require verified setup before customer activation.",
     category: "feature",
     publishedAt: "2026-09-12",
   },

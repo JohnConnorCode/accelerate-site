@@ -460,7 +460,7 @@ export function LeadsTable({
 
       {/* Table */}
       <GlassCard padding="none" hover="none" className="overflow-clip">
-        <table className="w-full text-sm">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="border-b border-border-glass">
               <th scope="col" className="px-4 py-3 w-10">

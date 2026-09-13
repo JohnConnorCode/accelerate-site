@@ -192,7 +192,7 @@ export const capabilities: Capability[] = [
     category: "act",
     title: "Social Marketing: reviewed LinkedIn publishing",
     detail:
-      "Prepare source-backed drafts, approve exact content and schedules, and follow Postiz acceptance through to verified LinkedIn publication. Each workspace connects its own organization; uncertain submissions retain their receipts for review.",
+      "Prepare source-backed drafts, approve exact content and schedules, and follow Postiz acceptance through to verified LinkedIn publication. Each workspace connects its own organization, with an optional bundled runtime, private draft media and operator-controlled service setup; uncertain submissions retain their receipts for review.",
     gated: true,
   },
 
@@ -294,7 +294,7 @@ export const capabilities: Capability[] = [
     category: "learn",
     title: "Autonomy you raise on purpose",
     detail:
-      "Every kind of action carries its own trust level. You raise it when the approval rate has earned it and drop it back the moment you want to.",
+      "Every kind of action carries its own trust level. Standing permission requires a human decision, and changing the policy clears that approval. Revoke or restore the intended workspace or coworker permission while retaining its audit history.",
   },
   {
     id: "brief",
@@ -330,7 +330,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "The web app",
     detail:
-      "Arrange Today around a sourced business brief, decisions, commitments, coworker progress and enabled App follow-up. Save personal or shared views, inspect the context and prepare the next action. Empty modules offer useful starting points. Work keeps the same tasks and approvals available for editing.",
+      "Open decisions, follow-up and pipeline work from a compact Today snapshot. Arrange decisions, commitments, coworker progress and enabled App follow-up in personal or shared views. Inspect the context and prepare the next action. Work keeps the same tasks and approvals available for editing.",
   },
   {
     id: "chat",
@@ -394,7 +394,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "Make the workspace your own",
     detail:
-      "Choose a built-in appearance or preview a custom palette, typography and corner style in Branding. Import and export portable themes, or ask the connected assistant to prepare a theme for approval. Saved themes use the same workspace permissions and revision checks as branding. Demo appearance choices stay separate from the live workspace.",
+      "Choose among seven distinct appearances, from matte Material surfaces to silver macOS controls, or preview a custom palette, typography and corner style in Branding. Import and export portable themes, or ask the connected assistant to prepare a theme for approval. Saved themes use the same workspace permissions and revision checks as branding. Demo appearance choices stay separate from the live workspace. Choose comfortable or compact spacing independently of your theme; shared controls and responsive layouts keep the workspace consistent, with readable navigation, theme-aware transitions and comfortable touch targets.",
   },
   // Govern
   {

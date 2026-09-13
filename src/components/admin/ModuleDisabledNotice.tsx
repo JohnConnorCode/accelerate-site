@@ -31,10 +31,7 @@ export function ModuleDisabledNotice({ module: mod }: { module: RevenueOSModule 
           This workspace has disabled the {mod.name} module. Turn it back on from Integrations &amp;
           Modules to use this page again.
         </p>
-        <Link
-          href="/admin/integrations"
-          className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"
-        >
+        <Link href="/admin/integrations" className="admin-button admin-button--primary mt-5">
           Go to Integrations &amp; Modules
         </Link>
         {mod.historyRoute && (

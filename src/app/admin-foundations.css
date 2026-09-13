@@ -1,0 +1,99 @@
+/* Shared admin foundations. Themes own expression; density owns space.
+   Portals receive the same tokens. No public-site styling belongs here. */
+:is(
+  .admin-shell,
+  .admin-overlay-token-scope,
+  body.admin-dialog-open,
+  body.admin-notifications-open
+) {
+  --error: var(--admin-danger);
+  --success: var(--admin-success);
+  --admin-space-1: 4px;
+  --admin-space-2: 8px;
+  --admin-space-3: 12px;
+  --admin-space-4: 16px;
+  --admin-space-5: 20px;
+  --admin-space-6: 24px;
+  --admin-space-8: 32px;
+  --admin-text-caption: 0.75rem;
+  --admin-text-label: 0.8125rem;
+  --admin-text-body: 0.875rem;
+  --admin-text-section: 1.0625rem;
+  --admin-text-title: clamp(1.75rem, 2.4vw, 2.25rem);
+  --admin-control-height: 44px;
+  --admin-row-padding: 16px;
+  --admin-panel-padding: 24px;
+  --admin-section-gap: 24px;
+  --admin-page-gutter: clamp(16px, 3vw, 40px);
+  --admin-page-width: 1440px;
+  --admin-grid-min: 280px;
+  --admin-motion-fast: var(--admin-skin-motion-fast);
+  --admin-motion-enter: var(--admin-skin-motion-enter);
+  --admin-motion-ease: var(--admin-skin-motion-ease);
+  --admin-focus-ring: 0 0 0 3px color-mix(in srgb, var(--admin-action) 25%, transparent);
+  --admin-inset-radius: max(4px, calc(var(--admin-surface-radius) - var(--admin-space-2)));
+  font-size: var(--admin-text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+html[data-admin-density="compact"]
+  :is(
+    .admin-shell,
+    .admin-overlay-token-scope,
+    body.admin-dialog-open,
+    body.admin-notifications-open
+  ),
+[data-admin-density="compact"].admin-shell {
+  --admin-control-height: 40px;
+  --admin-row-padding: 10px;
+  --admin-panel-padding: 20px;
+  --admin-section-gap: 20px;
+}
+@media (pointer: coarse) {
+  html[data-admin-density]
+    :is(
+      .admin-shell,
+      .admin-overlay-token-scope,
+      body.admin-dialog-open,
+      body.admin-notifications-open
+    ),
+  :is(
+    .admin-shell,
+    .admin-overlay-token-scope,
+    body.admin-dialog-open,
+    body.admin-notifications-open
+  ),
+  [data-admin-density="compact"].admin-shell {
+    --admin-control-height: 44px;
+  }
+}
+@media (max-width: 639px) {
+  html[data-admin-density]
+    :is(
+      .admin-shell,
+      .admin-overlay-token-scope,
+      body.admin-dialog-open,
+      body.admin-notifications-open
+    ),
+  :is(
+    .admin-shell,
+    .admin-overlay-token-scope,
+    body.admin-dialog-open,
+    body.admin-notifications-open
+  ),
+  [data-admin-density="compact"].admin-shell {
+    --admin-panel-padding: 18px;
+    --admin-section-gap: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(
+    .admin-shell,
+    .admin-overlay-token-scope,
+    body.admin-dialog-open,
+    body.admin-notifications-open
+  ) {
+    --admin-motion-fast: 0ms;
+    --admin-motion-enter: 0ms;
+  }
+}

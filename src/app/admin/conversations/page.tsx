@@ -485,7 +485,7 @@ export default function ConversationsPage() {
                       setChannelFilter(e.target.value as ConversationChannel | "all")
                     }
                     aria-label="Filter by channel"
-                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                    className="admin-field admin-field--inline rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                   >
                     <option value="all">All Channels</option>
                     <option value="gmail">Gmail</option>
@@ -502,7 +502,7 @@ export default function ConversationsPage() {
                       setRecordFilter(e.target.value as "all" | "linked" | "unlinked")
                     }
                     aria-label="Filter by record link"
-                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                    className="admin-field admin-field--inline rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                   >
                     <option value="all">All Records</option>
                     <option value="linked">Linked to Opportunity</option>
@@ -516,7 +516,7 @@ export default function ConversationsPage() {
                       setCampaignFilter(e.target.value as "all" | "linked" | "unlinked")
                     }
                     aria-label="Filter by campaign link"
-                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                    className="admin-field admin-field--inline rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                   >
                     <option value="all">All Campaigns</option>
                     <option value="linked">In a Campaign</option>
@@ -528,7 +528,7 @@ export default function ConversationsPage() {
                     value={intentFilter}
                     onChange={(e) => setIntentFilter(e.target.value)}
                     aria-label="Filter by intent"
-                    className="max-w-40 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                    className="admin-field admin-field--inline max-w-40 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                   >
                     <option value="all">All Intents</option>
                     {intents.map((intent) => (
@@ -562,7 +562,7 @@ export default function ConversationsPage() {
                       setAssigneeFilter(e.target.value as "all" | "unassigned" | "me")
                     }
                     aria-label="Filter by assignee"
-                    className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                    className="admin-field admin-field--inline rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                   >
                     <option value="all">All Assignees</option>
                     <option value="unassigned">Unassigned</option>
@@ -573,13 +573,10 @@ export default function ConversationsPage() {
             </div>
 
             {/* Main Layout Grid */}
-            <div className="grid min-h-[650px] lg:grid-cols-[340px_1fr]">
+            <div className="admin-conversation-layout" data-has-selection={Boolean(selectedId)}>
               {/* Thread List Sidebar */}
               <aside
-                className={cn(
-                  "border-r border-[var(--admin-border)] bg-[var(--admin-surface)]",
-                  selectedId && "hidden lg:block",
-                )}
+                className={cn("border-r border-[var(--admin-border)] bg-[var(--admin-surface)]")}
               >
                 <div className="flex min-h-[68px] items-center border-b border-[var(--admin-border)] p-3">
                   <div className="relative w-full">
@@ -588,7 +585,7 @@ export default function ConversationsPage() {
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Search inbox..."
-                      className="min-h-9 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-9 pr-3 text-xs text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-1 focus:ring-[var(--admin-ink)]"
+                      className="admin-field admin-field--leading-icon min-h-9 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-9 pr-3 text-xs text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-1 focus:ring-[var(--admin-ink)]"
                     />
                   </div>
                 </div>
@@ -688,9 +685,9 @@ export default function ConversationsPage() {
               </aside>
 
               {/* Thread Content & Opportunity Cockpit */}
-              <main className={cn("flex min-w-0 flex-col", !selectedId && "hidden lg:flex")}>
+              <main className="flex min-w-0 flex-col">
                 {selected ? (
-                  <div className="flex flex-1 flex-col xl:grid xl:grid-cols-[1fr_300px]">
+                  <div className="admin-conversation-detail">
                     {/* Main Conversation Column */}
                     <div className="flex min-w-0 flex-1 flex-col border-b xl:border-b-0 xl:border-r border-[var(--admin-border)]">
                       {/* Thread Header */}
@@ -703,7 +700,7 @@ export default function ConversationsPage() {
                               setSelectedId(null);
                             }}
                             aria-label="Back to conversations"
-                            className="grid size-8 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] hover:bg-black/[0.04] hover:text-[var(--admin-ink)] lg:hidden"
+                            className="grid size-8 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] hover:bg-black/[0.04] hover:text-[var(--admin-ink)] admin-conversation-back"
                           >
                             <ArrowLeft className="size-4" />
                           </button>
@@ -855,7 +852,7 @@ export default function ConversationsPage() {
                                   type="button"
                                   onClick={() => void sendReply()}
                                   disabled={sending}
-                                  className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] disabled:opacity-50"
+                                  className="admin-button admin-button--primary"
                                 >
                                   {sending ? (
                                     <Loader2 className="size-3.5 animate-spin" />
@@ -964,7 +961,7 @@ export default function ConversationsPage() {
                             <button
                               type="button"
                               onClick={() => void assignSelected("me")}
-                              className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-[var(--admin-ink)] px-2.5 py-1 text-[11px] font-semibold text-[var(--admin-surface)]"
+                              className="admin-button admin-button--primary"
                             >
                               Assign to me
                             </button>
@@ -984,7 +981,7 @@ export default function ConversationsPage() {
                               onChange={(event) => setAssigneeEmail(event.target.value)}
                               placeholder="name@company.com"
                               aria-label="Assignee email"
-                              className="min-h-9 min-w-0 flex-1 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2.5 text-xs text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                              className="admin-field admin-field--inline min-h-9 min-w-0 flex-1 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-2.5 text-xs text-[var(--admin-ink)] outline-none placeholder:text-[var(--admin-muted)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                             />
                             <button
                               type="button"
@@ -1110,7 +1107,7 @@ export default function ConversationsPage() {
                   required
                   value={oppName}
                   onChange={(e) => setOppName(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
+                  className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
                   placeholder="e.g. Acme Commercial Retainer"
                 />
               </div>
@@ -1124,7 +1121,7 @@ export default function ConversationsPage() {
                   value={oppValue}
                   onChange={(e) => setOppValue(e.target.value)}
                   aria-label="Estimated value in dollars"
-                  className="mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                  className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                 />
               </div>
               <div className="mt-5 flex justify-end gap-2">
@@ -1174,7 +1171,7 @@ export default function ConversationsPage() {
                   required
                   value={taskTitle}
                   onChange={(e) => setTaskTitle(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
+                  className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
                   placeholder="e.g. Send proposal follow-up"
                 />
               </div>
@@ -1187,7 +1184,7 @@ export default function ConversationsPage() {
                   value={taskDueDate}
                   onChange={(e) => setTaskDueDate(e.target.value)}
                   aria-label="Due date"
-                  className="mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                  className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                 />
               </div>
               <div className="mt-5 flex justify-end gap-2">
@@ -1243,7 +1240,7 @@ export default function ConversationsPage() {
                   type="search"
                   value={oppSearch}
                   onChange={(event) => setOppSearch(event.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
+                  className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
                   placeholder="Opportunity name or email"
                   aria-label="Search opportunities to link"
                 />

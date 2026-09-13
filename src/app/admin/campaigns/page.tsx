@@ -277,7 +277,7 @@ export default function CampaignsPage() {
             <button
               type="button"
               onClick={() => setShowCreate(true)}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] pl-4 pr-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96]"
+              className="admin-button admin-button--primary"
             >
               <Plus className="size-3.5" /> New campaign
             </button>
@@ -303,7 +303,7 @@ export default function CampaignsPage() {
           <RevenueSetupGate />
         ) : (
           data && (
-            <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+            <div className="admin-split admin-split--equal">
               <div className="space-y-3">
                 {data.campaigns.map((campaign) => {
                   const memberCounts = campaign.campaign_members.reduce<Record<string, number>>(
@@ -395,7 +395,7 @@ export default function CampaignsPage() {
                             type="button"
                             onClick={() => void loadPreview(campaign.id)}
                             disabled={saving}
-                            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96]"
+                            className="admin-button admin-button--primary"
                           >
                             <Play className="size-3.5" /> Review launch
                           </button>
@@ -529,7 +529,7 @@ export default function CampaignsPage() {
                         type="button"
                         onClick={() => void campaignAction(preview.campaign.id, "activate")}
                         disabled={saving || !preview.totals.eligible || !preview.steps.length}
-                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-35"
+                        className="admin-button admin-button--primary w-full"
                       >
                         {saving ? (
                           <Loader2 className="size-3.5 animate-spin" />
@@ -600,7 +600,7 @@ export default function CampaignsPage() {
                 <input
                   name="name"
                   required
-                  className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
                 />
               </label>
               <label className="text-xs font-semibold text-[var(--admin-ink)]">
@@ -610,7 +610,7 @@ export default function CampaignsPage() {
                   type="email"
                   defaultValue={tenant.founder.email}
                   required
-                  className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
                 />
               </label>
               <label className="text-xs font-semibold text-[var(--admin-ink)]">
@@ -622,7 +622,7 @@ export default function CampaignsPage() {
                   max="200"
                   defaultValue="25"
                   required
-                  className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
                 />
               </label>
               <label className="text-xs font-semibold text-[var(--admin-ink)]">
@@ -633,7 +633,7 @@ export default function CampaignsPage() {
                   min="1"
                   max="60"
                   defaultValue="3"
-                  className="mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
                 />
               </label>
             </div>
@@ -643,7 +643,7 @@ export default function CampaignsPage() {
                 name="recipients"
                 rows={4}
                 placeholder="one@example.com&#10;two@example.com"
-                className="mt-1.5 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 font-mono text-xs font-normal outline-none focus:border-[var(--admin-ink)]"
+                className="admin-field mt-1.5 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 font-mono text-xs font-normal outline-none focus:border-[var(--admin-ink)]"
               />
             </label>
             <div className="mt-5 rounded-2xl bg-black/[0.025] p-2 dark:bg-white/[0.025]">
@@ -653,14 +653,14 @@ export default function CampaignsPage() {
                   name="subject1"
                   required
                   placeholder="Subject (supports {{first_name}} and {{company}})"
-                  className="mt-2 min-h-11 w-full rounded-xl border border-[var(--admin-border)] px-3.5 text-sm outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-2 min-h-11 w-full rounded-xl border border-[var(--admin-border)] px-3.5 text-sm outline-none focus:border-[var(--admin-ink)]"
                 />
                 <textarea
                   name="body1"
                   required
                   rows={5}
                   placeholder="Personalized message"
-                  className="mt-2 w-full rounded-xl border border-[var(--admin-border)] px-3.5 py-3 text-sm leading-6 outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-2 w-full rounded-xl border border-[var(--admin-border)] px-3.5 py-3 text-sm leading-6 outline-none focus:border-[var(--admin-ink)]"
                 />
               </div>
             </div>
@@ -673,13 +673,13 @@ export default function CampaignsPage() {
                 <input
                   name="subject2"
                   placeholder="Follow-up subject"
-                  className="min-h-11 w-full rounded-xl border border-[var(--admin-border)] px-3.5 text-sm outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field min-h-11 w-full rounded-xl border border-[var(--admin-border)] px-3.5 text-sm outline-none focus:border-[var(--admin-ink)]"
                 />
                 <textarea
                   name="body2"
                   rows={4}
                   placeholder="Follow-up body"
-                  className="mt-2 w-full rounded-xl border border-[var(--admin-border)] px-3.5 py-3 text-sm leading-6 outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-2 w-full rounded-xl border border-[var(--admin-border)] px-3.5 py-3 text-sm leading-6 outline-none focus:border-[var(--admin-ink)]"
                 />
               </div>
             </details>
@@ -694,7 +694,7 @@ export default function CampaignsPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-50"
+                className="admin-button admin-button--primary"
               >
                 {saving && <Loader2 className="size-3.5 animate-spin" />} Create and preflight
               </button>

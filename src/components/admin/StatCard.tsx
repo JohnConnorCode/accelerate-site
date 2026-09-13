@@ -28,15 +28,13 @@ export function StatCard({ label, value, change, trend, icon: Icon, index = 0 }:
           <span className="admin-copy text-sm">{label}</span>
           <Icon className="size-4 text-[var(--admin-muted)]" />
         </div>
-        <p className="font-display text-2xl font-bold tabular-nums text-[var(--admin-ink)]">
-          {value}
-        </p>
+        <p className="admin-stat-value">{value}</p>
         {change && (
           <p
             className={cn(
               "mt-1 text-xs flex items-center gap-1",
-              trend === "up" && "text-[var(--success)]",
-              trend === "down" && "text-[var(--error)]",
+              trend === "up" && "text-[var(--admin-success)]",
+              trend === "down" && "text-[var(--admin-danger)]",
               !trend && "text-[var(--admin-muted)]",
             )}
           >

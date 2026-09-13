@@ -69,7 +69,7 @@ export function WorkViews({
           onChange={(event) =>
             onChange({ ...filters, queue: event.target.value, milestone: "all" })
           }
-          className="min-h-11 min-w-0 flex-1 rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-sm sm:flex-none"
+          className="admin-field admin-field--inline min-h-11 min-w-0 flex-1 rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-sm sm:flex-none"
         >
           {WORK_QUEUES.map((view) => (
             <option key={view.key} value={view.key}>
@@ -132,7 +132,7 @@ export function WorkViews({
                 aria-label="North star phase"
                 value={filters.phase ?? "all"}
                 onChange={(e) => onChange({ ...filters, phase: e.target.value })}
-                className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
+                className="admin-field min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
               >
                 <option value="all">All phases</option>
                 {Object.entries(NORTHSTAR_PHASES).map(([key, name]) => (
@@ -148,7 +148,7 @@ export function WorkViews({
                 aria-label="Initiative"
                 value={filters.initiative ?? "all"}
                 onChange={(e) => onChange({ ...filters, initiative: e.target.value })}
-                className="min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
+                className="admin-field min-h-11 min-w-0 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3"
               >
                 <option value="all">All initiatives</option>
                 {initiatives.map((name) => (
@@ -208,7 +208,7 @@ export function WorkViews({
                 placeholder="Name this view"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="min-h-11 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-sm"
+                className="admin-field admin-field--inline min-h-11 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-sm"
               />
               <label className="flex min-h-11 items-center gap-2 text-xs">
                 <input

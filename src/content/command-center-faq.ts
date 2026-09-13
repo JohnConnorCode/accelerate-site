@@ -7,6 +7,11 @@ export const commandCenterFaqs: FAQ[] = [
       "Yes. Export the neutral starter into a new directory, replace its fictional Harbor Operations configuration with your business details, then connect services you control. It keeps the shared workspace and demo while removing protected agency media and original hosting targets. The self-hosting guide explains the export receipt, installation and recovery.",
   },
   {
+    question: "Does changing a policy keep its old approval?",
+    answer:
+      "Changing the level, constraints or source clears standing approval. A human must approve it again; changing only a label or description keeps the decision. The update belongs to its workspace and coworker scope, and hard safety floors still apply. Older duplicate policy records can be recovered through the supported registration and approval services after the current migration catalog is applied.",
+  },
+  {
     question: "Can I navigate boards without dragging cards?",
     answer:
       "Yes. Scroll across the columns or Tab to a column button and press Enter. The board itself accepts keyboard focus for arrow-key scrolling, and reduced motion makes column jumps immediate. Refreshing or closing an editor keeps your place; browser Back restores the Pipeline board after you open an opportunity. Existing stage controls and work permissions still govern card changes.",
@@ -24,7 +29,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we create our own workspace theme?",
     answer:
-      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
+      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Seven built-in appearances have distinct palettes, typography, corners and depth, including matte Material and silver macOS. Comfortable and compact density adjust spacing independently of the theme. Mobile panels keep consistent spacing, touch controls stay easy to reach, and transitions respect reduced motion. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
   },
   {
     question: "How does the whole system fit together?",
@@ -49,7 +54,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How do Today and Work fit together?",
     answer:
-      "Today is a customizable daily workspace: save personal or shared arrangements of your business brief, decisions, commitments, coworker progress and enabled App follow-up. It offers useful starting points even when there is little content. Work provides task editing and the same approvals. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
+      "Today opens with an actionable snapshot of decisions, follow-up and pipeline figures. Customize saves personal or shared arrangements of decisions, commitments, coworker progress and enabled App follow-up; More contains view creation, duplication and deletion. Work provides task editing and the same approvals. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
   },
   {
     question: "Can we build a completely different App or interface?",

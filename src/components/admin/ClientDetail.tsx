@@ -122,7 +122,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               aria-label="Status"
-              className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none transition-[box-shadow] focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+              className="admin-field min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none transition-[box-shadow] focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
             >
               {statusOptions.map((s) => (
                 <option key={s} value={s}>
@@ -152,7 +152,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
                 value={monthlyValue}
                 onChange={(e) => setMonthlyValue(e.target.value)}
                 aria-label="Monthly value (MRR)"
-                className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+                className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
               />
             </div>
           </div>
@@ -168,7 +168,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
                 value={oneTimeValue}
                 onChange={(e) => setOneTimeValue(e.target.value)}
                 aria-label="One-time value"
-                className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+                className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
               />
             </div>
           </div>
@@ -182,7 +182,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
               value={contractStart}
               onChange={(e) => setContractStart(e.target.value)}
               aria-label="Contract start"
-              className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+              className="admin-field min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
             />
           </div>
 
@@ -195,7 +195,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
               value={contractEnd}
               onChange={(e) => setContractEnd(e.target.value)}
               aria-label="Contract end"
-              className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+              className="admin-field min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
             />
           </div>
         </div>

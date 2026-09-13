@@ -17,7 +17,10 @@ const pageHeader = readFileSync("src/components/admin/PageHeader.tsx", "utf8");
 const nextConfig = readFileSync("next.config.ts", "utf8");
 const packageJson = readFileSync("package.json", "utf8");
 const productionRelease = readFileSync("scripts/next-release.mjs", "utf8");
-const styles = readFileSync("src/app/globals.css", "utf8");
+const styles =
+  readFileSync("src/app/globals.css", "utf8") +
+  readFileSync("src/app/admin-components.css", "utf8") +
+  readFileSync("src/app/admin-foundations.css", "utf8");
 
 assert.match(
   runtime,
@@ -132,7 +135,7 @@ assert.match(
 );
 assert.match(
   routeStage,
-  /className="admin-route-stage"/,
+  /className=\{`admin-route-stage admin-page/,
   "The route-stage entrance state must ship in committed markup before first paint",
 );
 assert.doesNotMatch(
@@ -404,7 +407,7 @@ assert.match(
 );
 assert.match(
   styles,
-  /admin-route-section-in 180ms/,
+  /admin-route-section-in var\(--admin-motion-enter\)/,
   "Admin entrance must remain perceptible without delaying useful interaction",
 );
 assert.match(

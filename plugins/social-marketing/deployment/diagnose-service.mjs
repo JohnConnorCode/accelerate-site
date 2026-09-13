@@ -1,0 +1,91 @@
+// Bounded diagnostics for the disposable fixture stack only.
+import { execFileSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
+const args = ["compose", "-f", "compose.yaml", "-f", "verification.override.yaml"];
+const secrets = [
+  process.env.POSTIZ_DB_PASSWORD,
+  process.env.TEMPORAL_DB_PASSWORD,
+  process.env.POSTIZ_JWT_SECRET,
+].filter(Boolean);
+try {
+  for (const fixture of JSON.parse(readFileSync("private-verification-fixtures.json", "utf8")))
+    secrets.push(fixture.auth, fixture.key);
+} catch {}
+function clean(value) {
+  let text = value;
+  for (const secret of secrets) if (secret) text = text.split(secret).join("<redacted>");
+  return text
+    .replace(/(?:postgresql|redis):\/\/[^\s]+/g, "<redacted-connection>")
+    .replace(/[A-Za-z0-9_-]{24,}/g, "<redacted>")
+    .slice(0, 700);
+}
+function run(extra) {
+  try {
+    return execFileSync("docker", [...args, ...extra], {
+      encoding: "utf8",
+      timeout: 10000,
+      maxBuffer: 1024 * 1024,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    return (error.stdout || "") + "\n" + (error.stderr || "");
+  }
+}
+const probe = `
+(async () => {
+ let processes = [];
+ try { processes = JSON.parse(require('child_process').execFileSync('pm2',['jlist'],{timeout:3000})).map(p=>({name:p.name,status:p.pm2_env?.status,restarts:p.pm2_env?.restart_time,uptimeSeconds:Math.floor((Date.now()-p.pm2_env?.pm_uptime)/1000)})); } catch {}
+ const http = [];
+ for(const [name,url] of [['frontend','http://localhost:5000'],['backend','http://localhost:3000/auth/can-register'],['temporal','http://localhost:3002/health/status']]) {
+  try { const r=await fetch(url,{signal:AbortSignal.timeout(2000)}); http.push({name,status:r.status}); await r.body?.cancel(); } catch { http.push({name,status:'unreachable'}); }
+ }
+ console.log(JSON.stringify({processes,http}));
+})()
+`;
+const state = run(["exec", "-T", "postiz", "node", "-e", probe]);
+const errors = run(["logs", "--no-color", "--tail", "150", "postiz", "temporal"])
+  .split("\n")
+  .filter((line) => /error|fatal|exception|cannot|failed|invalid|unable/i.test(line))
+  .slice(-50)
+  .map(clean);
+let health;
+try {
+  health = JSON.parse(state);
+} catch {
+  health = { probe: clean(state) };
+}
+let temporalHealth;
+try {
+  const id = run(["ps", "--all", "-q", "temporal"]).trim();
+  if (!/^[a-f0-9]+$/.test(id)) throw new Error("Container unavailable");
+  const details = JSON.parse(
+    execFileSync("docker", ["inspect", "--format", "{{json .State.Health}}", id], {
+      encoding: "utf8",
+      timeout: 3000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }),
+  );
+  temporalHealth = {
+    status: details?.Status,
+    failures: (details?.Log || [])
+      .filter((entry) => entry.ExitCode !== 0)
+      .slice(-2)
+      .map((entry) => ({ exitCode: entry.ExitCode, output: clean(entry.Output) })),
+  };
+} catch {
+  temporalHealth = { status: "unavailable" };
+}
+const backendStartup = run([
+  "exec",
+  "-T",
+  "postiz",
+  "sh",
+  "-c",
+  "tail -n 35 /root/.pm2/logs/backend-out.log /root/.pm2/logs/backend-error.log",
+])
+  .split("\n")
+  .slice(-75)
+  .map(clean);
+const report = { health, temporalHealth, errors, backendStartup };
+writeFileSync("evidence/startup-diagnostics.json", JSON.stringify(report, null, 2));
+console.log(JSON.stringify(report));

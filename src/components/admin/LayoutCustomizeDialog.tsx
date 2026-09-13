@@ -199,7 +199,7 @@ export function LayoutCustomizeDialog({
               type="button"
               onClick={() => void save()}
               disabled={saving || !dirty}
-              className="inline-flex min-h-11 items-center rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-opacity hover:opacity-85 disabled:opacity-45"
+              className="admin-button admin-button--primary"
             >
               {saving ? "Saving…" : "Save changes"}
             </button>

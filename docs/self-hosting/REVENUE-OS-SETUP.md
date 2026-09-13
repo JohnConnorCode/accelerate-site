@@ -12,6 +12,8 @@ The resumable-attempts migration adds fenced ownership and durable checkpoint me
 
 The message upsert migration (`20260914-message-upsert-conflict-targets.sql`) adds workspace-scoped indexes used by the shared sender and message synchronization. Apply the current catalog before testing a send. If an earlier attempt failed before creating a message receipt, verify the schema before retrying; an uncertain provider result still requires receipt reconciliation.
 
+`20260912230431-autonomy-policy-writes.sql` repairs repeated generic policy registration and approval on installations with legacy duplicate rows. Apply it through the catalog, then retry `registerAutonomyPolicy` or `grantStandingPermission` in the intended tenant context. Registration with `always_ask` revokes standing permission; a later explicit human grant restores it. The RPCs serialize writes for one tenant/action under the normal READ COMMITTED transport, preserve all policy IDs and creation dates, and append atomic audit snapshots. Material level, constraint, source or hard-floor changes clear approval. Other transaction isolation modes fail explicitly instead of risking duplicate identities. Do not delete old rows or change them through raw SQL to repair approval. Effective read resolution and hard floors remain unchanged.
+
 The AI command runtime migration adds founder-owned conversation history, replay-safe client message IDs, and run linkage for provider, tool-pack, duration, and conversation observability. Apply it before enabling `/admin/ai`; until then the command UI fails closed with a setup message and no schema is created from a request path.
 
 The shared-database tenancy migration creates the tenant control plane, assigns

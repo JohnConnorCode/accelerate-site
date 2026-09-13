@@ -88,6 +88,7 @@ async function main() {
   let timeout = false,
     malformed = false,
     identityMismatch = false;
+  let protocol = 2;
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input));
     const key = new Headers(init?.headers).get("authorization")!;
@@ -102,7 +103,7 @@ async function main() {
       return Response.json({
         connected: true,
         organizationId: identityMismatch ? "foreign-org" : `org-${tenantIndex}`,
-        accelerateProtocol: 1,
+        accelerateProtocol: protocol,
       });
     if (url.pathname.endsWith("/integrations"))
       return Response.json([
@@ -194,6 +195,10 @@ async function main() {
     connections[b]!.encrypted_credentials.api_key = connections[a]!.encrypted_credentials.api_key;
     await assert.rejects(tenantPostizClient(database(b)));
     connections[b]!.encrypted_credentials.api_key = original;
+    protocol = 1;
+    assert.equal((await postizAdapter.verify({ apiKey: secretA })).valid, false);
+    await assert.rejects(tenantPostizClient(database(a)));
+    protocol = 2;
     identityMismatch = true;
     await assert.rejects(tenantPostizClient(database(a)), /organization changed/);
     identityMismatch = false;

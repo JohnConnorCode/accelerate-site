@@ -121,7 +121,7 @@ export function ArchitectEvidencePanel() {
           id="architect-source"
           value={source}
           onChange={(event) => setSource(event.target.value)}
-          className="min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)]"
+          className="admin-field admin-field--inline min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)]"
         >
           <option value="drive">Drive</option>
           <option value="gmail">Gmail</option>
@@ -134,7 +134,7 @@ export function ArchitectEvidencePanel() {
           id="architect-scope"
           value={scope}
           onChange={(event) => setScope(event.target.value)}
-          className="min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)]"
+          className="admin-field admin-field--inline min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)]"
         >
           <option value="folder">Folder</option>
           <option value="label">Label</option>
@@ -148,7 +148,7 @@ export function ArchitectEvidencePanel() {
           value={resourceId}
           onChange={(event) => setResourceId(event.target.value)}
           placeholder="Named folder, label, or document"
-          className="min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
+          className="admin-field admin-field--inline min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
         />
         <button
           type="submit"
@@ -166,7 +166,7 @@ export function ArchitectEvidencePanel() {
           value={assumption}
           onChange={(event) => setAssumption(event.target.value.slice(0, 280))}
           placeholder="Record an assumption this session should keep"
-          className="min-h-11 flex-1 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
+          className="admin-field admin-field--inline min-h-11 flex-1 rounded-xl bg-[var(--admin-surface)] px-3 text-xs shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)]"
         />
         <button
           type="submit"

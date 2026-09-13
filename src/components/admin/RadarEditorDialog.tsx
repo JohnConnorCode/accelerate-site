@@ -402,7 +402,7 @@ export function RadarEditorDialog({
                   </details>
                 </fieldset>
               ))}
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="admin-grid admin-grid--metrics">
                 <label className={label}>
                   Effort (1–5)
                   <input

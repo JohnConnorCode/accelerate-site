@@ -2,3 +2,9 @@
 upstream/
 source/
 backups/
+evidence/
+verification.override.yaml
+private-verification-fixtures.json
+private-temporal-history.json
+
+*.previous-*

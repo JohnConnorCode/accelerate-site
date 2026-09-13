@@ -22,9 +22,9 @@ const tones: Record<AdminSurfaceTone, string> = {
 
 const paddings: Record<AdminSurfacePadding, string> = {
   none: "",
-  sm: "p-3 sm:p-4",
-  md: "p-4 sm:p-5",
-  lg: "p-5 sm:p-6",
+  sm: "admin-surface-padding--sm",
+  md: "admin-surface-padding--md",
+  lg: "admin-surface-padding--lg",
 };
 
 export const AdminSurface = forwardRef<HTMLDivElement, AdminSurfaceProps>(

@@ -473,7 +473,7 @@ function SetupCheckCard({ check, bookingMode }: { check: SetupCheck; bookingMode
                 href={guide.href}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[transform,opacity] duration-150 hover:opacity-85 active:scale-[0.96]"
+                className="admin-button admin-button--primary mt-4"
               >
                 {guide.linkLabel} <ExternalLink className="size-3.5" aria-hidden="true" />
               </a>
@@ -684,7 +684,7 @@ export default function AdminSetupPage() {
               type="button"
               onClick={() => void load()}
               disabled={loading}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--admin-ink)] px-4 text-xs font-semibold text-[var(--admin-surface)] transition-[transform,opacity] duration-150 hover:opacity-85 active:scale-[0.96] disabled:cursor-wait disabled:opacity-55"
+              className="admin-button admin-button--primary"
             >
               <RefreshCw className={cn("size-3.5", loading && "animate-spin")} aria-hidden="true" />{" "}
               Refresh checks
@@ -724,7 +724,7 @@ export default function AdminSetupPage() {
             transition={{ duration: 0.24 }}
             className="space-y-7"
           >
-            <section className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
+            <section className="admin-split">
               <AdminSurface tone="ink" padding="lg" className="relative overflow-hidden">
                 <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-[#d7ff5f]/10 blur-3xl" />
                 <div className="relative">
@@ -846,7 +846,7 @@ export default function AdminSetupPage() {
                     type="button"
                     onClick={() => void syncGoogle("all")}
                     disabled={googleSyncing}
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--admin-ink)] pl-4 pr-3.5 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] duration-150 hover:opacity-85 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50"
+                    className="admin-button admin-button--primary"
                   >
                     <RefreshCw className={cn("size-3.5", googleSyncing && "animate-spin")} /> Sync
                     Workspace
@@ -891,7 +891,7 @@ export default function AdminSetupPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+                  <div className="admin-split admin-split--equal">
                     <div>
                       <div className="flex items-center gap-3">
                         <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]">
@@ -911,7 +911,7 @@ export default function AdminSetupPage() {
                         onChange={(event) => setDriveFolders(event.target.value)}
                         rows={4}
                         placeholder="1AbCdEf..."
-                        className="mt-4 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 font-mono text-xs text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                        className="admin-field mt-4 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 font-mono text-xs text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
                       />
                       <div className="mt-3 flex flex-wrap gap-2">
                         <button
@@ -1001,7 +1001,7 @@ export default function AdminSetupPage() {
                       <p className="admin-copy mt-1 text-pretty text-sm">{description}</p>
                     </div>
                   </div>
-                  <div className="grid gap-3 lg:grid-cols-2">
+                  <div className="admin-grid admin-grid--panels">
                     {checks.map((check) => (
                       <SetupCheckCard key={check.id} check={check} bookingMode={data.bookingMode} />
                     ))}
@@ -1017,7 +1017,7 @@ export default function AdminSetupPage() {
                   What the connected system now does
                 </h2>
               </div>
-              <div className="grid gap-3 lg:grid-cols-3">
+              <div className="admin-grid">
                 {growthLayers.map(({ title, detail, icon: Icon }) => (
                   <AdminSurface key={title} padding="lg">
                     <span className="grid size-10 place-items-center rounded-xl bg-black/[0.045] text-[var(--admin-ink)] dark:bg-white/[0.06]">

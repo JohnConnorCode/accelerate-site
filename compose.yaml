@@ -1,0 +1,29 @@
+name: accelerate
+services:
+  app:
+    build:
+      context: .
+      args:
+        APP_REVISION: ${APP_REVISION:?Run npm run stack:up}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+        NEXT_PUBLIC_SITE_URL: https://${APP_HOST:?Set APP_HOST in .env}
+    env_file: .env
+    environment:
+      NEXT_PUBLIC_SITE_URL: https://${APP_HOST}
+      POSTIZ_ORIGIN: ""
+    restart: unless-stopped
+  proxy:
+    image: ${CADDY_IMAGE:-caddy@sha256:13ba145cba2f3e28fa801994876e4c086d1b95d5aa2a520a734765ffb6b12017}
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      APP_HOST: ${APP_HOST}
+    volumes:
+      - ./deployment/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [app]
+volumes:
+  caddy-data:
+  caddy-config:

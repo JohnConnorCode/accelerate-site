@@ -100,3 +100,10 @@ to read a task without changing its claim; `agent:resume` takes over eligible ex
 The optional machine supervisor can continue a registered original Codex, Claude Code or OpenCode thread with `node scripts/supervisor/cli.mjs recover --provider codex --thread <original-id>`. Its retained repository must be enrolled and machine pressure must have cleared. The foreground provider keeps the registered process identity; only one continuation starts at a time. Existing provider permissions and saved history remain authoritative. Missing history, credentials or credit are reported by the provider, not replaced with a new conversation.
 
 Run heavy tool commands through `node scripts/resource-run.mjs <command> [args...]`. Other launch paths remain unmanaged; `coverage` reports that boundary. `uninstall` resumes owned paused producers safely before disabling management, or explains why management must remain enabled. No repository, transcript or unrelated process is removed.
+
+## Deploy the complete app package
+
+For the app with the bundled Social Marketing runtime, set `APP_HOST` in `.env`
+and set `SOCIAL_MARKETING_ENABLED=true` before running `npm run stack:up`. The root Docker Compose package builds both services
+and routes them through one HTTPS proxy. Postiz requires no second installation.
+See the repository `deployment/README.md` for DNS, updates and retained data.

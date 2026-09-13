@@ -36,7 +36,10 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { MemorySupabase, type Row } from "./lib/memory-supabase";
-import { handleProposalGet, handleProposalPost } from "../src/app/api/proposal/[token]/route";
+import {
+  GET as handleProposalGet,
+  POST as handleProposalPost,
+} from "../src/app/api/proposal/[token]/route";
 import {
   ACCELERATE_TENANT_ID,
   ACCELERATE_TENANT_SLUG,

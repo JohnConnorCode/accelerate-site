@@ -1,0 +1,12 @@
+.git
+.agent-worktrees
+node_modules
+.next*
+.vercel
+.env*
+**/.env*
+plugins/social-marketing/deployment/upstream
+plugins/social-marketing/deployment/source
+plugins/social-marketing/deployment/evidence
+plugins/social-marketing/deployment/private-*
+plugins/social-marketing/deployment/*.previous-*

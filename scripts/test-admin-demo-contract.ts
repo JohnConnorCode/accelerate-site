@@ -207,7 +207,10 @@ for (const file of [
 const demoRuntime = readFileSync("src/lib/admin/demo/runtime.ts", "utf8");
 const fetchJson = readFileSync("src/lib/admin/fetchJson.ts", "utf8");
 const adminReadBody = readFileSync("src/components/admin/AdminReadBody.tsx", "utf8");
-const adminStyles = readFileSync("src/app/globals.css", "utf8");
+const adminStyles =
+  readFileSync("src/app/globals.css", "utf8") +
+  readFileSync("src/app/admin-components.css", "utf8") +
+  readFileSync("src/app/admin-foundations.css", "utf8");
 const bookingsPage = readFileSync("src/app/admin/bookings/page.tsx", "utf8");
 assert.match(
   adminReadBody,

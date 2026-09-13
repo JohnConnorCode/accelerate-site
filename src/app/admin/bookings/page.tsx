@@ -147,7 +147,7 @@ export default function AdminBookingsPage() {
         </div>
         <AdminSurface padding="none" className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] text-left text-sm">
+            <table className="admin-table w-full min-w-[980px] text-left text-sm">
               <thead className="border-b border-[var(--admin-border)] font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--admin-muted)]">
                 <tr>
                   <th className="px-5 py-4">Company</th>
@@ -202,7 +202,7 @@ export default function AdminBookingsPage() {
                         value={item.stage}
                         onChange={(event) => updateStage(item, event.target.value)}
                         aria-label="Booking stage"
-                        className="min-h-10 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 text-xs text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                        className="admin-field admin-field--inline min-h-10 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 text-xs text-[var(--admin-ink)] outline-none focus:border-[var(--admin-ink)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
                       >
                         {stages.map((stage) => (
                           <option key={stage} value={stage}>

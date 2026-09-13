@@ -155,6 +155,22 @@ export function compileAdminTheme(raw: unknown): Record<string, string> {
   const success = readable(t.mode === "dark" ? "#6ee7b7" : "#047857");
   const warning = readable(t.mode === "dark" ? "#fcd34d" : "#92400e");
   return {
+    "--admin-title-font": "var(--admin-font)",
+    "--admin-title-weight": "650",
+    "--admin-title-tracking": "-0.035em",
+    "--admin-label-font": "var(--admin-font)",
+    "--admin-surface-fill": "var(--admin-surface)",
+    "--admin-surface-filter": "none",
+    "--admin-nav-filter": "none",
+    "--admin-nav-shadow": "inset -1px 0 0 var(--admin-nav-rule)",
+    "--admin-nav-radius": "var(--admin-control-radius)",
+    "--admin-nav-active-shadow": "none",
+    "--admin-field-fill": "var(--admin-surface-subtle)",
+    "--admin-control-shadow": "0 1px 2px color-mix(in srgb, var(--admin-ink) 14%, transparent)",
+    "--admin-dock-fill": "var(--admin-sidebar)",
+    "--admin-skin-motion-fast": "150ms",
+    "--admin-skin-motion-enter": "280ms",
+    "--admin-skin-motion-ease": "cubic-bezier(0.2, 0, 0, 1)",
     "--admin-canvas": p.canvas,
     "--admin-surface": p.surface,
     "--admin-surface-subtle": mix(p.ink, 3, p.surface),

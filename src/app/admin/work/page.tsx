@@ -442,7 +442,7 @@ export default function WorkPage() {
             <button
               type="submit"
               disabled={busy || task?.status === "completed"}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[var(--admin-ink)] px-4 text-sm font-semibold text-[var(--admin-surface)] disabled:opacity-50"
+              className="admin-button admin-button--primary w-full"
             >
               {busy && <Loader2 className="size-4 animate-spin" />}Save changes
             </button>

@@ -365,7 +365,7 @@ export function AIRunHistory() {
   return (
     <div className="space-y-4">
       {data && (
-        <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <section className="admin-grid admin-grid--metrics">
           {metrics.map(({ label, value, icon: Icon }) => (
             <AdminSurface key={label} padding="md">
               <div className="flex items-start justify-between gap-2">
@@ -392,7 +392,7 @@ export function AIRunHistory() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search prompts, outcomes, models, or tools"
-              className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-10 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:shadow-[var(--admin-shadow-border-hover)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+              className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-10 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:shadow-[var(--admin-shadow-border-hover)] focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
             />
           </label>
           <div className="grid grid-cols-2 gap-2 sm:flex">
@@ -401,7 +401,7 @@ export function AIRunHistory() {
               <select
                 value={windowValue}
                 onChange={(event) => setWindowValue(event.target.value)}
-                className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] sm:w-32"
+                className="admin-field min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] sm:w-32"
               >
                 <option value="24h">Last 24 hours</option>
                 <option value="7d">Last 7 days</option>
@@ -414,7 +414,7 @@ export function AIRunHistory() {
               <select
                 value={status}
                 onChange={(event) => setStatus(event.target.value)}
-                className="min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] sm:w-32"
+                className="admin-field min-h-11 w-full rounded-xl bg-[var(--admin-surface)] px-3 text-xs font-semibold capitalize text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] sm:w-32"
               >
                 <option value="all">All statuses</option>
                 <option value="completed">Completed</option>

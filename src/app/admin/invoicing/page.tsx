@@ -364,7 +364,7 @@ export default function InvoicingPage() {
                 </button>
               </details>
             )}
-            <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)]">
+            <div className="admin-split">
               <AdminSurface padding="lg">
                 <h2 className="text-lg font-semibold">New customer invoice</h2>
                 <p className="admin-copy mt-2 text-sm">
