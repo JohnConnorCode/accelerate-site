@@ -123,7 +123,11 @@ export default function InvoicingPage() {
       await fetchJson("/api/admin/tenant/providers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "configure_stripe", apiKey, ...(webhookSecret.trim() ? { webhookSecret: webhookSecret.trim() } : {}) }),
+        body: JSON.stringify({
+          action: "configure_stripe",
+          apiKey,
+          ...(webhookSecret.trim() ? { webhookSecret: webhookSecret.trim() } : {}),
+        }),
       });
       setApiKey("");
       setWebhookSecret("");
@@ -286,7 +290,8 @@ export default function InvoicingPage() {
                 minLength={20}
               />
               <label className="mt-4 block text-sm font-medium" htmlFor="stripe-webhook-secret">
-                Stripe webhook signing secret <span className="font-normal text-[var(--admin-muted)]">(optional now)</span>
+                Stripe webhook signing secret{" "}
+                <span className="font-normal text-[var(--admin-muted)]">(optional now)</span>
               </label>
               <input
                 id="stripe-webhook-secret"
@@ -353,8 +358,14 @@ export default function InvoicingPage() {
                     disabled={busy}
                     onChange={(event) => setApiKey(event.target.value)}
                   />
-                  <label className="mt-4 block text-sm font-medium" htmlFor="stripe-replacement-webhook-secret">
-                    Replacement webhook signing secret <span className="font-normal text-[var(--admin-muted)]">(leave blank to keep current)</span>
+                  <label
+                    className="mt-4 block text-sm font-medium"
+                    htmlFor="stripe-replacement-webhook-secret"
+                  >
+                    Replacement webhook signing secret{" "}
+                    <span className="font-normal text-[var(--admin-muted)]">
+                      (leave blank to keep current)
+                    </span>
                   </label>
                   <input
                     id="stripe-replacement-webhook-secret"

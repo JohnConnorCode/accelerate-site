@@ -139,10 +139,12 @@ export async function tenantStripeClient(db: SupabaseClient) {
   const encrypted = (connection.encrypted_credentials as Record<string, unknown>)?.api_key;
   if (typeof encrypted !== "string") throw new Error("Stripe credential is unavailable");
   const apiKey = decryptTenantSecret(encrypted, tenantId, "stripe", "api_key");
-  const encryptedWebhook = (connection.encrypted_credentials as Record<string, unknown>)?.webhook_secret;
-  const webhookSecret = typeof encryptedWebhook === "string"
-    ? decryptTenantSecret(encryptedWebhook, tenantId, "stripe", "webhook_secret")
-    : null;
+  const encryptedWebhook = (connection.encrypted_credentials as Record<string, unknown>)
+    ?.webhook_secret;
+  const webhookSecret =
+    typeof encryptedWebhook === "string"
+      ? decryptTenantSecret(encryptedWebhook, tenantId, "stripe", "webhook_secret")
+      : null;
   const mode = stripeKeyMode(apiKey);
   const assertCurrentConnection = async () => {
     const current = await tenantStripeClient(db);

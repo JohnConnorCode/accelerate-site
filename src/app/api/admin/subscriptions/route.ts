@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
-import { archiveSubscriptionPlan, createSubscriptionPlan, listSubscriptionWorkspace } from "@/lib/revenue-os/subscriptions";
+import {
+  archiveSubscriptionPlan,
+  createSubscriptionPlan,
+  listSubscriptionWorkspace,
+} from "@/lib/revenue-os/subscriptions";
 import { planInputSchema } from "@/lib/revenue-os/subscriptions-contract";
 
 const actionSchema = z.discriminatedUnion("action", [
@@ -16,7 +20,10 @@ export async function GET() {
   try {
     return NextResponse.json(await listSubscriptionWorkspace(authorization.database));
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Subscriptions could not be read" }, { status: 422 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Subscriptions could not be read" },
+      { status: 422 },
+    );
   }
 }
 
@@ -31,13 +38,33 @@ export async function POST(request: NextRequest) {
     return null;
   });
   const parsed = actionSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid subscription action" }, { status: 400 });
+  if (!parsed.success)
+    return NextResponse.json({ error: "Invalid subscription action" }, { status: 400 });
   try {
     if (parsed.data.action === "create_plan") {
-      return NextResponse.json(await createSubscriptionPlan(authorization.database, parsed.data.plan, parsed.data.requestId, authorization.user.email || "admin", authorization.user.id));
+      return NextResponse.json(
+        await createSubscriptionPlan(
+          authorization.database,
+          parsed.data.plan,
+          parsed.data.requestId,
+          authorization.user.email || "admin",
+          authorization.user.id,
+        ),
+      );
     }
-    return NextResponse.json(await archiveSubscriptionPlan(authorization.database, parsed.data.planId, parsed.data.requestId, authorization.user.email || "admin", authorization.user.id));
+    return NextResponse.json(
+      await archiveSubscriptionPlan(
+        authorization.database,
+        parsed.data.planId,
+        parsed.data.requestId,
+        authorization.user.email || "admin",
+        authorization.user.id,
+      ),
+    );
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Subscription action failed" }, { status: 422 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Subscription action failed" },
+      { status: 422 },
+    );
   }
 }

@@ -96,32 +96,33 @@ const migrationForIndex = (name: string) =>
   ["billing_plans_active_idx", "billing_subscriptions_customer_idx"].includes(name)
     ? "migrations/20260925-stripe-subscriptions.sql"
     : name === "site_website_revision_history"
-    ? "migrations/20260909012125-installation-website-revisions.sql"
-    : name.startsWith("site_drafts_")
-      ? "migrations/20260917-site-studio-drafts.sql"
-      : name === "idx_drive_documents_content_hash"
-        ? "migrations/20260916-drive-content-indexing.sql"
-        : ["idx_clients_handoff_opportunity_unique", "idx_tasks_delivery_handoff_unique"].includes(
-              name,
-            )
-          ? "migrations/20260920-delivery-handoff-convergence.sql"
-          : name.startsWith("idx_workspace_blueprint_applies")
-            ? "migrations/20260924-workspace-blueprint-applies.sql"
-            : name.startsWith("idx_workspace_blueprint")
-              ? "migrations/20260923-workspace-blueprints.sql"
-              : name.startsWith("idx_ai_conversation_sources") ||
-                  name === "idx_ai_conversations_actor_purpose"
-                ? "migrations/20260921-architect-sessions.sql"
-                : name.startsWith("idx_entity_")
-                  ? ENTITY_REGISTRY_MIGRATION
-                  : name.startsWith("idx_onboarding_templates") ||
-                      name === "idx_clients_opportunity"
-                    ? DELIVERY_HANDOFF_MIGRATION
-                    : name.includes("tenant")
-                      ? "migrations/20260830-shared-database-tenancy.sql"
-                      : name.includes("ai_") || name === "idx_agent_runs_conversation"
-                        ? "migrations/20260824-ai-command-runtime.sql"
-                        : "migrations/20260816-revenue-os.sql";
+      ? "migrations/20260909012125-installation-website-revisions.sql"
+      : name.startsWith("site_drafts_")
+        ? "migrations/20260917-site-studio-drafts.sql"
+        : name === "idx_drive_documents_content_hash"
+          ? "migrations/20260916-drive-content-indexing.sql"
+          : [
+                "idx_clients_handoff_opportunity_unique",
+                "idx_tasks_delivery_handoff_unique",
+              ].includes(name)
+            ? "migrations/20260920-delivery-handoff-convergence.sql"
+            : name.startsWith("idx_workspace_blueprint_applies")
+              ? "migrations/20260924-workspace-blueprint-applies.sql"
+              : name.startsWith("idx_workspace_blueprint")
+                ? "migrations/20260923-workspace-blueprints.sql"
+                : name.startsWith("idx_ai_conversation_sources") ||
+                    name === "idx_ai_conversations_actor_purpose"
+                  ? "migrations/20260921-architect-sessions.sql"
+                  : name.startsWith("idx_entity_")
+                    ? ENTITY_REGISTRY_MIGRATION
+                    : name.startsWith("idx_onboarding_templates") ||
+                        name === "idx_clients_opportunity"
+                      ? DELIVERY_HANDOFF_MIGRATION
+                      : name.includes("tenant")
+                        ? "migrations/20260830-shared-database-tenancy.sql"
+                        : name.includes("ai_") || name === "idx_agent_runs_conversation"
+                          ? "migrations/20260824-ai-command-runtime.sql"
+                          : "migrations/20260816-revenue-os.sql";
 const migrationForPolicy = (table: string, name: string) =>
   [
     "billing_plans",
@@ -132,12 +133,12 @@ const migrationForPolicy = (table: string, name: string) =>
   ].includes(table)
     ? "migrations/20260925-stripe-subscriptions.sql"
     : table === "entity_types" || table === "entity_links"
-    ? ENTITY_REGISTRY_MIGRATION
-    : table === "onboarding_templates"
-      ? DELIVERY_HANDOFF_MIGRATION
-      : name === "Tenant member access" || ["tenants", "tenant_memberships"].includes(table)
-        ? "migrations/20260830-shared-database-tenancy.sql"
-        : migrationFor(table);
+      ? ENTITY_REGISTRY_MIGRATION
+      : table === "onboarding_templates"
+        ? DELIVERY_HANDOFF_MIGRATION
+        : name === "Tenant member access" || ["tenants", "tenant_memberships"].includes(table)
+          ? "migrations/20260830-shared-database-tenancy.sql"
+          : migrationFor(table);
 const requirements: Requirement[] = [
   ...REVENUE_SCHEMA_TABLES.flatMap(({ table, columns }) => [
     {

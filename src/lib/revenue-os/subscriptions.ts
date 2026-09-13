@@ -697,34 +697,30 @@ export async function processStripeWebhook(db: SupabaseClient, event: ProviderOb
           : typeof object.customer_details?.name === "string"
             ? object.customer_details.name
             : "";
-      const { error: customerError } = await db
-        .from("billing_customers")
-        .upsert(
-          {
-            user_id: z.uuid().parse(metadata.accelerate_user_id),
-            email: customerEmail,
-            name: customerName,
-            stripe_customer_id: fields.stripeCustomerId,
-          },
-          { onConflict: "tenant_id,user_id" },
-        );
+      const { error: customerError } = await db.from("billing_customers").upsert(
+        {
+          user_id: z.uuid().parse(metadata.accelerate_user_id),
+          email: customerEmail,
+          name: customerName,
+          stripe_customer_id: fields.stripeCustomerId,
+        },
+        { onConflict: "tenant_id,user_id" },
+      );
       if (customerError) throw new Error("Billing customer could not be saved");
-      const { error: subscriptionError } = await db
-        .from("billing_subscriptions")
-        .upsert(
-          {
-            user_id: z.uuid().parse(metadata.accelerate_user_id),
-            plan_id: z.uuid().parse(metadata.accelerate_plan_id),
-            stripe_subscription_id: fields.stripeSubscriptionId,
-            stripe_customer_id: fields.stripeCustomerId,
-            stripe_price_id: fields.stripePriceId,
-            status: fields.status,
-            current_period_start: fields.currentPeriodStart,
-            current_period_end: fields.currentPeriodEnd,
-            cancel_at_period_end: fields.cancelAtPeriodEnd,
-          },
-          { onConflict: "tenant_id,stripe_subscription_id" },
-        );
+      const { error: subscriptionError } = await db.from("billing_subscriptions").upsert(
+        {
+          user_id: z.uuid().parse(metadata.accelerate_user_id),
+          plan_id: z.uuid().parse(metadata.accelerate_plan_id),
+          stripe_subscription_id: fields.stripeSubscriptionId,
+          stripe_customer_id: fields.stripeCustomerId,
+          stripe_price_id: fields.stripePriceId,
+          status: fields.status,
+          current_period_start: fields.currentPeriodStart,
+          current_period_end: fields.currentPeriodEnd,
+          cancel_at_period_end: fields.cancelAtPeriodEnd,
+        },
+        { onConflict: "tenant_id,stripe_subscription_id" },
+      );
       if (subscriptionError) throw new Error("Subscription could not be saved");
     } else if (
       [
