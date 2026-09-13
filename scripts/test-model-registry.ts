@@ -32,9 +32,11 @@ async function main() {
   assert.equal(getOpenRouterModel("request/selected-model"), "request/selected-model");
   if (previousOverride === undefined) delete process.env.OPENROUTER_MODEL;
   else process.env.OPENROUTER_MODEL = previousOverride;
-  assert.ok(AI_JOBS.filter((job) => job.key !== "site-page-draft").every((job) =>
-    job.defaultModel === DEFAULT_OPENROUTER_MODEL,
-  ));
+  assert.ok(
+    AI_JOBS.filter((job) => job.key !== "site-page-draft").every(
+      (job) => job.defaultModel === DEFAULT_OPENROUTER_MODEL,
+    ),
+  );
 
   const mem = new MemorySupabase({ admin_settings: [], activities: [] });
   const db = mem.client as never;
