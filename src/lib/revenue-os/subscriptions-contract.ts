@@ -49,6 +49,24 @@ export function formatPlanPrice(amount: number, currency: string) {
   }).format(amount / 100);
 }
 
+export function formatPlanInterval(interval: string) {
+  return interval === "year" ? "annual" : "monthly";
+}
+
+export function formatSubscriptionStatus(status: string) {
+  const labels: Record<string, string> = {
+    incomplete: "Checkout incomplete",
+    incomplete_expired: "Checkout expired",
+    trialing: "Trial",
+    active: "Active",
+    past_due: "Payment past due",
+    canceled: "Canceled",
+    unpaid: "Payment failed",
+    paused: "Paused",
+  };
+  return labels[status] ?? "Needs review";
+}
+
 export function stripeObjectId(value: unknown, prefix: "prod" | "price" | "cus" | "sub" | "cs") {
   const parsed = z.string().regex(new RegExp(`^${prefix}_[A-Za-z0-9]{1,80}$`)).safeParse(value);
   return parsed.success ? parsed.data : null;

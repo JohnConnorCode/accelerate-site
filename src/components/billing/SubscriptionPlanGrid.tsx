@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatPlanPrice } from "@/lib/revenue-os/subscriptions-contract";
+import { formatPlanInterval, formatPlanPrice } from "@/lib/revenue-os/subscriptions-contract";
 
 type Plan = { id: string; name: string; description: string; currency: string; interval: string; amount: number };
 
@@ -41,13 +41,14 @@ export function SubscriptionPlanGrid({ tenantSlug, plans }: { tenantSlug: string
           <article key={plan.id} className="flex flex-col rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold tracking-tight">{plan.name}</h2>
             <p className="mt-2 min-h-12 text-sm leading-6 text-black/60">{plan.description || "A clear recurring service plan for your business."}</p>
-            <p className="mt-6 text-3xl font-semibold tabular-nums">{formatPlanPrice(plan.amount, plan.currency)}<span className="text-sm font-normal text-black/50"> / {plan.interval}</span></p>
+            <p className="mt-6 text-3xl font-semibold tabular-nums">{formatPlanPrice(plan.amount, plan.currency)}<span className="text-sm font-normal text-black/50"> / {formatPlanInterval(plan.interval)}</span></p>
             <button type="button" onClick={() => void choose(plan.id)} disabled={busy !== null} className="mt-6 min-h-11 rounded-xl bg-black px-4 text-sm font-semibold text-white transition-transform hover:opacity-85 active:scale-[0.96] disabled:opacity-50">
-              {busy === plan.id ? "Opening checkout…" : "Choose plan"}
+              {busy === plan.id ? "Opening secure checkout…" : "Continue to secure checkout"}
             </button>
           </article>
         ))}
       </div>
+      <p className="mt-5 text-sm leading-6 text-black/55">Plans renew automatically. Payment details are handled by Stripe, and you can change or cancel at your next renewal from your account.</p>
     </div>
   );
 }

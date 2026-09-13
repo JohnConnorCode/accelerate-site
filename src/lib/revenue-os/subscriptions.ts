@@ -254,8 +254,14 @@ export async function updateCustomerSubscription(db: SupabaseClient, userId: str
     const client = await tenantStripeClient(db);
     if (action === "change") {
       if (!parsed.planId) throw new Error("Choose a plan");
-      const { data: nextPlan } = await db.from("billing_plans").select("id,active").eq("id", parsed.planId).maybeSingle();
+      if (!sub.plan_id) throw new Error("Current plan details are unavailable");
+      const [{ data: nextPlan, error: nextPlanError }, { data: currentPlan, error: currentPlanError }] = await Promise.all([
+        db.from("billing_plans").select("id,active,currency").eq("id", parsed.planId).maybeSingle(),
+        db.from("billing_plans").select("currency").eq("id", sub.plan_id).maybeSingle(),
+      ]);
+      if (nextPlanError || currentPlanError) throw new Error("Plan details could not be read");
       if (!nextPlan?.active) throw new Error("That plan is no longer available");
+      if (currentPlan && nextPlan.currency !== currentPlan.currency) throw new Error("Plan changes must keep the same currency as the current subscription");
       const { data: updated, error } = await db.from("billing_subscriptions").update({ pending_plan_id: parsed.planId, pending_change_at: sub.current_period_end, updated_at: new Date().toISOString() }).eq("id", sub.id).select("*").single();
       if (error || !updated) throw new Error("Plan change could not be scheduled");
       await finishOperation(db, key, "succeeded", updated, undefined, parsed.subscriptionId);
