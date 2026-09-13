@@ -55,11 +55,11 @@ const BUILT_IN_MODEL_ID = DEFAULT_OPENROUTER_MODEL;
 const BUILT_IN_REGISTRATION: Omit<ModelRegistration, "evalPassed" | "evaluatedAt" | "evaluatedBy"> =
   {
     id: BUILT_IN_MODEL_ID,
-    label: "GPT-4.1 Mini (default)",
+    label: "DeepSeek V4.1 Flash (default)",
     costTier: "low",
     supportsTools: true,
     supportsJson: true,
-    contextWindow: 1_047_576,
+    contextWindow: 1_048_576,
   };
 
 export const AI_JOBS: readonly JobRegistration[] = [

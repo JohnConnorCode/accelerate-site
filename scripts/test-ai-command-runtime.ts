@@ -17,6 +17,7 @@ import {
 } from "../src/lib/revenue-os/ai-conversations";
 import { extractBusinessModel } from "../src/lib/revenue-os/architect-understanding";
 import { openRouterChatStream } from "../src/lib/ai/openrouter";
+import { DEFAULT_OPENROUTER_MODEL } from "../src/lib/ai/openrouter-models";
 
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 const realFetch = globalThis.fetch;
@@ -42,7 +43,7 @@ async function main() {
   // Controlled transport fixture only; this is not an evaluation of a live model.
   await setModelEvalStatus(database, {
     tenantId: ACCELERATE_TENANT_ID,
-    modelId: "openai/gpt-4.1-mini",
+    modelId: DEFAULT_OPENROUTER_MODEL,
     passed: true,
     actorEmail: "fixture@example.test",
     notes: "Mock transport fixture",

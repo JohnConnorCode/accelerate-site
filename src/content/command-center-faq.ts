@@ -44,7 +44,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Does Site Studio publish a page when I create a draft?",
     answer:
-      "No. Creating, applying an AI suggestion and saving all keep the work private. The installation owner separately reviews and publishes a saved website revision. For example, create a bookkeeping page, choose Muse Spark 1.3 or browse current models by provider and price, review the copy and phone preview, save, then review publication. History supports rollback. Private tenant drafts remain separate. The Site Studio guide explains costs, recovery and importing content into your own installation.",
+      "No. Creating, applying an AI suggestion and saving all keep the work private. The installation owner separately reviews and publishes a saved website revision. For example, create a bookkeeping page, use the DeepSeek V4.1 Flash default or choose another model by provider and price, review the copy and phone preview, save, then review publication. History supports rollback. Private tenant drafts remain separate. The Site Studio guide explains costs, recovery and importing content into your own installation.",
   },
   {
     question: "What does a complete delivery handoff mean?",
@@ -109,7 +109,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we control our AI provider costs?",
     answer:
-      "Yes. Each tenant can use the shared provider configuration or bring its own OpenRouter API key and approved model settings. Keys stay server-side, and the workspace keeps provider and usage behavior inside the tenant boundary.",
+      "Yes. Each tenant can use the shared provider configuration or bring its own OpenRouter API key and approved model settings. DeepSeek V4.1 Flash is the default for AI workflows, while the model remains optional and can be changed per installation or request. Keys stay server-side, and the workspace keeps provider and usage behavior inside the tenant boundary.",
   },
   {
     question: "How is this different from the notetaker we already have?",

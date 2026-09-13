@@ -47,7 +47,7 @@ assert.throws(() =>
     { field: title.key, text: "Two" },
   ]),
 );
-assert.equal(DEFAULT_SITE_MODEL, "meta/muse-spark-1.3");
+assert.equal(DEFAULT_SITE_MODEL, "deepseek/deepseek-v4.1-flash");
 assert.equal(siteModel("nex-agi/nex-n2.5-mini:free").completion, 0);
 assert.throws(() => siteModel("unknown/free-model"));
 assert.equal(

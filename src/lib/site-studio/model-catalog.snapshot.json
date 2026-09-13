@@ -1,6 +1,19 @@
 {
-  "observedAt": "2026-09-09T23:16:38.287Z",
+  "observedAt": "2026-09-13T22:38:14.000Z",
   "models": [
+    {
+      "id": "deepseek/deepseek-v4.1-flash",
+      "label": "DeepSeek V4.1 Flash",
+      "provider": "deepseek",
+      "tier": "low",
+      "contextWindow": 1048576,
+      "prompt": 0.15,
+      "completion": 0.6,
+      "request": 0,
+      "created": 1789021285,
+      "supportsTemperature": true,
+      "reasoningEffort": "low"
+    },
     {
       "id": "inception/mercury-2.5",
       "label": "Mercury 2.5",

@@ -12,6 +12,7 @@ import {
   resolveModelForJob,
   setModelEvalStatus,
 } from "../src/lib/ai/model-registry";
+import { DEFAULT_OPENROUTER_MODEL, getOpenRouterModel } from "../src/lib/ai/openrouter-models";
 import { MemorySupabase } from "./lib/memory-supabase";
 
 const TENANT = "tenant-a";
@@ -24,6 +25,16 @@ async function main() {
     assert.ok(job.defaultModel, `${job.key} must name a default model`);
     assert.ok(job.minContextWindow > 0, `${job.key} must declare a context floor`);
   }
+  assert.equal(DEFAULT_OPENROUTER_MODEL, "deepseek/deepseek-v4.1-flash");
+  const previousOverride = process.env.OPENROUTER_MODEL;
+  process.env.OPENROUTER_MODEL = "operator/selected-model";
+  assert.equal(getOpenRouterModel(), "operator/selected-model");
+  assert.equal(getOpenRouterModel("request/selected-model"), "request/selected-model");
+  if (previousOverride === undefined) delete process.env.OPENROUTER_MODEL;
+  else process.env.OPENROUTER_MODEL = previousOverride;
+  assert.ok(AI_JOBS.filter((job) => job.key !== "site-page-draft").every((job) =>
+    job.defaultModel === DEFAULT_OPENROUTER_MODEL,
+  ));
 
   const mem = new MemorySupabase({ admin_settings: [], activities: [] });
   const db = mem.client as never;
@@ -40,6 +51,7 @@ async function main() {
       (await resolveModelForJob(siteDb, TENANT, "site-page-draft", choice.id)).resolved,
       choice.id,
     );
+    if (choice.id === DEFAULT_OPENROUTER_MODEL) continue;
     await assert.rejects(
       () => resolveModelForJob(siteDb, TENANT, "copilot-answer", choice.id),
       /not registered/,
@@ -48,7 +60,7 @@ async function main() {
   await registerModel(siteDb, {
     tenantId: TENANT,
     id: DEFAULT_SITE_MODEL,
-    label: "Locally restricted Muse",
+    label: "Locally restricted DeepSeek",
     supportsJson: false,
     actorEmail: "founder@example.test",
   });
@@ -86,8 +98,8 @@ async function main() {
   // The built-in default resolves from static catalog facts (no tenant
   // data), so even a foreign tenant sees it — unevaluated, which still
   // blocks consequential use. Tenant-registered rows must never cross.
-  const foreignBuiltin = await getModelRegistration(db, FOREIGN, "openai/gpt-4.1-mini");
-  assert.equal(foreignBuiltin?.label, "GPT-4.1 Mini (default)");
+  const foreignBuiltin = await getModelRegistration(db, FOREIGN, DEFAULT_OPENROUTER_MODEL);
+  assert.equal(foreignBuiltin?.label, "DeepSeek V4.1 Flash (default)");
   assert.equal(foreignBuiltin?.evalPassed, false);
 
   // 3. Resolution matrix. The default is low-cost and unevaluated, so even

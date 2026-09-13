@@ -173,7 +173,7 @@ try {
     status: "passed",
     checks: [
       "Create page and live preview",
-      "Live-compatible model catalogue; Muse default, latest Opus, search/provider/cost filters, empty results, refresh, and explicit free selection",
+      "Live-compatible model catalogue; DeepSeek V4.1 Flash default, latest Opus, search/provider/cost filters, empty results, refresh, and explicit free selection",
       "Review AI suggestion before local apply; undo and redo",
       "Save remains private; publish exact draft; rollback preserves newer draft",
       "Collection entry rich content preview",

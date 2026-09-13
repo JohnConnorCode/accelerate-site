@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "deepseek-default-ai-model",
+    slug: "deepseek-default-ai-model",
+    title: "DeepSeek V4.1 Flash is the default AI model",
+    description:
+      "AI workflows now use DeepSeek V4.1 Flash by default through the shared OpenRouter gateway, including Command Center conversations, structured drafts and Site Studio page preparation. Existing model settings remain optional: installations and individual requests can choose another approved model, while provider keys, capability checks, budgets and usage receipts continue to apply.",
+    category: "improvement",
+    publishedAt: "2026-09-13",
+  },
+  {
     id: "customer-subscriptions",
     slug: "customer-subscriptions",
     title: "Sell and manage recurring plans in the workspace",
