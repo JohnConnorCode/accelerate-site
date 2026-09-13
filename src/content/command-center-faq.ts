@@ -54,7 +54,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How do Today and Work fit together?",
     answer:
-      "Today opens with an actionable snapshot of decisions, follow-up and pipeline figures. Customize saves personal or shared arrangements of decisions, commitments, coworker progress and enabled App follow-up; More contains view creation, duplication and deletion. Desktop columns stack independently, while narrow screens retain saved order. Work provides task editing and the same approvals. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
+      "Today puts decisions and follow-up first, then business changes and operational alerts. Pipeline facts, upcoming commitments and automation are supporting context. Automation details and completed results expand on demand. Customize preserves personal or shared arrangements; More contains view creation, duplication, deletion and the classic-view recovery option. Work provides task editing and the same approvals. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
   },
   {
     question: "Can we build a completely different App or interface?",

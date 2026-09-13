@@ -117,3 +117,47 @@ section gaps, narrow-screen module order, repeated-outcome suppression and mobil
 view-label width, alongside the existing saved-view and inspector journeys.
 Final follow-up CI and deployment receipts belong to its PR; the initial release
 receipt above is not proof that the follow-up is live.
+
+## Content-first replacement and shared motion
+
+The founder rejected the equal-weight card composition and approved an
+action-first plan, using Linear's priority inbox and Shopify's task-oriented
+Home as interaction references. The replacement keeps canonical actions and
+saved documents. Untouched built-in views lead with decisions and follow-up,
+followed immediately by business changes and separately labeled operational
+alerts. Two pipeline facts, upcoming commitments and automation are supporting
+context. Current automation is bounded to three visible records, with full
+details and completed results disclosed separately. Duplicate AI prompts and
+empty App promotions are absent from the standard layout. Distinct section
+icons do not become repeated list icons. Customized views retain their order.
+
+The reported sparse/error-heavy state is now an explicit browser fixture.
+The production-build dashboard passed 28 state/viewport combinations, including
+1100px and the reported one-task/two-alert/four-pending/one-completed case.
+Production screenshots were opened at desktop and mobile sizes; task editing,
+snooze/completion, approvals, source context and fictional isolation passed.
+The guide screenshot is generated from that production-build fixture.
+
+Shared motion inspection found nearly opaque entrance keyframes (92–94%), an
+arbitrary wrapper-depth stagger, and an async entrance conditional on a visible
+placeholder. AdminRouteStage now registers semantic groups before paint and
+newly inserted content during mutation delivery. One CSS sequence provides a
+true fade and six-pixel rise, with 60ms stagger capped at 180ms. A WeakSet keeps
+existing sections from replaying on refresh. Semantic CSS also covers markup
+before hydration; no full-route blur or imperative animation engine was added.
+
+The first navigation verification server was mistakenly started without the
+artifact's deployment ID. This caused full document reloads, lost in-page
+instrumentation and incorrect focus handoffs. Those failed receipts remain
+available. Subsequent runs must pass the identity read from the built server
+configuration; changing application caching or weakening navigation assertions
+is not a remedy. Final frame, persistent-profile, CI and release receipts remain
+separate from the implementation evidence above.
+
+With the correct server identity, the persistent-profile sweep passed 120
+navigations with zero document reloads, stale cached RSC responses or runtime
+errors. The focused Back journey also identified an actual Today lifecycle
+defect: the mount-time scope reset discarded an already-cached snapshot. Today
+now initializes from the scoped cache and resets only when its scope changes.
+The browser regression waits for committed content before recording scroll and
+checks that Back returns to usable data at the saved reading position.

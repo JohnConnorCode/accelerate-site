@@ -140,7 +140,7 @@ assert.match(
 );
 assert.doesNotMatch(
   routeStage,
-  /useEffect|\.animate\(|MutationObserver/,
+  /\buseEffect\b|\.animate\(/,
   "Route motion must not start after paint from a client effect",
 );
 assert.match(
@@ -407,7 +407,7 @@ assert.match(
 );
 assert.match(
   styles,
-  /admin-route-section-in var\(--admin-motion-enter\)/,
+  /admin-route-section-in 280ms/,
   "Admin entrance must remain perceptible without delaying useful interaction",
 );
 assert.match(
@@ -416,9 +416,37 @@ assert.match(
   "Ready route content must use a restrained semantic rise",
 );
 assert.match(
-  styles,
-  /nth-child\(n \+ 5\)\s*\{[^}]*72ms/,
+  routeStage,
+  /Math\.min\(index\+\+, 3\) \* 60/,
   "Committed admin sections must cap their semantic stagger",
+);
+assert.match(routeStage, /useLayoutEffect/, "Mark initial semantic sections before paint");
+assert.match(routeStage, /new WeakSet/, "Refreshes must not replay existing sections");
+const todayWorkspace = readFileSync("src/components/admin/TodayWorkspace.tsx", "utf8");
+assert.match(
+  todayWorkspace,
+  /useState<TodaySnapshot \| null>\(query.data \?\? null\)/,
+  "Cached Today data must be available on first render",
+);
+assert.match(
+  todayWorkspace,
+  /previousScope.current === scopeKey/,
+  "Mounting Today must not clear a cached snapshot",
+);
+assert.match(
+  routeStage,
+  /new MutationObserver\(mark\)/,
+  "Late content must join the same entrance owner",
+);
+assert.doesNotMatch(
+  asyncRegion,
+  /showFallback && "admin-async-reveal"/,
+  "Fast reads must not skip their entrance",
+);
+assert.match(
+  styles,
+  /@keyframes admin-route-section-in\s*\{\s*from\s*\{\s*opacity: 0;/,
+  "An entrance must visibly fade, not start nearly opaque",
 );
 const adminRouteMotion = styles.slice(
   styles.indexOf("@keyframes admin-route-stage-in"),

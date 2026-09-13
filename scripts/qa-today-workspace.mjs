@@ -7,7 +7,7 @@ mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const results = [];
 try {
-  for (const width of [1440, 820, 390]) {
+  for (const width of [1440, 1100, 820, 390]) {
     const context = await browser.newContext({
       viewport: { width, height: 1000 },
       reducedMotion: width === 390 ? "reduce" : "no-preference",
@@ -84,7 +84,9 @@ try {
         .evaluate((node) => getComputedStyle(node).backgroundImage),
       "none",
     );
-    assert.equal(await page.locator('[data-today-module="brief"] a').count(), 4);
+    assert.equal(await page.locator('[data-today-module="brief"] a').count(), 2);
+    assert.equal(await page.locator('[data-today-module="ai"]').count(), 0);
+    assert.equal(await page.locator('[data-today-module="attention"] header svg').count(), 1);
     await page.getByLabel("Today view", { exact: true }).focus();
     await page.keyboard.press("Tab");
     assert.equal(
@@ -98,7 +100,7 @@ try {
       (await window.__todayTestFetch("/api/admin/revenue-os/today")).json(),
     );
     assert.ok(original.attention.data.length);
-    for (const content of ["busy", "sparse", "one", "uneven", "empty", "partial"]) {
+    for (const content of ["busy", "sparse", "one", "uneven", "reported", "empty", "partial"]) {
       await page.evaluate(
         ({ original, content }) => {
           const fixture = structuredClone(original);
@@ -130,6 +132,59 @@ try {
             fixture.attention.message = "Tasks are temporarily unavailable.";
             fixture.facts.state = "partial";
           }
+          if (content === "reported") {
+            const task =
+              original.attention.data.find((item) => item.attentionKind === "work") ??
+              original.attention.data[0];
+            fixture.attention.data = [
+              {
+                ...task,
+                title: "Reply to new inquiry: Example Co",
+                attentionKind: "work",
+                priorityReason: "Overdue commitment",
+                dueAt: "2026-09-02T12:00:00Z",
+              },
+              ...["work-engine", "unreconciled-work"].map((id) => ({
+                ...task,
+                id: "system:" + id,
+                sourceId: id,
+                sourceType: "operational_health",
+                attentionKind: "watch",
+                title: id + " needs attention",
+                priorityReason: "Automated work did not complete cleanly",
+                urgency: "critical",
+                dueAt: null,
+              })),
+            ];
+            fixture.attention.state = "ready";
+            fixture.handling.data = [
+              {
+                ...original.handling.data[0],
+                id: "completed-brief",
+                title: "Daily business brief",
+                status: "completed",
+              },
+              ...[
+                "Identify high-stage deals without recent activity",
+                "Detect overdue payments and stalled won deals",
+                "Detect significant week-over-week pipeline velocity changes",
+                "Detect pipeline stage bottlenecks",
+              ].map((title, i) => ({
+                ...original.handling.data[0],
+                id: "pending-" + i,
+                title,
+                status: "pending",
+                owner: "Workspace",
+                nextCheckAt: "2026-09-13T06:00:00Z",
+                nextCheckReason: "Failed: Coworker not found. Retrying in 5 minutes.",
+                outcome: "Coworker not found.",
+              })),
+            ];
+            fixture.handling.state = "ready";
+            fixture.apps.data = [];
+            fixture.metrics.data.openOpportunities = 2;
+            fixture.metrics.data.pipelineValue = 4000;
+          }
           window.__todayFixture = fixture;
         },
         { original, content },
@@ -149,6 +204,36 @@ try {
         ),
       );
       assert.equal(overflow, false, width + " " + content + " overflows");
+      if (content === "reported") {
+        assert.equal(await page.locator('[data-today-module="attention"] article').count(), 1);
+        assert.equal(await page.locator('[data-today-module="changes"] article').count(), 2);
+        assert.equal(
+          await page.locator('[data-today-module="handling"] article:visible').count(),
+          3,
+        );
+        assert.equal(await page.locator('[data-today-module="apps"]').count(), 0);
+        const detail = page.locator('[data-today-module="handling"] article details').first();
+        await detail.locator("summary").click();
+        await detail
+          .getByText("Failed: Coworker not found. Retrying in 5 minutes.", { exact: true })
+          .waitFor();
+        assert.equal(await detail.getByText("Coworker not found.", { exact: true }).count(), 0);
+        await detail.locator("summary").click();
+        if (width >= 1100) {
+          assert(
+            await page
+              .locator('[data-today-module="changes"]')
+              .evaluate((node) => node.getBoundingClientRect().bottom < 900),
+            "Reported alerts fall below the desktop viewport",
+          );
+          assert(
+            await page
+              .locator('[data-today-module="handling"]')
+              .evaluate((node) => node.getBoundingClientRect().top < 650),
+            "Automation is buried below the fold",
+          );
+        }
+      }
       if (content === "uneven") {
         assert.equal(
           await page.getByText("Source unavailable.", { exact: true }).count(),
@@ -172,20 +257,19 @@ try {
           ),
         };
       });
-      if (width >= 1200) {
+      if (width >= 1100) {
         assert(
           Math.abs(flow.gap - flow.sectionGap) <= 1,
           `${content}: primary column reserves a blank row`,
         );
       } else {
         assert.deepEqual(flow.order, [
-          "brief",
           "attention",
-          "handling",
           "changes",
+          "brief",
           "upcoming",
-          "ai",
-          "apps",
+          "handling",
+          ...(flow.order.includes("apps") ? ["apps"] : []),
         ]);
       }
       results.push({ width, content, overflow });
@@ -195,7 +279,7 @@ try {
     await page.getByLabel("View name", { exact: true }).fill("Focused day");
     await page.getByLabel("Save for", { exact: true }).selectOption("personal");
     await page.getByLabel("Open this view by default").check();
-    await page.getByRole("button", { name: "Move attention up", exact: true }).click();
+    await page.getByRole("button", { name: "Move changes up", exact: true }).click();
     await page.screenshot({ path: output + "/" + width + "-editor.png" });
     await page.getByRole("button", { name: "Save view", exact: true }).click();
     await page.getByRole("dialog", { name: "Customize Today" }).waitFor({ state: "hidden" });

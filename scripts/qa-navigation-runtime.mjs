@@ -81,6 +81,8 @@ for (const config of [
     waitUntil: "domcontentloaded",
   });
   await page.locator(".admin-main").waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator('[data-today-module="attention"]').waitFor();
+  await page.waitForTimeout(500);
   await page.evaluate(() => {
     document.querySelector(".admin-main").scrollTop = 900;
   });
@@ -119,7 +121,7 @@ for (const config of [
       .filter(
         (animation) =>
           animation.effect?.target instanceof Element &&
-          animation.effect.target.matches("[data-admin-route-stage]"),
+          animation.effect.target.matches("[data-admin-enter]"),
       ).length,
   }));
   if (adminEntrance.fallback)

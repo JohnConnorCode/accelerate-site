@@ -64,10 +64,13 @@ await Promise.race([
 const acknowledgedIn = Date.now() - started;
 check(acknowledgedIn <= 200, `Navigation: tap acknowledgement took ${acknowledgedIn}ms`);
 await page.getByRole("heading", { level: 1, name: "Pipeline" }).waitFor();
-const routeMotion = await page.locator("[data-admin-route-stage]").evaluate((node) => {
-  const style = getComputedStyle(node);
-  return style.animationName !== "none" && Number.parseFloat(style.animationDuration) > 0;
-});
+const routeMotion = await page
+  .locator("[data-admin-route-stage] [data-admin-enter]")
+  .first()
+  .evaluate((node) => {
+    const style = getComputedStyle(node);
+    return style.animationName !== "none" && Number.parseFloat(style.animationDuration) > 0;
+  });
 check(routeMotion, "Navigation: committed Pipeline route has no declared entrance motion");
 check(
   (await page.locator("[data-admin-route-loading]").count()) === 0,
