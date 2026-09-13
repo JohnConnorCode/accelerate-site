@@ -1,7 +1,8 @@
 // Run on the chosen host with owner credentials supplied by its secret manager.
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-process.chdir(fileURLToPath(new URL(".", import.meta.url)));
+const bundled = process.argv.includes("--package");
+process.chdir(fileURLToPath(new URL(bundled ? "../../../" : ".", import.meta.url)));
 const email = process.env.POSTIZ_OWNER_EMAIL;
 const password = process.env.POSTIZ_OWNER_PASSWORD;
 const company = process.env.POSTIZ_OWNER_COMPANY;
@@ -20,7 +21,13 @@ if (
   );
 }
 // Refuse an unresolved release before sending credentials to its container.
-execFileSync("bash", ["./validate-release.sh"], { stdio: "inherit" });
+if (bundled)
+  execFileSync(
+    "docker",
+    ["compose", "exec", "-T", "postiz", "node", "/opt/accelerate-healthcheck.mjs"],
+    { stdio: "inherit", timeout: 15000 },
+  );
+else execFileSync("bash", ["./validate-release.sh"], { stdio: "inherit" });
 const input = JSON.stringify({ email, password, company, provider: "LOCAL" });
 const script = `
 (async () => {

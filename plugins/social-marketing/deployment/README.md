@@ -1,5 +1,10 @@
 # Run the Postiz publishing service
 
+For a new installation, use [the complete Accelerate package](../../../deployment/README.md).
+It builds and runs the app and this runtime together with `npm run stack:up`.
+The service-only commands below are for recovery and isolated verification.
+
+
 This is a separate service deployment. The Accelerate application remains the
 owner of drafts, approvals, scheduling and publication receipts. Postiz needs a
 persistent Linux host, public HTTPS hostname and a LinkedIn application approved

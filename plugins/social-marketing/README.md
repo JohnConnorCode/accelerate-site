@@ -1,8 +1,12 @@
 # Social Marketing
 
+Install this plugin runtime with [the complete app package](../../deployment/README.md).
+`npm run stack:up` includes Postiz; no separate project installation is required.
+LinkedIn authorization and tenant connection setup remain activation steps.
+
 Prepare LinkedIn company-page posts from reviewed source material, approve the
 exact content and time, and inspect provider-backed publication results. This
-optional plugin starts disabled. Its Postiz service runs separately; enabling
+optional plugin starts disabled. Its Postiz service runs inside the bundled stack; enabling
 the module does not provision hosting or connect a LinkedIn account.
 
 ## Publish a reviewed post

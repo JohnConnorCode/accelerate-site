@@ -1,7 +1,7 @@
 name: accelerate-postiz
 services:
   proxy:
-    image: ${CADDY_IMAGE:?Set a digest-pinned Caddy image}
+    image: ${CADDY_IMAGE:-caddy@sha256:13ba145cba2f3e28fa801994876e4c086d1b95d5aa2a520a734765ffb6b12017}
     restart: unless-stopped
     ports: ["80:80", "443:443"]
     environment:
@@ -13,7 +13,7 @@ services:
       - caddy-config:/config
     depends_on: [postiz]
   postiz:
-    image: ${POSTIZ_IMAGE:?Set the digest-pinned patched Postiz image}
+    image: ${POSTIZ_IMAGE:-accelerate-postiz:local}
     restart: unless-stopped
     environment:
       MAIN_URL: https://${POSTIZ_HOST}
@@ -30,8 +30,8 @@ services:
       STORAGE_PROVIDER: local
       UPLOAD_DIRECTORY: /uploads
       NEXT_PUBLIC_UPLOAD_DIRECTORY: /uploads
-      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID:?Configure the LinkedIn application}
-      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET:?Configure the LinkedIn application}
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID:-}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET:-}
       API_LIMIT: "30"
     volumes:
       - postiz-config:/config
@@ -48,7 +48,7 @@ services:
       start_period: 120s
       retries: 5
   postgres:
-    image: ${POSTGRES_IMAGE:?Set a digest-pinned Postgres 17 image}
+    image: ${POSTGRES_IMAGE:-postgres@sha256:67f41722b7a8cbdb868a44a4995c846eddfdc2973bccb291ce937dce88ad5675}
     restart: unless-stopped
     environment:
       POSTGRES_USER: postiz
@@ -61,7 +61,7 @@ services:
       timeout: 3s
       retries: 10
   redis:
-    image: ${REDIS_IMAGE:?Set a digest-pinned Redis 7 image}
+    image: ${REDIS_IMAGE:-redis@sha256:71da9275c5f3fcb97d0fa0c8c5b36cc995327265420f17a04bfd544f458059f7}
     command: ["redis-server", "--appendonly", "yes"]
     restart: unless-stopped
     volumes: ["redis-data:/data"]
@@ -71,7 +71,7 @@ services:
       timeout: 3s
       retries: 10
   temporal-db:
-    image: ${TEMPORAL_POSTGRES_IMAGE:?Set a digest-pinned Postgres 16 image}
+    image: ${TEMPORAL_POSTGRES_IMAGE:-postgres@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94}
     restart: unless-stopped
     environment:
       POSTGRES_USER: temporal
@@ -83,7 +83,7 @@ services:
       timeout: 3s
       retries: 10
   temporal:
-    image: ${TEMPORAL_IMAGE:?Set a digest-pinned Temporal auto-setup 1.28.1 image}
+    image: ${TEMPORAL_IMAGE:-temporalio/auto-setup@sha256:607d68caa111338d754771efb876c92dfcdae06d056e4530bb31cd0f37406e6a}
     restart: unless-stopped
     environment:
       DB: postgres12

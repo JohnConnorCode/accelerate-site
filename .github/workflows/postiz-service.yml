@@ -5,6 +5,12 @@ on:
   pull_request:
     paths:
       - plugins/social-marketing/deployment/**
+      - compose.yaml
+      - Dockerfile
+      - .dockerignore
+      - deployment/**
+      - scripts/stack.mjs
+      - scripts/test-stack.mjs
       - .github/workflows/postiz-service.yml
 
 permissions:
@@ -20,6 +26,8 @@ jobs:
     timeout-minutes: 55
     steps:
       - uses: actions/checkout@v7
+      - name: Verify one-package configuration
+        run: node scripts/test-stack.mjs
       - name: Prepare exact patched source
         working-directory: plugins/social-marketing/deployment
         run: ./prepare-source.sh
@@ -39,6 +47,28 @@ jobs:
           push: false
           cache-from: type=gha,scope=postiz-service
           cache-to: type=gha,scope=postiz-service,mode=max
+      - name: Build packaged Accelerate app
+        uses: docker/build-push-action@v7
+        env:
+          DOCKER_BUILD_SUMMARY: "false"
+          DOCKER_BUILD_RECORD_UPLOAD: "false"
+        with:
+          context: .
+          build-args: APP_REVISION=${{ github.sha }}
+          tags: accelerate-app:verification
+          load: true
+          push: false
+          cache-from: type=gha,scope=accelerate-app
+          cache-to: type=gha,scope=accelerate-app,mode=max
+      - name: Verify packaged app startup
+        run: |
+          docker run -d --name accelerate-package-check -p 127.0.0.1:3019:3000 accelerate-app:verification
+          trap 'docker rm -f accelerate-package-check' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --output /dev/null http://127.0.0.1:3019/demo/command-center; then exit 0; fi
+            sleep 2
+          done
+          exit 1
       - name: Verify isolated service and recovery
         working-directory: plugins/social-marketing/deployment
         run: ./verify-service.sh

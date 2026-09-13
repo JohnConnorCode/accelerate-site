@@ -10,7 +10,7 @@ explains how to reuse the architecture for a different project.
 Social Marketing supports LinkedIn company pages, text or one PNG/JPEG image,
 three-post source-excerpt preparation, exact human-approved batches, host-owned
 schedules and provider receipts. It is an optional bundled module backed by a
-separately deployed Postiz service. It is not an arbitrary plugin-code loader.
+Postiz service bundled in the application deployment. It is not an arbitrary plugin-code loader.
 
 | Owner      | Source                                              | Responsibility                                                                  |
 | ---------- | --------------------------------------------------- | ------------------------------------------------------------------------------- |
