@@ -7,6 +7,11 @@ export const commandCenterFaqs: FAQ[] = [
       "Yes. Export the neutral starter into a new directory, replace its fictional Harbor Operations configuration with your business details, then connect services you control. It keeps the shared workspace and demo while removing protected agency media and original hosting targets. The self-hosting guide explains the export receipt, installation and recovery.",
   },
   {
+    question: "Does changing a policy keep its old approval?",
+    answer:
+      "Changing the level, constraints or source clears standing approval. A human must approve it again; changing only a label or description keeps the decision. The update belongs to its workspace and coworker scope, and hard safety floors still apply. Older duplicate policy records can be recovered through the supported registration and approval services after the current migration catalog is applied.",
+  },
+  {
     question: "Can I navigate boards without dragging cards?",
     answer:
       "Yes. Scroll across the columns or Tab to a column button and press Enter. The board itself accepts keyboard focus for arrow-key scrolling, and reduced motion makes column jumps immediate. Refreshing or closing an editor keeps your place; browser Back restores the Pipeline board after you open an opportunity. Existing stage controls and work permissions still govern card changes.",
