@@ -43,8 +43,15 @@ export async function POST(request: NextRequest, route: { params: Promise<{ tena
   }
   const signature = request.headers.get("stripe-signature") || "";
   if (!verifyStripeSignature(body, signature, provider.webhookSecret)) return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  let event: Record<string, unknown>;
   try {
-    const event = JSON.parse(body) as Record<string, unknown>;
+    const parsed: unknown = JSON.parse(body);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("not an object");
+    event = parsed as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
+  }
+  try {
     const result = await processStripeWebhook(createServiceRoleClient(provider.context), event);
     return NextResponse.json({ received: true, ...result });
   } catch (error) {

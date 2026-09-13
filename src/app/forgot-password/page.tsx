@@ -1,8 +1,11 @@
-import { Suspense } from "react";
-import { CustomerAuthForm } from "@/components/billing/CustomerAuthForm";
+import { CustomerAuthPage } from "@/components/billing/CustomerAuthPage";
 
 export const metadata = { title: "Reset password" };
 
-export default function ForgotPasswordPage() {
-  return <main className="min-h-screen bg-[var(--admin-surface)] px-5 py-16"><Suspense fallback={<div className="mx-auto h-96 max-w-md animate-pulse rounded-3xl bg-black/5" />}><CustomerAuthForm mode="forgot" /></Suspense></main>;
+export default function ForgotPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tenant?: string; next?: string }>;
+}) {
+  return <CustomerAuthPage mode="forgot" searchParams={searchParams} />;
 }

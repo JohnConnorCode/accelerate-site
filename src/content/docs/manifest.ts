@@ -138,7 +138,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["command-center", "capabilities"],
         title: "Capability reference",
         description:
-          "47 capabilities in six categories, from what the system sees to what it never does without you.",
+          "52 capabilities in six categories, from what the system sees to what it never does without you.",
       },
       {
         slug: ["command-center", "today"],
@@ -480,7 +480,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "overview"],
         title: "Plugin examples",
         description:
-          "Twelve working examples, from a read-only report to a full business workspace, all shipped disabled.",
+          "Thirteen working examples, from a read-only report to a full business workspace, all shipped disabled.",
       },
       {
         slug: ["plugins", "business-pulse"],

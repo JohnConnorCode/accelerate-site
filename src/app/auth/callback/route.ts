@@ -13,6 +13,16 @@ function validTenantSlug(value: string | null): value is string {
   return Boolean(value && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value));
 }
 
+function safeRedirect(value: string | null, fallback: string) {
+  return value &&
+    value.startsWith("/") &&
+    !value.startsWith("//") &&
+    !value.includes("\\") &&
+    !/[\r\n]/.test(value)
+    ? value
+    : fallback;
+}
+
 function copyResponseCookies(source: NextResponse, target: NextResponse) {
   for (const cookie of source.cookies.getAll()) target.cookies.set(cookie);
   return target;
@@ -27,17 +37,11 @@ export async function GET(request: NextRequest) {
   const workspace = searchParams.get("workspace");
   const rawNext = searchParams.get("next");
 
-  let safeNext = "/admin";
+  const safeNext = safeRedirect(rawNext, type === "recovery" ? "/admin/update-password" : "/admin");
 
   // `type=recovery` is not consistently retained when Supabase exchanges a
   // PKCE code. Preserve the intended destination in the allowed callback URL
   // instead, with `type` retained as a compatibility fallback for older links.
-  if (rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")) {
-    safeNext = rawNext;
-  } else if (type === "recovery") {
-    safeNext = "/admin/update-password";
-  }
-
   if (code) {
     const response = NextResponse.redirect(new URL(safeNext, origin));
 

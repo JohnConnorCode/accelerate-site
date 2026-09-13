@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { resolveActiveTenantSystemContext } from "@/lib/tenancy/system";
 import { tenantStripeClient } from "@/lib/revenue-os/stripe-adapter";
+import { stripeHostedUrl } from "@/lib/revenue-os/subscriptions-contract";
 import { z } from "zod";
 
 export async function POST(request: NextRequest, route: { params: Promise<{ tenantSlug: string }> }) {
@@ -17,8 +18,9 @@ export async function POST(request: NextRequest, route: { params: Promise<{ tena
     const client = await tenantStripeClient(db);
     const returnUrl = `${new URL(request.url).origin}/t/${tenantSlug}/account`;
     const result = await client.billingPortal(new URLSearchParams({ customer: z.string().regex(/^cus_[A-Za-z0-9]{1,80}$/).parse(customer.stripe_customer_id), return_url: returnUrl }), `portal:${user.id}:${Date.now()}`);
-    if (typeof result.object.url !== "string") throw new Error("Stripe did not return a billing portal URL");
-    return NextResponse.json({ url: result.object.url });
+    const url = stripeHostedUrl(result.object.url, "billing.stripe.com");
+    if (!url) throw new Error("Stripe did not return a billing portal URL");
+    return NextResponse.json({ url });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Billing portal unavailable" }, { status: 422 });
   }

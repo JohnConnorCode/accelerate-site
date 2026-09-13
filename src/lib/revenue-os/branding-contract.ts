@@ -79,5 +79,13 @@ export function resolveWorkspaceBrand(
       console.warn("[branding] Invalid stored admin theme; using the built-in appearance.");
     }
   }
+  // Older workspaces kept the monitored founder address beside the brand.
+  // Reuse it as billing support only when it is a valid public email and no
+  // dedicated support address has been configured.
+  if (!defaults.supportEmail && config.founder && typeof config.founder === "object") {
+    const founderEmail = (config.founder as Record<string, unknown>).email;
+    const parsed = z.email().max(254).safeParse(founderEmail);
+    if (parsed.success) defaults.supportEmail = parsed.data;
+  }
   return defaults;
 }

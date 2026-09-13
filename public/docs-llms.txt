@@ -18,14 +18,14 @@ Learn the essentials and try your first complete workflow.
 ## Command Center
 One shared operating layer for the businesses that need it, and how to run the daily workspace.
 
-- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-09): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
-- [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-09): 47 capabilities in six categories, from what the system sees to what it never does without you.
+- [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-13): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
+- [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-13): 52 capabilities in six categories, from what the system sees to what it never does without you.
 - [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-09): Arrange your business brief, decisions, work and App follow-up into saved views that fit your day.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-09): Every new lead, message, and staged action that hasn't found an owner yet, in one queue.
 - [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-09): The editing view over the same tasks and approvals Today shows you, with filters and full editing.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-12): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-09): Trace a change back to who made it, what actually happened, and when.
-- [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-09): Ask a specific question, see the records it used to answer, and review anything it proposes.
+- [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-13): Ask a specific question, see the records it used to answer, and review anything it proposes.
 
 ## Conversations
 The reply-ready inbox for Gmail, forms, chat, and transcripts.
@@ -107,7 +107,7 @@ Configure your workspace or build around a different business process.
 ## Plugin examples
 See what you can build: reports, reviewed workflows and dedicated business workspaces.
 
-- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-09): Twelve working examples, from a read-only report to a full business workspace, all shipped disabled.
+- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-13): Thirteen working examples, from a read-only report to a full business workspace, all shipped disabled.
 - [Business Pulse](https://www.acceleratewith.us/docs/plugins/business-pulse) (updated 2026-09-09): See pipeline risks, overdue commitments and upcoming meetings in one report.
 - [Client onboarding](https://www.acceleratewith.us/docs/plugins/client-onboarding) (updated 2026-09-09): Turn a won opportunity into a reviewed, assigned kickoff checklist.
 - [Overdue commitments](https://www.acceleratewith.us/docs/plugins/commitment-watch) (updated 2026-09-09): Find overdue tasks and return to the work behind each commitment.

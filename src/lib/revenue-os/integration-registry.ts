@@ -421,7 +421,7 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
     maturity: "native",
     priority: 11,
     description:
-      "Reviewed CRM invoicing, explicit sending, payment status and branded customer pages. Subscription, refund and dispute reconciliation remains planned.",
+      "Reviewed CRM invoicing, recurring subscriptions, explicit sending, payment status and branded customer pages.",
     strategicRole: "Payment truth",
     cost: {
       tier: "usage_based",
@@ -437,7 +437,7 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
     docsHref: "https://docs.stripe.com/api/invoices",
     limits: [
       "Stripe invoicing plugin must be enabled",
-      "No webhook reconciliation yet; refresh status from Stripe",
+      "Webhook reconciliation updates the tenant ledger; Stripe remains payment truth",
     ],
     guardrail: "Stripe owns payment facts; Command Center owns revenue context and attribution.",
     capabilities: [
@@ -446,6 +446,14 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
         label: "Reviewed invoicing",
         description:
           "Prepare CRM invoices, approve sending, inspect payment status and publish reviewed customer pages.",
+        direction: "bidirectional",
+        impact: "external_action",
+      },
+      {
+        id: "subscription-workflow",
+        label: "Customer subscriptions",
+        description:
+          "Create recurring plans, send customers through hosted Checkout, and manage renewals from a tenant-scoped account page.",
         direction: "bidirectional",
         impact: "external_action",
       },

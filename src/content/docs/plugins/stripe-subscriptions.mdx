@@ -10,22 +10,29 @@ Stripe subscriptions let a workspace sell fixed recurring services without copyi
 
 Customers open `/t/{tenant}/subscribe`, sign in or create an account, and complete Stripe-hosted Checkout. The account page at `/t/{tenant}/account` shows the subscription, renewal date, invoices, and payment settings. Payment details stay in Stripe’s hosted billing portal.
 
+Customer pages inherit the workspace brand configured in **Branding**. The same name, mark, accent, tagline, and support address carry through the plan page, sign-in, account page, and footer. Checkout return states explain whether payment completed, was cancelled, or is still being confirmed.
+
 Cancellation and plan changes are scheduled for the next renewal. Stripe webhook events update the local ledger after signature verification, with durable receipts so retries are safe. A plan can be archived to stop new checkouts while existing subscriptions continue.
 
 Connect Stripe in **Integrations** before creating a plan. Store the account key and Stripe webhook signing secret there. Configure the webhook endpoint as `/api/public/{tenant}/webhooks/stripe` for the workspace slug and subscribe to checkout, subscription, and invoice events.
 
 ## Launch checklist
 
-1. Run `npm run db:migrate:all` in the deployment environment, then run `npm run db:verify-schema -- --record`. The ordered catalog includes `migrations/20260925-stripe-subscriptions.sql`, which creates the tenant billing tables and webhook receipt ledger.
+1. Run `npm run db:migrate:all` in the deployment environment, then run `npm run db:verify-schema -- --record`. The ordered catalog includes `migrations/20260925-stripe-subscriptions.sql` and `migrations/20260926-stripe-billing-server-only.sql`, which create the tenant billing tables, webhook receipt ledger, and server-only access boundary.
 2. Enable the **Stripe invoicing** module for the workspace.
 3. In **Integrations**, connect the Stripe account and verify the API key. Add the webhook signing secret from Stripe.
 4. In Stripe, create an endpoint for `/api/public/{tenant}/webhooks/stripe` and subscribe it to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, and `invoice.payment_failed`.
 5. Add the public site origin and `/auth/callback` to the Supabase Auth redirect allowlist. Test signup, email confirmation, password recovery, and sign-in.
 6. Create a test-mode plan, complete one test checkout, and confirm that the account page shows the subscription and invoice before switching the connection to live mode.
+7. Open the public Plans page on desktop and a narrow mobile viewport. Confirm the workspace identity, keyboard focus states, readable plan prices, cancellation message, and account return message.
 
 ## What customers can do
 
 Customers can create an account, choose an active plan, complete secure Stripe Checkout, view renewal dates and invoices, update payment details in Stripe’s hosted portal, cancel at the next renewal, resume a scheduled cancellation, or schedule a different active plan for the next renewal. The account page never collects card details itself.
+
+## Customer status language
+
+The account separates the state customers need to act on from the state they can simply understand. Active subscriptions say **Renews automatically**. A trial says **Trial in progress**. An unfinished payment says **Checkout incomplete** and points back to Plans. Past-due or unpaid subscriptions say **Payment needs attention** and point to Stripe’s payment settings. A scheduled cancellation says **Cancels at renewal** and offers **Keep subscription**. Canceled or expired subscriptions say **Ended** and do not offer controls that Stripe can no longer honor.
 
 ## Troubleshooting
 

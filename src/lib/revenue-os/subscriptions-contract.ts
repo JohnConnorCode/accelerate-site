@@ -67,7 +67,122 @@ export function formatSubscriptionStatus(status: string) {
   return labels[status] ?? "Needs review";
 }
 
+/** Accept only Stripe's HTTPS-hosted customer surfaces before redirecting. */
+export function stripeHostedUrl(
+  value: unknown,
+  hostname: "checkout.stripe.com" | "billing.stripe.com",
+) {
+  if (typeof value !== "string" || !URL.canParse(value)) return null;
+  const url = new URL(value);
+  if (
+    url.protocol !== "https:" ||
+    url.hostname !== hostname ||
+    url.port ||
+    url.username ||
+    url.password
+  )
+    return null;
+  return url.toString();
+}
+
+export type SubscriptionStatusPresentation = {
+  label: string;
+  tone: "positive" | "warning" | "danger" | "neutral";
+  detail: string;
+  canCancel: boolean;
+  canResume: boolean;
+  canChange: boolean;
+};
+
+/** One customer-facing interpretation of each persisted Stripe state. */
+export function subscriptionStatusPresentation(
+  status: string,
+  cancelAtPeriodEnd: boolean,
+): SubscriptionStatusPresentation {
+  if (status === "canceled" || status === "incomplete_expired")
+    return {
+      label: "Ended",
+      tone: "neutral",
+      detail: "This subscription is no longer active.",
+      canCancel: false,
+      canResume: false,
+      canChange: false,
+    };
+  if (cancelAtPeriodEnd && ["active", "trialing", "past_due", "unpaid", "paused"].includes(status))
+    return {
+      label: "Cancels at renewal",
+      tone: "warning",
+      detail: "Your access continues through this period, then the subscription ends.",
+      canCancel: false,
+      canResume: true,
+      canChange: false,
+    };
+  const states: Record<string, SubscriptionStatusPresentation> = {
+    active: {
+      label: "Renews automatically",
+      tone: "positive",
+      detail: "Your subscription is active and will renew automatically.",
+      canCancel: true,
+      canResume: false,
+      canChange: true,
+    },
+    trialing: {
+      label: "Trial in progress",
+      tone: "positive",
+      detail: "Your trial is active and will continue according to the plan terms.",
+      canCancel: true,
+      canResume: false,
+      canChange: true,
+    },
+    incomplete: {
+      label: "Checkout incomplete",
+      tone: "warning",
+      detail: "Stripe is waiting for checkout to finish.",
+      canCancel: false,
+      canResume: false,
+      canChange: false,
+    },
+    past_due: {
+      label: "Payment needs attention",
+      tone: "danger",
+      detail: "Update your payment method in Stripe to keep the subscription active.",
+      canCancel: true,
+      canResume: false,
+      canChange: false,
+    },
+    unpaid: {
+      label: "Payment needs attention",
+      tone: "danger",
+      detail: "Update your payment method in Stripe to keep the subscription active.",
+      canCancel: true,
+      canResume: false,
+      canChange: false,
+    },
+    paused: {
+      label: "Paused",
+      tone: "warning",
+      detail: "This subscription is paused. Payment changes are available in Stripe.",
+      canCancel: true,
+      canResume: false,
+      canChange: false,
+    },
+  };
+  return (
+    states[status] ?? {
+      label: "Needs review",
+      tone: "neutral",
+      detail: "The current subscription state needs review.",
+      canCancel: false,
+      canResume: false,
+      canChange: false,
+    }
+  );
+}
+
 export function stripeObjectId(value: unknown, prefix: "prod" | "price" | "cus" | "sub" | "cs") {
-  const parsed = z.string().regex(new RegExp(`^${prefix}_[A-Za-z0-9]{1,80}$`)).safeParse(value);
+  const parsed = z
+    .string()
+    .regex(new RegExp(`^${prefix}_[A-Za-z0-9]{1,80}$`))
+    .safeParse(value);
   return parsed.success ? parsed.data : null;
 }
