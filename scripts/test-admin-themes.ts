@@ -8,7 +8,10 @@ import {
   validateAdminTheme,
 } from "../src/lib/admin/theme-definition";
 import themes from "../src/lib/admin/themes.json";
-import { workspaceBrandSchema } from "../src/lib/revenue-os/branding-contract";
+import {
+  resolveWorkspaceBrand,
+  workspaceBrandSchema,
+} from "../src/lib/revenue-os/branding-contract";
 
 for (const preset of themes) {
   const theme = validateAdminTheme(themeFromPreset(preset.id));
@@ -61,6 +64,22 @@ assert.ok(adminThemeDefinitionSchema.safeParse(valid).success);
 assert.ok(
   workspaceBrandSchema.shape.adminTheme.safeParse(undefined).success,
   "Legacy branding stays optional",
+);
+assert.equal(
+  resolveWorkspaceBrand(
+    { brand: { name: "Legacy workspace" }, founder: { email: "billing@example.com" } },
+    "Legacy workspace",
+  ).supportEmail,
+  "billing@example.com",
+  "Legacy founder contact remains available for customer billing help",
+);
+assert.equal(
+  resolveWorkspaceBrand(
+    { brand: { name: "Legacy workspace" }, founder: { email: "not-an-email" } },
+    "Legacy workspace",
+  ).supportEmail,
+  "",
+  "Invalid stored contact must never become a public billing link",
 );
 console.log(
   `Admin themes passed: ${themes.length} presets, token completeness, contrast, portable round trips, invalid definitions and legacy compatibility.`,

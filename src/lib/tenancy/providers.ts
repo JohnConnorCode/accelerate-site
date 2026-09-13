@@ -1,11 +1,16 @@
 import "server-only";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
-import { decryptSecret, isEncryptedSecret } from "@/lib/revenue-os/encryption";
+import {
+  decryptSecret,
+  decryptTenantSecret,
+  isEncryptedSecret,
+  isTenantEncryptedSecret,
+} from "@/lib/revenue-os/encryption";
 import { ACCELERATE_TENANT_ID, type TenantSystemContext } from "@/lib/tenancy/context";
 
 export async function resolveTenantProviderSecrets(
   tenantSlug: string,
-  provider: "resend" | "calendly" | "whatsapp" | "hubspot" | "mcp",
+  provider: "resend" | "calendly" | "whatsapp" | "hubspot" | "mcp" | "stripe",
 ) {
   const platform = createPlatformServiceRoleClient(`provider-resolver:${provider}`);
   const { data: tenant } = await platform
@@ -27,6 +32,11 @@ export async function resolveTenantProviderSecrets(
   const read = (key: string) => {
     const value = encrypted[key];
     if (typeof value !== "string" || !value) return null;
+    if (provider === "stripe") {
+      if (!isTenantEncryptedSecret(value))
+        throw new Error(`${provider} ${key} is not in the tenant encrypted envelope`);
+      return decryptTenantSecret(value, tenant.id, provider, key);
+    }
     if (!isEncryptedSecret(value))
       throw new Error(`${provider} ${key} is not in the encrypted envelope`);
     return decryptSecret(value);

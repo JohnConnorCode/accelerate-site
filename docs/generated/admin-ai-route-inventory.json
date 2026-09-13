@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 111,
-  "mutationHandlerCount": 98,
+  "routeCount": 112,
+  "mutationHandlerCount": 99,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -1500,13 +1500,14 @@
         "@/lib/revenue-os/google",
         "@/lib/revenue-os/health",
         "@/lib/revenue-os/mcp-server",
+        "@/lib/revenue-os/modules",
         "@/lib/revenue-os/schema-contract",
         "@/lib/revenue-os/setup-status",
         "@/lib/revenue-os/types",
         "@/lib/supabase/server",
         "next/server"
       ],
-      "sourceSha256": "5216a5815e962c53e4ae9214953ecbc56f3c3b37159663ded2a749a1fe2b9f67"
+      "sourceSha256": "f43777ce435f8fe0078528e99ff878866f50ef7e4948687afd54f1424d266ebc"
     },
     {
       "source": "src/app/api/admin/site/drafts/[id]/route.ts",
@@ -1703,6 +1704,25 @@
       "sourceSha256": "dadb0fc001e5ecc9e1340a1d363e0c24771f492e7e88650aa8e78f2d5a6a18e0"
     },
     {
+      "source": "src/app/api/admin/subscriptions/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/revenue-os/subscriptions",
+        "@/lib/revenue-os/subscriptions-contract",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "0ce8c7d379219cc74fba1dedb6cffb5ccc9756fa0ae5a043028e2af71063b855"
+    },
+    {
       "source": "src/app/api/admin/tasks/route.ts",
       "handlers": [
         "DELETE",
@@ -1800,7 +1820,7 @@
         "node:crypto",
         "zod"
       ],
-      "sourceSha256": "b5996355446e9bd76ed690be6a0a43ce78dc4330001d4df3efb37aab5be36aa1"
+      "sourceSha256": "bdb7821e7409e4c79e742271390e31e021f7aae7d03bae7fff6cac597e97224e"
     },
     {
       "source": "src/app/api/admin/tenants/route.ts",

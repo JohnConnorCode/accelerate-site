@@ -62,6 +62,8 @@ assert.match(
   contract,
   /Never invent pricing, recipients, dates, metrics, company facts, or commitments/,
 );
+assert.match(contract, /Stripe billing is provider-owned/);
+assert.match(contract, /cancellation-at-renewal states/);
 
 const publicContract = buildPublicChatGroundingContract();
 for (const source of ["public_chat_system", "published_positioning", "visitor_conversation"])

@@ -138,7 +138,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["command-center", "capabilities"],
         title: "Capability reference",
         description:
-          "47 capabilities in six categories, from what the system sees to what it never does without you.",
+          "52 capabilities in six categories, from what the system sees to what it never does without you.",
       },
       {
         slug: ["command-center", "today"],
@@ -437,6 +437,12 @@ export const docsManifest: DocsSection[] = [
           "Turn a message, calendar event, or invoice sitting in another app into usable context here.",
       },
       {
+        slug: ["workspace", "customer-billing"],
+        title: "Manage your subscription",
+        description:
+          "Subscribe, update payment details, and understand renewals from your customer account.",
+      },
+      {
         slug: ["workspace", "setup"],
         title: "Set up a working workspace",
         description: "Verify the connections one real workflow needs, before layering on more.",
@@ -474,7 +480,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "overview"],
         title: "Plugin examples",
         description:
-          "Twelve working examples, from a read-only report to a full business workspace, all shipped disabled.",
+          "Thirteen working examples, from a read-only report to a full business workspace, all shipped disabled.",
       },
       {
         slug: ["plugins", "business-pulse"],
@@ -536,6 +542,12 @@ export const docsManifest: DocsSection[] = [
         title: "Stripe invoicing",
         description:
           "Prepare an invoice from a customer record, review it, and check exactly what Stripe accepted.",
+      },
+      {
+        slug: ["plugins", "stripe-subscriptions"],
+        title: "Stripe subscriptions",
+        description:
+          "Create recurring plans, send customers through secure checkout, and manage renewals from the account portal.",
       },
       {
         slug: ["plugins", "site-studio"],

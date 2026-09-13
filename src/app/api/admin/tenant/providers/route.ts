@@ -19,7 +19,11 @@ import type { AdminAuthorization } from "@/lib/admin/auth";
 
 const providerSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("configure_postiz"), apiKey: z.string().trim().min(20).max(2000) }),
-  z.object({ action: z.literal("configure_stripe"), apiKey: z.string().trim().min(20).max(256) }),
+  z.object({
+    action: z.literal("configure_stripe"),
+    apiKey: z.string().trim().min(20).max(256),
+    webhookSecret: z.string().trim().min(10).max(500).optional(),
+  }),
   z.object({
     action: z.literal("configure_resend"),
     apiKey: z.string().trim().min(10).max(500),
@@ -180,6 +184,7 @@ async function configureAdapterProvider(
   authorization: AdminAuthorization,
   credentialVersion: number,
   existingStatus: string | null | undefined,
+  existingCredentials: unknown,
   now: string,
 ): Promise<NextResponse> {
   const adapter = INTEGRATION_ADAPTERS.get(provider);
@@ -203,6 +208,20 @@ async function configureAdapterProvider(
       ? (value, field) => encryptTenantSecret(value, authorization.tenant.id, provider, field)
       : encryptSecret,
   );
+  // Rotating the Stripe API key should not silently remove a previously
+  // configured webhook signing secret when the operator leaves that optional
+  // field blank.
+  if (
+    provider === "stripe" &&
+    !encryptedCredentials.webhook_secret &&
+    existingStatus === "connected" &&
+    existingCredentials &&
+    typeof existingCredentials === "object" &&
+    typeof (existingCredentials as Record<string, unknown>).webhook_secret === "string"
+  ) {
+    const secret = (existingCredentials as Record<string, unknown>).webhook_secret;
+    if (typeof secret === "string") encryptedCredentials.webhook_secret = secret;
+  }
   const { data, error } = await authorization.database
     .from("integration_connections")
     .upsert(
@@ -299,7 +318,7 @@ export async function POST(request: NextRequest) {
                   : "resend";
   const { data: existing } = await authorization.database
     .from("integration_connections")
-    .select("credential_version,status,settings")
+    .select("credential_version,status,settings,encrypted_credentials")
     .eq("provider", provider)
     .maybeSingle();
   const credentialVersion = Number(existing?.credential_version || 0) + 1;
@@ -362,6 +381,7 @@ export async function POST(request: NextRequest) {
       authorization,
       credentialVersion,
       existing?.status,
+      existing?.encrypted_credentials,
       now,
     );
   }

@@ -77,6 +77,7 @@ export default function InvoicingPage() {
   const [contactSearch, setContactSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [webhookSecret, setWebhookSecret] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -122,9 +123,14 @@ export default function InvoicingPage() {
       await fetchJson("/api/admin/tenant/providers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "configure_stripe", apiKey }),
+        body: JSON.stringify({
+          action: "configure_stripe",
+          apiKey,
+          ...(webhookSecret.trim() ? { webhookSecret: webhookSecret.trim() } : {}),
+        }),
       });
       setApiKey("");
+      setWebhookSecret("");
       await cache.invalidateQueries({ queryKey: ["tenant", "providers"] });
       setNotice("Stripe connected for this workspace.");
     });
@@ -283,6 +289,19 @@ export default function InvoicingPage() {
                 required
                 minLength={20}
               />
+              <label className="mt-4 block text-sm font-medium" htmlFor="stripe-webhook-secret">
+                Stripe webhook signing secret{" "}
+                <span className="font-normal text-[var(--admin-muted)]">(optional now)</span>
+              </label>
+              <input
+                id="stripe-webhook-secret"
+                type="password"
+                autoComplete="new-password"
+                value={webhookSecret}
+                onChange={(event) => setWebhookSecret(event.target.value)}
+                className={field}
+                minLength={10}
+              />
               <button
                 type="submit"
                 className={`${primary} mt-4`}
@@ -338,6 +357,25 @@ export default function InvoicingPage() {
                     value={apiKey}
                     disabled={busy}
                     onChange={(event) => setApiKey(event.target.value)}
+                  />
+                  <label
+                    className="mt-4 block text-sm font-medium"
+                    htmlFor="stripe-replacement-webhook-secret"
+                  >
+                    Replacement webhook signing secret{" "}
+                    <span className="font-normal text-[var(--admin-muted)]">
+                      (leave blank to keep current)
+                    </span>
+                  </label>
+                  <input
+                    id="stripe-replacement-webhook-secret"
+                    type="password"
+                    autoComplete="new-password"
+                    className={field}
+                    minLength={10}
+                    value={webhookSecret}
+                    disabled={busy}
+                    onChange={(event) => setWebhookSecret(event.target.value)}
                   />
                   <button type="submit" className={`${button} mt-3`} disabled={busy}>
                     Verify & replace key

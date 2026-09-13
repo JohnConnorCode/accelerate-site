@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "customer-subscriptions",
+    slug: "customer-subscriptions",
+    title: "Sell and manage recurring plans in the workspace",
+    description:
+      "Workspace admins can create fixed monthly or annual Stripe plans. Customers use secure hosted checkout, then manage profile details, payment methods, invoices, renewal cancellation, and next-renewal plan changes from their Accelerate account.",
+    category: "feature",
+    publishedAt: "2026-09-13",
+  },
+  {
     id: "admin-theme-polish",
     slug: "admin-theme-polish",
     title: "Seven distinct appearances, one coherent workspace",
