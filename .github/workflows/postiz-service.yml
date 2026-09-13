@@ -1,0 +1,91 @@
+name: Postiz service verification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - plugins/social-marketing/deployment/**
+      - compose.yaml
+      - compose.social-marketing.yaml
+      - Dockerfile
+      - .dockerignore
+      - deployment/**
+      - scripts/stack.mjs
+      - scripts/test-stack.mjs
+      - .github/workflows/postiz-service.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: postiz-service-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  service:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify one-package configuration
+        run: node scripts/test-stack.mjs
+      - name: Prepare exact patched source
+        working-directory: plugins/social-marketing/deployment
+        run: ./prepare-source.sh
+      - name: Set up cached container builder
+        uses: docker/setup-buildx-action@v4
+      - name: Build actual upstream application
+        uses: docker/build-push-action@v7
+        env:
+          DOCKER_BUILD_SUMMARY: "false"
+          DOCKER_BUILD_RECORD_UPLOAD: "false"
+        with:
+          context: plugins/social-marketing/deployment/upstream
+          file: plugins/social-marketing/deployment/upstream/Dockerfile.dev
+          build-args: NEXT_PUBLIC_VERSION=accelerate-3cbe20b-2
+          tags: accelerate-postiz:verification
+          load: true
+          push: false
+          cache-from: type=gha,scope=postiz-service
+          cache-to: type=gha,scope=postiz-service,mode=max
+      - name: Build packaged Accelerate app
+        uses: docker/build-push-action@v7
+        env:
+          DOCKER_BUILD_SUMMARY: "false"
+          DOCKER_BUILD_RECORD_UPLOAD: "false"
+        with:
+          context: .
+          build-args: APP_REVISION=${{ github.sha }}
+          tags: accelerate-app:verification
+          load: true
+          push: false
+          cache-from: type=gha,scope=accelerate-app
+          cache-to: type=gha,scope=accelerate-app,mode=max
+      - name: Verify packaged app startup
+        run: |
+          docker run -d --name accelerate-package-check -p 127.0.0.1:3019:3000 accelerate-app:verification
+          trap 'docker rm -f accelerate-package-check' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --output /dev/null http://127.0.0.1:3019/demo/command-center; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Verify isolated service and recovery
+        working-directory: plugins/social-marketing/deployment
+        run: ./verify-service.sh
+      - name: Retain bounded verification receipts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: postiz-service-evidence
+          # Allowlist receipts even if cancellation interrupts fixture cleanup.
+          path: |
+            plugins/social-marketing/deployment/evidence/bootstrap.json
+            plugins/social-marketing/deployment/evidence/restart.json
+            plugins/social-marketing/deployment/evidence/restore.json
+            plugins/social-marketing/deployment/evidence/temporal-restore.json
+            plugins/social-marketing/deployment/evidence/services.json
+            plugins/social-marketing/deployment/evidence/startup-diagnostics.json
+            plugins/social-marketing/deployment/evidence/images.txt
+            plugins/social-marketing/deployment/evidence/postiz-image-id.txt
+          retention-days: 14

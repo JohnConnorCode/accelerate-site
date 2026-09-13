@@ -1,4 +1,10 @@
 {$POSTIZ_HOST} {
+  # Owner bootstrap happens inside the private container network. Upstream
+  # allows the first registration even when DISABLE_REGISTRATION is true.
+  @private_paths path_regexp private_paths (?i)^/(uploads(/|$)|api/auth/register(/|$))
+  handle @private_paths {
+    respond "Not available" 403
+  }
   handle_path /source/* {
     root * /srv/source
     file_server

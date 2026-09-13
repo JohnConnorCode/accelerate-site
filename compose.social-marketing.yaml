@@ -1,0 +1,34 @@
+services:
+  app:
+    environment:
+      POSTIZ_ORIGIN: https://${POSTIZ_HOST:?Run npm run stack:up}
+  proxy:
+    environment:
+      POSTIZ_HOST: ${POSTIZ_HOST}
+    volumes:
+      - ./deployment/Caddyfile.social-marketing:/etc/caddy/Caddyfile:ro
+      - ./plugins/social-marketing/deployment/Caddyfile:/etc/caddy/postiz.caddy:ro
+      - ./plugins/social-marketing/deployment/source:/srv/source:ro
+  postiz:
+    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: postiz }
+    build:
+      context: ./plugins/social-marketing/deployment/upstream
+      dockerfile: Dockerfile.dev
+      args:
+        NEXT_PUBLIC_VERSION: accelerate-3cbe20b-2
+  postgres:
+    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: postgres }
+  redis:
+    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: redis }
+  temporal-db:
+    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: temporal-db }
+  temporal:
+    extends: { file: plugins/social-marketing/deployment/compose.yaml, service: temporal }
+volumes:
+  postiz-db:
+  postiz-config:
+  postiz-uploads:
+  redis-data:
+  temporal-db:
+  caddy-data:
+  caddy-config:

@@ -18,7 +18,7 @@ Your team has useful material to share, but turning it into a consistent publish
 
 Enable **Social Marketing** in **Plugins**, then open **Social Marketing → Setup**. Your operator supplies the Postiz publishing service, while each workspace connects its own Postiz organization and LinkedIn company page. Enter that organization's API key in the secure connection field, then choose **Verify and connect** to check its identity.
 
-The plugin settings hold your brand guidance, weekly scheduling time zone and optional weekly draft preparation. Keep API keys in the connection field, because ordinary settings are visible to people using the workspace. Your operator can follow the [Postiz deployment guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/social-marketing/deployment/README.md) for the separate host, source archive and backup procedure.
+The plugin settings hold your brand guidance, weekly scheduling time zone and optional weekly draft preparation. Keep API keys in the connection field, because ordinary settings are visible to people using the workspace. Your operator can follow the [Postiz deployment guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/social-marketing/deployment/README.md) for the bundled runtime, source archive and backup procedure.
 
 ## Prepare a week you can review
 
@@ -46,7 +46,7 @@ You can cancel a schedule before dispatch. Disabling the plugin stops new draft 
 
 Ask the assistant to inspect the social workspace, prepare a source-backed week, preview a draft change or propose a publication schedule. These operations use the same records and approval flow as the screens, so a conversational edit receives the same checks and receipts. Publication remains an exact human-approved action because it creates public content.
 
-Excerpt preparation is deterministic and has no model charge. Ordinary AI conversations use your configured model and budget, while the separate Postiz host and connected provider can incur their own costs. Plugin developers can reuse the manifest's upstream repository, license, pinned revision and deployment-guide fields when packaging another open-source service.
+Excerpt preparation is deterministic and has no model charge. Ordinary AI conversations use your configured model and budget, while the bundled workers use hosting resources and connected providers can incur charges. Plugin developers can reuse the manifest's upstream repository, license, pinned revision and deployment-guide fields when packaging another open-source service.
 
 ## Connect it to the rest of your work
 
@@ -62,6 +62,19 @@ The [Social Marketing extension guide](https://github.com/JohnConnorCode/acceler
 
 For another upstream project, follow the [open-source service packaging guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/contributing/OPEN-SOURCE-SERVICE-PLUGINS.md). The repeatable package includes module metadata, a narrow tenant-aware adapter, native screens and AI tools, durable jobs, public and operator docs, deployment assets and verified recovery. Enabling a plugin does not provision its external service.
 
+The service deployment keeps draft image URLs private, so use Social Marketing
+for image previews while upstream Postiz handles account setup. Operators can
+collect startup and recovery receipts through the deployment guide's isolated
+service verification before connecting a real company page.
+
 ## What to check
 
-Verify the host, LinkedIn application access, separate organizations, backup restoration and a real approved publication before activating a customer workspace. The full admin demo uses fictional session data, so use its screenshots to learn the workflow and real provider receipts to establish operational readiness. Check dates around daylight-saving changes, refresh source paragraphs regularly, and complete the internal pilot before offering the plugin to selected customers.
+Use the hardened service version required by Setup, then verify the host, LinkedIn application access, separate organizations, backup restoration and a real approved publication before activating a customer workspace. The full admin demo uses fictional session data, so use its screenshots to learn the workflow and real provider receipts to establish operational readiness. Check dates around daylight-saving changes, refresh source paragraphs regularly, and complete the internal pilot before offering the plugin to selected customers.
+
+## Install with the app
+
+The forkable Docker package includes the app and Postiz runtime. Configure the app
+`.env`, set `APP_HOST`, and set `SOCIAL_MARKETING_ENABLED=true` before running `npm run stack:up`. Point the app hostname and its
+`social` subdomain to the same host. The package builds and connects the services;
+LinkedIn authorization and workspace connection remain setup steps. The repository
+`deployment/README.md` covers installation, updates and stopping without deleting data.

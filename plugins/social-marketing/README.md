@@ -1,8 +1,13 @@
 # Social Marketing
 
+Install this plugin runtime with [the complete app package](../../deployment/README.md).
+Set `SOCIAL_MARKETING_ENABLED=true` and run `npm run stack:up` to include Postiz.
+The default app installation runs without it. No separate installation is required.
+LinkedIn authorization and tenant connection setup remain activation steps.
+
 Prepare LinkedIn company-page posts from reviewed source material, approve the
 exact content and time, and inspect provider-backed publication results. This
-optional plugin starts disabled. Its Postiz service runs separately; enabling
+optional plugin starts disabled. Its Postiz service runs inside the bundled stack; enabling
 the module does not provision hosting or connect a LinkedIn account.
 
 ## Publish a reviewed post
@@ -89,6 +94,12 @@ no real social account is contacted. A demo result, passing build or source bund
 does not establish production readiness. The live host, two-tenant isolation,
 backup restoration, approved LinkedIn publication and two weekly pilot batches
 require recorded integration and observation evidence before customer launch.
+
+The hardened service deployment keeps Postiz upload URLs off the public proxy and
+refuses public owner registration. Use native Social Marketing for draft previews;
+the upstream media gallery cannot display its public upload URLs. Operators can
+run the [disposable service verification](deployment/README.md#run-the-disposable-service-verification)
+to collect startup and recovery evidence before configuring a real account.
 
 ## Extend this pattern
 

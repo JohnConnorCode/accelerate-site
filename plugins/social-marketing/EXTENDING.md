@@ -10,7 +10,7 @@ explains how to reuse the architecture for a different project.
 Social Marketing supports LinkedIn company pages, text or one PNG/JPEG image,
 three-post source-excerpt preparation, exact human-approved batches, host-owned
 schedules and provider receipts. It is an optional bundled module backed by a
-separately deployed Postiz service. It is not an arbitrary plugin-code loader.
+Postiz service bundled in the application deployment. It is not an arbitrary plugin-code loader.
 
 | Owner      | Source                                              | Responsibility                                                                  |
 | ---------- | --------------------------------------------------- | ------------------------------------------------------------------------------- |
@@ -105,3 +105,18 @@ contracts, migration upgrades, lint, types, build and public docs.
 Live service health, LinkedIn authorization, two-organization isolation,
 backup restoration and two internal weekly batches have their own operational
 receipts. Until those exist, keep customer activation off.
+
+### Preserve the service boundary
+
+The deployment applies `identity.patch` and `service-hardening.patch` to an exact
+upstream revision. Keep the shared post-mapping media ownership checks when adding
+channels. Public upload URLs and public owner registration are denied by Caddy;
+LinkedIn image bytes come from the private local volume. A new provider that
+requires a publicly fetched image needs an explicit, scoped delivery design and
+isolation tests before enabling it. Run `verify-hardening.mjs` against newly
+prepared source and the disposable service workflow before recording a new image.
+
+Advance `accelerateProtocol` in the service identity patch and host adapter when
+a required boundary changes, and prove the previous version is refused. Coordinate
+both deployments with dispatch disabled, then reconcile receipts and reapprove
+missed schedules before restoring automation.

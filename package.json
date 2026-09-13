@@ -312,7 +312,11 @@
     "test:agent-checkpoint": "node scripts/test-agent-checkpoint.mjs",
     "test:work-board-resume": "node scripts/test-work-board-resume.mjs",
     "agent:run": "node scripts/agent-run.mjs",
-    "qa:admin-core": "node scripts/resource-run.mjs node scripts/qa-admin-core.mjs"
+    "qa:admin-core": "node scripts/resource-run.mjs node scripts/qa-admin-core.mjs",
+    "stack:up": "node scripts/stack.mjs up",
+    "stack:down": "node scripts/stack.mjs down",
+    "stack:check": "node scripts/stack.mjs config",
+    "stack:owner": "node scripts/stack.mjs owner"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

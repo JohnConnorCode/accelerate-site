@@ -1,7 +1,7 @@
 # Package an open-source service as an Accelerate plugin
 
 Use a bundled module and a narrow integration adapter when a feature depends on
-an independently hosted open-source application. Social Marketing/Postiz is the
+an open-source service running inside the application deployment. Social Marketing/Postiz is the
 first implementation of this packaging pattern. Its application integration is
 reviewable in source; its live service and customer rollout require their own
 verification. A manifest does not install, trust or operate a repository by itself.
@@ -13,12 +13,13 @@ Start with [Extending Revenue OS](EXTENDING.md) and the
 
 Accelerate owns workspace identity, member permissions, enablement, native task
 screens, AI/MCP tools, human approvals, WorkItems and immutable receipts. The
-external service owns its provider-specific protocol and separately operated
-runtime. The connector translates a small set of reviewed operations between
+external service owns its provider-specific protocol and isolated runtime inside the same application package. The connector translates a small set of reviewed operations between
 them. Credentials stay encrypted in tenant provider storage.
 
-Deploy the service separately when it requires long-running workers, its own
-database or an incompatible execution environment. An upstream group or filter
+Package the service in the root Docker Compose stack when it requires long-running
+workers, its own database or a different execution environment. Reuse the app
+configuration and startup command; do not require a second installation. See
+[the complete package](../../deployment/README.md). An upstream group or filter
 is not an isolation boundary. Prove tenant identity from authenticated service
 facts and enforce a unique mapping where organizations must be exclusive.
 
@@ -88,3 +89,17 @@ real provider authorization, isolation evidence, restored backup proof, monitore
 receipts and a controlled pilot. Record the exact commit, image/source checksums,
 target, test identities and result without exposing secrets. Implementation,
 service readiness, pilot acceptance and customer availability are separate facts.
+
+## Verify the upstream service, not just the host adapter
+
+Social Marketing includes an isolated build-and-recovery workflow in
+`.github/workflows/postiz-service.yml`. Its deployment directory contains source
+patches, private owner bootstrap, process-aware health checks, temporary
+organization fixtures and application database/upload restoration. Reuse this
+shape for another service, with checks that match that provider's actual effects.
+
+Inspect upstream defaults before exposing a host: first-owner signup, public media
+URLs and automatic destructive schema synchronization can differ from their
+configuration labels. Keep private fixtures out of artifacts, scope cleanup to
+the verification namespace, and record unresolved provider permissions separately
+from passing container checks. Do not reuse a green adapter mock as service proof.
