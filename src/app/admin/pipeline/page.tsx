@@ -379,7 +379,7 @@ export default function PipelinePage() {
                     </span>
                   </div>
                   <div
-                    className="scrollbar-hide mt-4 flex gap-2 overflow-x-auto pb-1"
+                    className="mt-4 flex flex-wrap gap-1.5 pb-1"
                     aria-label="Pipeline operator views"
                   >
                     {SYSTEM_PIPELINE_VIEWS.map((view) => (
@@ -389,7 +389,7 @@ export default function PipelinePage() {
                         aria-pressed={state.systemView === view.id && !activeSaved}
                         onClick={() => patchState({ systemView: view.id })}
                         className={cn(
-                          "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.96]",
+                          "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.96]",
                           state.systemView === view.id && !activeSaved
                             ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
                             : "text-[var(--admin-muted)] hover:bg-[var(--admin-surface-subtle)] hover:text-[var(--admin-ink)]",

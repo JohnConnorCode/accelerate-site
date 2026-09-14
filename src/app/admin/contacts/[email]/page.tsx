@@ -131,7 +131,7 @@ export default function ContactTimelinePage() {
             {canonical?.opportunities?.length ? (
               <Link
                 href={`/admin/pipeline?search=${encodeURIComponent(email)}`}
-                className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--admin-control-radius)] bg-white px-3 text-xs font-semibold text-black transition-[opacity,transform] hover:opacity-85 active:scale-[0.97]"
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] hover:opacity-85 active:scale-[0.97]"
               >
                 Open in Pipeline <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
@@ -140,8 +140,10 @@ export default function ContactTimelinePage() {
         </div>
       </AdminSurface>
 
-      {canonical?.contact && <CollectionCaseLinks contactId={canonical.contact.id} />}
-      <ContactTimeline items={timeline} />
+      <div className="space-y-5">
+        {canonical?.contact && <CollectionCaseLinks contactId={canonical.contact.id} />}
+        <ContactTimeline items={timeline} />
+      </div>
     </motion.div>
   );
 }

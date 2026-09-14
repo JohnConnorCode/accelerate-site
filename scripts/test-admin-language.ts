@@ -46,7 +46,7 @@ assert.equal(resolveAdminNavLink("/admin/ai?view=chat")?.id, "ai");
 assert.equal(resolveAdminNavLink("/admin/contacts-not-a-route"), undefined);
 assert.deepEqual(getAdminBreadcrumbs("/admin/contacts/fixture"), [
   { label: adminPageName("contacts"), href: "/admin/contacts" },
-  { label: "Timeline", href: "/admin/contacts/fixture" },
+  { label: "Relationship", href: "/admin/contacts/fixture" },
 ]);
 
 // Shell passes the query-qualified identity. Queries never become breadcrumb labels;
@@ -57,7 +57,7 @@ for (const query of ["?", "?view=history&return=overview"]) {
   ]);
   assert.deepEqual(getAdminBreadcrumbs(`/admin/contacts/fixture${query}`), [
     { label: adminPageName("contacts"), href: "/admin/contacts" },
-    { label: "Timeline", href: `/admin/contacts/fixture${query}` },
+    { label: "Relationship", href: `/admin/contacts/fixture${query}` },
   ]);
   assert.deepEqual(getAdminBreadcrumbs(`/admin/blueprints/fixture${query}`), [
     { label: adminPageName("blueprints"), href: "/admin/blueprints" },

@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
   for (const opportunity of canonicalOpportunityResult.data || []) {
     timeline.push({
       type: "opportunity",
-      title: `Pipeline: ${opportunity.name || "Opportunity"}`,
+      title: opportunity.name || "Opportunity",
       description: `Stage: ${String(opportunity.stage).replace(/_/g, " ")}${Number(opportunity.estimated_value) ? ` · $${Number(opportunity.estimated_value).toLocaleString()}` : ""}${opportunity.next_action ? ` · Next: ${opportunity.next_action}` : ""}`,
       timestamp: opportunity.created_at,
       sourceId: opportunity.id,
@@ -176,7 +176,7 @@ export async function GET(request: NextRequest) {
   for (const message of canonicalMessageResult.data || []) {
     timeline.push({
       type: message.direction === "inbound" ? "message_inbound" : "message_outbound",
-      title: `${message.direction === "inbound" ? "Received" : "Sent"}: ${message.subject || "Message"}`,
+      title: message.subject || "Message",
       description: message.body_text?.substring(0, 120) || `Delivery status: ${message.status}`,
       timestamp: message.received_at || message.sent_at || message.created_at,
       sourceId: message.id,
@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
   for (const task of canonicalTaskResult.data || []) {
     timeline.push({
       type: "task",
-      title: `Task: ${task.title}`,
+      title: task.title,
       description: `${task.status} · ${task.priority || "medium"} priority${task.due_date ? ` · Due ${task.due_date}` : ""}`,
       timestamp: task.created_at,
       sourceId: task.id,

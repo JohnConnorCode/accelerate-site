@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "demo-workspace-design-audit",
+    slug: "demo-workspace-design-audit",
+    title: "A clearer contact history and a complete demo workspace",
+    description:
+      "The contact relationship view now reads in plain language: interaction types use names like Message received instead of raw labels, record titles no longer repeat the type, and the collections follow-up and activity list have clear separation. The fictional workspaces also open Contact review and Subscriptions with realistic records instead of an unavailable message, demo pipeline stages show a varied funnel rather than the same count in every column, and the operator view tabs wrap instead of clipping the last view.",
+    category: "improvement",
+    publishedAt: "2026-09-14",
+  },
+  {
     id: "form-builder-plugin",
     slug: "form-builder-plugin",
     title: "Form builder publishes shareable intake forms with reviewed responses",

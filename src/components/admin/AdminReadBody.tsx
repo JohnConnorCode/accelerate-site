@@ -29,10 +29,7 @@ export function AdminReadBody({
 }: AdminReadBodyProps) {
   if (!hasData && error && !loading) {
     return (
-      <AdminSurface
-        tone="attention"
-        className="mx-auto flex max-w-2xl flex-col items-start gap-4 p-6 sm:flex-row sm:items-center"
-      >
+      <AdminSurface tone="attention" className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start">
         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300">
           <TriangleAlert className="size-5" />
         </span>
