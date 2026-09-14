@@ -16,6 +16,6 @@ A later edit bumps `version`. Sends keep using `approved_version` until you appr
 
 Stop rules are re-read before every send: reply, unsubscribe, suppression, exhausted retries. A member who is already stopped is not mailed because the cron woke up. Each send has an idempotency key and a provider receipt. Uncertain provider outcomes refuse blind retry.
 
-## Delivery Runs
+## Email Sequences
 
 `/admin/email-sequences` is sequence and delivery status for the same memberships. Use it for the receipt trail. Campaigns is the editor.

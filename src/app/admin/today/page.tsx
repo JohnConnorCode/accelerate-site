@@ -415,12 +415,35 @@ function formatMoney(value: number) {
 }
 
 const focusOptions = [
-  { id: "all", label: "All work" },
-  { id: "reply", label: "Replies" },
-  { id: "commitments", label: "Commitments" },
-  { id: "approval", label: "Approvals" },
-  { id: "proposal", label: "Proposals" },
+  { id: "all", label: "All" },
+  { id: "do", label: "Do" },
+  { id: "approve", label: "Approve" },
+  { id: "decide", label: "Decide" },
+  { id: "consider", label: "Consider" },
 ] as const;
+
+type AttentionType = "do" | "approve" | "decide" | "consider";
+const attentionMeta: Record<AttentionType, { label: string; description: string }> = {
+  do: { label: "Do", description: "Work a person needs to complete." },
+  approve: {
+    label: "Approve",
+    description: "A proposed change or external action needs your decision.",
+  },
+  decide: {
+    label: "Decide",
+    description: "Choose the next move for a customer, deal, or proposal.",
+  },
+  consider: { label: "Consider", description: "A signal or upcoming moment may need context." },
+};
+
+function attentionFor(item: QueueItem): AttentionType {
+  if (item.kind === "approval") return "approve";
+  // Proposals and meeting preparation are work to do. Optional signals can
+  // use Consider when a domain source explicitly marks them as such; generic
+  // system concerns remain actionable so they do not look like suggestions.
+  if (item.kind === "proposal" || item.kind === "meeting" || item.kind === "system") return "do";
+  return "do";
+}
 
 function relativeTime(value: string | null) {
   if (!value) return "No due date";
@@ -527,9 +550,15 @@ export default function TodayPage() {
 
   useEffect(() => {
     const requestedFocus = searchParams.get("focus");
-    if (requestedFocus === "approvals") {
-      setFocus("approval");
+    if (requestedFocus === "approvals" || requestedFocus === "approval") {
+      setFocus("approve");
       setShowAllApprovals(true);
+    } else if (requestedFocus === "commitments") {
+      setFocus("do");
+    } else if (requestedFocus === "reply" || requestedFocus === "task") {
+      setFocus("do");
+    } else if (requestedFocus === "proposal") {
+      setFocus("decide");
     } else if (focusOptions.some((option) => option.id === requestedFocus))
       setFocus(requestedFocus as (typeof focusOptions)[number]["id"]);
   }, [searchParams]);
@@ -635,12 +664,9 @@ export default function TodayPage() {
   );
   const visibleQueue = useMemo(() => {
     const queue = overview?.queue ?? [];
-    if (focus === "all") return queue;
-    if (focus === "commitments")
-      return queue.filter(
-        (item) => item.kind === "task" || item.kind === "follow_up" || item.kind === "meeting",
-      );
-    return queue.filter((item) => item.kind === focus);
+    if (focus !== "all") return queue.filter((item) => attentionFor(item) === focus);
+    const order: AttentionType[] = ["approve", "do", "decide", "consider"];
+    return order.flatMap((type) => queue.filter((item) => attentionFor(item) === type));
   }, [focus, overview]);
   const healthItems = useMemo(() => {
     if (!overview) return [];
@@ -822,7 +848,7 @@ export default function TodayPage() {
     <div className="space-y-4 pb-10 sm:space-y-7">
       <PageHeader
         title="Today"
-        subtitle="The founder queue: replies, commitments, meetings, proposals, approvals, and system exceptions in revenue order."
+        subtitle="Everything that needs your attention, organized by the kind of attention it needs: do, approve, decide, or consider."
         actions={
           <button
             type="button"
@@ -995,7 +1021,7 @@ export default function TodayPage() {
                   <div className="flex flex-col gap-4 px-5 py-4 sm:px-6">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="admin-eyebrow">Priority queue</p>
+                        <p className="admin-eyebrow">Operating surface</p>
                         <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
                           What needs your attention
                         </h2>
@@ -1027,6 +1053,9 @@ export default function TodayPage() {
                   </div>
                   <div className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]">
                     {visibleQueue.slice(0, 15).map((item, itemIndex) => {
+                      const attention = attentionFor(item);
+                      const firstInSection =
+                        itemIndex === 0 || attentionFor(visibleQueue[itemIndex - 1]!) !== attention;
                       const taskId =
                         item.kind === "task" || item.kind === "follow_up"
                           ? item.id.replace(/^task:/, "")
@@ -1082,84 +1111,95 @@ export default function TodayPage() {
                         </>
                       );
                       return (
-                        <div
-                          key={`${item.id}:${itemIndex}`}
-                          className="group flex min-h-[84px] items-start gap-3 px-5 py-4 transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025] sm:px-6"
-                        >
-                          {approval ? (
-                            <button
-                              type="button"
-                              onClick={(event) =>
-                                openReview(approval, item.href, event.currentTarget)
-                              }
-                              aria-haspopup="dialog"
-                              data-approval-review={approval.id}
-                              className="min-w-0 flex-1 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)] focus-visible:ring-offset-2"
-                            >
-                              {itemContent}
-                            </button>
-                          ) : (
-                            <Link
-                              href={item.href}
-                              className="min-w-0 flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)] focus-visible:ring-offset-2"
-                            >
-                              {itemContent}
-                            </Link>
-                          )}
-                          {taskId ? (
-                            <div className="flex shrink-0 items-center gap-1">
-                              <button
-                                type="button"
-                                aria-label={`Complete ${item.title}`}
-                                title="Complete task"
-                                disabled={Boolean(taskActioning)}
-                                onClick={() => void updateTask(taskId, "complete")}
-                                className="grid size-10 place-items-center rounded-lg text-emerald-700 transition-[background-color,scale,opacity] duration-150 hover:bg-emerald-500/10 active:scale-[0.96] disabled:opacity-50 dark:text-emerald-300"
-                              >
-                                {taskActioning === `${taskId}:complete` ? (
-                                  <Loader2 className="size-4 animate-spin" />
-                                ) : (
-                                  <CheckCircle2 className="size-4" />
-                                )}
-                              </button>
-                              <button
-                                type="button"
-                                aria-label={`Snooze ${item.title} until tomorrow`}
-                                title="Snooze until tomorrow"
-                                disabled={Boolean(taskActioning)}
-                                onClick={() => void updateTask(taskId, "snooze")}
-                                className="grid size-10 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,scale,opacity] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:opacity-50 dark:hover:bg-white/[0.06]"
-                              >
-                                {taskActioning === `${taskId}:snooze` ? (
-                                  <Loader2 className="size-4 animate-spin" />
-                                ) : (
-                                  <AlarmClock className="size-4" />
-                                )}
-                              </button>
+                        <Fragment key={`${item.id}:${itemIndex}`}>
+                          {firstInSection && (
+                            <div className="border-t border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-5 py-3 first:border-t-0 sm:px-6">
+                              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
+                                  {attentionMeta[attention].label}
+                                </h3>
+                                <p className="text-xs text-[var(--admin-muted)]">
+                                  {attentionMeta[attention].description}
+                                </p>
+                              </div>
                             </div>
-                          ) : approval ? (
-                            <button
-                              type="button"
-                              onClick={(event) =>
-                                openReview(approval, item.href, event.currentTarget)
-                              }
-                              aria-label={`Review ${item.title}`}
-                              aria-haspopup="dialog"
-                              data-approval-review={approval.id}
-                              className="mt-2 grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,transform] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.06]"
-                            >
-                              <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
-                            </button>
-                          ) : (
-                            <Link
-                              href={item.href}
-                              aria-label={`Open ${item.title}`}
-                              className="mt-2 grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,transform] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]"
-                            >
-                              <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
-                            </Link>
                           )}
-                        </div>
+                          <div className="group flex min-h-[84px] items-start gap-3 px-5 py-4 transition-[background-color] duration-150 hover:bg-black/[0.022] dark:hover:bg-white/[0.025] sm:px-6">
+                            {approval ? (
+                              <button
+                                type="button"
+                                onClick={(event) =>
+                                  openReview(approval, item.href, event.currentTarget)
+                                }
+                                aria-haspopup="dialog"
+                                data-approval-review={approval.id}
+                                className="min-w-0 flex-1 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)] focus-visible:ring-offset-2"
+                              >
+                                {itemContent}
+                              </button>
+                            ) : (
+                              <Link
+                                href={item.href}
+                                className="min-w-0 flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)] focus-visible:ring-offset-2"
+                              >
+                                {itemContent}
+                              </Link>
+                            )}
+                            {taskId ? (
+                              <div className="flex shrink-0 items-center gap-1">
+                                <button
+                                  type="button"
+                                  aria-label={`Complete ${item.title}`}
+                                  title="Complete task"
+                                  disabled={Boolean(taskActioning)}
+                                  onClick={() => void updateTask(taskId, "complete")}
+                                  className="grid size-10 place-items-center rounded-lg text-emerald-700 transition-[background-color,scale,opacity] duration-150 hover:bg-emerald-500/10 active:scale-[0.96] disabled:opacity-50 dark:text-emerald-300"
+                                >
+                                  {taskActioning === `${taskId}:complete` ? (
+                                    <Loader2 className="size-4 animate-spin" />
+                                  ) : (
+                                    <CheckCircle2 className="size-4" />
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label={`Snooze ${item.title} until tomorrow`}
+                                  title="Snooze until tomorrow"
+                                  disabled={Boolean(taskActioning)}
+                                  onClick={() => void updateTask(taskId, "snooze")}
+                                  className="grid size-10 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,scale,opacity] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] active:scale-[0.96] disabled:opacity-50 dark:hover:bg-white/[0.06]"
+                                >
+                                  {taskActioning === `${taskId}:snooze` ? (
+                                    <Loader2 className="size-4 animate-spin" />
+                                  ) : (
+                                    <AlarmClock className="size-4" />
+                                  )}
+                                </button>
+                              </div>
+                            ) : approval ? (
+                              <button
+                                type="button"
+                                onClick={(event) =>
+                                  openReview(approval, item.href, event.currentTarget)
+                                }
+                                aria-label={`Review ${item.title}`}
+                                aria-haspopup="dialog"
+                                data-approval-review={approval.id}
+                                className="mt-2 grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,transform] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] active:scale-[0.96] dark:hover:bg-white/[0.06]"
+                              >
+                                <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+                              </button>
+                            ) : (
+                              <Link
+                                href={item.href}
+                                aria-label={`Open ${item.title}`}
+                                className="mt-2 grid size-10 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] transition-[background-color,transform] duration-150 hover:bg-black/[0.045] hover:text-[var(--admin-ink)] dark:hover:bg-white/[0.06]"
+                              >
+                                <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+                              </Link>
+                            )}
+                          </div>
+                        </Fragment>
                       );
                     })}
                     {!visibleQueue.length && (

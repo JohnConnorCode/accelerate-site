@@ -21,6 +21,7 @@ import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminSwitch } from "@/components/admin/AdminSwitch";
 import { ADMIN_LAYOUT_SCOPES } from "@/lib/admin/layout-scopes";
 import { LayoutScopeCard } from "@/components/admin/LayoutScopeCard";
+import AdminLink from "@/components/admin/AdminLink";
 
 interface Setting {
   key: string;
@@ -272,8 +273,8 @@ export default function SettingsPage() {
                   Layout
                 </h2>
                 <p className="admin-copy mt-1 text-xs">
-                  Ask the AI Workspace to reorganize the sidebar or Today page. Changes wait for
-                  your approval before applying. Revert here at any time.
+                  Ask Accelerate to reorganize the sidebar or Today page. Changes wait for your
+                  approval before applying. Revert here at any time.
                 </p>
               </div>
             </div>
@@ -291,6 +292,60 @@ export default function SettingsPage() {
             </div>
           </AdminSurface>
         </div>
+
+        <AdminSurface padding="lg">
+          <p className="admin-eyebrow">Advanced</p>
+          <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.02em] text-[var(--admin-ink)]">
+            Keep the operating system healthy
+          </h2>
+          <p className="admin-copy mt-1 max-w-2xl text-sm">
+            Technical controls stay available when you need them, without competing with daily
+            business work.
+          </p>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                href: "/admin/setup",
+                label: "Setup Center",
+                description: "Connections and readiness",
+              },
+              {
+                href: "/admin/integrations",
+                label: "Integrations",
+                description: "Providers, modules, and evidence",
+              },
+              {
+                href: "/admin/activity",
+                label: "Activity",
+                description: "Immutable history and receipts",
+              },
+              {
+                href: "/admin/ai?view=runs",
+                label: "AI run history",
+                description: "Inspect bounded model and tool runs",
+              },
+              {
+                href: "/admin/features",
+                label: "Feature Board",
+                description: "Managed delivery backlog",
+              },
+              {
+                href: "/admin/tenants",
+                label: "Workspace access",
+                description: "Members and tenant operations",
+              },
+            ].map(({ href, label, description }) => (
+              <AdminLink
+                key={href}
+                href={href}
+                className="rounded-xl border border-[var(--admin-border)] p-4 transition-colors hover:bg-[var(--admin-surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]"
+              >
+                <p className="text-sm font-semibold text-[var(--admin-ink)]">{label}</p>
+                <p className="admin-copy mt-1 text-xs">{description}</p>
+              </AdminLink>
+            ))}
+          </div>
+        </AdminSurface>
 
         {settingSections.map((section) => (
           <div key={section.title}>

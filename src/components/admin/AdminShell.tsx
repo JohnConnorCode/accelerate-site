@@ -562,7 +562,7 @@ export default function AdminShell({
     },
     {
       label: "Show pipeline risk",
-      description: "Ask AI for a read-only pipeline risk summary",
+      description: "Ask Accelerate for a read-only pipeline risk summary",
       keywords: "ai risk pipeline stale deals briefing report",
       icon: Bot,
       run: () =>
@@ -577,7 +577,7 @@ export default function AdminShell({
     },
     {
       label: "What should I do next",
-      description: "Ask AI what needs the founder first",
+      description: "Ask Accelerate what needs the founder first",
       keywords: "ai next priorities todo focus briefing",
       icon: Bot,
       run: () =>
@@ -816,7 +816,7 @@ export default function AdminShell({
                       className="inline-flex min-h-10 items-center gap-2 rounded-[11px] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow)] transition-[box-shadow,transform] hover:shadow-[var(--admin-shadow-hover)] active:scale-[0.96]"
                     >
                       <Bot className="size-3.5" />
-                      Ask AI
+                      Ask Accelerate
                       <kbd className="ml-1 rounded-md bg-[var(--admin-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--admin-muted)]">
                         ⌘J
                       </kbd>
@@ -989,7 +989,7 @@ function SidebarContent({
               className="admin-nav-utility inline-flex min-h-11 items-center justify-center gap-2 rounded-[11px] px-3 text-xs font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
             >
               <Bot className="size-4" />
-              Ask AI
+              Ask Accelerate
             </button>
           </div>
         ) : collapsed ? (

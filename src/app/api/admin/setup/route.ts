@@ -561,7 +561,7 @@ export async function GET() {
       ],
       nextRun: setupNextRun("config"),
       action: {
-        label: openRouterReady ? "Open AI Workspace" : "Configure OpenRouter",
+        label: openRouterReady ? "Open Ask Accelerate" : "Configure OpenRouter",
         href: openRouterReady
           ? "/admin/ai?view=runs"
           : "/admin/integrations#workspace-provider-heading",

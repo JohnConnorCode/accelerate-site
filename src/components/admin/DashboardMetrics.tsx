@@ -110,7 +110,7 @@ export function DashboardMetrics({ metrics, emailStats, trends }: DashboardMetri
     cards.push({ label: "Partner Apps", value: metrics.partnerApps, icon: Handshake });
   }
   if (metrics.websiteGrades !== undefined) {
-    cards.push({ label: "Website Grades", value: metrics.websiteGrades, icon: Globe });
+    cards.push({ label: "Website reviews", value: metrics.websiteGrades, icon: Globe });
   }
   if (emailStats) {
     cards.push({

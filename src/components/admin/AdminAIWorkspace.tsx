@@ -49,7 +49,7 @@ export function AdminAIWorkspace() {
   return (
     <div className="pb-10">
       <PageHeader
-        title="AI Workspace"
+        title="Ask Accelerate"
         subtitle="Ask with live business context, inspect the evidence, and approve every consequential action."
       />
       <nav

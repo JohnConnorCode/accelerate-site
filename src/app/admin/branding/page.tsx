@@ -278,8 +278,8 @@ export default function BrandingPage() {
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
-        title="Branding"
-        subtitle="Make every customer document feel like your business."
+        title="Business & Brand"
+        subtitle="Keep your company identity, offers, and customer-facing defaults in one place."
       />
       <DemoBusinessNotice />
       {query.error ? (

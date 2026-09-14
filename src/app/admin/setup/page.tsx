@@ -200,7 +200,7 @@ const setupGuides: Record<string, SetupGuide> = {
     steps: [
       "Create a dedicated OpenRouter API key with a monthly spend limit for this workspace.",
       "Open Integrations, paste the key, and let the no-token verification complete. The encrypted key never returns to the browser.",
-      "Open AI Workspace or Contact Import. Every request is charged to the workspace key and writes remain behind their normal approval boundaries.",
+      "Open Ask Accelerate or Contact intake. Every request is charged to the workspace key and writes remain behind their normal approval boundaries.",
     ],
     href: "/admin/integrations#workspace-provider-heading",
     linkLabel: "Configure OpenRouter",

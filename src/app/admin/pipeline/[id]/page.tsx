@@ -241,7 +241,7 @@ export default function OpportunityRecordPage() {
               className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3.5 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
             >
               <Bot className="size-4" />
-              Ask AI
+              Ask Accelerate
             </button>
             <button
               type="button"

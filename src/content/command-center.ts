@@ -398,31 +398,43 @@ export const capabilities: Capability[] = [
   },
 ];
 
-/** The four beats of the approval loop. Rendered with the .steps primitive. */
+/** The shared record-to-result loop. Rendered with the .steps primitive. */
 export const LOOP_STEPS = [
   {
     n: "01",
-    title: "It watches",
-    tag: "no input from you",
-    body: "Transcripts, email, and calendar arrive on their own. It pulls out who was there, what was decided, and what somebody promised.",
+    title: "Record or event",
+    tag: "the source of truth",
+    body: "A message, meeting, invoice, opportunity, or customer update changes the business record.",
   },
   {
     n: "02",
-    title: "It drafts the work",
-    tag: "nothing sent yet",
-    body: "The follow-up email, the task list, the stage change, the calendar hold. Written, attached to the right records, and staged.",
+    title: "Signal or rule",
+    tag: "something may matter",
+    body: "A rule notices a stalled deal, overdue promise, or unusual change and keeps the evidence with the source.",
   },
   {
     n: "03",
-    title: "You approve",
-    tag: "your call, every time",
-    body: "One queue. Approve, edit, or throw it out. A morning of admin clears in about the time it takes to drink a coffee.",
+    title: "Workflow",
+    tag: "background evaluation",
+    body: "Background logic decides whether the next step is automatic, a signal, a task, or a proposed action.",
   },
   {
     n: "04",
-    title: "It learns from what you did",
-    tag: "compounding",
-    body: "Your edits move the next draft closer. Work it gets right often enough is work you can eventually stop reading.",
+    title: "Human attention",
+    tag: "do or decide",
+    body: "A Task, Approval, or justified domain work type appears only when a person must act or decide.",
+  },
+  {
+    n: "05",
+    title: "Action",
+    tag: "under policy",
+    body: "The approved command sends, schedules, updates, or creates something with permission and idempotency checks.",
+  },
+  {
+    n: "06",
+    title: "Activity",
+    tag: "the durable result",
+    body: "The outcome and receipt return to the record timeline. Today remains a view over the same canonical state.",
   },
 ];
 
@@ -511,6 +523,6 @@ export const CURRENT_SURFACES = [
     n: "08",
     label: "Run per tenant",
     title: "Shared infrastructure, isolated workspaces",
-    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Ten bundled plugin examples have public guides covering setup, approvals, costs, and recovery.",
+    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Ten bundled Apps and examples have public guides covering setup, approvals, costs, and recovery.",
   },
 ];

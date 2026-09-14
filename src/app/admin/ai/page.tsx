@@ -9,8 +9,8 @@ export default function AdminAIPage() {
     <Suspense
       fallback={
         <AdminPageLoading
-          title="AI Workspace"
-          subtitle="Inspect evidence, stage actions, and review every consequential decision before execution."
+          title="Ask Accelerate"
+          subtitle="Ask about your business, inspect the evidence, and review consequential actions before they run."
           variant="detail"
         />
       }

@@ -346,7 +346,7 @@ const desktopResponse = await desktop.page.goto(`${base}/admin/ai`, {
 if (!desktopResponse?.ok())
   throw new Error(`AI workspace returned ${desktopResponse?.status() ?? "no response"}`);
 await desktop.page
-  .getByRole("heading", { name: "AI Workspace" })
+  .getByRole("heading", { name: "Ask Accelerate" })
   .waitFor()
   .catch(async (error) => {
     console.error(
@@ -371,11 +371,11 @@ await desktop.page.getByText("Useful by default. Controlled where it matters.").
 await desktop.page.screenshot({ path: `${outDir}/capabilities-desktop.png`, fullPage: true });
 await assertNoOverflow(desktop.page, "desktop capabilities");
 await desktop.page.keyboard.press("Meta+J");
-await desktop.page.getByRole("dialog", { name: "Ask AI" }).waitFor();
+await desktop.page.getByRole("dialog", { name: "Ask Accelerate" }).waitFor();
 await desktop.page.waitForFunction(
   () =>
-    (document.querySelector('[role="dialog"][aria-label="Ask AI"]')?.getBoundingClientRect().left ??
-      9999) <
+    (document.querySelector('[role="dialog"][aria-label="Ask Accelerate"]')?.getBoundingClientRect()
+      .left ?? 9999) <
     window.innerWidth - 400,
 );
 await desktop.page.screenshot({ path: `${outDir}/global-panel-desktop.png` });
@@ -384,19 +384,19 @@ await desktop.context.close();
 
 const mobile = await createPage({ width: 390, height: 844 }, "mobile");
 await mobile.page.goto(`${base}/admin/ai`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-await mobile.page.getByRole("heading", { name: "AI Workspace" }).waitFor();
+await mobile.page.getByRole("heading", { name: "Ask Accelerate" }).waitFor();
 await mobile.page.getByRole("button", { name: "Open More" }).click();
-await mobile.page.getByRole("button", { name: "Ask AI", exact: true }).click();
-await mobile.page.getByRole("dialog", { name: "Ask AI" }).waitFor();
+await mobile.page.getByRole("button", { name: "Ask Accelerate", exact: true }).click();
+await mobile.page.getByRole("dialog", { name: "Ask Accelerate" }).waitFor();
 await mobile.page.waitForFunction(
   () =>
-    (document.querySelector('[role="dialog"][aria-label="Ask AI"]')?.getBoundingClientRect().left ??
-      9999) < 2,
+    (document.querySelector('[role="dialog"][aria-label="Ask Accelerate"]')?.getBoundingClientRect()
+      .left ?? 9999) < 2,
 );
 await mobile.page.screenshot({ path: `${outDir}/global-panel-mobile.png` });
 await assertNoOverflow(mobile.page, "mobile panel");
 await mobile.page.getByRole("button", { name: "Close AI panel" }).click();
-await mobile.page.getByRole("dialog", { name: "Ask AI" }).waitFor({ state: "detached" });
+await mobile.page.getByRole("dialog", { name: "Ask Accelerate" }).waitFor({ state: "detached" });
 await mobile.page.screenshot({ path: `${outDir}/workspace-mobile.png` });
 await assertNoOverflow(mobile.page, "mobile workspace");
 await mobile.page.getByRole("button", { name: /Run history/ }).click();
@@ -411,7 +411,7 @@ await mobile.context.close();
 
 const dark = await createPage({ width: 1280, height: 900 }, "dark", "light");
 await dark.page.goto(`${base}/admin/ai`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-await dark.page.getByRole("heading", { name: "AI Workspace" }).waitFor();
+await dark.page.getByRole("heading", { name: "Ask Accelerate" }).waitFor();
 await dark.page.getByText(/The highest-leverage next step/).waitFor();
 await dark.page.getByRole("button", { name: /Appearance:/ }).click();
 await dark.page.getByRole("radio", { name: /Night/ }).click();

@@ -197,8 +197,8 @@ export default function RecoveryPage() {
   return (
     <div className="space-y-7 pb-10">
       <PageHeader
-        title="Revenue Recovery"
-        subtitle="Turn reviewed past relationships into governed, attributable opportunities. No email leaves until you approve an exact playbook version."
+        title="Follow-ups"
+        subtitle="Keep due and upcoming customer follow-up moving. Any outreach still requires an exact review and approval."
         actions={
           <button
             type="button"

@@ -76,8 +76,8 @@ export const PRODUCT_SCREENSHOTS: ProductScreenshot[] = [
   {
     kind: "image",
     src: "/images/open-source/slide-ai-frost.png",
-    alt: "The AI workspace, grounded chat with visible evidence, in the Frost appearance for a fictional nonprofit network.",
-    caption: "AI Workspace · Frost theme",
+    alt: "Ask Accelerate, grounded chat with visible evidence, in the Frost appearance for a fictional nonprofit network.",
+    caption: "Ask Accelerate · Frost theme",
     width: 1400,
     height: 875,
     presentation: "interface",

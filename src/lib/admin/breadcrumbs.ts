@@ -1,4 +1,4 @@
-import { resolveAdminNavLink } from "./navigation";
+import { adminNavSections, resolveAdminNavLink } from "./navigation";
 
 export interface AdminBreadcrumb {
   label: string;
@@ -14,12 +14,29 @@ export function getAdminBreadcrumbs(pathname: string): AdminBreadcrumb[] {
   const active = resolveAdminNavLink(pathname);
   if (!active) return [];
 
+  const section = adminNavSections.find((candidate) =>
+    candidate.links.some((link) => link.id === active.id),
+  );
+
   if (pathname.startsWith("/admin/contacts/") && pathname !== "/admin/contacts") {
     return [
-      { label: "Contacts", href: "/admin/contacts" },
+      {
+        label: section?.label === "More tools" ? "Customers" : (section?.label ?? "Customers"),
+        href: "/admin/contacts",
+      },
+      { label: active.label, href: "/admin/contacts" },
       { label: "Timeline", href: pathname },
     ];
   }
 
-  return [{ label: active.label, href: active.href }];
+  // Top-level pages already identify their home in the page header. Adding a
+  // second crumb that points to the same URL creates a redundant title in the
+  // shell; reserve the section crumb for nested record views.
+  if (pathname === active.href) return [{ label: active.label, href: active.href }];
+  return section
+    ? [
+        { label: section.label, href: section.links[0]?.href ?? active.href },
+        { label: active.label, href: active.href },
+      ]
+    : [{ label: active.label, href: active.href }];
 }

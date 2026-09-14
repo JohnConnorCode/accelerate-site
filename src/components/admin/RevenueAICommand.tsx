@@ -35,7 +35,7 @@ export function RevenueAICommand({
     <AdminSurface padding="none" className="overflow-hidden" data-revenue-ai-card>
       <div className="flex items-start justify-between gap-4 p-5 sm:p-6" data-ai-card-header>
         <div className="min-w-0">
-          <p className="admin-eyebrow">AI Workspace</p>
+          <p className="admin-eyebrow">Ask Accelerate</p>
           <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
             Ask the business. Inspect the evidence.
           </h2>

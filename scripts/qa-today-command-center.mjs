@@ -447,11 +447,11 @@ await desktop.page
   .getByRole("button", { name: "Close command center alerts" })
   .click();
 await desktopPriority.waitFor({ state: "detached" });
-await desktop.page.getByRole("button", { name: "Replies" }).click();
+await desktop.page.getByRole("button", { name: "Do" }).click();
 await desktop.page.getByText("Apex Roofing needs a proposal revision", { exact: true }).waitFor();
 if (await desktop.page.getByText("Westlake automation proposal", { exact: true }).count())
   throw new Error("Reply focus did not filter the operator queue");
-await desktop.page.getByRole("button", { name: "All work", exact: true }).click();
+await desktop.page.getByRole("button", { name: "All", exact: true }).click();
 await desktop.page.screenshot({
   path: `${outDir}/today-command-center-desktop.png`,
   fullPage: true,
@@ -491,7 +491,7 @@ await desktop.page.getByText("No decisions waiting", { exact: true }).waitFor();
 if (await desktop.page.getByText("Review campaign activation", { exact: true }).count())
   throw new Error("Rejected action remained in the shared operator queue");
 
-await desktop.page.getByRole("button", { name: "All work", exact: true }).click();
+await desktop.page.getByRole("button", { name: "All", exact: true }).click();
 await desktop.page
   .getByRole("button", { name: "Complete Confirm discovery call objectives" })
   .click();

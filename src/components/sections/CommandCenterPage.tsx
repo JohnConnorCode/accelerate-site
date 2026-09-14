@@ -66,9 +66,8 @@ function Hero() {
           </div>
           <div>
             <Reveal rv as="p" className="lede" delay={0.16}>
-              See what needs you, follow the customer conversation, and move the next action
-              forward. Command Center connects your records, approvals, and workflows in one
-              workspace.
+              See what needs you, follow the customer conversation, and move the next step forward.
+              Command Center connects your records, approvals, and workflows in one workspace.
             </Reveal>
             <Reveal
               rv
@@ -253,14 +252,14 @@ function HowItWorks() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              The 4-step loop
+              The shared loop
               <br />
               that <span className="it">runs your work.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Most tools wait around for you to ask. Your custom system stays ahead: capturing
-              context, staging drafts, and queueing every next action so you can clear a morning of
-              admin in minutes.
+              Facts become signals, background workflows evaluate them, and only the work that needs
+              a person reaches you. Every approved result returns to the same record and activity
+              history.
             </Reveal>
           </div>
         </div>

@@ -88,8 +88,8 @@ export default function AdminBookingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Bookings"
-        subtitle="Qualification, scheduled calls, attendance, and attributed revenue."
+        title="Appointments"
+        subtitle="Bookings, meetings, inspections, and calendar-based work."
       />
       <AdminReadBody
         loading={loading}

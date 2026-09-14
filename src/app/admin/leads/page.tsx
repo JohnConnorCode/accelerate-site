@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Plus, X, Save } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { AdminContextNav } from "@/components/admin/AdminContextNav";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { LeadsTable } from "@/components/admin/LeadsTable";
 import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
@@ -258,6 +259,15 @@ export default function AdminLeadsPage() {
             New Lead
           </Button>
         }
+      />
+      <AdminContextNav
+        label="Lead views"
+        tabs={[
+          { href: "/admin/leads", label: "All leads" },
+          { href: "/admin/contacts", label: "Forms & imports" },
+          { href: "/admin/chat-leads", label: "Chat" },
+          { href: "/admin/partners", label: "Partners" },
+        ]}
       />
 
       <AddLeadModal

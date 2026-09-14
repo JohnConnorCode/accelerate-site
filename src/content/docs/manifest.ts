@@ -84,15 +84,13 @@ export const docsManifest: DocsSection[] = [
   },
   {
     id: "plugins",
-    title: "Plugin examples",
-    description:
-      "See what you can build: reports, reviewed workflows and dedicated business workspaces.",
+    title: "Apps & examples",
+    description: "Choose a business outcome, then explore the App or example that supports it.",
     pages: [
       {
         slug: ["plugins", "overview"],
-        title: "Plugin examples",
-        description:
-          "Explore ten bundled examples, from focused reports to complete business workspaces.",
+        title: "Apps and examples",
+        description: "Explore bundled capabilities by the business problem they help solve.",
       },
       {
         slug: ["plugins", "business-pulse"],
@@ -169,7 +167,17 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["command-center", "today"],
         title: "Work the Today queue",
-        description: "Review urgent work, take the next action and confirm the result.",
+        description: "See what needs your attention and confirm the result.",
+      },
+      {
+        slug: ["command-center", "operating-model"],
+        title: "How the Command Center fits together",
+        description: "Understand the shared loop from a business fact to a reviewed result.",
+      },
+      {
+        slug: ["command-center", "work"],
+        title: "Tasks and approvals",
+        description: "Keep human work and decisions in one shared place without confusing the two.",
       },
       {
         slug: ["command-center", "inbox"],
@@ -189,7 +197,7 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["command-center", "ask"],
-        title: "Ask AI",
+        title: "Ask Accelerate",
         description:
           "Ask a specific question, inspect the evidence, and review any proposed action.",
       },
@@ -333,7 +341,7 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["delivery", "bookings"],
-        title: "Review bookings",
+        title: "Review appointments",
         description:
           "Check qualification, call status and the next step for a booked conversation.",
       },
@@ -374,7 +382,7 @@ export const docsManifest: DocsSection[] = [
       },
       {
         slug: ["intelligence", "workspace"],
-        title: "Use the AI Workspace",
+        title: "Ask Accelerate",
         description:
           "Ask a specific question, check its sources and inspect the result of an action.",
       },

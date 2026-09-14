@@ -29,6 +29,7 @@ import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { AdminContextNav } from "@/components/admin/AdminContextNav";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { KanbanBoard, type KanbanCardRenderOpts } from "@/components/kanban/KanbanBoard";
 import { KanbanChecklist } from "@/components/kanban/KanbanChecklist";
@@ -1152,7 +1153,7 @@ export default function FeaturesPage() {
     <div className="space-y-6 pb-10">
       <PageHeader
         title="Feature Board"
-        subtitle="A dependency-ordered execution queue. Milestone says when, category says who owns it, and capability says what it changes."
+        subtitle="Plan the Command Center roadmap. Milestone says when, category says who owns it, and capability says which owner workflow it changes."
         utilityActions={
           <button
             type="button"
@@ -1177,6 +1178,19 @@ export default function FeaturesPage() {
             <Plus className="size-3.5" /> New feature
           </button>
         }
+      />
+      <AdminContextNav
+        label="Command Center planning"
+        tabs={[
+          { href: "/admin/today", label: "Today", description: "What needs attention now" },
+          { href: "/admin/work", label: "Tasks", description: "Assigned work and approvals" },
+          {
+            href: "/admin/features",
+            label: "Feature Board",
+            description: "Plan and verify changes",
+          },
+          { href: "/admin/ai", label: "Ask Accelerate", description: "Ask about the roadmap" },
+        ]}
       />
       <WorkAgents />
       <AdminReadBody

@@ -84,7 +84,7 @@ export default function WebsiteGradesPage() {
 
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <PageHeader title="Website Grades" subtitle={`${total} total`} />
+      <PageHeader title="Website" subtitle={`${total} site reviews`} />
       <AdminReadBody
         loading={loading}
         hasData={Boolean(gradesQuery.data)}

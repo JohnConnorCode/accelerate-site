@@ -26,13 +26,13 @@ const routes = [
   { slug: "emails", label: "Email Studio" },
   { slug: "campaigns", label: "Campaigns" },
   { slug: "proposals", label: "Proposals" },
-  { slug: "email-sequences", label: "Delivery Runs" },
+  { slug: "email-sequences", label: "Email Sequences" },
   { slug: "revenue", label: "Revenue" },
   { slug: "clients", label: "Clients" },
-  { slug: "bookings", label: "Bookings" },
+  { slug: "bookings", label: "Appointments" },
   { slug: "content", label: "Content" },
   { slug: "resources", label: "Resources" },
-  { slug: "ai", label: "AI Workspace" },
+  { slug: "ai", label: "Ask Accelerate" },
   { slug: "analytics", label: "Analytics" },
   { slug: "activity", label: "Activity" },
   { slug: "integrations", label: "Integrations" },
@@ -41,12 +41,12 @@ const routes = [
   { slug: "chat-leads", label: "Chat inquiries" },
   { slug: "subscribers", label: "Subscribers" },
   { slug: "partners", label: "Partners" },
-  { slug: "website-grades", label: "Website Grades" },
+  { slug: "website-grades", label: "Website" },
 ];
 // The persistent profile exercises a fictional client workspace. Setup Center,
 // Feature Board, and tenant management are founder-only platform surfaces and
 // must remain absent from this route matrix as well as from the rendered nav.
-const mobilePrimarySlugs = new Set(["today", "pipeline", "conversations", "inbox"]);
+const mobilePrimarySlugs = new Set(["today", "pipeline", "conversations", "ai"]);
 
 if (!Number.isFinite(iterations) || iterations < 4)
   throw new Error("--iterations must be at least 4");

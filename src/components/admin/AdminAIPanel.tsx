@@ -67,7 +67,7 @@ export function AdminAIPanel() {
           <motion.div
             ref={panelRef}
             role="dialog"
-            aria-label="Ask AI"
+            aria-label="Ask Accelerate"
             aria-modal="true"
             className="fixed inset-0 z-[71] flex min-h-0 flex-col bg-[var(--admin-canvas)] pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] shadow-[-24px_0_70px_rgba(0,0,0,0.22)] sm:inset-y-0 sm:left-auto sm:w-[min(480px,100vw)] sm:py-0"
             initial={{ x: "100%" }}
@@ -81,7 +81,7 @@ export function AdminAIPanel() {
                   <Bot className="size-4" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[var(--admin-ink)]">Ask AI</p>
+                  <p className="text-sm font-semibold text-[var(--admin-ink)]">Ask Accelerate</p>
                   <p className="truncate text-[10px] text-[var(--admin-muted)]">
                     Live records · staged actions · visible evidence
                   </p>

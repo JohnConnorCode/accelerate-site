@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "owner-first-command-center-ia",
+    slug: "owner-first-command-center-ia",
+    title: "Command Center is organized around the work of running a business",
+    description:
+      "Today now names the attention required—Do, Approve, Decide, or Consider—and Tasks gives human work one shared home. Sales, Customers, Marketing, Money, Intelligence, and System group the existing capabilities by the job an operator came to finish. Ask Accelerate, Business & Brand, App routes, and technical tools keep their existing permissions, source records, and compatibility URLs while becoming easier to find.",
+    category: "improvement",
+    publishedAt: "2026-09-13",
+  },
+  {
     id: "visual-plugin-guides",
     slug: "visual-plugin-guides",
     title: "Visual guides explain all ten bundled plugins",

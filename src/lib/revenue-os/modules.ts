@@ -119,8 +119,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     category: "system",
     isCore: true,
     defaultEnabled: true,
-    navLinkIds: ["today", "inbox", "activity"],
-    routes: ["/admin/today", "/admin/inbox", "/admin/activity"],
+    navLinkIds: ["today", "work", "inbox", "activity"],
+    routes: ["/admin/today", "/admin/work", "/admin/inbox", "/admin/activity"],
     aiToolNames: [
       "get_today_snapshot",
       "get_record_timeline",
@@ -282,8 +282,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     category: "revenue",
     isCore: false,
     defaultEnabled: true,
-    navLinkIds: ["recovery"],
-    routes: ["/admin/recovery"],
+    navLinkIds: ["follow-ups", "recovery"],
+    routes: ["/admin/recovery", "/admin/follow-ups"],
   },
   {
     id: "revenue",
@@ -293,8 +293,8 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     category: "revenue",
     isCore: false,
     defaultEnabled: true,
-    navLinkIds: ["revenue"],
-    routes: ["/admin/revenue"],
+    navLinkIds: ["money", "revenue"],
+    routes: ["/admin/revenue", "/admin/money"],
   },
   {
     id: "bookings",

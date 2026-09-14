@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { AdminContextNav } from "@/components/admin/AdminContextNav";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
@@ -219,6 +220,15 @@ export default function CampaignsPage() {
             </button>
           </>
         }
+      />
+      <AdminContextNav
+        label="Marketing views"
+        tabs={[
+          { href: "/admin/campaigns", label: "Overview" },
+          { href: "/admin/emails", label: "Templates" },
+          { href: "/admin/email-sequences", label: "Automations" },
+          { href: "/admin/content", label: "Content" },
+        ]}
       />
       {actionError && (
         <AdminSurface tone="attention" className="flex items-center gap-3">

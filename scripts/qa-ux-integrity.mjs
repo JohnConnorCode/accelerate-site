@@ -260,8 +260,8 @@ for (const [label, viewport] of [
       "mobile more: Search is missing from the top utility area",
     );
     check(
-      (await tools.getByRole("button", { name: "Ask AI", exact: true }).count()) === 1,
-      "mobile more: Ask AI is missing from the top utility area",
+      (await tools.getByRole("button", { name: "Ask Accelerate", exact: true }).count()) === 1,
+      "mobile more: Ask Accelerate is missing from the top utility area",
     );
     const toolTop = await tools.evaluate((node) => node.getBoundingClientRect().top);
     check(toolTop < 90, "mobile more: workspace tools do not use the top of the drawer");

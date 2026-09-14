@@ -2,6 +2,21 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Where should I start each day?",
+    answer:
+      "Open Today. It brings together the same canonical tasks, approvals, signals, and upcoming context in four plain states: Do, Approve, Decide, and Consider. Tasks remains the full home for assigned work; Today is the prioritized view over it.",
+  },
+  {
+    question: "Where did the old specialist queues go?",
+    answer:
+      "They are grouped under the job they support. Leads, Pipeline, Proposals, and Follow-ups live under Sales; Conversations, Clients, and Appointments under Customers; invoice and collection work under Money. Existing URLs remain available, and the source record stays authoritative.",
+  },
+  {
+    question: "What is Ask Accelerate?",
+    answer:
+      "Ask Accelerate is the company's natural-language assistant. It can read permitted workspace context and prepare supported changes, but consequential actions still show their evidence and wait for the normal approval path.",
+  },
+  {
     question: "Where can I explore the bundled plugins?",
     answer:
       "The public documentation includes individual guides for all ten bundled plugins, with fictional examples, setup steps, approval requirements, costs and recovery instructions. Start at /docs/plugins to explore reports, invoice workflows, Collections and Opportunity Radar, then adapt the open-source examples to your business.",

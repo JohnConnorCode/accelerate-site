@@ -183,7 +183,7 @@ async function runJourney() {
     await openPalette(page, true);
     await paletteInput(page).fill("pipeline risk");
     await palette.getByRole("button", { name: /Show pipeline risk/ }).click();
-    await page.getByLabel("Ask AI").waitFor({ timeout: 15_000 });
+    await page.getByLabel("Ask Accelerate").waitFor({ timeout: 15_000 });
     await page.screenshot({ path: `${outDir}/ai-dark.png` });
     await context.close();
   }

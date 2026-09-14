@@ -926,7 +926,8 @@ a.tag:active {
   .demo-scenario-mark .demo-mark-law,
   .demo-scenario-mark .demo-mark-ledger,
   .demo-scenario-mark .demo-mark-home,
-  .demo-scenario-mark .demo-mark-table {
+  .demo-scenario-mark .demo-mark-table,
+  .demo-scenario-mark .demo-mark-superdebate {
     stroke-dasharray: 64;
     animation: demo-mark-draw 0.8s var(--ease) both;
   }
@@ -955,6 +956,9 @@ a.tag:active {
   .demo-scenario-mark--ledgerstone-advisory,
   .demo-scenario-mark--hearthline-realty,
   .demo-scenario-mark--common-table-network {
+    animation: demo-mark-breathe 4.4s ease-in-out 1s infinite;
+  }
+  .demo-scenario-mark--superdebate {
     animation: demo-mark-breathe 4.4s ease-in-out 1s infinite;
   }
 }

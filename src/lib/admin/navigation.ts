@@ -5,6 +5,7 @@ import {
   Bot,
   BriefcaseBusiness,
   CalendarCheck,
+  CircleDollarSign,
   FileText,
   FileCheck,
   Globe2,
@@ -57,32 +58,201 @@ export const adminNavSections: AdminNavSection[] = [
         label: "Today",
         href: "/admin/today",
         icon: LayoutDashboard,
-        description: "What needs you now",
+        description: "What needs your attention now",
         mobilePrimary: true,
+      },
+      {
+        id: "work",
+        label: "Tasks",
+        href: "/admin/work",
+        icon: ListChecks,
+        description: "Work with an owner, due date, or completion state",
+        keywords: "tasks approvals my work team",
+      },
+    ],
+  },
+  {
+    label: "Sales",
+    links: [
+      {
+        id: "leads",
+        label: "Leads",
+        href: "/admin/leads",
+        icon: UserRound,
+        description: "Prospective customers from every source",
+        keywords: "inquiries forms chat imports",
       },
       {
         id: "pipeline",
         label: "Pipeline",
         href: "/admin/pipeline",
         icon: Target,
-        description: "Opportunities and next actions",
+        description: "Active opportunities and deal movement",
         mobilePrimary: true,
       },
+      {
+        id: "proposals",
+        label: "Proposals",
+        href: "/admin/proposals",
+        icon: FileCheck,
+        description: "Draft, send, and track customer proposals",
+      },
+      {
+        id: "follow-ups",
+        label: "Follow-ups",
+        href: "/admin/follow-ups",
+        icon: RotateCcw,
+        description: "Due and upcoming customer follow-up",
+        keywords: "recovery reminders stale leads no shows",
+      },
+    ],
+  },
+  {
+    label: "Customers",
+    links: [
       {
         id: "conversations",
         label: "Conversations",
         href: "/admin/conversations",
         icon: MessageSquareText,
-        description: "Ongoing customer communication",
+        description: "Customer communication and history",
         mobilePrimary: true,
       },
+      {
+        id: "clients",
+        label: "Clients",
+        href: "/admin/clients",
+        icon: BriefcaseBusiness,
+        description: "Customer records and relationships",
+      },
+      {
+        id: "bookings",
+        label: "Appointments",
+        href: "/admin/bookings",
+        icon: CalendarCheck,
+        description: "Bookings, meetings, inspections, and calls",
+      },
+    ],
+  },
+  {
+    label: "Marketing",
+    links: [
+      {
+        id: "campaigns",
+        label: "Campaigns",
+        href: "/admin/campaigns",
+        icon: Mail,
+        description: "Campaigns, automations, templates, and audiences",
+      },
+      {
+        id: "content",
+        label: "Content",
+        href: "/admin/content",
+        icon: FileText,
+        description: "Content calendar and reusable assets",
+      },
+      {
+        id: "website-grades",
+        label: "Website",
+        href: "/admin/website-grades",
+        icon: Globe2,
+        description: "Review site health and improvement opportunities",
+        keywords: "website site content publish",
+      },
+    ],
+  },
+  {
+    label: "Money",
+    links: [
+      {
+        id: "money",
+        label: "Money",
+        href: "/admin/money",
+        icon: CircleDollarSign,
+        description: "Invoices, payments, collections, and recurring billing",
+      },
+      {
+        id: "revenue",
+        label: "Revenue",
+        href: "/admin/revenue",
+        icon: BriefcaseBusiness,
+        description: "Performance and revenue reporting",
+      },
+    ],
+  },
+  {
+    label: "Intelligence",
+    links: [
+      {
+        id: "analytics",
+        label: "Analytics",
+        href: "/admin/analytics",
+        icon: BarChart3,
+        description: "Business-wide performance",
+      },
+      {
+        id: "opportunity-radar",
+        label: "Opportunity Radar",
+        href: "/admin/radar/today",
+        icon: Target,
+        description: "Signals and opportunities worth reviewing",
+        keywords: "signals risks research",
+      },
+      {
+        id: "ai",
+        label: "Ask Accelerate",
+        href: "/admin/ai",
+        icon: Bot,
+        description: "Ask questions across your company context",
+        mobilePrimary: true,
+        keywords: "ai assistant copilot chat runs capabilities",
+      },
+    ],
+  },
+  {
+    label: "System",
+    links: [
+      {
+        id: "integrations",
+        label: "Integrations",
+        href: "/admin/integrations",
+        icon: PlugZap,
+        description: "Connected tools and what they unlock",
+      },
+      {
+        id: "branding",
+        label: "Business & Brand",
+        href: "/admin/branding",
+        icon: Palette,
+        description: "Company identity, offers, and customer-facing defaults",
+      },
+      {
+        id: "settings",
+        label: "Settings",
+        href: "/admin/settings",
+        icon: Settings,
+        description: "Users, permissions, notifications, and advanced controls",
+      },
+    ],
+  },
+  {
+    label: "More tools",
+    links: [
       {
         id: "inbox",
         label: "Inbox",
         href: "/admin/inbox",
         icon: Inbox,
-        description: "New work requiring triage",
-        mobilePrimary: true,
+        description: "Legacy mixed-source triage view",
+        keywords: "triage",
+      },
+      {
+        id: "contacts",
+        label: "Contact intake",
+        href: "/admin/contacts",
+        icon: UsersRound,
+        description: "Website submissions and reviewed list imports",
+        keywords: "contacts submissions csv json paste ai dedupe import",
       },
       {
         id: "identity-review",
@@ -92,99 +262,21 @@ export const adminNavSections: AdminNavSection[] = [
         description: "Ambiguous senders waiting for a decision",
         keywords: "identity review ambiguous unknown link contact",
       },
-    ],
-  },
-  {
-    label: "Revenue",
-    links: [
-      {
-        id: "contacts",
-        label: "Contact intake",
-        href: "/admin/contacts",
-        icon: UsersRound,
-        description: "Website submissions and reviewed list imports",
-        keywords: "contacts submissions csv json paste ai dedupe import",
-        moreGroup: "Revenue",
-      },
       {
         id: "emails",
         label: "Email Studio",
         href: "/admin/emails",
         icon: MessageSquareText,
-        description: "View and edit live email copy",
+        description: "Edit and inspect live email copy",
         keywords: "templates preview editor",
-        moreGroup: "Revenue",
-      },
-      {
-        id: "campaigns",
-        label: "Campaigns",
-        href: "/admin/campaigns",
-        icon: Mail,
-        description: "Controlled outbound",
-        moreGroup: "Revenue",
-      },
-      {
-        id: "recovery",
-        label: "Revenue Recovery",
-        href: "/admin/recovery",
-        icon: RotateCcw,
-        description: "Recover past demand",
-        keywords: "reactivation stale leads no shows estimates recovery",
-        moreGroup: "Revenue",
-      },
-      {
-        id: "proposals",
-        label: "Proposals",
-        href: "/admin/proposals",
-        icon: FileCheck,
-        description: "Drafts, decisions, and follow-up",
-        moreGroup: "Revenue",
       },
       {
         id: "delivery-runs",
-        label: "Delivery Runs",
+        label: "Email Sequences",
         href: "/admin/email-sequences",
         icon: MailCheck,
-        description: "Sequence and delivery status",
-        keywords: "email sequences sends",
-        moreGroup: "Revenue",
-      },
-      {
-        id: "revenue",
-        label: "Revenue",
-        href: "/admin/revenue",
-        icon: BriefcaseBusiness,
-        description: "Revenue and client value",
-        moreGroup: "Revenue",
-      },
-    ],
-  },
-  {
-    label: "Delivery",
-    links: [
-      {
-        id: "clients",
-        label: "Clients",
-        href: "/admin/clients",
-        icon: BriefcaseBusiness,
-        description: "Client delivery records",
-        moreGroup: "Delivery",
-      },
-      {
-        id: "bookings",
-        label: "Bookings",
-        href: "/admin/bookings",
-        icon: CalendarCheck,
-        description: "Meeting and booking records",
-        moreGroup: "Delivery",
-      },
-      {
-        id: "content",
-        label: "Content",
-        href: "/admin/content",
-        icon: FileText,
-        description: "Content operations",
-        moreGroup: "Delivery",
+        description: "Sequence delivery status",
+        keywords: "delivery runs sends",
       },
       {
         id: "resources",
@@ -192,58 +284,13 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/resources",
         icon: Library,
         description: "Downloadable resources",
-        moreGroup: "Delivery",
-      },
-    ],
-  },
-  {
-    label: "Intelligence",
-    links: [
-      {
-        id: "ai",
-        label: "AI Workspace",
-        href: "/admin/ai",
-        icon: Bot,
-        description: "Ask, inspect runs, and review capabilities",
-        keywords: "assistant copilot command chat operations traces capabilities",
-        moreGroup: "Intelligence",
-      },
-      {
-        id: "analytics",
-        label: "Analytics",
-        href: "/admin/analytics",
-        icon: BarChart3,
-        description: "Source-to-revenue funnel",
-        moreGroup: "Intelligence",
       },
       {
         id: "activity",
         label: "Activity",
         href: "/admin/activity",
         icon: Activity,
-        description: "Audit history for material changes",
-        moreGroup: "Intelligence",
-      },
-    ],
-  },
-  {
-    label: "System",
-    links: [
-      {
-        id: "tenants",
-        label: "Tenants",
-        href: "/admin/tenants",
-        icon: UsersRound,
-        description: "Workspace provisioning and access",
-        moreGroup: "System",
-      },
-      {
-        id: "integrations",
-        label: "Integrations",
-        href: "/admin/integrations",
-        icon: PlugZap,
-        description: "Capabilities, evidence, and roadmap",
-        moreGroup: "System",
+        description: "History for material changes",
       },
       {
         id: "setup",
@@ -251,7 +298,6 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/setup",
         icon: ListChecks,
         description: "Connections and readiness",
-        moreGroup: "System",
       },
       {
         id: "features",
@@ -259,36 +305,13 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/features",
         icon: KanbanSquare,
         description: "Managed delivery backlog",
-        moreGroup: "System",
       },
       {
-        id: "branding",
-        label: "Branding",
-        href: "/admin/branding",
-        icon: Palette,
-        description: "Logo, colors, and customer document identity",
-        moreGroup: "System",
-      },
-      {
-        id: "settings",
-        label: "Settings",
-        href: "/admin/settings",
-        icon: Settings,
-        description: "Operating preferences",
-        moreGroup: "System",
-      },
-    ],
-  },
-  {
-    label: "More tools",
-    links: [
-      {
-        id: "leads",
-        label: "Leads",
-        href: "/admin/leads",
-        icon: UserRound,
-        description: "Inquiry capture and qualification",
-        moreGroup: "Sources",
+        id: "tenants",
+        label: "Tenants",
+        href: "/admin/tenants",
+        icon: UsersRound,
+        description: "Workspace provisioning and access",
       },
       {
         id: "chat-leads",
@@ -296,7 +319,6 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/chat-leads",
         icon: MessageCircleMore,
         description: "Website chat submissions",
-        moreGroup: "Sources",
       },
       {
         id: "subscribers",
@@ -304,7 +326,6 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/subscribers",
         icon: UserPlus,
         description: "Resource and email subscribers",
-        moreGroup: "Sources",
       },
       {
         id: "partners",
@@ -312,15 +333,14 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/partners",
         icon: Handshake,
         description: "Partner applications",
-        moreGroup: "Sources",
       },
       {
-        id: "website-grades",
-        label: "Website Grades",
-        href: "/admin/website-grades",
-        icon: Globe2,
-        description: "Website grader submissions",
-        moreGroup: "Sources",
+        id: "recovery",
+        label: "Recovery tools",
+        href: "/admin/recovery",
+        icon: RotateCcw,
+        description: "Legacy recovery playbooks",
+        keywords: "follow ups",
       },
     ],
   },
@@ -329,16 +349,20 @@ export const adminNavSections: AdminNavSection[] = [
 /**
  * Merge validated extension nav links into the section their manifest names.
  *
- * An extension declares a moreGroup; that is the section it joins. Anything
- * without a recognized group lands in "More tools" rather than being dropped
- * silently, so a manifest can never register a link the operator cannot find.
+ * Manifests keep their stable, older group vocabulary. The operator rail uses
+ * business language, so this small adapter maps extension entries into the new
+ * parent area without making every extension edit its manifest at once.
  * Module enablement still gates visibility downstream through
  * filterNavSectionsByTenant, exactly as it does for core links.
  */
 for (const link of EXTENSION_NAV_LINKS) {
-  const target =
-    adminNavSections.find((section) => section.label === link.moreGroup) ??
-    adminNavSections.find((section) => section.label === "More tools");
+  const targetLabel =
+    link.id === "opportunity-radar"
+      ? "Intelligence"
+      : link.id === "receivables-collections" || link.id === "stripe-invoicing"
+        ? "Money"
+        : "More tools";
+  const target = adminNavSections.find((section) => section.label === targetLabel);
   if (!target) continue;
   if (adminNavSections.some((section) => section.links.some((item) => item.id === link.id)))
     continue;

@@ -11,6 +11,7 @@ const scenarios = process.argv.includes("--one")
       "ledgerstone-advisory",
       "hearthline-realty",
       "common-table-network",
+      "superdebate",
     ];
 const defaultAppearances = {
   "northline-roofing": "studio",
@@ -18,9 +19,11 @@ const defaultAppearances = {
   "ledgerstone-advisory": "frost",
   "hearthline-realty": "signal",
   "common-table-network": "light",
+  superdebate: "light",
 };
 const routes = [
   "today",
+  "work",
   "pipeline",
   "conversations",
   "inbox",
@@ -31,6 +34,7 @@ const routes = [
   "proposals",
   "email-sequences",
   "revenue",
+  "money",
   "clients",
   "bookings",
   "content",
@@ -158,11 +162,11 @@ async function readStablePageState(page) {
     })),
   );
   if (
-    marks.length !== 5 ||
-    new Set(marks.map((mark) => mark.classes)).size !== 5 ||
+    marks.length !== 6 ||
+    new Set(marks.map((mark) => mark.classes)).size !== 6 ||
     marks.some((mark) => mark.animation === "none" && !mark.animatedParts)
   )
-    failures.push("launcher: scenario logos are not five distinct animated marks");
+    failures.push("launcher: scenario logos are not distinct animated marks");
   const entrances = await page.locator(".admin-demo-enter").evaluateAll((nodes) =>
     nodes.map((node) => ({
       name: getComputedStyle(node).animationName,
@@ -451,7 +455,7 @@ for (const scenario of scenarios) {
           });
       }
       if (route === "today") {
-        for (const label of ["All work", "Replies", "Commitments", "Approvals", "Proposals"]) {
+        for (const label of ["All", "Do", "Approve", "Decide", "Consider"]) {
           await page.getByRole("button", { name: label, exact: true }).click();
           const visibleCount = Number(
             await page
@@ -461,10 +465,13 @@ for (const scenario of scenarios) {
               .first()
               .textContent(),
           );
-          if (!Number.isFinite(visibleCount) || visibleCount < 1)
+          if (
+            !["Consider", "Decide"].includes(label) &&
+            (!Number.isFinite(visibleCount) || visibleCount < 1)
+          )
             failures.push(`${scenario} ${label}: Today filter has no credible fictional work`);
         }
-        await page.getByRole("button", { name: "All work", exact: true }).click();
+        await page.getByRole("button", { name: "All", exact: true }).click();
         await page.screenshot({ path: `${output}/${scenario}-${label}.png`, fullPage: true });
         if (await page.locator("[data-admin-demo-link]").count())
           failures.push(
@@ -616,7 +623,7 @@ for (const scenario of scenarios) {
           failures.push(`${scenario} mobile: open navigation did not lock background scrolling`);
 
         if (scenario === "northline-roofing") {
-          const revenueToggle = controlsScope.getByRole("button", { name: "Revenue", exact: true });
+          const revenueToggle = controlsScope.getByRole("button", { name: "Money", exact: true });
           const revenuePanelId = await revenueToggle.getAttribute("aria-controls");
           const revenuePanel = controlsScope.locator(`[id="${revenuePanelId}"]`);
           await revenueToggle.click();
@@ -632,6 +639,12 @@ for (const scenario of scenarios) {
 
           const inboxHref = `/demo/command-center/${scenario}/inbox`;
           const todayHref = `/demo/command-center/${scenario}/today`;
+          const moreToolsToggle = controlsScope.getByRole("button", {
+            name: "More tools",
+            exact: true,
+          });
+          if ((await moreToolsToggle.getAttribute("aria-expanded")) === "false")
+            await moreToolsToggle.click();
           await controlsScope.locator(`a.admin-nav-link[href="${inboxHref}"]`).click();
           await page.waitForURL(new RegExp(`/demo/command-center/${scenario}/inbox$`));
           if (
@@ -846,7 +859,15 @@ for (const scenario of scenarios) {
         appearance: sessionStorage.getItem("accelerate:admin-demo:northline-roofing:appearance:v1"),
         theme: document.documentElement.dataset.theme,
       }));
-      if (reset.data !== null || reset.appearance !== null || reset.theme !== "studio")
+      const resetState = reset.data ? JSON.parse(reset.data) : null;
+      if (
+        !resetState ||
+        resetState.completedActions?.length ||
+        resetState.completedTasks?.length ||
+        Object.keys(resetState.stageOverrides || {}).length ||
+        reset.appearance !== null ||
+        reset.theme !== "studio"
+      )
         failures.push(
           "northline-roofing desktop: reset did not restore clean data and default appearance",
         );
@@ -888,7 +909,8 @@ for (const scenario of scenarios) {
       fetch("/api/admin/revenue-os/conversations").then((response) => response.json()),
     ]);
     const action = actionsBefore.actions[0];
-    const task = tasksBefore.tasks[0];
+    const task =
+      tasksBefore.tasks.find((item) => item.status !== "completed") || tasksBefore.tasks[0];
     const opportunity = pipelineBefore.opportunities[0];
     const conversation = conversationsBefore.conversations[0];
     const [approval, taskCompletion, stageChange, reply, ai] = await Promise.all([
@@ -900,7 +922,7 @@ for (const scenario of scenarios) {
       fetch("/api/admin/revenue-os/tasks", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: task.id }),
+        body: JSON.stringify({ id: task.id, action: "complete" }),
       }).then((response) => response.json()),
       fetch("/api/admin/revenue-os/pipeline", {
         method: "PATCH",
@@ -935,7 +957,7 @@ for (const scenario of scenarios) {
         actionsAfter.actions.length === actionsBefore.actions.length - 1,
       task:
         taskCompletion.simulated === true &&
-        tasksAfter.tasks.length === tasksBefore.tasks.length - 1,
+        tasksAfter.tasks.some((item) => item.id === task.id && item.status === "completed"),
       pipeline:
         stageChange.simulated === true &&
         pipelineAfter.opportunities.find((item) => item.id === opportunity.id)?.stage ===

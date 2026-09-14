@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { AdminContextNav } from "@/components/admin/AdminContextNav";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { Button } from "@/components/ui/Button";
 import { ContentKanban } from "@/components/admin/ContentKanban";
@@ -114,6 +115,14 @@ export default function AdminContentPage() {
             New Content
           </Button>
         }
+      />
+      <AdminContextNav
+        label="Marketing views"
+        tabs={[
+          { href: "/admin/campaigns", label: "Campaigns" },
+          { href: "/admin/content", label: "Content" },
+          { href: "/admin/resources", label: "Resources" },
+        ]}
       />
 
       <div className="mb-3 flex justify-end">
