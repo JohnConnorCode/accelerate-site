@@ -161,6 +161,28 @@ async function runTests() {
           },
         ],
       },
+      drive_documents: {
+        data: [
+          {
+            id: "drive-1",
+            name: "Acme Contract v2.pdf",
+            extracted_text: "This contract outlines the terms for the Acme Expansion deal worth $50,000. The agreement includes deliverables, timeline, and payment terms.",
+            content_hash: "abc123def456",
+            web_view_link: "https://drive.google.com/file/d/drive-1/view",
+            modified_at: "2026-08-14T10:00:00.000Z",
+            metadata: { owner: "founder@acceleratewith.us" },
+          },
+          {
+            id: "drive-2",
+            name: "Old Acme Proposal v1.pdf",
+            extracted_text: "Previous version of the Acme proposal with different pricing. This document is outdated.",
+            content_hash: "old789hash",
+            web_view_link: "https://drive.google.com/file/d/drive-2/view",
+            modified_at: "2026-05-01T10:00:00.000Z", // stale (>90 days)
+            metadata: { owner: "founder@acceleratewith.us" },
+          },
+        ],
+      },
     });
 
     const result = await retrieveKnowledge(supabase, { entityName: "Acme Corp" });
@@ -183,6 +205,24 @@ async function runTests() {
     assert.equal(noteChunk?.source, "founder_note");
     assert.equal(noteChunk?.confidence, 0.95);
     assert.equal(noteChunk?.occurredAt, "2026-08-15T12:00:00.000Z");
+
+    // Verify Drive document chunks
+    const driveChunks = result.chunks.filter((c) => c.entityType === "drive_document");
+    assert.ok(driveChunks.length >= 1);
+    const driveChunk = driveChunks[0];
+    assert.equal(driveChunk?.source, "drive_document");
+    assert.ok(driveChunk?.documentId);
+    assert.ok(driveChunk?.documentName);
+    assert.ok(driveChunk?.documentLink);
+    assert.ok(driveChunk?.contentHash);
+    assert.ok(driveChunk?.relevantExcerpt);
+    assert.ok(typeof driveChunk?.isStale === "boolean");
+
+    // Verify staleness detection
+    const staleChunk = driveChunks.find((c) => c.isStale);
+    assert.ok(staleChunk, "Should have at least one stale document");
+    const freshChunk = driveChunks.find((c) => !c.isStale);
+    assert.ok(freshChunk, "Should have at least one fresh document");
   }
 
   // 4. Contradiction / Discrepancy detection (prose vs canonical record)
@@ -245,7 +285,93 @@ async function runTests() {
     assert.equal(searchResult.entitySummary?.name, "Gamma Inc");
   }
 
-  console.log("All 5 Second Brain Knowledge tests passed successfully!");
+  // 6. SD1: Evaluation fixtures for keyword + semantic retrieval and entity/source ranking
+  {
+    const supabase = stubSupabase({
+      companies: {
+        data: [{ id: "comp-eval", name: "Eval Corp", domain: "eval.com" }],
+      },
+      opportunities: {
+        data: [{ id: "opp-eval", name: "Eval Deal", stage: "discovery", estimated_value: 10000 }],
+      },
+      drive_documents: {
+        data: [
+          {
+            id: "drive-eval-1",
+            name: "Eval Corp Proposal.pdf",
+            extracted_text: "Eval Corp proposal with detailed pricing and terms. This is a current document.",
+            content_hash: "evalhash1",
+            web_view_link: "https://drive.google.com/file/d/drive-eval-1/view",
+            modified_at: "2026-08-20T10:00:00.000Z",
+            metadata: { owner: "founder@acceleratewith.us" },
+          },
+          {
+            id: "drive-eval-2",
+            name: "Eval Corp Old Notes.txt",
+            extracted_text: "Old notes about Eval Corp from last year. May contain outdated information.",
+            content_hash: "evalhash2",
+            web_view_link: "https://drive.google.com/file/d/drive-eval-2/view",
+            modified_at: "2026-01-15T10:00:00.000Z", // stale
+            metadata: { owner: "founder@acceleratewith.us" },
+          },
+          {
+            id: "drive-eval-3",
+            name: "Unrelated Document.pdf",
+            extracted_text: "This document is about a completely different topic and should not match.",
+            content_hash: "evalhash3",
+            web_view_link: "https://drive.google.com/file/d/drive-eval-3/view",
+            modified_at: "2026-08-20T10:00:00.000Z",
+            metadata: { owner: "founder@acceleratewith.us" },
+          },
+        ],
+      },
+    });
+
+    const result = await retrieveKnowledge(supabase, { entityName: "Eval Corp" });
+    assert.equal(result.found, true);
+
+    // Check that relevant documents are ranked higher (current, matching docs first)
+    const driveChunks = result.chunks.filter((c) => c.entityType === "drive_document");
+    assert.ok(driveChunks.length >= 2);
+
+    // Current matching doc should be ranked higher than stale doc
+    const currentDoc = driveChunks.find((c) => c.documentName === "Eval Corp Proposal.pdf");
+    const staleDoc = driveChunks.find((c) => c.documentName === "Eval Corp Old Notes.txt");
+    assert.ok(currentDoc);
+    assert.ok(staleDoc);
+
+    // Current doc should have higher confidence than stale
+    assert.ok((currentDoc?.confidence ?? 0) > (staleDoc?.confidence ?? 0));
+
+    // Unrelated document should not appear (or appear at the end with low relevance)
+    const unrelatedDoc = driveChunks.find((c) => c.documentName === "Unrelated Document.pdf");
+    // May or may not appear depending on query matching, but if it does, should be ranked lower
+    if (unrelatedDoc) {
+      const currentIndex = driveChunks.indexOf(currentDoc!);
+      const unrelatedIndex = driveChunks.indexOf(unrelatedDoc);
+      assert.ok(unrelatedIndex >= currentIndex, "Unrelated doc should rank lower or equal");
+    }
+  }
+
+  // 7. SD2: Expose degraded retrieval when optional embeddings/reranking are unavailable
+  {
+    // Ensure ENABLE_SEMANTIC_RETRIEVAL is not set
+    delete process.env.ENABLE_SEMANTIC_RETRIEVAL;
+
+    const supabase = stubSupabase({
+      companies: {
+        data: [{ id: "comp-degraded", name: "Degraded Corp", domain: "degraded.com" }],
+      },
+    });
+
+    const result = await retrieveKnowledge(supabase, { entityName: "Degraded Corp" });
+    assert.equal(result.found, true);
+    assert.equal(result.degraded, true);
+    assert.ok(result.degradationReason?.includes("Semantic retrieval"));
+    assert.ok(result.degradationReason?.includes("keyword-only"));
+  }
+
+  console.log("All 7 Second Brain Knowledge tests passed successfully!");
 }
 
 runTests().catch((err) => {

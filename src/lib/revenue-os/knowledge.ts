@@ -6,12 +6,12 @@ import { loadActivityTimeline } from "./activities";
 export const SECOND_BRAIN_KNOWLEDGE_CONTRACT = "revenue-os-knowledge.v1";
 
 export type KnowledgeSource =
-  "canonical_record" | "founder_note" | "activity_ledger" | "conversation";
+  "canonical_record" | "founder_note" | "activity_ledger" | "conversation" | "drive_document";
 
 export interface KnowledgeChunk {
   id: string;
   source: KnowledgeSource;
-  entityType: "company" | "contact" | "opportunity" | "note" | "activity";
+  entityType: "company" | "contact" | "opportunity" | "note" | "activity" | "drive_document";
   entityId: string;
   title: string;
   content: string;
@@ -19,6 +19,15 @@ export interface KnowledgeChunk {
   confidence: number;
   author: string | null;
   discrepancy?: string | null;
+  // Drive document citation metadata
+  documentId?: string;
+  documentName?: string;
+  documentLink?: string;
+  contentHash?: string;
+  relevantExcerpt?: string;
+  // Staleness/conflict flags
+  isStale?: boolean;
+  isConflicting?: boolean;
 }
 
 export interface KnowledgeQueryInput {
@@ -42,6 +51,9 @@ export interface KnowledgeSearchResult {
   chunks: KnowledgeChunk[];
   refusalReason: string | null;
   generatedAt: string;
+  // SD2: Expose degraded retrieval when optional embeddings/reranking are unavailable
+  degraded?: boolean | null;
+  degradationReason?: string | null;
 }
 
 /**
@@ -65,6 +77,8 @@ export async function retrieveKnowledge(
       refusalReason:
         "No query parameters supplied. Provide an entity name, domain, email, or topic.",
       generatedAt: new Date().toISOString(),
+      degraded: null,
+      degradationReason: null,
     };
   }
 
@@ -97,6 +111,13 @@ export async function retrieveKnowledge(
     .or(`name.ilike.%${cleanQuery}%,email.ilike.%${cleanQuery}%`)
     .limit(5);
 
+  // 4. Search for matching Drive documents
+  const { data: driveDocuments } = await supabase
+    .from("drive_documents")
+    .select("*")
+    .ilike("name", `%${cleanQuery}%`)
+    .limit(5);
+
   const matchedCompany = companies?.[0] || null;
   const matchedContact = contacts?.[0] || null;
   const matchedOpp = opportunities?.[0] || null;
@@ -119,6 +140,8 @@ export async function retrieveKnowledge(
         chunks: [],
         refusalReason: `No canonical records, founder notes, or activities found for "${queryStr}".`,
         generatedAt: new Date().toISOString(),
+        degraded: null,
+        degradationReason: null,
       };
     }
 
@@ -142,6 +165,8 @@ export async function retrieveKnowledge(
       chunks: noteChunks,
       refusalReason: null,
       generatedAt: new Date().toISOString(),
+      degraded: null,
+      degradationReason: null,
     };
   }
 
@@ -292,6 +317,49 @@ export async function retrieveKnowledge(
     }
   }
 
+  // F. Drive document chunks
+  if (driveDocuments && driveDocuments.length > 0) {
+    for (const doc of driveDocuments) {
+      if (!doc.extracted_text) continue;
+
+      // Check for staleness (document older than 90 days)
+      const modifiedAt = doc.modified_at ? new Date(doc.modified_at) : null;
+      const isStale = modifiedAt ? Date.now() - modifiedAt.getTime() > 90 * 24 * 60 * 60 * 1000 : false;
+
+      // Extract relevant excerpt (first 500 chars around query match)
+      const excerptStart = Math.max(
+        0,
+        doc.extracted_text.toLowerCase().indexOf(cleanQuery.toLowerCase()) - 100,
+      );
+      const relevantExcerpt = doc.extracted_text.slice(excerptStart, excerptStart + 500);
+
+      chunks.push({
+        id: `drive-${doc.id}`,
+        source: "drive_document",
+        entityType: "drive_document",
+        entityId: String(doc.id),
+        title: `Drive Document: ${doc.name}`,
+        content: doc.extracted_text.slice(0, 2000),
+        occurredAt: String(doc.modified_at || doc.synced_at),
+        confidence: isStale ? 0.6 : 0.8,
+        author: doc.metadata?.owner || "system",
+        documentId: String(doc.id),
+        documentName: doc.name,
+        documentLink: doc.web_view_link || null,
+        contentHash: doc.content_hash || null,
+        relevantExcerpt: relevantExcerpt || doc.extracted_text.slice(0, 500),
+        isStale,
+        isConflicting: false,
+      });
+    }
+  }
+
+  // Determine if retrieval is degraded (no embeddings/reranking available)
+  const degraded = !process.env.ENABLE_SEMANTIC_RETRIEVAL;
+  const degradationReason = degraded
+    ? "Semantic retrieval (embeddings/reranking) is not configured. Using keyword-only retrieval."
+    : undefined;
+
   const limit = Math.min(25, Math.max(1, input.limit ?? 10));
   const limitedChunks = chunks.slice(0, limit);
 
@@ -303,5 +371,7 @@ export async function retrieveKnowledge(
     chunks: limitedChunks,
     refusalReason: limitedChunks.length > 0 ? null : "No relevant facts or notes found.",
     generatedAt: new Date().toISOString(),
+    degraded,
+    degradationReason,
   };
 }
