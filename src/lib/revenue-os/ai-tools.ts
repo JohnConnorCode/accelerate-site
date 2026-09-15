@@ -107,6 +107,27 @@ import {
   proposeCollectionAgentReminder,
 } from "./collection-agent";
 import {
+  listFormDefinitions,
+  listFormSubmissions,
+  prepareFormDraft,
+  proposeFormDraft,
+  proposeFormPublish,
+} from "./form-builder";
+import {
+  FORM_BUILDER_AGENT_TOOLS,
+  prepareFormDraftInputSchema,
+  proposeFormDraftInputSchema,
+  proposeFormPublishInputSchema,
+} from "./form-builder-contract";
+
+export const FORM_BUILDER_TOOL_NAMES = [
+  "list_forms",
+  "read_form_submissions",
+  "prepare_form_draft",
+  "propose_form_draft",
+  "propose_form_publish",
+] as const;
+import {
   pluginToolRegistrations,
   pluginToolDeclaration,
   assertPluginToolGrants,
@@ -637,6 +658,101 @@ const registry: AiToolRegistration[] = [
     outputSchema: ACTION_OUTPUT_SCHEMA,
     execute: ({ supabase, actorEmail }, input) =>
       proposeCollectionAgentReminder(supabase, input, actorEmail),
+  },
+  {
+    name: "list_forms",
+    description:
+      "List the workspace's form definitions with status and field counts. Schemas stay in the workspace; open a form in /admin/forms to edit or publish it.",
+    inputSchema: z.toJSONSchema(
+      z.object({ status: z.enum(["draft", "published", "archived"]).optional() }).strict(),
+    ),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.form-builder",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => {
+      const tenantId = tenantIdForDatabase(supabase);
+      if (!tenantId) throw new Error("Forms requires a tenant-bound workspace");
+      const { status } = z
+        .object({ status: z.enum(["draft", "published", "archived"]).optional() })
+        .strict()
+        .parse(input);
+      return listFormDefinitions(supabase, tenantId).then((forms) =>
+        forms
+          .filter((form) => !status || form.status === status)
+          .map((form) => ({
+            id: form.id,
+            name: form.name,
+            status: form.status,
+            fields: form.schema.elements.length,
+            published: form.status === "published" ? `/f/${form.share_token}` : null,
+          })),
+      );
+    },
+  },
+  {
+    name: "read_form_submissions",
+    description:
+      "Read up to 25 form responses with reviewer status. Accepting a response into the pipeline is a human decision in /admin/forms; this tool never writes.",
+    inputSchema: z.toJSONSchema(
+      z
+        .object({
+          formId: z.uuid().optional(),
+          status: z.enum(["pending_review", "accepted", "rejected"]).optional(),
+          maxResults: z.number().int().min(1).max(25).optional(),
+        })
+        .strict(),
+    ),
+    outputSchema: { type: "object" },
+    serviceTarget: "revenue-os.form-builder",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: ({ supabase }, input) => {
+      const tenantId = tenantIdForDatabase(supabase);
+      if (!tenantId) throw new Error("Forms requires a tenant-bound workspace");
+      const parsed = z
+        .object({
+          formId: z.uuid().optional(),
+          status: z.enum(["pending_review", "accepted", "rejected"]).optional(),
+          maxResults: z.number().int().min(1).max(25).optional(),
+        })
+        .strict()
+        .parse(input);
+      return listFormSubmissions(supabase, tenantId, {
+        formId: parsed.formId,
+        status: parsed.status,
+      }).then((submissions) =>
+        submissions.slice(0, parsed.maxResults ?? 10).map((submission) => ({
+          id: submission.id,
+          formId: submission.form_id,
+          contactName: submission.contact_name,
+          contactEmail: submission.contact_email,
+          status: submission.status,
+          response: submission.response,
+          createdAt: submission.created_at,
+        })),
+      );
+    },
+  },
+  {
+    ...FORM_BUILDER_AGENT_TOOLS.prepare,
+    inputSchema: z.toJSONSchema(prepareFormDraftInputSchema),
+    outputSchema: { type: "object" },
+    execute: ({ supabase }, input) => prepareFormDraft(supabase, input),
+  },
+  {
+    ...FORM_BUILDER_AGENT_TOOLS.proposeDraft,
+    inputSchema: z.toJSONSchema(proposeFormDraftInputSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) => proposeFormDraft(supabase, input, actorEmail),
+  },
+  {
+    ...FORM_BUILDER_AGENT_TOOLS.proposePublish,
+    inputSchema: z.toJSONSchema(proposeFormPublishInputSchema),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    execute: ({ supabase, actorEmail }, input) => proposeFormPublish(supabase, input, actorEmail),
   },
   ...REVENUE_OS_MODULES.filter((module) => module.workflow).flatMap((module) => {
     const registeredModule = { ...module, workflow: module.workflow! };
@@ -2660,6 +2776,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     ...TODAY_TOOL_NAMES,
     ...MODULE_CONTROL_TOOL_NAMES,
     ...COLLECTION_AGENT_TOOL_NAMES,
+    ...FORM_BUILDER_TOOL_NAMES,
     ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
       (moduleDef) => moduleDef.aiToolNames || [],
     ),

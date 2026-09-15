@@ -1,0 +1,35 @@
+---
+title: "Form builder"
+description: "Publish shareable intake forms and review each response before it enters the pipeline."
+updated: "2026-09-13"
+---
+
+Collect structured answers without giving the public a login. Build a form, publish a link, and accept each response into the same pipeline every other surface uses. Nothing a stranger submits becomes a lead until a person reviews it.
+
+## Publish your first form
+
+Enable **Form builder** in **Plugins**, then open `/admin/forms`. The plugin starts disabled and needs no provider credentials.
+
+1. Create a draft, or start from the lead-capture or client-intake template.
+2. Add fields and watch the live preview. Choice fields need at least one option.
+3. Save the draft and publish it. Share the `/f/...` link anywhere.
+4. Test it in a private window with a real email shape.
+5. Open **Responses** and accept the test into the pipeline, or reject it.
+
+Accepting runs the standard identity check: duplicates are matched, not copied, and a response without an email is refused. The [demo](/demo/command-center) uses session-local fictional data.
+
+## Use it through AI
+
+Ask the assistant to build the form for you, for example "a quote-request form with name, work email, company size and project details". It prepares the exact draft for your review through `prepare_form_draft`, stages it with `propose_form_draft`, and stages publication with `propose_form_publish`. Each stage needs your approval: drafting never publishes, and publication rechecks the unchanged draft before creating the share link.
+
+The registered tools `list_forms` and `read_form_submissions` read the same tenant-bound records the interface shows. They cannot accept responses or create leads. Reviewing a response is a human decision in `/admin/forms`, so the assistant cannot approve its own intake.
+
+## Costs, disabling and recovery
+
+Building, rendering and reviewing are deterministic and make no paid model or provider request. Hosting and database costs still apply; surrounding AI chat uses the configured model.
+
+Disable the plugin in **Plugins** to hide its navigation and gate its pages and API. Existing forms, responses and receipts remain. Use normal lead controls for anything already accepted.
+
+If publishing is refused, open the draft and fix the named field, then save and publish again. If accepting is refused, the response has no usable email or was already reviewed. Repeat posts with the same request identity return the original receipt instead of a duplicate.
+
+The [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/form-builder/README.md) covers contracts and `npm run test:form-builder`. Controlled tests and fictional demo behavior are distinct from verification of your own workspace permissions and database.

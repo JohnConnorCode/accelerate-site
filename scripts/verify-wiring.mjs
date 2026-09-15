@@ -42,6 +42,8 @@ export const WIRING_ALLOWLIST = {
     "Standalone tested isolate primitive; host integration is explicitly not claimed by plugin-isolate-host. See northstar-runtime-consolidation audit.",
   "unwired-module:mcp-client.ts":
     "Standalone external MCP client awaiting host integration; tests establish the primitive only, not production wiring. See northstar-runtime-consolidation audit.",
+  "unwired-module:extsvc-adapter-contract.ts":
+    "External Capability Service adapter contract primitive (extsvc-adapter.v1) awaiting its first runtime adapter consumer; test:extsvc-adapter-conformance proves the contract, not production wiring. Runtime adapter adoption is separate work.",
 };
 
 // -----------------------------------------------------------------------------

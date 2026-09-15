@@ -504,6 +504,12 @@ export const docsManifest: DocsSection[] = [
           "The smallest possible extension: a manifest, a page, and a setting, with nothing else.",
       },
       {
+        slug: ["plugins", "form-builder"],
+        title: "Form builder",
+        description:
+          "Publish shareable intake forms and review each response before it enters the pipeline.",
+      },
+      {
         slug: ["plugins", "meeting-commitments"],
         title: "Meeting commitments",
         description:

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "form-builder-plugin",
+    slug: "form-builder-plugin",
+    title: "Form builder publishes shareable intake forms with reviewed responses",
+    description:
+      "Build lead-capture and client intake forms from a native field editor with live preview, publish a shareable link, and accept each response into the canonical pipeline after human review. Rendering uses the MIT-licensed SurveyJS library; responses never become leads on their own. The plugin starts disabled.",
+    category: "feature",
+    publishedAt: "2026-09-13",
+  },
+  {
     id: "deepseek-default-ai-model",
     slug: "deepseek-default-ai-model",
     title: "DeepSeek V4.1 Flash is the default AI model",

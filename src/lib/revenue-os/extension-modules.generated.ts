@@ -136,7 +136,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "008902a5a78feb4b767910c140adc9ad940786aff3799c1990c9e427ff714fb8",
+      contractHash: "ee94d7590a8acd2b984110b053145009486accf803d2b2ccf3444dc677e73ac3",
       tools: [
         {
           operation: "prepare-workflow",
@@ -337,6 +337,26 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     ],
   },
   {
+    id: "form-builder",
+    name: "Form builder",
+    description:
+      "Build shareable lead-capture and client intake forms, review responses, and accept them into the canonical pipeline.",
+    category: "sources",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["form-builder"],
+    aiToolNames: [
+      "list_forms",
+      "read_form_submissions",
+      "prepare_form_draft",
+      "propose_form_draft",
+      "propose_form_publish",
+    ],
+    routes: ["/admin/forms"],
+    setupChecks: [],
+    docsUrl: "/docs/plugins/form-builder",
+  },
+  {
     id: "meeting-commitments",
     name: "Meeting commitments",
     description:
@@ -421,7 +441,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "a053d422379740af869010189c3a7b1e4f175947edcf51f7b37f42e76b049cd2",
+      contractHash: "103c30d338bee4a2ca1776e168bb62c61d8201109a174889ce5c1862129d9426",
       tools: [
         {
           operation: "prepare-workflow",
@@ -986,11 +1006,11 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     id: "stripe-invoicing",
     name: "Stripe invoicing",
     description:
-      "Create reviewed invoices and recurring plans for customers, approve sending, and track Stripe payment status.",
+      "Create reviewed invoices for CRM customers, approve sending, and track Stripe payment status.",
     category: "revenue",
     isCore: false,
     defaultEnabled: false,
-    navLinkIds: ["stripe-invoicing", "stripe-subscriptions"],
+    navLinkIds: ["stripe-invoicing"],
     aiToolNames: [
       "prepare_stripe_invoicing",
       "propose_stripe_invoicing",
@@ -998,7 +1018,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
       "preview_invoice_page",
       "propose_invoice_page",
     ],
-    routes: ["/admin/invoicing", "/admin/subscriptions"],
+    routes: ["/admin/invoicing"],
     setupChecks: [],
     docsUrl: "/docs/plugins/stripe-invoicing",
     workflow: {
@@ -1087,13 +1107,13 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "a099ccfc76f3f99233749c306a877c85d7e9712431044eb9ded68d1c3f302c09",
+      contractHash: "961d5e631d6a7261e0313c62ecd494bd8c6385b408d5993cf00f5c0bd1463e3a",
       tools: [
         {
           operation: "prepare-workflow",
           name: "prepare_stripe_invoicing",
           description:
-            "Prepare Stripe invoicing: Create reviewed invoices and recurring plans for customers, approve sending, and track Stripe payment status.. Returns a reviewable plan, never executes it.",
+            "Prepare Stripe invoicing: Create reviewed invoices for CRM customers, approve sending, and track Stripe payment status.. Returns a reviewable plan, never executes it.",
           serviceTarget: "revenue-os.workflow-plugins",
           connectionRequirement: "none",
           impact: "read",
@@ -1402,6 +1422,15 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     moreGroup: "Delivery",
   },
   {
+    moduleId: "form-builder",
+    id: "form-builder",
+    label: "Forms",
+    href: "/admin/forms",
+    icon: "FileText",
+    description: "Shareable forms with reviewed responses",
+    moreGroup: "Sources",
+  },
+  {
     moduleId: "meeting-commitments",
     id: "meeting-commitments",
     label: "Meeting commitments",
@@ -1454,15 +1483,6 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     href: "/admin/invoicing",
     icon: "FileText",
     description: "Customer invoices and payment status",
-    moreGroup: "Revenue",
-  },
-  {
-    moduleId: "stripe-invoicing",
-    id: "stripe-subscriptions",
-    label: "Subscriptions",
-    href: "/admin/subscriptions",
-    icon: "Wallet",
-    description: "Recurring plans and customer subscriptions",
     moreGroup: "Revenue",
   },
 ] as const;

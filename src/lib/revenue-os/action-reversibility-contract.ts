@@ -98,6 +98,20 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
     rationale: "A customer reminder leaves the system and requires human approval.",
   },
   {
+    actionType: "save_form_definition",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "A new reviewed draft replaces the saved content. Drafts are never public; publication history and collected responses remain untouched.",
+  },
+  {
+    actionType: "publish_form",
+    impact: "external_action",
+    reversibility: "compensable",
+    rationale:
+      "Unpublishing retires the public link. Responses collected while published and audit history remain; no automatic deletion is promised.",
+  },
+  {
     actionType: "send_email",
     impact: "external_action",
     reversibility: "irreversible",

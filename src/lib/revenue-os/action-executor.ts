@@ -10,6 +10,7 @@ import { executeWorkspaceBrandUpdate } from "./branding-actions";
 import { executeTodayViewChange } from "./today-views";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { executeCollectionReminder } from "./collection-reminders";
+import { executeFormDefinitionSave, executeFormPublish } from "./form-builder";
 import { executeInvoicePagePublication } from "./invoice-pages";
 import { executeWorkflowTaskBatch } from "./workflow-tasks";
 import { executeStripeInvoiceAction } from "./stripe-invoicing";
@@ -68,6 +69,8 @@ export const APPROVABLE_ACTIONS = [
   "record_learned_policy",
   "approve_learning",
   "send_collection_reminder",
+  "save_form_definition",
+  "publish_form",
   "send_email",
   "send_gmail_reply",
   "transition_opportunity",
@@ -253,6 +256,16 @@ export async function approveAndExecuteAction(
       case "send_collection_reminder": {
         if (mode !== "approved") throw new Error("Collection reminders require human approval");
         result = await executeCollectionReminder(supabase, id, actorEmail);
+        break;
+      }
+      case "save_form_definition": {
+        if (mode !== "approved") throw new Error("Form drafts require human approval");
+        result = await executeFormDefinitionSave(supabase, payload, actorEmail);
+        break;
+      }
+      case "publish_form": {
+        if (mode !== "approved") throw new Error("Form publication requires human approval");
+        result = await executeFormPublish(supabase, payload, actorEmail);
         break;
       }
       case "send_email": {
