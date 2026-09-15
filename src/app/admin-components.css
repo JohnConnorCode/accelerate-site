@@ -643,9 +643,9 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   font-family: var(--admin-font);
   font-size: var(--admin-text-label);
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--admin-label-tracking, 0.04em);
   line-height: 1.2;
-  text-transform: uppercase;
+  text-transform: var(--admin-label-transform, uppercase);
 }
 
 .admin-dialog-title,
@@ -1389,7 +1389,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   gap: var(--admin-space-2);
   min-height: var(--admin-control-height);
   padding: var(--admin-space-2) var(--admin-space-4);
-  border-radius: var(--admin-control-radius);
+  border-radius: var(--admin-radius-button, var(--admin-control-radius));
   font: 600 var(--admin-text-body)/1.4 var(--admin-font);
   cursor: pointer;
   transition:
@@ -1418,7 +1418,8 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   color: var(--admin-danger);
 }
 .admin-button:hover:not(:disabled) {
-  box-shadow: var(--admin-shadow-border-hover);
+  box-shadow: var(--admin-hover-glow, 0 0 0 0 transparent), var(--admin-shadow-border-hover);
+  transform: var(--admin-hover-lift, none);
 }
 .admin-button--primary:hover:not(:disabled) {
   background: color-mix(in srgb, var(--admin-action) 90%, var(--admin-action-ink));
@@ -1502,7 +1503,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   border-top: 1px solid var(--admin-border);
 }
 .admin-table tbody tr:hover {
-  background: var(--admin-accent-soft);
+  background: var(--admin-hover-tint, var(--admin-accent-soft));
 }
 .admin-section-title {
   font-size: var(--admin-text-section);
@@ -1664,6 +1665,8 @@ textarea.admin-field {
 .admin-table thead,
 .admin-field-label {
   font-family: var(--admin-label-font);
+  letter-spacing: var(--admin-label-tracking, 0.01em);
+  text-transform: var(--admin-label-transform, none);
 }
 .admin-button svg,
 .admin-action-control svg,

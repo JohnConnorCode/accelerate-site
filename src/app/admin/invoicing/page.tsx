@@ -19,11 +19,9 @@ import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import type { WorkflowPreview } from "@/lib/revenue-os/workflow-plugins";
 import { formatInvoiceAmount, type StripeInvoiceReceipt } from "@/lib/revenue-os/stripe-contract";
-const button =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-50";
-const primary = button + " bg-[var(--admin-ink)] text-[var(--admin-surface)]";
-const field =
-  "mt-2 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm text-[var(--admin-ink)]";
+const button = "admin-button admin-button--secondary";
+const primary = "admin-button admin-button--primary";
+const field = "admin-field mt-2";
 type Action = {
   id: string;
   action_type: string;

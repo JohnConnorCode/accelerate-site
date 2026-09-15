@@ -195,6 +195,38 @@ if (radiusFailures.length) throw new Error(radiusFailures.join("\n"));
 console.log("Admin radius ban passed: no fixed dialog radii or token overrides.");
 
 // -----------------------------------------------------------------------
+// Duplicated control recipes.
+//
+// Buttons and fields were copied as local string constants (rounded-xl,
+// min-h-11, border + bg recipes) across many admin surfaces, so shape, hover
+// and density drifted from the design system in every appearance. The shared
+// owners are .admin-button / .admin-button--primary / .admin-icon-button and
+// .admin-field. There are zero remaining copies, so this is a ban: a
+// reintroduced local recipe fails with the fix spelled out.
+const controlRecipe = /const\s+([A-Za-z_$][\w$]*)\s*=\s*"([^"]*)"/g;
+const recipeFailures = [];
+for (const file of adminFiles) {
+  const relPath = "src/" + relative(root, file).replace(/\\/g, "/");
+  const content = readFileSync(file, "utf8");
+  controlRecipe.lastIndex = 0;
+  let match;
+  while ((match = controlRecipe.exec(content))) {
+    const value = match[2];
+    if (
+      /rounded-/.test(value) &&
+      /(min-h-1[01]|min-h-\[var\(--admin-control-height\)\]|h-9\b|h-10\b|h-11\b|h-12\b)/.test(value)
+    ) {
+      recipeFailures.push(
+        `${relPath} defines "${match[1]}" as a local control recipe. Use the shared .admin-button / .admin-button--primary / .admin-icon-button or .admin-field classes instead of a copy.`,
+      );
+    }
+  }
+}
+if (recipeFailures.length) throw new Error(recipeFailures.join("\n"));
+
+console.log("Admin control recipe ban passed: no duplicated button or field recipes.");
+
+// -----------------------------------------------------------------------
 // Appearance registry + theme token completeness contract.
 //
 // Theme ids live in exactly one place (src/lib/admin/appearances.ts). Every

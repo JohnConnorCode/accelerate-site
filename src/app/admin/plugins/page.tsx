@@ -17,8 +17,7 @@ const plugins = EXTENSION_MODULES.filter(
     Number(Boolean(b.workflow || b.routes?.length)) -
       Number(Boolean(a.workflow || a.routes?.length)) || a.name.localeCompare(b.name),
 );
-const button =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96] disabled:opacity-50 disabled:cursor-not-allowed";
+const button = "admin-button admin-button--secondary";
 export default function PluginsPage() {
   const cache = useQueryClient();
   const modules = useAdminQuery<{ modules: string[] }>(

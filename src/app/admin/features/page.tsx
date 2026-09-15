@@ -447,8 +447,7 @@ function FeatureDialog({
     )
       onClose();
   };
-  const inputClass =
-    "mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10";
+  const inputClass = "admin-field mt-1.5";
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const initial = snapshot;
