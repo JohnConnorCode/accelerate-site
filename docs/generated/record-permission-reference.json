@@ -185,6 +185,12 @@
       "defaultEnabled": false
     },
     {
+      "id": "form-builder",
+      "name": "Form builder",
+      "core": false,
+      "defaultEnabled": false
+    },
+    {
       "id": "meeting-commitments",
       "name": "Meeting commitments",
       "core": false,
@@ -465,6 +471,26 @@
     {
       "tool": "run_commitment_watch",
       "module": "commitment-watch"
+    },
+    {
+      "tool": "list_forms",
+      "module": "form-builder"
+    },
+    {
+      "tool": "read_form_submissions",
+      "module": "form-builder"
+    },
+    {
+      "tool": "prepare_form_draft",
+      "module": "form-builder"
+    },
+    {
+      "tool": "propose_form_draft",
+      "module": "form-builder"
+    },
+    {
+      "tool": "propose_form_publish",
+      "module": "form-builder"
     },
     {
       "tool": "prepare_meeting_commitments",
