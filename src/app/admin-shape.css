@@ -1,0 +1,48 @@
+/* ---------------------------------------------------------------------------
+   Theme-driven shape layer.
+
+   Admin surfaces and the ad-hoc Tailwind shape utilities used across admin
+   routes both resolve geometry from the active theme. A theme can square its
+   corners or round them, outline its surfaces or drop the border entirely,
+   without editing individual routes. Unlayered on purpose: Tailwind utilities
+   live in `@layer utilities`, so these win on admin surfaces. Scoped to the
+   admin token scope, so the public site is untouched.
+   --------------------------------------------------------------------------- */
+
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open, body.admin-notifications-open)
+  :where(.rounded-sm, .rounded-md) {
+  border-radius: var(--admin-radius-control, var(--admin-control-radius));
+}
+
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open, body.admin-notifications-open)
+  :where(.rounded-lg, .rounded-xl) {
+  border-radius: var(--admin-radius-surface, var(--admin-surface-radius));
+}
+
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open, body.admin-notifications-open)
+  :where(.rounded-2xl, .rounded-3xl) {
+  border-radius: var(--admin-radius-container, var(--admin-surface-radius));
+}
+
+/* The theme owns whether surfaces are outlined. A borderless skin sets
+   --admin-border-width: 0. Directional dividers (border-b/t/l/r) keep their own
+   hairline so grouped lists and tables stay legible when borders go away. */
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open, body.admin-notifications-open)
+  :where(.border) {
+  border-width: var(--admin-border-width, 1px);
+}
+
+/* Controls never inherit a surface or container corner. A button or field that
+   carries a card radius utility still resolves to the control radius, so a
+   rounded-xl recipe cannot over-round an interactive control. */
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open, body.admin-notifications-open)
+  :where(button, [role="button"], input, select, textarea):is(
+    .rounded-sm,
+    .rounded-md,
+    .rounded-lg,
+    .rounded-xl,
+    .rounded-2xl,
+    .rounded-3xl
+  ) {
+  border-radius: var(--admin-radius-control, var(--admin-control-radius));
+}

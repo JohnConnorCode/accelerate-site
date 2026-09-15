@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-14",
   },
   {
+    id: "admin-theme-design-languages",
+    slug: "admin-theme-design-languages",
+    title: "Workspace appearances are now real design languages",
+    description:
+      "Each appearance owns its structure, not just its colors: corner geometry, borders, elevation, control height, label case and motion. Paper, Night, Signal, Studio and Frost keep their character, Material 2026 uses filled tonal surfaces with a pill navigation indicator and geometric titles, macOS uses denser silver chrome with grouped borderless panels, and a new Accelerate appearance matches the public site in bold black and white. Shared admin controls and utilities read the same theme tokens, so a borderless or squared appearance applies across every workspace screen instead of a handful of components. The appearance editor now also controls density, borders, shadow strength, surface material, motion, hover effects, navigation shape, label case, display type, button shape and container corners, so a custom workspace theme can express a full design language rather than a palette swap. Today renders through the same shared admin primitives as every other screen, so the interactive demo and the live workspace share one design system instead of parallel styling. Interactive controls resolve their corners from the theme's control radius, so a button or field can no longer pick up a card or container radius by accident.",
+    category: "improvement",
+    publishedAt: "2026-09-14",
+  },
+  {
     id: "form-builder-plugin",
     slug: "form-builder-plugin",
     title: "Form builder publishes shareable intake forms with reviewed responses",

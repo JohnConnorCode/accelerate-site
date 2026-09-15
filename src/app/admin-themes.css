@@ -1,9 +1,6 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="signal"], [data-theme="signal"] *, html[data-theme="workspace"]:has(style[data-admin-workspace-mode="dark"]), html[data-theme="workspace"]:has(style[data-admin-workspace-mode="dark"]) *));
 /* Generated from src/lib/admin/themes.json. Run npm run themes:generate. */
-.admin-shell,
-.admin-overlay-token-scope,
-body.admin-dialog-open,
-body.admin-notifications-open {
+:is(.admin-shell, .admin-overlay-token-scope, body.admin-dialog-open, body.admin-notifications-open) {
   --admin-canvas: #f2f1ee;
   --admin-surface: #ffffff;
   --admin-surface-subtle: #f6f5f2;
@@ -62,13 +59,27 @@ body.admin-notifications-open {
   --admin-skin-motion-fast: 150ms;
   --admin-skin-motion-enter: 280ms;
   --admin-skin-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --admin-radius-control: 10px;
+  --admin-radius-surface: 18px;
+  --admin-radius-container: 26px;
+  --admin-radius-pill: 999px;
+  --admin-border-width: 1px;
+  --admin-hairline-width: 1px;
+  --admin-hairline: color-mix(in srgb, var(--admin-ink) 10%, transparent);
+  --admin-label-transform: none;
+  --admin-label-tracking: 0em;
+  --admin-control-height: 44px;
+  --admin-row-padding: 16px;
+  --admin-panel-padding: 24px;
+  --admin-section-gap: 24px;
+  --admin-hover-lift: none;
+  --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 4%, transparent);
+  --admin-hover-glow: 0 0 0 0 transparent;
+  --admin-radius-button: var(--admin-control-radius);
   color-scheme: light;
 }
 
-[data-theme="dark"] .admin-shell,
-[data-theme="dark"] .admin-overlay-token-scope,
-[data-theme="dark"] body.admin-dialog-open,
-[data-theme="dark"] body.admin-notifications-open {
+:is([data-theme="dark"] .admin-shell, [data-theme="dark"] .admin-overlay-token-scope, [data-theme="dark"] body.admin-dialog-open, [data-theme="dark"] body.admin-notifications-open) {
   --admin-canvas: #151719;
   --admin-surface: #1e2124;
   --admin-surface-subtle: #262a2f;
@@ -127,13 +138,27 @@ body.admin-notifications-open {
   --admin-skin-motion-fast: 150ms;
   --admin-skin-motion-enter: 280ms;
   --admin-skin-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --admin-radius-control: 8px;
+  --admin-radius-surface: 14px;
+  --admin-radius-container: 20px;
+  --admin-radius-pill: 999px;
+  --admin-border-width: 1px;
+  --admin-hairline-width: 1px;
+  --admin-hairline: color-mix(in srgb, var(--admin-ink) 12%, transparent);
+  --admin-label-transform: none;
+  --admin-label-tracking: 0em;
+  --admin-control-height: 42px;
+  --admin-row-padding: 12px;
+  --admin-panel-padding: 22px;
+  --admin-section-gap: 20px;
+  --admin-hover-lift: none;
+  --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 4%, transparent);
+  --admin-hover-glow: 0 0 0 0 transparent;
+  --admin-radius-button: var(--admin-control-radius);
   color-scheme: dark;
 }
 
-[data-theme="signal"] .admin-shell,
-[data-theme="signal"] .admin-overlay-token-scope,
-[data-theme="signal"] body.admin-dialog-open,
-[data-theme="signal"] body.admin-notifications-open {
+:is([data-theme="signal"] .admin-shell, [data-theme="signal"] .admin-overlay-token-scope, [data-theme="signal"] body.admin-dialog-open, [data-theme="signal"] body.admin-notifications-open) {
   --admin-canvas: #071c23;
   --admin-surface: #0e2932;
   --admin-surface-subtle: #15343e;
@@ -158,10 +183,10 @@ body.admin-notifications-open {
   --admin-canvas-art: none;
   --admin-action: #6fe4ce;
   --admin-action-ink: #102027;
-  --admin-surface-radius: 6px;
-  --admin-control-radius: 4px;
-  --admin-rule: color-mix(in srgb, var(--admin-ink) 8%, transparent);
-  --admin-border: color-mix(in srgb, var(--admin-ink) 12%, transparent);
+  --admin-surface-radius: 5px;
+  --admin-control-radius: 3px;
+  --admin-rule: color-mix(in srgb, var(--admin-ink) 14%, transparent);
+  --admin-border: color-mix(in srgb, var(--admin-ink) 22%, transparent);
   --admin-shadow-border: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 1px 2px color-mix(in srgb, var(--admin-ink) 4%, transparent);
   --admin-shadow-border-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 18%, transparent), 0 2px 4px color-mix(in srgb, var(--admin-ink) 5%, transparent);
   --admin-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent);
@@ -176,29 +201,43 @@ body.admin-notifications-open {
   --admin-warning: #fbbf24;
   --admin-warning-soft: rgba(251, 191, 36, 0.16);
   --admin-font: var(--font-inter), system-ui, sans-serif;
-  --admin-title-font: var(--admin-font);
+  --admin-title-font: var(--font-mono-face), ui-monospace, monospace;
   --admin-title-weight: 600;
-  --admin-title-tracking: -0.025em;
+  --admin-title-tracking: 0em;
   --admin-label-font: var(--font-mono-face), ui-monospace, monospace;
   --admin-surface-fill: var(--admin-surface);
   --admin-surface-filter: none;
   --admin-nav-filter: none;
   --admin-nav-shadow: inset -1px 0 0 var(--admin-nav-rule);
-  --admin-nav-radius: var(--admin-control-radius);
-  --admin-nav-active-shadow: none;
+  --admin-nav-radius: 3px;
+  --admin-nav-active-shadow: inset 2px 0 0 var(--admin-accent);
   --admin-field-fill: var(--admin-surface-subtle);
   --admin-control-shadow: 0 1px 2px color-mix(in srgb, var(--admin-ink) 14%, transparent);
   --admin-dock-fill: color-mix(in srgb, var(--admin-sidebar) 92%, transparent);
   --admin-skin-motion-fast: 120ms;
   --admin-skin-motion-enter: 220ms;
   --admin-skin-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --admin-radius-control: 3px;
+  --admin-radius-surface: 5px;
+  --admin-radius-container: 9px;
+  --admin-radius-pill: 4px;
+  --admin-border-width: 1px;
+  --admin-hairline-width: 1px;
+  --admin-hairline: color-mix(in srgb, var(--admin-ink) 20%, transparent);
+  --admin-label-transform: uppercase;
+  --admin-label-tracking: 0.08em;
+  --admin-control-height: 38px;
+  --admin-row-padding: 10px;
+  --admin-panel-padding: 20px;
+  --admin-section-gap: 18px;
+  --admin-hover-lift: none;
+  --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 4%, transparent);
+  --admin-hover-glow: 0 0 0 0 transparent;
+  --admin-radius-button: var(--admin-control-radius);
   color-scheme: dark;
 }
 
-[data-theme="studio"] .admin-shell,
-[data-theme="studio"] .admin-overlay-token-scope,
-[data-theme="studio"] body.admin-dialog-open,
-[data-theme="studio"] body.admin-notifications-open {
+:is([data-theme="studio"] .admin-shell, [data-theme="studio"] .admin-overlay-token-scope, [data-theme="studio"] body.admin-dialog-open, [data-theme="studio"] body.admin-notifications-open) {
   --admin-canvas: #f4eee5;
   --admin-surface: #fffcf7;
   --admin-surface-subtle: #eee7dc;
@@ -220,18 +259,18 @@ body.admin-notifications-open {
   --admin-nav-brand-color: #342b23;
   --admin-nav-accent: #592b24;
   --admin-nav-badge-ring: #e8dfd2;
-  --admin-canvas-art: none;
+  --admin-canvas-art: linear-gradient(180deg, color-mix(in srgb, var(--admin-ink) 3%, transparent), transparent 24rem);
   --admin-action: #963f37;
   --admin-action-ink: #ffffff;
-  --admin-surface-radius: 10px;
-  --admin-control-radius: 6px;
-  --admin-rule: color-mix(in srgb, var(--admin-ink) 8%, transparent);
+  --admin-surface-radius: 9px;
+  --admin-control-radius: 5px;
+  --admin-rule: color-mix(in srgb, var(--admin-ink) 12%, transparent);
   --admin-border: color-mix(in srgb, var(--admin-ink) 12%, transparent);
   --admin-shadow-border: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 1px 2px color-mix(in srgb, var(--admin-ink) 4%, transparent);
   --admin-shadow-border-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 18%, transparent), 0 2px 4px color-mix(in srgb, var(--admin-ink) 5%, transparent);
   --admin-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 2px 4px -2px color-mix(in srgb, var(--admin-ink) 8%, transparent), 0 16px 32px -24px color-mix(in srgb, var(--admin-ink) 22%, transparent);
   --admin-shadow-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 10px 26px -18px color-mix(in srgb, var(--admin-ink) 28%, transparent);
-  --admin-card-flat-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent);
+  --admin-card-flat-shadow: none;
   --admin-card-raised-shadow: var(--admin-shadow);
   --admin-card-outline-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 16%, transparent);
   --admin-danger: #be123c;
@@ -242,8 +281,8 @@ body.admin-notifications-open {
   --admin-warning-soft: rgba(217, 119, 6, 0.1);
   --admin-font: var(--font-inter), system-ui, sans-serif;
   --admin-title-font: var(--font-editorial), Georgia, serif;
-  --admin-title-weight: 500;
-  --admin-title-tracking: -0.025em;
+  --admin-title-weight: 400;
+  --admin-title-tracking: -0.01em;
   --admin-label-font: var(--admin-font);
   --admin-surface-fill: var(--admin-surface);
   --admin-surface-filter: none;
@@ -257,13 +296,27 @@ body.admin-notifications-open {
   --admin-skin-motion-fast: 180ms;
   --admin-skin-motion-enter: 280ms;
   --admin-skin-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --admin-radius-control: 5px;
+  --admin-radius-surface: 9px;
+  --admin-radius-container: 14px;
+  --admin-radius-pill: 999px;
+  --admin-border-width: 0px;
+  --admin-hairline-width: 1px;
+  --admin-hairline: color-mix(in srgb, var(--admin-ink) 16%, transparent);
+  --admin-label-transform: uppercase;
+  --admin-label-tracking: 0.06em;
+  --admin-control-height: 46px;
+  --admin-row-padding: 16px;
+  --admin-panel-padding: 28px;
+  --admin-section-gap: 28px;
+  --admin-hover-lift: none;
+  --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 4%, transparent);
+  --admin-hover-glow: 0 0 0 0 transparent;
+  --admin-radius-button: var(--admin-control-radius);
   color-scheme: light;
 }
 
-[data-theme="frost"] .admin-shell,
-[data-theme="frost"] .admin-overlay-token-scope,
-[data-theme="frost"] body.admin-dialog-open,
-[data-theme="frost"] body.admin-notifications-open {
+:is([data-theme="frost"] .admin-shell, [data-theme="frost"] .admin-overlay-token-scope, [data-theme="frost"] body.admin-dialog-open, [data-theme="frost"] body.admin-notifications-open) {
   --admin-canvas: #e9f2f5;
   --admin-surface: #fcfeff;
   --admin-surface-subtle: #edf5f8;
@@ -322,13 +375,27 @@ body.admin-notifications-open {
   --admin-skin-motion-fast: 180ms;
   --admin-skin-motion-enter: 300ms;
   --admin-skin-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --admin-radius-control: 12px;
+  --admin-radius-surface: 22px;
+  --admin-radius-container: 30px;
+  --admin-radius-pill: 999px;
+  --admin-border-width: 1px;
+  --admin-hairline-width: 1px;
+  --admin-hairline: color-mix(in srgb, var(--admin-ink) 8%, transparent);
+  --admin-label-transform: none;
+  --admin-label-tracking: 0em;
+  --admin-control-height: 44px;
+  --admin-row-padding: 16px;
+  --admin-panel-padding: 26px;
+  --admin-section-gap: 26px;
+  --admin-hover-lift: none;
+  --admin-hover-tint: color-mix(in srgb, var(--admin-accent) 8%, transparent);
+  --admin-hover-glow: 0 0 0 3px color-mix(in srgb, var(--admin-accent) 22%, transparent);
+  --admin-radius-button: var(--admin-control-radius);
   color-scheme: light;
 }
 
-[data-theme="material"] .admin-shell,
-[data-theme="material"] .admin-overlay-token-scope,
-[data-theme="material"] body.admin-dialog-open,
-[data-theme="material"] body.admin-notifications-open {
+:is([data-theme="material"] .admin-shell, [data-theme="material"] .admin-overlay-token-scope, [data-theme="material"] body.admin-dialog-open, [data-theme="material"] body.admin-notifications-open) {
   --admin-canvas: #f6f2fa;
   --admin-surface: #fffbff;
   --admin-surface-subtle: #eee6f3;
@@ -343,27 +410,27 @@ body.admin-notifications-open {
   --admin-nav-ink: #32233f;
   --admin-nav-muted: #68566f;
   --admin-nav-faint: #68566f;
-  --admin-nav-hover: color-mix(in srgb, var(--admin-nav-ink) 6%, transparent);
+  --admin-nav-hover: color-mix(in srgb, var(--admin-accent) 8%, transparent);
   --admin-nav-rule: color-mix(in srgb, var(--admin-nav-ink) 10%, transparent);
-  --admin-nav-active-bg: #ddc9f4;
-  --admin-nav-active-ink: #302044;
+  --admin-nav-active-bg: color-mix(in srgb, var(--admin-accent) 16%, transparent);
+  --admin-nav-active-ink: var(--admin-accent);
   --admin-nav-brand-color: #32233f;
   --admin-nav-accent: #302044;
   --admin-nav-badge-ring: #eee5f4;
-  --admin-canvas-art: none;
+  --admin-canvas-art: radial-gradient(circle at 82% -6%, color-mix(in srgb, var(--admin-accent) 12%, transparent), transparent 40rem);
   --admin-action: #644296;
   --admin-action-ink: #ffffff;
-  --admin-surface-radius: 24px;
+  --admin-surface-radius: 16px;
   --admin-control-radius: 16px;
-  --admin-rule: color-mix(in srgb, var(--admin-ink) 8%, transparent);
-  --admin-border: color-mix(in srgb, var(--admin-ink) 12%, transparent);
-  --admin-shadow-border: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 1px 2px color-mix(in srgb, var(--admin-ink) 4%, transparent);
-  --admin-shadow-border-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 18%, transparent), 0 2px 4px color-mix(in srgb, var(--admin-ink) 5%, transparent);
-  --admin-shadow: none;
-  --admin-shadow-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 10px 26px -18px color-mix(in srgb, var(--admin-ink) 28%, transparent);
-  --admin-card-flat-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent);
-  --admin-card-raised-shadow: var(--admin-shadow);
-  --admin-card-outline-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 16%, transparent);
+  --admin-rule: color-mix(in srgb, var(--admin-ink) 6%, transparent);
+  --admin-border: color-mix(in srgb, var(--admin-ink) 8%, transparent);
+  --admin-shadow-border: 0 1px 2px color-mix(in srgb, var(--admin-ink) 10%, transparent);
+  --admin-shadow-border-hover: 0 2px 4px color-mix(in srgb, var(--admin-ink) 14%, transparent), 0 6px 14px -8px color-mix(in srgb, var(--admin-ink) 20%, transparent);
+  --admin-shadow: 0 1px 2px color-mix(in srgb, var(--admin-ink) 10%, transparent), 0 4px 10px -6px color-mix(in srgb, var(--admin-ink) 18%, transparent);
+  --admin-shadow-hover: 0 2px 4px color-mix(in srgb, var(--admin-ink) 14%, transparent), 0 8px 18px -10px color-mix(in srgb, var(--admin-ink) 22%, transparent);
+  --admin-card-flat-shadow: none;
+  --admin-card-raised-shadow: 0 1px 2px color-mix(in srgb, var(--admin-ink) 10%, transparent), 0 4px 10px -6px color-mix(in srgb, var(--admin-ink) 18%, transparent);
+  --admin-card-outline-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 10%, transparent);
   --admin-danger: #9b1c35;
   --admin-danger-soft: rgba(179, 38, 30, 0.10);
   --admin-success: #146c3a;
@@ -371,29 +438,43 @@ body.admin-notifications-open {
   --admin-warning: #8b5800;
   --admin-warning-soft: rgba(139, 88, 0, 0.10);
   --admin-font: var(--font-inter), system-ui, sans-serif;
-  --admin-title-font: var(--admin-font);
+  --admin-title-font: var(--font-jost), system-ui, sans-serif;
   --admin-title-weight: 600;
-  --admin-title-tracking: -0.025em;
-  --admin-label-font: var(--admin-font);
-  --admin-surface-fill: color-mix(in srgb, var(--admin-surface) 88%, var(--admin-accent) 12%);
+  --admin-title-tracking: -0.01em;
+  --admin-label-font: var(--font-inter), system-ui, sans-serif;
+  --admin-surface-fill: color-mix(in srgb, var(--admin-surface) 90%, var(--admin-accent));
   --admin-surface-filter: none;
   --admin-nav-filter: none;
-  --admin-nav-shadow: inset -1px 0 0 var(--admin-nav-rule);
-  --admin-nav-radius: 24px;
+  --admin-nav-shadow: none;
+  --admin-nav-radius: 999px;
   --admin-nav-active-shadow: none;
-  --admin-field-fill: #e8dfee;
+  --admin-field-fill: color-mix(in srgb, var(--admin-surface) 92%, var(--admin-accent));
   --admin-control-shadow: none;
   --admin-dock-fill: color-mix(in srgb, var(--admin-sidebar) 92%, transparent);
-  --admin-skin-motion-fast: 220ms;
-  --admin-skin-motion-enter: 320ms;
+  --admin-skin-motion-fast: 200ms;
+  --admin-skin-motion-enter: 400ms;
   --admin-skin-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --admin-radius-control: 16px;
+  --admin-radius-surface: 16px;
+  --admin-radius-container: 28px;
+  --admin-radius-pill: 999px;
+  --admin-border-width: 0px;
+  --admin-hairline-width: 1px;
+  --admin-hairline: color-mix(in srgb, var(--admin-ink) 8%, transparent);
+  --admin-label-transform: none;
+  --admin-label-tracking: 0.007em;
+  --admin-control-height: 48px;
+  --admin-row-padding: 16px;
+  --admin-panel-padding: 24px;
+  --admin-section-gap: 24px;
+  --admin-hover-lift: translateY(-2px);
+  --admin-hover-tint: color-mix(in srgb, var(--admin-accent) 6%, transparent);
+  --admin-hover-glow: 0 0 0 0 transparent;
+  --admin-radius-button: 999px;
   color-scheme: light;
 }
 
-[data-theme="mac"] .admin-shell,
-[data-theme="mac"] .admin-overlay-token-scope,
-[data-theme="mac"] body.admin-dialog-open,
-[data-theme="mac"] body.admin-notifications-open {
+:is([data-theme="mac"] .admin-shell, [data-theme="mac"] .admin-overlay-token-scope, [data-theme="mac"] body.admin-dialog-open, [data-theme="mac"] body.admin-notifications-open) {
   --admin-canvas: #eceef1;
   --admin-surface: #ffffff;
   --admin-surface-subtle: #f4f5f7;
@@ -418,17 +499,17 @@ body.admin-notifications-open {
   --admin-canvas-art: none;
   --admin-action: #0064cf;
   --admin-action-ink: #ffffff;
-  --admin-surface-radius: 12px;
+  --admin-surface-radius: 10px;
   --admin-control-radius: 7px;
-  --admin-rule: color-mix(in srgb, var(--admin-ink) 8%, transparent);
+  --admin-rule: color-mix(in srgb, var(--admin-ink) 10%, transparent);
   --admin-border: color-mix(in srgb, var(--admin-ink) 12%, transparent);
-  --admin-shadow-border: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 1px 2px color-mix(in srgb, var(--admin-ink) 4%, transparent);
-  --admin-shadow-border-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 18%, transparent), 0 2px 4px color-mix(in srgb, var(--admin-ink) 5%, transparent);
-  --admin-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 2px 4px -2px color-mix(in srgb, var(--admin-ink) 8%, transparent), 0 16px 32px -24px color-mix(in srgb, var(--admin-ink) 22%, transparent);
-  --admin-shadow-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 10px 26px -18px color-mix(in srgb, var(--admin-ink) 28%, transparent);
-  --admin-card-flat-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent);
-  --admin-card-raised-shadow: var(--admin-shadow);
-  --admin-card-outline-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 16%, transparent);
+  --admin-shadow-border: 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  --admin-shadow-border-hover: 0 0 0 0.5px rgba(0, 0, 0, 0.14);
+  --admin-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.06), 0 10px 24px -18px rgba(0, 0, 0, 0.3);
+  --admin-shadow-hover: 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 12px 28px -18px rgba(0, 0, 0, 0.32);
+  --admin-card-flat-shadow: none;
+  --admin-card-raised-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.06), 0 10px 24px -18px rgba(0, 0, 0, 0.3);
+  --admin-card-outline-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 10%, transparent);
   --admin-danger: #c52c24;
   --admin-danger-soft: rgba(255, 59, 48, 0.10);
   --admin-success: #187a32;
@@ -437,20 +518,116 @@ body.admin-notifications-open {
   --admin-warning-soft: rgba(255, 149, 0, 0.12);
   --admin-font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --admin-title-font: var(--admin-font);
-  --admin-title-weight: 700;
-  --admin-title-tracking: -0.03em;
+  --admin-title-weight: 600;
+  --admin-title-tracking: -0.01em;
   --admin-label-font: var(--admin-font);
   --admin-surface-fill: var(--admin-surface);
   --admin-surface-filter: none;
-  --admin-nav-filter: blur(28px) saturate(1.3);
+  --admin-nav-filter: blur(28px) saturate(1.4);
   --admin-nav-shadow: inset -1px 0 0 var(--admin-nav-rule);
-  --admin-nav-radius: var(--admin-control-radius);
-  --admin-nav-active-shadow: none;
+  --admin-nav-radius: 8px;
+  --admin-nav-active-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.06);
   --admin-field-fill: var(--admin-surface-subtle);
   --admin-control-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 1px 2px rgba(0,0,0,0.16);
   --admin-dock-fill: color-mix(in srgb, var(--admin-sidebar) 92%, transparent);
   --admin-skin-motion-fast: 160ms;
   --admin-skin-motion-enter: 240ms;
+  --admin-skin-motion-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --admin-radius-control: 7px;
+  --admin-radius-surface: 10px;
+  --admin-radius-container: 14px;
+  --admin-radius-pill: 999px;
+  --admin-border-width: 0px;
+  --admin-hairline-width: 1px;
+  --admin-hairline: color-mix(in srgb, var(--admin-ink) 12%, transparent);
+  --admin-label-transform: none;
+  --admin-label-tracking: 0em;
+  --admin-control-height: 32px;
+  --admin-row-padding: 10px;
+  --admin-panel-padding: 20px;
+  --admin-section-gap: 18px;
+  --admin-hover-lift: none;
+  --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 5%, transparent);
+  --admin-hover-glow: 0 0 0 0 transparent;
+  --admin-radius-button: var(--admin-control-radius);
+  color-scheme: light;
+}
+
+:is([data-theme="accelerate"] .admin-shell, [data-theme="accelerate"] .admin-overlay-token-scope, [data-theme="accelerate"] body.admin-dialog-open, [data-theme="accelerate"] body.admin-notifications-open) {
+  --admin-canvas: #fbfbfa;
+  --admin-surface: #ffffff;
+  --admin-surface-subtle: #f1f1ee;
+  --admin-soft: var(--admin-surface-subtle);
+  --admin-line: var(--admin-border);
+  --admin-mobile-dock-index: 0;
+  --admin-ink: #0b0b0b;
+  --admin-muted: #45453f;
+  --admin-accent: #0b0b0b;
+  --admin-accent-soft: color-mix(in srgb, var(--admin-accent) 10%, transparent);
+  --admin-sidebar: #0b0b0b;
+  --admin-nav-ink: #fbfbfa;
+  --admin-nav-muted: #b9b9b4;
+  --admin-nav-faint: #a8a8a4;
+  --admin-nav-hover: color-mix(in srgb, var(--admin-nav-ink) 6%, transparent);
+  --admin-nav-rule: color-mix(in srgb, var(--admin-nav-ink) 10%, transparent);
+  --admin-nav-active-bg: color-mix(in srgb, var(--admin-nav-ink) 14%, transparent);
+  --admin-nav-active-ink: #ffffff;
+  --admin-nav-brand-color: #fbfbfa;
+  --admin-nav-accent: #ffffff;
+  --admin-nav-badge-ring: #0b0b0b;
+  --admin-canvas-art: none;
+  --admin-action: #0b0b0b;
+  --admin-action-ink: #ffffff;
+  --admin-surface-radius: 2px;
+  --admin-control-radius: 2px;
+  --admin-rule: color-mix(in srgb, var(--admin-ink) 10%, transparent);
+  --admin-border: color-mix(in srgb, var(--admin-ink) 16%, transparent);
+  --admin-shadow-border: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 16%, transparent);
+  --admin-shadow-border-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 24%, transparent);
+  --admin-shadow: none;
+  --admin-shadow-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 24%, transparent);
+  --admin-card-flat-shadow: none;
+  --admin-card-raised-shadow: none;
+  --admin-card-outline-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 16%, transparent);
+  --admin-danger: #be123c;
+  --admin-danger-soft: rgba(225, 29, 72, 0.1);
+  --admin-success: #047857;
+  --admin-success-soft: rgba(5, 150, 105, 0.1);
+  --admin-warning: #92400e;
+  --admin-warning-soft: rgba(217, 119, 6, 0.1);
+  --admin-font: var(--font-inter), system-ui, sans-serif;
+  --admin-title-font: var(--font-jost), system-ui, sans-serif;
+  --admin-title-weight: 700;
+  --admin-title-tracking: -0.03em;
+  --admin-label-font: var(--admin-font);
+  --admin-surface-fill: var(--admin-surface);
+  --admin-surface-filter: none;
+  --admin-nav-filter: none;
+  --admin-nav-shadow: inset -1px 0 0 var(--admin-nav-rule);
+  --admin-nav-radius: 2px;
+  --admin-nav-active-shadow: none;
+  --admin-field-fill: #f1f1ee;
+  --admin-control-shadow: none;
+  --admin-dock-fill: color-mix(in srgb, var(--admin-sidebar) 92%, transparent);
+  --admin-skin-motion-fast: 140ms;
+  --admin-skin-motion-enter: 220ms;
   --admin-skin-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --admin-radius-control: 2px;
+  --admin-radius-surface: 2px;
+  --admin-radius-container: 4px;
+  --admin-radius-pill: 999px;
+  --admin-border-width: 1px;
+  --admin-hairline-width: 1px;
+  --admin-hairline: color-mix(in srgb, var(--admin-ink) 16%, transparent);
+  --admin-label-transform: uppercase;
+  --admin-label-tracking: 0.08em;
+  --admin-control-height: 46px;
+  --admin-row-padding: 14px;
+  --admin-panel-padding: 24px;
+  --admin-section-gap: 24px;
+  --admin-hover-lift: none;
+  --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 5%, transparent);
+  --admin-hover-glow: 0 0 0 0 transparent;
+  --admin-radius-button: var(--admin-control-radius);
   color-scheme: light;
 }

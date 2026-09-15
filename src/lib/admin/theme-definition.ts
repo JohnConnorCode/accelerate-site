@@ -25,12 +25,43 @@ export const adminThemeDefinitionSchema = z
       .object({
         surfaceRadius: z.number().int().min(0).max(24),
         controlRadius: z.number().int().min(0).max(16),
+        /** Large containers (dialogs, hero panels). Derived from the surface
+         *  radius when omitted, so older themes keep their shape. */
+        containerRadius: z.number().int().min(0).max(40).optional(),
       })
       .strict(),
     depth: z.enum(["flat", "soft", "elevated"]),
+    /** Display type is separate from body type, so a heading can carry a
+     *  distinct voice (for example serif titles over sans body). */
+    displayFont: z.enum(["sans", "editorial", "mono"]).default("sans"),
+    /** Buttons can be squared to the control radius or fully rounded. */
+    buttonShape: z.enum(["rounded", "pill"]).default("rounded"),
+    // Effects are enumerated on purpose: a theme stays portable data, never
+    // raw CSS. Each option maps to bounded tokens in compileAdminTheme.
+    density: z.enum(["comfortable", "compact"]).default("comfortable"),
+    borders: z.enum(["none", "hairline", "solid"]).default("hairline"),
+    shadow: z.enum(["none", "subtle", "bold"]).default("subtle"),
+    motion: z.enum(["none", "calm", "smooth", "snappy", "expressive"]).default("smooth"),
+    hover: z.enum(["none", "tint", "lift", "glow"]).default("tint"),
+    labels: z.enum(["sentence", "uppercase"]).default("sentence"),
+    navigation: z.enum(["plain", "pill", "outline"]).default("plain"),
+    surface: z.enum(["solid", "tonal", "glass"]).default("solid"),
   })
   .strict();
 export type AdminThemeDefinition = z.infer<typeof adminThemeDefinitionSchema>;
+
+const DENSITY_TOKENS = {
+  comfortable: { control: "44px", row: "16px", panel: "24px", gap: "24px" },
+  compact: { control: "38px", row: "12px", panel: "20px", gap: "18px" },
+} as const;
+const BORDER_ALPHA = { none: 0, hairline: 9, solid: 18 } as const;
+const MOTION_TOKENS = {
+  none: { fast: "0ms", enter: "0ms", ease: "linear" },
+  calm: { fast: "240ms", enter: "320ms", ease: "ease-in-out" },
+  smooth: { fast: "180ms", enter: "280ms", ease: "cubic-bezier(0.2, 0, 0, 1)" },
+  snappy: { fast: "120ms", enter: "200ms", ease: "cubic-bezier(0.2, 0, 0, 1)" },
+  expressive: { fast: "260ms", enter: "420ms", ease: "cubic-bezier(0.2, 0, 0, 1)" },
+} as const;
 
 export function themeContrast(first: string, second: string) {
   const luminance = (hex: string) => {
@@ -115,7 +146,35 @@ export function themeFromPreset(id: string): AdminThemeDefinition {
       : tokens["--admin-font"]?.includes("font-mono-face")
         ? "mono"
         : "sans",
+    // Portable typography stays coherent: a "start from" theme keeps title
+    // and body on the same family; a user can separate them in the editor.
+    displayFont: tokens["--admin-font"]?.includes("font-editorial")
+      ? "editorial"
+      : tokens["--admin-font"]?.includes("font-mono-face")
+        ? "mono"
+        : "sans",
+    buttonShape: tokens["--admin-radius-button"]?.includes("999") ? "pill" : "rounded",
     depth: id === "dark" ? "flat" : "soft",
+    shadow: "subtle",
+    hover: "tint",
+    surface: "solid",
+    // Carry the preset's own structural choices so "start from" keeps the
+    // character the user picked. Surface material stays portable (solid):
+    // a stored custom theme must not inherit a preset's glass or tint.
+    density: parseInt(tokens["--admin-control-height"]!) <= 40 ? "compact" : "comfortable",
+    borders: tokens["--admin-border-width"] === "0px" ? "none" : "hairline",
+    labels: tokens["--admin-label-transform"] === "uppercase" ? "uppercase" : "sentence",
+    navigation: tokens["--admin-nav-radius"]?.includes("999") ? "pill" : "plain",
+    motion:
+      parseInt(tokens["--admin-skin-motion-enter"]!) <= 0
+        ? "none"
+        : tokens["--admin-skin-motion-ease"]?.includes("ease-in-out")
+          ? "calm"
+          : parseInt(tokens["--admin-skin-motion-enter"]!) >= 400
+            ? "expressive"
+            : parseInt(tokens["--admin-skin-motion-enter"]!) <= 220
+              ? "snappy"
+              : "smooth",
     palette: {
       canvas: tokens["--admin-canvas"]!,
       surface: tokens["--admin-surface"]!,
@@ -128,11 +187,14 @@ export function themeFromPreset(id: string): AdminThemeDefinition {
     geometry: {
       surfaceRadius: parseInt(tokens["--admin-surface-radius"]!),
       controlRadius: parseInt(tokens["--admin-control-radius"]!),
+      containerRadius: parseInt(tokens["--admin-radius-container"]!),
     },
   };
 }
 
-/** All component tokens resolve centrally from seven colors and three style choices. */
+/** All component tokens resolve centrally from seven colors and a bounded
+ *  set of structural choices (geometry, depth, borders, shadow strength,
+ *  density, motion, hover, labels, navigation, surface material). */
 export function compileAdminTheme(raw: unknown): Record<string, string> {
   const t = validateAdminTheme(raw),
     p = t.palette;
@@ -146,31 +208,107 @@ export function compileAdminTheme(raw: unknown): Record<string, string> {
     blend(p.accent, p.surface, 0.1),
   ];
   const readable = (color: string) => readableColor(color, p.ink, backgrounds);
-  const border = mix(p.ink, t.depth === "flat" ? 14 : 9);
-  const shadow =
-    t.depth === "flat"
-      ? `0 0 0 1px ${border}`
-      : `0 0 0 1px ${mix(p.ink, 6)}, 0 2px 4px -2px ${mix(p.ink, 8)}, 0 ${t.depth === "elevated" ? 20 : 12}px 32px -24px ${mix(p.ink, 28)}`;
+
+  const borderless = t.borders === "none";
+  const border = borderless ? "transparent" : mix(p.ink, BORDER_ALPHA[t.borders]);
+
+  const strength = t.shadow === "bold" ? 1.8 : 1;
+  const raised = t.depth !== "flat" && t.shadow !== "none";
+  const shadow = raised
+    ? `0 0 0 1px ${borderless ? "transparent" : mix(p.ink, 6)}, 0 2px 4px -2px ${mix(p.ink, Math.round(8 * strength))}, 0 ${Math.round((t.depth === "elevated" ? 20 : 12) * strength)}px ${Math.round(32 * strength)}px -${Math.round(24 * strength)}px ${mix(p.ink, Math.min(60, Math.round(28 * strength)))}`
+    : "none";
+  const cardFlatShadow = raised && !borderless ? `0 0 0 1px ${mix(p.ink, 7)}` : "none";
+  const cardOutlineShadow = borderless ? "none" : `0 0 0 1px ${mix(p.ink, 14)}`;
+  const shadowBorder = borderless ? "none" : `0 0 0 1px ${border}`;
+  const shadowBorderHover = borderless ? "none" : `0 0 0 1px ${mix(p.ink, 18)}`;
+  const shadowHover = raised ? `${shadow}, 0 6px 18px -12px ${mix(p.ink, 18)}` : "none";
+
+  const surfaceFill =
+    t.surface === "solid"
+      ? "var(--admin-surface)"
+      : t.surface === "tonal"
+        ? mix(p.accent, 12, p.surface)
+        : mix(p.surface, 78, "transparent");
+  const surfaceFilter = t.surface === "glass" ? "blur(18px) saturate(1.12)" : "none";
+  const fieldFill =
+    t.surface === "solid"
+      ? "var(--admin-surface-subtle)"
+      : t.surface === "tonal"
+        ? mix(p.accent, 8, p.surface)
+        : mix(p.surface, 70, "transparent");
+
+  const nav =
+    t.navigation === "pill"
+      ? {
+          radius: "999px",
+          activeBg: mix(p.accent, 16),
+          activeInk: readable(p.accent),
+          activeShadow: "none",
+          hover: mix(p.accent, 8),
+        }
+      : t.navigation === "outline"
+        ? {
+            radius: "var(--admin-control-radius)",
+            activeBg: "transparent",
+            activeInk: readable(p.accent),
+            activeShadow: `inset 0 0 0 1px ${mix(p.accent, 45)}`,
+            hover: mix(p.ink, 5),
+          }
+        : {
+            radius: "var(--admin-control-radius)",
+            activeBg: p.accent,
+            activeInk: actionInk,
+            activeShadow: "none",
+            hover: mix(p.sidebarInk, 8),
+          };
+
+  const hover =
+    t.hover === "none"
+      ? { lift: "none", tint: "transparent", glow: "0 0 0 0 transparent" }
+      : t.hover === "lift"
+        ? { lift: "translateY(-2px)", tint: mix(p.ink, 3), glow: "0 0 0 0 transparent" }
+        : t.hover === "glow"
+          ? { lift: "none", tint: mix(p.accent, 8), glow: `0 0 0 3px ${mix(p.accent, 25)}` }
+          : { lift: "none", tint: mix(p.ink, 4), glow: "none" };
+
+  const density = DENSITY_TOKENS[t.density];
+  const motion = MOTION_TOKENS[t.motion];
+  const uppercaseLabels = t.labels === "uppercase";
+  const titleFont =
+    t.displayFont === t.font
+      ? "var(--admin-font)"
+      : t.displayFont === "editorial"
+        ? "var(--font-editorial), Georgia, serif"
+        : t.displayFont === "mono"
+          ? "var(--font-mono-face), ui-monospace, monospace"
+          : "var(--font-inter), system-ui, sans-serif";
+  const containerRadius =
+    t.geometry.containerRadius ?? Math.min(32, Math.round(t.geometry.surfaceRadius * 1.5));
+  const buttonRadius = t.buttonShape === "pill" ? "999px" : "var(--admin-control-radius)";
+
   const danger = readable(t.mode === "dark" ? "#fda4af" : "#be123c");
   const success = readable(t.mode === "dark" ? "#6ee7b7" : "#047857");
   const warning = readable(t.mode === "dark" ? "#fcd34d" : "#92400e");
   return {
-    "--admin-title-font": "var(--admin-font)",
+    "--admin-title-font": titleFont,
     "--admin-title-weight": "650",
     "--admin-title-tracking": "-0.035em",
     "--admin-label-font": "var(--admin-font)",
-    "--admin-surface-fill": "var(--admin-surface)",
-    "--admin-surface-filter": "none",
+    "--admin-surface-fill": surfaceFill,
+    "--admin-surface-filter": surfaceFilter,
     "--admin-nav-filter": "none",
     "--admin-nav-shadow": "inset -1px 0 0 var(--admin-nav-rule)",
-    "--admin-nav-radius": "var(--admin-control-radius)",
-    "--admin-nav-active-shadow": "none",
-    "--admin-field-fill": "var(--admin-surface-subtle)",
+    "--admin-nav-radius": nav.radius,
+    "--admin-nav-active-shadow": nav.activeShadow,
+    "--admin-field-fill": fieldFill,
     "--admin-control-shadow": "0 1px 2px color-mix(in srgb, var(--admin-ink) 14%, transparent)",
     "--admin-dock-fill": "var(--admin-sidebar)",
-    "--admin-skin-motion-fast": "150ms",
-    "--admin-skin-motion-enter": "280ms",
-    "--admin-skin-motion-ease": "cubic-bezier(0.2, 0, 0, 1)",
+    "--admin-hover-lift": hover.lift,
+    "--admin-hover-tint": hover.tint,
+    "--admin-hover-glow": hover.glow,
+    "--admin-skin-motion-fast": motion.fast,
+    "--admin-skin-motion-enter": motion.enter,
+    "--admin-skin-motion-ease": motion.ease,
     "--admin-canvas": p.canvas,
     "--admin-surface": p.surface,
     "--admin-surface-subtle": mix(p.ink, 3, p.surface),
@@ -188,30 +326,44 @@ export function compileAdminTheme(raw: unknown): Record<string, string> {
     "--admin-nav-faint": readableColor(blend(p.sidebarInk, p.sidebar, 0.66), p.sidebarInk, [
       p.sidebar,
     ]),
-    "--admin-nav-hover": mix(p.sidebarInk, 8),
+    "--admin-nav-hover": nav.hover,
     "--admin-nav-rule": mix(p.sidebarInk, 12),
-    "--admin-nav-active-bg": p.accent,
-    "--admin-nav-active-ink": actionInk,
+    "--admin-nav-active-bg": nav.activeBg,
+    "--admin-nav-active-ink": nav.activeInk,
     "--admin-nav-brand-color": p.sidebarInk,
     "--admin-nav-accent": p.sidebarInk,
     "--admin-nav-badge-ring": p.sidebar,
     "--admin-canvas-art":
-      t.depth === "elevated"
+      t.surface === "tonal" || t.depth === "elevated"
         ? `radial-gradient(circle at 85% 0%, ${mix(p.accent, 8)}, transparent 34rem)`
         : "none",
     "--admin-action": p.accent,
     "--admin-action-ink": actionInk,
     "--admin-surface-radius": `${t.geometry.surfaceRadius}px`,
     "--admin-control-radius": `${t.geometry.controlRadius}px`,
+    "--admin-radius-surface": `${t.geometry.surfaceRadius}px`,
+    "--admin-radius-control": `${t.geometry.controlRadius}px`,
+    "--admin-radius-container": `${containerRadius}px`,
+    "--admin-radius-button": buttonRadius,
+    "--admin-radius-pill": "999px",
+    "--admin-border-width": borderless ? "0px" : "1px",
+    "--admin-hairline-width": "1px",
+    "--admin-hairline": mix(p.ink, borderless ? 12 : 10),
+    "--admin-label-transform": uppercaseLabels ? "uppercase" : "none",
+    "--admin-label-tracking": uppercaseLabels ? "0.06em" : "0em",
+    "--admin-control-height": density.control,
+    "--admin-row-padding": density.row,
+    "--admin-panel-padding": density.panel,
+    "--admin-section-gap": density.gap,
     "--admin-rule": mix(p.ink, 7),
     "--admin-border": border,
-    "--admin-shadow-border": `0 0 0 1px ${border}`,
-    "--admin-shadow-border-hover": `0 0 0 1px ${mix(p.ink, 18)}`,
+    "--admin-shadow-border": shadowBorder,
+    "--admin-shadow-border-hover": shadowBorderHover,
     "--admin-shadow": shadow,
-    "--admin-shadow-hover": `${shadow}, 0 6px 18px -12px ${mix(p.ink, 18)}`,
-    "--admin-card-flat-shadow": `0 0 0 1px ${mix(p.ink, 7)}`,
+    "--admin-shadow-hover": shadowHover,
+    "--admin-card-flat-shadow": cardFlatShadow,
     "--admin-card-raised-shadow": shadow,
-    "--admin-card-outline-shadow": `0 0 0 1px ${mix(p.ink, 14)}`,
+    "--admin-card-outline-shadow": cardOutlineShadow,
     "--admin-danger": danger,
     "--admin-danger-soft": mix(danger, 10),
     "--admin-success": success,

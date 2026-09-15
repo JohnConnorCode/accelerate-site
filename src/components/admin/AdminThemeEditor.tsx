@@ -175,7 +175,137 @@ export function AdminThemeEditor({
               </select>
             </label>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {(
+              [
+                [
+                  "density",
+                  "Density",
+                  [
+                    ["comfortable", "Comfortable"],
+                    ["compact", "Compact"],
+                  ],
+                ],
+                [
+                  "borders",
+                  "Borders",
+                  [
+                    ["none", "None"],
+                    ["hairline", "Hairline"],
+                    ["solid", "Solid"],
+                  ],
+                ],
+                [
+                  "shadow",
+                  "Shadows",
+                  [
+                    ["none", "None"],
+                    ["subtle", "Subtle"],
+                    ["bold", "Bold"],
+                  ],
+                ],
+                [
+                  "surface",
+                  "Surface",
+                  [
+                    ["solid", "Solid"],
+                    ["tonal", "Tonal"],
+                    ["glass", "Glass"],
+                  ],
+                ],
+                [
+                  "motion",
+                  "Motion",
+                  [
+                    ["none", "None"],
+                    ["calm", "Calm"],
+                    ["smooth", "Smooth"],
+                    ["snappy", "Snappy"],
+                    ["expressive", "Expressive"],
+                  ],
+                ],
+                [
+                  "hover",
+                  "Hover",
+                  [
+                    ["none", "None"],
+                    ["tint", "Tint"],
+                    ["lift", "Lift"],
+                    ["glow", "Glow"],
+                  ],
+                ],
+                [
+                  "navigation",
+                  "Navigation",
+                  [
+                    ["plain", "Plain"],
+                    ["pill", "Pill"],
+                    ["outline", "Outline"],
+                  ],
+                ],
+                [
+                  "labels",
+                  "Labels",
+                  [
+                    ["sentence", "Sentence"],
+                    ["uppercase", "Uppercase"],
+                  ],
+                ],
+                [
+                  "displayFont",
+                  "Display type",
+                  [
+                    ["sans", "Modern"],
+                    ["editorial", "Editorial"],
+                    ["mono", "Technical"],
+                  ],
+                ],
+                [
+                  "buttonShape",
+                  "Buttons",
+                  [
+                    ["rounded", "Rounded"],
+                    ["pill", "Pill"],
+                  ],
+                ],
+              ] as const
+            ).map(([field, label, options]) => (
+              <label key={field} className="admin-field-label">
+                {label}
+                <select
+                  className={control}
+                  value={draft[field]}
+                  onChange={(e) =>
+                    edit({ [field]: e.target.value } as Partial<AdminThemeDefinition>)
+                  }
+                >
+                  {options.map(([value, text]) => (
+                    <option key={value} value={value}>
+                      {text}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <label className="admin-field-label">
+              Container corners ·{" "}
+              {draft.geometry.containerRadius ?? Math.round(draft.geometry.surfaceRadius * 1.5)}px
+              <input
+                type="range"
+                min={0}
+                max={40}
+                value={
+                  draft.geometry.containerRadius ?? Math.round(draft.geometry.surfaceRadius * 1.5)
+                }
+                onChange={(e) =>
+                  edit({
+                    geometry: { ...draft.geometry, containerRadius: Number(e.target.value) },
+                  })
+                }
+              />
+            </label>
             <label className="admin-field-label">
               Surface corners · {draft.geometry.surfaceRadius}px
               <input
@@ -227,7 +357,7 @@ export function AdminThemeEditor({
               className="admin-theme-button mt-3"
               onClick={() =>
                 ai.openWithPrompt(
-                  `Create a workspace admin theme${prompt.trim() ? `: ${prompt.trim()}` : " based on the current workspace brand"}. Read the workspace brand, generate a valid adminTheme definition, preview the exact change, then propose it for my approval. Preserve other brand fields. Use at least 4.5:1 text contrast. Explain the style and ask me to approve before saving.`,
+                  `Create a workspace admin theme${prompt.trim() ? `: ${prompt.trim()}` : " based on the current workspace brand"}. Read the workspace brand, generate a valid adminTheme definition, preview the exact change, then propose it for my approval. Preserve other brand fields. Use at least 4.5:1 text contrast. Set geometry, depth, density, borders, shadow strength, surface material, motion, hover, labels and navigation to match the described style. Explain the style and ask me to approve before saving.`,
                 )
               }
             >

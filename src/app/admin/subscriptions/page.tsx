@@ -29,10 +29,8 @@ type Subscription = {
 };
 type Workspace = { plans: Plan[]; subscriptions: Subscription[] };
 
-const field =
-  "mt-2 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm";
-const button =
-  "min-h-11 rounded-xl px-4 text-sm font-semibold transition-transform active:scale-[0.96] disabled:opacity-50";
+const field = "admin-field mt-2";
+const button = "admin-button admin-button--secondary";
 
 function subscriptionTiming(subscription: Subscription) {
   const presentation = subscriptionStatusPresentation(

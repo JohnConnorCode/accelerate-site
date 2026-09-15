@@ -4,10 +4,8 @@ import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
 import type { FeatureRequest } from "@/lib/feature-board";
-const field =
-  "min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-3 text-sm";
-const button =
-  "min-h-11 rounded-xl border border-[var(--admin-border)] px-4 text-xs font-semibold disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]";
+const field = "admin-field";
+const button = "admin-button admin-button--secondary";
 export async function sendWork(
   operation: string,
   feature: FeatureRequest | null,
