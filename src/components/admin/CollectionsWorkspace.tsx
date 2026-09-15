@@ -55,9 +55,13 @@ export function CollectionCaseLinks({ contactId }: { contactId?: string }) {
               </AdminLink>
               {c.work[0] && (
                 <p className="mt-1 text-xs text-[var(--admin-muted)]">
-                  {c.work[0].status} · {c.work[0].reason}
+                  {c.work[0].status.replaceAll("_", " ")} · {c.work[0].reason}
                   {c.work[0].nextCheckAt
-                    ? ` · ${new Date(c.work[0].nextCheckAt).toLocaleDateString()}`
+                    ? ` · ${new Date(c.work[0].nextCheckAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}`
                     : ""}
                 </p>
               )}

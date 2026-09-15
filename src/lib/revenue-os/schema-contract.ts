@@ -44,6 +44,9 @@ export const TENANT_SCOPED_TABLES = [
   "collection_case_invoices",
   "collection_events",
   "collection_commands",
+  "form_definitions",
+  "form_submissions",
+  "form_submission_commands",
 
   "invoice_pages",
   "work_items",
@@ -630,6 +633,40 @@ export const REVENUE_SCHEMA_TABLES = [
   {
     table: "collection_commands",
     columns: ["tenant_id", "request_id", "command_hash", "result", "created_at"],
+  },
+  {
+    table: "form_definitions",
+    columns: [
+      "id",
+      "tenant_id",
+      "name",
+      "description",
+      "schema",
+      "status",
+      "share_token",
+      "created_at",
+      "updated_at",
+      "published_at",
+    ],
+  },
+  {
+    table: "form_submissions",
+    columns: [
+      "id",
+      "tenant_id",
+      "form_id",
+      "response",
+      "contact_name",
+      "contact_email",
+      "status",
+      "reviewer_email",
+      "reviewed_at",
+      "created_at",
+    ],
+  },
+  {
+    table: "form_submission_commands",
+    columns: ["tenant_id", "request_id", "result", "created_at"],
   },
   {
     table: "tenants",

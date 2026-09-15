@@ -136,7 +136,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "008902a5a78feb4b767910c140adc9ad940786aff3799c1990c9e427ff714fb8",
+      contractHash: "ee94d7590a8acd2b984110b053145009486accf803d2b2ccf3444dc677e73ac3",
       tools: [
         {
           operation: "prepare-workflow",
@@ -337,6 +337,26 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     ],
   },
   {
+    id: "form-builder",
+    name: "Form builder",
+    description:
+      "Build shareable lead-capture and client intake forms, review responses, and accept them into the canonical pipeline.",
+    category: "sources",
+    isCore: false,
+    defaultEnabled: false,
+    navLinkIds: ["form-builder"],
+    aiToolNames: [
+      "list_forms",
+      "read_form_submissions",
+      "prepare_form_draft",
+      "propose_form_draft",
+      "propose_form_publish",
+    ],
+    routes: ["/admin/forms"],
+    setupChecks: [],
+    docsUrl: "/docs/plugins/form-builder",
+  },
+  {
     id: "meeting-commitments",
     name: "Meeting commitments",
     description:
@@ -421,7 +441,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "a053d422379740af869010189c3a7b1e4f175947edcf51f7b37f42e76b049cd2",
+      contractHash: "103c30d338bee4a2ca1776e168bb62c61d8201109a174889ce5c1862129d9426",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1087,7 +1107,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "a099ccfc76f3f99233749c306a877c85d7e9712431044eb9ded68d1c3f302c09",
+      contractHash: "217ce4a3cdb7646367cafd2bcc77eca70af84a061c3fe49fac92da605eb908c7",
       tools: [
         {
           operation: "prepare-workflow",
@@ -1400,6 +1420,15 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     icon: "Library",
     description: "Stock levels and reorder points",
     moreGroup: "Delivery",
+  },
+  {
+    moduleId: "form-builder",
+    id: "form-builder",
+    label: "Forms",
+    href: "/admin/forms",
+    icon: "FileText",
+    description: "Shareable forms with reviewed responses",
+    moreGroup: "Sources",
   },
   {
     moduleId: "meeting-commitments",

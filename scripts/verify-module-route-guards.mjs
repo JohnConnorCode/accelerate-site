@@ -27,6 +27,7 @@ const read = (relativePath) => readFileSync(join(repoRoot, relativePath), "utf8"
 const MODULE_API_DIRECTORIES = {
   "social-marketing": ["src/app/api/admin/social"],
   "receivables-collections": ["src/app/api/admin/collections"],
+  "form-builder": ["src/app/api/admin/forms"],
   "stripe-invoicing": ["src/app/api/admin/invoicing"],
   proposals: ["src/app/api/admin/proposals"],
   campaigns: ["src/app/api/admin/revenue-os/campaigns"],

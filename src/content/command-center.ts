@@ -571,6 +571,6 @@ export const CURRENT_SURFACES = [
     n: "10",
     label: "Run per tenant",
     title: "Shared infrastructure, isolated workspaces",
-    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Thirteen bundled plugin examples have public guides covering setup, approvals, costs, and recovery.",
+    body: "Each business gets its own tenant context, membership boundary, configuration, audit trail, and provider controls, including the option to use its own OpenRouter key and model budget. Fourteen bundled plugin examples have public guides covering setup, approvals, costs, and recovery, including a form builder for shareable intake with reviewed responses.",
   },
 ];

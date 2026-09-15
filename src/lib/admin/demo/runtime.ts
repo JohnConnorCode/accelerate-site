@@ -102,6 +102,27 @@ type DemoEmailStudioDetail = {
   html: string;
 };
 type DemoEmailStudioList = { schemaReady: true; emails: Array<Record<string, unknown>> };
+type DemoSubscriptionPlan = {
+  id: string;
+  name: string;
+  description: string;
+  currency: string;
+  interval: "month" | "year";
+  amount: number;
+  active: boolean;
+};
+type DemoSubscription = {
+  id: string;
+  status: string;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  plan: { name: string; currency: string; interval: string; amount: number } | null;
+  customer: { email: string; name: string } | null;
+};
+type DemoSubscriptionsState = {
+  plans?: DemoSubscriptionPlan[];
+  archivedPlanIds?: string[];
+};
 export type DemoState = {
   website?: DemoWebsiteState;
   todayViews?: TodayViews;
@@ -137,6 +158,8 @@ export type DemoState = {
   business: DemoBusinessState | null;
   completedActions: string[];
   completedTasks: string[];
+  resolvedIdentityReviews: string[];
+  subscriptionOverrides?: DemoSubscriptionsState;
   taskOverrides: Record<string, Partial<OperatorTaskPatchInput> & { completed_at?: string | null }>;
   manualTasks?: Array<{
     id: string;
@@ -196,6 +219,8 @@ export const initialState = (): DemoState => ({
   business: null,
   completedActions: [],
   completedTasks: [],
+  resolvedIdentityReviews: [],
+  subscriptionOverrides: {},
   taskOverrides: {},
   stageOverrides: {},
   opportunityOrder: {},
@@ -255,6 +280,135 @@ function saveState(id: DemoScenarioId, state: DemoState) {
 
 function person(pack: DemoScenarioPack, id: string) {
   return pack.people.find((item) => item.id === id)!;
+}
+/**
+ * Fictional contact-review queue mirroring the
+ * revenue-os-identity-review.v1 contract served by
+ * /api/admin/revenue-os/identity-review: source, candidates, evidence and the
+ * held downstream record — never message bodies or provider payloads. Items
+ * derive deterministically from the pack's conversations so every scenario
+ * shows reviewable work; resolved ids persist like every other demo decision.
+ */
+function identityReviewItems(pack: DemoScenarioPack, state: DemoState) {
+  const candidates = pack.people.slice(0, 3).map((candidate) => ({
+    id: candidate.id,
+    full_name: candidate.name,
+    primary_email: candidate.email,
+    company_id: null,
+    company_name: candidate.company,
+  }));
+  return pack.conversations
+    .slice(0, 3)
+    .map((conversation, index) => {
+      const sender = person(pack, conversation.personId);
+      const ambiguous = index === 1;
+      const localPart = sender.email.split("@")[0]!;
+      return {
+        contract: "revenue-os-identity-review.v1" as const,
+        actionId: `demo-identity-review-${conversation.id}`,
+        participantEmail: ambiguous
+          ? `${localPart}@${sender.company.toLowerCase().replace(/[^a-z0-9]+/g, "")}.example`
+          : `${localPart}+projects@gmail.com`,
+        reason: ambiguous ? ("ambiguous" as const) : ("unknown" as const),
+        source: "gmail",
+        conversationId: conversation.id,
+        threadId: `demo-thread-${conversation.id}`,
+        createdAt: ago(5 + index * 9),
+        candidates,
+        evidence: [
+          {
+            strength: ambiguous ? "probable" : "recorded",
+            observation: ambiguous
+              ? `Same name as ${candidates[0]!.full_name} but a different email domain`
+              : `First message from this sender in “${conversation.subject}”`,
+            source: "gmail",
+          },
+        ],
+        downstream: {
+          conversationSubject: conversation.subject,
+          conversationStatus: "open",
+          contactId: null,
+          companyId: null,
+          opportunityId: null,
+        },
+      };
+    })
+    .filter((item) => !state.resolvedIdentityReviews.includes(item.actionId));
+}
+/**
+ * Fictional subscription workspace mirroring /api/admin/subscriptions so the
+ * recurring-plan page renders inside the demo instead of a 404 banner. Amounts
+ * are in minor units, matching the real contract.
+ */
+function demoSubscriptions(pack: DemoScenarioPack, state: DemoState) {
+  const defaults: DemoSubscriptionPlan[] = [
+    {
+      id: "demo-plan-maintenance-monthly",
+      name: "Preventive maintenance — monthly",
+      description: "Scheduled inspection and seasonal upkeep for one property.",
+      currency: "usd",
+      interval: "month",
+      amount: 25000,
+      active: true,
+    },
+    {
+      id: "demo-plan-maintenance-annual",
+      name: "Preventive maintenance — annual",
+      description: "Two visits a year, priority scheduling and storm checks.",
+      currency: "usd",
+      interval: "year",
+      amount: 250000,
+      active: true,
+    },
+    {
+      id: "demo-plan-storm-retainer",
+      name: "Storm response retainer",
+      description: "Priority emergency tarping and documented damage assessment.",
+      currency: "usd",
+      interval: "month",
+      amount: 50000,
+      active: true,
+    },
+  ];
+  const archived = new Set(state.subscriptionOverrides?.archivedPlanIds ?? []);
+  const plans = [...defaults, ...(state.subscriptionOverrides?.plans ?? [])].map((plan) => ({
+    ...plan,
+    active: plan.active && !archived.has(plan.id),
+  }));
+  const summarize = (plan: DemoSubscriptionPlan) => ({
+    name: plan.name,
+    currency: plan.currency,
+    interval: plan.interval,
+    amount: plan.amount,
+  });
+  const customers = pack.people.slice(0, 3).map((item) => ({ email: item.email, name: item.name }));
+  const subscriptions: DemoSubscription[] = [
+    {
+      id: "demo-subscription-1",
+      status: "active",
+      current_period_end: dateOffset(21),
+      cancel_at_period_end: false,
+      plan: summarize(plans[0]!),
+      customer: customers[0]!,
+    },
+    {
+      id: "demo-subscription-2",
+      status: "trialing",
+      current_period_end: dateOffset(9),
+      cancel_at_period_end: false,
+      plan: summarize(plans[1]!),
+      customer: customers[1]!,
+    },
+    {
+      id: "demo-subscription-3",
+      status: "past_due",
+      current_period_end: dateOffset(-4),
+      cancel_at_period_end: false,
+      plan: summarize(plans[2]!),
+      customer: customers[2]!,
+    },
+  ];
+  return { plans, subscriptions };
 }
 function opportunityRows(pack: DemoScenarioPack, state: DemoState) {
   return pack.opportunities.map((item, index) => {
@@ -3901,6 +4055,88 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       }
       if (path === "/api/admin/notifications" && body.id)
         state.readNotifications.push(String(body.id));
+      if (path === "/api/admin/revenue-os/identity-review") {
+        const valid = ["link", "create", "no_match", "defer"];
+        const selected = identityReviewItems(pack, state).find(
+          (item) => item.actionId === body.actionId,
+        );
+        if (!selected)
+          return jsonResponse({ error: "Contact review not found in this demo workspace." }, 404);
+        if (!valid.includes(String(body.decision)))
+          return jsonResponse(
+            { error: "Decision must be one of link, create, no_match, defer" },
+            400,
+          );
+        if (body.decision === "link" && !selected.candidates.some((c) => c.id === body.contactId))
+          return jsonResponse({ error: "Choose a suggested contact first." }, 400);
+        if (body.decision === "create" && !String(body.fullName || "").trim())
+          return jsonResponse({ error: "Enter the contact’s full name first." }, 400);
+        state.resolvedIdentityReviews.push(selected.actionId);
+        business.receipts.unshift({
+          id: crypto.randomUUID(),
+          operation: `Contact review resolved (${String(body.decision)}): ${selected.participantEmail}`,
+          at: new Date().toISOString(),
+          simulated: true,
+          sourceType: "identity_review",
+          sourceId: selected.actionId,
+        });
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+        return jsonResponse({ success: true, simulated: true, actionId: selected.actionId });
+      }
+      if (path === "/api/admin/subscriptions") {
+        const action = String(body.action || "");
+        state.subscriptionOverrides ??= {};
+        if (action === "create_plan") {
+          const input = (body.plan || {}) as {
+            name?: string;
+            description?: string;
+            amount?: number;
+            currency?: string;
+            interval?: string;
+          };
+          const plan: DemoSubscriptionPlan = {
+            id: `demo-plan-${crypto.randomUUID()}`,
+            name: String(input.name || "Untitled plan").slice(0, 80),
+            description: String(input.description || "").slice(0, 500),
+            currency: String(input.currency || "usd"),
+            interval: input.interval === "year" ? "year" : "month",
+            amount: Number(input.amount) || 0,
+            active: true,
+          };
+          state.subscriptionOverrides.plans = [...(state.subscriptionOverrides.plans ?? []), plan];
+          business.receipts.unshift({
+            id: crypto.randomUUID(),
+            operation: `Created plan: ${plan.name} (simulated Stripe request)`,
+            at: new Date().toISOString(),
+            simulated: true,
+            sourceType: "billing_plan",
+            sourceId: plan.id,
+          });
+          saveState(scenarioId, state);
+          window.dispatchEvent(new Event("admin:demo-state"));
+          return jsonResponse(plan, 201);
+        }
+        if (action === "archive_plan") {
+          const planId = String(body.planId || "");
+          state.subscriptionOverrides.archivedPlanIds = [
+            ...(state.subscriptionOverrides.archivedPlanIds ?? []),
+            planId,
+          ];
+          business.receipts.unshift({
+            id: crypto.randomUUID(),
+            operation: `Archived plan ${planId}`,
+            at: new Date().toISOString(),
+            simulated: true,
+            sourceType: "billing_plan",
+            sourceId: planId,
+          });
+          saveState(scenarioId, state);
+          window.dispatchEvent(new Event("admin:demo-state"));
+          return jsonResponse({ success: true, simulated: true, planId });
+        }
+        return jsonResponse({ error: "Unsupported subscription action." }, 400);
+      }
       saveState(scenarioId, state);
       window.dispatchEvent(new Event("admin:demo-state"));
       return jsonResponse({
@@ -4057,7 +4293,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const timeline = [
         ...(conversation?.messages ?? []).map((message) => ({
           type: message.direction === "inbound" ? "message_inbound" : "message_outbound",
-          title: `${message.direction === "inbound" ? "Received" : "Sent"}: ${conversation!.subject}`,
+          title: conversation!.subject,
           description: message.body,
           timestamp: message.at,
           sourceId: message.id,
@@ -4067,7 +4303,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           ? [
               {
                 type: "opportunity",
-                title: `Pipeline: ${opportunity.name}`,
+                title: opportunity.name,
                 description: `Stage: ${opportunity.stage.replace(/_/g, " ")} · $${opportunity.value.toLocaleString()} · Next: ${opportunity.nextAction}`,
                 timestamp: conversation?.messages[0]?.at ?? ago(1),
                 sourceId: opportunity.id,
@@ -4077,7 +4313,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           : []),
         ...contactTasks.map((task, index) => ({
           type: "task",
-          title: `Task: ${task.title}`,
+          title: task.title,
           description: `${task.status} · ${task.priority} priority`,
           timestamp:
             business.receipts.find((receipt) => receipt.sourceId === task.id)?.at ?? ago(index + 2),
@@ -4204,6 +4440,16 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           )
           .slice(0, 100),
       });
+    }
+    if (path === "/api/admin/revenue-os/identity-review" && method === "GET") {
+      const limit = Math.min(Math.max(Number(url.searchParams.get("limit") || "50") || 50, 1), 200);
+      return jsonResponse({
+        contract: "revenue-os-identity-review.v1",
+        items: identityReviewItems(pack, state).slice(0, limit),
+      });
+    }
+    if (path === "/api/admin/subscriptions" && method === "GET") {
+      return jsonResponse(demoSubscriptions(pack, state));
     }
     if (path === "/api/admin/google/sync") return jsonResponse({ success: true, simulated: true });
     return jsonResponse(

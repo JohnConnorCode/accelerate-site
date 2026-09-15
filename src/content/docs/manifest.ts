@@ -480,7 +480,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "overview"],
         title: "Plugin examples",
         description:
-          "Thirteen working examples, from a read-only report to a full business workspace, all shipped disabled.",
+          "Fourteen working examples, from a read-only report to a full business workspace, all shipped disabled.",
       },
       {
         slug: ["plugins", "business-pulse"],
@@ -502,6 +502,12 @@ export const docsManifest: DocsSection[] = [
         title: "Inventory registration example",
         description:
           "The smallest possible extension: a manifest, a page, and a setting, with nothing else.",
+      },
+      {
+        slug: ["plugins", "form-builder"],
+        title: "Form builder",
+        description:
+          "Publish shareable intake forms and review each response before it enters the pipeline.",
       },
       {
         slug: ["plugins", "meeting-commitments"],

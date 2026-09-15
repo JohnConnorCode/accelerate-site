@@ -72,6 +72,14 @@ export const installationRoutes = [
     preserve: "Existing URL, metadata, content, layout, links and form integrations",
   },
   {
+    path: "/f/[token]",
+    source: "src/app/(marketing)/f/[token]/page.tsx",
+    kind: "page",
+    collection: null,
+    preserve:
+      "Public form share links stay outside the published website; form definitions live in the form builder",
+  },
+  {
     path: "/industries/auto-dealers",
     source: "src/app/(marketing)/industries/auto-dealers/page.tsx",
     kind: "page",

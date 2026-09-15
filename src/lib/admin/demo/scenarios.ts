@@ -184,7 +184,9 @@ function makePack(input: {
     role,
   }));
   const people = [...core, ...supportingPeople(profile, input.domain, 12)];
-  const stageKeys = [
+  // A realistic funnel mix rather than a round-robin, so no two demo boards
+  // show the same two deals stuck in every column.
+  const stagePlan = [
     "new",
     "contacted",
     "qualified",
@@ -192,15 +194,24 @@ function makePack(input: {
     "proposal",
     "negotiation",
     "won",
+    "new",
     "lost",
+    "qualified",
+    "meeting",
+    "proposal",
     "nurture",
+    "contacted",
+    "meeting",
+    "won",
+    "qualified",
+    "proposal",
   ];
   const opportunities: DemoOpportunity[] = profile.opportunities.map((item, index) => ({
     id: UUIDS[42 + index]!,
     name: item.name,
     personId: people[index]!.id,
     company: people[index]!.company,
-    stage: stageKeys[index % stageKeys.length]!,
+    stage: stagePlan[index % stagePlan.length]!,
     value: item.value,
     source: item.source,
     nextAction: item.nextAction,

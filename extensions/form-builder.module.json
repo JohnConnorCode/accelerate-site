@@ -1,0 +1,28 @@
+{
+  "$schema": "./module-manifest.schema.json",
+  "id": "form-builder",
+  "name": "Form builder",
+  "description": "Build shareable lead-capture and client intake forms, review responses, and accept them into the canonical pipeline.",
+  "category": "sources",
+  "defaultEnabled": false,
+  "navLinks": [
+    {
+      "id": "form-builder",
+      "label": "Forms",
+      "href": "/admin/forms",
+      "icon": "FileText",
+      "description": "Shareable forms with reviewed responses",
+      "moreGroup": "Sources"
+    }
+  ],
+  "routes": ["/admin/forms"],
+  "aiToolNames": [
+    "list_forms",
+    "read_form_submissions",
+    "prepare_form_draft",
+    "propose_form_draft",
+    "propose_form_publish"
+  ],
+  "setupChecks": [],
+  "docsUrl": "/docs/plugins/form-builder"
+}

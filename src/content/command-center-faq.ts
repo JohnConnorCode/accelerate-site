@@ -74,7 +74,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Where can I explore the bundled plugins?",
     answer:
-      "The public documentation includes individual guides for all thirteen bundled plugins, with fictional examples, setup steps, approval requirements, costs and recovery instructions. Start at /docs/plugins to explore reports, invoice workflows, Collections, Opportunity Radar, Social Marketing and subscriptions, then adapt the open-source examples to your business.",
+      "The public documentation includes individual guides for all fourteen bundled plugins, with fictional examples, setup steps, approval requirements, costs and recovery instructions. Start at /docs/plugins to explore reports, invoice workflows, Collections, Opportunity Radar, Social Marketing, subscriptions and the form builder, then adapt the open-source examples to your business.",
   },
   {
     question: "What can Opportunity Radar do today?",
