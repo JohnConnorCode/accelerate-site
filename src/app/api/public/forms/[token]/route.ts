@@ -7,6 +7,7 @@ import {
   formResponseValidator,
   getPublishedFormByToken,
   isFormModuleEnabled,
+  notifyFormSubmission,
   recordFormSubmission,
 } from "@/lib/revenue-os/form-builder";
 
@@ -88,26 +89,11 @@ export async function POST(
     });
     // Operator notice is best-effort: the response is already stored, and a
     // notification failure must never fail the visitor's submit.
-    database
-      .from("admin_notifications")
-      .insert({
-        tenant_id: form.tenantId,
-        type: "new_form_response",
-        title: `New response: ${form.name}`.slice(0, 120),
-        description: receipt.contactEmail
-          ? `From ${receipt.contactEmail}. Review in Forms.`
-          : "A new response is waiting for review in Forms.",
-        link: "/admin/forms",
-        priority: "info",
-      })
-      .then(
-        () => {},
-        (error: unknown) =>
-          console.warn(
-            "[forms] response notification failed",
-            error instanceof Error ? error.message : "UnknownError",
-          ),
-      );
+    await notifyFormSubmission(database, {
+      tenantId: form.tenantId,
+      formName: form.name,
+      contactEmail: receipt.contactEmail ?? null,
+    });
     return NextResponse.json({ accepted: true, ...receipt }, { status: 202 });
   } catch (error) {
     console.warn("[forms] public submission failed", error instanceof Error ? error.name : "UnknownError");

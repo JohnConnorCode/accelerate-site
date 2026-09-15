@@ -107,11 +107,12 @@ Configure your workspace or build around a different business process.
 ## Plugin examples
 See what you can build: reports, reviewed workflows and dedicated business workspaces.
 
-- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-13): Thirteen working examples, from a read-only report to a full business workspace, all shipped disabled.
+- [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-13): Fourteen working examples, from a read-only report to a full business workspace, all shipped disabled.
 - [Business Pulse](https://www.acceleratewith.us/docs/plugins/business-pulse) (updated 2026-09-09): See pipeline risks, overdue commitments and upcoming meetings in one report.
 - [Client onboarding](https://www.acceleratewith.us/docs/plugins/client-onboarding) (updated 2026-09-09): Turn a won opportunity into a reviewed, assigned kickoff checklist.
 - [Overdue commitments](https://www.acceleratewith.us/docs/plugins/commitment-watch) (updated 2026-09-09): Find overdue tasks and return to the work behind each commitment.
 - [Inventory registration example](https://www.acceleratewith.us/docs/plugins/example-inventory) (updated 2026-09-09): The smallest possible extension: a manifest, a page, and a setting, with nothing else.
+- [Form builder](https://www.acceleratewith.us/docs/plugins/form-builder) (updated 2026-09-13): Publish shareable intake forms and review each response before it enters the pipeline.
 - [Meeting commitments](https://www.acceleratewith.us/docs/plugins/meeting-commitments) (updated 2026-09-09): Turn what got agreed in a meeting into assigned, dated tasks someone actually owns.
 - [Meeting preparation](https://www.acceleratewith.us/docs/plugins/meeting-prep) (updated 2026-09-09): See which meetings are approaching so you can plan preparation time.
 - [Opportunity Radar](https://www.acceleratewith.us/docs/plugins/opportunity-radar) (updated 2026-09-09): A business-specific workspace for source-backed growth opportunities and relationship reviews.

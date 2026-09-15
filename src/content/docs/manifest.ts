@@ -480,7 +480,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "overview"],
         title: "Plugin examples",
         description:
-          "Thirteen working examples, from a read-only report to a full business workspace, all shipped disabled.",
+          "Fourteen working examples, from a read-only report to a full business workspace, all shipped disabled.",
       },
       {
         slug: ["plugins", "business-pulse"],

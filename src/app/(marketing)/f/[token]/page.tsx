@@ -49,9 +49,13 @@ export default async function PublicFormPage({ params }: { params: Promise<{ tok
   }
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-6 py-12">
-      <p className="text-xs uppercase tracking-wider text-[var(--admin-muted)]">Share your details</p>
+      <p className="text-xs uppercase tracking-wider text-[var(--admin-muted)]">
+        Share your details
+      </p>
       <h1 className="mt-2 text-3xl font-bold">{form.name}</h1>
-      {form.description && <p className="mt-2 text-sm text-[var(--admin-muted)]">{form.description}</p>}
+      {form.description && (
+        <p className="mt-2 text-sm text-[var(--admin-muted)]">{form.description}</p>
+      )}
       <main className="mt-8">
         <PublicFormView token={token} schema={form.schema} />
       </main>

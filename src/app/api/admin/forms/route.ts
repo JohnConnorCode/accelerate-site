@@ -45,7 +45,9 @@ export async function GET(request: Request) {
   }
 }
 
-const createSchema = z.object({ name: z.string().min(1).max(120), description: z.string().max(2000).optional() }).strict();
+const createSchema = z
+  .object({ name: z.string().min(1).max(120), description: z.string().max(2000).optional() })
+  .strict();
 const saveSchema = z
   .object({
     id: z.uuid(),
@@ -54,9 +56,15 @@ const saveSchema = z
     schema: z.unknown(),
   })
   .strict();
-const statusSchema = z.object({ id: z.uuid(), status: z.enum(["draft", "published", "archived"]) }).strict();
+const statusSchema = z
+  .object({ id: z.uuid(), status: z.enum(["draft", "published", "archived"]) })
+  .strict();
 const reviewSchema = z
-  .object({ id: z.uuid(), decision: z.enum(["accepted", "rejected"]), requestId: z.uuid().optional() })
+  .object({
+    id: z.uuid(),
+    decision: z.enum(["accepted", "rejected"]),
+    requestId: z.uuid().optional(),
+  })
   .strict();
 
 export async function POST(request: Request) {
@@ -137,7 +145,11 @@ export async function POST(request: Request) {
     return response({ error: "Unknown form action" }, 400);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Form request failed";
-    const status = /not found|cannot become|Unpublish|Archived|no email|already reviewed/i.test(message) ? 422 : 503;
+    const status = /not found|cannot become|Unpublish|Archived|no email|already reviewed/i.test(
+      message,
+    )
+      ? 422
+      : 503;
     return response({ error: message }, status);
   }
 }

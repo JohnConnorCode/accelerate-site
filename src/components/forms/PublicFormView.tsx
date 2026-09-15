@@ -35,7 +35,11 @@ export function PublicFormView({ token, schema }: { token: string; schema: Store
             const response = await fetch(`/api/public/forms/${encodeURIComponent(token)}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ response: data, requestId: crypto.randomUUID(), website: website || undefined }),
+              body: JSON.stringify({
+                response: data,
+                requestId: crypto.randomUUID(),
+                website: website || undefined,
+              }),
             });
             if (!response.ok) setFailed(true);
             else setDone(true);

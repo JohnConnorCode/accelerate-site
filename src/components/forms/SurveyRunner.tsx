@@ -6,10 +6,10 @@ import "survey-core/survey-core.min.css";
 import { Model } from "survey-core";
 import type { StoredFormSchema } from "@/lib/revenue-os/form-builder";
 
-const SurveyComponent = dynamic(
-  async () => (await import("survey-react-ui")).Survey,
-  { ssr: false, loading: () => <p className="admin-copy text-sm">Loading form…</p> },
-);
+const SurveyComponent = dynamic(async () => (await import("survey-react-ui")).Survey, {
+  ssr: false,
+  loading: () => <p className="admin-copy text-sm">Loading form…</p>,
+});
 
 function toSurveyJson(schema: StoredFormSchema) {
   return {

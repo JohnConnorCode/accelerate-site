@@ -731,3 +731,32 @@ export async function executeFormPublish(
     throw new Error("Form changed after approval. Review the new draft first.");
   return setFormStatus(supabase, { tenantId, id: input.formId, status: "published", actorEmail });
 }
+
+/**
+ * Best-effort operator notice for a stored public submission. Lives in the
+ * domain service so the public route never writes a business table directly;
+ * a notification failure never fails the visitor's submit.
+ */
+export async function notifyFormSubmission(
+  supabase: SupabaseClient,
+  input: { tenantId: string; formName: string; contactEmail: string | null },
+): Promise<void> {
+  try {
+    const { error } = await supabase.from("admin_notifications").insert({
+      tenant_id: input.tenantId,
+      type: "new_form_response",
+      title: `New response: ${input.formName}`.slice(0, 120),
+      description: input.contactEmail
+        ? `From ${input.contactEmail}. Review in Forms.`
+        : "A new response is waiting for review in Forms.",
+      link: "/admin/forms",
+      priority: "info",
+    });
+    if (error) console.warn("[forms] response notification failed", error.message);
+  } catch (error) {
+    console.warn(
+      "[forms] response notification failed",
+      error instanceof Error ? error.message : "UnknownError",
+    );
+  }
+}
