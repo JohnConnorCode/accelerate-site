@@ -910,10 +910,10 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     id: "site-studio",
     name: "Site Studio",
     description:
-      "Create and revise private structured page drafts. Publishing and arbitrary-code editing are not included.",
+      "Create, clone and edit website pages with AI or manual controls, preview them, and publish versioned revisions with rollback. Arbitrary code is never accepted.",
     category: "delivery",
     isCore: false,
-    defaultEnabled: false,
+    defaultEnabled: true,
     navLinkIds: ["site-studio"],
     aiToolNames: [],
     routes: ["/admin/site"],
@@ -1464,7 +1464,7 @@ export const EXTENSION_NAV_LINKS: readonly ExtensionNavLink[] = [
     label: "Site Studio",
     href: "/admin/site",
     icon: "Globe2",
-    description: "Private page drafts and previews",
+    description: "Create and publish website pages",
     moreGroup: "Delivery",
   },
   {
