@@ -1778,7 +1778,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Disabled-by-default Site Studio module. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. No operation publishes public content. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
+      "boundary": "Owner-only Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1810,7 +1810,7 @@
           "directTables": []
         }
       ],
-      "boundary": "Disabled-by-default Site Studio module. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. No operation publishes public content. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
+      "boundary": "Owner-only Site Studio module, enabled by default. Authenticated tenant-bound database adapter owns stable draft IDs, checksum concurrency and atomic immutable revision/audit writes. Publishing and rollback run only through the owner-only /admin/site/website command path; this adapter never publishes. API section regeneration has no preview-screen control; general AI/MCP mutation tools remain separate work. Writes carry the verified request actor explicitly into the existing scoped service-role host bridge, which rechecks current admin membership. Direct authenticated RPC writes are denied after the compatible application and corrective migration rollout.",
       "followUp": null,
       "specialBoundary": null
     },
