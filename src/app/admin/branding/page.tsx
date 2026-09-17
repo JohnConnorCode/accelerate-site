@@ -22,10 +22,8 @@ import {
   workspaceBrandSchema,
   type WorkspaceBrand,
 } from "@/lib/revenue-os/branding-contract";
-const field =
-  "mt-2 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm text-[var(--admin-ink)]";
-const button =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[.96] disabled:opacity-50 disabled:cursor-not-allowed";
+const field = "admin-field mt-2";
+const button = "admin-button admin-button--secondary";
 type BrandResponse = {
   brand: WorkspaceBrand;
   revision: string;

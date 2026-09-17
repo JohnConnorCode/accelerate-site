@@ -49,6 +49,9 @@ html[data-admin-density="compact"]
   --admin-panel-padding: 20px;
   --admin-section-gap: 20px;
 }
+/* Touch and small-screen floors outrank a theme's own density, so a compact
+   skin (for example macOS at a 32px control) can never shrink a tap target or
+   crowd a phone layout below the accessible minimum. */
 @media (pointer: coarse) {
   html[data-admin-density]
     :is(
@@ -57,12 +60,13 @@ html[data-admin-density="compact"]
       body.admin-dialog-open,
       body.admin-notifications-open
     ),
-  :is(
-    .admin-shell,
-    .admin-overlay-token-scope,
-    body.admin-dialog-open,
-    body.admin-notifications-open
-  ),
+  :root
+    :is(
+      .admin-shell,
+      .admin-overlay-token-scope,
+      body.admin-dialog-open,
+      body.admin-notifications-open
+    ),
   [data-admin-density="compact"].admin-shell {
     --admin-control-height: 44px;
   }
@@ -75,12 +79,13 @@ html[data-admin-density="compact"]
       body.admin-dialog-open,
       body.admin-notifications-open
     ),
-  :is(
-    .admin-shell,
-    .admin-overlay-token-scope,
-    body.admin-dialog-open,
-    body.admin-notifications-open
-  ),
+  :root
+    :is(
+      .admin-shell,
+      .admin-overlay-token-scope,
+      body.admin-dialog-open,
+      body.admin-notifications-open
+    ),
   [data-admin-density="compact"].admin-shell {
     --admin-panel-padding: 18px;
     --admin-section-gap: 20px;

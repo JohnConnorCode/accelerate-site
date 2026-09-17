@@ -224,7 +224,7 @@
       "id": "site-studio",
       "name": "Site Studio",
       "core": false,
-      "defaultEnabled": false
+      "defaultEnabled": true
     },
     {
       "id": "social-marketing",

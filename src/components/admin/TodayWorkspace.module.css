@@ -40,55 +40,6 @@
   align-items: center;
   flex-wrap: wrap;
 }
-.button,
-.primaryButton,
-.iconButton {
-  min-height: var(--admin-control-height);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-radius: var(--admin-control-radius);
-  font-size: var(--admin-text-label);
-  font-weight: 600;
-  padding: 0 14px;
-  transition:
-    background var(--admin-motion-fast),
-    box-shadow var(--admin-motion-fast),
-    transform var(--admin-motion-fast);
-  transition-timing-function: var(--admin-motion-ease);
-}
-.button {
-  background: var(--admin-surface);
-  box-shadow: var(--admin-shadow-border);
-}
-.primaryButton {
-  box-shadow: var(--admin-control-shadow);
-  background: var(--admin-action);
-  color: var(--admin-action-ink);
-}
-.iconButton {
-  width: 40px;
-  min-height: 40px;
-  padding: 0;
-  color: var(--admin-muted);
-  flex-shrink: 0;
-}
-.button:hover,
-.iconButton:hover {
-  background: var(--admin-surface-subtle);
-}
-.button:active,
-.primaryButton:active,
-.iconButton:active {
-  transform: scale(0.96);
-}
-.button:disabled,
-.primaryButton:disabled,
-.iconButton:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
 .workspace button:focus-visible,
 .workspace select:focus-visible,
 .editor button:focus-visible,
@@ -137,10 +88,9 @@
   border-radius: 50%;
   background: var(--today-accent);
 }
+/* Surface visuals come from the shared .admin-surface primitive; this class
+   keeps only module layout and the per-module variants below. */
 .card {
-  border-radius: var(--admin-surface-radius);
-  background: var(--admin-surface);
-  box-shadow: var(--admin-shadow-border);
   overflow: hidden;
   min-width: 0;
 }
@@ -180,14 +130,6 @@
 }
 .cardHeader svg {
   color: var(--admin-muted);
-}
-.eyebrow {
-  font-family: var(--admin-label-font);
-  font-size: var(--admin-text-caption);
-  font-weight: 650;
-  letter-spacing: 0.14em;
-  color: var(--admin-muted);
-  margin: 0 0 8px;
 }
 .muted {
   font-size: var(--admin-text-label);
@@ -822,17 +764,5 @@
   }
   .briefMeta {
     font-size: var(--admin-text-caption);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .button,
-  .primaryButton,
-  .iconButton {
-    transition: none;
-  }
-  .button:active,
-  .primaryButton:active,
-  .iconButton:active {
-    transform: none;
   }
 }
