@@ -90,6 +90,12 @@ export const docsManifest: DocsSection[] = [
           "Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened.",
       },
       {
+        slug: ["start", "first-value"],
+        title: "Your first result",
+        description:
+          "Take one real inquiry from a connected workspace through to a reviewed action and its receipt.",
+      },
+      {
         slug: ["start", "core-concepts"],
         title: "Core concepts",
         description:
