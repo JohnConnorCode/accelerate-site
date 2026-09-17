@@ -29,6 +29,15 @@ interface AuditHistoryEntry {
   createdAt: string;
 }
 
+interface CanonicalActivity {
+  id: string;
+  activity_type: string;
+  title: string;
+  summary: string | null;
+  source: string;
+  occurred_at: string;
+}
+
 interface AuditHistoryResult {
   entries: AuditHistoryEntry[];
   filterOptions: {
@@ -36,6 +45,10 @@ interface AuditHistoryResult {
     entityTypes: string[];
     actions: string[];
     sources: string[];
+  };
+  canonical?: {
+    activities: CanonicalActivity[];
+    dispositions: { field: string; owner: "canonical" | "retained"; note: string }[];
   };
 }
 
@@ -183,6 +196,44 @@ export default function ActivityPage() {
         loadingFallback={<LoadingSkeleton variant="table" rows={10} />}
         label="Loading audit history"
       >
+        {historyQuery.data?.canonical && (
+          <AdminSurface className="mb-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
+                Canonical activity
+              </h2>
+              <span className="admin-copy text-xs">
+                {historyQuery.data.canonical.activities.length} recent ledger entries
+              </span>
+            </div>
+            {historyQuery.data.canonical.activities.length === 0 ? (
+              <p className="admin-copy mt-3 text-xs">No ledger activity yet.</p>
+            ) : (
+              <ul className="mt-3 divide-y divide-[var(--admin-border)]">
+                {historyQuery.data.canonical.activities.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex flex-wrap items-baseline justify-between gap-2 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm text-[var(--admin-ink)]">{item.title}</p>
+                      <p className="admin-copy text-xs">
+                        {item.activity_type.replaceAll("_", " ")} · {item.source}
+                      </p>
+                    </div>
+                    <span className="admin-copy text-xs tabular-nums">
+                      {new Date(item.occurred_at).toLocaleString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="admin-copy mt-3 text-xs">
+              Ledger entries own the activity type, title, summary and time. Audit fields such as
+              the actor and action stay source-owned in the filtered list below.
+            </p>
+          </AdminSurface>
+        )}
         <AdminSurface padding="none" className="mb-4 overflow-hidden">
           <div className="flex flex-col gap-3 p-4 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">

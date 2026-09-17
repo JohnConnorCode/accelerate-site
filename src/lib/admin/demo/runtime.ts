@@ -1,4 +1,5 @@
 import { revenueDispositions } from "@/lib/revenue-os/revenue-dispositions";
+import { activityDispositions } from "@/lib/revenue-os/activity-dispositions";
 import { SITE_STUDIO_MODELS, SITE_MODELS_OBSERVED_AT } from "@/lib/site-studio/models";
 import {
   createDemoWebsiteState,
@@ -4391,8 +4392,23 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         dispositions: revenueDispositions(),
       });
     }
-    if (path === "/api/admin/activity")
-      return jsonResponse(auditHistory(pack, url.searchParams, business));
+    if (path === "/api/admin/activity") {
+      const history = auditHistory(pack, url.searchParams, business);
+      return jsonResponse({
+        ...history,
+        canonical: {
+          activities: business.receipts.slice(0, 10).map((receipt) => ({
+            id: receipt.id,
+            activity_type: "receipt",
+            title: receipt.operation,
+            summary: null,
+            source: "demo",
+            occurred_at: receipt.at,
+          })),
+          dispositions: activityDispositions(),
+        },
+      });
+    }
     if (path === "/api/admin/revenue-os/ai/conversations")
       return jsonResponse({
         schemaReady: true,
