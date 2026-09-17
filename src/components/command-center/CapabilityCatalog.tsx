@@ -36,8 +36,13 @@ export function CapabilityCatalog() {
     const q = query.trim().toLowerCase();
     return capabilities.filter((c) => {
       const matchesCategory = active === "all" || c.category === active;
+      // The promise carries most of the searchable wording, so it has to be
+      // part of the match or a plain query like "invoice" finds nothing.
       const matchesQuery =
-        !q || c.title.toLowerCase().includes(q) || c.detail.toLowerCase().includes(q);
+        !q ||
+        c.title.toLowerCase().includes(q) ||
+        c.promise.toLowerCase().includes(q) ||
+        c.detail.toLowerCase().includes(q);
       return matchesCategory && matchesQuery;
     });
   }, [active, query]);
@@ -75,7 +80,7 @@ export function CapabilityCatalog() {
             onClick={() => setActive("all")}
             className={pill(active === "all")}
           >
-            Everything <span className="opacity-50">{capabilities.length}</span>
+            Everything <span>{capabilities.length}</span>
           </button>
           {CATEGORY_META.map((cat) => (
             <button
@@ -88,7 +93,7 @@ export function CapabilityCatalog() {
               <span aria-hidden="true" style={{ color: `rgb(${cat.rgb})` }}>
                 {cat.glyph}
               </span>{" "}
-              {cat.label} <span className="opacity-50">{counts.get(cat.id) ?? 0}</span>
+              {cat.label} <span>{counts.get(cat.id) ?? 0}</span>
             </button>
           ))}
         </div>
@@ -125,7 +130,8 @@ export function CapabilityCatalog() {
         >
           {filtered.length === 0 ? (
             <p className="py-14 text-center text-mid">
-              Nothing matches that. It probably still does it, so ask on the session.
+              Nothing matches that search. Try a broader word, or ask us on the session whether the
+              workspace does it.
             </p>
           ) : (
             // Grouped while showing everything, flat once a category is picked.
@@ -163,7 +169,10 @@ export function CapabilityCatalog() {
                         >
                           {g.glyph}
                         </span>
-                        <span className="cc-sum-title">{cap.title}</span>
+                        <span className="cc-sum-body">
+                          <span className="cc-sum-title">{cap.title}</span>
+                          <span className="cc-sum-promise">{cap.promise}</span>
+                        </span>
                         <span className="pm" />
                       </summary>
                       <div className="cc-ans">
