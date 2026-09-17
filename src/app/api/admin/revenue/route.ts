@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
+import { loadOpportunityRevenueTotals, revenueDispositions } from "@/lib/revenue-os/analytics";
 
 export async function GET() {
   const auth = await requireAdminForModule("revenue");
@@ -7,7 +8,7 @@ export async function GET() {
 
   const supabase = auth.database;
 
-  const [clientsRes, proposalsRes] = await Promise.all([
+  const [clientsRes, proposalsRes, canonical] = await Promise.all([
     supabase
       .from("clients")
       .select(
@@ -17,6 +18,7 @@ export async function GET() {
       .from("proposals")
       .select("id, client_name, total_monthly, total_one_time, status, created_at")
       .eq("status", "accepted"),
+    loadOpportunityRevenueTotals(supabase, auth.tenant.id),
   ]);
 
   const clients = clientsRes.data || [];
@@ -106,5 +108,7 @@ export async function GET() {
     byClient,
     mrrTimeline,
     proposalRevenue,
+    canonical,
+    dispositions: revenueDispositions(),
   });
 }

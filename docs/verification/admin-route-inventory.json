@@ -51,7 +51,7 @@
     "src/app/admin/radar/today/page.tsx": "9c2bf2c18ffc537d0cdac03e7a831185d5cce208d625d9c69726547ec23bb7ec",
     "src/app/admin/recovery/page.tsx": "84bd99914a266402a187c8b846b93f461ecfe95697546fd658c741e2def77073",
     "src/app/admin/resources/page.tsx": "55d7dc6906ec6bc7c68bf30df77ed9972974b6286fee9fdc720b5e0148495b5d",
-    "src/app/admin/revenue/page.tsx": "b77a01750945b7aed93766c312b20e2c0b3f1631e6b2974c6baf4cd6007fb24d",
+    "src/app/admin/revenue/page.tsx": "1cd4bbbc5ce600ef3481d2fd8e8b54495d166541005746628cbdc7c806306dbc",
     "src/app/admin/settings/page.tsx": "aa786e9c57c5dc78eca0aed6f1d8f3479ecdb1260d6b2a92d507a50c701f0e5c",
     "src/app/admin/setup/page.tsx": "eefc276b3ae866faf65858ef27c0bea93fbb0d9b685c54906fd3d37235b39a23",
     "src/app/admin/site/[id]/page.tsx": "967b7d53e5e731e05e9c88fa943853ee977b8bd8afd8ee2bb88a8d7ce016fee9",
@@ -132,7 +132,7 @@
     "src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts": "bef9ce8396d295bb1ec3aa98cb5be52aead4e845559262b74d4fd0e670ca0384",
     "src/app/api/admin/revenue-os/recovery/route.ts": "618f42369e72b357efd35a846c19cfa21b1e32f06d405a20ccf7cf650fc8f288",
     "src/app/api/admin/revenue-os/tasks/route.ts": "0ac406649d939e53d45100d122044654aa52eb228f7b07243227f66387abcb95",
-    "src/app/api/admin/revenue/route.ts": "8319d9ab6e26f5f63330b651e20c8a8f4de037136d521365f1f3244b02382967",
+    "src/app/api/admin/revenue/route.ts": "55a1794a41c280b83b60a5875c2d21eebdc2629fe03f1225afe344a47aab78be",
     "src/app/api/admin/settings/route.ts": "7f2356ae469f754ec265ab3f64e759533f39d7b86c462c08b05f6f7794caa62e",
     "src/app/api/admin/settings/test/route.ts": "f6b83ed5979d5187b406f402308d12b982370adb735a2664717cf5770ea013bc",
     "src/app/api/admin/setup/route.ts": "9d5249139666033a0ebc65c308607fa9edd19daf1cf5911fc832cc374bf8e2a4",
@@ -285,7 +285,7 @@
     "src/lib/revenue-os/ai-operations.ts": "ae39bc1112700f7af976bdf68a1308d7c720747ed82191d589817ba78b4aa945",
     "src/lib/revenue-os/ai-stream-contract.ts": "813ce466f99ba479b50cfee912921003a8e21bf812dba9e16494a4df3b5d00c7",
     "src/lib/revenue-os/ai-tools.ts": "594eb28247142805e0981bbce4f1e85ae3847092dff733d1ebd2a11361e83af8",
-    "src/lib/revenue-os/analytics.ts": "f21218cd69c0e41f345a64520c3f75c196a5a6d78819649adc63f382143deefa",
+    "src/lib/revenue-os/analytics.ts": "73ff35801bb23997930e197bae131c9d063ff29912675f5af9fb2146cfc7a65e",
     "src/lib/revenue-os/architect-understanding.ts": "5e0764b46aaacd1f9d4e9d519d38348f8617b2d639fc3e4716b50de84ea39a18",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
     "src/lib/revenue-os/branding-contract.ts": "928a37ea33689f746e8df5cbbbaa0505e193ba0a1e40bc711508ffaa2caae5f2",
@@ -1368,7 +1368,7 @@
       "adapters": [
         {
           "path": "src/app/api/admin/revenue/route.ts",
-          "domainImports": [],
+          "domainImports": ["@/lib/revenue-os/analytics"],
           "directTables": ["clients", "proposals"]
         }
       ],
