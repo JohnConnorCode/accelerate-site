@@ -7,7 +7,7 @@
   },
   "evidenceLevel": "local source inventory; no row, field, browser or production parity asserted",
   "sources": {
-    "src/app/admin/activity/page.tsx": "b897107e0228359cf4c11e55e42c3b04e3df62528e4c1659cf46a41d77eca2fe",
+    "src/app/admin/activity/page.tsx": "115e9682a0d981b34a858eab63f8930516365983327a8acc464ecb53fbf8ebd2",
     "src/app/admin/ai-operations/page.tsx": "92aae0344b61a69def1d4fd711c387863b1c9bf18c433f33706271b7c6c4d2aa",
     "src/app/admin/ai/page.tsx": "ae4d9cbb09dcba05beffdf3d618210e5286273f7c651c4eb0c03aada76c07ed3",
     "src/app/admin/analytics/page.tsx": "51afc1e135cd11d16b9484fc231d2609a34426e52352c83e3a3fb20ebd96a5b9",
@@ -67,7 +67,7 @@
     "src/app/admin/update-password/page.tsx": "a3c4ec821033acc0efe1dbb6929843e49bcd6720c6534def104e5e10072b7109",
     "src/app/admin/website-grades/page.tsx": "b7d777f68e6daf61053c2ee38d0348426124f051e52a4bc72069403a1be9b8dc",
     "src/app/admin/work/page.tsx": "761ec87236b6ac561d7e7bfaa709e55676820d817381df0746a3d7d369c85215",
-    "src/app/api/admin/activity/route.ts": "ee9f15fedfb7aa0151bcaeb01414ed6407658cf22e224b7ca4fdef02376a38f8",
+    "src/app/api/admin/activity/route.ts": "e60e1e665e017301187159476c84b36def2506c69a49db031e1653c4be79c68f",
     "src/app/api/admin/blueprints/[id]/route.ts": "0f320be38283c086d60f7bc49c8138abba4e99ca967b14c90c20bb2a7047f67f",
     "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",
     "src/app/api/admin/bookings/route.ts": "57b07eb5f5da312bc972daec1cfa68584d9e4f65f0451940dabd42f04565341e",
@@ -276,7 +276,7 @@
     "src/lib/revenue-os/README.md": "eb3e7c9684ec29a2175bbf0d59ce976dc47bf60b3e2c3272fb9456a7e746a035",
     "src/lib/revenue-os/action-executor.ts": "881d0cdb8ecd2735060a4ddfcb37db0156f1dda230b1fb77dfadefe7d6792d17",
     "src/lib/revenue-os/actions.ts": "4b8f06cdbdf696ac3e7aa61799073f49302f9b3ce377983e043daef74c535a8b",
-    "src/lib/revenue-os/activities.ts": "b0531f13965f136e13e3a5e3c29556f3e2e171ea88ed036e7be9bb649dac9d8e",
+    "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
     "src/lib/revenue-os/ai-agent.ts": "f647dcf5be00de09ec273bf914e3dc8dd4854452d1324140f21092f793cf1d37",
@@ -376,7 +376,7 @@
       "adapters": [
         {
           "path": "src/app/api/admin/activity/route.ts",
-          "domainImports": ["@/lib/revenue-os/audit"],
+          "domainImports": ["@/lib/revenue-os/activities", "@/lib/revenue-os/audit"],
           "directTables": []
         }
       ],

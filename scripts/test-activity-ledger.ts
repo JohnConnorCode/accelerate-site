@@ -4,7 +4,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   ACTIVITY_LEDGER_CONTRACT,
+  activityDispositions,
   loadActivityTimeline,
+  loadRecentActivities,
   recordActivity,
 } from "../src/lib/revenue-os/activities";
 
@@ -130,6 +132,28 @@ async function main() {
   assert.deepEqual(
     older.map((row) => row.title),
     ["Older note"],
+  );
+
+  const recent = await loadRecentActivities(store.client, { limit: 2 });
+  assert.deepEqual(
+    recent.map((row) => row.title),
+    ["Newer email", base.title],
+    "the cross-record reader returns the newest ledger entries without a record filter",
+  );
+  const dispositions = activityDispositions();
+  assert.deepEqual(
+    dispositions
+      .filter((item) => item.owner === "canonical")
+      .map((item) => item.field)
+      .sort(),
+    ["activityType", "occurredAt", "summary", "title"],
+  );
+  assert.deepEqual(
+    dispositions
+      .filter((item) => item.owner === "retained")
+      .map((item) => item.field)
+      .sort(),
+    ["action", "actorEmail", "entityType"],
   );
 
   await assert.rejects(
