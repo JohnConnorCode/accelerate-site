@@ -13,10 +13,8 @@ import {
   type InvoiceDocumentData,
 } from "@/components/business/InvoiceDocument";
 import type { WorkspaceBrand } from "@/lib/revenue-os/branding-contract";
-const button =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold shadow-[var(--admin-shadow-border)] active:scale-[.96] disabled:opacity-50 disabled:cursor-not-allowed";
-const field =
-  "mt-2 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm text-[var(--admin-ink)]";
+const button = "admin-button admin-button--secondary";
+const field = "admin-field mt-2";
 type Preview = {
   brand: WorkspaceBrand;
   design: InvoiceDesign;

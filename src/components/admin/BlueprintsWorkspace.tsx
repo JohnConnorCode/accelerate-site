@@ -19,10 +19,8 @@ interface BlueprintSummary {
   updated_at: string;
 }
 
-const button =
-  "inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold shadow-[var(--admin-shadow-border)] hover:bg-[var(--admin-surface-subtle)] disabled:opacity-50";
-const field =
-  "mt-1 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-sm";
+const button = "admin-button admin-button--secondary";
+const field = "admin-field mt-1";
 
 export function BlueprintsWorkspace() {
   const query = useAdminQuery<{ blueprints: BlueprintSummary[] }>(

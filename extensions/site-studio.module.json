@@ -2,16 +2,16 @@
   "$schema": "./module-manifest.schema.json",
   "id": "site-studio",
   "name": "Site Studio",
-  "description": "Create and revise private structured page drafts. Publishing and arbitrary-code editing are not included.",
+  "description": "Create, clone and edit website pages with AI or manual controls, preview them, and publish versioned revisions with rollback. Arbitrary code is never accepted.",
   "category": "delivery",
-  "defaultEnabled": false,
+  "defaultEnabled": true,
   "navLinks": [
     {
       "id": "site-studio",
       "label": "Site Studio",
       "href": "/admin/site",
       "icon": "Globe2",
-      "description": "Private page drafts and previews",
+      "description": "Create and publish website pages",
       "moreGroup": "Delivery"
     }
   ],

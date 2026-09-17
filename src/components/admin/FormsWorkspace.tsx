@@ -26,12 +26,9 @@ const FIELD_TYPES: BuilderElement["type"][] = [
   "rating",
 ];
 
-const button =
-  "inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold shadow-[var(--admin-shadow-border)] hover:bg-[var(--admin-surface-subtle)] disabled:opacity-50";
-const field =
-  "mt-1 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-sm";
-const smallButton =
-  "inline-flex min-h-9 items-center justify-center rounded-lg px-3 text-xs font-semibold shadow-[var(--admin-shadow-border)] hover:bg-[var(--admin-surface-subtle)] disabled:opacity-50";
+const button = "admin-button admin-button--secondary";
+const field = "admin-field mt-1";
+const smallButton = "admin-button admin-button--secondary";
 
 async function postAction<T>(body: unknown): Promise<T> {
   return fetchJson<T>("/api/admin/forms", {

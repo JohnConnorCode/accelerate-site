@@ -25,8 +25,7 @@ const command = <T,>(kind: string, input: unknown) =>
   });
 type Preview = Awaited<ReturnType<typeof previewRadarOutreach>>;
 type Options = Awaited<ReturnType<typeof readRadarOutreachOptions>>;
-const field =
-  "mt-1 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm";
+const field = "admin-field mt-1";
 export function RadarOutreachPanel({
   data,
   onDraft,

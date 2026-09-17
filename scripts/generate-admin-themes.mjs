@@ -17,9 +17,12 @@ const css =
   "/* Generated from src/lib/admin/themes.json. Run npm run themes:generate. */\n" +
   themes
     .map((t) => {
-      const selector = scopes
+      // One :is() keeps every preset at the same specificity as the shared
+      // foundations, so import order (foundations, then themes) decides which
+      // value wins instead of selector shape.
+      const selector = `:is(${scopes
         .map((s) => (t.id === "light" ? s : `[data-theme="${t.id}"] ${s}`))
-        .join(",\n");
+        .join(", ")})`;
       return `${selector} {\n${Object.entries(t.tokens)
         .map(([k, v]) => `  ${k}: ${v};`)
         .join("\n")}\n  color-scheme: ${t.mode};\n}`;

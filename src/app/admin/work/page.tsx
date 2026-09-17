@@ -29,8 +29,7 @@ interface TaskRow {
   related_name?: string | null;
   opportunity_id?: string | null;
 }
-const control =
-  "min-h-11 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)]";
+const control = "admin-field";
 
 export default function WorkPage() {
   const params = useSearchParams();
