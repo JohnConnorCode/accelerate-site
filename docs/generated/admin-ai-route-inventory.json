@@ -18,10 +18,11 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/revenue-os/activities",
         "@/lib/revenue-os/audit",
         "next/server"
       ],
-      "sourceSha256": "ee9f15fedfb7aa0151bcaeb01414ed6407658cf22e224b7ca4fdef02376a38f8"
+      "sourceSha256": "e60e1e665e017301187159476c84b36def2506c69a49db031e1653c4be79c68f"
     },
     {
       "source": "src/app/api/admin/ai-content-brief/route.ts",
