@@ -15,6 +15,7 @@ import {
   LOOP_STEPS,
   TRUST_LADDER,
   MARQUEE_ITEMS,
+  SURFACE_GROUPS,
   WHO_ITS_FOR,
 } from "@/content/command-center";
 import { PRODUCT_SCREENSHOTS } from "@/content/product-screenshots";
@@ -96,7 +97,7 @@ function Hero() {
         </div>
         <Reveal rv id="demo" className="cc-product-gallery" delay={0.12}>
           <ProductSlider slides={PRODUCT_SCREENSHOTS} groupLabel="Command Center screens" />
-          <p className="mt-3 text-center text-xs leading-relaxed text-white-muted">
+          <p className="mt-3 text-center text-xs leading-relaxed text-[var(--mid)]">
             Captured from the real product demo with fictional business data. Select a screen to
             enlarge it.
           </p>
@@ -198,40 +199,50 @@ function CurrentSurface() {
           </Reveal>
           <div>
             <Reveal rv as="h2" className="h2" delay={0.06}>
-              One operating surface.
+              One place to run the day,
               <br />
-              <span className="it">Ways to move work forward.</span>
+              and <span className="it">the work behind it.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              The Command Center is not a promise to buy a pile of tools. It is the shared context,
-              controls, and evidence underneath the work your team already does.
+              These are the surfaces your team uses every day. They read the same records, and
+              anything that leaves the business goes through the same approval queue, so nothing
+              happens twice and nothing happens unwatched.
             </Reveal>
           </div>
         </div>
 
-        <div className="mt-[clamp(34px,5vw,64px)] grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CURRENT_SURFACES.map((surface, i) => (
-            <Reveal
-              key={surface.n}
-              rv
-              as="article"
-              className="group min-h-[220px] rounded-[24px] border border-[var(--rule)] bg-[color-mix(in_srgb,var(--fg)_4%,transparent)] p-6 transition-[border-color,transform,background-color] duration-300 hover:-translate-y-1 hover:border-[var(--fg)] hover:bg-[color-mix(in_srgb,var(--fg)_7%,transparent)] sm:p-7"
-              delay={0.04 * i}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <span className="label text-[var(--mid)]">{surface.label}</span>
-                <span className="font-mono text-xs tabular-nums text-[var(--soft)]">
-                  {surface.n}
-                </span>
+        <div className="cc-chapters">
+          {SURFACE_GROUPS.map((group, gi) => {
+            const items = CURRENT_SURFACES.filter((surface) => surface.group === group.id);
+            return (
+              <div key={group.id} className="cc-chapter">
+                <Reveal rv as="div" className="cc-chapter-head">
+                  <span
+                    className="cc-chapter-rule"
+                    aria-hidden="true"
+                    style={{ background: `rgb(${group.rgb})` }}
+                  />
+                  <span className="cc-chapter-n">{String(gi + 1).padStart(2, "0")}</span>
+                  <h3 className="cc-chapter-t">{group.label}</h3>
+                  <p className="cc-chapter-b">{group.blurb}</p>
+                </Reveal>
+                <div className="cc-feat-grid">
+                  {items.map((surface, i) => (
+                    <Reveal
+                      key={surface.n}
+                      as="article"
+                      className="cc-feat item-rv"
+                      style={{ "--d": `${0.05 * i}s` } as CSSProperties}
+                    >
+                      <span className="cc-feat-n">{surface.n}</span>
+                      <h4 className="cc-feat-t">{surface.title}</h4>
+                      <p className="cc-feat-b">{surface.body}</p>
+                    </Reveal>
+                  ))}
+                </div>
               </div>
-              <h3 className="mt-10 text-[1.35rem] font-medium leading-[1.08] tracking-[-0.03em] text-[var(--heading)] text-balance">
-                {surface.title}
-              </h3>
-              <p className="mt-4 text-[15px] leading-[1.55] text-[var(--mid)] text-pretty">
-                {surface.body}
-              </p>
-            </Reveal>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
@@ -344,8 +355,10 @@ function Catalog() {
               for your <span className="it">entire operation.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              What we put in first is whatever is trapping the team: intake, the pipeline,
-              follow-up. Then we expand as the week actually comes back.
+              Every capability below is available to a workspace. Most teams start with the one
+              that is costing them the most time, then add the next once the first is running.
+              Which ones are live depends on the modules and providers your workspace has
+              connected.
             </Reveal>
           </div>
         </div>

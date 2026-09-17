@@ -96,8 +96,8 @@ claims like "the system learns over time."
   a tested automatic undo, 9 compensable, 7 permanently non-autonomous
   (sending an email, activating a campaign, and sending an invoice are in
   that last group by design, not by accident).
-- **47 capabilities in six categories** (`src/content/command-center.ts`),
-  each with an authored one-line promise. 8 of the 47 are gated.
+- **52 capabilities in six categories** (`src/content/command-center.ts`),
+  each with an authored one-line promise. 9 of the 52 are gated.
 - **77 registered AI tools**, of which exactly 3 can act outside the
   workspace: `propose_send_email`, `propose_conversation_reply`,
   `propose_campaign_activation`. Everything else reads or writes internal
