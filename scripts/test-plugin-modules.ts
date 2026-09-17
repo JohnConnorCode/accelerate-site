@@ -112,6 +112,7 @@ async function main() {
       clients: false,
       content: false,
       resources: false,
+      "site-studio": false,
     },
   };
   const noDeliverySections = filterNavSectionsByTenant(adminNavSections, deliveryDisabledConfig);
