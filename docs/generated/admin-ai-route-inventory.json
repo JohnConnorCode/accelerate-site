@@ -1436,9 +1436,10 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/module-guard",
+        "@/lib/revenue-os/analytics",
         "next/server"
       ],
-      "sourceSha256": "8319d9ab6e26f5f63330b651e20c8a8f4de037136d521365f1f3244b02382967"
+      "sourceSha256": "55a1794a41c280b83b60a5875c2d21eebdc2629fe03f1225afe344a47aab78be"
     },
     {
       "source": "src/app/api/admin/search/route.ts",
