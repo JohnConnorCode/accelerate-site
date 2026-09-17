@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
-import { summarizeReplySignals, summarizeRevenueAnalytics } from "../src/lib/revenue-os/analytics";
+import {
+  revenueDispositions,
+  summarizePipelineTotals,
+  summarizeReplySignals,
+  summarizeRevenueAnalytics,
+} from "../src/lib/revenue-os/analytics";
 import { createDefaultPipelineStageResolver } from "../src/lib/revenue-os/pipeline-stage-resolver";
 
 const stages = createDefaultPipelineStageResolver();
@@ -94,4 +99,33 @@ assert.deepEqual(replies, {
 });
 console.log(
   "Analytics filters, recorded-vs-estimated revenue, quality counts, and reply evidence passed.",
+);
+
+// Canonical revenue reconciliation: the Revenue screen reads these totals from
+// the same service as the analytics route, and names which values stay
+// source-owned, so the screen and the service cannot disagree.
+const canonicalTotals = summarizePipelineTotals(opportunities, stages);
+assert.equal(canonicalTotals.openOpportunities, 2);
+assert.equal(canonicalTotals.pipelineValue, 18000, "open value sums recorded estimates");
+assert.equal(canonicalTotals.weightedValue, 7000, "weighted value uses open value x probability");
+assert.equal(canonicalTotals.wonRevenue, 18000, "won revenue sums canonical won_value");
+
+const dispositions = revenueDispositions();
+assert.deepEqual(
+  dispositions
+    .filter((item) => item.owner === "canonical")
+    .map((item) => item.field)
+    .sort(),
+  ["pipelineValue", "weightedValue", "wonRevenue"],
+);
+assert.deepEqual(
+  dispositions
+    .filter((item) => item.owner === "retained")
+    .map((item) => item.field)
+    .sort(),
+  ["proposalRevenue", "totalMRR", "totalOneTime"],
+);
+
+console.log(
+  "PASS: canonical opportunity totals and retained revenue dispositions agree across the screen and the service.",
 );

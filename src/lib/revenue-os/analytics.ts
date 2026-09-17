@@ -372,6 +372,27 @@ export function summarizePipelineTotals(
   };
 }
 
+export { revenueDispositions, type RevenueFieldDisposition } from "./revenue-dispositions";
+
+/** Canonical opportunity totals for the Revenue screen. Reads opportunities and
+ * the tenant's pipeline stages through the same services analytics uses, so the
+ * screen and the analytics route cannot disagree on open value or won revenue. */
+export async function loadOpportunityRevenueTotals(supabase: SupabaseClient, tenantId: string) {
+  const [{ data, error }, stages] = await Promise.all([
+    supabase
+      .from("opportunities")
+      .select("id,stage,estimated_value,won_value,probability")
+      .limit(5000),
+    loadPipelineStages(supabase, tenantId),
+  ]);
+  if (error) throw new Error(error.message);
+  const opportunities = data ?? [];
+  return {
+    ...summarizePipelineTotals(opportunities, stages),
+    opportunityCount: opportunities.length,
+  };
+}
+
 export function summarizeReplySignals(
   messages: Array<{
     conversation_id: string;

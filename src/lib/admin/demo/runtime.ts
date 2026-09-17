@@ -1,3 +1,4 @@
+import { revenueDispositions } from "@/lib/revenue-os/revenue-dispositions";
 import { SITE_STUDIO_MODELS, SITE_MODELS_OBSERVED_AT } from "@/lib/site-studio/models";
 import {
   createDemoWebsiteState,
@@ -4355,6 +4356,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/revenue") {
       const rows = opportunityRows(pack, state);
+      const openRows = rows.filter((item) => !["won", "lost"].includes(item.canonical_stage));
       return jsonResponse({
         totalMRR: 18400,
         totalOneTime: rows.reduce((sum, item) => sum + item.won_value, 0),
@@ -4372,6 +4374,21 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           mrr: 11200 + index * 1800,
         })),
         proposalRevenue: 24600,
+        canonical: {
+          openOpportunities: openRows.length,
+          pipelineValue: openRows.reduce((sum, item) => sum + item.estimated_value, 0),
+          weightedValue: Math.round(
+            openRows.reduce(
+              (sum, item) =>
+                sum +
+                (item.estimated_value * Math.min(100, Math.max(0, item.probability || 0))) / 100,
+              0,
+            ),
+          ),
+          wonRevenue: rows.reduce((sum, item) => sum + item.won_value, 0),
+          opportunityCount: rows.length,
+        },
+        dispositions: revenueDispositions(),
       });
     }
     if (path === "/api/admin/activity")
