@@ -355,10 +355,9 @@ function Catalog() {
               for your <span className="it">entire operation.</span>
             </Reveal>
             <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Every capability below is available to a workspace. Most teams start with the one
-              that is costing them the most time, then add the next once the first is running.
-              Which ones are live depends on the modules and providers your workspace has
-              connected.
+              Every capability below is available to a workspace. Most teams start with the one that
+              is costing them the most time, then add the next once the first is running. Which ones
+              are live depends on the modules and providers your workspace has connected.
             </Reveal>
           </div>
         </div>

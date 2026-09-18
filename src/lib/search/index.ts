@@ -292,7 +292,9 @@ export function buildSearchIndex(): SearchEntry[] {
             : "",
           page.slug.join("/") === "command-center/capabilities"
             ? capabilities
-                .map((capability) => `${capability.title} ${capability.promise} ${capability.detail}`)
+                .map(
+                  (capability) => `${capability.title} ${capability.promise} ${capability.detail}`,
+                )
                 .join(" ")
             : "",
         ].join(" "),
