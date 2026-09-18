@@ -138,7 +138,8 @@ export const capabilities: Capability[] = [
     id: "people",
     category: "organize",
     title: "People",
-    promise: "Everyone you deal with, with the full history, what you last said, and what you still owe them.",
+    promise:
+      "Everyone you deal with, with the full history, what you last said, and what you still owe them.",
     detail:
       "One page per person replaces the search across inbox, phone, and memory. Open a name and the whole relationship is there in order.",
   },
@@ -154,7 +155,8 @@ export const capabilities: Capability[] = [
     id: "pipeline",
     category: "organize",
     title: "Deals and pipeline",
-    promise: "Stages, values, and what has actually moved, with a recorded reason behind each change.",
+    promise:
+      "Stages, values, and what has actually moved, with a recorded reason behind each change.",
     detail:
       "The board shows the deal as it stands rather than as you remember it, and every stage change keeps the evidence that caused it.",
   },
@@ -287,7 +289,8 @@ export const capabilities: Capability[] = [
     category: "act",
     title: "Big tasks broken into small ones",
     promise: "It proposes the subtasks and the order, and you keep the ones that are real.",
-    detail: "A large piece of work becomes a list you can start on. Nothing is created until you accept the breakdown.",
+    detail:
+      "A large piece of work becomes a list you can start on. Nothing is created until you accept the breakdown.",
     gated: true,
   },
   {
@@ -323,7 +326,8 @@ export const capabilities: Capability[] = [
     id: "automations",
     category: "act",
     title: "Rules that fire on their own",
-    promise: "When a deal reaches a stage, the steps that always happen next run without you remembering them.",
+    promise:
+      "When a deal reaches a stage, the steps that always happen next run without you remembering them.",
     detail:
       "Rules are configured once and shown in the workspace, so the work they do is visible rather than hidden inside someone's habits.",
   },
@@ -398,7 +402,8 @@ export const capabilities: Capability[] = [
     title: "It tells you who is going cold",
     promise:
       "Relationships that are slipping surface while there is still time to save them, ranked by what they are worth.",
-    detail: "A quiet account looks healthy until it is gone. This puts the cooling ones in front of you early.",
+    detail:
+      "A quiet account looks healthy until it is gone. This puts the cooling ones in front of you early.",
   },
   {
     id: "questions",
@@ -406,7 +411,8 @@ export const capabilities: Capability[] = [
     title: "Open questions, held until useful",
     promise:
       "The thing you meant to ask in March comes back the next time you are actually in a room with them.",
-    detail: "Unanswered questions stay attached to the person and resurface at the moment they are worth raising.",
+    detail:
+      "Unanswered questions stay attached to the person and resurface at the moment they are worth raising.",
   },
 
   // ── Connect: reachable from anywhere ──────────────────────────────────
@@ -423,7 +429,8 @@ export const capabilities: Capability[] = [
     id: "chat",
     category: "connect",
     title: "Chat with your own data",
-    promise: "Ask what you agreed with a client in March and get the answer with the record it came from.",
+    promise:
+      "Ask what you agreed with a client in March and get the answer with the record it came from.",
     detail:
       "The assistant cites the record it read, and it tells you when a source was unavailable instead of guessing.",
   },
@@ -512,8 +519,10 @@ export const capabilities: Capability[] = [
     id: "killswitch",
     category: "govern",
     title: "A switch on every AI feature",
-    promise: "Turn any single part of the system off in one click while everything else keeps running.",
-    detail: "Nothing here is all or nothing. A workspace can stop one capability without bringing down the rest.",
+    promise:
+      "Turn any single part of the system off in one click while everything else keeps running.",
+    detail:
+      "Nothing here is all or nothing. A workspace can stop one capability without bringing down the rest.",
   },
   {
     id: "own-db",
@@ -544,8 +553,10 @@ export const capabilities: Capability[] = [
     id: "ownership",
     category: "govern",
     title: "You own all of it",
-    promise: "The accounts, the data, and the export, so leaving is a download rather than a negotiation.",
-    detail: "The underlying application is MIT licensed, and your records are exportable at any time.",
+    promise:
+      "The accounts, the data, and the export, so leaving is a download rather than a negotiation.",
+    detail:
+      "The underlying application is MIT licensed, and your records are exportable at any time.",
   },
 ];
 
