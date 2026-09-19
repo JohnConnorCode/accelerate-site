@@ -91,8 +91,15 @@ async function main() {
     () => assertWebsiteOwner({ ...auth, tenant: { ...auth.tenant, status: "suspended" } }),
     /installation owner/,
   );
+  assert.doesNotThrow(() =>
+    assertWebsiteOwner({ ...auth, tenant: { ...auth.tenant, config: {} } }),
+  );
   assert.throws(
-    () => assertWebsiteOwner({ ...auth, tenant: { ...auth.tenant, config: {} } }),
+    () =>
+      assertWebsiteOwner({
+        ...auth,
+        tenant: { ...auth.tenant, config: { modules: { "site-studio": false } } },
+      }),
     /disabled/,
   );
   database.tables.tenants![0]!.status = "active";

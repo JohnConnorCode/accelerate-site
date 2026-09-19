@@ -1,7 +1,7 @@
 ---
 title: "Draft public pages with Site Studio"
 description: "Create and edit website pages, review AI suggestions, and publish saved revisions."
-updated: "2026-09-13"
+updated: "2026-09-19"
 ---
 
 Open **Site Studio → Edit installation website** to create pages, edit content, preview changes and publish a saved revision. The installation owner needs an active admin membership and the Site Studio plugin enabled. Apply the installation migrations before enabling the editor. Other workspace admins can use their private page drafts without gaining control of the installation's public website.
@@ -35,7 +35,15 @@ AI changes must pass the same content validation as manual edits. Copy editing p
 
 Save your changes, then select **Review publication**. Review the saved page list and responsive previews before selecting **Publish saved revision**. The exact saved revision becomes public; subsequent draft edits stay private until another publication.
 
-**History** lists recent revisions. **Review rollback** restores a previously published version while preserving the current draft. **Unpublish** removes public website availability while retaining drafts and history. Review each confirmation before continuing. Scheduling and general-purpose AI/MCP publication tools are not provided by this editor.
+**History** lists recent revisions. **Review rollback** restores a previously published version while preserving the current draft. **Unpublish** removes public website availability while retaining drafts and history. Review each confirmation before continuing. The scoped MCP connection described below supports these same saved website operations; scheduled publication remains outside this editor.
+
+## Edit from ChatGPT
+
+When you want to describe a website change in conversation, the installation owner can connect ChatGPT to the same editor services. The connection covers pages, sections, copy, layouts, search metadata, navigation, branding, assets, collections, portable documents, publication and history. For example, ask it to clone Ledgerstone's bookkeeping page, revise its introduction and save a private draft, then review the returned changes before requesting publication.
+
+Ask the installer to follow the [ChatGPT connection setup](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/SITE-STUDIO-CHATGPT.md), then open **Site Studio → Connect ChatGPT** to review access. The connection lasts 30 days and can be revoked from that screen. The five editor tools read current content, prepare an exact preview, stage it, execute it under your delegation, and optionally request an AI suggestion. An outdated version requires a fresh preview, so concurrent edits remain protected.
+
+ChatGPT manages its write confirmations, while the server records which owner and connection delegated the action. Delegation permits saving, deleting content, publishing, unpublishing and restoring website revisions. Its scope excludes workspace records and the separate tenant-owned page draft list. Legacy workspace MCP keys retain their proposal-only write behavior. AI suggestions use the same model budget, price ceilings and generation limit as the editor; manual edits make no model request.
 
 If the network drops after a write, use **Retry same save** or the corresponding publication retry. It reuses the original request, avoiding duplicate revisions. An edit conflict preserves your local fields. **Export draft** before **Reload saved draft** if you want to retain a copy; reload asks before replacing local edits. Save and publish errors remain visible until resolved.
 
@@ -60,6 +68,8 @@ The original Site Studio draft list remains available for tenant-owned service d
 In the [full admin demo](/demo/command-center), open the installation website editor to try creation, fictional AI suggestions, saving, publication receipts and rollback. Changes remain in that business scenario's browser session. They do not publish a live website, contact a provider or mutate production records. Switching scenarios isolates their drafts; resetting removes the scenario's changes.
 
 ## What to check
+
+Verify the exact preview and publication summary in ChatGPT before executing a change. Check the returned revision and receipt afterward, especially after a network interruption. Repeat an uncertain execution with the same action ID, digest and summary; if content changed, prepare and review a new command. ChatGPT client support and confirmation settings vary, so the installer must verify the intended client against the deployed connection before relying on it.
 
 If saving fails after an installation upgrade, ask the administrator to verify the
 application and database versions together. Saves use the verified server identity

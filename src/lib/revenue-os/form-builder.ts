@@ -1,9 +1,12 @@
 import "server-only";
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { tenantIdForDatabase } from "@/lib/supabase/server";
-import { recordAudit } from "./audit";
+import {
+  callFormBuilderRpc,
+  createPlatformServiceRoleClient,
+  tenantIdForDatabase,
+} from "@/lib/supabase/server";
 import { ingestInboundLead } from "./inbound";
 import { isModuleEnabled } from "./modules";
 import { proposeAction } from "./actions";
@@ -77,6 +80,11 @@ export const formSchemaValidator = z
       }
     };
     collect(schema.elements);
+    if (names.size > MAX_ELEMENTS)
+      context.addIssue({
+        code: "custom",
+        message: "Forms support at most 40 elements, including panel fields",
+      });
   });
 
 export type FormSchema = z.infer<typeof formSchemaValidator>;
@@ -100,6 +108,71 @@ const responseValueSchema = z.union([
 ]);
 export const formResponseValidator = z.record(z.string().max(64), responseValueSchema);
 
+/** The public renderer is not a trust boundary. Validate every answer here. */
+export function validateFormResponse(schema: FormSchema, input: unknown) {
+  const response = formResponseValidator.parse(input);
+  const fields = schema.elements.flatMap((element) =>
+    element.type === "panel" ? element.elements : [element],
+  );
+  const names = new Set(fields.map((field) => field.name));
+  if (Object.keys(response).some((key) => !names.has(key)))
+    throw new Error("Response contains an unknown field");
+  for (const field of fields) {
+    const value = response[field.name];
+    const empty = value === undefined || value === "" || (Array.isArray(value) && !value.length);
+    if (empty) {
+      if (field.isRequired) throw new Error(`Answer required: ${field.name}`);
+      continue;
+    }
+    let valid: boolean;
+    switch (field.type) {
+      case "boolean":
+        valid = typeof value === "boolean";
+        break;
+      case "rating":
+        valid =
+          typeof value === "number" &&
+          Number.isInteger(value) &&
+          value >= 1 &&
+          value <= (field.rateMax ?? 5);
+        break;
+      case "checkbox":
+        valid =
+          Array.isArray(value) &&
+          new Set(value).size === value.length &&
+          value.every((choice) => typeof choice === "string" && field.choices?.includes(choice));
+        break;
+      case "dropdown":
+      case "radiogroup":
+        valid = typeof value === "string" && !!field.choices?.includes(value);
+        break;
+      default:
+        valid =
+          field.type === "text" && field.inputType === "number"
+            ? typeof value === "number" && Number.isFinite(value)
+            : typeof value === "string";
+        if (valid && field.inputType === "email") valid = z.email().safeParse(value).success;
+        if (valid && field.inputType === "date")
+          valid =
+            typeof value === "string" &&
+            /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+            !Number.isNaN(Date.parse(value)) &&
+            new Date(value).toISOString().slice(0, 10) === value;
+    }
+    if (!valid) throw new Error(`Invalid answer: ${field.name}`);
+  }
+  return response;
+}
+
+/** The high-entropy token is the only cross-tenant public lookup credential.
+ * The privileged client stays inside this bounded service. */
+export async function readPublicForm(token: string) {
+  if (!/^[a-f0-9]{64}$/.test(token)) return null;
+  const database = createPlatformServiceRoleClient("forms:public-token");
+  const form = await getPublishedFormByToken(database, token);
+  return form && (await isFormModuleEnabled(database, form.tenantId)) ? form : null;
+}
+
 export type FormDefinition = {
   id: string;
   name: string;
@@ -119,6 +192,7 @@ export type FormSubmission = {
   contact_email: string | null;
   status: "pending_review" | "accepted" | "rejected";
   created_at: string;
+  intake?: { id: string; status: string; expiresAt: string | null };
 };
 
 function newShareToken() {
@@ -158,34 +232,49 @@ export async function listFormDefinitions(
   return (data ?? []).map(toDefinition);
 }
 
+async function writeFormDefinition(
+  supabase: SupabaseClient,
+  input: { tenantId: string; id: string; actorEmail: string; expectedUpdatedAt?: string },
+  operation: "create" | "save" | "status",
+  patch: Record<string, unknown>,
+) {
+  if (tenantIdForDatabase(supabase) !== input.tenantId)
+    throw new Error("Form command does not match its workspace");
+  const { data, error } = await callFormBuilderRpc(supabase, "write_form_definition", {
+    p_operation: operation,
+    p_id: input.id,
+    p_expected_updated_at: input.expectedUpdatedAt ?? null,
+    p_patch: patch,
+    p_actor_email: input.actorEmail,
+  });
+  if (error) throw new Error(error.message);
+  return toDefinition(data as Record<string, unknown>);
+}
+
 export async function createFormDefinition(
   supabase: SupabaseClient,
-  input: { tenantId: string; name: string; description?: string; actorEmail: string },
+  input: {
+    tenantId: string;
+    name: string;
+    description?: string;
+    actorEmail: string;
+    schema?: unknown;
+  },
 ): Promise<FormDefinition> {
-  const name = input.name.trim();
-  if (name.length < 1 || name.length > 120) throw new Error("Name must be 1 to 120 characters");
-  const description = (input.description ?? "").trim().slice(0, 2000);
-  const { data, error } = await supabase
-    .from("form_definitions")
-    .insert({
-      tenant_id: input.tenantId,
-      name,
-      description,
-      schema: { elements: [] },
-      status: "draft",
-      share_token: newShareToken(),
-    })
-    .select("id,name,description,schema,status,share_token,published_at,updated_at")
-    .single();
-  if (error) throw new Error(error.message);
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: "form_builder.create_definition",
-    entityType: "form_definition",
-    entityId: (data as { id: string }).id,
-    after: { name },
+  const name = z.string().trim().min(1).max(120).parse(input.name);
+  const schema =
+    input.schema === undefined ? { elements: [] } : formSchemaValidator.parse(input.schema);
+  assertSchemaSize(schema);
+  return writeFormDefinition(supabase, { ...input, id: randomUUID() }, "create", {
+    name,
+    description: z
+      .string()
+      .trim()
+      .max(2000)
+      .parse(input.description ?? ""),
+    schema,
+    share_token: newShareToken(),
   });
-  return toDefinition(data as Record<string, unknown>);
 }
 
 export async function saveFormDefinition(
@@ -197,44 +286,21 @@ export async function saveFormDefinition(
     description?: string;
     schema: unknown;
     actorEmail: string;
+    expectedUpdatedAt: string;
   },
 ): Promise<FormDefinition> {
   const schema = formSchemaValidator.parse(input.schema);
   assertSchemaSize(schema);
-  const { data: current, error: readError } = await supabase
-    .from("form_definitions")
-    .select("id,status")
-    .eq("tenant_id", input.tenantId)
-    .eq("id", input.id)
-    .maybeSingle();
-  if (readError) throw new Error(readError.message);
-  if (!current) throw new Error("Form not found");
-  if (current.status !== "draft") throw new Error("Unpublish a live form before editing it");
-  const patch: Record<string, unknown> = {
+  z.iso.datetime({ offset: true }).parse(input.expectedUpdatedAt);
+  return writeFormDefinition(supabase, input, "save", {
     schema,
-    updated_at: new Date().toISOString(),
-  };
-  if (input.name !== undefined) {
-    const name = input.name.trim();
-    if (name.length < 1 || name.length > 120) throw new Error("Name must be 1 to 120 characters");
-    patch.name = name;
-  }
-  if (input.description !== undefined) patch.description = input.description.trim().slice(0, 2000);
-  const { data, error } = await supabase
-    .from("form_definitions")
-    .update(patch)
-    .eq("tenant_id", input.tenantId)
-    .eq("id", input.id)
-    .select("id,name,description,schema,status,share_token,published_at,updated_at")
-    .single();
-  if (error) throw new Error(error.message);
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: "form_builder.save_definition",
-    entityType: "form_definition",
-    entityId: input.id,
+    ...(input.name === undefined
+      ? {}
+      : { name: z.string().trim().min(1).max(120).parse(input.name) }),
+    ...(input.description === undefined
+      ? {}
+      : { description: z.string().trim().max(2000).parse(input.description) }),
   });
-  return toDefinition(data as Record<string, unknown>);
 }
 
 export async function setFormStatus(
@@ -244,45 +310,21 @@ export async function setFormStatus(
     id: string;
     status: "draft" | "published" | "archived";
     actorEmail: string;
+    expectedUpdatedAt: string;
   },
 ): Promise<FormDefinition> {
-  const { data: current, error: readError } = await supabase
+  z.iso.datetime({ offset: true }).parse(input.expectedUpdatedAt);
+  const { data: current, error } = await supabase
     .from("form_definitions")
-    .select("id,status,schema")
+    .select("schema,updated_at")
     .eq("tenant_id", input.tenantId)
     .eq("id", input.id)
     .maybeSingle();
-  if (readError) throw new Error(readError.message);
-  if (!current) throw new Error("Form not found");
-  if (input.status === "published") {
-    // A published link must always render. Validate the stored shape first.
-    const stored = storedFormSchemaValidator.parse(current.schema);
-    if (stored.elements.length === 0) throw new Error("Add at least one field before publishing");
-  }
-  if (current.status === "archived" && input.status === "published") {
-    throw new Error("Archived forms stay archived. Duplicate the form to publish again.");
-  }
-  const { data, error } = await supabase
-    .from("form_definitions")
-    .update({
-      status: input.status,
-      published_at: input.status === "published" ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("tenant_id", input.tenantId)
-    .eq("id", input.id)
-    .select("id,name,description,schema,status,share_token,published_at,updated_at")
-    .single();
   if (error) throw new Error(error.message);
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: `form_builder.${input.status}`,
-    entityType: "form_definition",
-    entityId: input.id,
-    before: { status: current.status },
-    after: { status: input.status },
-  });
-  return toDefinition(data as Record<string, unknown>);
+  if (!current) throw new Error("Form not found");
+  const schema =
+    input.status === "published" ? formSchemaValidator.parse(current.schema) : current.schema;
+  return writeFormDefinition(supabase, input, "status", { status: input.status, schema });
 }
 
 /** Public links resolve only while the workspace keeps the module on. */
@@ -290,8 +332,12 @@ export async function isFormModuleEnabled(
   supabase: SupabaseClient,
   tenantId: string,
 ): Promise<boolean> {
-  const { data } = await supabase.from("tenants").select("config").eq("id", tenantId).maybeSingle();
-  if (!data) return false;
+  const { data, error } = await supabase
+    .from("tenants")
+    .select("status,config")
+    .eq("id", tenantId)
+    .maybeSingle();
+  if (error || !data || data.status !== "active") return false;
   const modules = (data as { config?: { modules?: Partial<Record<string, boolean>> } }).config
     ?.modules;
   return isModuleEnabled("form-builder", { modules });
@@ -342,44 +388,42 @@ function extractContact(response: Record<string, unknown>) {
 
 export async function recordFormSubmission(
   supabase: SupabaseClient,
-  input: { formId: string; tenantId: string; response: unknown; requestId: string },
+  input: { token: string; schema: FormSchema; response: unknown; requestId: string },
 ): Promise<{ submissionId: string; duplicate: boolean; contactEmail: string | null }> {
-  const response = formResponseValidator.parse(input.response) as Record<string, unknown>;
-  if (Object.keys(response).length === 0 || Object.keys(response).length > MAX_ELEMENTS) {
-    throw new Error("Response must answer 1 to 40 fields");
-  }
-  const { data: replay } = await supabase
-    .from("form_submission_commands")
-    .select("result")
-    .eq("tenant_id", input.tenantId)
-    .eq("request_id", input.requestId)
-    .maybeSingle();
-  if (replay) {
-    const stored = replay.result as { submissionId: string; contactEmail?: string | null };
-    return {
-      submissionId: stored.submissionId,
-      duplicate: true,
-      contactEmail: stored.contactEmail ?? null,
-    };
-  }
+  const response = validateFormResponse(input.schema, input.response);
   const { contactName, contactEmail } = extractContact(response);
-  const { data, error } = await supabase
-    .from("form_submissions")
-    .insert({
-      tenant_id: input.tenantId,
-      form_id: input.formId,
-      response,
-      contact_name: contactName,
-      contact_email: contactEmail,
-    })
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc("record_form_submission", {
+    p_token: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .parse(input.token),
+    p_request_id: z.uuid().parse(input.requestId),
+    p_response: response,
+    p_schema: input.schema,
+    p_contact_name: contactName,
+    p_contact_email: contactEmail,
+  });
   if (error) throw new Error(error.message);
-  const result = { submissionId: (data as { id: string }).id, duplicate: false, contactEmail };
-  await supabase
-    .from("form_submission_commands")
-    .insert({ tenant_id: input.tenantId, request_id: input.requestId, result });
-  return result;
+  return z
+    .object({
+      submissionId: z.uuid(),
+      duplicate: z.boolean(),
+      contactEmail: z.string().nullable(),
+    })
+    .strict()
+    .parse(data);
+}
+
+/** Resolve and validate before calling the host-only atomic submission command. */
+export async function submitPublicForm(token: string, response: unknown, requestId: string) {
+  const form = await readPublicForm(token);
+  if (!form) throw new Error("Form not found");
+  return recordFormSubmission(createPlatformServiceRoleClient("forms:public-submit"), {
+    token,
+    schema: form.schema,
+    response,
+    requestId,
+  });
 }
 
 export async function listFormSubmissions(
@@ -397,7 +441,25 @@ export async function listFormSubmissions(
   if (input.status) query = query.eq("status", input.status);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return (data ?? []) as FormSubmission[];
+  const submissions = (data ?? []) as FormSubmission[];
+  const accepted = submissions.filter((row) => row.status === "accepted").map((row) => row.id);
+  if (!accepted.length) return submissions;
+  const actions = await supabase
+    .from("action_queue")
+    .select("id,status,expires_at,payload")
+    .eq("tenant_id", tenantId)
+    .eq("action_type", "accept_form_submission")
+    .in("payload->>submissionId", accepted)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (actions.error)
+    throw new Error("Form intake status is unavailable. Retry without reviewing responses again.");
+  return submissions.map((row) => {
+    const action = actions.data?.find((action) => action.payload.submissionId === row.id);
+    return action
+      ? { ...row, intake: { id: action.id, status: action.status, expiresAt: action.expires_at } }
+      : row;
+  });
 }
 
 /**
@@ -405,35 +467,112 @@ export async function listFormSubmissions(
  * same identity resolution and opportunity matching as every other surface,
  * so a form never creates a parallel lead store.
  */
+async function reviewFormSubmission(
+  supabase: SupabaseClient,
+  input: { tenantId: string; id: string; actorEmail: string; requestId: string },
+  decision: "accepted" | "rejected",
+) {
+  if (tenantIdForDatabase(supabase) !== input.tenantId)
+    throw new Error("Form review does not match its workspace");
+  const { data, error } = await callFormBuilderRpc(supabase, "review_form_submission", {
+    p_id: input.id,
+    p_decision: decision,
+    p_request_id: input.requestId,
+    p_actor_email: input.actorEmail,
+  });
+  if (error) throw new Error(error.message);
+  return z
+    .object({
+      submissionId: z.uuid(),
+      decision: z.enum(["accepted", "rejected"]),
+      duplicate: z.boolean(),
+      actionId: z.uuid().nullable(),
+    })
+    .strict()
+    .parse(data);
+}
+
 export async function acceptFormSubmission(
   supabase: SupabaseClient,
   input: { tenantId: string; id: string; actorEmail: string; requestId: string },
-): Promise<{ submissionId: string; duplicate: boolean }> {
-  const { data: replay } = await supabase
-    .from("form_submission_commands")
-    .select("result")
-    .eq("tenant_id", input.tenantId)
-    .eq("request_id", input.requestId)
-    .maybeSingle();
-  if (replay) return { ...(replay.result as { submissionId: string }), duplicate: true };
-  const { data: submission, error: readError } = await supabase
+) {
+  const { data: submission, error } = await supabase
     .from("form_submissions")
-    .select("id,form_id,response,contact_name,contact_email,status")
+    .select("contact_email")
     .eq("tenant_id", input.tenantId)
     .eq("id", input.id)
     .maybeSingle();
-  if (readError) throw new Error(readError.message);
+  if (error) throw new Error(error.message);
   if (!submission) throw new Error("Submission not found");
-  if (submission.status !== "pending_review") throw new Error("Submission was already reviewed");
-  const email = (submission.contact_email as string | null) ?? null;
-  if (!email) throw new Error("This response has no email address, so it cannot become a lead");
-  const { data: form } = await supabase
+  if (!submission.contact_email)
+    throw new Error("This response has no email address, so it cannot become a lead");
+  const receipt = await reviewFormSubmission(supabase, input, "accepted");
+  let intakeStatus: "completed" | "pending" | "needs_attention" = "pending";
+  // Review is durable even when intake fails. The action queue preserves the
+  // exact intent and failure for operator recovery instead of losing the lead.
+  try {
+    const current = await supabase
+      .from("action_queue")
+      .select("status")
+      .eq("tenant_id", input.tenantId)
+      .eq("id", receipt.actionId!)
+      .maybeSingle();
+    if (current.error || !current.data) throw new Error("Intake state unavailable");
+    if (current.data.status === "pending") {
+      const { approveAndExecuteAction } = await import("./action-executor");
+      await approveAndExecuteAction(supabase, receipt.actionId!, input.actorEmail);
+      intakeStatus = "completed";
+    } else if (current.data.status === "executed") intakeStatus = "completed";
+    else if (current.data.status !== "executing") intakeStatus = "needs_attention";
+  } catch {
+    console.warn(
+      "[forms] Accepted response intake needs attention; retained action is available for recovery",
+    );
+    intakeStatus = "needs_attention";
+  }
+  return { ...receipt, intakeStatus };
+}
+
+export async function rejectFormSubmission(
+  supabase: SupabaseClient,
+  input: { tenantId: string; id: string; actorEmail: string; requestId: string },
+) {
+  return reviewFormSubmission(supabase, input, "rejected");
+}
+
+/** Called only by the existing claimed-action executor, never by public input. */
+export async function executeFormIntake(supabase: SupabaseClient, raw: unknown, actionId: string) {
+  const input = z.object({ tenantId: z.uuid(), submissionId: z.uuid() }).strict().parse(raw);
+  if (tenantIdForDatabase(supabase) !== input.tenantId)
+    throw new Error("Form intake does not match its workspace");
+  if (!(await isFormModuleEnabled(supabase, input.tenantId)))
+    throw new Error("Form builder is disabled");
+  const action = await supabase
+    .from("action_queue")
+    .select("id")
+    .eq("tenant_id", input.tenantId)
+    .eq("id", actionId)
+    .eq("action_type", "accept_form_submission")
+    .eq("status", "executing")
+    .maybeSingle();
+  if (action.error || !action.data) throw new Error("A claimed form intake approval is required");
+  const { data: submission, error } = await supabase
+    .from("form_submissions")
+    .select("id,form_id,contact_email,contact_name,status")
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.submissionId)
+    .maybeSingle();
+  if (error || !submission || submission.status !== "accepted" || !submission.contact_email)
+    throw new Error("Accepted form response is unavailable");
+  const form = await supabase
     .from("form_definitions")
     .select("name")
     .eq("tenant_id", input.tenantId)
     .eq("id", submission.form_id)
     .maybeSingle();
-  await ingestInboundLead(supabase, {
+  if (form.error) throw new Error(form.error.message);
+  const email = submission.contact_email as string;
+  const result = await ingestInboundLead(supabase, {
     name: (
       (submission.contact_name as string | null) ??
       email.split("@")[0] ??
@@ -442,55 +581,9 @@ export async function acceptFormSubmission(
     email,
     source: "contact_form",
     sourceRecordId: `form-submission:${submission.id}`,
-    summary: `Form response: ${(form?.name as string | undefined) ?? "untitled form"}`,
+    summary: `Form response: ${form.data?.name ?? "untitled form"}`,
   });
-  const { error: updateError } = await supabase
-    .from("form_submissions")
-    .update({
-      status: "accepted",
-      reviewer_email: input.actorEmail,
-      reviewed_at: new Date().toISOString(),
-    })
-    .eq("tenant_id", input.tenantId)
-    .eq("id", input.id)
-    .eq("status", "pending_review");
-  if (updateError) throw new Error(updateError.message);
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: "form_builder.accept_submission",
-    entityType: "form_submission",
-    entityId: input.id,
-    after: { status: "accepted" },
-  });
-  const result = { submissionId: input.id, duplicate: false };
-  await supabase
-    .from("form_submission_commands")
-    .insert({ tenant_id: input.tenantId, request_id: input.requestId, result });
-  return result;
-}
-
-export async function rejectFormSubmission(
-  supabase: SupabaseClient,
-  input: { tenantId: string; id: string; actorEmail: string },
-): Promise<void> {
-  const { error } = await supabase
-    .from("form_submissions")
-    .update({
-      status: "rejected",
-      reviewer_email: input.actorEmail,
-      reviewed_at: new Date().toISOString(),
-    })
-    .eq("tenant_id", input.tenantId)
-    .eq("id", input.id)
-    .eq("status", "pending_review");
-  if (error) throw new Error(error.message);
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail,
-    action: "form_builder.reject_submission",
-    entityType: "form_submission",
-    entityId: input.id,
-    after: { status: "rejected" },
-  });
+  return { submissionId: input.submissionId, opportunityId: result.opportunity.id };
 }
 
 // --- Central AI authoring: prepare, propose, approved execution ---
@@ -515,6 +608,7 @@ function draftFacts(
     name: string;
     description?: string;
     schema: FormSchema;
+    expectedUpdatedAt?: string | null;
   },
 ) {
   return {
@@ -524,6 +618,7 @@ function draftFacts(
     name: input.name,
     description: input.description ?? "",
     schema: input.schema,
+    expectedUpdatedAt: input.expectedUpdatedAt ?? null,
   };
 }
 
@@ -534,21 +629,24 @@ export async function prepareFormDraft(supabase: SupabaseClient, raw: unknown) {
   const input = formDraftInputSchema.parse(raw);
   const schema = formSchemaValidator.parse(input.schema);
   assertSchemaSize(schema);
+  let expectedUpdatedAt: string | null = null;
   if (input.formId) {
     const { data: current } = await supabase
       .from("form_definitions")
-      .select("id,status")
+      .select("id,status,updated_at")
       .eq("tenant_id", tenantId)
       .eq("id", input.formId)
       .maybeSingle();
     if (!current) throw new Error("Form not found");
     if (current.status !== "draft") throw new Error("Unpublish a live form before editing it");
+    expectedUpdatedAt = current.updated_at as string;
   }
   const facts = draftFacts(tenantId, {
     formId: input.formId,
     name: input.name,
     description: input.description,
     schema,
+    expectedUpdatedAt,
   });
   return { ...facts, digest: formDigest(facts), requiresHumanApproval: true };
 }
@@ -573,6 +671,7 @@ export async function proposeFormDraft(supabase: SupabaseClient, raw: unknown, a
     name: preview.name,
     description: preview.description,
     schema: preview.schema,
+    expectedUpdatedAt: preview.expectedUpdatedAt,
     digest: preview.digest,
   };
   return proposeAction(supabase, {
@@ -600,7 +699,7 @@ export async function proposeFormPublish(
   const input = proposeFormPublishInputSchema.parse(raw);
   const { data: current, error } = await supabase
     .from("form_definitions")
-    .select("id,name,description,status,schema")
+    .select("id,name,description,status,schema,updated_at")
     .eq("tenant_id", tenantId)
     .eq("id", input.formId)
     .maybeSingle();
@@ -613,6 +712,7 @@ export async function proposeFormPublish(
     name: current.name as string,
     description: (current.description as string | null) ?? "",
     schema,
+    expectedUpdatedAt: current.updated_at as string,
   });
   const digest = formDigest(facts);
   if (digest !== input.digest)
@@ -639,6 +739,7 @@ const savePayloadSchema = z
     name: z.string(),
     description: z.string(),
     schema: z.unknown(),
+    expectedUpdatedAt: z.iso.datetime({ offset: true }).nullable(),
     digest: digestSchema,
   })
   .strict();
@@ -666,6 +767,7 @@ export async function executeFormDefinitionSave(
       description: input.description,
       schema: input.schema,
       actorEmail,
+      expectedUpdatedAt: z.iso.datetime({ offset: true }).parse(input.expectedUpdatedAt),
     });
   }
   return createFormDefinition(supabase, {
@@ -673,16 +775,8 @@ export async function executeFormDefinitionSave(
     name: input.name,
     description: input.description,
     actorEmail,
-  }).then(async (created) =>
-    saveFormDefinition(supabase, {
-      tenantId,
-      id: created.id,
-      name: input.name,
-      description: input.description,
-      schema: input.schema,
-      actorEmail,
-    }),
-  );
+    schema: input.schema,
+  });
 }
 
 const publishPayloadSchema = z
@@ -693,6 +787,7 @@ const publishPayloadSchema = z
     name: z.string(),
     description: z.string(),
     schema: z.unknown(),
+    expectedUpdatedAt: z.iso.datetime({ offset: true }),
     digest: digestSchema,
   })
   .strict();
@@ -713,7 +808,7 @@ export async function executeFormPublish(
     throw new Error("Form builder is disabled for this workspace");
   const { data: current, error } = await supabase
     .from("form_definitions")
-    .select("id,name,description,status,schema")
+    .select("id,name,description,status,schema,updated_at")
     .eq("tenant_id", tenantId)
     .eq("id", input.formId)
     .maybeSingle();
@@ -726,37 +821,15 @@ export async function executeFormPublish(
     name: current.name as string,
     description: (current.description as string | null) ?? "",
     schema: live,
+    expectedUpdatedAt: current.updated_at as string,
   });
   if (formDigest(liveFacts) !== digest)
     throw new Error("Form changed after approval. Review the new draft first.");
-  return setFormStatus(supabase, { tenantId, id: input.formId, status: "published", actorEmail });
-}
-
-/**
- * Best-effort operator notice for a stored public submission. Lives in the
- * domain service so the public route never writes a business table directly;
- * a notification failure never fails the visitor's submit.
- */
-export async function notifyFormSubmission(
-  supabase: SupabaseClient,
-  input: { tenantId: string; formName: string; contactEmail: string | null },
-): Promise<void> {
-  try {
-    const { error } = await supabase.from("admin_notifications").insert({
-      tenant_id: input.tenantId,
-      type: "new_form_response",
-      title: `New response: ${input.formName}`.slice(0, 120),
-      description: input.contactEmail
-        ? `From ${input.contactEmail}. Review in Forms.`
-        : "A new response is waiting for review in Forms.",
-      link: "/admin/forms",
-      priority: "info",
-    });
-    if (error) console.warn("[forms] response notification failed", error.message);
-  } catch (error) {
-    console.warn(
-      "[forms] response notification failed",
-      error instanceof Error ? error.message : "UnknownError",
-    );
-  }
+  return setFormStatus(supabase, {
+    tenantId,
+    id: input.formId,
+    status: "published",
+    actorEmail,
+    expectedUpdatedAt: input.expectedUpdatedAt,
+  });
 }

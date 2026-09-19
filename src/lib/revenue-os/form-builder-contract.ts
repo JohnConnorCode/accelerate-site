@@ -7,6 +7,14 @@ import { z } from "zod";
  * from here so the registry never pulls the service graph into a cycle.
  */
 export const formDigestSchema = z.string().regex(/^[a-f0-9]{64}$/);
+export const formReviewInputSchema = z
+  .object({
+    action: z.literal("review"),
+    id: z.uuid(),
+    decision: z.enum(["accepted", "rejected"]),
+    requestId: z.uuid(),
+  })
+  .strict();
 
 const formDraftInputSchema = z
   .object({

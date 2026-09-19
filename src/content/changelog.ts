@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "site-editor-mcp-form-reliability",
+    slug: "site-editor-mcp-form-reliability",
+    title: "Scoped ChatGPT website editing and safer form intake",
+    description:
+      "The owner can configure a revocable OAuth connection for ChatGPT to prepare exact website changes, save drafts, publish and restore revisions through the shared editor services. Legacy workspace keys remain proposal-only. Form submissions and notifications now commit together, review decisions queue recoverable intake, stale edits are refused, and form rendering follows the shared theme tokens. Installation requires the new migrations and explicit OAuth setup; source availability is separate from deployment and client verification.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
     id: "demo-workspace-design-audit",
     slug: "demo-workspace-design-audit",
     title: "A clearer contact history and a complete demo workspace",

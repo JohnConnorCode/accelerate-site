@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I edit my website from ChatGPT?",
+    answer:
+      "Yes, after your installer configures the owner-only Site Studio OAuth connection. It can read and edit website content, prepare an exact preview, save drafts, publish and restore revisions through the same editor services. Access lasts 30 days and can be revoked in Site Studio. ChatGPT manages write confirmations; the server records delegated authority and execution receipts. Ordinary workspace MCP keys remain proposal-only, and the website connection cannot operate other workspace tools.",
+  },
+  {
     question: "Can I run the workspace for my own business?",
     answer:
       "Yes. Export the neutral starter into a new directory, replace its fictional Harbor Operations configuration with your business details, then connect services you control. It keeps the shared workspace and demo while removing protected agency media and original hosting targets. The self-hosting guide explains the export receipt, installation and recovery.",
@@ -29,7 +34,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we create our own workspace theme?",
     answer:
-      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Seven built-in appearances have distinct palettes, typography, corners and depth, including matte Material and silver macOS. Comfortable and compact density adjust spacing independently of the theme. Mobile panels keep consistent spacing, touch controls stay easy to reach, and transitions respect reduced motion. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
+      "Yes. Branding lets you preview colors, typography, corners and depth, then save a custom workspace theme. You can import or export its portable definition, or ask a configured AI connection to prepare a theme for approval. Text contrast is validated before saving. One custom theme is stored per workspace; each person chooses their appearance on their device. Eight built-in appearances have distinct palettes, typography, corners and depth, including matte Material and silver macOS. Comfortable and compact density adjust spacing independently of the theme. Mobile panels keep consistent spacing, touch controls stay easy to reach, and transitions respect reduced motion. Demo business preferences are separate, so an open demo cannot reset your live workspace choice.",
   },
   {
     question: "How does the whole system fit together?",

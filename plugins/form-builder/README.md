@@ -26,7 +26,9 @@ rejects it. The plugin starts disabled.
    email is refused on purpose.
 
 Run `npm run test:form-builder` for the schema, submission and review
-fixtures. Demo records are session-local and never sent externally.
+fixtures. The public demo has no complete form-intake simulation. Browser QA
+uses controlled fictional transport around the real UI and never sends records
+externally; verify the actual intake workflow in a configured test workspace.
 
 ## AI, permissions and data
 
@@ -54,8 +56,10 @@ forms resolve, answers are validated against a bounded shape (40 fields, short
 text), posts are rate-limited, and repeat posts with the same request identity
 return the original receipt instead of a duplicate. A hidden honeypot field
 silently discards automated submits without recording them. Every recorded
-response raises an operator notice linking to `/admin/forms`; the notice is
-best-effort and never fails the visitor's submit.
+response and its operator notice linking to `/admin/forms` commit together.
+If either write fails, the entire submission rolls back and the visitor can
+retry the same request without duplicates. Required fields, types, choices,
+dates, ratings and email answers are validated against the locked definition.
 
 ## Disable and recover
 
@@ -69,6 +73,18 @@ draft, fix the named field, save and publish again. If accepting is refused,
 the response has no usable email or was already reviewed. After an uncertain
 result, reuse the same request identity for a retry; do not manufacture a new
 one to bypass the uncertainty.
+
+Acceptance commits one review decision and one durable intake action together.
+The UI reports whether intake completed or needs attention. Inspect the action
+in Tasks & approvals; after correcting the cause, select Retry approved intake
+on the reviewed response. It preserves the same unexpired action, source
+identity and recorded effects.
+Expired actions require operator reconciliation before any replacement work.
+Draft saves and publication use the version read by the editor, so stale
+requests cannot overwrite a newer form. Form rendering uses shared workspace
+and public-site theme tokens rather than a separate fixed palette.
+Run `npm run test:form-builder:postgres` for concurrent duplicate, review,
+rollback, tenant and stale-version checks in an isolated local database.
 
 ## Extend and upgrade
 

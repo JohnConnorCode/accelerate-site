@@ -10,6 +10,9 @@ import { applyWebsiteTextEdits, websiteTextFields } from "./website-authoring";
 import { buildPageSystemPrompt, buildPageUserPrompt, assertGroundedAiCopy } from "./generate";
 import { generatePageWithOpenRouter } from "./openrouter-adapter";
 import { strictSiteOutputSchema } from "./structured-output";
+import { rateLimit } from "@/lib/rate-limit";
+
+export class WebsiteGenerationLimitError extends Error {}
 
 export const websiteAiInput = z
   .object({
@@ -37,6 +40,8 @@ export async function proposeWebsitePage(
   input: z.infer<typeof websiteAiInput>,
 ) {
   assertWebsiteOwner(auth);
+  if (!rateLimit(`website-ai:${auth.user.id}`, 20, 60 * 60 * 1000).success)
+    throw new WebsiteGenerationLimitError("Generation limit reached. Try again in an hour.");
   if (input.mode === "generate") {
     const brief = {
       serviceName: input.page.metadata.title,

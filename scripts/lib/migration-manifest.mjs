@@ -109,6 +109,11 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260912190757-social-marketing-function-privileges.sql",
   "migrations/20260912204004-optional-public-proposal-decline.sql",
   "migrations/20260912230431-autonomy-policy-writes.sql",
+  "migrations/20260919203846_form_submission_safety.sql",
+  "migrations/20260919203846_site_studio_defaults.sql",
+  "migrations/20260919204344_form_definition_commands.sql",
+  "migrations/20260919210534_site_editor_delegation.sql",
+  "migrations/20260919211809_form_review_commands.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

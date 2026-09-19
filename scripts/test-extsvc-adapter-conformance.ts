@@ -127,36 +127,38 @@ async function main() {
 
   // Test reference adapter (Stripe) - MUST pass all blocking
   console.log("\n--- Testing Reference Adapter ---");
-  const stripeContract = {
-    id: "stripe",
-    name: "Stripe",
-    category: "crm" as const,
-    origin: {
-      baseUrl: "https://api.stripe.com/v1",
-      apiVersion: "2025-06-30.basil",
-      maxResponseBytes: 262144,
-      timeoutMs: 12000,
-      supportsIdempotencyKeys: true,
-    },
-    transport: {
-      maxResponseBytes: 262144,
-      timeoutMs: 12000,
-      followRedirects: false,
-      cache: "no-store" as const,
-    },
-    versionPin: {
-      project: "stripe-node",
-      version: "14.0.0",
-      reviewedAt: "2026-01-15T00:00:00.000Z",
-    },
-    credentialFields: [{ formField: "apiKey", encryptedKey: "api_key", required: true }],
-    verify: stripeAdapter.verify,
-    connect: stripeAdapter.connect,
-    reconcile: stripeAdapter.reconcile,
-    health: stripeAdapter.health,
+  runConformance(stripeAdapter, REFERENCE_ADAPTER_ID);
+  const originalFetch = globalThis.fetch;
+  let response: () => Response = () => Response.json({ id: "acct_fixture" });
+  let requests = 0;
+  globalThis.fetch = async (url, init) => {
+    requests++;
+    assert.equal(String(url), `${stripeAdapter.origin.baseUrl}/account`);
+    assert.equal(new Headers(init?.headers).get("Stripe-Version"), stripeAdapter.origin.apiVersion);
+    assert.equal(init?.redirect, "error");
+    assert.equal(init?.cache, stripeAdapter.transport.cache);
+    assert.ok(init?.signal instanceof AbortSignal);
+    return response();
   };
-
-  runConformance(stripeContract, REFERENCE_ADAPTER_ID);
+  const credentials = { apiKey: "rk_test_controlled000000000" };
+  try {
+    assert.equal((await stripeAdapter.verify(credentials)).valid, true);
+    assert.equal((await stripeAdapter.connect(credentials)).accountIdentifier, "acct_fixture");
+    assert.equal((await stripeAdapter.health(credentials)).healthy, true);
+    response = () => new Response("x".repeat(stripeAdapter.transport.maxResponseBytes + 1));
+    assert.equal((await stripeAdapter.verify(credentials)).valid, false);
+    response = () => Response.json({ error: { message: credentials.apiKey } }, { status: 429 });
+    const failed = await stripeAdapter.verify(credentials);
+    assert.equal(failed.valid, false);
+    assert.equal(JSON.stringify(failed).includes(credentials.apiKey), false);
+    response = () => Response.json({ id: "not-an-account" });
+    assert.equal((await stripeAdapter.verify(credentials)).valid, false);
+    const previous = requests;
+    assert.equal((await stripeAdapter.verify({ apiKey: "invalid" })).valid, false);
+    assert.equal(requests, previous, "invalid credentials never reach the transport");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
   console.log(`\n✓ ${REFERENCE_ADAPTER_ID} is a valid reference implementation`);
 
   // If other adapters exist in integration-adapters.ts, test them too

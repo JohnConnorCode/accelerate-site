@@ -589,6 +589,26 @@
       "module": "receivables-collections"
     },
     {
+      "tool": "read_site_editor",
+      "module": "site-studio"
+    },
+    {
+      "tool": "prepare_site_change",
+      "module": "site-studio"
+    },
+    {
+      "tool": "stage_site_change",
+      "module": "site-studio"
+    },
+    {
+      "tool": "execute_site_change",
+      "module": "site-studio"
+    },
+    {
+      "tool": "suggest_site_page",
+      "module": "site-studio"
+    },
+    {
       "tool": "get_social_workspace",
       "module": "social-marketing"
     },

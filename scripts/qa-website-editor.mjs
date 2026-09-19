@@ -9,12 +9,18 @@ const browser = await chromium.launch({ headless: true });
 const errors = [];
 const networkWrites = [];
 const results = [];
+let activePage;
+const navigations = [];
 try {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "reduce",
   });
   const page = await context.newPage();
+  activePage = page;
+  page.on("framenavigated", (frame) =>
+    navigations.push({ main: frame === page.mainFrame(), url: frame.url() }),
+  );
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
@@ -152,10 +158,35 @@ try {
       (id) => document.documentElement.getAttribute("data-theme") === id,
       appearance.id,
     );
+    const selected = page.getByRole("button", { name: "Pages", exact: true });
+    await selected.hover();
+    assert.ok(
+      await selected.evaluate((element) => {
+        const style = getComputedStyle(element);
+        const luminance = (color) =>
+          color
+            .match(/[\d.]+/g)
+            .slice(0, 3)
+            .map(Number)
+            .map((value) => {
+              const channel = value / 255;
+              return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+            })
+            .reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+        const a = luminance(style.color),
+          b = luminance(style.backgroundColor);
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) >= 4.5;
+      }),
+      `${appearance.id}: selected button keeps readable contrast while hovered`,
+    );
+    await page
+      .frameLocator('iframe[title="Live website preview"]')
+      .getByText("Private live preview", { exact: true })
+      .waitFor();
     await page.screenshot({ path: `${output}/appearance-${appearance.label.toLowerCase()}.png` });
   }
   results.push(
-    "Editor screens captured in all five shared appearances; the mobile preview uses a real 390px frame viewport.",
+    `Editor screens captured in all ${appearances.length} shared appearances; selected hover contrast passes and the mobile preview uses a real 390px frame viewport.`,
   );
   const titleBeforeImport = await page
     .getByRole("textbox", { name: "Title", exact: true })
@@ -212,6 +243,22 @@ try {
     JSON.stringify({ results, errors, networkWrites }, null, 2),
   );
   console.log(JSON.stringify({ status: "passed", results, output }, null, 2));
+} catch (error) {
+  await activePage?.screenshot({ path: `${output}/failure.png`, fullPage: true });
+  await writeFile(
+    `${output}/failure.json`,
+    JSON.stringify(
+      {
+        url: activePage?.url(),
+        navigations,
+        errors,
+        text: await activePage?.locator("body").innerText(),
+      },
+      null,
+      2,
+    ),
+  );
+  throw error;
 } finally {
   await browser.close();
 }
