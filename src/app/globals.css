@@ -4,6 +4,36 @@
 @import "./admin-shape.css";
 @import "tailwindcss";
 
+/* Shared page-document presentation: bootstrap, editor preview and publication. */
+.site-document h1,
+.site-document h2,
+.site-document h3 {
+  text-wrap: balance;
+}
+.site-document p {
+  text-wrap: pretty;
+}
+.site-document a {
+  min-height: 44px;
+}
+.site-document a:focus-visible,
+.site-document summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.site-document summary {
+  min-height: 44px;
+  padding-block: 0.75rem;
+}
+.site-connected-form {
+  border-radius: var(--site-radius);
+}
+.site-connected-form h2 {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
 /* ========================================
    ACCELERATE DESIGN SYSTEM
    High-contrast black / white editorial system

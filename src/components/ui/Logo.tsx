@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { LogoMark } from "./LogoMark";
+import { distributionProfile } from "@/lib/distribution/profile";
 
 interface LogoProps {
   name?: string;
@@ -44,6 +45,13 @@ export function Logo({
           height={16}
           className={size === "sm" ? "h-[14px] w-7 object-contain" : "h-4 w-8 object-contain"}
         />
+      ) : distributionProfile() === "neutral" ? (
+        <span
+          aria-hidden
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--fg)] text-sm font-semibold text-[var(--bg)]"
+        >
+          {name.slice(0, 1)}
+        </span>
       ) : (
         <LogoMark className={size === "sm" ? "h-[14px] w-7" : "h-4 w-8"} />
       )}

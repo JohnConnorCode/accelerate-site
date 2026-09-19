@@ -19,14 +19,14 @@ function prove(id: string, name: string, fn: () => void) {
   cases.push({ id, name });
 }
 
-prove("AC1", "unset profile stays branded; explicit neutral is a separate profile", () => {
-  assert.equal(distributionProfile({}), "branded");
+prove("AC1", "unset profile is neutral; agency content requires explicit opt-in", () => {
+  assert.equal(distributionProfile({}), "neutral");
   assert.equal(distributionProfile({ NEXT_PUBLIC_DISTRIBUTION_PROFILE: "branded" }), "branded");
   assert.equal(distributionProfile({ NEXT_PUBLIC_DISTRIBUTION_PROFILE: "neutral" }), "neutral");
   assert.throws(() => distributionProfile({ NEXT_PUBLIC_DISTRIBUTION_PROFILE: "agency" }));
   assert.match(
     readFileSync("docs/self-hosting/NEUTRAL-DISTRIBUTION.md", "utf8"),
-    /branded installation/,
+    /NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded/,
   );
 });
 

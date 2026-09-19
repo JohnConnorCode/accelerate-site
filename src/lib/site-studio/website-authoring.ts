@@ -56,6 +56,7 @@ export function websiteTextFields(page: WebsitePage): { key: string; value: stri
   const fields: { key: string; value: string }[] = [];
   const protectedKeys = new Set([
     "id",
+    "token",
     "path",
     "kind",
     "type",

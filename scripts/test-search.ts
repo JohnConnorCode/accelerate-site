@@ -11,6 +11,8 @@ import assert from "node:assert/strict";
 import { buildSearchIndex } from "../src/lib/search";
 import { normalize, searchEntries } from "../src/lib/search/score";
 
+// Exercise legacy agency search explicitly; neutral isolation has its own test.
+process.env.NEXT_PUBLIC_DISTRIBUTION_PROFILE = "branded";
 const index = buildSearchIndex();
 
 function top(query: string, count = 5) {

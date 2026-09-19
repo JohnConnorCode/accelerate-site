@@ -34,7 +34,9 @@ export function verifyDeploymentTarget({ target, linked, env = process.env, requ
 
 export function deploymentPreflight() {
   const target = JSON.parse(readFileSync("deployment-target.json", "utf8"));
-  if (process.env.NEXT_PUBLIC_DISTRIBUTION_PROFILE === "neutral") assertForkHosting(target);
+  // An unset profile is a neutral fork. Original hosting IDs require explicit
+  // branded opt-in before any hosting configuration is pulled or deployed.
+  if (process.env.NEXT_PUBLIC_DISTRIBUTION_PROFILE !== "branded") assertForkHosting(target);
   let linked;
   try {
     linked = JSON.parse(readFileSync(".vercel/project.json", "utf8"));

@@ -43,7 +43,7 @@ export function WebsiteAssets({
           className={field}
           value={src}
           onChange={(e) => setSrc(e.target.value)}
-          placeholder="/images/photo.jpg"
+          placeholder="/site-assets/photo.jpg"
         />
       </label>
       <label className="block text-sm">

@@ -12,6 +12,8 @@ import { listRevenueAiCapabilities } from "@/lib/revenue-os/ai-tools";
 import { capabilities } from "@/content/command-center";
 import { getDocsPage } from "@/lib/docs";
 import { marketingPositioning } from "@/content/marketing-positioning";
+import { distributionProfile } from "@/lib/distribution/profile";
+import { tenant } from "@/config/tenant";
 
 /**
  * One index for site search.
@@ -321,6 +323,21 @@ export function buildSearchIndex(): SearchEntry[] {
     keywords: ["docs", "documentation", "guides", "help", "manual"],
   });
 
-  cached = entries;
-  return entries;
+  cached =
+    distributionProfile() === "neutral"
+      ? [
+          ...entries.filter(
+            (entry) => entry.group === "Docs" || entry.href === "/demo/command-center",
+          ),
+          {
+            id: "page-home",
+            title: tenant.brand.name,
+            description: tenant.brand.tagline,
+            href: "/",
+            group: "Pages",
+            keywords: ["home", "workspace"],
+          },
+        ]
+      : entries;
+  return cached;
 }

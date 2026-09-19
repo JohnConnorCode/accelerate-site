@@ -3,6 +3,7 @@ import type { SiteCta, SiteLeafNode, SiteSectionNode } from "./document";
 import { resolveSectionStyle, resolveContainerStyle } from "./tokens";
 import { resolveSiteAsset } from "./assets";
 export type RenderAsset = { id: string; src: string; alt: string };
+export type RenderForm = (token: string) => ReactNode;
 
 /** Plain helper, same rationale as siteImage: host elements in the tree. */
 function ctaButton(cta: SiteCta, variant?: "primary" | "secondary" | "ghost") {
@@ -67,8 +68,23 @@ function siteImage(
   );
 }
 
-function renderLeaf(node: SiteLeafNode, assets: readonly RenderAsset[] = []): ReactNode {
+function renderLeaf(
+  node: SiteLeafNode,
+  assets: readonly RenderAsset[] = [],
+  renderForm?: RenderForm,
+): ReactNode {
   switch (node.type) {
+    case "form":
+      return (
+        <div className="site-connected-form">
+          <h2>{node.props.heading}</h2>
+          {renderForm ? (
+            renderForm(node.props.token)
+          ) : (
+            <p role="status">Connected form. Submissions are disabled in this preview.</p>
+          )}
+        </div>
+      );
     case "hero": {
       const props = node.props;
       return (
@@ -78,7 +94,18 @@ function renderLeaf(node: SiteLeafNode, assets: readonly RenderAsset[] = []): Re
               {props.eyebrow}
             </p>
           ) : null}
-          <h1 style={{ fontSize: "2.75rem", lineHeight: 1.1, margin: 0 }}>{props.heading}</h1>
+          <h1
+            style={{
+              fontSize: "clamp(2.5rem, 5.5vw, 5rem)",
+              lineHeight: 1.06,
+              letterSpacing: "-0.045em",
+              maxWidth: "16ch",
+              textWrap: "balance",
+              margin: 0,
+            }}
+          >
+            {props.heading}
+          </h1>
           {props.body ? (
             <p style={{ fontSize: "1.125rem", maxWidth: "42rem" }}>{props.body}</p>
           ) : null}
@@ -126,7 +153,7 @@ function renderLeaf(node: SiteLeafNode, assets: readonly RenderAsset[] = []): Re
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(16rem, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 16rem), 1fr))",
               gap: "1.25rem",
             }}
           >
@@ -134,7 +161,8 @@ function renderLeaf(node: SiteLeafNode, assets: readonly RenderAsset[] = []): Re
               <div
                 key={item.title}
                 style={{
-                  border: "1px solid currentColor",
+                  boxShadow:
+                    "0 0 0 1px color-mix(in srgb, currentColor 16%, transparent), 0 6px 20px -12px color-mix(in srgb, currentColor 18%, transparent)",
                   borderRadius: "var(--site-radius, 0.75rem)",
                   padding: "1.25rem",
                 }}
@@ -176,13 +204,14 @@ function renderLeaf(node: SiteLeafNode, assets: readonly RenderAsset[] = []): Re
 export function renderSection(
   node: SiteSectionNode,
   assets: readonly RenderAsset[] = [],
+  renderForm?: RenderForm,
 ): ReactNode {
   return (
     <section key={node.id} data-site-section={node.id} style={resolveSectionStyle(node.styles)}>
       <div style={resolveContainerStyle(node.styles)}>
         {node.children.map((child) => (
           <div key={child.id} data-site-node={child.id}>
-            {renderLeaf(child, assets)}
+            {renderLeaf(child, assets, renderForm)}
           </div>
         ))}
       </div>

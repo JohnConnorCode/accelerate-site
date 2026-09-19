@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { distributionProfile } from "@/lib/distribution/profile";
+import { tenant } from "@/config/tenant";
 
 // Apple touch icon — paper chevrons on an ink tile, generated
 // at build time so it stays in sync with the SVG favicon (src/app/icon.svg) and
@@ -23,6 +25,24 @@ function Chevron({ x, opacity }: { x: number; opacity: number }) {
 }
 
 export default function AppleIcon() {
+  if (distributionProfile() === "neutral")
+    return new ImageResponse(
+      <div
+        style={{
+          display: "flex",
+          width: 180,
+          height: 180,
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#315c52",
+          color: "white",
+          fontSize: 110,
+        }}
+      >
+        {tenant.brand.name.slice(0, 1)}
+      </div>,
+      size,
+    );
   return new ImageResponse(
     <div
       style={{

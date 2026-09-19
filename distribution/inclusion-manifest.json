@@ -85,6 +85,8 @@
     "NEXT_PUBLIC_DISTRIBUTION_PROFILE": "neutral"
   },
   "includePaths": [
+    "public/site-assets/",
+    "public/docs-llms.txt",
     "src/content/command-center-contract.ts",
     "src/content/docs/",
     "src/content/intake-questions.ts",

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { createHash } from "node:crypto";
 import { getTenantRequestContext } from "@/lib/tenancy/context";
 import { proposeAction } from "@/lib/revenue-os/actions";
+import { listFormDefinitions } from "@/lib/revenue-os/form-builder";
+import { isModuleEnabled } from "@/lib/revenue-os/modules";
 import { websiteAiInput, proposeWebsitePage } from "./website-ai";
 import { getSiteModelCatalog } from "./model-catalog";
 import {
@@ -56,6 +58,16 @@ function exactDiff(
 export async function readSiteEditor(raw: unknown) {
   const auth = siteEditorActor();
   const input = siteEditorReadSchema.parse(raw);
+  if (input.view === "forms") {
+    if (!isModuleEnabled("form-builder", auth.tenant.config))
+      return { forms: [], message: "Enable Form Builder and publish a form to connect it." };
+    const forms = await listFormDefinitions(auth.database, auth.tenant.id);
+    return {
+      forms: forms
+        .filter((form) => form.status === "published")
+        .map(({ name, share_token }) => ({ name, token: share_token })),
+    };
+  }
   if (input.view === "schema")
     return z.toJSONSchema(
       {

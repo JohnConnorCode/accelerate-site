@@ -72,6 +72,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:open-source-stats
 
+      - name: Verify full-product neutral fork and connected website forms
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:full-product-fork
+
       - name: Verify admin design token contract
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run verify:admin-tokens

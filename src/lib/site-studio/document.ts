@@ -125,8 +125,15 @@ const ctaBandSchema = z
   })
   .strict();
 
+const formSchema = z
+  .object({
+    token: z.string().regex(/^[a-f0-9]{64}$/, "Use a published form's share token"),
+    heading: z.string().min(1).max(160),
+  })
+  .strict();
+
 export type SiteLeafType =
-  "hero" | "heading" | "text" | "image" | "button" | "featureGrid" | "faq" | "ctaBand";
+  "hero" | "heading" | "text" | "image" | "button" | "featureGrid" | "faq" | "ctaBand" | "form";
 
 const baseNode = { id: nodeId, styles: siteStyleSchema.optional() };
 
@@ -141,6 +148,7 @@ export const siteLeafNodeSchema = z.union([
   z.object({ ...baseNode, type: z.literal("featureGrid"), props: featureGridSchema }),
   z.object({ ...baseNode, type: z.literal("faq"), props: faqSchema }),
   z.object({ ...baseNode, type: z.literal("ctaBand"), props: ctaBandSchema }),
+  z.object({ ...baseNode, type: z.literal("form"), props: formSchema }),
 ]);
 
 const leafNodeSchema = siteLeafNodeSchema;
@@ -166,6 +174,7 @@ export const SITE_NODE_TYPES: readonly string[] = [
   "featureGrid",
   "faq",
   "ctaBand",
+  "form",
 ];
 
 const slugSchema = z

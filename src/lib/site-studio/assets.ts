@@ -1,4 +1,5 @@
 import { INDUSTRY_VISUALS, FEATURED_INDUSTRY_SLUGS } from "@/content/industry-visuals";
+import { distributionProfile } from "@/lib/distribution/profile";
 
 /** V1 asset library. AI page generation and editors may only attach catalog
  * entries: approved photography with recorded alt text. Arbitrary external
@@ -14,6 +15,7 @@ export interface SiteAsset {
 }
 
 function buildCatalog(): SiteAsset[] {
+  if (distributionProfile() === "neutral") return [];
   const assets: SiteAsset[] = [];
   for (const slug of FEATURED_INDUSTRY_SLUGS) {
     const visual = INDUSTRY_VISUALS[slug];

@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import { SitePageRenderer } from "./renderer";
+import type { RenderForm } from "./components";
 import type { WebsiteDocument, WebsitePage, WebsiteRichText } from "./website-document";
 
 type Span = Extract<WebsiteRichText[number], { type: "paragraph" }>["content"][number];
@@ -96,10 +97,12 @@ export function WebsitePageContent({
   page,
   assets,
   renderNative,
+  renderForm,
 }: {
   page: WebsitePage;
   assets: WebsiteDocument["assets"];
   renderNative: (section: NativeSection) => ReactNode;
+  renderForm?: RenderForm;
 }) {
   switch (page.content.kind) {
     case "article":
@@ -110,7 +113,13 @@ export function WebsitePageContent({
         </article>
       );
     case "document":
-      return <SitePageRenderer document={page.content.document} assets={assets} />;
+      return (
+        <SitePageRenderer
+          document={page.content.document}
+          assets={assets}
+          renderForm={renderForm}
+        />
+      );
     case "native": {
       const visible = page.content.sections.filter((section) => !section.hidden);
       const nodes: ReactNode[] = [];

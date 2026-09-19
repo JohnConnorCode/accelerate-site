@@ -5,8 +5,34 @@ import { createServerClient } from "@supabase/ssr";
 import { isConfiguredAdmin } from "@/lib/admin/access";
 import { isDemoScenarioId } from "@/lib/admin/demo/scenarios";
 import { ACCELERATE_TENANT_ID, ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
+import { distributionProfile } from "@/lib/distribution/profile";
+import { distributionPath, isAgencyAsset, isAgencyPage } from "@/lib/distribution/routes";
 
 export async function middleware(request: NextRequest) {
+  if (distributionProfile() === "neutral") {
+    const path = distributionPath(request.nextUrl.pathname);
+    let assetPath = path;
+    if (path === "/_next/image") {
+      try {
+        const asset = new URL(request.nextUrl.searchParams.get("url") || "", request.url);
+        assetPath = asset.origin === request.nextUrl.origin ? asset.pathname : "";
+      } catch {
+        return new NextResponse(null, { status: 400 });
+      }
+    }
+    if (isAgencyAsset(assetPath))
+      return new NextResponse(null, { status: 404, headers: { "Cache-Control": "no-store" } });
+    if (["/favicon.ico", "/icon.svg"].includes(path)) {
+      return NextResponse.rewrite(new URL("/site-assets/icon.svg", request.url));
+    }
+    if (["/llms.txt", "/llms-full.txt"].includes(path))
+      return NextResponse.rewrite(new URL("/docs-llms.txt", request.url));
+    if (isAgencyPage(path) || path === "/command-center") {
+      const destination = request.nextUrl.clone();
+      destination.pathname = `/site-pages${path}`;
+      return NextResponse.rewrite(destination);
+    }
+  }
   // Keep the legacy preview URL as a real redirect. A server-component
   // permanentRedirect can be represented as a meta refresh during a direct
   // document request, which leaves browser history and analytics on the old
@@ -185,5 +211,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/t/:path*", "/demo/command-center/:path*", "/command-center/demo"],
+  matcher: ["/((?!_next/static|_next/webpack-hmr).*)"],
 };

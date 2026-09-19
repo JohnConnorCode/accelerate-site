@@ -9,7 +9,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I run the workspace for my own business?",
     answer:
-      "Yes. Export the neutral starter into a new directory, replace its fictional Harbor Operations configuration with your business details, then connect services you control. It keeps the shared workspace and demo while removing protected agency media and original hosting targets. The self-hosting guide explains the export receipt, installation and recovery.",
+      "Yes. Fork the complete repository: it starts with a neutral Command Center homepage, the full workspace, and fictional demos. Configure your own business and services, then edit or replace the homepage in Site Studio. Agency content remains in the source and is disabled unless you explicitly enable the branded profile. A separate export remains available when you want to omit protected agency assets entirely. The self-hosting guide explains setup and recovery.",
   },
   {
     question: "If I change what it is allowed to do, do I have to approve it again?",

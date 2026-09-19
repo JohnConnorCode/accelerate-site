@@ -1,5 +1,7 @@
 # Deployment
 
+The complete repository defaults to neutral. Before upgrading the original Accelerate installation, set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` in both its build and runtime environments. This is an explicit maintainer action, not an automatic migration. Neutral deployments refuse the original hosting target.
+
 The repository supports a prebuilt Vercel release path, but every fork must link its own hosting project and configure its own environment.
 
 ## Fork preview

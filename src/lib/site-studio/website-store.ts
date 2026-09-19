@@ -9,6 +9,7 @@ import {
 } from "@/lib/supabase/server";
 import { parseWebsiteDocument, type WebsiteDocument } from "./website-document";
 import { parseWebsiteCommand, websiteReceiptSchema, type WebsiteReceipt } from "./website-commands";
+import { assertWebsiteForms, websiteFormTokens } from "./website-forms";
 
 export interface WebsiteRevision {
   id: string;
@@ -77,6 +78,7 @@ export async function writeWebsite(
 ): Promise<WebsiteReceipt> {
   assertWebsiteOwner(auth);
   const command = parseWebsiteCommand(input);
+  await validateWebsiteCommandForms(auth, command);
   const { data, error } = await callWebsiteRpc(
     auth.database,
     {
@@ -99,6 +101,31 @@ export async function writeWebsite(
     );
   }
   return websiteReceiptSchema.parse(data);
+}
+
+export async function validateWebsiteCommandForms(
+  auth: AdminAuthorization,
+  command: ReturnType<typeof parseWebsiteCommand>,
+) {
+  assertWebsiteOwner(auth);
+  if (command.operation === "unpublish") return;
+  const document =
+    command.operation === "save"
+      ? command.document
+      : await readWebsiteRevision(auth, command.revisionId);
+  if (!websiteFormTokens(document).length) return;
+  const database = createPlatformServiceRoleClient("site-studio:owner-receipts");
+  const { data, error } = await database
+    .from("site_website_receipts")
+    .select("request_key")
+    .eq("tenant_id", auth.tenant.id)
+    .eq("request_key", command.requestKey)
+    .maybeSingle();
+  if (error) throw new Error("Website receipts unavailable");
+  // A completed retry must still reach the atomic writer after a form is archived.
+  // The writer rechecks authorization and rejects reuse with a different command.
+  if (data) return;
+  await assertWebsiteForms(document, auth.tenant.id);
 }
 
 export async function wasWebsiteRevisionPublished(auth: AdminAuthorization, revisionId: string) {

@@ -5,6 +5,7 @@ import { readPublicWebsite } from "./website-public";
 import { WebsitePageContent, WebsiteArticle } from "./website-renderer";
 import { renderNativeWebsiteSection } from "./native-renderer";
 import type { WebsiteDocument } from "./website-document";
+import { PublishedWebsiteForm } from "@/components/forms/PublishedWebsiteForm";
 
 export function findWebsiteContent(document: WebsiteDocument, path: string) {
   return (
@@ -48,6 +49,7 @@ export async function PublishedWebsitePage({ path }: { path: string }) {
         page={item}
         assets={website.document.assets}
         renderNative={renderNativeWebsiteSection}
+        renderForm={(token) => <PublishedWebsiteForm token={token} />}
       />
     );
   return (
