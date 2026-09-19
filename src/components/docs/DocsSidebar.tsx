@@ -20,6 +20,7 @@ export function DocsSidebar() {
           <p className="font-mono text-[0.66rem] uppercase tracking-[0.2em] text-white-muted">
             {track.title}
           </p>
+          {track.id === "builder" && <Link href="/docs/recipes" className="text-sm font-medium underline underline-offset-4">Adapt an industry recipe</Link>}
           <DocsSidebarSections
             sections={docsManifest.filter((section) => section.track === track.id)}
             current={current}

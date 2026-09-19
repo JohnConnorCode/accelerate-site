@@ -1,5 +1,6 @@
 "use client";
 
+import { IndustryRecipes } from "@/components/command-center/WorkflowRecipes";
 import {
   Check,
   PhoneMissed,
@@ -161,6 +162,8 @@ export function VerticalPage({ vertical }: VerticalPageProps) {
           </div>
         </Container>
       </PublicHeroEntrance>
+
+      <IndustryRecipes industry={vertical.slug} />
 
       {/* pain points */}
       <section className="section-y section-divide relative bg-[var(--bg-section-warm)]">

@@ -29,6 +29,7 @@
  * locally rather than hotlinked. The page is about people, so it shows people.
  */
 
+import { IndustryRecipes } from "@/components/command-center/WorkflowRecipes";
 import Image from "next/image";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
@@ -362,6 +363,8 @@ export function NonprofitLanding() {
       </section>
 
       {/* ── Close ───────────────────────────────────────────────────────── */}
+      <IndustryRecipes industry="nonprofits" />
+
       <section className="section-divide relative overflow-hidden border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] [&_.display-italic]:!text-white">
         <div className="absolute inset-0">
           <Image

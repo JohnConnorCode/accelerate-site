@@ -60,9 +60,9 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     id: "page-command-center",
     title: "Command Center",
     description:
-      "See what needs you, follow the customer conversation, and move the next action forward, in one workspace your team and AI both work from.",
+      "Connect customer context, put AI to work and combine features and plugins into workflows for your business.",
     href: "/command-center",
-    keywords: ["dashboard", "admin", "operations", "software"],
+    keywords: ["dashboard", "admin", "operations", "software", "recipes", "plugins", "workflows"],
   },
   {
     id: "page-command-center-demo",

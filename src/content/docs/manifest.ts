@@ -1,3 +1,5 @@
+import { workflowRecipes } from "@/content/workflow-recipes";
+
 /**
  * The single authority for docs structure, ordering, and section card
  * metadata. MDX files hold only prose; everything structural lives here so
@@ -124,6 +126,16 @@ export const docsManifest: DocsSection[] = [
         description:
           "The recovery step for the setup, access, and action failures you'll actually hit, by symptom.",
       },
+    ],
+  },
+  {
+    id: "recipes",
+    track: "operator",
+    title: "Workflow recipes",
+    description: "Combine features and plugins around a specific business outcome.",
+    pages: [
+      { slug: ["recipes", "overview"], title: "Workflow recipes for your business", description: "Twenty practical guides to combining Command Center features and plugins across ten industries." },
+      ...workflowRecipes.map((recipe) => ({ slug: ["recipes", recipe.id], title: recipe.title, description: recipe.description })),
     ],
   },
   {

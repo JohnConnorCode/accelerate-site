@@ -6,13 +6,12 @@ import { trackConversion } from "@/lib/analytics";
 import { AnimatePresence, motion } from "framer-motion";
 
 const SECTIONS = [
-  { id: "demo", label: "Product screens" },
-  { id: "built", label: "Built for you" },
-  { id: "how", label: "How it works" },
-  { id: "autonomy", label: "Autonomy" },
-  { id: "capabilities", label: "Capabilities" },
-  { id: "proof", label: "Proof" },
-  { id: "who", label: "Who it's for" },
+  { id: "demo", label: "Workspace" },
+  { id: "how", label: "Workflow" },
+  { id: "surface", label: "Features" },
+  { id: "recipes", label: "Recipes" },
+  { id: "capabilities", label: "Reference" },
+  { id: "who", label: "Get started" },
   { id: "faq", label: "FAQ" },
 ];
 
