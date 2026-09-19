@@ -136,7 +136,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "ee94d7590a8acd2b984110b053145009486accf803d2b2ccf3444dc677e73ac3",
+      contractHash: "0b870bb39b0f7fdcf8f1537a887a55554b7362b0e9a38b7a1c9a7be36b457ce9",
       tools: [
         {
           operation: "prepare-workflow",
@@ -441,7 +441,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "103c30d338bee4a2ca1776e168bb62c61d8201109a174889ce5c1862129d9426",
+      contractHash: "bc1b61165b7b0b7dc693d029c827ba981de675626f53ab188f30b84084c6d7cf",
       tools: [
         {
           operation: "prepare-workflow",
@@ -915,7 +915,13 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     isCore: false,
     defaultEnabled: true,
     navLinkIds: ["site-studio"],
-    aiToolNames: [],
+    aiToolNames: [
+      "read_site_editor",
+      "prepare_site_change",
+      "stage_site_change",
+      "execute_site_change",
+      "suggest_site_page",
+    ],
     routes: ["/admin/site"],
     setupChecks: [],
     docsUrl: "/docs/plugins/site-studio",
@@ -1107,7 +1113,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "217ce4a3cdb7646367cafd2bcc77eca70af84a061c3fe49fac92da605eb908c7",
+      contractHash: "09179fd7413064be6d9fc36c1fc91cf4bb6433f916220668eb718a674a795038",
       tools: [
         {
           operation: "prepare-workflow",

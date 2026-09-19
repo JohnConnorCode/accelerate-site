@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SiteEditorDelegation } from "@/lib/site-studio/delegation";
 import {
   getRevenueAiToolsForProfile,
   listRevenueAiCapabilities,
@@ -75,6 +76,9 @@ export interface McpServerContext {
    * tenant, module, and grant checks, with no ambient cross-tenant access.
    */
   principalKind?: RecordPermissionPrincipalKind;
+  /** Server-owned restriction for the dedicated editor OAuth endpoint. */
+  allowedToolNames?: readonly string[];
+  siteEditorDelegation?: SiteEditorDelegation;
 }
 
 /**
@@ -208,6 +212,12 @@ export async function handleMcpRequest(
   const { id, method, params = {} } = request;
 
   try {
+    if (context.allowedToolNames) {
+      if (method === "resources/list") return { jsonrpc: "2.0", id, result: { resources: [] } };
+      if (method === "prompts/list") return { jsonrpc: "2.0", id, result: { prompts: [] } };
+      if (!["initialize", "notifications/initialized", "ping", "tools/list", "tools/call"].includes(method))
+        return { jsonrpc: "2.0", id, error: { code: -32601, message: "This connection exposes only Site Studio tools" } };
+    }
     switch (method) {
       case "initialize": {
         // Echo the client's requested version if we can honestly claim it
@@ -270,7 +280,7 @@ export async function handleMcpRequest(
           toolPack: context.toolPack,
           tenantConfig: context.tenantConfig ?? undefined,
         })
-          .filter((tool) => advertised.has(tool.name) && available.has(tool.name))
+          .filter((tool) => advertised.has(tool.name) && available.has(tool.name) && (!context.allowedToolNames || context.allowedToolNames.includes(tool.name)))
           .map((tool) => ({
             name: tool.name,
             description: tool.description,
@@ -278,6 +288,13 @@ export async function handleMcpRequest(
             impact: tool.impact,
             confirmationRequired: tool.confirmationRequired,
             connectionRequirement: tool.connectionRequirement,
+            annotations: {
+              readOnlyHint: tool.impact === "read" && !tool.confirmationRequired,
+              destructiveHint: tool.name === "execute_site_change" || tool.impact === "destructive",
+              idempotentHint: tool.impact === "read" || tool.name === "execute_site_change",
+              openWorldHint: tool.impact === "external_action" || tool.name === "suggest_site_page",
+            },
+            ...(context.siteEditorDelegation ? { securitySchemes: [{ type: "oauth2", scopes: ["openid", "email"] }] } : {}),
           }));
         return {
           jsonrpc: "2.0",
@@ -311,12 +328,15 @@ export async function handleMcpRequest(
         // read the message and retry, instead of a JSON-RPC error that looks like
         // the protocol itself broke.
         try {
+          if (context.allowedToolNames && !context.allowedToolNames.includes(toolName))
+            throw new Error("This connection is restricted to Site Studio");
           const execution = await executeRegisteredRevenueTool(
             {
               supabase: context.supabase,
               actorEmail: context.actorEmail,
               toolPack: context.toolPack,
               tenantConfig: context.tenantConfig,
+              siteEditorDelegation: context.siteEditorDelegation,
             },
             toolName,
             toolArguments,

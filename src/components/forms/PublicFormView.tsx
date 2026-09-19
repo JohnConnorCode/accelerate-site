@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { SurveyRunner } from "./SurveyRunner";
 import type { StoredFormSchema } from "@/lib/revenue-os/form-builder";
 
@@ -8,6 +8,7 @@ export function PublicFormView({ token, schema }: { token: string; schema: Store
   const [done, setDone] = useState(false);
   const [failed, setFailed] = useState(false);
   const [website, setWebsite] = useState("");
+  const attempt = useRef<{ body: string; requestId: string } | null>(null);
 
   if (done) {
     return (
@@ -31,20 +32,25 @@ export function PublicFormView({ token, schema }: { token: string; schema: Store
         schema={schema}
         onComplete={async (data) => {
           setFailed(false);
+          const body = JSON.stringify(data, Object.keys(data).sort());
+          if (attempt.current?.body !== body)
+            attempt.current = { body, requestId: crypto.randomUUID() };
           try {
             const response = await fetch(`/api/public/forms/${encodeURIComponent(token)}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 response: data,
-                requestId: crypto.randomUUID(),
+                requestId: attempt.current.requestId,
                 website: website || undefined,
               }),
             });
-            if (!response.ok) setFailed(true);
-            else setDone(true);
+            if (!response.ok) { setFailed(true); return false; }
+            setDone(true);
+            return true;
           } catch {
             setFailed(true);
+            return false;
           }
         }}
       />

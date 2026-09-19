@@ -29,7 +29,7 @@ export const websitePathSchema = z
   )
   .refine(
     (path) =>
-      !/^\/(?:api|admin|t|auth|login|logout|setup|site-preview|demo|proposal|plan|plan-builder|style-guide|docs|blog|results|packages|legacy-home)(?:\/|$)/.test(
+      !/^\/(?:api|admin|t|f|auth|login|logout|setup|site-preview|demo|proposal|plan|plan-builder|style-guide|docs|blog|results|packages|legacy-home)(?:\/|$)/.test(
         path,
       ),
     "This path belongs to the application",

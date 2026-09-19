@@ -1,5 +1,6 @@
 import "server-only";
 import type { AdminAuthorization } from "../admin/auth";
+import { isModuleEnabled } from "../revenue-os/modules";
 import { randomUUID } from "node:crypto";
 import { callSiteDraftRpc, tenantIdForDatabase } from "../supabase/server";
 import { siteDraftSchema, type SiteDraft } from "./document";
@@ -28,7 +29,7 @@ export class DatabaseSiteDraftRepository implements SiteDraftRepository {
       .select("status,config")
       .eq("id", tenantIdForDatabase(this.database)!)
       .maybeSingle();
-    if (error || data?.status !== "active" || data.config?.modules?.["site-studio"] !== true)
+    if (error || data?.status !== "active" || !isModuleEnabled("site-studio", data.config))
       throw new Error("Site Studio is disabled or unavailable for this workspace");
   }
   async list(): Promise<SiteDraft[]> {

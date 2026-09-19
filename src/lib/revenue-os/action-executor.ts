@@ -10,7 +10,8 @@ import { executeWorkspaceBrandUpdate } from "./branding-actions";
 import { executeTodayViewChange } from "./today-views";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { executeCollectionReminder } from "./collection-reminders";
-import { executeFormDefinitionSave, executeFormPublish } from "./form-builder";
+import { executeFormDefinitionSave, executeFormPublish, executeFormIntake } from "./form-builder";
+import { executeApprovedSiteChange } from "@/lib/site-studio/editor-service";
 import { executeInvoicePagePublication } from "./invoice-pages";
 import { executeWorkflowTaskBatch } from "./workflow-tasks";
 import { executeStripeInvoiceAction } from "./stripe-invoicing";
@@ -71,6 +72,8 @@ export const APPROVABLE_ACTIONS = [
   "send_collection_reminder",
   "save_form_definition",
   "publish_form",
+  "accept_form_submission",
+  "site_website_change",
   "send_email",
   "send_gmail_reply",
   "transition_opportunity",
@@ -266,6 +269,16 @@ export async function approveAndExecuteAction(
       case "publish_form": {
         if (mode !== "approved") throw new Error("Form publication requires human approval");
         result = await executeFormPublish(supabase, payload, actorEmail);
+        break;
+      }
+      case "accept_form_submission": {
+        if (mode !== "approved") throw new Error("Form intake requires a reviewed acceptance");
+        result = await executeFormIntake(supabase, payload, id);
+        break;
+      }
+      case "site_website_change": {
+        if (mode !== "approved") throw new Error("Website changes require exact approval or a scoped Site Studio delegation");
+        result = await executeApprovedSiteChange(payload);
         break;
       }
       case "send_email": {

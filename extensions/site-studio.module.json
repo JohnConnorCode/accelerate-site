@@ -16,7 +16,7 @@
     }
   ],
   "routes": ["/admin/site"],
-  "aiToolNames": [],
+  "aiToolNames": ["read_site_editor", "prepare_site_change", "stage_site_change", "execute_site_change", "suggest_site_page"],
   "setupChecks": [],
   "docsUrl": "/docs/plugins/site-studio",
   "settings": []

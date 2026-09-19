@@ -1,22 +1,10 @@
 import type { Metadata } from "next";
 import { PublicFormView } from "@/components/forms/PublicFormView";
-import type { StoredFormSchema } from "@/lib/revenue-os/form-builder";
+import { readPublicForm } from "@/lib/revenue-os/form-builder";
+import { cache } from "react";
 
-type PublicFormPayload = { name: string; description: string; schema: StoredFormSchema };
-
-async function fetchForm(token: string): Promise<PublicFormPayload | null> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://www.acceleratewith.us";
-  try {
-    const response = await fetch(`${baseUrl}/api/public/forms/${encodeURIComponent(token)}`, {
-      cache: "no-store",
-    });
-    if (!response.ok) return null;
-    return (await response.json()) as PublicFormPayload;
-  } catch {
-    return null;
-  }
-}
+export const dynamic = "force-dynamic";
+const fetchForm = cache((token: string) => readPublicForm(token).catch(() => null));
 
 export async function generateMetadata({
   params,

@@ -1,3 +1,7 @@
+import { siteEditorReadSchema, siteEditorPrepareSchema, siteEditorStageSchema, siteEditorExecuteSchema } from "@/lib/site-studio/editor-contract";
+import { readSiteEditor, previewSiteChange, stageSiteChange, suggestSitePage } from "@/lib/site-studio/editor-service";
+import { executeDelegatedSiteChange, isVerifiedSiteDelegation, type SiteEditorDelegation } from "@/lib/site-studio/delegation";
+import { websiteAiInput } from "@/lib/site-studio/website-ai";
 import {
   readSocialWorkspace,
   previewSocialChange,
@@ -175,6 +179,8 @@ type AiToolContext = {
   /** Server-owned context; never accepted from model arguments. */
   workItem?: WorkItem;
   tenantConfig?: { modules?: Partial<Record<string, boolean>> } | null;
+  /** Server-authenticated, scope-bound OAuth context; never model input. */
+  siteEditorDelegation?: SiteEditorDelegation;
 };
 type AiToolRegistration = {
   name: string;
@@ -189,6 +195,7 @@ type AiToolRegistration = {
   connectionRequirement: AiToolConnectionRequirement;
   impact: AiToolImpact;
   confirmationRequired: boolean;
+  executionPolicy?: "site-studio-delegation";
   execute: (context: AiToolContext, input: Record<string, unknown>) => Promise<unknown>;
 };
 
@@ -424,7 +431,14 @@ function availabilityFor(
  * not. That is checkable from the result and catches the mislabelling case in
  * both directions.
  */
-export function assertImpactHonoured(tool: AiToolRegistration, output: unknown): void {
+export function assertImpactHonoured(tool: AiToolRegistration, output: unknown, context?: AiToolContext): void {
+  if (tool.executionPolicy === "site-studio-delegation") {
+    if (tool.name !== "execute_site_change" || !isVerifiedSiteDelegation(context?.siteEditorDelegation) ||
+      (output as { authorization?: { mode?: string; scope?: string } })?.authorization?.mode !== "delegated" ||
+      (output as { authorization?: { scope?: string } })?.authorization?.scope !== "site-studio")
+      throw new Error("Exact Site Studio delegation and execution receipt required");
+    return;
+  }
   const proposalId = (output as { id?: unknown } | null)?.id;
   const staged = typeof proposalId === "string" && proposalId.length > 0;
 
@@ -485,6 +499,52 @@ const PLUGIN_TOOL_EXECUTORS = {
 >;
 
 const registry: AiToolRegistration[] = [
+  {
+    name: "read_site_editor",
+    description: "Read the installation owner's saved draft or published website: paginated pages, page content, assets, collections, entries, configuration, history, receipts, model catalogue, or portable export chunks. Never exposes other workspace data.",
+    inputSchema: z.toJSONSchema(siteEditorReadSchema, { io: "input" }),
+    parseInput: input => siteEditorReadSchema.parse(input),
+    outputSchema: { type: "object" }, serviceTarget: "site-studio.editor", connectionRequirement: "none",
+    impact: "read", confirmationRequired: false,
+    execute: (_context, input) => readSiteEditor(input),
+  },
+  {
+    name: "prepare_site_change",
+    description: "Preview exact website changes without saving. command requires requestKey UUID and expectedVersion from read_site_editor. Operations: edit with typed changes (create_page, put_page, remove_page, put_asset, remove_asset, put_collection, remove_collection, put_entry, remove_entry, configure); save with a complete portable document; publish/rollback with revisionId; unpublish. Returns a digest and summary. put_page covers sections, layout, copy and metadata. create_page requires a stable id, title, path and starter (service, landing, article), optionally cloneId.",
+    inputSchema: { type: "object", required: ["command"], properties: { command: { type: "object" } }, additionalProperties: false },
+    parseInput: input => siteEditorPrepareSchema.parse(input),
+    outputSchema: { type: "object" }, serviceTarget: "site-studio.editor", connectionRequirement: "none",
+    impact: "read", confirmationRequired: false,
+    execute: (_context, input) => previewSiteChange(input),
+  },
+  {
+    name: "stage_site_change",
+    description: "Stage the exact command and digest returned by prepare_site_change. Creates a reviewable proposal; does not save or publish website content. Returns the proposal id and exact payload for confirmation.",
+    inputSchema: { type: "object", required: ["command", "digest"], properties: { command: { type: "object" }, digest: { type: "string", pattern: "^[a-f0-9]{64}$" } }, additionalProperties: false },
+    parseInput: input => siteEditorStageSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA, serviceTarget: "site-studio.editor", connectionRequirement: "none",
+    impact: "internal_write", confirmationRequired: true,
+    execute: (_context, input) => stageSiteChange(input),
+  },
+  {
+    name: "execute_site_change",
+    description: "Execute only an exact staged Site Studio proposal under the installation owner's revocable OAuth delegation. Supply actionId, digest and the exact human-readable summary. Saving stays private; publish, unpublish and rollback affect the public website. Ask for the client's write confirmation. No generic action approval or other workspace mutation is supported.",
+    inputSchema: z.toJSONSchema(siteEditorExecuteSchema),
+    parseInput: input => siteEditorExecuteSchema.parse(input),
+    outputSchema: { type: "object", required: ["receipt", "authorization"] },
+    serviceTarget: "site-studio.editor", connectionRequirement: "none",
+    impact: "external_action", confirmationRequired: true, executionPolicy: "site-studio-delegation",
+    execute: (context, input) => executeDelegatedSiteChange(context.siteEditorDelegation, input),
+  },
+  {
+    name: "suggest_site_page",
+    description: "Generate or revise a candidate website page using the same owner-only AI service as the editor. Requires instruction, page, mode (generate/edit), business, and optional model and priceCeiling. Uses the configured model budget but never saves or publishes; review and stage the returned page separately.",
+    inputSchema: { type: "object", required: ["instruction", "page", "mode", "business"], properties: { instruction: { type: "string" }, page: { type: "object" }, mode: { type: "string", enum: ["generate", "edit"] }, business: { type: "string" }, model: { type: "string" }, priceCeiling: { type: "object" } }, additionalProperties: false },
+    parseInput: input => websiteAiInput.parse(input),
+    outputSchema: { type: "object" }, serviceTarget: "site-studio.editor", connectionRequirement: "none",
+    impact: "read", confirmationRequired: true,
+    execute: (_context, input) => suggestSitePage(input),
+  },
   {
     ...TOOL_DISCOVERY_METADATA[0],
     inputSchema: z.toJSONSchema(discoveryInput, { io: "input" }),
@@ -2954,7 +3014,7 @@ export async function executeRegisteredRevenueTool(
     tool.execute(context, parsedInput),
   );
   validateToolOutput(tool.name, tool.outputSchema, output);
-  assertImpactHonoured(tool, output);
+  assertImpactHonoured(tool, output, context);
   return { output, tool };
 }
 

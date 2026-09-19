@@ -10,15 +10,8 @@
    needs). The docs reference reads the same two fields, so the public page and
    the docs cannot drift. */
 
-export type CapabilityCategory = "capture" | "organize" | "act" | "learn" | "connect" | "govern";
-
-export interface CategoryMeta {
-  id: CapabilityCategory;
-  label: string;
-  blurb: string;
-  glyph: string;
-  rgb: string;
-}
+import type { CategoryMeta, Capability, SurfaceGroup, CurrentSurface } from "./command-center-contract";
+export type { CapabilityCategory, CategoryMeta, Capability, SurfaceGroupId, SurfaceGroup, CurrentSurface } from "./command-center-contract";
 
 export const CATEGORY_META: CategoryMeta[] = [
   {
@@ -64,18 +57,6 @@ export const CATEGORY_META: CategoryMeta[] = [
     rgb: "52,211,153",
   },
 ];
-
-export interface Capability {
-  id: string;
-  category: CapabilityCategory;
-  title: string;
-  /** One always-visible line: what this does for the business. */
-  promise: string;
-  /** Expanded explanation for someone deciding whether it fits. */
-  detail: string;
-  /** True when this action routes through the approval queue before anything leaves. */
-  gated?: boolean;
-}
 
 export const capabilities: Capability[] = [
   // ── Capture: what comes in gets recorded ──────────────────────────────
@@ -626,15 +607,6 @@ export const WHO_ITS_FOR = [
   "You already work with us on automation and want your own internal operation running the same way.",
 ];
 
-export type SurfaceGroupId = "day" | "revenue" | "control";
-
-export interface SurfaceGroup {
-  id: SurfaceGroupId;
-  label: string;
-  blurb: string;
-  rgb: string;
-}
-
 /** The three chapters of the "What is running today" section. */
 export const SURFACE_GROUPS: SurfaceGroup[] = [
   {
@@ -656,13 +628,6 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
     rgb: "52,211,153",
   },
 ];
-
-export interface CurrentSurface {
-  n: string;
-  group: SurfaceGroupId;
-  title: string;
-  body: string;
-}
 
 /** Shipped operator surfaces shown near the top of the solution page. */
 export const CURRENT_SURFACES: CurrentSurface[] = [

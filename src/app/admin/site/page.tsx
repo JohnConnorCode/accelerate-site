@@ -107,6 +107,7 @@ export default function AdminSiteStudioPage() {
       />
       <AdminSurface>
         <h2 className="admin-section-title">Installation website</h2>
+        <Link href="/admin/site/connect" className="admin-button admin-button--secondary mt-3">Connect ChatGPT</Link>
         <p className="mt-2 text-sm text-[var(--admin-muted)]">
           The installation owner can create pages, edit with AI, preview every screen size, and
           publish a saved website revision.

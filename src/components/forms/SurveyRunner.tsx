@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import "survey-core/survey-core.min.css";
 import { Model } from "survey-core";
@@ -24,16 +24,47 @@ export function SurveyRunner({
   onComplete,
 }: {
   schema: StoredFormSchema;
-  onComplete?: (data: Record<string, unknown>) => void;
+  onComplete?: (data: Record<string, unknown>) => void | boolean | Promise<void | boolean>;
 }) {
+  const definition = JSON.stringify(toSurveyJson(schema));
   const model = useMemo(() => {
-    const survey = new Model(toSurveyJson(schema));
-    if (onComplete) {
-      survey.onComplete.add((sender) => onComplete(sender.data as Record<string, unknown>));
-    }
+    const survey = new Model(JSON.parse(definition));
+    survey.applyTheme({ cssVariables: {
+      "--sjs-font-family": "var(--admin-font, inherit)",
+      "--sjs-general-backcolor": "var(--admin-surface, var(--site-paper, var(--paper)))",
+      "--sjs-general-backcolor-dark": "var(--admin-surface-subtle, var(--site-paper, var(--paper)))",
+      "--sjs-general-backcolor-dim": "var(--admin-canvas, var(--site-surface, var(--bg)))",
+      "--sjs-general-backcolor-dim-light": "var(--admin-surface, var(--site-paper, var(--paper)))",
+      "--sjs-general-forecolor": "var(--admin-ink, var(--site-ink, var(--fg)))",
+      "--sjs-general-forecolor-light": "var(--admin-muted, var(--site-muted, var(--fg)))",
+      "--sjs-primary-backcolor": "var(--admin-action, var(--site-accent, var(--accent)))",
+      "--sjs-primary-backcolor-dark": "var(--admin-action, var(--site-accent, var(--accent)))",
+      "--sjs-primary-backcolor-light": "var(--admin-accent-soft, var(--site-paper, var(--paper)))",
+      "--sjs-primary-forecolor": "var(--admin-action-ink, var(--site-on-accent, var(--fg)))",
+      "--sjs-border-default": "var(--admin-border, currentColor)",
+      "--sjs-corner-radius": "var(--admin-control-radius, var(--site-radius, 8px))",
+      "--sjs-base-unit": "var(--admin-space-2, 8px)",
+      "--sjs-special-red": "var(--admin-danger, var(--error))",
+    } });
     return survey;
-    // Rebuild only when the definition identity changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(schema)]);
+  }, [definition]);
+  const submitting = useRef(false);
+  useEffect(() => {
+    const submit = async (sender: Model, options: { allow: boolean; message?: string }) => {
+      if (!onComplete) return;
+      if (submitting.current) { options.allow = false; return; }
+      submitting.current = true;
+      try {
+        options.allow = await onComplete(sender.data as Record<string, unknown>) !== false;
+      } catch {
+        options.allow = false;
+      } finally {
+        submitting.current = false;
+      }
+      if (!options.allow) options.message = "Your answers are preserved. Please try again.";
+    };
+    model.onCompleting.add(submit);
+    return () => model.onCompleting.remove(submit);
+  }, [model, onComplete]);
   return <SurveyComponent model={model} />;
 }
