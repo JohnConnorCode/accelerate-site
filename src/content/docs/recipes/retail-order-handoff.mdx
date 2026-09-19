@@ -1,0 +1,61 @@
+---
+title: "Assign commitments for an agreed wholesale order"
+description: "Confirm available stock; verify the delivery address; assign the shipping-date check. Keep each commitment linked to the source meeting."
+updated: "2026-09-19"
+---
+
+The buyer and retail team agree on quantities during an order-review meeting. Stock and shipment timing still need separate confirmation. Connect the meeting, customer context and follow-up tasks so the team can see what was agreed.
+
+<RecipeIngredients id="retail-order-handoff" />
+
+## Before you start
+
+Use a workspace you control with readable calendar events and **Meeting preparation** and **Meeting commitments** enabled in Plugins. Both plugins start disabled. Confirm that the meeting is stored in the workspace and choose valid task assignees.
+
+Use fictional records for the first test. The [demo workspaces](/demo/command-center) show the shared screens and simulated actions.
+
+<DocsFigure
+  src="/images/docs/plugins/meeting-commitments.png"
+  width={1440}
+  height={1000}
+  alt="Meeting commitments showing fictional follow-up tasks and a source meeting."
+  caption="The shared meeting workflow with fictional records. Check the source meeting and the saved tasks when following this example."
+/>
+
+## Work through this example
+
+**Record.** Open the wholesale order review and capture the decisions the participants actually agreed to.
+
+**Assign.** Confirm the agreed quantities; assign the stock-availability check; confirm the shipping-date update. Give each commitment a valid owner and a due date that reflects the agreement.
+
+**Check.** Review the relevant source system when confirming each detail. Complete the task after the responsible person has verified the result.
+
+## Complete the workflow
+
+1. Run **Meeting preparation** from Plugins to find upcoming, non-cancelled meetings in its 48-hour window. Open the source meeting and review the customer context.
+
+2. After the **wholesale order review**, write the agreed next steps. For this example: **Confirm the agreed quantities; assign the stock-availability check; confirm the shipping-date update**.
+
+3. Open **Meeting commitments**, select the stored meeting and enter the tasks with descriptions, due dates and valid assignees. A plan supports one to ten tasks.
+
+4. Choose **Review workflow**, then **Request approval**. Review the source meeting, owners and dates before selecting **Approve & create tasks**.
+
+5. Inspect the execution result and open the created tasks in **Tasks & approvals**. Update the tasks as the work happens and retain a useful reference to the confirmation.
+
+## Check the result
+
+Each agreed commitment appears as a saved task with an owner, due date and source meeting. The next person reviewing the wholesale order review can see what remains outstanding and who is responsible.
+
+## Adapt it for your business
+
+Keep inventory and fulfillment records in the storefront or order system. The checklist records the commitments agreed during the review.
+
+For a custom connection, use [Build an extension](/docs/extend) and the [development brief](/docs/extend/ai-authoring). Specify the source of truth, permitted data, approval policy and receipt that proves completion. Define duplicate handling and recovery before enabling writes to another system.
+
+## What to check
+
+If the meeting is missing, check the calendar connection and the source record. Enter the agreed checklist explicitly; the preparation report identifies upcoming meetings, while research or transcript extraction requires a separately implemented step. Refresh a stale preview before requesting approval.
+
+For an uncertain execution, inspect the original receipt and saved tasks before retrying with the same request identity. Keep the review required by the action policy. Restrict customer data to what the task needs, and keep sensitive records in the authorized specialist system.
+
+Hosted infrastructure and connected providers may have costs. AI conversations use your configured model. Verify the result in the source screen before relying on it.

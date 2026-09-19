@@ -28,6 +28,10 @@ export interface Service {
 
 // Industry Verticals
 export interface Vertical {
+  group?: string;
+  updatedAt?: string;
+  workflowExample?: string;
+  customBoundary?: string;
   id: string;
   slug: string;
   name: string;

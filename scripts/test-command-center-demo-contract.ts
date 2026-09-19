@@ -1,3 +1,4 @@
+import { verticals } from "../src/content/verticals";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { demoWorkflows } from "../src/content/demo-workflows";
@@ -30,8 +31,8 @@ console.log(
 );
 
 // Every industry entry must lead to a complete, actionable guide.
-assert.equal(workflowRecipes.length, 20);
-assert.equal(new Set(workflowRecipes.map((recipe) => recipe.id)).size, 20);
+assert.equal(workflowRecipes.length, verticals.length * 2);
+assert.equal(new Set(workflowRecipes.map((recipe) => recipe.id)).size, workflowRecipes.length);
 const industryCounts = new Map<string, number>();
 for (const recipe of workflowRecipes) {
   industryCounts.set(recipe.industry, (industryCounts.get(recipe.industry) ?? 0) + 1);
@@ -55,15 +56,18 @@ for (const recipe of workflowRecipes) {
     );
   }
 }
-assert.equal(industryCounts.size, 10);
+assert.equal(industryCounts.size, verticals.length);
 assert([...industryCounts.values()].every((count) => count === 2));
 console.log(
-  "Twenty recipes across ten industries link to complete guides and existing capabilities.",
+  "Two recipes per registered industry link to complete guides and existing capabilities.",
 );
 
 assert.equal(demoWorkflows.length, 3);
 assert.equal(productFaqs.length, 6);
-assert.equal(new Set(workflowRecipes.map((recipe) => recipe.description)).size, 20);
+assert.equal(
+  new Set(workflowRecipes.map((recipe) => recipe.description)).size,
+  workflowRecipes.length,
+);
 for (const workflow of demoWorkflows) {
   assert(existsSync(`public${workflow.image}`), `${workflow.id}: screenshot exists`);
   assert(workflowRecipes.some((recipe) => recipe.id === workflow.recipe));

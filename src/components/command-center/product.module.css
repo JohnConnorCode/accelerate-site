@@ -449,3 +449,27 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Give the industry decision sequence equal visual weight on wide screens. */
+@media (min-width: 1001px) {
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.faq > details {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.faq > details > summary {
+  min-height: 44px;
+  display: list-item;
+  align-content: center;
+}
+.faq > details > summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+.directoryIntro {
+  align-items: start;
+}
