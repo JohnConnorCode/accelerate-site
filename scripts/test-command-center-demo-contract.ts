@@ -1,3 +1,6 @@
+import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import { workflowRecipes } from "../src/content/workflow-recipes";
 import { validateDemoContract } from "../src/components/command-center/demo/demo-contract";
 import { capabilities, CURRENT_SURFACES } from "../src/content/command-center";
 
@@ -22,4 +25,36 @@ console.log(
     null,
     2,
   ),
+);
+
+// Every industry entry must lead to a complete, actionable guide.
+assert.equal(workflowRecipes.length, 20);
+assert.equal(new Set(workflowRecipes.map((recipe) => recipe.id)).size, 20);
+const industryCounts = new Map<string, number>();
+for (const recipe of workflowRecipes) {
+  industryCounts.set(recipe.industry, (industryCounts.get(recipe.industry) ?? 0) + 1);
+  const guide = readFileSync(`src/content/docs/recipes/${recipe.id}.mdx`, "utf8");
+  for (const section of [
+    "Before you start",
+    "Complete the workflow",
+    "Check the result",
+    "Adapt it for your business",
+    "What to check",
+  ]) {
+    assert(guide.includes(`## ${section}`), `${recipe.id}: missing ${section}`);
+  }
+  assert(guide.includes(`<RecipeIngredients id="${recipe.id}" />`));
+  assert(recipe.components.length >= 3, `${recipe.id}: compose multiple capabilities`);
+  for (const part of recipe.components) {
+    const path = `src/content${part.href}`;
+    assert(
+      existsSync(`${path}.mdx`) || existsSync(`${path}/overview.mdx`),
+      `${recipe.id}: missing ingredient guide ${part.href}`,
+    );
+  }
+}
+assert.equal(industryCounts.size, 10);
+assert([...industryCounts.values()].every((count) => count === 2));
+console.log(
+  "Twenty recipes across ten industries link to complete guides and existing capabilities.",
 );

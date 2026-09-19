@@ -1,10 +1,10 @@
 ---
 title: "Add a module"
 description: "Register a JSON manifest and the pages it names; nothing under extensions/ ever gets executed."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-A module is the unit a workspace actually turns on and off, and adding one never means touching the application's core array. You drop a JSON manifest in `extensions/` and the pages it names, and that's the whole registration surface.
+When a business needs another area of functionality, register a module so the workspace can discover it and control its availability. Add a manifest under `extensions/` and implement the routes it declares, keeping the existing core module definitions intact.
 
 ## Manifest
 

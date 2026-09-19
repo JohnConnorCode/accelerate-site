@@ -1,10 +1,10 @@
 ---
 title: "Manage tasks and approvals in Work"
 description: "The editing view over the same tasks and approvals Today shows you, with filters and full editing."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-Today is built for triage: skim the queue, act on what matters most, move on. Work, at `/admin/work`, is built for the opposite: sit with your whole task list, filter it down, and edit anything that needs a correction rather than just acting on it. Both screens read the exact same records, so a change here shows up on Today immediately and vice versa.
+A follow-up task needs a clear owner, date and result. **Tasks & approvals**, at `/admin/work`, gives you the task list and pending decisions in one place. Today draws attention to the same underlying work, while this screen lets you inspect and edit the details.
 
 <DocsFigure
   src="/images/docs/command-center/work.png"
@@ -35,7 +35,7 @@ Today is built for triage: skim the queue, act on what matters most, move on. Wo
   </Step>
 </StepByStep>
 
-Use the completion control specifically when work is actually finished. Today also offers snooze until tomorrow, and a snoozed task stays visible in Work's **Snoozed** view rather than disappearing, so nothing gets lost by deferring it. Completing a snoozed task clears the snooze and records completion against that same original task, not a new one.
+Use the completion control specifically when work is finished. Today also offers snooze until tomorrow, and a snoozed task stays visible in Work's **Snoozed** view rather than disappearing, so nothing gets lost by deferring it. Completing a snoozed task clears the snooze and records completion against that same original task, not a new one.
 
 The ownership filter is a lens for browsing, not an assignment tool: changing whose work you're looking at does not reassign anything. Assignment follows whatever workflow originally created the task, and a custom App can keep its own native queue and lifecycle entirely separate from this one.
 
@@ -43,7 +43,7 @@ The ownership filter is a lens for browsing, not an assignment tool: changing wh
 
 Open **Approvals**, select a proposal, and inspect its exact content, target, and consequence before deciding. Today and Work share the same review inspector and execution service underneath, so a decision you make here behaves identically to making it from Today. Once you decide, that pending approval clears from both views at once; it never creates a second record of the same decision.
 
-Read [approval results](/docs/command-center/approvals) before you interpret what a provider action actually did. Approval, execution, and delivery are three separate facts, and only the last one tells you a customer actually received something.
+Read [approval results](/docs/command-center/approvals) before you interpret what a provider action did. Approval, execution, and delivery are three separate facts, and only the last one tells you a customer received something.
 
 ## Checking the saved result
 
@@ -52,5 +52,5 @@ Read [approval results](/docs/command-center/approvals) before you interpret wha
 ## What to check
 
 - If saving fails, the inspector keeps whatever you typed and shows the error rather than discarding your edit; refresh the record before retrying if the operation might be stale.
-- An empty filtered list usually means your ownership or status filter is narrower than you meant, not that the workspace genuinely has no work.
+- An empty filtered list usually means your ownership or status filter is narrower than you meant, not that the workspace has no work.
 - The fictional demo uses these same screens with isolated session data. Edits, snoozes, and completions persist for that session and reset when the demo workspace resets.

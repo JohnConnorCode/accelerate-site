@@ -1,12 +1,12 @@
 ---
 title: "For agencies"
 description: "Plan one client pilot: who owns what, how to prove data stays separated, and how to hand it over."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-The fifth client you onboard should not require reinventing how the first four went. That repeatability depends on deciding, in writing, who owns the client's data, their access, their provider accounts, and their support before you import a single real record, because a verbal agreement is the thing that falls apart during a handoff eighteen months later. Use this guide to plan one client pilot before you take on more.
+A repeatable client setup needs clear ownership of data, accounts, access and support. Use this guide to plan one pilot, verify its workflow and prepare a handoff that another person can operate. Record those decisions before importing real customer information.
 
-Two words matter here and are easy to conflate. A **deployment** is the running application and its database, the thing your technical owner actually operates. A **workspace** is one business's context inside that deployment, which is what a client actually sees and uses. The shared-database architecture is built to support many workspaces in one deployment, but that separation is a property you have to verify in your own installation, not one you get for free by reading this sentence.
+Two words matter here and are easy to conflate. A **deployment** is the running application and its database, the thing your technical owner operates. A **workspace** is one business's context inside that deployment, which is what a client sees and uses. The shared-database architecture is built to support many workspaces in one deployment, but that separation is a property you have to verify in your own installation, not one you get for free by reading this sentence.
 
 <DocsFigure
   src="/images/docs/start/agencies.png"
@@ -46,13 +46,13 @@ Use two fictional workspaces and separate test users. Your technical owner shoul
 
 These checks are part of the repository's self-hosting acceptance requirements. A separate sidebar or a workspace name in the header does not prove isolation. Keep real client records out until the checks pass for your installation.
 
-Never reuse another client's provider credentials as an onboarding shortcut; verify which business actually owns the sending identity and the destination before the first external action goes out.
+Never reuse another client's provider credentials as an onboarding shortcut; verify which business owns the sending identity and the destination before the first external action goes out.
 
 ## Hand over an operation the client can run
 
 Give the client the workspace URL, named administrator, enabled workflows, provider ownership list, review routine, escalation contact, and outstanding limitations. Walk through [the daily workflow](/docs/start/daily-path) together, then have the client perform the equivalent controlled workflow themselves.
 
-Record how updates get tested and who can restore a backup, and only promise a one-click workspace export, an account transfer, or a custom role if you have actually verified your installed version implements it.
+Record how updates get tested and who can restore a backup, and only promise a one-click workspace export, an account transfer, or a custom role if you have verified your installed version implements it.
 
 ## Pause or end an engagement
 

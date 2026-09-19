@@ -1,10 +1,10 @@
 ---
 title: "Add an integration adapter"
 description: "Verify a provider's credentials, encrypt them, and turn its inbound events into canonical records."
-updated: "2026-09-12"
+updated: "2026-09-19"
 ---
 
-Connecting a new provider well means two things happening correctly every time: its credentials get verified before anything trusts them, and whatever it sends in becomes a real canonical record rather than a pile of unlinked webhook payloads. An adapter is what does both. The contract is `IntegrationAdapter` in `src/lib/revenue-os/integration-adapters.ts`.
+When a workflow needs data or actions from another service, an adapter connects that provider to the platform’s existing records and permissions. Implement the `IntegrationAdapter` contract in `src/lib/revenue-os/integration-adapters.ts` so credential checks, incoming events and supported operations have a defined owner.
 
 WhatsApp, HubSpot, Stripe and Postiz are registered adapters. OpenRouter and MCP stay outside it on purpose (tenant-scoped encryption and a server-issued key). Most new adapters will not need that exception.
 
