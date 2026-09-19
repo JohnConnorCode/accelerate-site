@@ -1,14 +1,22 @@
 ---
 title: "Modules"
 description: "Turn a whole area of the product on or off per workspace, without forking the application."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-A law firm has no use for a campaigns screen it will never touch, and a roofing company does not need a bookings calendar built for a real estate team. Rather than making every business carry every feature, the product is built as modules: self-contained areas like pipeline, campaigns, proposals, and bookings that a workspace can switch on or off without anyone touching the source code.
+A business should be able to enable the capabilities its team needs and keep optional screens out of the way. Modules control those areas of the workspace, while shared core capabilities remain available to support the connected records and workflows.
 
-A small set of core modules, command, pipeline, conversations, contacts, intelligence, and system, stay on for every workspace, because the rest of the product assumes they exist. Everything else is optional, and what you enable is what your team actually sees.
+<DocsFigure
+  src="/images/docs/workspace/integrations.png"
+  width={1440}
+  height={1000}
+  alt="Integrations, where supported workspace capabilities are configured in the fictional Northline Roofing workspace."
+  caption="Integrations, where supported workspace capabilities are configured. The real interface uses fictional demo data in this image; follow the steps below in your own workspace."
+/>
 
-## What actually happens when you turn one off
+A small set of core modules, command, pipeline, conversations, contacts, intelligence, and system, stay on for every workspace, because the rest of the product assumes they exist. Everything else is optional, and what you enable is what your team sees.
+
+## What happens when you turn one off
 
 Turning off a module is not cosmetic. Its navigation entries disappear from the sidebar, so nobody stumbles into a screen that will not work. Its admin routes show a disabled notice instead of the real page if someone bookmarks a direct link. Its API routes refuse the request outright rather than silently doing nothing. And its AI tools are marked unavailable to both the assistant and any external MCP client, so the assistant will not attempt an action your workspace has not turned on.
 

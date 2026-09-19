@@ -1,10 +1,10 @@
 ---
 title: "Conversations"
-description: "Every message from every channel, landed on the same thread, the same person, and the same deal."
-updated: "2026-09-09"
+description: "Read supported message threads with customer context, prepare a reply and check its result."
+updated: "2026-09-19"
 ---
 
-A customer emails you Monday, texts a question Wednesday, and fills out a form on your site Friday, and if those three touches live in three separate systems, whoever answers the phone on Saturday has no idea any of it happened. Conversations at `/admin/conversations` is where Gmail, inbound forms, chat leads, and transcripts all land on the same thread, the same person, and the same deal, whenever the system can actually resolve who they are.
+A useful reply depends on what the customer already asked and what your team promised. Conversations keeps supported messages with their customer and opportunity context, so the next person answering can continue the discussion. Open **Conversations** to find a thread, review its history and prepare a response.
 
 <DocsFigure
   src="/images/docs/conversations/overview.png"
@@ -14,11 +14,11 @@ A customer emails you Monday, texts a question Wednesday, and fills out a form o
   caption="Conversations in the fictional Northline Roofing workspace. This is the real interface with fictional demo data."
 />
 
-## What you actually do here
+## What you do here
 
-Read the thread with its full history, write a reply, assign a follow-up, and link the conversation to the contact and opportunity it belongs to. Filters for assignment, campaign, and follow-up state keep a genuinely busy inbox searchable instead of just long. [Replying](/docs/conversations/reply) walks through the filtering, sending, and linking in detail.
+Read the thread with its full history, write a reply, assign a follow-up, and link the conversation to the contact and opportunity it belongs to. Filters for assignment, campaign, and follow-up state keep a busy inbox searchable instead of just long. [Replying](/docs/conversations/reply) walks through the filtering, sending, and linking in detail.
 
-## How a reply actually goes out
+## How a reply goes out
 
 A reply you type yourself goes straight through the communication sender, with an idempotency key and a receipt attached so a retry can never accidentally duplicate it. A reply the assistant drafts for you is different only in that it waits as a staged proposal until you approve it; once approved, it runs through that exact same send service. See [Approvals](/docs/command-center/approvals) for how that review works.
 

@@ -1,12 +1,18 @@
 ---
 title: "Stripe subscriptions"
 description: "Create recurring plans, send customers through secure checkout, and manage renewals from the account portal."
-updated: "2026-09-13"
+updated: "2026-09-19"
 ---
 
-# Stripe subscriptions
-
 Stripe subscriptions let a workspace sell fixed recurring services without copying customer billing state into a second system. Admins create monthly or annual plans in **Subscriptions**. Each plan creates a Stripe product and price and keeps the provider IDs in the tenant-scoped billing ledger.
+
+<DocsFigure
+  src="/images/docs/plugins/subscriptions.png"
+  width={1440}
+  height={1000}
+  alt="Subscriptions, with recurring plan creation and existing sample plans in the fictional Northline Roofing workspace."
+  caption="Subscriptions, with recurring plan creation and existing sample plans. The real interface uses fictional demo data in this image; follow the steps below in your own workspace."
+/>
 
 Customers open `/t/{tenant}/subscribe`, sign in or create an account, and complete Stripe-hosted Checkout. The account page at `/t/{tenant}/account` shows the subscription, renewal date, invoices, and payment settings. Payment details stay in Stripe’s hosted billing portal.
 

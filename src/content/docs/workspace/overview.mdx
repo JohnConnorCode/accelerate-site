@@ -1,20 +1,28 @@
 ---
 title: "Workspace"
 description: "How your business gets provisioned, connected, verified, and kept running."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-Before any of the daily workflow works, something has to provision your business, connect your tools, and confirm those connections actually function, and that groundwork is what Workspace covers: tenancy, setup, settings, integrations, and the Feature Board that tracks what's still being built.
+Before relying on a workflow, the workspace needs the right people, features and connections. These guides explain how to configure that foundation and check readiness, so the team can distinguish an available capability from a connection that still needs attention.
+
+<DocsFigure
+  src="/images/docs/workspace/setup.png"
+  width={1440}
+  height={1000}
+  alt="Setup Center, with workflow readiness and recovery checks in the fictional Northline Roofing workspace."
+  caption="Setup Center, with workflow readiness and recovery checks. The real interface uses fictional demo data in this image; follow the steps below in your own workspace."
+/>
 
 [Integrations](/docs/workspace/integrations) is where providers, module switches, and your MCP key live. [Setup Center](/docs/workspace/setup) is where you connect, verify, and operate, with status that reflects this specific deployment rather than a generic checklist. [Settings](/docs/workspace/settings) holds notification preferences and the rest of your operating configuration.
 
 ## Tenants and setup
 
-`/admin/tenants` provisions workspaces and memberships; `/admin/setup` is the readiness list covering schema, providers, mail, calendar, and AI. A check that genuinely is not ready gets shown as not ready, plainly, and Setup never exposes a secret to tell you that.
+`/admin/tenants` provisions workspaces and memberships; `/admin/setup` is the readiness list covering schema, providers, mail, calendar, and AI. A check that is not ready gets shown as not ready, plainly, and Setup never exposes a secret to tell you that.
 
 ## Integrations and modules
 
-`/admin/integrations` is both the connector catalog and the module switches in one place. Provider facts shown there are evidence of an actual connection, not a promise: a planned connector never shows up looking installed when it isn't. See [Modules](/docs/start/modules) for how enabling or disabling one actually behaves.
+`/admin/integrations` is both the connector catalog and the module switches in one place. Provider facts shown there are evidence of an actual connection, not a promise: a planned connector never shows up looking installed when it isn't. See [Modules](/docs/start/modules) for how enabling or disabling one behaves.
 
 ## Settings and the Feature Board
 

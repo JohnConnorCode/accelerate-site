@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "public-platform-value-recipes",
+    slug: "public-platform-value-recipes",
+    title: "Practical workflows across the platform, demos and docs",
+    description:
+      "The Command Center page explains connected business workflows, with readable feature summaries and a demo chooser in the site's shared style. Twenty recipes across ten industries show which features and plugins to combine, how to configure them and what result to check. Documentation gives business users and builders clear starting paths and keeps existing reference links available.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
     id: "demo-workspace-design-audit",
     slug: "demo-workspace-design-audit",
     title: "A clearer contact history and a complete demo workspace",

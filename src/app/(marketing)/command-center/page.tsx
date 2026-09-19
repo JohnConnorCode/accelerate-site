@@ -8,9 +8,9 @@ import { generateFaqJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 const bundledMetadata = seoMetadata({
   title: "Command Center",
   description:
-    "See what needs you, follow the customer conversation, and move the next action forward. Command Center connects your records, approvals, and workflows in one workspace.",
+    "Connect customer context, put AI to work and build workflows around your business. Explore features, plugins and practical industry recipes.",
   ogTitle: "Command Center",
-  ogSubtitle: "Your work. One clear view.",
+  ogSubtitle: "Connect your business. Put AI to work.",
   path: "/command-center",
 });
 

@@ -1,10 +1,10 @@
 ---
 title: "Email Studio"
 description: "Edit the actual live copy, check what really sent, and write a direct one-off follow-up."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-When a customer says they never received your email, the useful next step is not resending it and hoping, it's checking exactly what your system tried to send and whether the provider actually accepted it. Open `/admin/emails` for that: three views share the page, templates, send history, and a composer for a direct follow-up.
+Use Email Studio to prepare reusable copy, investigate a send or write a direct follow-up. Open **Email Studio** at `/admin/emails`, then choose Templates, History or Composer for the task at hand.
 
 <DocsFigure
   src="/images/docs/outreach/email-studio.png"
@@ -16,12 +16,12 @@ When a customer says they never received your email, the useful next step is not
 
 ## Templates
 
-Drafts stay protected until you explicitly publish a revision, and preview and test sends use the exact same rendering path as production, so a test that looks right in the composer is genuinely the template that will go out to a customer.
+Drafts stay protected until you explicitly publish a revision, and preview and test sends use the exact same rendering path as production, so a test that looks right in the composer is the template that will go out to a customer.
 
 ## History
 
-This is what actually left the building, with each send's provider receipt attached. Open a row whenever a contact says they never got the mail; a missing provider id there tells you the send either failed outright or is still uncertain, which is a different problem than a customer's spam filter.
+Open a send to inspect its recorded status and provider receipt. Check the recipient, time and content before deciding whether to retry. A missing provider ID needs investigation; it does not establish delivery or prove that nothing was sent.
 
 ## Composer
 
-A one-off follow-up you write from this screen still goes through the same communication sender with the same idempotency key as everything else, and it still obeys [campaign](/docs/outreach/campaigns) stop rules for anyone who has unsubscribed, so a manual send can never accidentally reach someone who opted out.
+Choose the recipient, write the message and review its exact content before sending. The shared sender checks communication eligibility and records an operation identity so retrying the same request can be reconciled. Inspect the resulting status in History. If the result is uncertain, investigate that send before creating another message.
