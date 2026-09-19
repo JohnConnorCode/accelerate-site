@@ -138,7 +138,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["recipes", "overview"],
         title: "Workflow recipes for your business",
         description:
-          "Twenty practical guides to combining Command Center features and plugins across ten industries.",
+          "Practical guides to combining Command Center features and plugins for industry-specific workflows.",
       },
       ...workflowRecipes.map((recipe) => ({
         slug: ["recipes", recipe.id],

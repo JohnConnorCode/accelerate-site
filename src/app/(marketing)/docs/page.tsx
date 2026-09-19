@@ -77,7 +77,7 @@ export default function DocsLandingPage() {
           )}
         />
         <Link href="/docs/recipes" className={styles.textLink}>
-          Browse all twenty industry recipes <ArrowRight size={16} aria-hidden="true" />
+          Browse all industry recipes <ArrowRight size={16} aria-hidden="true" />
         </Link>
       </section>
       <DocsFigure

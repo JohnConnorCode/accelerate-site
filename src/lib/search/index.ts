@@ -41,6 +41,13 @@ export interface SearchEntry {
 /** Pages with no content collection behind them. */
 const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
   {
+    id: "page-chicago",
+    title: "Chicago AI consulting and business automation",
+    description: "AI consulting for Chicago and Chicagoland small businesses. Downtown headquarters at Ferris; strategy, integrations and training across Chicago and the suburbs.",
+    href: "/chicago",
+    keywords: ["chicago", "chicagoland", "suburbs", "AI consulting", "business automation", "Ferris"],
+  },
+  {
     id: "page-home",
     title: "Home",
     description:

@@ -1,3 +1,4 @@
+import { chicagoHeadquarters } from "@/content/chicago";
 import { adminDensityScript } from "@/lib/admin/density-script";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
@@ -149,6 +150,8 @@ const organizationJsonLd = identity
       "@type": "Organization",
       "@id": "https://www.acceleratewith.us/#organization",
       name: "Accelerate",
+      address: chicagoHeadquarters.postalAddress,
+      location: { "@type": "Place", name: chicagoHeadquarters.name, url: chicagoHeadquarters.url, address: chicagoHeadquarters.postalAddress },
       url: "https://www.acceleratewith.us",
       logo: {
         "@type": "ImageObject",

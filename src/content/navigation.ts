@@ -2,7 +2,7 @@ import type { NavItem } from "@/lib/types";
 import { verticals } from "@/content/verticals";
 import { FEATURED_INDUSTRY_SLUGS } from "@/content/industry-visuals";
 
-const industryLinks = verticals.map((vertical) => ({
+const industryLinks = verticals.filter((vertical) => FEATURED_INDUSTRY_SLUGS.includes(vertical.slug)).map((vertical) => ({
   label: vertical.name,
   href: `/industries/${vertical.slug}`,
 }));
@@ -19,6 +19,7 @@ const learningLinks = [
   { label: "Free downloads", href: "/resources" },
 ];
 const companyLinks = [
+  { label: "Chicago", href: "/chicago" },
   { label: "About us", href: "/about" },
   { label: "Team", href: "/team" },
   { label: "Partners", href: "/partners" },
@@ -32,10 +33,10 @@ export const navItems: NavItem[] = [
   {
     label: "Industries",
     href: "#",
-    children: FEATURED_INDUSTRY_SLUGS.map((slug) => {
+    children: [{ label: "All industries", href: "/industries" }, ...FEATURED_INDUSTRY_SLUGS.map((slug) => {
       const vertical = verticals.find((item) => item.slug === slug);
       return { label: vertical?.name ?? slug, href: `/industries/${slug}` };
-    }),
+    })],
   },
   { label: "Work", href: "/work" },
   { label: "Company", href: "/about", children: companyLinks },
@@ -62,7 +63,7 @@ export const footerLinks = [
       { label: "Self-hosting guide", href: "/docs/self-hosting" },
     ],
   },
-  { heading: "Industries", links: industryLinks },
+  { heading: "Industries", links: [...industryLinks, { label: "All industries", href: "/industries" }] },
   { heading: "Learn", links: learningLinks },
   { heading: "Company", links: [{ label: "Our work", href: "/work" }, ...companyLinks] },
 ];

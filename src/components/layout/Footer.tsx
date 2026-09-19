@@ -1,5 +1,6 @@
 "use client";
 
+import { ChicagoHeadquarters } from "@/components/sections/ChicagoHeadquarters";
 import { useState } from "react";
 import { websiteFooterContent } from "@/content/site-studio/shared";
 import { tenant } from "@/config/tenant";
@@ -54,10 +55,12 @@ export function Footer({
   content = websiteFooterContent,
   brandName = tenant.brand.name,
   logoSrc,
+  showHeadquarters = false,
 }: {
   content?: WebsiteFooter;
   brandName?: string;
   logoSrc?: string;
+  showHeadquarters?: boolean;
 }) {
   const pathname = usePathname();
   const [email, setEmail] = useState("");
@@ -114,6 +117,7 @@ export function Footer({
             <p className="text-white-secondary text-sm leading-relaxed mb-6 max-w-sm">
               {content.text}
             </p>
+            {showHeadquarters && <ChicagoHeadquarters compact />}
             <div className="flex flex-col gap-2 text-sm text-white-muted">
               {content.email && (
                 <a

@@ -2,6 +2,14 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "chicago-small-business-industries",
+    slug: "chicago-small-business-industries",
+    title: "More small-business workflows and a Chicago services hub",
+    description: "Ten additional industry guides bring the directory to twenty industries, with forty practical recipes for inquiry review and delivery handoffs. A Chicago services hub connects local businesses to consulting, custom systems, managed execution and training. Headquarters details now appear consistently, and industry pages distinguish current platform capabilities from custom integrations.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
     id: "public-platform-value-recipes",
     slug: "public-platform-value-recipes",
     title: "Practical workflows across the platform, demos and docs",

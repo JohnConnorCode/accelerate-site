@@ -184,7 +184,7 @@ export function CommandCenterPageContent() {
             )}
           />
           <Link href="/docs/recipes" className={styles.textLink}>
-            Explore all twenty recipes across ten industries{" "}
+            Explore the complete industry recipe library{" "}
             <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>

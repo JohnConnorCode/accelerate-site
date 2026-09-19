@@ -1,3 +1,4 @@
+import { distributionProfile } from "@/lib/distribution/profile";
 import { websiteThemeStyle } from "@/lib/site-studio/website-theme";
 import type { WebsiteDocument } from "@/lib/site-studio/website-document";
 import { Header } from "@/components/layout/Header";
@@ -40,7 +41,7 @@ export function MarketingChrome({
       <main id="main-content" className="flex-1">
         <PageTransition>{children}</PageTransition>
       </main>
-      <Footer content={website?.footer} brandName={website?.identity.name} logoSrc={logoSrc} />
+      <Footer showHeadquarters={!website && distributionProfile() !== "neutral"} content={website?.footer} brandName={website?.identity.name} logoSrc={logoSrc} />
       <ChatWidget />
       <Dock content={website?.dock} />
     </div>

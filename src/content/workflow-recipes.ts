@@ -541,4 +541,506 @@ export const workflowRecipes: WorkflowRecipe[] = [
     ],
     demoScenario: "common-table-network",
   },
+
+  {
+    "id": "catering-inquiry",
+    "industry": "restaurants-catering",
+    "industryName": "Restaurants & Catering",
+    "title": "Review a catering inquiry before quoting",
+    "description": "Capture event date, guest count, delivery location, budget range and dietary requirements and assign a reviewed next step.",
+    "components": [
+      {
+        "label": "Form builder",
+        "href": "/docs/plugins/form-builder"
+      },
+      {
+        "label": "Contacts",
+        "href": "/docs/contacts"
+      },
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Pipeline follow-up",
+        "href": "/docs/plugins/pipeline-watch"
+      }
+    ]
+  },
+  {
+    "id": "catering-event-handoff",
+    "industry": "restaurants-catering",
+    "industryName": "Restaurants & Catering",
+    "title": "Prepare an agreed catering event for delivery",
+    "description": "Confirm the agreed menu; verify dietary requirements with the organizer; assign delivery access confirmation. Keep each commitment attached to the agreed opportunity.",
+    "components": [
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Client onboarding",
+        "href": "/docs/plugins/client-onboarding"
+      },
+      {
+        "label": "Work",
+        "href": "/docs/command-center/work"
+      },
+      {
+        "label": "Overdue commitments",
+        "href": "/docs/plugins/commitment-watch"
+      }
+    ]
+  },
+  {
+    "id": "wholesale-inquiry",
+    "industry": "retail-ecommerce",
+    "industryName": "Retail & Ecommerce",
+    "title": "Follow a wholesale inquiry through review",
+    "description": "Capture business name, requested products, quantities, delivery deadline and destination and assign a reviewed next step.",
+    "components": [
+      {
+        "label": "Form builder",
+        "href": "/docs/plugins/form-builder"
+      },
+      {
+        "label": "Contacts",
+        "href": "/docs/contacts"
+      },
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Pipeline follow-up",
+        "href": "/docs/plugins/pipeline-watch"
+      }
+    ]
+  },
+  {
+    "id": "retail-order-handoff",
+    "industry": "retail-ecommerce",
+    "industryName": "Retail & Ecommerce",
+    "title": "Assign commitments for an agreed wholesale order",
+    "description": "Confirm available stock; verify the delivery address; assign the shipping-date check. Keep each commitment attached to the agreed opportunity.",
+    "components": [
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Client onboarding",
+        "href": "/docs/plugins/client-onboarding"
+      },
+      {
+        "label": "Work",
+        "href": "/docs/command-center/work"
+      },
+      {
+        "label": "Overdue commitments",
+        "href": "/docs/plugins/commitment-watch"
+      }
+    ]
+  },
+  {
+    "id": "salon-consultation",
+    "industry": "salons-spas",
+    "industryName": "Salons & Spas",
+    "title": "Review a salon consultation request",
+    "description": "Capture requested service, preferred consultation window and general goals and assign a reviewed next step.",
+    "components": [
+      {
+        "label": "Form builder",
+        "href": "/docs/plugins/form-builder"
+      },
+      {
+        "label": "Contacts",
+        "href": "/docs/contacts"
+      },
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Pipeline follow-up",
+        "href": "/docs/plugins/pipeline-watch"
+      }
+    ]
+  },
+  {
+    "id": "salon-follow-up",
+    "industry": "salons-spas",
+    "industryName": "Salons & Spas",
+    "title": "Assign follow-up after a service consultation",
+    "description": "Confirm the consultation outcome; assign preparation instructions; verify the agreed follow-up date. Keep each commitment attached to the agreed opportunity.",
+    "components": [
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Client onboarding",
+        "href": "/docs/plugins/client-onboarding"
+      },
+      {
+        "label": "Work",
+        "href": "/docs/command-center/work"
+      },
+      {
+        "label": "Overdue commitments",
+        "href": "/docs/plugins/commitment-watch"
+      }
+    ]
+  },
+  {
+    "id": "fitness-trial",
+    "industry": "fitness-studios",
+    "industryName": "Fitness Studios",
+    "title": "Follow a trial-session inquiry",
+    "description": "Capture training interest, preferred session window and contact preference and assign a reviewed next step.",
+    "components": [
+      {
+        "label": "Form builder",
+        "href": "/docs/plugins/form-builder"
+      },
+      {
+        "label": "Contacts",
+        "href": "/docs/contacts"
+      },
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Pipeline follow-up",
+        "href": "/docs/plugins/pipeline-watch"
+      }
+    ]
+  },
+  {
+    "id": "fitness-member-onboarding",
+    "industry": "fitness-studios",
+    "industryName": "Fitness Studios",
+    "title": "Prepare a new member onboarding checklist",
+    "description": "Confirm the chosen membership; assign orientation; check that the member received joining instructions. Keep each commitment attached to the agreed opportunity.",
+    "components": [
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Client onboarding",
+        "href": "/docs/plugins/client-onboarding"
+      },
+      {
+        "label": "Work",
+        "href": "/docs/command-center/work"
+      },
+      {
+        "label": "Overdue commitments",
+        "href": "/docs/plugins/commitment-watch"
+      }
+    ]
+  },
+  {
+    "id": "pet-service-inquiry",
+    "industry": "pet-services",
+    "industryName": "Pet Services",
+    "title": "Review a grooming or boarding inquiry",
+    "description": "Capture service type, requested dates, pet type and owner contact details and assign a reviewed next step.",
+    "components": [
+      {
+        "label": "Form builder",
+        "href": "/docs/plugins/form-builder"
+      },
+      {
+        "label": "Contacts",
+        "href": "/docs/contacts"
+      },
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Pipeline follow-up",
+        "href": "/docs/plugins/pipeline-watch"
+      }
+    ]
+  },
+  {
+    "id": "pet-service-handoff",
+    "industry": "pet-services",
+    "industryName": "Pet Services",
+    "title": "Prepare an agreed pet-service handoff",
+    "description": "Confirm service dates; assign the required-records check; verify drop-off instructions. Keep each commitment attached to the agreed opportunity.",
+    "components": [
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Client onboarding",
+        "href": "/docs/plugins/client-onboarding"
+      },
+      {
+        "label": "Work",
+        "href": "/docs/command-center/work"
+      },
+      {
+        "label": "Overdue commitments",
+        "href": "/docs/plugins/commitment-watch"
+      }
+    ]
+  },
+  {
+    "id": "repair-inquiry",
+    "industry": "auto-repair",
+    "industryName": "Auto Repair",
+    "title": "Review an auto repair inquiry",
+    "description": "Capture vehicle make and model, reported symptom, preferred callback time and general urgency and assign a reviewed next step.",
+    "components": [
+      {
+        "label": "Form builder",
+        "href": "/docs/plugins/form-builder"
+      },
+      {
+        "label": "Contacts",
+        "href": "/docs/contacts"
+      },
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Pipeline follow-up",
+        "href": "/docs/plugins/pipeline-watch"
+      }
+    ]
+  },
+  {
+    "id": "repair-job-handoff",
+    "industry": "auto-repair",
+    "industryName": "Auto Repair",
+    "title": "Prepare an approved repair job for handoff",
+    "description": "Verify customer authorization; assign the parts-availability check; confirm the agreed customer update. Keep each commitment attached to the agreed opportunity.",
+    "components": [
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Client onboarding",
+        "href": "/docs/plugins/client-onboarding"
+      },
+      {
+        "label": "Work",
+        "href": "/docs/command-center/work"
+      },
+      {
+        "label": "Overdue commitments",
+        "href": "/docs/plugins/commitment-watch"
+      }
+    ]
+  },
+  {
+    "id": "property-owner-inquiry",
+    "industry": "property-management",
+    "industryName": "Property Management",
+    "title": "Follow a property owner inquiry",
+    "description": "Capture property location, unit count, current management arrangement and desired start date and assign a reviewed next step.",
+    "components": [
+      {
+        "label": "Form builder",
+        "href": "/docs/plugins/form-builder"
+      },
+      {
+        "label": "Contacts",
+        "href": "/docs/contacts"
+      },
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Pipeline follow-up",
+        "href": "/docs/plugins/pipeline-watch"
+      }
+    ]
+  },
+  {
+    "id": "property-engagement-onboarding",
+    "industry": "property-management",
+    "industryName": "Property Management",
+    "title": "Prepare a property management engagement",
+    "description": "Confirm the signed management scope; assign the property-document request; prepare the owner kickoff. Keep each commitment attached to the agreed opportunity.",
+    "components": [
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Client onboarding",
+        "href": "/docs/plugins/client-onboarding"
+      },
+      {
+        "label": "Work",
+        "href": "/docs/command-center/work"
+      },
+      {
+        "label": "Overdue commitments",
+        "href": "/docs/plugins/commitment-watch"
+      }
+    ]
+  },
+  {
+    "id": "cleaning-quote",
+    "industry": "cleaning-companies",
+    "industryName": "Cleaning Companies",
+    "title": "Review a cleaning quote request",
+    "description": "Capture site type, approximate size, preferred frequency and access window and assign a reviewed next step.",
+    "components": [
+      {
+        "label": "Form builder",
+        "href": "/docs/plugins/form-builder"
+      },
+      {
+        "label": "Contacts",
+        "href": "/docs/contacts"
+      },
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Pipeline follow-up",
+        "href": "/docs/plugins/pipeline-watch"
+      }
+    ]
+  },
+  {
+    "id": "cleaning-service-kickoff",
+    "industry": "cleaning-companies",
+    "industryName": "Cleaning Companies",
+    "title": "Prepare a recurring cleaning service kickoff",
+    "description": "Confirm the agreed cleaning scope; assign access instructions; verify the first-service check-in. Keep each commitment attached to the agreed opportunity.",
+    "components": [
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Client onboarding",
+        "href": "/docs/plugins/client-onboarding"
+      },
+      {
+        "label": "Work",
+        "href": "/docs/command-center/work"
+      },
+      {
+        "label": "Overdue commitments",
+        "href": "/docs/plugins/commitment-watch"
+      }
+    ]
+  },
+  {
+    "id": "staffing-inquiry",
+    "industry": "staffing-recruiting",
+    "industryName": "Staffing & Recruiting",
+    "title": "Review an employer staffing inquiry",
+    "description": "Capture employer name, role types, headcount, target start date and work location and assign a reviewed next step.",
+    "components": [
+      {
+        "label": "Form builder",
+        "href": "/docs/plugins/form-builder"
+      },
+      {
+        "label": "Contacts",
+        "href": "/docs/contacts"
+      },
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Pipeline follow-up",
+        "href": "/docs/plugins/pipeline-watch"
+      }
+    ]
+  },
+  {
+    "id": "staffing-engagement",
+    "industry": "staffing-recruiting",
+    "industryName": "Staffing & Recruiting",
+    "title": "Prepare a staffing client engagement",
+    "description": "Confirm the agreed role brief; assign the hiring-manager kickoff; record the reporting cadence. Keep each commitment attached to the agreed opportunity.",
+    "components": [
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Client onboarding",
+        "href": "/docs/plugins/client-onboarding"
+      },
+      {
+        "label": "Work",
+        "href": "/docs/command-center/work"
+      },
+      {
+        "label": "Overdue commitments",
+        "href": "/docs/plugins/commitment-watch"
+      }
+    ]
+  },
+  {
+    "id": "venue-inquiry",
+    "industry": "events-venues",
+    "industryName": "Events & Venues",
+    "title": "Review an event or venue inquiry",
+    "description": "Capture event date, guest count, event type, layout needs and budget range and assign a reviewed next step.",
+    "components": [
+      {
+        "label": "Form builder",
+        "href": "/docs/plugins/form-builder"
+      },
+      {
+        "label": "Contacts",
+        "href": "/docs/contacts"
+      },
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Pipeline follow-up",
+        "href": "/docs/plugins/pipeline-watch"
+      }
+    ]
+  },
+  {
+    "id": "event-planning-handoff",
+    "industry": "events-venues",
+    "industryName": "Events & Venues",
+    "title": "Assign agreed event planning commitments",
+    "description": "Confirm the agreed event scope; assign supplier access checks; verify the organizer\u2019s next planning deadline. Keep each commitment attached to the agreed opportunity.",
+    "components": [
+      {
+        "label": "Pipeline",
+        "href": "/docs/pipeline"
+      },
+      {
+        "label": "Client onboarding",
+        "href": "/docs/plugins/client-onboarding"
+      },
+      {
+        "label": "Work",
+        "href": "/docs/command-center/work"
+      },
+      {
+        "label": "Overdue commitments",
+        "href": "/docs/plugins/commitment-watch"
+      }
+    ]
+  }
+
 ];
