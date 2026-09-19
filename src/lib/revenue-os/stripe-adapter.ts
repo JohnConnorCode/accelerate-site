@@ -4,8 +4,26 @@ import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { decryptTenantSecret } from "./encryption";
 import { isModuleEnabled } from "./modules";
 import type { IntegrationAdapter } from "./integration-adapters";
+import type { ExtsvcAdapterContract } from "./extsvc-adapter-contract";
 
 export const STRIPE_API_VERSION = "2025-06-30.basil";
+const stripeOrigin = {
+  baseUrl: "https://api.stripe.com/v1",
+  apiVersion: STRIPE_API_VERSION,
+  maxResponseBytes: 262144,
+  timeoutMs: 12000,
+  supportsIdempotencyKeys: true,
+};
+const stripeTransport = {
+  maxResponseBytes: stripeOrigin.maxResponseBytes,
+  timeoutMs: stripeOrigin.timeoutMs,
+  followRedirects: false,
+  cache: "no-store" as const,
+};
+const stripeCredentials: ExtsvcAdapterContract["credentialFields"] = [
+  { formField: "apiKey", encryptedKey: "api_key", required: true },
+  { formField: "webhookSecret", encryptedKey: "webhook_secret", required: false },
+];
 type StripeObject = Record<string, unknown>;
 export function stripeKeyMode(value: string): "test" | "live" {
   const match = value.match(/^(?:rk|sk)_(test|live)_[A-Za-z0-9]{10,200}$/);
@@ -20,7 +38,7 @@ async function stripeRequest(
   body?: URLSearchParams,
   idempotencyKey?: string,
 ): Promise<{ object: StripeObject; requestId: string | null }> {
-  const response = await fetch(`https://api.stripe.com/v1${path}`, {
+  const response = await fetch(`${stripeOrigin.baseUrl}${path}`, {
     method: body ? "POST" : "GET",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -29,8 +47,8 @@ async function stripeRequest(
       ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
     body: body?.toString(),
-    signal: AbortSignal.timeout(12000),
-    cache: "no-store",
+    signal: AbortSignal.timeout(stripeTransport.timeoutMs),
+    cache: stripeTransport.cache,
     redirect: "error",
   });
   const reader = response.body?.getReader();
@@ -42,7 +60,7 @@ async function stripeRequest(
       const chunk = await reader.read();
       if (chunk.done) break;
       size += chunk.value.byteLength;
-      if (size > 262144) {
+      if (size > stripeTransport.maxResponseBytes) {
         await reader.cancel();
         throw new Error("Stripe response exceeded its bound");
       }
@@ -60,14 +78,18 @@ async function stripeRequest(
     throw new Error("Stripe response was not an object");
   return { object: parsed as StripeObject, requestId: response.headers.get("request-id") };
 }
-export const stripeAdapter: IntegrationAdapter = {
+export const stripeAdapter: IntegrationAdapter & ExtsvcAdapterContract = {
   id: "stripe",
   name: "Stripe",
   category: "crm",
-  credentialFields: [
-    { formField: "apiKey", encryptedKey: "api_key" },
-    { formField: "webhookSecret", encryptedKey: "webhook_secret" },
-  ],
+  origin: stripeOrigin,
+  transport: stripeTransport,
+  versionPin: {
+    project: "stripe-api",
+    version: STRIPE_API_VERSION,
+    reviewedAt: "2026-09-19T00:00:00.000Z",
+  },
+  credentialFields: stripeCredentials,
   async verify(credentials) {
     try {
       const apiKey = typeof credentials.apiKey === "string" ? credentials.apiKey : "";

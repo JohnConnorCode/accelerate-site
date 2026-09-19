@@ -1,22 +1,10 @@
 import type { Metadata } from "next";
 import { PublicFormView } from "@/components/forms/PublicFormView";
-import type { StoredFormSchema } from "@/lib/revenue-os/form-builder";
+import { readPublicForm } from "@/lib/revenue-os/form-builder";
+import { cache } from "react";
 
-type PublicFormPayload = { name: string; description: string; schema: StoredFormSchema };
-
-async function fetchForm(token: string): Promise<PublicFormPayload | null> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://www.acceleratewith.us";
-  try {
-    const response = await fetch(`${baseUrl}/api/public/forms/${encodeURIComponent(token)}`, {
-      cache: "no-store",
-    });
-    if (!response.ok) return null;
-    return (await response.json()) as PublicFormPayload;
-  } catch {
-    return null;
-  }
-}
+export const dynamic = "force-dynamic";
+const fetchForm = cache((token: string) => readPublicForm(token).catch(() => null));
 
 export async function generateMetadata({
   params,
@@ -40,7 +28,7 @@ export default async function PublicFormPage({ params }: { params: Promise<{ tok
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Form not found</h1>
-          <p className="mt-2 text-sm text-[var(--admin-muted)]">
+          <p className="mt-2 text-sm text-[var(--site-muted,var(--mid))]">
             This link may have been unpublished or removed.
           </p>
         </div>
@@ -49,12 +37,12 @@ export default async function PublicFormPage({ params }: { params: Promise<{ tok
   }
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-6 py-12">
-      <p className="text-xs uppercase tracking-wider text-[var(--admin-muted)]">
+      <p className="text-xs uppercase tracking-wider text-[var(--site-muted,var(--mid))]">
         Share your details
       </p>
       <h1 className="mt-2 text-3xl font-bold">{form.name}</h1>
       {form.description && (
-        <p className="mt-2 text-sm text-[var(--admin-muted)]">{form.description}</p>
+        <p className="mt-2 text-sm text-[var(--site-muted,var(--mid))]">{form.description}</p>
       )}
       <main className="mt-8">
         <PublicFormView token={token} schema={form.schema} />

@@ -1,5 +1,10 @@
 # Model Context Protocol (MCP) Integration Guide
 
+This guide covers workspace MCP connections. For owner-delegated website
+execution from ChatGPT, use the separately scoped
+[Site Studio OAuth guide](SITE-STUDIO-CHATGPT.md). Ordinary workspace keys and
+the local runner do not receive that delegation or gain direct editor execution.
+
 Accelerate Revenue OS includes an authoritative **Model Context Protocol (MCP)** server. It speaks the handshake-based ("legacy," in the [MCP spec's own current terminology](https://modelcontextprotocol.io/specification/versioning)) `initialize` lifecycle and negotiates whichever of `2025-06-18`, `2025-03-26`, or `2024-11-05` a connecting client requests, over the Streamable HTTP transport.
 
 This allows external AI clients, including **Claude Desktop**, **Claude Code**, **ChatGPT** (native Connectors), **Cursor**, and **Google Antigravity**, to securely read bounded workspace state and stage actionable proposals into the operator's review queue.

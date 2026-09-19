@@ -9,14 +9,14 @@ export const WEBSITE_STARTERS = [
 export type WebsiteStarter = (typeof WEBSITE_STARTERS)[number]["id"];
 export function createWebsitePage(
   website: WebsiteDocument,
-  input: { title: string; path: string; starter: WebsiteStarter; cloneId?: string },
+  input: { title: string; path: string; starter: WebsiteStarter; cloneId?: string; id?: string },
 ): WebsitePage {
   const source = input.cloneId
     ? website.pages.find((page) => page.id === input.cloneId)
     : undefined;
   if (input.cloneId && !source) throw new Error("The page to clone is no longer available.");
   const title = input.title.trim();
-  const id = `page-${crypto.randomUUID().slice(0, 12)}`;
+  const id = input.id ?? `page-${crypto.randomUUID().slice(0, 12)}`;
   const document = servicePageTemplate({
     serviceName: title,
     audience: website.identity.name,

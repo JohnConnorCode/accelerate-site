@@ -87,6 +87,24 @@ authorize enabling it or allowing the AI to grant itself privileges.
 
 ## Coverage and contributor gate
 
+### Scoped Site Studio standing delegation
+
+The installation owner can explicitly grant a pre-registered native OAuth client
+30 days of installation-wide website authority at `/admin/site/connect`.
+`/api/mcp/site-studio` exposes only the five typed editor tools. They reuse the
+website command service, exact preview, durable proposal, optimistic version
+checks and transactional receipts. Execution verifies the live owner, session,
+native grant, local delegation and module state. Existing workspace bearer keys
+do not gain this authority. Connection approval, renewal and revocation remain
+secure human handoffs and are never model-callable.
+
+Client confirmation is requested before execution, but it is not cryptographic
+proof of a separate human approval for each call. Receipts truthfully identify
+standing delegated execution and do not fill in fabricated human approval fields.
+The owner can revoke this authority. See the
+[setup and verification guide](../self-hosting/SITE-STUDIO-CHATGPT.md), including
+the native token-hook compatibility warning and required live-client release checks.
+
 The live Feature Board owns implementation status and dependencies. Start with
 `universal-admin-ai-parity-foundation` and its linked domain work. A domain card
 must enumerate business operations inside each route, server action and client

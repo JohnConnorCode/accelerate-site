@@ -85,6 +85,7 @@
     "NEXT_PUBLIC_DISTRIBUTION_PROFILE": "neutral"
   },
   "includePaths": [
+    "src/content/command-center-contract.ts",
     "src/content/docs/",
     "src/content/intake-questions.ts",
     "src/content/integrations.ts"

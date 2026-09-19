@@ -57,6 +57,9 @@ NEXT_PUBLIC_META_PIXEL_ID=
 NEXT_PUBLIC_GSC_VERIFICATION=
 
 # Optional integrations and project-scoped agent access.
+# Pre-registered client UUIDs, not secrets. Follow docs/self-hosting/SITE-STUDIO-CHATGPT.md
+# before enabling the native OAuth token hook or delegating website publication.
+SITE_STUDIO_OAUTH_CLIENT_IDS=
 POSTIZ_ORIGIN=
 WORK_BOARD_URL=
 WORK_BOARD_TOKEN=

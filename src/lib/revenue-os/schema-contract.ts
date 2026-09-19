@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-25.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-25.2";
 
 export const TENANT_SCOPED_TABLES = [
   "today_view_proposals",
@@ -20,6 +20,7 @@ export const TENANT_SCOPED_TABLES = [
   "site_websites",
   "site_website_revisions",
   "site_website_receipts",
+  "site_editor_delegations",
   "site_drafts",
   "site_draft_revisions",
   "radar_current_assessments",
@@ -191,6 +192,19 @@ const BASE_REVENUE_SCHEMA_TABLES = [
   {
     table: "site_website_receipts",
     columns: ["request_key", "request_hash", "receipt", "created_at"],
+  },
+  {
+    table: "site_editor_delegations",
+    columns: [
+      "id",
+      "tenant_id",
+      "user_id",
+      "client_id",
+      "resource",
+      "created_at",
+      "expires_at",
+      "revoked_at",
+    ],
   },
   {
     table: "site_drafts",
@@ -666,7 +680,7 @@ export const REVENUE_SCHEMA_TABLES = [
   },
   {
     table: "form_submission_commands",
-    columns: ["tenant_id", "request_id", "result", "created_at"],
+    columns: ["tenant_id", "request_id", "request_hash", "result", "created_at"],
   },
   {
     table: "tenants",
@@ -787,6 +801,30 @@ export const REVENUE_SCHEMA_INDEXES = [
 ] as const;
 
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
+  {
+    name: "public.record_form_submission(text,uuid,jsonb,jsonb,text,text)",
+    migration: "migrations/20260919203846_form_submission_safety.sql",
+  },
+  {
+    name: "public.write_form_definition(text,uuid,timestamp with time zone,jsonb,text)",
+    migration: "migrations/20260919204344_form_definition_commands.sql",
+  },
+  {
+    name: "public.review_form_submission(uuid,text,uuid,text)",
+    migration: "migrations/20260919211809_form_review_commands.sql",
+  },
+  {
+    name: "public.manage_site_editor_delegation(text,uuid,text,text,text,uuid)",
+    migration: "migrations/20260919210534_site_editor_delegation.sql",
+  },
+  {
+    name: "public.authorize_site_editor_delegation(uuid,uuid,text,uuid)",
+    migration: "migrations/20260919210534_site_editor_delegation.sql",
+  },
+  {
+    name: "public.execute_delegated_site_change(uuid,uuid,text,uuid,uuid,text,text,text,jsonb)",
+    migration: "migrations/20260919210534_site_editor_delegation.sql",
+  },
   {
     name: "public.write_site_website(text,uuid,integer,uuid,jsonb,text)",
     migration: "migrations/20260912152325-site-studio-verified-host-writes.sql",

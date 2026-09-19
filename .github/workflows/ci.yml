@@ -196,6 +196,10 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
+          npm run test:form-builder
+          npm run test:site-editor
+          PATH="$(pg_config --bindir):$PATH" npm run test:form-builder:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:site-editor:postgres
 
       - name: Verify Social Marketing adapter and publication transactions
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}

@@ -27,6 +27,10 @@ const tenantScopedTableSet = new Set<string>(TENANT_SCOPED_TABLES);
 const ENTITY_REGISTRY_MIGRATION = "migrations/20260904-entity-registry-link-graph.sql";
 const DELIVERY_HANDOFF_MIGRATION = "migrations/20260905-delivery-handoff.sql";
 const releaseMigration = (table: string, column?: string) => {
+  if (table === "site_editor_delegations")
+    return "migrations/20260919210534_site_editor_delegation.sql";
+  if (table === "form_submission_commands" && column === "request_hash")
+    return "migrations/20260919203846_form_submission_safety.sql";
   if (
     [
       "billing_plans",

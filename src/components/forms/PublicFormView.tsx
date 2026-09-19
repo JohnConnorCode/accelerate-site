@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { SurveyRunner } from "./SurveyRunner";
 import type { StoredFormSchema } from "@/lib/revenue-os/form-builder";
 
@@ -8,12 +8,13 @@ export function PublicFormView({ token, schema }: { token: string; schema: Store
   const [done, setDone] = useState(false);
   const [failed, setFailed] = useState(false);
   const [website, setWebsite] = useState("");
+  const attempt = useRef<{ body: string; requestId: string } | null>(null);
 
   if (done) {
     return (
-      <div className="rounded-2xl border border-[var(--admin-border)] p-8 text-center">
+      <div className="rounded-[var(--site-radius,1rem)] border border-[var(--rule)] p-8 text-center">
         <h2 className="text-lg font-semibold">Thanks, your response was recorded.</h2>
-        <p className="mt-2 text-sm text-[var(--admin-muted)]">
+        <p className="mt-2 text-sm text-[var(--site-muted,var(--mid))]">
           The team reviews every response and follows up when needed.
         </p>
       </div>
@@ -23,7 +24,10 @@ export function PublicFormView({ token, schema }: { token: string; schema: Store
   return (
     <div>
       {failed && (
-        <p className="mb-4 rounded-xl border border-red-300 p-3 text-sm" role="alert">
+        <p
+          className="mb-4 rounded-[var(--site-radius,1rem)] border border-[var(--error)] p-3 text-sm"
+          role="alert"
+        >
           Your response could not be recorded. Check your answers and try again.
         </p>
       )}
@@ -31,20 +35,28 @@ export function PublicFormView({ token, schema }: { token: string; schema: Store
         schema={schema}
         onComplete={async (data) => {
           setFailed(false);
+          const body = JSON.stringify(data, Object.keys(data).sort());
+          if (attempt.current?.body !== body)
+            attempt.current = { body, requestId: crypto.randomUUID() };
           try {
             const response = await fetch(`/api/public/forms/${encodeURIComponent(token)}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 response: data,
-                requestId: crypto.randomUUID(),
+                requestId: attempt.current.requestId,
                 website: website || undefined,
               }),
             });
-            if (!response.ok) setFailed(true);
-            else setDone(true);
+            if (!response.ok) {
+              setFailed(true);
+              return false;
+            }
+            setDone(true);
+            return true;
           } catch {
             setFailed(true);
+            return false;
           }
         }}
       />
