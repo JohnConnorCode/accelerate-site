@@ -8,6 +8,7 @@ import {
   type DemoScenarioId,
 } from "@/lib/admin/demo/scenarios";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
+import { WorkflowShowcase } from "@/components/command-center/WorkflowShowcase";
 import styles from "@/components/command-center/product.module.css";
 
 export const metadata: Metadata = {
@@ -23,17 +24,17 @@ const previews: Record<
 > = {
   "northline-roofing": {
     task: "Keep a customer inquiry connected to the next job.",
-    image: "slide-today-paper.png",
-    screen: "Today",
+    image: "northline-conversations.png",
+    screen: "Conversations",
     explore: [
-      "Review the day’s priorities",
+      "Read a homeowner’s request",
       "Open a customer conversation",
       "Inspect an opportunity and its next action",
     ],
   },
   "alder-ridge-law": {
     task: "Follow an inquiry with the client’s context in view.",
-    image: "slide-pipeline-night.png",
+    image: "alder-pipeline.png",
     screen: "Pipeline",
     explore: [
       "Explore the firm’s pipeline",
@@ -43,42 +44,42 @@ const previews: Record<
   },
   "ledgerstone-advisory": {
     task: "Coordinate client work and the commitments behind it.",
-    image: "slide-features-signal.png",
-    screen: "Feature Board",
+    image: "ledgerstone-onboarding.png",
+    screen: "Client onboarding",
     explore: [
       "Review client records",
       "Inspect tasks and upcoming commitments",
-      "Explore the workspace’s feature board",
+      "Create a reviewed onboarding checklist",
     ],
   },
   "hearthline-realty": {
     task: "Keep buyer conversations and business activity connected.",
-    image: "slide-analytics-studio.png",
-    screen: "Analytics",
+    image: "hearthline-pipeline.png",
+    screen: "Pipeline",
     explore: [
       "Explore the buyer pipeline",
       "Review the next customer action",
-      "Inspect analytics and source records",
+      "Check the context behind a buyer’s next step",
     ],
   },
   "common-table-network": {
     task: "Bring community relationships and shared work together.",
-    image: "slide-ai-frost.png",
-    screen: "AI Workspace",
+    image: "common-table-commitments.png",
+    screen: "Meeting commitments",
     explore: [
       "Explore supporter records",
-      "Try a simulated AI conversation",
+      "Turn meeting commitments into tasks",
       "Review community follow-up tasks",
     ],
   },
   superdebate: {
-    task: "Coordinate the people and work behind a learning community.",
-    image: "",
-    screen: "Today",
+    task: "Review customer billing alongside the work it supports.",
+    image: "superdebate-invoicing.png",
+    screen: "Invoicing",
     explore: [
       "Explore community relationships",
       "Review the day’s work",
-      "Inspect the context behind a task",
+      "Prepare and review a fictional invoice",
     ],
   },
 };
@@ -108,17 +109,26 @@ export default function AdminDemoLauncher() {
                 simulated.
               </p>
               <div className={styles.actions}>
-                <a href="#business-demos" className={styles.primary}>
-                  Choose your demo <ArrowRight size={16} aria-hidden="true" />
+                <a href="#workflows" className={styles.primary}>
+                  Try a complete workflow <ArrowRight size={16} aria-hidden="true" />
                 </a>
-                <Link href="/docs/recipes" className={styles.secondary}>
-                  Find a workflow recipe
+                <Link href="#business-demos" className={styles.secondary}>
+                  Browse all six businesses
                 </Link>
               </div>
             </div>
           </div>
         </div>
       </header>
+      <section className={styles.section} id="workflows" aria-labelledby="demo-workflows-title">
+        <div className="wrap">
+          <p className="label">Three ways to try it</p>
+          <h2 className={styles.heading} id="demo-workflows-title">
+            Follow the work through to its result.
+          </h2>
+          <WorkflowShowcase />
+        </div>
+      </section>
       <section
         className={styles.section}
         id="business-demos"
@@ -137,7 +147,7 @@ export default function AdminDemoLauncher() {
               workspace and explore freely.
             </p>
           </div>
-          <div className={styles.grid}>
+          <div className={styles.demoGrid}>
             {DEMO_SCENARIO_SUMMARIES.map((scenario) => {
               const preview = previews[scenario.id];
               return (
@@ -151,33 +161,18 @@ export default function AdminDemoLauncher() {
                   </div>
                   <h3>{DEMO_SCENARIO_SHELL_NAMES[scenario.id]}</h3>
                   <p>{preview.task}</p>
-                  {preview.image ? (
-                    <figure className={styles.figure}>
-                      <Image
-                        src={`/images/open-source/${preview.image}`}
-                        alt={`${preview.screen} in the fictional ${scenario.name} workspace.`}
-                        width={1400}
-                        height={875}
-                        sizes="(max-width: 760px) 100vw, 600px"
-                      />
-                      <figcaption className={styles.note}>
-                        {preview.screen} · Real interface with fictional data
-                      </figcaption>
-                    </figure>
-                  ) : (
-                    <figure className={styles.figure}>
-                      <Image
-                        src="/images/demo/superdebate-today.png"
-                        alt="Today in the fictional SuperDebate workspace."
-                        width={1440}
-                        height={1000}
-                        sizes="(max-width: 760px) 100vw, 600px"
-                      />
-                      <figcaption className={styles.note}>
-                        Today · Real interface with fictional data
-                      </figcaption>
-                    </figure>
-                  )}
+                  <figure className={styles.figure}>
+                    <Image
+                      src={`/images/demo/${preview.image}`}
+                      alt={`${preview.screen} in the fictional ${scenario.name} workspace.`}
+                      width={1440}
+                      height={1000}
+                      sizes="(max-width: 760px) 100vw, 400px"
+                    />
+                    <figcaption className={styles.note}>
+                      {preview.screen} · Fictional demo data
+                    </figcaption>
+                  </figure>
                   <ul aria-label={`Things to try in ${scenario.name}`}>
                     {preview.explore.map((task) => (
                       <li key={task}>{task}</li>

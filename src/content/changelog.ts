@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "public-platform-value-recipes",
     title: "Practical workflows across the platform, demos and docs",
     description:
-      "The Command Center page explains connected business workflows, with readable feature summaries and a demo chooser in the site's shared style. Twenty recipes across ten industries show which features and plugins to combine, how to configure them and what result to check. Documentation gives business users and builders clear starting paths and keeps existing reference links available.",
+      "The Command Center page explains connected business workflows, with readable feature summaries, implementation options and a demo chooser in the site's shared style. Three guided demos show an inquiry reply, an onboarding checklist and a simulated invoice, including the result to check. Twenty recipes across ten industries show which features and plugins to combine, how to configure them and what result to check. Documentation gives business users and builders clear starting paths and keeps existing reference links available.",
     category: "improvement",
     publishedAt: "2026-09-19",
   },

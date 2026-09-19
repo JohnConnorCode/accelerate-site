@@ -170,7 +170,7 @@ for (const file of [
   } else
     assert.match(
       readFileSync(file, "utf8"),
-      /href="\/demo\/command-center"/,
+      /href="\/demo\/command-center(?:#workflows)?"/,
       `${file}: public full-admin demo link is missing`,
     );
   assert.doesNotMatch(

@@ -1,12 +1,10 @@
 ---
 title: "Review a quote inquiry and assign follow-up"
-description: "Combine reviewed intake, customer records and pipeline follow-up to give every inquiry a clear next step."
+description: "Review an insurance inquiry and assign a licensed specialist to confirm the next conversation."
 updated: "2026-09-19"
 ---
 
 A customer asks about cover and the team needs to route the inquiry to the appropriate person. Keep the contact, broad request and next conversation together.
-
-This recipe uses existing capabilities in sequence, so your team can keep the source context while assigning the work that follows. Start with one fictional example and check its saved result before adapting it to your operation.
 
 <RecipeIngredients id="insurance-inquiry" />
 
@@ -24,9 +22,19 @@ Explore the [fictional workspaces](/demo/command-center) to see the shared inter
   caption="The shared pipeline workflow with fictional demo data. Use the source record and saved result to follow the example; this image is not a live customer result."
 />
 
+## Work through this example
+
+A fictional business owner asks about renewing coverage and provides a renewal month. The agency needs to route the inquiry to the right person.
+
+**Capture.** Name, email, broad coverage category, renewal month and preferred callback time.
+
+**Decide.** Assign the appropriate licensed specialist to review the request in the agency’s established process.
+
+**Hand off.** Record the next conversation and owner while keeping policy, quotation and binding decisions in the approved system.
+
 ## Complete the workflow
 
-1. Open **Forms** and create a draft called **Insurance quote inquiry**. Include contact email, broad product category and callback preference.
+1. Include a name and usable email address so the reviewed response can be linked to a customer. Open **Forms** and create a draft called **Insurance quote inquiry**. Include contact email, broad product category and callback preference.
 
 2. Preview the form, save it and publish its share link. Submit one fictional example through that link before using it with customers.
 
@@ -44,7 +52,7 @@ The accepted response is represented in the pipeline with the correct customer c
 
 Connect an agency-management system through an adapter; quoting, underwriting and eligibility decisions require their own implemented services.
 
-Give a developer or coding assistant the business outcome, the records it should use, who may act and what successful completion looks like. Reuse the shared identity, permissions, task services and action results. Follow [Build an extension](/docs/extend) and [Write an AI development brief](/docs/extend/ai-authoring) when the change needs code. This recipe is a guide to composition; it does not install a workflow or add a new connector.
+For a coded variation, use [Build an extension](/docs/extend) and include this example’s decision, owner and completion check in your [development brief](/docs/extend/ai-authoring). Keep customer identity and task history in the shared services.
 
 ## What to check
 

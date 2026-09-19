@@ -18,7 +18,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Home services",
     title: "Follow a roofing inquiry through to an estimate",
     description:
-      "Combine reviewed intake, customer records and pipeline follow-up to give every inquiry a clear next step.",
+      "Turn a roof inspection request into an owned opportunity with property context and a clear callback.",
     components: [
       {
         label: "Form builder",
@@ -45,7 +45,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Home services",
     title: "Prepare the team for a newly won job",
     description:
-      "Combine a won opportunity, Client onboarding and shared tasks to prepare a clear delivery handoff.",
+      "Use a won roofing job to assign site access, materials and start-date checks before the crew arrives.",
     components: [
       {
         label: "Pipeline",
@@ -72,7 +72,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Law firms",
     title: "Review a consultation inquiry",
     description:
-      "Combine reviewed intake, customer records and pipeline follow-up to give every inquiry a clear next step.",
+      "Review a legal consultation inquiry and assign the next contact while preserving the firm’s intake process.",
     components: [
       {
         label: "Form builder",
@@ -99,7 +99,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Law firms",
     title: "Assign the next steps after a consultation",
     description:
-      "Combine meeting preparation, an agreed checklist and shared tasks to keep commitments visible.",
+      "Turn agreed consultation next steps into assigned document requests and appointment follow-ups.",
     components: [
       {
         label: "Calendar connection",
@@ -126,7 +126,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Professional services",
     title: "Start a client engagement with a shared checklist",
     description:
-      "Combine a won opportunity, Client onboarding and shared tasks to prepare a clear delivery handoff.",
+      "Assign access requests, an engagement owner and kickoff preparation from a won advisory engagement.",
     components: [
       {
         label: "Pipeline",
@@ -153,7 +153,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Professional services",
     title: "Review outstanding invoices and prepare follow-up",
     description:
-      "Combine invoice evidence, customer context and reviewed reminders to decide the next collection action.",
+      "Review an overdue advisory invoice, customer context and payment evidence before preparing a reminder.",
     components: [
       {
         label: "Contacts",
@@ -180,7 +180,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Real estate",
     title: "Keep a buyer inquiry moving",
     description:
-      "Combine reviewed intake, customer records and pipeline follow-up to give every inquiry a clear next step.",
+      "Keep a property buyer’s preferences and next viewing follow-up attached to one opportunity.",
     components: [
       {
         label: "Form builder",
@@ -206,8 +206,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industry: "real-estate",
     industryName: "Real estate",
     title: "Prepare for an appointment and assign follow-up",
-    description:
-      "Combine meeting preparation, an agreed checklist and shared tasks to keep commitments visible.",
+    description: "Assign the questions and next appointments agreed during a property viewing.",
     components: [
       {
         label: "Calendar connection",
@@ -234,7 +233,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Manufacturing",
     title: "Review a quote request and its next action",
     description:
-      "Combine reviewed intake, customer records and pipeline follow-up to give every inquiry a clear next step.",
+      "Collect quantity, specification and delivery needs before assigning a manufacturing quote review.",
     components: [
       {
         label: "Form builder",
@@ -260,7 +259,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Manufacturing",
     title: "Track commitments from a customer delivery meeting",
     description:
-      "Combine meeting preparation, an agreed checklist and shared tasks to keep commitments visible.",
+      "Turn an order review into assigned specification, material and delivery confirmations.",
     components: [
       {
         label: "Calendar connection",
@@ -286,7 +285,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Startups",
     title: "Review new customer inquiries and follow-up",
     description:
-      "Combine reviewed intake, customer records and pipeline follow-up to give every inquiry a clear next step.",
+      "Connect a software evaluation inquiry to an owner, use case and next product discussion.",
     components: [
       {
         label: "Form builder",
@@ -312,7 +311,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Startups",
     title: "Give a new customer a clear kickoff",
     description:
-      "Combine a won opportunity, Client onboarding and shared tasks to prepare a clear delivery handoff.",
+      "Create an implementation checklist for a won software customer with access, ownership and acceptance steps.",
     components: [
       {
         label: "Pipeline",
@@ -338,7 +337,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Medical and dental",
     title: "Review a general appointment inquiry",
     description:
-      "Combine reviewed intake, customer records and pipeline follow-up to give every inquiry a clear next step.",
+      "Route an administrative practice inquiry to the right coordinator with a clear follow-up.",
     components: [
       {
         label: "Form builder",
@@ -364,7 +363,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Medical and dental",
     title: "Track administrative meeting commitments",
     description:
-      "Combine meeting preparation, an agreed checklist and shared tasks to keep commitments visible.",
+      "Assign the operational follow-ups agreed in a practice meeting while keeping clinical records in their existing system.",
     components: [
       {
         label: "Calendar connection",
@@ -390,7 +389,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Insurance agencies",
     title: "Review a quote inquiry and assign follow-up",
     description:
-      "Combine reviewed intake, customer records and pipeline follow-up to give every inquiry a clear next step.",
+      "Review an insurance inquiry and assign a licensed specialist to confirm the next conversation.",
     components: [
       {
         label: "Form builder",
@@ -416,7 +415,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Insurance agencies",
     title: "Prepare an engagement onboarding checklist",
     description:
-      "Combine a won opportunity, Client onboarding and shared tasks to prepare a clear delivery handoff.",
+      "Assign the service handoff for an agreed insurance engagement, including document and contact checks.",
     components: [
       {
         label: "Pipeline",
@@ -442,7 +441,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Auto dealers",
     title: "Track a vehicle inquiry and the next conversation",
     description:
-      "Combine reviewed intake, customer records and pipeline follow-up to give every inquiry a clear next step.",
+      "Keep a vehicle inquiry, availability check and appointment follow-up together for the sales team.",
     components: [
       {
         label: "Form builder",
@@ -468,7 +467,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Auto dealers",
     title: "Assign customer handoff commitments",
     description:
-      "Combine meeting preparation, an agreed checklist and shared tasks to keep commitments visible.",
+      "Prepare a sold vehicle’s handoff with assigned preparation, document and collection checks.",
     components: [
       {
         label: "Calendar connection",
@@ -494,7 +493,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Nonprofits",
     title: "Review volunteer and partner interest",
     description:
-      "Combine reviewed intake, customer records and pipeline follow-up to give every inquiry a clear next step.",
+      "Review a volunteer or supporter inquiry and assign an appropriate program follow-up.",
     components: [
       {
         label: "Form builder",
@@ -521,7 +520,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     industryName: "Nonprofits",
     title: "Turn program meetings into assigned commitments",
     description:
-      "Combine meeting preparation, an agreed checklist and shared tasks to keep commitments visible.",
+      "Turn a program planning meeting into assigned venue, volunteer and communication tasks.",
     components: [
       {
         label: "Calendar connection",

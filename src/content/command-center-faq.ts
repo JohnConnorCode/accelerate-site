@@ -82,7 +82,7 @@ export const commandCenterFaqs: FAQ[] = [
       "It keeps supplied sources, reviewed business opportunities, relationship evidence, and drafts together, and you review exact changes before anything saves. Source briefing can use a model budget you set explicitly, with spending off by default. Reviewed outreach uses the configured sender only after an exact human approval, with cooldowns and receipt recovery. Automated discovery, publication, and verified outcome measurement are still being built. The fictional demo lets you try the review workflow without provider calls.",
   },
   {
-    question: "What stops it doing something stupid on my behalf?",
+    question: "How do we control what AI can do?",
     answer:
       "AI-proposed changes go through the shared approval process. You review the target and exact change, and execution checks current permissions and source state. External sends and other consequential operations retain required human approval. Internal autonomy depends on the action’s policy, and you can disable optional modules or plugins.",
   },
@@ -122,3 +122,15 @@ export const commandCenterFaqs: FAQ[] = [
       "Explore the fictional demo without an account. Self-hosting uses infrastructure and provider accounts you control, with their normal usage costs. For implementation help, start with a discovery session and written plan; scope, price and timing are agreed around the workflow and connections your business needs.",
   },
 ];
+
+/** The buying questions shown on the product page and in its structured data. */
+export const productFaqs = commandCenterFaqs.filter((faq) =>
+  [
+    "Can I try Command Center before setting it up?",
+    "Can we build a completely different App or interface?",
+    "Can AI create Apps inside Command Center?",
+    "Where does our data live?",
+    "How do we control what AI can do?",
+    "What does it cost, and how long does it take?",
+  ].includes(faq.question),
+);

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { demoWorkflows } from "../src/content/demo-workflows";
+import { productFaqs } from "../src/content/command-center-faq";
 import { workflowRecipes } from "../src/content/workflow-recipes";
 import { validateDemoContract } from "../src/components/command-center/demo/demo-contract";
 import { capabilities, CURRENT_SURFACES } from "../src/content/command-center";
@@ -58,3 +60,14 @@ assert([...industryCounts.values()].every((count) => count === 2));
 console.log(
   "Twenty recipes across ten industries link to complete guides and existing capabilities.",
 );
+
+assert.equal(demoWorkflows.length, 3);
+assert.equal(productFaqs.length, 6);
+assert.equal(new Set(workflowRecipes.map((recipe) => recipe.description)).size, 20);
+for (const workflow of demoWorkflows) {
+  assert(existsSync(`public${workflow.image}`), `${workflow.id}: screenshot exists`);
+  assert(workflowRecipes.some((recipe) => recipe.id === workflow.recipe));
+  assert.equal(workflow.steps.length, 3);
+  for (const step of workflow.steps) assert(existsSync(`src/app/admin/${step.route}/page.tsx`));
+}
+console.log("Three workflow examples link to implemented screens, screenshots and setup recipes.");
