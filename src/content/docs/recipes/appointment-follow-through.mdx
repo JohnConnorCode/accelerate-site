@@ -1,12 +1,10 @@
 ---
 title: "Prepare for an appointment and assign follow-up"
-description: "Combine meeting preparation, an agreed checklist and shared tasks to keep commitments visible."
+description: "Assign the questions and next appointments agreed during a property viewing."
 updated: "2026-09-19"
 ---
 
 An agent has a buyer meeting coming up and wants the agreed next steps to survive the handoff back to the office. Use the meeting record before and after the appointment.
-
-This recipe uses existing capabilities in sequence, so your team can keep the source context while assigning the work that follows. Start with one fictional example and check its saved result before adapting it to your operation.
 
 <RecipeIngredients id="appointment-follow-through" />
 
@@ -24,6 +22,16 @@ Explore the [real estate workspace](/demo/command-center/hearthline-realty/today
   caption="The shared meeting workflow with fictional demo data. Use the source record and saved result to follow the example; this image is not a live customer result."
 />
 
+## Work through this example
+
+After a Hearthline viewing, the buyer asks about association fees and requests a second visit with a family member.
+
+**Record.** Use the stored appointment as the source for both follow-up tasks.
+
+**Assign.** Ask the responsible agent to verify fee information and the coordinator to confirm a second viewing slot.
+
+**Check.** Attach the verified answer to the customer context and record the agreed appointment before completing the tasks.
+
 ## Complete the workflow
 
 1. Run **Meeting preparation** from Plugins to find upcoming, non-cancelled meetings in its 48-hour window. Open the source meeting and review the customer context.
@@ -32,7 +40,7 @@ Explore the [real estate workspace](/demo/command-center/hearthline-realty/today
 
 3. Open **Meeting commitments**, select the stored meeting and enter the agreed tasks with descriptions, due dates and valid assignees. A plan supports one to ten tasks.
 
-4. Preview and submit the checklist for approval. Approve the exact plan through the shared action queue after reviewing its source, dates and owners.
+4. Choose **Review workflow**, then **Request approval**. Inspect the source, dates and owners before selecting **Approve & create tasks**.
 
 5. Inspect the execution result and open the created tasks in **Tasks & approvals**. Complete or update them as the commitments are fulfilled.
 
@@ -44,7 +52,7 @@ Assigned follow-up tasks linked to the meeting and its context. Each task has an
 
 Connect a listing system through an adapter when the workflow needs authoritative property data.
 
-Give a developer or coding assistant the business outcome, the records it should use, who may act and what successful completion looks like. Reuse the shared identity, permissions, task services and action results. Follow [Build an extension](/docs/extend) and [Write an AI development brief](/docs/extend/ai-authoring) when the change needs code. This recipe is a guide to composition; it does not install a workflow or add a new connector.
+For a coded variation, use [Build an extension](/docs/extend) and include this example’s decision, owner and completion check in your [development brief](/docs/extend/ai-authoring). Keep customer identity and task history in the shared services.
 
 ## What to check
 

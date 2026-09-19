@@ -1,12 +1,10 @@
 ---
 title: "Track commitments from a customer delivery meeting"
-description: "Combine meeting preparation, an agreed checklist and shared tasks to keep commitments visible."
+description: "Turn an order review into assigned specification, material and delivery confirmations."
 updated: "2026-09-19"
 ---
 
 A customer meeting produces changes to delivery coordination. Assign those commitments against the meeting so sales and operations can see who owns each next step.
-
-This recipe uses existing capabilities in sequence, so your team can keep the source context while assigning the work that follows. Start with one fictional example and check its saved result before adapting it to your operation.
 
 <RecipeIngredients id="delivery-commitments" />
 
@@ -24,6 +22,16 @@ Explore the [fictional workspaces](/demo/command-center) to see the shared inter
   caption="The shared meeting workflow with fictional demo data. Use the source record and saved result to follow the example; this image is not a live customer result."
 />
 
+## Work through this example
+
+A fictional manufacturer and buyer agree to review a revised specification before confirming a production slot.
+
+**Record.** Use the stored review meeting and name the exact specification revision in the task.
+
+**Assign.** Give specification acceptance, material confirmation and delivery confirmation distinct owners.
+
+**Check.** Record each confirmation and its source before marking the task complete; keep unresolved dates visible to sales.
+
 ## Complete the workflow
 
 1. Run **Meeting preparation** from Plugins to find upcoming, non-cancelled meetings in its 48-hour window. Open the source meeting and review the customer context.
@@ -32,7 +40,7 @@ Explore the [fictional workspaces](/demo/command-center) to see the shared inter
 
 3. Open **Meeting commitments**, select the stored meeting and enter the agreed tasks with descriptions, due dates and valid assignees. A plan supports one to ten tasks.
 
-4. Preview and submit the checklist for approval. Approve the exact plan through the shared action queue after reviewing its source, dates and owners.
+4. Choose **Review workflow**, then **Request approval**. Inspect the source, dates and owners before selecting **Approve & create tasks**.
 
 5. Inspect the execution result and open the created tasks in **Tasks & approvals**. Complete or update them as the commitments are fulfilled.
 
@@ -44,7 +52,7 @@ Delivery coordination tasks linked to the source meeting. Each task has an owner
 
 Build an order or production App when the workflow needs its own lifecycle and ERP-backed state.
 
-Give a developer or coding assistant the business outcome, the records it should use, who may act and what successful completion looks like. Reuse the shared identity, permissions, task services and action results. Follow [Build an extension](/docs/extend) and [Write an AI development brief](/docs/extend/ai-authoring) when the change needs code. This recipe is a guide to composition; it does not install a workflow or add a new connector.
+For a coded variation, use [Build an extension](/docs/extend) and include this example’s decision, owner and completion check in your [development brief](/docs/extend/ai-authoring). Keep customer identity and task history in the shared services.
 
 ## What to check
 
