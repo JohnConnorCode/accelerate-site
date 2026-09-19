@@ -4,7 +4,8 @@ import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const capture = process.argv.includes("--capture");
+const outcomes = process.argv.includes("--capture-outcomes");
+const capture = process.argv.includes("--capture") || outcomes;
 const preview = process.argv.includes("--preview");
 const port = 3027;
 const base = process.env.QA_BASE ?? `http://localhost:${port}`;
@@ -66,19 +67,69 @@ try {
         : route.continue();
     });
     const page = await context.newPage();
-    const shots = [
-      ["superdebate", "today", "public/images/demo/superdebate-today.png", "Today"],
-      ["northline-roofing", "forms", "public/images/docs/plugins/forms.png", /Forms|Form builder/],
-      [
-        "northline-roofing",
-        "subscriptions",
-        "public/images/docs/plugins/subscriptions.png",
-        /Subscriptions/,
-      ],
-      ["northline-roofing", "site", "public/images/docs/plugins/site-studio.png", /Site Studio/],
-      ["northline-roofing", "learning", "public/images/docs/intelligence/learning.png", /Learning/],
-    ];
+    const shots = outcomes
+      ? [
+          [
+            "northline-roofing",
+            "conversations",
+            "public/images/demo/northline-conversations.png",
+            "Conversations",
+          ],
+          ["alder-ridge-law", "pipeline", "public/images/demo/alder-pipeline.png", "Pipeline"],
+          [
+            "ledgerstone-advisory",
+            "client-onboarding",
+            "public/images/demo/ledgerstone-onboarding.png",
+            "Client onboarding",
+          ],
+          [
+            "hearthline-realty",
+            "pipeline",
+            "public/images/demo/hearthline-pipeline.png",
+            "Pipeline",
+          ],
+          [
+            "common-table-network",
+            "meeting-commitments",
+            "public/images/demo/common-table-commitments.png",
+            "Meeting commitments",
+          ],
+          ["superdebate", "invoicing", "public/images/demo/superdebate-invoicing.png", "Invoicing"],
+        ]
+      : [
+          ["superdebate", "today", "public/images/demo/superdebate-today.png", "Today"],
+          [
+            "northline-roofing",
+            "forms",
+            "public/images/docs/plugins/forms.png",
+            /Forms|Form builder/,
+          ],
+          [
+            "northline-roofing",
+            "subscriptions",
+            "public/images/docs/plugins/subscriptions.png",
+            /Subscriptions/,
+          ],
+          [
+            "northline-roofing",
+            "site",
+            "public/images/docs/plugins/site-studio.png",
+            /Site Studio/,
+          ],
+          [
+            "northline-roofing",
+            "learning",
+            "public/images/docs/intelligence/learning.png",
+            /Learning/,
+          ],
+        ];
     for (const [scenario, route, file, heading] of shots) {
+      if (
+        process.argv.includes("--remaining-outcomes") &&
+        ["conversations", "pipeline"].includes(route) &&
+        scenario !== "hearthline-realty"
+      )
+        continue;
       if (process.argv.includes("--remaining") && ["today", "subscriptions"].includes(route))
         continue;
       await page.goto(`${base}/demo/command-center/${scenario}/${route}`, {
@@ -88,6 +139,77 @@ try {
       await page.locator(".admin-shell").waitFor();
       await page.getByRole("heading", { name: heading }).first().waitFor();
       await page.getByText(/Loading forms/).waitFor({ state: "hidden" });
+      if (outcomes && route === "conversations") {
+        const composer = page.getByPlaceholder(
+          "Write a reply or notes. Nothing sends without confirmation.",
+        );
+        if (!(await composer.isVisible()))
+          await page
+            .locator(".admin-main button")
+            .filter({ hasText: /inspection|roof|estimate/i })
+            .first()
+            .click();
+        const reply =
+          "Thanks for the details. I will call to confirm the inspection time and site access before we schedule the visit.";
+        await composer.fill(reply);
+        await page.getByRole("button", { name: "Review & Send", exact: true }).click();
+        await page.getByRole("button", { name: "Confirm send", exact: true }).click();
+        await page.getByText(reply, { exact: true }).waitFor();
+        await page.reload({ waitUntil: "networkidle" });
+        await page.getByText(reply, { exact: true }).waitFor();
+        checks.push({
+          workflow: "inquiry",
+          result: "Reply persists after reload",
+          status: "passed",
+        });
+      }
+      if (outcomes && ["client-onboarding", "meeting-commitments"].includes(route)) {
+        await page
+          .getByRole("combobox", {
+            name: route === "client-onboarding" ? "Won opportunity" : "Stored meeting",
+          })
+          .selectOption({ index: 1 });
+        const taskTitle = route === "client-onboarding" ? "Confirm client access before kickoff" : "Confirm venue access with the coordinator";
+        await page.getByLabel("Task 1", {exact: true}).fill(taskTitle);
+        for (const name of ["Review workflow", "Request approval", "Approve & create tasks"])
+          await page.getByRole("button", { name, exact: true }).click();
+        const createdTask = page.locator("article li").filter({has: page.getByText(taskTitle, {exact: true})});
+        await createdTask.getByRole("button", {name: "Mark complete", exact: true}).click();
+        await createdTask.getByText("completed", {exact: true}).waitFor();
+        await page.reload({waitUntil: "networkidle"});
+        await createdTask.getByText("completed", {exact: true}).waitFor();
+        checks.push({
+          workflow: route,
+          result: "Created tasks and completion persist after reload",
+          status: "passed",
+        });
+      }
+      if (outcomes && route === "invoicing") {
+        for (const name of [
+          "Use sample invoice",
+          "Prepare invoice",
+          "Request draft approval",
+        ])
+          await page.getByRole("button", { name, exact: true }).click();
+        const creationId = await page.locator("article").filter({has: page.getByRole("button", {name: "Approve & create draft", exact: true})}).getAttribute("data-action-id");
+        await page.getByRole("button", {name: "Approve & create draft", exact: true}).click();
+        const createdInvoice = page.locator(`[data-action-id="${creationId}"]`);
+        await createdInvoice.getByRole("button", {name: "Request sending approval", exact: true}).click();
+        await page.getByRole("button", { name: "Approve & send invoice", exact: true }).click();
+        await page
+          .getByRole("button", { name: "Approve & send invoice", exact: true })
+          .waitFor({ state: "detached" });
+        await page.reload({ waitUntil: "networkidle" });
+        await page.getByText("Simulated send completed. No Stripe request or customer email was sent.", {exact: true}).waitFor();
+        checks.push({
+          workflow: "invoice",
+          result: "Draft and send approved; sent result persists after reload",
+          status: "passed",
+        });
+      }
+      await page.locator(".admin-main").evaluate((node) => { node.scrollTop = 0; });
+      if (outcomes && route === "invoicing") await page.getByRole("heading", {name: "Invoice operations", exact: true}).evaluate(node => node.scrollIntoView({block: "start"}));
+      if (outcomes && ["client-onboarding", "meeting-commitments"].includes(route)) await page.locator("article").filter({has: page.getByText(route === "client-onboarding" ? "Confirm client access before kickoff" : "Confirm venue access with the coordinator", {exact: true})}).scrollIntoViewIfNeeded();
       await page.evaluate(() =>
         document.querySelectorAll("nextjs-portal").forEach((node) => node.remove()),
       );
@@ -224,15 +346,21 @@ try {
               "none",
               "Recipe ingredients retain chip layout",
             );
-          checks.push({ route, width, theme, status: "passed" });
+          const height = await page.locator("body").evaluate((node) => node.scrollHeight);
+          checks.push({ route, width, theme, height, status: "passed" });
         }
         await page.goto(`${base}/command-center`, { waitUntil: "networkidle" });
+        const reference = page.getByText("Browse and search the complete capability reference", {
+          exact: true,
+        });
+        await reference.focus();
+        await page.keyboard.press("Enter");
         const search = page.getByRole("searchbox", { name: "Find a capability" });
         await search.fill("invoice");
-        assert((await page.locator("#capabilities details").count()) > 0);
+        assert((await page.locator("#capabilities details details").count()) > 0);
         await search.fill("no-such-capability-93857");
         await page.getByRole("button", { name: "Clear filters" }).click();
-        assert((await page.locator("#capabilities details").count()) > 10);
+        assert((await page.locator("#capabilities details details").count()) > 10);
         await page.getByRole("button", { name: "Capture", exact: true }).click();
         assert.equal(
           await page
@@ -240,12 +368,12 @@ try {
             .getAttribute("aria-pressed"),
           "true",
         );
-        const summary = page.locator("#capabilities summary").first();
+        const summary = page.locator("#capabilities details details summary").first();
         await summary.focus();
         await page.keyboard.press("Enter");
         assert(
           await page
-            .locator("#capabilities details")
+            .locator("#capabilities details details")
             .first()
             .evaluate((node) => node.open),
         );
@@ -254,6 +382,40 @@ try {
           await page.evaluate(() => document.activeElement !== document.body),
           "Keyboard focus remains on controls",
         );
+        await page.goto(`${base}/demo/command-center`, { waitUntil: "networkidle" });
+        for (const [label, scenario, route, recipe] of [
+          ["Answer an inquiry", "northline-roofing", "conversations", "roofing-inquiry"],
+          [
+            "Start client work",
+            "ledgerstone-advisory",
+            "client-onboarding",
+            "engagement-onboarding",
+          ],
+          ["Prepare an invoice", "superdebate", "invoicing", "invoice-follow-up"],
+        ]) {
+          const choice = page.getByRole("button", { name: label, exact: true });
+          await choice.focus();
+          await page.keyboard.press("Enter");
+          assert.equal(await choice.getAttribute("aria-pressed"), "true");
+          assert.equal(
+            await page
+              .getByRole("link", { name: "Try this workflow", exact: true })
+              .getAttribute("href"),
+            `/demo/command-center/${scenario}/${route}`,
+          );
+          assert.equal(
+            await page
+              .getByRole("link", { name: "Use the setup recipe", exact: true })
+              .getAttribute("href"),
+            `/docs/recipes/${recipe}`,
+          );
+        }
+        checks.push({
+          interaction: "Three workflow examples, keyboard selection and exact launch/recipe links",
+          width,
+          theme,
+          status: "passed",
+        });
         await page.goto(`${base}/docs`, { waitUntil: "networkidle" });
         await page.getByRole("searchbox", { name: "Search the docs" }).fill("roofing inquiry");
         const result = page

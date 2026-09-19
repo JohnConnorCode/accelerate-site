@@ -122,3 +122,15 @@ export const commandCenterFaqs: FAQ[] = [
       "Explore the fictional demo without an account. Self-hosting uses infrastructure and provider accounts you control, with their normal usage costs. For implementation help, start with a discovery session and written plan; scope, price and timing are agreed around the workflow and connections your business needs.",
   },
 ];
+
+/** The buying questions shown on the product page and in its structured data. */
+export const productFaqs = commandCenterFaqs.filter((faq) =>
+  [
+    "Can I try Command Center before setting it up?",
+    "Can we build a completely different App or interface?",
+    "Can AI create Apps inside Command Center?",
+    "Where does our data live?",
+    "What stops it doing something stupid on my behalf?",
+    "What does it cost, and how long does it take?",
+  ].includes(faq.question),
+);

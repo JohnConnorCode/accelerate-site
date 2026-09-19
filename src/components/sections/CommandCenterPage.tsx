@@ -7,7 +7,9 @@ import { RecipeCards } from "@/components/command-center/WorkflowRecipes";
 import { ProductSlider } from "@/components/media/ProductSlider";
 import { PRODUCT_SCREENSHOTS } from "@/content/product-screenshots";
 import { workflowRecipes } from "@/content/workflow-recipes";
-import { commandCenterFaqs } from "@/content/command-center-faq";
+import { productFaqs } from "@/content/command-center-faq";
+import { WorkflowShowcase } from "@/components/command-center/WorkflowShowcase";
+import { workProjects } from "@/content/work";
 import styles from "@/components/command-center/product.module.css";
 
 const jobs = [
@@ -54,20 +56,20 @@ export function CommandCenterPageContent() {
             <div>
               <p className="label">Command Center · Open-source business platform</p>
               <h1 className={styles.title}>
-                Connect your business.
+                Your customer work.
                 <br />
-                <em>Put AI to work.</em>
+                <em>Connected.</em>
               </h1>
             </div>
             <div>
               <p className={styles.lede}>
-                Bring customer history, conversations and the work ahead into one workspace. Give
-                your team and AI the context to follow up, prepare decisions and carry work through
-                to a result.
+                Keep customer conversations, follow-up and delivery in one workspace your team and
+                AI can use. Adapt the open-source platform to your process, with Accelerate’s help
+                or your own builders.
               </p>
               <div className={styles.actions}>
-                <Link href="/demo/command-center" className={styles.primary}>
-                  Explore the workspace <ArrowRight size={16} aria-hidden="true" />
+                <Link href="/demo/command-center#workflows" className={styles.primary}>
+                  Try a business workflow <ArrowRight size={16} aria-hidden="true" />
                 </Link>
                 <Link href="/docs/extend" className={styles.secondary}>
                   Build on the platform <ArrowRight size={16} aria-hidden="true" />
@@ -91,69 +93,9 @@ export function CommandCenterPageContent() {
 
       <section className={styles.section} id="how">
         <div className="wrap">
-          <div className={styles.sectionIntro}>
-            <div>
-              <p className="label">One connected workflow</p>
-              <h2 className={styles.heading}>From a customer question to work someone owns.</h2>
-            </div>
-            <p className={styles.lede}>
-              A useful system carries context between steps. Here is how a roofing team can combine
-              intake, customer records and follow-up without rebuilding that foundation.
-            </p>
-          </div>
-          <div className={styles.workflow}>
-            <ol>
-              <li>
-                <strong>Review the inquiry</strong>
-                <p>
-                  Form builder collects the request. The office reviews the response and accepts it
-                  into the pipeline.
-                </p>
-              </li>
-              <li>
-                <strong>Use the customer context</strong>
-                <p>
-                  Open the customer and conversation. Ask AI for help using the records available in
-                  the workspace.
-                </p>
-              </li>
-              <li>
-                <strong>Assign the next action</strong>
-                <p>
-                  Record the owner and follow-up. Pipeline follow-up helps the team find
-                  opportunities that need another look.
-                </p>
-              </li>
-              <li>
-                <strong>Carry won work into delivery</strong>
-                <p>
-                  Client onboarding prepares an assigned checklist from the opportunity, with a
-                  result the team can inspect.
-                </p>
-              </li>
-            </ol>
-            <div className={styles.card}>
-              <p className="label">Make it useful this week</p>
-              <h3>Start with one customer workflow.</h3>
-              <p>
-                Choose a real handoff your team repeats. Connect the required records, run an
-                example and check the result before adding another process.
-              </p>
-              <ul className={styles.parts}>
-                <li>Form builder</li>
-                <li>Contacts</li>
-                <li>Pipeline follow-up</li>
-                <li>Client onboarding</li>
-              </ul>
-              <Link href="/docs/recipes/roofing-inquiry" className={styles.textLink}>
-                Follow the roofing recipe <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-              <br />
-              <Link href="/docs/start/first-value" className={styles.textLink}>
-                Plan your first connected workflow <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-            </div>
-          </div>
+          <p className="label">See a complete piece of work</p>
+          <h2 className={styles.heading}>Start with a result your team needs.</h2>
+          <WorkflowShowcase />
         </div>
       </section>
 
@@ -161,42 +103,44 @@ export function CommandCenterPageContent() {
         <div className="wrap">
           <p className="label">Features with a job to do</p>
           <h2 className={styles.heading}>Keep the context. Move the work forward.</h2>
-          {jobs.map((job, index) => (
-            <article key={job.title} className={styles.feature}>
-              <div>
-                <p className="label">0{index + 1}</p>
-                <h3>{job.title}</h3>
-                <p>{job.text}</p>
-                <ul className={styles.parts}>
-                  {job.parts.map((part) => (
-                    <li key={part}>{part}</li>
-                  ))}
-                </ul>
-                <Link href={job.href} className={styles.textLink}>
-                  {job.action} <ArrowRight size={16} aria-hidden="true" />
-                </Link>
-              </div>
-              <figure className={styles.figure}>
-                <a
-                  href={`/images/docs/${job.image}.png`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Open full-size screenshot: ${job.title}`}
-                >
-                  <Image
-                    src={`/images/docs/${job.image}.png`}
-                    width={1440}
-                    height={1000}
-                    sizes="(max-width: 760px) 100vw, 600px"
-                    alt={`${job.parts[0]} in the real workspace with fictional demo records.`}
-                  />
-                </a>
-                <figcaption className={styles.note}>
-                  Real product interface, fictional demo data. Select to view full size.
-                </figcaption>
-              </figure>
-            </article>
-          ))}
+          <div className={styles.featureGrid}>
+            {jobs.map((job, index) => (
+              <article key={job.title} className={styles.feature}>
+                <div>
+                  <p className="label">0{index + 1}</p>
+                  <h3>{job.title}</h3>
+                  <p>{job.text}</p>
+                  <ul className={styles.parts}>
+                    {job.parts.map((part) => (
+                      <li key={part}>{part}</li>
+                    ))}
+                  </ul>
+                  <Link href={job.href} className={styles.textLink}>
+                    {job.action} <ArrowRight size={16} aria-hidden="true" />
+                  </Link>
+                </div>
+                <figure className={styles.figure}>
+                  <a
+                    href={`/images/docs/${job.image}.png`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Open full-size screenshot: ${job.title}`}
+                  >
+                    <Image
+                      src={`/images/docs/${job.image}.png`}
+                      width={1440}
+                      height={1000}
+                      sizes="(max-width: 760px) 100vw, 600px"
+                      alt={`${job.parts[0]} in the real workspace with fictional demo records.`}
+                    />
+                  </a>
+                  <figcaption className={styles.note}>
+                    Fictional demo data. Select to enlarge.
+                  </figcaption>
+                </figure>
+              </article>
+            ))}
+          </div>
           <article className={styles.card} id="built">
             <p className="label">05 · Build around your business</p>
             <h3>Combine what exists. Extend what your process needs.</h3>
@@ -236,12 +180,7 @@ export function CommandCenterPageContent() {
           </div>
           <RecipeCards
             recipes={workflowRecipes.filter((item) =>
-              [
-                "roofing-inquiry",
-                "engagement-onboarding",
-                "appointment-follow-through",
-                "program-commitments",
-              ].includes(item.id),
+              ["roofing-inquiry", "engagement-onboarding"].includes(item.id),
             )}
           />
           <Link href="/docs/recipes" className={styles.textLink}>
@@ -255,36 +194,19 @@ export function CommandCenterPageContent() {
         <div className="wrap">
           <div className={styles.sectionIntro}>
             <div>
-              <p className="label">Useful automation, visible decisions</p>
-              <h2 className={styles.heading}>Set the responsibility AI can take on.</h2>
+              <p className="label">AI with a clear role</p>
+              <h2 className={styles.heading}>Prepare, review, then act.</h2>
             </div>
-            <p className={styles.lede}>
-              AI uses the tools and records available to the workspace. Policies define which
-              actions need a decision and which may run under an approved standing permission.
-            </p>
-          </div>
-          <div className={styles.grid}>
-            <article className={styles.card}>
-              <h3>Review the work that matters</h3>
-              <p>
-                Inspect the exact change, recipient or task list before approving it. Read the
-                recorded result to understand what completed and what needs attention.
+            <div>
+              <p className={styles.lede}>
+                AI reads the connected context and prepares supported actions. Review the exact
+                change before approval, then follow its recorded result. Eligible internal actions
+                can use approved standing permissions; restricted actions keep human review.
               </p>
               <Link href="/docs/command-center/approvals" className={styles.textLink}>
                 Understand approvals and autonomy <ArrowRight size={16} aria-hidden="true" />
               </Link>
-            </article>
-            <article className={styles.card}>
-              <h3>Increase autonomy deliberately</h3>
-              <p>
-                Eligible actions can be proposed for a higher trust level as approval history
-                develops. A person confirms the change, and safety floors keep restricted actions
-                under human control.
-              </p>
-              <Link href="/docs/start/receipts" className={styles.textLink}>
-                Learn how to check an action result <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-            </article>
+            </div>
           </div>
         </div>
       </section>
@@ -297,9 +219,15 @@ export function CommandCenterPageContent() {
             Read the purpose at a glance. Expand a capability for details, or search for the work
             you want to do.
           </p>
-          <div className="mt-8">
-            <CapabilityCatalog />
-          </div>
+          <details className={styles.reference}>
+            <summary>Browse and search the complete capability reference</summary>
+            <div className="mt-6">
+              <CapabilityCatalog />
+            </div>
+          </details>
+          <Link href="/docs/command-center/capabilities" className={styles.textLink}>
+            Open the detailed reference <ArrowRight size={16} aria-hidden="true" />
+          </Link>
         </div>
       </section>
 
@@ -308,51 +236,82 @@ export function CommandCenterPageContent() {
           <span id="proof" />
           <div className={styles.sectionIntro}>
             <div>
-              <p className="label">Your next step</p>
-              <h2 className={styles.heading}>Run a workflow or build your own.</h2>
+              <p className="label">Choose how you start</p>
+              <h2 className={styles.heading}>Build it with us. Or make it your own.</h2>
             </div>
             <p className={styles.lede}>
-              The platform is open source. You can explore the interface, operate a connected
-              workspace or adapt the code to your business. Accelerate also helps teams decide what
-              to build, implement it and keep it working.
+              A shared workspace is useful when several people and tools need the same customer
+              context. We can also recommend a focused integration when that solves the job.
             </p>
           </div>
           <div className={styles.grid}>
             <article className={styles.card}>
-              <p className="label">For business users</p>
-              <h3>See how it fits your day.</h3>
+              <p className="label">For business teams</p>
+              <h3>Have Accelerate implement it.</h3>
               <p>
-                Try a fictional business, choose a useful recipe and learn what a connected
-                workspace needs to run it.
+                We map one workflow, agree on its success check, configure the required connections
+                and build the pieces your team needs.
               </p>
-              <Link href="/demo/command-center" className={styles.textLink}>
-                Choose a demo <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-              <br />
-              <Link href="/docs/start/business-owners" className={styles.textLink}>
-                Plan a first workflow
+              <ul className={styles.checklist}>
+                <li>A written scope, price and responsibilities before implementation</li>
+                <li>A tested workflow, team training and operating documentation</li>
+                <li>An agreed handoff, with optional managed execution and ongoing improvement</li>
+              </ul>
+              <p className={styles.note}>
+                Implementation is scoped to your business. Hosting, provider usage and ongoing
+                support are agreed separately.
+              </p>
+              <Link href="/contact" className={styles.primary}>
+                Discuss your workflow <ArrowRight size={16} aria-hidden="true" />
               </Link>
             </article>
             <article className={styles.card}>
               <p className="label">For builders and agencies</p>
-              <h3>Build on shared business infrastructure.</h3>
+              <h3>Run and extend the source.</h3>
               <p>
-                Run the source, inspect a plugin and extend the same records and services your
-                client’s team uses.
+                Build your own operating screen or client solution using the existing customer
+                records, permissions, AI tools and action history.
               </p>
-              <Link href="/docs/extend/first-change" className={styles.textLink}>
-                Make your first change <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-              <br />
-              <Link href="/docs/start/agencies" className={styles.textLink}>
-                Plan a client pilot
+              <ul className={styles.checklist}>
+                <li>Explore locally with fictional data and no provider credentials</li>
+                <li>Use your infrastructure and connect the accounts you control</li>
+                <li>Add modules, plugins and adapters through the documented source interfaces</li>
+              </ul>
+              <p className={styles.note}>
+                Your team owns installation, backups, updates and provider costs. Custom Apps
+                require source development today.
+              </p>
+              <Link href="/docs/extend/first-change" className={styles.secondary}>
+                Start building <ArrowRight size={16} aria-hidden="true" />
               </Link>
             </article>
           </div>
-          <Link href="/contact" className={styles.textLink}>
-            Talk through a custom solution with Accelerate{" "}
-            <ArrowRight size={16} aria-hidden="true" />
-          </Link>
+          <div className={styles.portfolio} id="implementation-experience">
+            <p className="label">Implementation experience</p>
+            <h3>See the work behind Accelerate.</h3>
+            <p>
+              These published projects show our experience building around real operations. Each
+              case study identifies our role and delivered scope.
+            </p>
+            <div className={styles.grid}>
+              {workProjects
+                .filter((project) => ["work-shelter", "superdebate"].includes(project.slug))
+                .map((project) => (
+                  <Link
+                    key={project.slug}
+                    href={`/work/${project.slug}`}
+                    className={styles.proofLink}
+                  >
+                    <span className="label">{project.relationship}</span>
+                    <strong>{project.name}</strong>
+                    <span>{project.description}</span>
+                    <span className={styles.textLink}>
+                      Read the case study <ArrowRight size={16} aria-hidden="true" />
+                    </span>
+                  </Link>
+                ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -360,7 +319,7 @@ export function CommandCenterPageContent() {
         <div className="wrap">
           <p className="label">Questions, answered</p>
           <h2 className={styles.heading}>Understand what you can build on.</h2>
-          {commandCenterFaqs.map((faq) => (
+          {productFaqs.map((faq) => (
             <details className={styles.faq} key={faq.question}>
               <summary>{faq.question}</summary>
               <p>{faq.answer}</p>

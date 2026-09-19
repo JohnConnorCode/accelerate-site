@@ -2,7 +2,7 @@ import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-s
 import { PageEngagementTracker } from "@/components/layout/PageEngagementTracker";
 import { seoMetadata } from "@/lib/og";
 import { CommandCenterPageContent } from "@/components/sections/CommandCenterPage";
-import { commandCenterFaqs } from "@/content/command-center-faq";
+import { productFaqs } from "@/content/command-center-faq";
 import { generateFaqJsonLd, generateBreadcrumbJsonLd } from "@/lib/seo";
 
 const bundledMetadata = seoMetadata({
@@ -10,7 +10,7 @@ const bundledMetadata = seoMetadata({
   description:
     "Connect customer context, put AI to work and build workflows around your business. Explore features, plugins and practical industry recipes.",
   ogTitle: "Command Center",
-  ogSubtitle: "Connect your business. Put AI to work.",
+  ogSubtitle: "Your customer work. Connected.",
   path: "/command-center",
 });
 
@@ -31,7 +31,7 @@ export default async function CommandCenterPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(generateFaqJsonLd(commandCenterFaqs)),
+          __html: JSON.stringify(generateFaqJsonLd(productFaqs)),
         }}
       />
       <CommandCenterPageContent />
