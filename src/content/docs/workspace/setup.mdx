@@ -1,10 +1,10 @@
 ---
 title: "Set up a working workspace"
 description: "Verify the connections one real workflow needs, before layering on more."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-A workspace can look fully connected and still fail the first time someone actually tries to send an email through it, because a saved credential and a verified connection are not the same thing. Setup Center exists to close that gap: it shows whether your workspace is genuinely ready for the work you want to do. Start with one workflow, replying to customers is a good first choice, and verify its exact requirements before you add more integrations on top.
+A saved connection still needs to demonstrate that the intended workflow can run. **Setup Center** shows readiness checks and recovery steps, so you can verify one useful path, such as replying to a customer, before adding more connections.
 
 <DocsFigure
   src="/images/docs/workspace/setup.png"
@@ -31,7 +31,7 @@ Open `/admin/setup` in the workspace. Review the status and action attached to e
 
 ## 3. Connect what you need
 
-Use [Integrations](/docs/workspace/integrations) for the relevant provider. AI work needs an available model configuration; real email needs a verified send path, though you can explore the fictional demo without either. A stored API key only tells you it was saved, not that the connection actually works, so return to Setup Center and inspect the verification result once you've configured it.
+Use [Integrations](/docs/workspace/integrations) for the relevant provider. AI work needs an available model configuration; real email needs a verified send path, though you can explore the fictional demo without either. A stored API key only tells you it was saved, not that the connection works, so return to Setup Center and inspect the verification result once you've configured it.
 
 ## 4. Prove it with a small, controlled test
 

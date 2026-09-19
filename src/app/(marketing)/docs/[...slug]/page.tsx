@@ -1,3 +1,4 @@
+import { RecipeIngredients, RecipeIndex } from "@/components/command-center/WorkflowRecipes";
 import { DocsFigure } from "@/components/docs/DocsFigure";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -27,6 +28,8 @@ import { DocsAiToolCatalog } from "@/components/docs/DocsAiToolCatalog";
 // components (CTACard, ToolRecommendation, booking CTAs) are deliberately
 // absent. A docs page ending in a booking call reads as marketing.
 const docsComponents = {
+  RecipeIngredients,
+  RecipeIndex,
   DocsFigure,
   Callout,
   CodeBlock,

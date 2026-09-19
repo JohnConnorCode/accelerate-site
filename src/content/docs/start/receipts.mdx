@@ -1,10 +1,18 @@
 ---
 title: "Check an action result"
-description: "Read the receipt, not the confirmation toast, to know whether an action actually finished."
-updated: "2026-09-09"
+description: "Read the receipt, not the confirmation toast, to know whether an action finished."
+updated: "2026-09-19"
 ---
 
-A green success message after saving an email draft feels the same as one after actually sending it, and that similarity is exactly what causes a customer to never get a reply someone thought had already gone out. The receipt behind an action, not the toast on your screen, is what tells you which one actually happened, so use it to decide your next move instead of trusting how confident the interface looked in the moment.
+After preparing or approving an action, your next decision depends on whether it completed. A receipt is the saved record of that outcome. Read it alongside the source screen to distinguish a prepared draft, a completed internal change and a provider response.
+
+<DocsFigure
+  src="/images/docs/command-center/activity.png"
+  width={1440}
+  height={1000}
+  alt="Activity, where recorded work can be traced to its source in the fictional Northline Roofing workspace."
+  caption="Activity, where recorded work can be traced to its source. The real interface uses fictional demo data in this image; follow the steps below in your own workspace."
+/>
 
 ## Understand the difference
 
@@ -24,12 +32,12 @@ Start at the action or conversation where you did the work, and check its result
 
 ## When the screen looks out of date
 
-Today can keep showing its last successfully loaded queue if a refresh fails, so an old row sitting there is a sign to check the refresh status, not proof that the underlying action needs to run again. Look at the last-success time before you conclude anything is actually stuck.
+Today can keep showing its last successfully loaded queue if a refresh fails, so an old row sitting there is a sign to check the refresh status, not proof that the underlying action needs to run again. Look at the last-success time before you conclude anything is stuck.
 
-When an action's result is genuinely uncertain, look at the original request before you submit a new one. A retry should reuse that original request's identity, so the same intended effect cannot happen twice by accident. If you need help, hand your workspace administrator the action identifier and the exact error you saw rather than a description of it.
+When an action's result is uncertain, look at the original request before you submit a new one. A retry should reuse that original request's identity, so the same intended effect cannot happen twice by accident. If you need help, hand your workspace administrator the action identifier and the exact error you saw rather than a description of it.
 
 ## What happens when work times out
 
-A time limit stops the worker from waiting longer, but that says nothing about whether the external service itself actually cancelled the request. The work engine records that uncertainty honestly, as failed work with a receipt-reconciliation reason and no automatic retry, because a late completion arriving after the timeout cannot retroactively turn that work record into a confirmed success.
+A time limit stops the worker from waiting longer, but that says nothing about whether the external service itself cancelled the request. The work engine records that uncertainty honestly, as failed work with a receipt-reconciliation reason and no automatic retry, because a late completion arriving after the timeout cannot retroactively turn that work record into a confirmed success.
 
-Check the linked action and its provider receipt before you retry it by hand. If the provider confirms the work actually completed, keep that receipt as your answer instead of sending again; if the outcome is still genuinely unknown, leave the item held for review rather than guessing. The engine's own failure circuit can pause further work of the same kind inside one running process, but the saved work record is what keeps that hold in place across a restart.
+Check the linked action and its provider receipt before you retry it by hand. If the provider confirms the work completed, keep that receipt as your answer instead of sending again; if the outcome is still unknown, leave the item held for review rather than guessing. The engine's own failure circuit can pause further work of the same kind inside one running process, but the saved work record is what keeps that hold in place across a restart.

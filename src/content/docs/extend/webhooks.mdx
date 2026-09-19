@@ -1,10 +1,10 @@
 ---
 title: "Inbound webhooks"
 description: "A tenant-scoped public route that checks the signature before anything touches real data."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-A webhook handler that trusts its payload before verifying who sent it is a way to let anyone write into your database. Provider inbound events land under `src/app/api/public/[tenantSlug]/webhooks/<provider>/`, with the tenant slug right there in the path so the handler can resolve tenant context before it touches anything.
+A provider event can update a workflow only after its sender and destination workspace are verified. Tenant webhook routes live under `src/app/api/public/[tenantSlug]/webhooks/<provider>/`; use that boundary to validate the event and record a replay-safe result.
 
 ## What the handler does
 

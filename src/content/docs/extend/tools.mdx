@@ -1,10 +1,10 @@
 ---
 title: "Add an AI tool"
 description: "Register a schema, an impact tier, and a service boundary; a mutating tool always proposes."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-Every tool the assistant can call is registered in `src/lib/revenue-os/ai-tools.ts`, and that registration is what the generated [AI tool reference](/docs/intelligence/tools) actually renders, so the docs and the runtime can never quietly drift apart.
+When an assistant needs a new business operation, register a narrow tool backed by the same service the interface uses. The registry in `src/lib/revenue-os/ai-tools.ts` supplies the generated [AI tool reference](/docs/intelligence/tools), so developers can inspect the current input contract and capability requirements.
 
 ## Shape
 

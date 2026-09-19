@@ -32,7 +32,7 @@ export function DocsCapabilityCatalog() {
                     ) : null}
                   </dt>
                   <dd className="mt-1 text-sm leading-relaxed text-white-secondary">
-                    {item.detail}
+                    {item.promise} {item.detail}
                   </dd>
                 </div>
               ))}

@@ -1,7 +1,7 @@
 ---
 title: "Inspect activity"
-description: "Trace a change back to who made it, what actually happened, and when."
-updated: "2026-09-09"
+description: "Trace a change back to who made it, what happened, and when."
+updated: "2026-09-19"
 ---
 
 A proposal looks different than it did last week, and nobody on your team remembers changing it. Activity at `/admin/activity` is where you go to answer that question with evidence instead of a guess: who changed a record, what action was recorded, and exactly when it happened.
@@ -31,7 +31,7 @@ A proposal looks different than it did last week, and nobody on your team rememb
   </Step>
   <Step number={4} title="Compare against current state">
     Check the recorded action against the record's current state and any related execution or
-    provider receipt to see whether they actually agree.
+    provider receipt to see whether they agree.
   </Step>
 </StepByStep>
 
@@ -39,11 +39,11 @@ For example, if a proposal appears to have changed right after a customer review
 
 ## Reading the evidence correctly
 
-An activity event records that something happened inside the application. For anything with an external effect, like a message going out, check the associated result too: an approved request, provider acceptance, and final delivery are three different facts, and the event log alone only tells you the first one happened. [Action results](/docs/start/receipts) walks through the rest.
+An activity event records that something happened inside the application. For anything with an external effect, like a message going out, check the associated result too: an approved request, provider acceptance, and final delivery are three different facts, and an event must be read according to the state it records. [Action results](/docs/start/receipts) walks through the rest.
 
 Events deliberately omit sensitive content, so a row can identify that a message was sent without containing its full body. Open the authorized business record itself for content you're allowed to read.
 
 ## What to check
 
-- If you can't find the event you're looking for, double-check the workspace, date range, and filters before assuming it's missing. If it's genuinely absent, keep the affected record's ID and approximate time to hand to your technical owner rather than guessing at what happened.
+- If you can't find the event you're looking for, double-check the workspace, date range, and filters before assuming it's missing. If it's absent, keep the affected record's ID and approximate time to hand to your technical owner rather than guessing at what happened.
 - [Today](/docs/command-center/today) shows you work to act on; Activity is for investigating what was already recorded, not for finding new work.

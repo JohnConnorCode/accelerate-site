@@ -7,14 +7,14 @@ export const commandCenterFaqs: FAQ[] = [
       "Yes. Export the neutral starter into a new directory, replace its fictional Harbor Operations configuration with your business details, then connect services you control. It keeps the shared workspace and demo while removing protected agency media and original hosting targets. The self-hosting guide explains the export receipt, installation and recovery.",
   },
   {
-    question: "Does changing a policy keep its old approval?",
+    question: "If I change what it is allowed to do, do I have to approve it again?",
     answer:
-      "Changing the level, constraints or source clears standing approval. A human must approve it again; changing only a label or description keeps the decision. The update belongs to its workspace and coworker scope, and hard safety floors still apply. Older duplicate policy records can be recovered through the supported registration and approval services after the current migration catalog is applied.",
+      "Yes. Changing the level, the limits, or where a permission came from clears the standing approval, so a person approves it again. Changing only a label or description keeps the decision. A few actions stay behind a human decision permanently, no matter how much trust everything else has earned.",
   },
   {
     question: "Can I navigate boards without dragging cards?",
     answer:
-      "Yes. Scroll across the columns or Tab to a column button and press Enter. The board itself accepts keyboard focus for arrow-key scrolling, and reduced motion makes column jumps immediate. Refreshing or closing an editor keeps your place; browser Back restores the Pipeline board after you open an opportunity. Existing stage controls and work permissions still govern card changes.",
+      "Yes. Scroll across the columns, or press Tab to a column button and press Enter. The board itself takes keyboard focus for arrow-key scrolling, and reduced motion makes the column jumps instant. Refreshing or closing an editor keeps your place, and browser Back returns you to the pipeline board.",
   },
   {
     question: "Can I actually work with clients in the demo?",
@@ -24,7 +24,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I try Command Center before setting it up?",
     answer:
-      "Yes. Open the demo, preview how an inquiry moves through an AI draft to a reviewed result, then explore one of six fictional businesses. Try the demo opens Northline Roofing directly, with no signup required. The full workspaces use sample records and simulated actions saved in your browser session.",
+      "Yes. Choose one of six fictional businesses in the demo chooser. Each opens the real workspace with sample customers, conversations and tasks. No signup is required, and simulated changes stay in your browser session. The workflow recipes explain how to combine features and plugins in a connected workspace.",
   },
   {
     question: "Can we create our own workspace theme?",
@@ -34,22 +34,22 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How does the whole system fit together?",
     answer:
-      "Accelerate moves business context from source data to canonical records, attention signals, reviewed work, validated execution, and recorded results. The Command Center, AI assistant, MCP clients, integrations, scheduled jobs, and coding agents reach that same runtime through different interfaces. Read the public How Accelerate works guide for the five layers, object model, approval boundary, plugin and App extension paths, and failure recovery.",
+      "Accelerate moves your business context from its source systems into records, attention signals, reviewed work, and recorded results. The Command Center, the AI assistant, connected MCP clients, integrations, scheduled jobs, and coding agents all reach that same runtime through different doors. The public How Accelerate works guide covers the layers, the object model, the approval boundary, and failure recovery.",
   },
   {
     question: "Can I undo a bulk contact change?",
     answer:
-      "Bulk actions report each contact's result. Successful changes stay saved if another contact fails. You can deliberately remove a tag with Untag, but there is no one-click restoration of a whole batch. Suppression is not automatically reversed. For example, retry a failed draft enrollment after correcting the problem; contacts already enrolled are skipped. The Leads guide includes a worked example.",
+      "Bulk actions report each contact's result, and the ones that succeeded stay saved even if another row fails. You can remove a tag with Untag, but there is no one-click restore of a whole batch, and suppression is not reversed automatically. If a draft enrollment failed, correct the cause and retry: contacts already enrolled are skipped. The sources guide includes a worked example.",
   },
   {
-    question: "Does Site Studio publish a page when I create a draft?",
+    question: "Can the AI change my live website without me?",
     answer:
-      "No. Creating, applying an AI suggestion and saving all keep the work private. The installation owner separately reviews and publishes a saved website revision. For example, create a bookkeeping page, use the DeepSeek V4.1 Flash default or choose another model by provider and price, review the copy and phone preview, save, then review publication. History supports rollback. Private tenant drafts remain separate. The Site Studio guide explains costs, recovery and importing content into your own installation.",
+      "No. Creating a draft, applying an AI suggestion, and saving all keep the work private, and an installation owner reviews and publishes a saved revision separately. You can preview the copy at phone and desktop widths, choose a model by provider and price, and roll back from history. Private drafts stay separate from the published site.",
   },
   {
-    question: "What does a complete delivery handoff mean?",
+    question: "What does a completed delivery handoff actually mean?",
     answer:
-      "It means the handoff created its onboarding tasks, not that the customer work is finished. Review the customer, template and optional proposal before confirming a won opportunity's handoff. Then assign and complete the resulting tasks as work happens. If creation stops partway through, inspect the receipt and retry: the same engagement and existing tasks are retained. The client accounts guide walks through an example.",
+      "It confirms the handoff created its onboarding tasks. The customer work still has to happen: review the customer, the template, and any proposal before you confirm a won opportunity, then assign and complete the tasks as the work happens. If creation stops partway, inspect the receipt and retry, and the same engagement and its existing tasks are kept.",
   },
   {
     question: "How do Today and Work fit together?",
@@ -59,7 +59,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we build a completely different App or interface?",
     answer:
-      "Yes. The open-source platform can be extended with domain records, custom lifecycles, native queues, integrations, AI tools and bespoke screens. Existing settings handle supported configuration; broader changes require code today. Reuse the shared customer identity, permissions and execution history while building the process your business needs. The public customization and extension guides explain both paths.",
+      "Yes. The open-source platform can be extended with new record types, lifecycles, queues, integrations, AI tools, and working screens that reuse your existing customer identity, permissions, and history. Settings cover the supported configuration today, and deeper changes use code. The public customization and extension guides explain both paths.",
   },
   {
     question: "Can AI create Apps inside Command Center?",
@@ -69,7 +69,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I point any coding agent at the backlog?",
     answer:
-      "Yes. A plain-language request such as “pick up work from the backlog and go until it is completed and committed; follow protocol” is enough. The repository entrypoint resolves the configured private transport, continues current work or chooses an eligible task, creates its approved isolated worktree, supplies the full acceptance packet, and keeps the agent moving through verification, commit and evidence submission. The agent does not need a ticket key or a special provider-specific command, and it does not ask you to paste credentials. When the recovery migration and project policy are enabled, a replacement agent can resume an expired task from saved source and remaining steps while the earlier checkout is preserved.",
+      "Yes. A plain request such as “pick up work from the backlog and go until it is completed and committed; follow protocol” is enough. The agent picks one eligible task, prepares its own isolated copy of the code, and carries it through verification, commit, and evidence submission without a ticket key or a provider-specific command. It never asks you to paste credentials, and an interrupted run can be resumed from its saved state.",
   },
   {
     question: "Where can I explore the bundled plugins?",
@@ -79,7 +79,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "What can Opportunity Radar do today?",
     answer:
-      "It keeps supplied sources, reviewed business opportunities, relationship evidence, and drafts together. You review exact changes before saving. Source briefing can use an explicitly configured model budget, with spending off by default. Reviewed outreach uses the configured sender only after an exact human approval, with cooldowns and receipt recovery. Automated discovery, publication, and verified outcome measurement are still being built. The fictional demo lets you try the review workflow without provider calls.",
+      "It keeps supplied sources, reviewed business opportunities, relationship evidence, and drafts together, and you review exact changes before anything saves. Source briefing can use a model budget you set explicitly, with spending off by default. Reviewed outreach uses the configured sender only after an exact human approval, with cooldowns and receipt recovery. Automated discovery, publication, and verified outcome measurement are still being built. The fictional demo lets you try the review workflow without provider calls.",
   },
   {
     question: "What stops it doing something stupid on my behalf?",
@@ -109,7 +109,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can we control our AI provider costs?",
     answer:
-      "Yes. Each tenant can use the shared provider configuration or bring its own OpenRouter API key and approved model settings. DeepSeek V4.1 Flash is the default for AI workflows, while the model remains optional and can be changed per installation or request. Keys stay server-side, and the workspace keeps provider and usage behavior inside the tenant boundary.",
+      "Yes. Each workspace can use the shared provider setup or bring its own OpenRouter key and approved model settings. DeepSeek V4.1 Flash is the default and can be changed per installation or request. Keys stay server-side, and usage stays inside your workspace.",
   },
   {
     question: "How is this different from the notetaker we already have?",
