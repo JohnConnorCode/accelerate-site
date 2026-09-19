@@ -96,7 +96,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Fetch all published articles once
-  const articles = getAllArticles();
+  // Collections must reflect edits to older articles as well as new publications.
+  const articles = getAllArticles().sort(
+    (a, b) =>
+      Date.parse(b.frontmatter.updatedDate || b.frontmatter.date) -
+      Date.parse(a.frontmatter.updatedDate || a.frontmatter.date),
+  );
   const latestArticleDate = articles[0]
     ? articles[0].frontmatter.updatedDate || articles[0].frontmatter.date
     : LAST_CONTENT_UPDATE;

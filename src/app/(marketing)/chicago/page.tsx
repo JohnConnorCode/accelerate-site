@@ -79,7 +79,7 @@ export default async function ChicagoPage() {
           <p className="label">Chicago &amp; the suburbs</p>
           <div className={styles.intro}>
             <h1 className={styles.title}>
-              AI that helps your business <em>get the work done.</em>
+              AI consulting for Chicago. <em>Built around your business.</em>
             </h1>
             <div>
               <p className={styles.lede}>
@@ -141,6 +141,58 @@ export default async function ChicagoPage() {
           <Link className={styles.textLink} href="/services">
             Explore the services
           </Link>
+        </div>
+      </section>
+      <section className={styles.section} aria-labelledby="first-project-title">
+        <div className="wrap">
+          <div className={styles.sectionIntro}>
+            <div>
+              <p className="label">From a problem to a working pilot</p>
+              <h2 id="first-project-title" className={styles.heading}>
+                Give the first project a clear finish line.
+              </h2>
+            </div>
+            <p className={styles.lede}>
+              Choose a process that happens often enough to evaluate and has someone ready to own
+              it. A useful starting point is a recurring handoff that loses details between people
+              or tools, such as a quote request becoming scheduled work.
+            </p>
+          </div>
+          <dl className={styles.outcomes}>
+            <div>
+              <dt>Bring a real example</dt>
+              <dd>
+                Show how a recent request moved through your team, where someone had to chase
+                information and which system holds the final record. For a business serving multiple
+                Chicago locations or suburbs, include travel, delivery windows and site access when
+                they affect the decision.
+              </dd>
+            </div>
+            <div>
+              <dt>Agree on the deliverable</dt>
+              <dd>
+                Define the workflow, the tools it touches, the decisions your team retains and the
+                result you need to see. Include training, a written operating guide and who handles
+                exceptions in the project scope.
+              </dd>
+            </div>
+            <div>
+              <dt>Compare the actual work</dt>
+              <dd>
+                Record a starting measure such as time to prepare a quote or the number of handoffs
+                missing details. Review the pilot against the same measure and inspect the records
+                behind it before deciding what to expand.
+              </dd>
+            </div>
+            <div>
+              <dt>Account for ongoing costs</dt>
+              <dd>
+                Separate implementation from hosting, model usage, connected software and ongoing
+                support. The quote should make responsibilities and recurring costs clear, including
+                what happens when a connected tool is unavailable.
+              </dd>
+            </div>
+          </dl>
         </div>
       </section>
       <section id="projects" className={styles.section}>
