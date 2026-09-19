@@ -1,1 +1,2 @@
-export { GET, dynamic } from "./api/mcp/site-studio/route";
+export { GET } from "./api/mcp/site-studio/route";
+export const dynamic = "force-dynamic";
