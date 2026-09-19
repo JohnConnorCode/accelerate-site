@@ -1,5 +1,7 @@
 "use client";
 
+import { ChicagoHeadquarters } from "@/components/sections/ChicagoHeadquarters";
+
 import { Mail, Clock, Zap, Check } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
@@ -167,6 +169,7 @@ export function ContactPageContent() {
           </div>
         </div>
       </Section>
+      <ChicagoHeadquarters />
     </>
   );
 }

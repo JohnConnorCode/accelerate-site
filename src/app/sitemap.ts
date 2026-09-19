@@ -36,13 +36,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     freq: "weekly" | "monthly";
     lastMod?: string;
   }[] = [
+    { path: "/chicago", priority: 0.85, freq: "monthly", lastMod: "2026-09-19" },
     { path: "", priority: 1, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
     { path: "/services", priority: 0.9, freq: "monthly", lastMod: "2026-02-15" },
-    { path: "/command-center", priority: 0.9, freq: "monthly", lastMod: "2026-08-15" },
+    { path: "/command-center", priority: 0.9, freq: "monthly", lastMod: "2026-09-19" },
     { path: "/open-source", priority: 0.8, freq: "monthly", lastMod: "2026-09-01" },
     { path: "/roofing", priority: 0.9, freq: "monthly", lastMod: "2026-08-16" },
     { path: "/resources", priority: 0.7, freq: "monthly", lastMod: "2026-02-01" },
-    { path: "/industries", priority: 0.7, freq: "monthly", lastMod: LAST_CONTENT_UPDATE },
+    { path: "/industries", priority: 0.7, freq: "monthly", lastMod: "2026-09-19" },
     { path: "/work", priority: 0.85, freq: "monthly", lastMod: LAST_CONTENT_UPDATE },
     ...publicWorkProjects.map((project) => ({
       path: `/work/${project.slug}`,
@@ -57,9 +58,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       path: `/industries/${vertical.slug}`,
       priority: 0.8,
       freq: "monthly" as const,
-      lastMod: LAST_CONTENT_UPDATE,
+      lastMod: vertical.updatedAt ?? LAST_CONTENT_UPDATE,
     })),
-    { path: "/about", priority: 0.7, freq: "monthly", lastMod: "2026-02-01" },
+    { path: "/about", priority: 0.7, freq: "monthly", lastMod: "2026-09-19" },
     { path: "/team", priority: 0.7, freq: "monthly", lastMod: "2026-09-04" },
     // Team bios derive from the template system so a new member is
     // discoverable the moment they land in TEAM_MEMBERS.
@@ -69,9 +70,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       freq: "monthly" as const,
       lastMod: "2026-09-04",
     })),
-    { path: "/contact", priority: 0.7, freq: "monthly", lastMod: "2026-01-15" },
+    { path: "/contact", priority: 0.7, freq: "monthly", lastMod: "2026-09-19" },
     { path: "/learn", priority: 0.8, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
-    { path: "/docs", priority: 0.8, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
+    { path: "/docs", priority: 0.8, freq: "weekly", lastMod: "2026-09-19" },
     // Derived from the docs manifest rather than listed by hand, for the
     // same reason as the verticals note below: a hand list silently omits
     // whatever the manifest adds next. Section roots collapse to their
@@ -80,16 +81,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       path: `/docs/${page.slug.join("/")}`,
       priority: 0.6,
       freq: "monthly" as const,
-      lastMod: LAST_CONTENT_UPDATE,
+      lastMod: page.slug[0] === "recipes" ? "2026-09-19" : LAST_CONTENT_UPDATE,
     })),
     ...docsManifest.map((section) => ({
       path: `/docs/${section.id}`,
       priority: 0.6,
       freq: "monthly" as const,
-      lastMod: LAST_CONTENT_UPDATE,
+      lastMod: section.id === "recipes" ? "2026-09-19" : LAST_CONTENT_UPDATE,
     })),
     { path: "/partners", priority: 0.5, freq: "monthly", lastMod: "2026-01-10" },
-    { path: "/changelog", priority: 0.4, freq: "weekly", lastMod: LAST_CONTENT_UPDATE },
+    { path: "/changelog", priority: 0.4, freq: "weekly", lastMod: "2026-09-19" },
     { path: "/privacy", priority: 0.3, freq: "monthly", lastMod: "2025-12-01" },
     { path: "/terms", priority: 0.3, freq: "monthly", lastMod: "2025-12-01" },
   ];

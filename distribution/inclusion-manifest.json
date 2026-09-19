@@ -35,7 +35,8 @@
     "src/components/sections/FinalCTA.tsx",
     "src/components/sections/OpenSourcePage.tsx",
     ".github/",
-    "src/content/"
+    "src/content/",
+    "src/app/(marketing)/chicago/"
   ],
   "requiredStarterPrefixes": [
     "src/app/admin/",
@@ -79,7 +80,8 @@
     "src/content/open-source.ts": "distribution/neutral-starter/src/content/open-source.ts.txt",
     "src/content/services-overview.ts": "distribution/neutral-starter/src/content/services-overview.ts.txt",
     "src/content/services-page.ts": "distribution/neutral-starter/src/content/services-page.ts.txt",
-    ".env.example": "distribution/neutral-starter/environment.example.txt"
+    ".env.example": "distribution/neutral-starter/environment.example.txt",
+    "src/components/sections/ChicagoHeadquarters.tsx": "distribution/neutral-starter/src/components/sections/ChicagoHeadquarters.tsx.txt"
   },
   "environment": {
     "NEXT_PUBLIC_DISTRIBUTION_PROFILE": "neutral"
@@ -87,6 +89,8 @@
   "includePaths": [
     "src/content/docs/",
     "src/content/intake-questions.ts",
-    "src/content/integrations.ts"
+    "src/content/integrations.ts",
+    "src/content/workflow-recipes.ts",
+    "src/content/demo-workflows.ts"
   ]
 }

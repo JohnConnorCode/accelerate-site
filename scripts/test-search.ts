@@ -12,6 +12,10 @@ import { buildSearchIndex } from "../src/lib/search";
 import { normalize, searchEntries } from "../src/lib/search/score";
 
 const index = buildSearchIndex();
+assert.equal(new Set(index.map((item) => item.id)).size, index.length);
+assert(
+  searchEntries(index, "Chicago business automation", 5).some((item) => item.href === "/chicago"),
+);
 
 function top(query: string, count = 5) {
   return searchEntries(index, query, count).map((entry) => entry.title);

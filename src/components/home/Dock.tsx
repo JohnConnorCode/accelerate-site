@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { trackConversion } from "@/lib/analytics";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
 
 /**
@@ -25,6 +25,7 @@ import type { WebsiteDock } from "@/lib/site-studio/website-chrome";
 
 export function Dock({ content = websiteDockContent }: { content?: WebsiteDock }) {
   const pathname = usePathname();
+  const reducedMotion = useReducedMotion();
   const [visible, setVisible] = useState(false);
 
   const hiddenRoute =
@@ -63,10 +64,14 @@ export function Dock({ content = websiteDockContent }: { content?: WebsiteDock }
     <AnimatePresence>
       {visible && (
         <motion.aside
-          initial={{ y: "150%", opacity: 0 }}
+          initial={reducedMotion ? false : { y: "150%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: "150%", opacity: 0 }}
-          transition={{ type: "spring", damping: 28, stiffness: 280, mass: 0.65 }}
+          exit={reducedMotion ? { opacity: 0 } : { y: "150%", opacity: 0 }}
+          transition={
+            reducedMotion
+              ? { duration: 0 }
+              : { type: "spring", damping: 28, stiffness: 280, mass: 0.65 }
+          }
           data-dock
           className="fixed inset-x-0 bottom-0 z-[950] flex items-center gap-3 border-t border-white/10 py-3 pl-5 pr-3 sm:inset-x-auto sm:bottom-5 sm:left-1/2 sm:w-max sm:-translate-x-1/2 sm:gap-4.5 sm:border sm:border-white/[0.16] sm:py-2.5 sm:pl-5.5 sm:pr-2.5 sm:shadow-[0_20px_60px_rgba(0,0,0,0.34)]"
           style={{
