@@ -2,9 +2,9 @@ import "server-only";
 
 import { randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
+import { createBootstrapServiceRoleClient, tenantIdForDatabase } from "@/lib/supabase/server";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
-import { scheduleEmailSequence } from "@/lib/email/sequences";
+import { sendRecordedEmail } from "@/lib/revenue-os/communications";
 import { siteUrl } from "@/config/tenant";
 import { openRouterJson } from "@/lib/ai/openrouter";
 import { auditWebsite } from "@/lib/ai-readiness-website";
@@ -183,12 +183,19 @@ async function saveDraft(
         previewed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
-      { onConflict: "session_token" },
+      { onConflict: "tenant_id,session_token", ignoreDuplicates: true },
     )
     .select("id,report_token")
-    .single();
+    .maybeSingle();
   if (error) throw new Error(error.message);
-  return data as { id: string; report_token: string | null };
+  if (data) return data as { id: string; report_token: string | null };
+  const existing = await supabase
+    .from("ai_readiness_assessments")
+    .select("id,report_token")
+    .eq("session_token", sessionToken)
+    .single();
+  if (existing.error) throw new Error("Assessment session could not be read");
+  return existing.data as { id: string; report_token: string | null };
 }
 
 export async function previewAssessment(input: {
@@ -233,15 +240,30 @@ export async function unlockAssessment(input: {
   attribution?: AssessmentAttribution;
 }): Promise<AssessmentSession> {
   const { answers, profile, report: rulesReport } = validateAssessment(input);
-  const reportWithWebsite = await addWebsiteAudit(rulesReport, profile);
   if (!input.contact.consentGiven) throw new Error("Consent is required to save your report.");
   const sessionToken = input.sessionToken || token();
   const supabase = database();
-  const reportToken = supabase ? token() : null;
+  let reportToken: string | null = null;
+  let deliveryEmail = input.contact.email.trim().toLowerCase();
+  let deliveryName = input.contact.name.trim();
+  let assessmentId: string | null = null;
+  // A completed session reuses its stored report without another model or crawl.
+  const previous = supabase
+    ? await supabase
+        .from("ai_readiness_assessments")
+        .select("report_token")
+        .eq("session_token", sessionToken)
+        .maybeSingle()
+    : null;
+  if (previous?.error) throw new Error("Assessment recovery is temporarily unavailable");
+  const existingReport = previous?.data?.report_token
+    ? await loadReport(previous.data.report_token)
+    : null;
+  const reportWithWebsite = existingReport ?? (await addWebsiteAudit(rulesReport, profile));
   let report = reportWithWebsite;
-  if (supabase) {
+  if (supabase && !existingReport) {
     try {
-      report = await enrichReport(supabase, rulesReport);
+      report = await enrichReport(supabase, reportWithWebsite);
     } catch (error) {
       console.warn(
         "AI readiness enrichment unavailable; using rules report:",
@@ -251,53 +273,42 @@ export async function unlockAssessment(input: {
   }
   let persisted = false;
   if (supabase) {
-    const { data: row, error } = await supabase
-      .from("ai_readiness_assessments")
-      .upsert(
-        {
-          session_token: sessionToken,
-          report_token: reportToken,
-          version: AI_READINESS_VERSION,
-          status: "unlocked",
-          answers,
-          profile,
-          score: report.score,
-          coverage: report.coverage,
-          dimension_scores: report.dimensionScores,
-          name: input.contact.name.trim(),
-          email: input.contact.email.trim().toLowerCase(),
-          business_name: input.contact.businessName.trim(),
-          consent_given: true,
-          marketing_consent: input.contact.marketingConsent,
-          utm_source: input.attribution?.utm_source || null,
-          utm_medium: input.attribution?.utm_medium || null,
-          utm_campaign: input.attribution?.utm_campaign || null,
-          referrer_host: input.attribution?.referrerHost || null,
-          unlocked_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "session_token" },
-      )
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    const assessmentId = row.id;
-    const { error: reportError } = await supabase
-      .from("ai_readiness_reports")
-      .upsert(
-        { assessment_id: assessmentId, revision: 1, report, ai_status: report.aiStatus },
-        { onConflict: "tenant_id,assessment_id,revision" },
-      );
-    if (reportError) throw new Error(reportError.message);
+    const tenantId = tenantIdForDatabase(supabase);
+    if (!tenantId) throw new Error("Tenant context required");
+    const { data: saved, error } = await supabase.rpc("complete_ai_readiness_report", {
+      p_tenant_id: tenantId,
+      p_session_token: sessionToken,
+      p_report_token: token(),
+      p_assessment: {
+        version: AI_READINESS_VERSION,
+        answers,
+        profile,
+        name: input.contact.name.trim(),
+        email: deliveryEmail,
+        business_name: input.contact.businessName.trim(),
+        consent_given: true,
+        marketing_consent: input.contact.marketingConsent,
+        ...input.attribution,
+        referrer_host: input.attribution?.referrerHost || null,
+      },
+      p_report: report,
+    });
+    if (error || !saved?.assessmentId || !saved.reportToken || !saved.report)
+      throw new Error("The report could not be saved. Retry to recover the same report.");
+    assessmentId = saved.assessmentId;
+    reportToken = saved.reportToken;
+    report = saved.report;
+    deliveryEmail = saved.email;
+    deliveryName = saved.name;
     persisted = true;
 
     await ingestInboundLead(supabase, {
-      name: input.contact.name.trim(),
-      email: input.contact.email.trim().toLowerCase(),
-      companyName: input.contact.businessName.trim(),
-      industry: profile.businessType,
+      name: deliveryName,
+      email: deliveryEmail,
+      companyName: saved.businessName,
+      industry: report.profile.businessType,
       source: "solution_request",
-      sourceRecordId: assessmentId,
+      sourceRecordId: assessmentId!,
       summary: `AI readiness assessment: ${report.score === null ? "incomplete score" : `${report.score}/100`}; focus ${report.recommendations[0]?.title ?? "guided review"}.`,
       utm: input.attribution,
     })
@@ -321,22 +332,26 @@ export async function unlockAssessment(input: {
   const reportUrl = reportToken
     ? `${siteUrl()}/ai-readiness/report/${reportToken}`
     : `${siteUrl()}/ai-readiness`;
-  if (process.env.RESEND_API_KEY && reportToken) {
-    void scheduleEmailSequence({
-      email: input.contact.email.trim().toLowerCase(),
-      sequenceType: "resource_welcome",
-      metadata: {
-        name: input.contact.name.trim(),
-        resourceTitle: "your AI Readiness Action Plan",
-        downloadLink: reportUrl,
-        reportLink: reportUrl,
-      },
-    }).catch((error) =>
-      console.warn(
-        "AI readiness report email could not be scheduled:",
-        error instanceof Error ? error.message : "unknown",
-      ),
-    );
+  if (
+    supabase &&
+    reportToken &&
+    assessmentId &&
+    !deliveryEmail.endsWith("@example.invalid") &&
+    !/^qa[-_]/i.test(deliveryEmail)
+  ) {
+    try {
+      await sendRecordedEmail(supabase, {
+        to: deliveryEmail,
+        subject: "Your AI Readiness Action Plan",
+        text: `Hello ${deliveryName},\n\nYour saved AI Readiness Action Plan is ready: ${reportUrl}\n\nOpen the report to review your next steps and download the PDF.`,
+        idempotencyKey: `ai-readiness-report:${assessmentId}`,
+        source: "automation",
+      });
+    } catch {
+      // The canonical mail service retains dispatch/failure state. A retry uses
+      // this same identity; the saved web report remains available either way.
+      console.warn("AI readiness report saved; email delivery needs verification in Activity.");
+    }
   }
   return { sessionToken, reportToken, report, preview: publicPreview(report), persisted };
 }

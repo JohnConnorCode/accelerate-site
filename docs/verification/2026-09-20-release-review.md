@@ -37,15 +37,10 @@ all exact predecessor sources and previous exclusions.
   returns without restoring the missing audit. Concurrent column creation also lacks
   a complete atomic operation receipt. Its submitted evidence does not establish the
   full custom-board/workflow/fictional-workspace acceptance or public docs contract.
-- AI readiness `d71df12596515c7cb3b906e0fb2a9b5dcee29b54`: neither assessment table is
-  registered in tenant-scoped database access. Admin reads therefore lack the wrapper's
-  tenant filter. Website fetch resolves DNS again after checking an address and misses
-  mapped/private IPv6 cases. Unlock retry rotates public report tokens and overwrites
-  revision one; concurrent attempts can disagree. Website audit is discarded during
-  successful AI enrichment. `resource_welcome` is scheduled without marketing consent
-  and its random sequence ID cannot deduplicate retries. These are release blockers,
-  despite the scoring/PDF tests passing. The source branch remains intact; the trial
-  integration was reverted in full, including its dependent presentation commits.
+- Readiness source initially failed review for tenant registration, address validation,
+  report replay and marketing consent. Live deployment inspection then established
+  that this source was already published outside main. Preserve its functionality
+  and presentation changes in the release, with the repairs described below.
 - Architect review/simulation is planned, with retained dirty predecessor and an
   unverified checkpoint. It is not a completed handoff.
 - Roles/permissions, old decision-memory PR81, stale redesign and Drive-provenance
@@ -74,10 +69,36 @@ review does not claim those operations completed.
 Database review follows current [Supabase RLS guidance](https://supabase.com/docs/guides/database/postgres/row-level-security)
 and the September 20 changelog inspection. Address-resolution review follows
 [Node DNS documentation](https://nodejs.org/api/dns.html). This release keeps the
-existing tenant/RLS contracts and leaves rejected features unavailable.
+existing tenant/RLS contracts and withholds the rejected source-authority and generated-operation changes.
 
 The inbound responder now requires its v3 standing-policy approval. Do not silently
 renew approval during deployment. Source/index availability, provider configuration,
 model execution and measured learning quality remain distinct readiness signals.
 
-Production ledger inspection found the readiness assessment migration already applied. Its exact immutable SQL and catalog entry are retained for checksum compatibility; excluding its application feature does not delete stored records. The only pending migrations are connected learning, knowledge documents and learning signals; every existing checksum matches.
+Production ledger inspection found the readiness assessment migration already applied. Its exact immutable SQL and catalog entry are retained for checksum compatibility. The feature is reconciled with safety repairs rather than removed from production. The only pending migrations are connected learning, knowledge documents and learning signals; every existing checksum matches.
+
+## Readiness integration repairs
+
+Production deployment `dpl_CRofEYDbZJCUFx2NkiLGHGR4eHah` reports source
+`d71df12596515c7cb3b906e0fb2a9b5dcee29b54` and a dirty-tree flag. Preserve all seven
+committed feature/presentation changes, while using the new immutable release as
+source truth. Historical deployment metadata cannot establish what dirty edits ran.
+
+Both assessment tables now participate in the shared tenant database boundary.
+A service-only, SECURITY INVOKER transaction locks the assessment session and saves
+the report plus its stable token atomically. Concurrent retries return the original
+report and recipient. A failed report insert rolls back the assessment update.
+Preview retries cannot reset an unlocked assessment. Existing completed sessions
+reuse stored reports before crawling or requesting model enrichment.
+
+The website audit pins a verified public address at socket connection time while
+preserving TLS hostname verification, validates every redirect, rejects private and
+mapped/transition IP ranges, bounds DNS and response time, and cancels capped bodies.
+Successful enrichment retains the website result. Report email uses sendRecordedEmail
+with an assessment-specific identity and awaits its recorded outcome. Optional
+marketing consent is retained, but no marketing sequence is automatically scheduled.
+Saved web/PDF reports remain usable when email delivery needs attention.
+
+An isolated PostgreSQL regression proves concurrent completion, immutable replay,
+rollback, authenticated tenant RLS, service-only writes and repeatable migration.
+The original readiness migration remains unchanged; the repair is additive.

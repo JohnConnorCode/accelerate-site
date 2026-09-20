@@ -2,6 +2,9 @@ import "server-only";
 
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { Readable } from "node:stream";
 import type { WebsiteAudit, WebsiteAuditCategory, WebsiteAuditFinding } from "@/lib/ai-readiness";
 
 const MAX_HTML_BYTES = 400_000;
@@ -39,8 +42,9 @@ function textContent(html: string) {
     .trim();
 }
 
-function privateAddress(address: string) {
+export function privateAddress(address: string) {
   const normalized = address.toLowerCase();
+  if (isIP(normalized) === 0) return false;
   if (isIP(normalized) === 4) {
     const parts = normalized.split(".").map(Number);
     const [a = 0, b = 0] = parts;
@@ -53,19 +57,31 @@ function privateAddress(address: string) {
       (a === 172 && b >= 16 && b <= 31) ||
       (a === 192 && b === 0) ||
       (a === 192 && b === 168) ||
+      (a === 198 && (b === 18 || b === 19)) ||
       a >= 224
     );
   }
+  // Only globally routable IPv6 unicast; mapped IPv4 and transition ranges
+  // are deliberately excluded rather than interpreted as public IPv6.
   return (
-    normalized === "::1" ||
-    normalized === "::" ||
-    normalized.startsWith("fe80:") ||
-    normalized.startsWith("fc") ||
-    normalized.startsWith("fd") ||
-    normalized.startsWith("::ffff:127.") ||
-    normalized.startsWith("::ffff:10.") ||
-    normalized.startsWith("::ffff:192.168.")
+    !/^[23][0-9a-f]{3}:/.test(normalized) ||
+    normalized.startsWith("2001:") ||
+    normalized.startsWith("2002:")
   );
+}
+
+async function resolveAddresses(hostname: string) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      lookup(hostname, { all: true }),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("DNS timeout")), FETCH_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function publicUrl(raw: string) {
@@ -93,12 +109,60 @@ async function publicUrl(raw: string) {
   )
     return null;
   try {
-    const addresses = await lookup(hostname, { all: true });
+    const addresses = await resolveAddresses(hostname);
     if (!addresses.length || addresses.some((entry) => privateAddress(entry.address))) return null;
   } catch {
     return null;
   }
   return parsed;
+}
+
+/** Resolve once and pin that verified address to the connection, preserving
+ * the original Host header and TLS hostname. Redirects repeat this boundary. */
+async function fetchPublicHomepage(url: URL): Promise<Response> {
+  const hostname = url.hostname.replace(/^\[|\]$/g, "");
+  const addresses = await resolveAddresses(hostname);
+  if (!addresses.length || addresses.some(({ address }) => privateAddress(address)))
+    throw new Error("Non-public destination");
+  const selected = addresses[0]!;
+  return new Promise((resolve, reject) => {
+    const request = (url.protocol === "https:" ? httpsRequest : httpRequest)(
+      url,
+      {
+        agent: false,
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+        lookup: (_hostname, options, callback) => {
+          if (options.all) callback(null, [selected]);
+          else callback(null, selected.address, selected.family);
+        },
+        headers: {
+          accept: "text/html,application/xhtml+xml",
+          "user-agent": "AI-Readiness-Audit/1.0",
+        },
+      },
+      (response) => {
+        const headers = new Headers();
+        for (const [key, value] of Object.entries(response.headers)) {
+          if (value !== undefined)
+            headers.set(key, Array.isArray(value) ? value.join(", ") : value);
+        }
+        const status = response.statusCode ?? 502;
+        if ((status >= 300 && status < 400) || status === 204) {
+          response.destroy();
+          resolve(new Response(null, { status, headers }));
+        } else {
+          resolve(
+            new Response(Readable.toWeb(response) as ReadableStream<Uint8Array>, {
+              status,
+              headers,
+            }),
+          );
+        }
+      },
+    );
+    request.on("error", reject);
+    request.end();
+  });
 }
 
 async function readHtml(response: Response) {
@@ -115,6 +179,7 @@ async function readHtml(response: Response) {
       chunks.push(next.value);
     }
   } finally {
+    await reader.cancel().catch(() => undefined);
     reader.releaseLock();
   }
   const bytes = new Uint8Array(total);
@@ -368,15 +433,7 @@ export async function auditWebsite(rawUrl?: string): Promise<WebsiteAudit | null
   let current: URL = initialUrl;
   try {
     for (let redirect = 0; redirect <= MAX_REDIRECTS; redirect += 1) {
-      const response = await fetch(current, {
-        redirect: "manual",
-        cache: "no-store",
-        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-        headers: {
-          accept: "text/html,application/xhtml+xml",
-          "user-agent": "AI-Readiness-Audit/1.0",
-        },
-      });
+      const response = await fetchPublicHomepage(current);
       if (response.status >= 300 && response.status < 400) {
         const location = response.headers.get("location");
         const next = location ? await publicUrl(new URL(location, current).href) : null;

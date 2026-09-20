@@ -119,6 +119,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260920-connected-learning.sql",
   "migrations/20260927-knowledge-documents.sql",
   "migrations/20260928-learning-signals.sql",
+  "migrations/20260920201517_ai_readiness_atomic_reports.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

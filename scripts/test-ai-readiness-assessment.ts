@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { calculateReadiness, readinessQuestions } from "../src/lib/ai-readiness";
 import { createAIReadinessPdf } from "../src/lib/ai-readiness-pdf";
-import { auditWebsite } from "../src/lib/ai-readiness-website";
+import { auditWebsite, privateAddress } from "../src/lib/ai-readiness-website";
 
 const profile = {
   businessType: "professional services",
@@ -66,3 +66,20 @@ void auditWebsite("http://localhost")
     console.error(error);
     process.exitCode = 1;
   });
+
+for (const address of [
+  "127.0.0.1",
+  "10.0.0.1",
+  "169.254.169.254",
+  "172.16.0.1",
+  "192.168.0.1",
+  "::ffff:7f00:1",
+  "::ffff:a00:1",
+  "::1",
+  "fe90::1",
+  "fc00::1",
+  "2002:7f00:1::",
+])
+  assert.equal(privateAddress(address), true, address);
+for (const address of ["example.com", "8.8.8.8", "2606:4700:4700::1111"])
+  assert.equal(privateAddress(address), false, address);

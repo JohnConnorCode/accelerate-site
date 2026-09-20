@@ -6,14 +6,20 @@ import { loadReport, previewAssessment, unlockAssessment } from "@/lib/ai-readin
 const requestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("preview"),
-    sessionToken: z.string().trim().min(20).max(96).optional(),
+    sessionToken: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{32,96}$/)
+      .optional(),
     answers: z.record(z.string(), z.string()),
     profile: z.record(z.string(), z.unknown()),
     attribution: z.record(z.string(), z.string()).optional(),
   }),
   z.object({
     action: z.literal("unlock"),
-    sessionToken: z.string().trim().min(20).max(96).optional(),
+    sessionToken: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{32,96}$/)
+      .optional(),
     answers: z.record(z.string(), z.string()),
     profile: z.record(z.string(), z.unknown()),
     contact: z.object({

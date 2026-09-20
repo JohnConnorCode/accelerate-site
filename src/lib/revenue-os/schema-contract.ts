@@ -5,9 +5,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-28.1";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-28.2";
 
 export const TENANT_SCOPED_TABLES = [
+  "ai_readiness_assessments",
+  "ai_readiness_reports",
   "knowledge_documents",
   "learning_signals",
   "today_view_proposals",
@@ -575,6 +577,24 @@ const BASE_REVENUE_SCHEMA_TABLE_NAMES = new Set<string>(
 
 export const REVENUE_SCHEMA_TABLES = [
   {
+    table: "ai_readiness_assessments",
+    columns: [
+      "id",
+      "tenant_id",
+      "session_token",
+      "report_token",
+      "status",
+      "answers",
+      "profile",
+      "consent_given",
+      "marketing_consent",
+    ],
+  },
+  {
+    table: "ai_readiness_reports",
+    columns: ["id", "tenant_id", "assessment_id", "revision", "report", "ai_status"],
+  },
+  {
     table: "knowledge_documents",
     columns: [
       "id",
@@ -843,6 +863,10 @@ export const REVENUE_SCHEMA_INDEXES = [
 ] as const;
 
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
+  {
+    name: "public.complete_ai_readiness_report(uuid,text,text,jsonb,jsonb)",
+    migration: "migrations/20260920201517_ai_readiness_atomic_reports.sql",
+  },
   {
     name: "public.record_form_submission(text,uuid,jsonb,jsonb,text,text)",
     migration: "migrations/20260919203846_form_submission_safety.sql",
