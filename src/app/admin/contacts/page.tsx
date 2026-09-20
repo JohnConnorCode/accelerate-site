@@ -27,8 +27,13 @@ import { AdminDialog } from "@/components/admin/AdminDialog";
 import { ContactIntakeNav } from "@/components/admin/ContactIntakeNav";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { CanonicalSourceLink } from "@/components/admin/CanonicalSourceLink";
+import { SourceToolDispositions } from "@/components/admin/SourceToolDispositions";
 import { Toast } from "@/components/ui/Toast";
 import { adminListItemVariants, adminListVariants } from "@/lib/admin/motion";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
+import type { SourceFieldDisposition } from "@/lib/revenue-os/retained-source-dispositions";
 
 interface Contact {
   id: string;
@@ -39,6 +44,12 @@ interface Contact {
   business_name?: string;
   message: string;
   created_at: string;
+  revenue_os?: {
+    contact_id: string | null;
+    opportunity_id: string | null;
+    stage: string | null;
+    linked_by: "source" | "identity" | "email" | null;
+  };
 }
 
 function formatDate(value: string) {
@@ -52,11 +63,7 @@ function formatDate(value: string) {
 export default function ContactsPage() {
   const searchParams = useSearchParams();
   const router = useAdminNavigation();
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [contactOpen, setContactOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -67,25 +74,17 @@ export default function ContactsPage() {
   const dismissedContactRef = useRef<string | null>(null);
   const contactTriggerRef = useRef<HTMLElement | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/admin/contacts?page=${page}`);
-      if (!response.ok) throw new Error("Failed to load submissions");
-      const data = await response.json();
-      setContacts(data.contacts || []);
-      setTotal(data.total || 0);
-      setTotalPages(data.totalPages || 1);
-    } catch {
-      setToast({ message: "Contact submissions could not be loaded", type: "error" });
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+  const contactsQuery = useAdminQuery<{
+    contacts?: Contact[];
+    total?: number;
+    totalPages?: number;
+    canonicalSchemaReady?: boolean;
+    dispositions?: SourceFieldDisposition[];
+  }>(["admin", "contacts", page], `/api/admin/contacts?page=${page}`);
+  const contacts = useMemo(() => contactsQuery.data?.contacts ?? [], [contactsQuery.data?.contacts]);
+  const total = contactsQuery.data?.total ?? 0;
+  const totalPages = contactsQuery.data?.totalPages ?? 1;
+  const loading = contactsQuery.isPending;
   useEffect(() => {
     const requestedContact = searchParams.get("contact")?.trim();
     if (!requestedContact) {
@@ -153,8 +152,7 @@ export default function ContactsPage() {
         body: JSON.stringify({ id }),
       });
       if (!response.ok) throw new Error("Delete failed");
-      setContacts((current) => current.filter((contact) => contact.id !== id));
-      setTotal((current) => Math.max(0, current - 1));
+      await contactsQuery.refetch();
       setExpandedId(null);
       setContactOpen(false);
       setToast({ message: "Submission deleted", type: "success" });
@@ -181,7 +179,15 @@ export default function ContactsPage() {
         }
       />
       <ContactIntakeNav active="submissions" />
-
+      <AdminReadBody
+        loading={loading}
+        hasData={Boolean(contactsQuery.data)}
+        error={contactsQuery.error?.message}
+        onRetry={() => void contactsQuery.refetch()}
+        refreshing={contactsQuery.isFetching}
+        loadingFallback={<LoadingSkeleton variant="table" />}
+        label="Loading contact submissions"
+      >
       <AdminSurface padding="none" className="overflow-hidden">
         <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -278,6 +284,12 @@ export default function ContactsPage() {
                       <span className="admin-copy mt-0.5 block truncate text-xs">
                         {contact.email}
                       </span>
+                      <span className="mt-1 block">
+                        <CanonicalSourceLink
+                          link={contact.revenue_os}
+                          schemaReady={contactsQuery.data?.canonicalSchemaReady}
+                        />
+                      </span>
                     </span>
                     <span className="admin-copy hidden truncate text-xs md:block">
                       {contact.business_name || contact.business_type || "No company supplied"}
@@ -325,6 +337,11 @@ export default function ContactsPage() {
           </div>
         </div>
       )}
+      <SourceToolDispositions
+        schemaReady={contactsQuery.data?.canonicalSchemaReady}
+        dispositions={contactsQuery.data?.dispositions}
+      />
+      </AdminReadBody>
       <AdminDialog
         open={contactOpen && Boolean(displayedContact)}
         onClose={closeContact}

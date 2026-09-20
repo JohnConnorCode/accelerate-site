@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Pagination } from "@/components/admin/Pagination";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { EmptyState } from "@/components/admin/EmptyState";
 
 interface Subscriber {
@@ -39,17 +40,20 @@ export default function SubscribersPage() {
   const [total, setTotal] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [error, setError] = useState<string | undefined>();
 
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/subscribers?page=${page}`);
+      if (!res.ok) throw new Error("Subscribers could not be loaded");
       const data = await res.json();
       setSubscribers(data.subscribers || []);
       setStats(data.stats || { total: 0, active: 0, unsubscribed: 0 });
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
-    } catch {
-      // silent
+      setError(undefined);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Subscribers could not be loaded");
     } finally {
       setLoading(false);
     }
@@ -72,18 +76,20 @@ export default function SubscribersPage() {
     window.open("/api/admin/subscribers/export", "_blank");
   };
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title={adminPageName("subscribers")} />
-        <LoadingSkeleton variant="page" />
-      </div>
-    );
-  }
-
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader title={adminPageName("subscribers")} subtitle={`${total} total`} />
+      <AdminReadBody
+        loading={loading}
+        hasData={!loading || subscribers.length > 0}
+        error={error}
+        onRetry={() => {
+          setLoading(true);
+          void fetchData();
+        }}
+        loadingFallback={<LoadingSkeleton variant="page" />}
+        label="Loading subscribers"
+      >
 
       <div className="admin-grid admin-grid--metrics mb-6">
         <StatCard label="Total" value={stats.total} icon={AtSign} index={0} />
@@ -178,6 +184,7 @@ export default function SubscribersPage() {
       </GlassCard>
 
       <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+      </AdminReadBody>
     </motion.div>
   );
 }

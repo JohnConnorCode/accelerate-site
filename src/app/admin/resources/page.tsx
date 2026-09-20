@@ -1,8 +1,7 @@
 "use client";
 
 import { adminPageName } from "@/lib/admin/navigation";
-
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
 import { Download, Users, Search } from "lucide-react";
@@ -13,6 +12,11 @@ import { Input } from "@/components/ui/Input";
 import { Pagination } from "@/components/admin/Pagination";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { EmptyState } from "@/components/admin/EmptyState";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { CanonicalSourceLink } from "@/components/admin/CanonicalSourceLink";
+import { SourceToolDispositions } from "@/components/admin/SourceToolDispositions";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
+import type { SourceFieldDisposition } from "@/lib/revenue-os/retained-source-dispositions";
 
 interface ResourceDownload {
   id: string;
@@ -21,36 +25,34 @@ interface ResourceDownload {
   email: string;
   company?: string;
   downloaded_at: string;
+  revenue_os?: {
+    contact_id: string | null;
+    opportunity_id: string | null;
+    stage: string | null;
+    linked_by: "source" | "identity" | "email" | null;
+  };
 }
 
 export default function ResourcesPage() {
-  const [downloads, setDownloads] = useState<ResourceDownload[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [stats, setStats] = useState({ totalDownloads: 0, uniqueUsers: 0 });
   const [searchQuery, setSearchQuery] = useState("");
   const [resourceFilter, setResourceFilter] = useState("all");
-
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/admin/resources?page=${page}`);
-      const data = await res.json();
-      setDownloads(data.downloads || []);
-      setTotal(data.total || 0);
-      setTotalPages(data.totalPages || 1);
-      setStats(data.stats || { totalDownloads: 0, uniqueUsers: 0 });
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const downloadsQuery = useAdminQuery<{
+    downloads?: ResourceDownload[];
+    total?: number;
+    totalPages?: number;
+    stats?: { totalDownloads: number; uniqueUsers: number };
+    canonicalSchemaReady?: boolean;
+    dispositions?: SourceFieldDisposition[];
+  }>(["admin", "resources", page], `/api/admin/resources?page=${page}`);
+  const downloads = useMemo(
+    () => downloadsQuery.data?.downloads ?? [],
+    [downloadsQuery.data?.downloads],
+  );
+  const total = downloadsQuery.data?.total ?? 0;
+  const totalPages = downloadsQuery.data?.totalPages ?? 1;
+  const stats = downloadsQuery.data?.stats ?? { totalDownloads: 0, uniqueUsers: 0 };
+  const loading = downloadsQuery.isPending;
 
   const resourceTypes = useMemo(() => {
     const types = new Set(downloads.map((d) => d.resource_id));
@@ -68,18 +70,18 @@ export default function ResourcesPage() {
     });
   }, [downloads, searchQuery, resourceFilter]);
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title={adminPageName("resources")} />
-        <LoadingSkeleton variant="page" />
-      </div>
-    );
-  }
-
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader title={adminPageName("resources")} subtitle={`${total} total downloads`} />
+      <AdminReadBody
+        loading={loading}
+        hasData={Boolean(downloadsQuery.data)}
+        error={downloadsQuery.error?.message}
+        onRetry={() => void downloadsQuery.refetch()}
+        refreshing={downloadsQuery.isFetching}
+        loadingFallback={<LoadingSkeleton variant="page" />}
+        label="Loading resource downloads"
+      >
 
       <div className="grid gap-4 sm:grid-cols-2 mb-6">
         <StatCard label="Total Downloads" value={stats.totalDownloads} icon={Download} index={0} />
@@ -131,6 +133,9 @@ export default function ResourcesPage() {
               <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
                 Date
               </th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                Canonical
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -157,6 +162,12 @@ export default function ResourcesPage() {
                 <td className="px-4 py-3 text-white-muted text-xs">
                   {new Date(dl.downloaded_at).toLocaleDateString()}
                 </td>
+                <td className="px-4 py-3">
+                  <CanonicalSourceLink
+                    link={dl.revenue_os}
+                    schemaReady={downloadsQuery.data?.canonicalSchemaReady}
+                  />
+                </td>
               </motion.tr>
             ))}
           </tbody>
@@ -167,6 +178,11 @@ export default function ResourcesPage() {
       </GlassCard>
 
       <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+      <SourceToolDispositions
+        schemaReady={downloadsQuery.data?.canonicalSchemaReady}
+        dispositions={downloadsQuery.data?.dispositions}
+      />
+      </AdminReadBody>
     </motion.div>
   );
 }

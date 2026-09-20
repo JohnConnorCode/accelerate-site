@@ -5,6 +5,7 @@ import Link from "@/components/admin/AdminLink";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { ClientDetail } from "@/components/admin/ClientDetail";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
 import { AdminSurface } from "@/components/admin/AdminSurface";
@@ -91,7 +92,15 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     return (
       <div>
         <PageHeader title="Client" />
-        <LoadingSkeleton variant="page" />
+        <AdminReadBody
+          loading
+          hasData={false}
+          onRetry={() => void fetchClient()}
+          loadingFallback={<LoadingSkeleton variant="page" />}
+          label="Loading client"
+        >
+          <span />
+        </AdminReadBody>
       </div>
     );
   }
@@ -128,6 +137,13 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       </div>
 
       <PageHeader title={client.business_name} subtitle={client.contact_name} />
+      <AdminReadBody
+        loading={loading}
+        hasData={Boolean(client)}
+        onRetry={() => void fetchClient()}
+        loadingFallback={<LoadingSkeleton variant="page" />}
+        label="Loading client"
+      >
       <Link
         href={`/admin/contacts/${encodeURIComponent(client.contact_email)}`}
         className="mb-5 inline-flex min-h-11 items-center text-sm font-medium text-[var(--admin-ink)] underline underline-offset-4"
@@ -148,6 +164,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
           </AdminSurface>
         </div>
       </div>
+      </AdminReadBody>
     </div>
   );
 }

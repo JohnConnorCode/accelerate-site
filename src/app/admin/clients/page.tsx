@@ -7,6 +7,7 @@ import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { Search, ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -72,14 +73,6 @@ export default function ClientsPage() {
     fetchClients();
   }, [fetchClients]);
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title={adminPageName("clients")} />
-        <LoadingSkeleton variant="table" count={6} />
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -87,6 +80,16 @@ export default function ClientsPage() {
         title={adminPageName("clients")}
         subtitle={`${activeCount} active · $${totalMRR.toLocaleString()}/mo MRR`}
       />
+      <AdminReadBody
+        loading={loading}
+        hasData={!loading}
+        onRetry={() => {
+          setLoading(true);
+          void fetchClients();
+        }}
+        loadingFallback={<LoadingSkeleton variant="table" />}
+        label="Loading retained source tool"
+      >
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
@@ -251,6 +254,8 @@ export default function ClientsPage() {
           </div>
         </AdminSurface>
       )}
+
+      </AdminReadBody>
     </div>
   );
 }

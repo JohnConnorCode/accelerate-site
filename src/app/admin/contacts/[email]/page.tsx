@@ -17,6 +17,7 @@ import { CollectionCaseLinks } from "@/components/admin/CollectionsWorkspace";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 
 interface TimelineItem {
   type: string;
@@ -66,15 +67,6 @@ export default function ContactTimelinePage() {
     fetchTimeline();
   }, [fetchTimeline]);
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Contact relationship" />
-        <LoadingSkeleton variant="page" />
-      </div>
-    );
-  }
-
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div className="mb-4">
@@ -91,6 +83,13 @@ export default function ContactTimelinePage() {
         title="Contact relationship"
         subtitle="A unified record of the conversations, opportunities, and work connected to this person."
       />
+      <AdminReadBody
+        loading={loading}
+        hasData={!loading}
+        onRetry={() => void fetchTimeline()}
+        loadingFallback={<LoadingSkeleton variant="page" />}
+        label="Loading contact relationship"
+      >
 
       <AdminSurface padding="md" className="mb-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -144,6 +143,7 @@ export default function ContactTimelinePage() {
         {canonical?.contact && <CollectionCaseLinks contactId={canonical.contact.id} />}
         <ContactTimeline items={timeline} />
       </div>
+      </AdminReadBody>
     </motion.div>
   );
 }

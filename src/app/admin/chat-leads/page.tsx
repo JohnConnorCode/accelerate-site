@@ -22,6 +22,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
 import { Pagination } from "@/components/admin/Pagination";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { toast } from "@/lib/admin/useToast";
 
@@ -121,18 +122,6 @@ export default function ChatLeadsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader
-          title={adminPageName("chat-leads")}
-          subtitle="Review enquiries submitted through your website chat."
-        />
-        <LoadingSkeleton variant="table" />
-      </div>
-    );
-  }
-
   return (
     <motion.div
       initial={false}
@@ -155,6 +144,15 @@ export default function ChatLeadsPage() {
           </button>
         }
       />
+      <AdminReadBody
+        loading={loading}
+        hasData={!loading || total > 0}
+        error={error}
+        onRetry={() => setRefreshKey((key) => key + 1)}
+        refreshing={refreshing}
+        loadingFallback={<LoadingSkeleton variant="table" />}
+        label="Loading chat leads"
+      >
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative min-w-[220px] flex-1">
@@ -357,6 +355,7 @@ export default function ChatLeadsPage() {
       {!error && (
         <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
       )}
+      </AdminReadBody>
     </motion.div>
   );
 }

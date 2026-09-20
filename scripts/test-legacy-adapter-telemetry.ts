@@ -266,6 +266,46 @@ async function runTelemetrySuite() {
     assert.equal(report.consumers.length, LEGACY_ADAPTER_CONSUMERS.length);
   }
 
+  // Unmatched source row stays unlinked; two rows sharing an email share one contact.
+  {
+    const db = new MockSupabase({
+      contacts: [
+        {
+          id: "c-shared",
+          company_id: "co-1",
+          primary_email: "shared@example.com",
+          source_record_id: "linked-source",
+        },
+      ],
+      opportunities: [
+        {
+          id: "opp-1",
+          contact_id: "c-shared",
+          company_id: "co-1",
+          email: "shared@example.com",
+          stage: "new",
+          source_record_id: "linked-source",
+          created_at: "2026-09-01T00:00:00.000Z",
+        },
+      ],
+    });
+    const result = await attachRevenueLinkageWithTelemetry(
+      client(db),
+      [
+        { id: "linked-source", email: "shared@example.com" },
+        { id: "second-source", email: "shared@example.com" },
+        { id: "unmatched-source", email: "nobody@example.com" },
+      ],
+      { sourceRecordType: "contact_form" },
+      { route: "admin-contacts" },
+    );
+    assert.equal(result.records[0]?.revenue_os.contact_id, "c-shared");
+    assert.equal(result.records[0]?.revenue_os.opportunity_id, "opp-1");
+    assert.equal(result.records[1]?.revenue_os.contact_id, "c-shared");
+    assert.equal(result.records[2]?.revenue_os.contact_id, null);
+    assert.equal(result.records[2]?.revenue_os.linked_by, null);
+  }
+
   // Test 5: registry names every compatibility consumer.
   {
     const routes = LEGACY_ADAPTER_CONSUMERS.map((c) => c.route).sort();

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { Toast } from "@/components/ui/Toast";
 
@@ -65,15 +66,6 @@ export default function PartnersPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title={adminPageName("partners")} />
-        <LoadingSkeleton variant="table" />
-      </div>
-    );
-  }
-
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
@@ -92,6 +84,16 @@ export default function PartnersPage() {
           />
         }
       />
+      <AdminReadBody
+        loading={loading}
+        hasData={!loading || partners.length > 0}
+        onRetry={() => {
+          setLoading(true);
+          void fetchData();
+        }}
+        loadingFallback={<LoadingSkeleton variant="table" />}
+        label="Loading partner applications"
+      >
 
       <GlassCard padding="none" hover="none" className="overflow-clip">
         <table className="admin-table w-full text-sm">
@@ -184,6 +186,7 @@ export default function PartnersPage() {
           onClose={() => setToast(null)}
         />
       )}
+      </AdminReadBody>
     </motion.div>
   );
 }
