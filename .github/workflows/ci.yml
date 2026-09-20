@@ -339,7 +339,6 @@ jobs:
             DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
-            node scripts/qa-public-navigation-profile.mjs --services-only
             node scripts/qa-demo-business-workflows.mjs
           ) &
           public_qa_pid=$!
@@ -363,6 +362,9 @@ jobs:
           for browser_pid in "$workspace_qa_pid" "$public_qa_pid" "$admin_qa_pid"; do
             if ! wait "$browser_pid"; then browser_status=1; fi
           done
+          # Measure navigation performance without competing browser suites on
+          # this runner. Keep the same 200ms limit and retain failure evidence.
+          if ! node scripts/qa-public-navigation-profile.mjs --services-only; then browser_status=1; fi
           exit "$browser_status"
       - name: Retain first-run browser evidence
         if: ${{ always() }}

@@ -165,6 +165,19 @@ try {
     assert.notEqual(refused.status, 0);
   });
   reset();
+  check("navigation performance runs after parallel browser suites finish", () => {
+    const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
+    const command = "node scripts/qa-public-navigation-profile.mjs --services-only";
+    assert.equal(workflow.split(command).length, 2, "Exactly one performance run");
+    assert.ok(
+      workflow.indexOf(command) > workflow.indexOf('wait "$browser_pid"'),
+      "No competing browser group while measuring performance",
+    );
+    assert.match(
+      workflow,
+      /if ! node scripts\/qa-public-navigation-profile\.mjs --services-only; then browser_status=1; fi/,
+    );
+  });
   check("CI aggregate fails on every failed, cancelled or skipped dependency", () => {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
     assert.match(

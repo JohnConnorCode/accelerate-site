@@ -104,9 +104,20 @@ secrets were not printed. Initial integration CI also caught a duplicate profile
 import from the overlapping branches; the shared import is now declared once.
 
 Before release, verify the five new migrations against the intended database,
-the branded production environment, hosting eligibility and recovery. Live
+the chosen production profile, hosting eligibility and recovery. Live
 ChatGPT consent/refresh/expiry/revocation, connected form/provider receipts and
 backup/restore proof remain required for their corresponding production claims.
 Source MIT licensing does not override the protected asset terms in `ASSETS.md`.
 No merge receipt is claimed until GitHub accepts the exact verified candidate;
 the resulting main tree must then match that candidate byte for byte.
+
+The combined run at `b247b624` passed core/database checks, the exported starter,
+and 103 industry/Chicago checks. Its broad browser job failed only the Services
+performance threshold (202ms against 200ms), repeating the earlier 213ms finding
+while unrelated browser groups were active. CI now measures navigation after all
+three parallel groups finish; the 200ms limit is unchanged and a regression
+asserts this sequencing. The separate full-product build exceeded the existing
+3 GiB process-group limit; no resource limit is raised or bypassed. Final CI must
+establish both results on the updated source before merge. Shared wordmarks now
+use native ellipsis when the available header width cannot fit a business name,
+instead of clipping a partial letter beside the protected navigation controls.

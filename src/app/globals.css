@@ -1449,8 +1449,10 @@ a.tag:active {
 
 /* ─── Wordmark ─── */
 .logo-word {
-  display: inline-flex;
+  display: block;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 0.1em 0 0.06em;
   line-height: 1;
 }
