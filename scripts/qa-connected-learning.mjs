@@ -102,6 +102,38 @@ try {
       .getByText("Ask the customer for their preferred appointment time.", { exact: true })
       .waitFor();
     await page.screenshot({ path: `${output}/learning-${width}.png`, fullPage: true });
+    await page.evaluate(() => {
+      const original = window.fetch;
+      window.fetch = async (input, init) =>
+        String(input) === "/api/admin/learning/signals"
+          ? Response.json({
+              signals: [
+                {
+                  id: "recovery-fixture",
+                  kind: "explicit_correction",
+                  rule: "Ask about timing before offering an appointment.",
+                  details: "Fictional recovery test.",
+                  category: "recovery_required",
+                  processed_at: new Date().toISOString(),
+                  remedy: "Check the source connection. Automatic review retries after 15 minutes.",
+                },
+              ],
+            })
+          : original(input, init);
+    });
+    await page.getByRole("button", { name: "Refresh evidence" }).click();
+    await page
+      .getByText("Ask about timing before offering an appointment.", { exact: true })
+      .waitFor();
+    await page
+      .getByText("Check the source connection. Automatic review retries after 15 minutes.", {
+        exact: true,
+      })
+      .waitFor();
+    await page
+      .getByRole("heading", { name: "Learning evidence", exact: true })
+      .scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${output}/learning-recovery-${width}.png` });
     await page.keyboard.press("Tab");
     assert(
       await page.evaluate(() => document.activeElement !== document.body),
@@ -126,6 +158,7 @@ try {
       width,
       errors,
       checks: [
+        "learning recovery rule and remedy visible",
         "first-use readiness",
         "saved learning proposal survives reload",
         "separate approval receipt",

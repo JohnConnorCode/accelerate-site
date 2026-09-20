@@ -39,11 +39,13 @@ For example, Northline Roofing could upload its appointment policy, then ask whi
 
 Apply a suggested reply in **Conversations**, then edit its wording. The correction control identifies changed sentences and lets you describe the general rule worth keeping. Choose **Save correction for review** to create a proposal, then use the normal Learning Inbox and approval steps. Keep customer-specific facts in the conversation so a one-off instruction does not become guidance for everyone.
 
-**Learning evidence** separates corrections, rejected actions, missing sources and execution failures. The work engine reviews new receipts once, creates a review task for execution failures, and records the proposed remedy. Successful actions remain useful evidence; compare the original failing example with later results before judging whether an approved correction improved the work.
+**Learning evidence** separates corrections, rejected actions, missing sources and execution failures. The work engine records each new receipt, creates a review task for execution failures, and records the proposed remedy. A correction that cannot be reviewed appears first under **Learning evidence**, with its original rule and recovery instructions, while other evidence continues through review. Successful actions remain useful evidence; compare the original failing example with later results before judging whether an approved correction improved the work.
 
 ## What to check
 
 If a document stays queued, inspect the work engine and scheduler. A failed extraction offers **Retry**; scanned PDFs need OCR before upload. **Archive** removes a reference from later searches while retaining its history. Drive results are withheld when current access or the indexed revision cannot be verified, including a workspace disconnect or folder removal during the search; reconnect or sync Drive, then repeat the query. If the assistant reports incomplete source coverage, retry after restoring the connection before treating an empty result as proof that the information is missing.
+
+When evidence says **recovery required**, check its source and plugin access. The work engine retains the original input and retries after a 15-minute cooldown; keep the scheduler running, then refresh evidence to inspect the result. If an item instead needs **manual review** because its original input is incomplete, inspect the source and submit the correction again through its original workflow.
 
 After approving a rule, run a relevant task and inspect its context receipt and actual result. The receipt proves which guidance was supplied, while reviewing the result establishes whether it helped. Rules with unknown older scopes stay out of context until reviewed. If **Earlier rules need review** appears, review each suggestion before proposing it again.
 

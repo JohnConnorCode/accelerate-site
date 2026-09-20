@@ -326,7 +326,7 @@
     "stack:down": "node scripts/stack.mjs down",
     "stack:check": "node scripts/stack.mjs config",
     "stack:owner": "node scripts/stack.mjs owner",
-    "test:connected-learning": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-shared-context.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-connected-learning-flow.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-document-extraction.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-document-knowledge.ts && node scripts/test-connected-learning-postgres.mjs"
+    "test:connected-learning": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-shared-context.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-connected-learning-flow.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-learning-recovery.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-document-extraction.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-document-knowledge.ts && node scripts/test-connected-learning-postgres.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -6,6 +6,7 @@ interface Signal {
   id: string;
   kind: string;
   details: string;
+  rule?: string | null;
   category: string | null;
   remedy: string | null;
   processed_at: string | null;
@@ -59,14 +60,16 @@ export function LearningEvidence() {
               : "No captured evidence yet. Correct a draft or complete work to begin."}
           </p>
           <p className="mt-2 text-sm text-[var(--admin-muted)]">
-            Showing up to 50 recent signals. Comparative quality and cost-per-result metrics need
-            linked evaluation outcomes; no improvement score is available yet.
+            Showing up to 50 signals, with items needing attention first. Comparative quality and
+            cost-per-result metrics need linked evaluation outcomes; no improvement score is
+            available yet.
           </p>
           <ul className="mt-3 space-y-3">
             {signals.slice(0, 10).map((signal) => (
-              <li key={signal.id} className="text-sm">
+              <li key={signal.id} className="text-sm [overflow-wrap:anywhere]">
                 <p className="font-medium">{signal.kind.replaceAll("_", " ")}</p>
-                <p className="mt-1">{signal.details}</p>
+                <p className="mt-1">{signal.rule || signal.details}</p>
+                {signal.rule && signal.details && <p className="mt-1">{signal.details}</p>}
                 <p className="mt-1 text-[var(--admin-muted)]">
                   {signal.remedy ?? "Waiting for the next work-engine review."}
                 </p>
