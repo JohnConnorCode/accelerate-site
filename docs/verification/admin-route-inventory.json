@@ -318,7 +318,7 @@
     "src/lib/revenue-os/db.ts": "167cc018fe0d8387547c174be0fc105edb9efbee6608bf93e2d0e9ca05d038cb",
     "src/lib/revenue-os/delivery-handoff-contract.ts": "fdaddaa73123e99c372bb279626a3ab3072a2cc13418c10bb8244f791d1cbace",
     "src/lib/revenue-os/delivery-handoff.ts": "eb6284e7b352259df2f18d8c1f23231d12082a74ae1d8cf8b8d6cc5ce8c5788d",
-    "src/lib/revenue-os/document-extraction.ts": "1812f3b7711d2089469c0c51a4ef11a30cd73750672ec7cc7a90b375abf46990",
+    "src/lib/revenue-os/document-extraction.ts": "8612e2e4c43bd0f5ea84e0238ed6a76a01d84599e50baa70edf24214592fa007",
     "src/lib/revenue-os/drive-sync-plan.ts": "21ee095a4de699ddb85b3056ded69a6e929ddfcb051b15d6c2862101d7f6834a",
     "src/lib/revenue-os/encryption.ts": "68748b621a25f182ba20a5b5f362220b4ac59b93103b6a81c202f0e34e09c405",
     "src/lib/revenue-os/first-use.ts": "11163b96f7b92f510ac70dced96d1159e975c11fcc3d2f7d51a00d0e17fc6ded",

@@ -1,8 +1,5 @@
 import "server-only";
-import { createRequire } from "node:module";
 import { Worker } from "node:worker_threads";
-import { pathToFileURL } from "node:url";
-import { dirname, join } from "node:path";
 
 export const DOCUMENT_MAX_BYTES = 4 * 1024 * 1024;
 export const DOCUMENT_MIME_TYPES = [
@@ -34,11 +31,15 @@ export async function extractDocument(
       throw new Error("Text must be UTF-8 and contain 1–500000 readable characters");
     return { text, locations: [{ label: "Document", start: 0, end: text.length }] };
   }
-  // Resolve the ESM entry with Node; bundlers must not turn it into a CommonJS import.
-  const parserRequire = createRequire(import.meta.url);
+  // Resolve inside the unbundled worker. Webpack can replace require.resolve
+  // in application code with numeric module IDs, which are not filesystem paths.
   const worker = new Worker(
     `
     const { parentPort, workerData } = require('node:worker_threads');
+    const { createRequire } = require('node:module');
+    const { join } = require('node:path');
+    const { pathToFileURL } = require('node:url');
+    const parserRequire = createRequire(join(workerData.packageRoot, 'package.json'));
     (async () => {
       let text = ''; const locations = [];
       const append = (value,label) => {
@@ -47,7 +48,7 @@ export async function extractDocument(
         locations.push({label,start,end:text.length});
       };
       if(workerData.mime==='application/pdf') {
-        const pdfjs=await import(workerData.pdfPath);
+        const pdfjs=await import(pathToFileURL(parserRequire.resolve('pdfjs-dist/legacy/build/pdf.mjs')).href);
         const task=pdfjs.getDocument({data:new Uint8Array(workerData.data),isEvalSupported:false,disableFontFace:true,useSystemFonts:true,useWorkerFetch:false,disableAutoFetch:true});
         try {
           const pdf=await task.promise;
@@ -58,7 +59,7 @@ export async function extractDocument(
           }
         } finally { await task.destroy(); }
       } else {
-        const result=await require(workerData.docxPath).extractRawText({buffer:Buffer.from(workerData.data)});
+        const result=await parserRequire('mammoth').extractRawText({buffer:Buffer.from(workerData.data)});
         append(result.value,'Document');
       }
       if(!text.trim()) throw new Error('No readable text found. Scanned documents need OCR before uploading.');
@@ -70,10 +71,10 @@ export async function extractDocument(
       workerData: {
         data,
         mime,
-        pdfPath: pathToFileURL(
-          join(dirname(parserRequire.resolve("pdfjs-dist/package.json")), "legacy/build/pdf.mjs"),
-        ).href,
-        docxPath: parserRequire.resolve("mammoth"),
+        packageRoot: process.cwd(),
+        // Static trace pins retain the package dependency graph in server output.
+        // The worker never treats these bundler values as runtime file paths.
+        tracePins: [require.resolve("pdfjs-dist/package.json"), require.resolve("mammoth")],
       },
       resourceLimits: { maxOldGenerationSizeMb: 128, maxYoungGenerationSizeMb: 32 },
     },
