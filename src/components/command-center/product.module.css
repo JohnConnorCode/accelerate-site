@@ -473,6 +473,18 @@
 .directoryIntro {
   align-items: start;
 }
+@keyframes workflow-switch-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
 
 .outcomes {
   display: grid;
@@ -499,5 +511,406 @@
 @media (max-width: 640px) {
   .outcomes {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* Command Center launcher refresh: use the public Accelerate editorial system
+   instead of the old green product-marketing skin. */
+.launcherPage {
+  position: relative;
+  overflow: clip;
+  padding: 0;
+  color: var(--fg);
+  background: var(--bg);
+}
+.launcherPage .hero {
+  position: relative;
+  overflow: clip;
+  padding: calc(var(--site-header-h) + clamp(58px, 9vw, 132px)) 0 clamp(72px, 10vw, 148px);
+  border-bottom: 1px solid var(--rule);
+}
+.launcherPage .heroGridField {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.7;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--fg) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--fg) 6%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, black 0, rgba(0, 0, 0, 0.65) 48%, transparent 92%);
+}
+.launcherPage .heroGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  gap: clamp(38px, 7vw, 112px);
+  align-items: center;
+}
+.launcherPage .heroCopy {
+  max-width: 620px;
+}
+.launcherPage .title {
+  margin: 1.35rem 0 1.8rem;
+  max-width: 10ch;
+  font-family: var(--font-jost), system-ui, sans-serif;
+  font-size: clamp(3.5rem, 7.3vw, 8rem);
+  font-weight: 600;
+  line-height: 0.91;
+  letter-spacing: -0.068em;
+  color: var(--fg);
+  text-wrap: balance;
+}
+.launcherPage .title em {
+  display: inline-block;
+  color: var(--mid);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 0.92em;
+  font-weight: 300;
+  letter-spacing: -0.045em;
+}
+.launcherPage .lede {
+  max-width: 49ch;
+  color: var(--mid);
+  font-size: clamp(1rem, 1.35vw, 1.18rem);
+  line-height: 1.72;
+  text-wrap: pretty;
+}
+.launcherPage .note {
+  max-width: 48ch;
+  margin-top: 1rem;
+  color: var(--soft);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.045em;
+  line-height: 1.6;
+}
+.launcherPage .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1.4rem;
+  margin-top: 2rem;
+}
+.launcherPage .primary,
+.launcherPage .secondary {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  border-radius: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+  transition:
+    background-color var(--motion-fast) var(--ease),
+    border-color var(--motion-fast) var(--ease),
+    color var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease);
+}
+.launcherPage .primary {
+  padding: 0.9rem 1.15rem;
+  color: var(--bg);
+  background: var(--fg);
+  box-shadow: 0 8px 20px -15px color-mix(in srgb, var(--fg) 55%, transparent);
+}
+.launcherPage .primary:hover {
+  color: var(--bg);
+  background: color-mix(in srgb, var(--fg) 82%, var(--bg));
+  transform: translateY(-2px);
+}
+.launcherPage .primary:active,
+.launcherPage .secondary:active,
+.launcherPage .textLink:active {
+  transform: translateY(1px);
+}
+.launcherPage .secondary {
+  min-height: 44px;
+  padding: 0.65rem 0.1rem;
+  color: var(--fg);
+  border-bottom: 1px solid var(--fg);
+}
+.launcherPage .secondary:hover {
+  color: var(--mid);
+  border-color: var(--mid);
+  transform: translateY(-2px);
+}
+.launcherPage .heroStage {
+  min-width: 0;
+}
+.launcherPage .section {
+  position: relative;
+  padding: clamp(76px, 10vw, 148px) 0;
+  border-bottom: 1px solid var(--rule);
+  scroll-margin-top: calc(var(--site-header-h) + 20px);
+}
+.launcherPage .sectionIntro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 2rem 5rem;
+  align-items: end;
+  margin-bottom: clamp(34px, 5vw, 62px);
+}
+.launcherPage .heading {
+  max-width: 18ch;
+  margin: 1rem 0 0;
+  color: var(--fg);
+  font-family: var(--font-jost), system-ui, sans-serif;
+  font-size: clamp(2rem, 4.4vw, 4.9rem);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+.launcherPage .workflowShell {
+  min-width: 0;
+}
+.launcherPage .workflow {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(28px, 5vw, 82px);
+  align-items: start;
+  animation: workflow-switch-in 480ms var(--ease) both;
+}
+.launcherPage .workflow > div:first-child {
+  padding-top: 0.4rem;
+}
+.launcherPage .workflow h3 {
+  margin-top: 1rem;
+}
+.launcherPage .workflow ol {
+  margin-top: 2rem;
+  border-top: 1px solid var(--rule);
+}
+.launcherPage .workflow li {
+  padding: 1.1rem 0 1.1rem 2.8rem;
+  border-bottom: 1px solid var(--rule);
+}
+.launcherPage .workflow li::before {
+  top: 1.22rem;
+  color: var(--soft);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+.launcherPage .workflow li strong {
+  font-family: var(--font-jost), system-ui, sans-serif;
+  font-size: 1.08rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.launcherPage .workflow li p {
+  margin-top: 0.4rem;
+  color: var(--mid);
+  font-size: 0.88rem;
+  line-height: 1.62;
+}
+.launcherPage .filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0 0 2.3rem;
+  border-bottom: 1px solid var(--rule);
+}
+.launcherPage .filters button {
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--mid);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition:
+    color var(--motion-fast) var(--ease),
+    border-color var(--motion-fast) var(--ease),
+    background-color var(--motion-fast) var(--ease);
+}
+.launcherPage .filters button:hover {
+  color: var(--fg);
+  background: color-mix(in srgb, var(--fg) 4%, transparent);
+}
+.launcherPage .filters button[aria-pressed="true"] {
+  color: var(--fg);
+  background: transparent;
+  border-bottom-color: var(--fg);
+}
+.launcherPage .figure {
+  margin: 1.4rem 0 0;
+}
+.launcherPage .figure img {
+  aspect-ratio: 1.44;
+  object-fit: cover;
+  border-radius: 0;
+  outline: 1px solid var(--rule);
+  filter: saturate(0.75) contrast(1.02);
+  transition:
+    filter var(--motion-base) var(--ease),
+    transform var(--motion-base) var(--ease);
+}
+.launcherPage .figure:hover img {
+  filter: saturate(1) contrast(1.02);
+  transform: scale(1.015);
+}
+.launcherPage .grid,
+.launcherPage .demoGrid {
+  display: grid;
+  gap: 1px;
+  background: var(--rule);
+  box-shadow: 0 0 0 1px var(--rule);
+}
+.launcherPage .grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.launcherPage .demoGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.launcherPage .card {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.35rem, 2.4vw, 2.15rem);
+  border-radius: 0;
+  background: var(--bg);
+  box-shadow: none;
+  transition:
+    background-color var(--motion-base) var(--ease),
+    transform var(--motion-base) var(--ease);
+}
+.launcherPage .card:hover {
+  z-index: 1;
+  background: color-mix(in srgb, var(--bg) 94%, var(--fg));
+  transform: translateY(-3px);
+}
+.launcherPage .card h3 {
+  margin: 1.2rem 0 0.7rem;
+  color: var(--fg);
+  font-family: var(--font-jost), system-ui, sans-serif;
+  font-size: clamp(1.25rem, 1.8vw, 1.7rem);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+.launcherPage .card p {
+  color: var(--mid);
+  line-height: 1.65;
+}
+.launcherPage .scenarioHeading {
+  min-height: 42px;
+  align-items: flex-start;
+}
+.launcherPage .scenarioHeading .label {
+  padding-top: 0.55rem;
+}
+.launcherPage .scenario ul:not(.parts) {
+  margin: 1.25rem 0;
+  padding: 0;
+  list-style: none;
+}
+.launcherPage .scenario ul:not(.parts) li {
+  position: relative;
+  padding: 0.6rem 0 0.6rem 1.25rem;
+  border-top: 1px solid var(--rule);
+  color: var(--mid);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.launcherPage .scenario ul:not(.parts) li::before {
+  content: "↗";
+  position: absolute;
+  left: 0;
+  color: var(--fg);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+}
+.launcherPage .scenario .actions {
+  margin-top: auto;
+  padding-top: 1.7rem;
+}
+.launcherPage .scenario .primary {
+  width: 100%;
+}
+.launcherPage .textLink {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  color: var(--fg);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    color var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease);
+}
+.launcherPage .textLink:hover {
+  color: var(--mid);
+  transform: translateX(4px);
+}
+.launcherPage a:focus-visible,
+.launcherPage button:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 4px;
+}
+@media (max-width: 1000px) {
+  .launcherPage .heroGrid {
+    grid-template-columns: 1fr;
+  }
+  .launcherPage .heroStage {
+    max-width: 760px;
+  }
+  .launcherPage .demoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .launcherPage .hero {
+    padding-top: calc(var(--site-header-h) + 54px);
+  }
+  .launcherPage .heroGrid,
+  .launcherPage .sectionIntro,
+  .launcherPage .workflow,
+  .launcherPage .grid {
+    grid-template-columns: 1fr;
+  }
+  .launcherPage .heroCopy {
+    max-width: none;
+  }
+  .launcherPage .title {
+    max-width: 11ch;
+    font-size: clamp(3.45rem, 15vw, 5.6rem);
+  }
+  .launcherPage .heading {
+    max-width: 13ch;
+  }
+  .launcherPage .demoGrid {
+    grid-template-columns: 1fr;
+  }
+  .launcherPage .section {
+    padding: 72px 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .launcherPage .primary,
+  .launcherPage .secondary,
+  .launcherPage .textLink,
+  .launcherPage .card,
+  .launcherPage .figure img,
+  .launcherPage .filters button {
+    transition: none;
+  }
+  .launcherPage .workflow {
+    animation: none;
+  }
+  .launcherPage .card:hover,
+  .launcherPage .figure:hover img,
+  .launcherPage .textLink:hover {
+    transform: none;
   }
 }
