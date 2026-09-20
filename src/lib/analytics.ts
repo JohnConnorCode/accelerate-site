@@ -113,12 +113,7 @@ function safeEventName(name: string) {
 }
 
 function sendFirstPartyEvent(name: string, props?: Record<string, string | number>) {
-  if (
-    typeof window === "undefined" ||
-    window.location.pathname.startsWith("/admin") ||
-    window.location.pathname === "/site-preview"
-  )
-    return;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !isPublicAnalyticsPage()) return;
   const attribution = getUTMParams() || undefined;
   const referrerHost = (() => {
     try {
@@ -150,8 +145,15 @@ function sendFirstPartyEvent(name: string, props?: Record<string, string | numbe
   }).catch(() => undefined);
 }
 
+function isPublicAnalyticsPage() {
+  return (
+    typeof window !== "undefined" &&
+    !/^\/(?:admin|t|demo|site-preview)(?:\/|$)/.test(window.location.pathname)
+  );
+}
+
 export function trackConversion(name: string, props?: Record<string, string | number>) {
-  if (typeof window === "undefined" || window.location.pathname === "/site-preview") return;
+  if (!isPublicAnalyticsPage()) return;
 
   const page = window.location.pathname;
   const allProps: Record<string, string | number> = { ...props, page };
@@ -165,7 +167,7 @@ export function trackConversion(name: string, props?: Record<string, string | nu
       ),
     );
 
-  // First-party Revenue OS collection is always attempted; it is non-blocking.
+  // First-party collection requires a connected installation and remains non-blocking.
   trackEvent(name, allProps);
 
   // Google Analytics

@@ -137,18 +137,33 @@ assert.ok(
 
 const originalWindow = globalThis.window;
 const originalFetch = globalThis.fetch;
+const originalAnalyticsUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 let previewTrackingCalls = 0;
 try {
-  Reflect.set(globalThis, "window", {
-    location: { pathname: "/site-preview" },
-    gtag: () => previewTrackingCalls++,
-  });
   globalThis.fetch = async () => {
     previewTrackingCalls++;
     throw new Error("Preview attempted tracking");
   };
-  trackEvent("Private preview click");
-  trackConversion("Private preview conversion");
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://workspace.example";
+  for (const pathname of [
+    "/site-preview",
+    "/site-preview/nested",
+    "/admin",
+    "/admin/site/website",
+    "/t/example/admin",
+    "/demo/command-center/northline-roofing",
+  ]) {
+    Reflect.set(globalThis, "window", {
+      location: { pathname },
+      gtag: () => previewTrackingCalls++,
+      fbq: () => previewTrackingCalls++,
+    });
+    trackEvent("Private preview click");
+    trackConversion("Private preview conversion");
+  }
+  delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+  Reflect.set(globalThis, "window", { location: { pathname: "/" } });
+  trackEvent("Unconfigured homepage click");
   assert.equal(
     previewTrackingCalls,
     0,
@@ -157,4 +172,6 @@ try {
 } finally {
   Reflect.set(globalThis, "window", originalWindow);
   globalThis.fetch = originalFetch;
+  if (originalAnalyticsUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+  else process.env.NEXT_PUBLIC_SUPABASE_URL = originalAnalyticsUrl;
 }

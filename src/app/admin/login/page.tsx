@@ -3,6 +3,7 @@
 import { tenant } from "@/config/tenant";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Suspense } from "react";
 import { MotionConfig, motion } from "framer-motion";
 import { ArrowRight, LockKeyhole } from "lucide-react";
@@ -21,7 +22,10 @@ function LoginForm() {
   const redirect =
     rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/admin";
   const resetFailed = searchParams.get("error") === "reset_failed";
-  const notConfigured = searchParams.get("error") === "not_configured";
+  const notConfigured =
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    searchParams.get("error") === "not_configured";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,16 +118,25 @@ function LoginForm() {
                   admin account to sign in with.
                 </p>
                 <p className="admin-copy mb-7 text-sm">
-                  Follow{" "}
-                  <code className="rounded bg-[var(--admin-surface-subtle)] px-1 py-0.5 text-xs">
-                    docs/self-hosting/SELF-HOSTING.md
-                  </code>{" "}
-                  in this repository to create a project, apply migrations, and set{" "}
-                  <code className="rounded bg-[var(--admin-surface-subtle)] px-1 py-0.5 text-xs">
-                    ADMIN_EMAIL
-                  </code>
-                  .
+                  The installation guide walks you through connecting your own database and creating
+                  the first owner account. You can explore the fictional demo while you set up; its
+                  changes stay in your browser and do not contact real customers.
                 </p>
+                <div className="grid gap-3">
+                  <Link
+                    href="/docs/self-hosting/installation"
+                    className="admin-action-control min-h-11 w-full px-4"
+                  >
+                    Open the installation guide{" "}
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Link>
+                  <Link
+                    href="/demo/command-center"
+                    className="admin-secondary-control min-h-11 w-full px-4"
+                  >
+                    Explore the fictional demo
+                  </Link>
+                </div>
               </>
             ) : (
               <>
