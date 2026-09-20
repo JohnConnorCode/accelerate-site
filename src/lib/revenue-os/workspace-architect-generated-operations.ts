@@ -1,6 +1,5 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { proposeAction } from "./actions";
 import { recordAudit } from "./audit";
 import type { KanbanBoardKey } from "../kanban/types";
 import {
@@ -23,7 +22,8 @@ import {
  * runtime. This module composes the visible "wow moment" — boards, views,
  * navigation, workflow proposals and Coworker recommendations — entirely from
  * an approved+applied Blueprint over the existing Kanban board/column
- * primitive (`kanban_columns`), the existing approval queue (`proposeAction`),
+ * primitive (`kanban_columns`), capability-cited recommendations (never
+ * unregistered action types),
  * and the compiler's own capability validation. Unknown capabilities remain
  * Custom App Briefs (never a guessed primitive); unmapped board source types
  * remain unsupported rather than being forced onto the platform Feature
@@ -315,8 +315,9 @@ export function planWorkspaceOperations(
 // ---------------------------------------------------------------------------
 // Apply: idempotent generation against the database. Board columns are
 // added to the existing `kanban_columns` table (the same primitive the
-// Kanban UI/API reads); workflow and Coworker proposals go through the
-// existing approval queue (`proposeAction`) — nothing here auto-applies.
+// Kanban UI/API reads). Workflows and Coworkers stay capability-cited
+// recommendations until a registered executor exists — nothing here
+// auto-applies or enqueues an action type the executor cannot run.
 // ---------------------------------------------------------------------------
 
 function requireUuid(value: string, field: string): string {
@@ -340,7 +341,6 @@ export interface GeneratedOperationsReceipt {
 
 export interface GenerateOperationsAdapters {
   collectContext?: (supabase: SupabaseClient, tenantId: string) => Promise<BlueprintLiveContext>;
-  proposeAction?: typeof proposeAction;
 }
 
 async function ensureBoardColumns(
@@ -389,6 +389,30 @@ async function ensureBoardColumns(
   return created;
 }
 
+function matchingGeneratedReceipt(
+  receipt: GeneratedOperationsReceipt | undefined,
+  blueprintId: string,
+  version: number,
+): GeneratedOperationsReceipt {
+  if (!receipt || receipt.blueprintId !== blueprintId || receipt.version !== version) {
+    throw new Error("requestKey is already bound to a different Blueprint version");
+  }
+  return receipt;
+}
+
+async function readGeneratedReceipt(
+  supabase: SupabaseClient,
+  filters: Record<string, string | number>,
+): Promise<GeneratedOperationsReceipt | null> {
+  let query = supabase.from("workspace_generated_operations").select("receipt");
+  for (const [column, value] of Object.entries(filters)) {
+    query = query.eq(column, value);
+  }
+  const { data, error } = await query.maybeSingle();
+  if (error) throw new Error(`Failed to read generated operations: ${error.message}`);
+  return (data?.receipt as GeneratedOperationsReceipt | undefined) ?? null;
+}
+
 export async function generateWorkspaceOperations(
   supabase: SupabaseClient,
   input: {
@@ -403,43 +427,48 @@ export async function generateWorkspaceOperations(
   const tenantId = requireUuid(input.tenantId, "tenantId");
   const blueprintId = requireUuid(input.blueprintId, "blueprintId");
   const requestKey = input.requestKey.trim();
-  if (!requestKey) throw new Error("requestKey is required");
+  if (!requestKey || requestKey.length > 180) {
+    throw new Error("requestKey must be 1 to 180 characters");
+  }
   if (!Number.isInteger(input.version) || input.version < 1) throw new Error("version is required");
-
-  const { data: existing } = await supabase
-    .from("workspace_generated_operations")
-    .select("receipt")
-    .eq("tenant_id", tenantId)
-    .eq("request_key", requestKey)
-    .maybeSingle();
-  if (existing?.receipt) {
-    return { replayed: true, receipt: existing.receipt as GeneratedOperationsReceipt };
-  }
-
-  // Generating twice for the same approved version must not duplicate boards
-  // or workflows: a prior successful generation for this exact version wins,
-  // even under a different request key (e.g. a retried operator click).
-  const { data: existingForVersion } = await supabase
-    .from("workspace_generated_operations")
-    .select("receipt")
-    .eq("tenant_id", tenantId)
-    .eq("blueprint_id", blueprintId)
-    .eq("version", input.version)
-    .maybeSingle();
-  if (existingForVersion?.receipt) {
-    return { replayed: true, receipt: existingForVersion.receipt as GeneratedOperationsReceipt };
-  }
 
   const { data: blueprintRow, error: blueprintError } = await supabase
     .from("workspace_blueprints")
-    .select("id,status")
+    .select("id,status,latest_version")
     .eq("tenant_id", tenantId)
     .eq("id", blueprintId)
     .maybeSingle();
   if (blueprintError || !blueprintRow) throw new Error("Blueprint not found in this workspace");
   const status = (blueprintRow as { status: string }).status;
+  const latestVersion = Number((blueprintRow as { latest_version?: number }).latest_version ?? 0);
   if (status !== "applied" && status !== "approved") {
     throw new Error("Only an approved or applied Blueprint can generate operations");
+  }
+  if (input.version !== latestVersion) {
+    throw new Error("version must match the current approved Blueprint version");
+  }
+
+  const existing = await readGeneratedReceipt(supabase, {
+    tenant_id: tenantId,
+    request_key: requestKey,
+  });
+  if (existing) {
+    return {
+      replayed: true,
+      receipt: matchingGeneratedReceipt(existing, blueprintId, input.version),
+    };
+  }
+
+  const existingForVersion = await readGeneratedReceipt(supabase, {
+    tenant_id: tenantId,
+    blueprint_id: blueprintId,
+    version: input.version,
+  });
+  if (existingForVersion) {
+    return {
+      replayed: true,
+      receipt: matchingGeneratedReceipt(existingForVersion, blueprintId, input.version),
+    };
   }
 
   const { data: versionRow, error: versionError } = await supabase
@@ -457,8 +486,6 @@ export async function generateWorkspaceOperations(
   );
   const plan = planWorkspaceOperations(document, context);
 
-  const propose = adapters.proposeAction ?? proposeAction;
-
   const boardsWithColumns: Array<GeneratedBoardOperation & { columnsCreated: string[] }> = [];
   for (const board of plan.boards) {
     if (board.status === "ready" && board.targetBoardKey) {
@@ -474,78 +501,18 @@ export async function generateWorkspaceOperations(
     }
   }
 
-  const workflows: GeneratedOperationsReceipt["workflows"] = [];
-  for (const workflow of plan.workflows) {
-    if (workflow.status !== "ready") {
-      workflows.push({ ref: workflow.ref, key: workflow.key, actionId: null, status: workflow.status });
-      continue;
-    }
-    const dedupeKey = `generated-operations:${blueprintId}:v${input.version}:workflow:${workflow.key}`;
-    const capabilityCitations = workflow.steps
-      .map((step) => step.capabilityKey)
-      .filter((key): key is string => Boolean(key));
-    const action = await propose(supabase, {
-      actionType: "generate_workspace_workflow",
-      title: `Enable workflow: ${workflow.name}`,
-      description: `Generated from Blueprint ${blueprintId} v${input.version}. Cites capabilities: ${
-        capabilityCitations.join(", ") || "none"
-      }.`,
-      payload: {
-        blueprintId,
-        version: input.version,
-        workflowKey: workflow.key,
-        triggerRef: workflow.triggerRef,
-        capabilityCitations,
-        approvalRequired: workflow.approvalRequired,
-      },
-      sourceContext: "workspace-architect-generated-operations",
-      entityType: "workspace_blueprint",
-      entityId: blueprintId,
-      dedupeKey,
-      proposedBy: input.actorEmail,
-      evidence: { steps: workflow.steps },
-    });
-    workflows.push({
-      ref: workflow.ref,
-      key: workflow.key,
-      actionId: (action as { id?: string } | null)?.id ?? null,
-      status: "ready",
-    });
-  }
-
-  const coworkers: GeneratedOperationsReceipt["coworkers"] = [];
-  for (const coworker of plan.coworkers) {
-    if (coworker.status !== "ready") {
-      coworkers.push({ ref: coworker.ref, key: coworker.key, actionId: null, status: coworker.status });
-      continue;
-    }
-    const dedupeKey = `generated-operations:${blueprintId}:v${input.version}:coworker:${coworker.key}`;
-    const action = await propose(supabase, {
-      actionType: "recommend_workspace_coworker",
-      title: `Recommend Coworker: ${coworker.name}`,
-      description: `Generated from Blueprint ${blueprintId} v${input.version}. Purpose: ${coworker.purpose}. Cites capabilities: ${
-        coworker.requiredCapabilities.join(", ") || "none"
-      }.`,
-      payload: {
-        blueprintId,
-        version: input.version,
-        coworkerKey: coworker.key,
-        requiredCapabilities: coworker.requiredCapabilities,
-        autonomyPolicy: coworker.autonomyPolicy,
-      },
-      sourceContext: "workspace-architect-generated-operations",
-      entityType: "workspace_blueprint",
-      entityId: blueprintId,
-      dedupeKey,
-      proposedBy: input.actorEmail,
-    });
-    coworkers.push({
-      ref: coworker.ref,
-      key: coworker.key,
-      actionId: (action as { id?: string } | null)?.id ?? null,
-      status: "ready",
-    });
-  }
+  const workflows: GeneratedOperationsReceipt["workflows"] = plan.workflows.map((workflow) => ({
+    ref: workflow.ref,
+    key: workflow.key,
+    actionId: null,
+    status: workflow.status,
+  }));
+  const coworkers: GeneratedOperationsReceipt["coworkers"] = plan.coworkers.map((coworker) => ({
+    ref: coworker.ref,
+    key: coworker.key,
+    actionId: null,
+    status: coworker.status,
+  }));
 
   const receipt: GeneratedOperationsReceipt = {
     blueprintId,
@@ -567,14 +534,22 @@ export async function generateWorkspaceOperations(
   });
   if (insertError) {
     if ((insertError as { code?: string }).code === "23505") {
-      const { data: replayed } = await supabase
-        .from("workspace_generated_operations")
-        .select("receipt")
-        .eq("tenant_id", tenantId)
-        .eq("request_key", requestKey)
-        .maybeSingle();
-      if (replayed?.receipt)
-        return { replayed: true, receipt: replayed.receipt as GeneratedOperationsReceipt };
+      const replayed =
+        (await readGeneratedReceipt(supabase, {
+          tenant_id: tenantId,
+          request_key: requestKey,
+        })) ??
+        (await readGeneratedReceipt(supabase, {
+          tenant_id: tenantId,
+          blueprint_id: blueprintId,
+          version: input.version,
+        }));
+      if (replayed) {
+        return {
+          replayed: true,
+          receipt: matchingGeneratedReceipt(replayed, blueprintId, input.version),
+        };
+      }
     }
     throw new Error(insertError.message);
   }
