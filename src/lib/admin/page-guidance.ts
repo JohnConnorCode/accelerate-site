@@ -6,6 +6,15 @@ export interface AdminPageGuidance {
 }
 
 export const adminPageGuidance: Record<string, AdminPageGuidance> = {
+  "get-started": {
+    description:
+      "Follow one inquiry through a saved next step and a reviewed correction you can reuse in later work.",
+    steps: [
+      "Start with a real inquiry and record the next action with an owner and due date.",
+      "Complete the task, review a useful correction, and check which connections have actually been verified.",
+    ],
+    guideHref: "/docs/start/first-value",
+  },
   architect: {
     description:
       "Describe your business and review the sources used to prepare a workspace proposal.",

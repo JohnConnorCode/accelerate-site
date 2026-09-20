@@ -39,7 +39,7 @@ try {
     await page.goto(base + "/demo/command-center/northline-roofing/get-started", {
       waitUntil: "networkidle",
     });
-    await page.getByRole("heading", { name: "Your first follow-up" }).waitFor();
+    await page.getByRole("heading", { name: "Get started" }).waitFor();
     await page.getByRole("button", { name: "Refresh progress" }).click();
     await page.getByRole("heading", { name: "What has been verified" }).waitFor();
     assert(

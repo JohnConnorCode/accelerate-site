@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Link from "@/components/admin/AdminLink";
+import { adminPageName } from "@/lib/admin/navigation";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
@@ -29,7 +30,7 @@ export default function GetStartedPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Your first follow-up"
+        title={adminPageName("get-started")}
         subtitle="Turn one inquiry into a completed next step, then carry a reviewed correction into later work."
       />
       <AdminSurface padding="lg">
