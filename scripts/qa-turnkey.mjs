@@ -70,6 +70,27 @@ try {
         assert.match(social.headers()["content-type"], /image\/png/);
         writeFileSync(`${output}/${label}-social.png`, await social.body());
         assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), siteUrl);
+        if (label === "mobile") {
+          const menu = page.getByRole("button", { name: "Open navigation menu", exact: true });
+          const bounds = await menu.boundingBox();
+          assert.ok(
+            bounds.x >= 0 && bounds.x + bounds.width <= viewport.width,
+            "Custom name leaves the menu fully on screen",
+          );
+          assert.ok(bounds.width >= 44 && bounds.height >= 44, "Menu retains its touch target");
+          await menu.focus();
+          await page.keyboard.press("Enter");
+          const close = page.getByRole("button", { name: "Close navigation menu", exact: true });
+          await close.waitFor();
+          const closeBounds = await close.boundingBox();
+          assert.ok(
+            closeBounds.x >= 0 && closeBounds.x + closeBounds.width <= viewport.width,
+            "Custom name leaves the close control on screen",
+          );
+          assert.ok(closeBounds.width >= 44, "Close control retains its touch target");
+          await page.keyboard.press("Escape");
+          assert.equal(await menu.getAttribute("aria-expanded"), "false");
+        }
         await captureNeutral(page, `${label}-entry`);
         await page.getByRole("link", { name: "Open your workspace", exact: true }).first().focus();
         await page.keyboard.press("Enter");

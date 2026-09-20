@@ -97,13 +97,13 @@ export function MobileNav({
         aria-label="Mobile"
       >
         <div className="flex items-center justify-between pb-6">
-          <div onClick={onClose}>
+          <div onClick={onClose} className="min-w-0 mr-3">
             <Logo size="sm" name={brandName} logoSrc={logoSrc} />
           </div>
           <button
             ref={closeButtonRef}
             onClick={onClose}
-            className={`relative flex h-11 w-11 items-center justify-center rounded-full border border-[var(--rule)] transition-transform duration-150 active:scale-[0.96] cursor-pointer ${focusRing}`}
+            className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--rule)] transition-transform duration-150 active:scale-[0.96] cursor-pointer ${focusRing}`}
             aria-label="Close navigation menu"
           >
             <span className="absolute h-px w-4 rotate-45 bg-[var(--fg)]" />

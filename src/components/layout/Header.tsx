@@ -123,7 +123,7 @@ export function Header({
       >
         <div className="page-shell flex items-center justify-between">
           {/* Logo */}
-          <motion.div variants={headerLogoReveal}>
+          <motion.div variants={headerLogoReveal} className="min-w-0 mr-3">
             <Logo name={brandName} logoSrc={logoSrc} />
           </motion.div>
 
@@ -264,7 +264,7 @@ export function Header({
             </Link>
           </motion.div>
 
-          <div className="flex items-center xl:hidden">
+          <div className="flex shrink-0 items-center xl:hidden">
             <motion.button
               variants={headerCtaReveal}
               type="button"

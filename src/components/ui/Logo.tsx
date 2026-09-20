@@ -34,7 +34,10 @@ export function Logo({
       href={href}
       onClick={onClick}
       aria-label={ariaLabel ?? `${name} home`}
-      className={cn("logo-link group inline-flex items-center gap-2.5", className)}
+      className={cn(
+        "logo-link group inline-flex min-w-0 max-w-full items-center gap-2.5",
+        className,
+      )}
     >
       {logoSrc ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -61,7 +64,7 @@ export function Logo({
       <span
         aria-hidden
         className={cn(
-          "logo-word font-sans font-bold uppercase",
+          "logo-word min-w-0 font-sans font-bold uppercase",
           size === "sm" ? "text-base" : "text-lg",
           name.length > 20 && "max-w-[min(45vw,260px)] overflow-hidden",
         )}
