@@ -16,7 +16,7 @@ import {
 } from "@/lib/ai-readiness";
 
 type Phase = "intro" | "profile" | "questions" | "preview" | "unlock" | "report";
-const STORAGE_KEY = "accelerate:ai-readiness:v1";
+const STORAGE_KEY = "accelerate:ai-readiness:v2";
 
 const initialProfile: AssessmentProfile = {
   businessType: "",
@@ -24,6 +24,7 @@ const initialProfile: AssessmentProfile = {
   priority: "save_time",
   bottleneck: "unknown",
   details: "",
+  websiteUrl: "",
 };
 
 function Button({ children, className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
@@ -94,7 +95,8 @@ export function AIReadinessAssessment({
     profile.businessType.trim().length > 0 &&
     profile.teamSize &&
     profile.priority &&
-    profile.bottleneck;
+    profile.bottleneck &&
+    (!profile.websiteUrl?.trim() || /^https?:\/\/[^\s]+$/i.test(profile.websiteUrl.trim()));
   const utm = useMemo(() => getUTMParams(), []);
   const previewRecommendation = preview?.previewRecommendation;
 
@@ -298,6 +300,30 @@ export function AIReadinessAssessment({
               />
             </label>
             <label className="grid gap-2 text-sm font-semibold">
+              What is your public website?{" "}
+              <span className="font-normal text-[var(--soft)]">Optional</span>
+              <input
+                type="url"
+                value={profile.websiteUrl ?? ""}
+                onChange={(event) =>
+                  setProfile((current) => ({ ...current, websiteUrl: event.target.value }))
+                }
+                placeholder="https://yourbusiness.com"
+                inputMode="url"
+                className="min-h-12 rounded-xl border border-black/15 bg-white/60 px-4 font-normal outline-none transition-colors focus:border-black dark:border-white/15 dark:bg-white/[0.04] dark:focus:border-white"
+              />
+              <span className="text-xs font-normal leading-5 text-[var(--soft)]">
+                We check the public homepage for visible SEO, mobile, accessibility, trust, and
+                conversion signals. No login or private pages.
+              </span>
+              {profile.websiteUrl?.trim() &&
+                !/^https?:\/\/[^\s]+$/i.test(profile.websiteUrl.trim()) && (
+                  <span role="alert" className="text-xs font-normal text-red-600">
+                    Use a full public URL beginning with https:// or http://.
+                  </span>
+                )}
+            </label>
+            <label className="grid gap-2 text-sm font-semibold">
               How large is your team?
               <select
                 value={profile.teamSize}
@@ -371,6 +397,24 @@ export function AIReadinessAssessment({
                 ))}
               </div>
             </fieldset>
+            <label className="grid gap-2 text-sm font-semibold">
+              Anything else shaping the decision?{" "}
+              <span className="font-normal text-[var(--soft)]">Optional</span>
+              <textarea
+                value={profile.details ?? ""}
+                onChange={(event) =>
+                  setProfile((current) => ({ ...current, details: event.target.value }))
+                }
+                placeholder="For example: a workflow you want to improve, a deadline, or a concern about adoption."
+                maxLength={500}
+                rows={4}
+                className="rounded-xl border border-black/15 bg-white/60 px-4 py-3 font-normal outline-none transition-colors focus:border-black dark:border-white/15 dark:bg-white/[0.04] dark:focus:border-white"
+              />
+              <span className="text-xs font-normal text-[var(--soft)]">
+                Do not include customer, health, financial, password, or other sensitive
+                information.
+              </span>
+            </label>
             <Button
               disabled={!profileReady}
               onClick={() => {
@@ -430,7 +474,14 @@ export function AIReadinessAssessment({
                 onClick={requestPreview}
                 className="bg-[var(--ink)] text-[var(--paper)] dark:bg-white dark:text-black"
               >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "See my preview"}
+                {busy ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {profile.websiteUrl?.trim() ? "Checking site" : "Scoring answers"}
+                  </>
+                ) : (
+                  "See my preview"
+                )}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
@@ -476,6 +527,28 @@ export function AIReadinessAssessment({
             <p className="mt-3 max-w-2xl leading-7 text-[var(--soft)]">
               {previewRecommendation.summary}
             </p>
+            {preview.websiteAudit && (
+              <div className="mt-7 rounded-2xl border border-black/10 bg-black/[0.03] p-5 dark:border-white/10 dark:bg-white/[0.04]">
+                <div className="flex flex-wrap items-baseline justify-between gap-3">
+                  <p className="font-mono text-xs uppercase tracking-[0.16em] text-[var(--soft)]">
+                    Website snapshot
+                  </p>
+                  <p className="font-semibold tabular-nums">
+                    {preview.websiteAudit.score === null
+                      ? "Not scored"
+                      : `${preview.websiteAudit.score}/100`}
+                  </p>
+                </div>
+                <p className="mt-2 text-sm leading-6 text-[var(--soft)]">
+                  {preview.websiteAudit.summary}
+                </p>
+                {preview.websiteAudit.findings[0] && (
+                  <p className="mt-3 text-sm font-semibold">
+                    Next: {preview.websiteAudit.findings[0].title}
+                  </p>
+                )}
+              </div>
+            )}
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Button
                 onClick={() => {
