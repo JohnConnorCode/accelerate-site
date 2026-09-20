@@ -377,6 +377,18 @@ export { revenueDispositions, type RevenueFieldDisposition } from "./revenue-dis
 /** Canonical opportunity totals for the Revenue screen. Reads opportunities and
  * the tenant's pipeline stages through the same services analytics uses, so the
  * screen and the analytics route cannot disagree on open value or won revenue. */
+export function summarizeRetainedContractValue(
+  clients: Array<{ status?: string; monthly_value?: number; one_time_value?: number }>,
+  proposals: Array<{ total_monthly?: number }>,
+) {
+  const active = clients.filter((client) => client.status === "active");
+  return {
+    totalMRR: active.reduce((sum, client) => sum + Number(client.monthly_value || 0), 0),
+    totalOneTime: clients.reduce((sum, client) => sum + Number(client.one_time_value || 0), 0),
+    proposalRevenue: proposals.reduce((sum, proposal) => sum + Number(proposal.total_monthly || 0), 0),
+  };
+}
+
 export async function loadOpportunityRevenueTotals(supabase: SupabaseClient, tenantId: string) {
   const [{ data, error }, stages] = await Promise.all([
     supabase

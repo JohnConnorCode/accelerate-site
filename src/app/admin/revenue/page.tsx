@@ -122,7 +122,7 @@ export default function RevenuePage() {
                   .filter((item) => item.owner === "retained")
                   .map((item) => item.field)
                   .join(", ")}
-                ) until a canonical replacement exists.
+                ) until a canonical replacement exists. They are not cash receipts.
               </p>
             </AdminSurface>
 
