@@ -2,6 +2,12 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadFounderKnowledgeNotes } from "./notes";
 import { loadActivityTimeline } from "./activities";
+import {
+  applySourceAuthority,
+  loadSourceAuthorityIndex,
+  type SourceAuthorityConflict,
+  type SourceAuthorityTier,
+} from "./source-authority";
 
 export const SECOND_BRAIN_KNOWLEDGE_CONTRACT = "revenue-os-knowledge.v1";
 
@@ -19,6 +25,13 @@ export interface KnowledgeChunk {
   confidence: number;
   author: string | null;
   discrepancy?: string | null;
+  systemKey?: string;
+  authorityTier?: SourceAuthorityTier;
+  authorityOwner?: string | null;
+  lastVerifiedAt?: string | null;
+  stale?: boolean;
+  current?: boolean;
+  conflict?: string | null;
 }
 
 export interface KnowledgeQueryInput {
@@ -40,6 +53,7 @@ export interface KnowledgeSearchResult {
     estimatedValue?: number | null;
   } | null;
   chunks: KnowledgeChunk[];
+  conflicts: SourceAuthorityConflict[];
   refusalReason: string | null;
   generatedAt: string;
 }
@@ -62,6 +76,7 @@ export async function retrieveKnowledge(
       query: "",
       entitySummary: null,
       chunks: [],
+      conflicts: [],
       refusalReason:
         "No query parameters supplied. Provide an entity name, domain, email, or topic.",
       generatedAt: new Date().toISOString(),
@@ -117,6 +132,7 @@ export async function retrieveKnowledge(
         query: queryStr,
         entitySummary: null,
         chunks: [],
+        conflicts: [],
         refusalReason: `No canonical records, founder notes, or activities found for "${queryStr}".`,
         generatedAt: new Date().toISOString(),
       };
@@ -134,15 +150,7 @@ export async function retrieveKnowledge(
       author: String(n.actor_email || "founder"),
     }));
 
-    return {
-      contract: SECOND_BRAIN_KNOWLEDGE_CONTRACT,
-      found: true,
-      query: queryStr,
-      entitySummary: null,
-      chunks: noteChunks,
-      refusalReason: null,
-      generatedAt: new Date().toISOString(),
-    };
+    return finishKnowledgeResult(supabase, queryStr, null, noteChunks);
   }
 
   // Build entity summary
@@ -240,9 +248,9 @@ export async function retrieveKnowledge(
       if (matchedOpp) {
         const lowerBody = note.body.toLowerCase();
         if (lowerBody.includes("closed won") && matchedOpp.stage !== "won") {
-          discrepancy = `Note mentions 'closed won', but canonical opportunity record is currently in stage '${matchedOpp.stage}'. Canonical record governs.`;
+          discrepancy = `Conflict: note mentions 'closed won', but the canonical opportunity record is in stage '${matchedOpp.stage}'. Sources disagree; neither is auto-resolved.`;
         } else if (lowerBody.includes("lost deal") && matchedOpp.stage !== "lost") {
-          discrepancy = `Note mentions 'lost deal', but canonical opportunity record is currently in stage '${matchedOpp.stage}'. Canonical record governs.`;
+          discrepancy = `Conflict: note mentions 'lost deal', but the canonical opportunity record is in stage '${matchedOpp.stage}'. Sources disagree; neither is auto-resolved.`;
         }
       }
 
@@ -292,15 +300,27 @@ export async function retrieveKnowledge(
     }
   }
 
-  const limit = Math.min(25, Math.max(1, input.limit ?? 10));
-  const limitedChunks = chunks.slice(0, limit);
+  return finishKnowledgeResult(supabase, queryStr, entitySummary, chunks, input.limit);
+}
 
+async function finishKnowledgeResult(
+  supabase: SupabaseClient,
+  query: string,
+  entitySummary: KnowledgeSearchResult["entitySummary"],
+  chunks: KnowledgeChunk[],
+  limit?: number,
+): Promise<KnowledgeSearchResult> {
+  const index = await loadSourceAuthorityIndex(supabase);
+  const tagged = applySourceAuthority(chunks, index);
+  const cap = Math.min(25, Math.max(1, limit ?? 10));
+  const limitedChunks = tagged.chunks.slice(0, cap);
   return {
     contract: SECOND_BRAIN_KNOWLEDGE_CONTRACT,
     found: limitedChunks.length > 0,
-    query: queryStr,
+    query,
     entitySummary,
     chunks: limitedChunks,
+    conflicts: tagged.conflicts,
     refusalReason: limitedChunks.length > 0 ? null : "No relevant facts or notes found.",
     generatedAt: new Date().toISOString(),
   };
