@@ -251,6 +251,70 @@ export function summarizeRevenueAnalytics(
   };
 }
 
+export { revenueDispositions, type RevenueFieldDisposition } from "./revenue-dispositions";
+
+/** Current-state opportunity totals shared by Revenue and analytics so the
+ * screen cannot invent a second formula. Open value uses stage role; won
+ * revenue sums recorded won_value. This function does not write. */
+export function summarizeOpportunityRevenueTotals(
+  opportunities: Array<{
+    stage: string;
+    estimated_value?: number | null;
+    won_value?: number | null;
+    probability?: number | null;
+  }>,
+  stages: PipelineStageResolver,
+) {
+  const isOpen = (item: { stage: string }) => {
+    const canonical = stages.canonicalStage(item.stage);
+    return canonical ? stages.role(canonical) === "open" : true;
+  };
+  const open = opportunities.filter(isOpen);
+  return {
+    openOpportunities: open.length,
+    pipelineValue: open.reduce((sum, item) => sum + Number(item.estimated_value || 0), 0),
+    weightedValue: Math.round(
+      open.reduce(
+        (sum, item) =>
+          sum +
+          (Number(item.estimated_value || 0) *
+            Math.min(100, Math.max(0, Number(item.probability || 0)))) /
+            100,
+        0,
+      ),
+    ),
+    wonRevenue: opportunities.reduce((sum, item) => sum + Number(item.won_value || 0), 0),
+    opportunityCount: opportunities.length,
+  };
+}
+
+export function summarizeRetainedContractValue(
+  clients: Array<{ status?: string; monthly_value?: number; one_time_value?: number }>,
+  proposals: Array<{ total_monthly?: number }>,
+) {
+  const active = clients.filter((client) => client.status === "active");
+  return {
+    totalMRR: active.reduce((sum, client) => sum + Number(client.monthly_value || 0), 0),
+    totalOneTime: clients.reduce((sum, client) => sum + Number(client.one_time_value || 0), 0),
+    proposalRevenue: proposals.reduce(
+      (sum, proposal) => sum + Number(proposal.total_monthly || 0),
+      0,
+    ),
+  };
+}
+
+export async function loadOpportunityRevenueTotals(supabase: SupabaseClient, tenantId: string) {
+  const [{ data, error }, stages] = await Promise.all([
+    supabase
+      .from("opportunities")
+      .select("id,stage,estimated_value,won_value,probability")
+      .limit(5000),
+    loadPipelineStages(supabase, tenantId),
+  ]);
+  if (error) throw new Error(error.message);
+  return summarizeOpportunityRevenueTotals(data ?? [], stages);
+}
+
 export function summarizeReplySignals(
   messages: Array<{
     conversation_id: string;

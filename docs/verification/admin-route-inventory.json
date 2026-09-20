@@ -279,11 +279,11 @@
       "adapters": [
         {
           "path": "src/app/api/admin/activity/route.ts",
-          "domainImports": ["@/lib/revenue-os/audit"],
+          "domainImports": ["@/lib/revenue-os/activities", "@/lib/revenue-os/audit"],
           "directTables": []
         }
       ],
-      "boundary": "Audit events are not the normalized business activity timeline.",
+      "boundary": "Canonical activities ledger plus retained audit events; audit fields remain source-owned.",
       "followUp": {
         "key": "canonical-revenue-activity-parity",
         "id": "38a08974-f92b-4106-821b-b328d40090d7"
@@ -1209,11 +1209,11 @@
       "adapters": [
         {
           "path": "src/app/api/admin/revenue/route.ts",
-          "domainImports": [],
+          "domainImports": ["@/lib/revenue-os/analytics"],
           "directTables": ["clients", "proposals"]
         }
       ],
-      "boundary": "Reads clients and accepted proposals directly; not opportunity revenue or cash receipts.",
+      "boundary": "Canonical opportunity totals plus retained client/proposal contract values; not cash receipts.",
       "followUp": {
         "key": "canonical-revenue-activity-parity",
         "id": "38a08974-f92b-4106-821b-b328d40090d7"

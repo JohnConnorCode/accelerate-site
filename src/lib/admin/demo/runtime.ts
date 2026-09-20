@@ -22,6 +22,8 @@ import {
   getActiveModules,
   validateModuleSettingsInput,
 } from "@/lib/revenue-os/modules";
+import { revenueDispositions } from "@/lib/revenue-os/revenue-dispositions";
+import { activityDispositions } from "@/lib/revenue-os/activity-dispositions";
 
 type DemoEmailBlock = {
   id: string;
@@ -3145,6 +3147,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/revenue") {
       const rows = opportunityRows(pack, state);
+      const openRows = rows.filter((item) => !["won", "lost"].includes(item.canonical_stage));
       return jsonResponse({
         totalMRR: 18400,
         totalOneTime: rows.reduce((sum, item) => sum + item.won_value, 0),
@@ -3162,10 +3165,40 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           mrr: 11200 + index * 1800,
         })),
         proposalRevenue: 24600,
+        canonical: {
+          openOpportunities: openRows.length,
+          pipelineValue: openRows.reduce((sum, item) => sum + item.estimated_value, 0),
+          weightedValue: Math.round(
+            openRows.reduce(
+              (sum, item) =>
+                sum +
+                (item.estimated_value * Math.min(100, Math.max(0, item.probability || 0))) / 100,
+              0,
+            ),
+          ),
+          wonRevenue: rows.reduce((sum, item) => sum + item.won_value, 0),
+          opportunityCount: rows.length,
+        },
+        dispositions: revenueDispositions(),
       });
     }
-    if (path === "/api/admin/activity")
-      return jsonResponse(auditHistory(pack, url.searchParams, business));
+    if (path === "/api/admin/activity") {
+      const history = auditHistory(pack, url.searchParams, business);
+      return jsonResponse({
+        ...history,
+        canonical: {
+          activities: (business?.receipts ?? []).slice(0, 10).map((receipt) => ({
+            id: receipt.id,
+            activity_type: "receipt",
+            title: receipt.operation,
+            summary: null,
+            source: "demo",
+            occurred_at: receipt.at,
+          })),
+          dispositions: activityDispositions(),
+        },
+      });
+    }
     if (path === "/api/admin/revenue-os/ai/conversations")
       return jsonResponse({
         schemaReady: true,
