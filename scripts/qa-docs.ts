@@ -114,11 +114,11 @@ async function main() {
         }
         await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
         for (const [audience, href] of [
-          ["Run your business", "/docs/start/business-owners"],
-          ["Build on the platform", "/docs/start/agencies"],
-          ["Build on the platform", "/docs/extend/first-change"],
+          ["run-business", "/docs/start/business-owners"],
+          ["build-platform", "/docs/start/agencies"],
+          ["build-platform", "/docs/extend/first-change"],
         ] as const) {
-          const audiencePath = page.getByRole("region", { name: audience, exact: true });
+          const audiencePath = page.locator(`section[aria-labelledby="${audience}"]`);
           await audiencePath.locator(`a[href="${href}"]`).click();
           await page.waitForURL(`**${href}`);
           await page.locator("main h1").waitFor({ state: "visible" });

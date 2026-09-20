@@ -3,6 +3,10 @@ name: CI
 on:
   workflow_dispatch:
     inputs:
+      public_pages_only:
+        description: Verify public pages and docs without repeating unrelated workspace suites
+        type: boolean
+        default: false
       admin_design_only:
         description: Capture admin appearance evidence without the full CI suite
         type: boolean
@@ -22,7 +26,7 @@ concurrency:
 
 jobs:
   checks:
-    if: ${{ !inputs.admin_design_only }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -279,6 +283,7 @@ jobs:
         env:
           # NextURL canonicalizes loopback IPs to localhost. Keep the server's
           # initURL on that same origin so demo rewrites never become self-proxies.
+          PUBLIC_PAGES_ONLY: ${{ inputs.public_pages_only }}
           PLAYWRIGHT_BASE_URL: http://localhost:3018
         run: |
           setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-first-run-server.log 2>&1 &
@@ -298,6 +303,7 @@ jobs:
           # Run every group and collect every exit status before stopping the server.
           (
             set -e
+            if [ "$PUBLIC_PAGES_ONLY" = "true" ]; then exit 0; fi
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
             node scripts/qa-client-interactions.mjs
@@ -327,6 +333,7 @@ jobs:
           public_qa_pid=$!
           (
             set -e
+            if [ "$PUBLIC_PAGES_ONLY" = "true" ]; then exit 0; fi
             node scripts/qa-social-marketing.mjs
             node scripts/qa-collections-workspace.mjs
             node scripts/qa-universal-work-board.mjs
@@ -382,7 +389,7 @@ jobs:
           retention-days: 7
 
   neutral-starter:
-    if: ${{ !inputs.admin_design_only }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -438,7 +445,7 @@ jobs:
 
   # Keep the existing required check name and fail if either job fails or skips.
   verify:
-    if: ${{ always() && !inputs.admin_design_only }}
+    if: ${{ always() && !inputs.admin_design_only && !inputs.public_pages_only }}
     needs: [checks, build, neutral-starter]
     runs-on: ubuntu-latest
     timeout-minutes: 1
