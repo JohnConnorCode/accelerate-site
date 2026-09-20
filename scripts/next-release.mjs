@@ -1,6 +1,9 @@
 import { deploymentPreflight } from "./deployment-preflight.mjs";
 import { spawnSync } from "node:child_process";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -32,6 +35,23 @@ function readJson(file) {
 }
 
 function verifyPrebuiltIdentity() {
+  const documentRoot = ".vercel/output/functions/api/admin/knowledge/documents.func";
+  const architecture = readJson(`${documentRoot}/.vc-config.json`).architecture || "x86_64";
+  const nativeArch = { x86_64: "x64", arm64: "arm64" }[architecture];
+  if (!nativeArch) throw new Error("Unsupported document function architecture");
+  const native = readFileSync(
+    `${documentRoot}/node_modules/@napi-rs/canvas-linux-${nativeArch}-gnu/skia.linux-${nativeArch}-gnu.node`,
+  );
+  if (
+    native.length < 20 ||
+    native.subarray(0, 4).toString("hex") !== "7f454c46" ||
+    native[5] !== 1 ||
+    native.readUInt16LE(18) !== (nativeArch === "x64" ? 62 : 183)
+  ) {
+    throw new Error(
+      "Document parser requires the matching Linux native binary. Rebuild before deploying.",
+    );
+  }
   const requiredServerFiles = readJson(".next/required-server-files.json");
   const serializedConfig = requiredServerFiles.config || {};
   if (serializedConfig.deploymentId !== deploymentId) {
@@ -77,13 +97,51 @@ function verifyPrebuiltIdentity() {
 
 if (mode === "build") {
   console.log(`Building production release ${deploymentId}`);
+  if (env.ACCELERATE_PREBUILT_NATIVE === "1") {
+    // npm normally omits other OS/CPU optional packages on a local prebuilt host.
+    // Install only the existing lockfile-pinned Linux variants, without scripts or lock edits.
+    const packages = readJson("package-lock.json").packages;
+    const temporary = mkdtempSync(join(tmpdir(), "accelerate-document-runtime-"));
+    try {
+      for (const arch of ["x64", "arm64"]) {
+        const name = `@napi-rs/canvas-linux-${arch}-gnu`;
+        const locked = packages[`node_modules/${name}`];
+        if (!locked?.resolved || !locked.integrity?.startsWith("sha512-"))
+          throw new Error(`Missing locked document runtime: ${name}`);
+        const packed = JSON.parse(
+          run(
+            "npm",
+            [
+              "pack",
+              locked.resolved,
+              "--ignore-scripts",
+              "--json",
+              "--pack-destination",
+              temporary,
+            ],
+            { capture: true },
+          ),
+        )[0];
+        const archive = join(temporary, packed.filename);
+        const integrity =
+          "sha512-" + createHash("sha512").update(readFileSync(archive)).digest("base64");
+        if (integrity !== locked.integrity)
+          throw new Error(`Document runtime integrity mismatch: ${name}`);
+        const destination = join("node_modules", name);
+        mkdirSync(destination, { recursive: true });
+        run("tar", ["-xzf", archive, "--strip-components=1", "-C", destination]);
+      }
+    } finally {
+      rmSync(temporary, { recursive: true, force: true });
+    }
+  }
   run("next", ["build", ...args], { env });
 } else if (mode === "start") {
   console.log(`Starting production release ${deploymentId}`);
   run("next", ["start", ...args], { env });
 } else if (mode === "vercel-build") {
   console.log(`Building production release ${deploymentId}`);
-  run("vercel", ["build", "--prod", ...args], { env });
+  run("vercel", ["build", "--prod", ...args], { env: { ...env, ACCELERATE_PREBUILT_NATIVE: "1" } });
 } else if (mode === "verify-prebuilt") {
   verifyPrebuiltIdentity();
   console.log(`Verified prebuilt release ${deploymentId}`);

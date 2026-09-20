@@ -109,6 +109,8 @@ for (const shape of [
   "runtime-override",
   "missing",
   "unknown-handler",
+  "missing-native",
+  "wrong-native",
 ]) {
   test(`prebuilt release verification: ${shape}`, () => {
     const root = mkdtempSync(resolve(tmpdir(), "accelerate-prebuilt-test-"));
@@ -119,6 +121,18 @@ for (const shape of [
       writeFileSync(path, body);
     };
     try {
+      const documentRoot = ".vercel/output/functions/api/admin/knowledge/documents.func";
+      put(`${documentRoot}/.vc-config.json`, JSON.stringify({ architecture: "x86_64" }));
+      if (shape !== "missing-native") {
+        const native = Buffer.alloc(20);
+        Buffer.from("7f454c46", "hex").copy(native);
+        native[5] = 1;
+        native.writeUInt16LE(shape === "wrong-native" ? 183 : 62, 18);
+        put(
+          `${documentRoot}/node_modules/@napi-rs/canvas-linux-x64-gnu/skia.linux-x64-gnu.node`,
+          native,
+        );
+      }
       const config = { deploymentId: id, experimental: { runtimeServerDeploymentId: false } };
       put(".next/required-server-files.json", JSON.stringify({ config }));
       if (shape.includes("static"))

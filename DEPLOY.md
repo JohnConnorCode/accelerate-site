@@ -50,6 +50,8 @@ npm run deploy
 
 `npm run deploy` pulls production configuration, creates a prebuilt output with the current commit as its immutable release identity, verifies that identity, and uploads the archive to production.
 
+The prebuilt build installs the existing lockfile-pinned Linux canvas binaries used by PDF extraction, including when building on macOS. It verifies each archive against the lockfile integrity hash without resolving other dependencies, running installation scripts or changing the lockfile. Upload verifies that the document function contains a Linux binary matching its declared CPU architecture, alongside the release identity. Missing or incompatible native dependencies stop deployment.
+
 The command intentionally uses `--prebuilt` and `--archive=tgz`. Prebuilt deployment keeps local and hosted artifacts aligned; the archive avoids thousands of individual file uploads.
 
 The prebuilt identity check supports both the static demo document and the server function produced by a connected installation. For a server function, it verifies the packaged Next.js configuration carries the exact release identity and disables runtime identity overrides. The canonical hosted document is still checked after deployment.

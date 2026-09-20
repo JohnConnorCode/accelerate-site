@@ -106,3 +106,5 @@ The original readiness migration remains unchanged; the repair is additive.
 The expanded combined tree exceeds the unchanged 3 GiB process-group budget with Turbopack, locally and in the full-product fork job. The production build defaults to Next's supported Webpack compiler, which passed the same application build locally. CPU and memory limits remain unchanged; no process outside the owned job is stopped. Both parser resolution and output tracing support this build path.
 
 Compiled document extraction now has a CI regression covering PDF, DOCX, cancellation and invalid input against the actual server bundle. Final integration also removes a layout-constant circular import and updates the agent-loop fixture for shared knowledge search.
+
+Cross-platform prebuilt packaging installs only the existing locked Linux canvas variants and refuses upload when the document function lacks the matching ELF binary. This follows the declared function architecture in [Vercel Build Output API](https://vercel.com/docs/build-output-api/primitives). The deployment regression covers missing and incompatible binaries as well as immutable identity.
