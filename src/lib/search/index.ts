@@ -90,6 +90,22 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     keywords: ["demo", "sandbox", "interactive", "admin demo", "product demo"],
   },
   {
+    id: "page-ai-readiness",
+    title: "AI Readiness Assessment",
+    description:
+      "Find where AI and automation can help your small business first, with a practical score, optional website audit and 30-day action plan.",
+    href: "/ai-readiness",
+    keywords: [
+      "AI readiness",
+      "assessment",
+      "score",
+      "audit",
+      "action plan",
+      "website audit",
+      "AI strategy",
+    ],
+  },
+  {
     id: "page-open-source",
     title: "Open Source",
     description:
@@ -145,6 +161,21 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     description: "Downloadable guides and templates.",
     href: "/resources",
     keywords: ["downloads", "templates", "guides", "free"],
+  },
+  {
+    id: "page-roofing",
+    title: "AI Strategy for Roofing Operations",
+    description:
+      "Find where AI and automation can improve inquiry handling, estimates, scheduling, follow-up, reporting, and office operations for a roofing company.",
+    href: "/roofing",
+    keywords: [
+      "roofing",
+      "roofers",
+      "contractors",
+      "estimates",
+      "scheduling",
+      "field operations",
+    ],
   },
   {
     id: "page-partners",
