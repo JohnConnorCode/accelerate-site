@@ -23,9 +23,11 @@ export function websiteThemeStyle(theme: WebsiteDocument["theme"]): CSSPropertie
     ...(theme.font === "installation"
       ? {}
       : {
-          fontFamily: { sans: "Arial, sans-serif", serif: "Georgia, serif", mono: "monospace" }[
-            theme.font
-          ],
+          fontFamily: {
+            sans: "var(--font-inter, Arial), sans-serif",
+            serif: "Georgia, serif",
+            mono: "var(--font-mono-face, monospace)",
+          }[theme.font],
         }),
   } as CSSProperties;
 }

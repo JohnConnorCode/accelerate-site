@@ -2,6 +2,13 @@
  * checked against the marketing route tree so migrations cannot omit a page. */
 export const installationRoutes = [
   {
+    path: "/site-pages/[...websitePath]",
+    source: "src/app/(marketing)/site-pages/[...websitePath]/page.tsx",
+    kind: "application",
+    collection: null,
+    preserve: "Neutral rewrite boundary; only published owner pages or the product starter render",
+  },
+  {
     path: "/[...websitePath]",
     source: "src/app/(marketing)/[...websitePath]/page.tsx",
     kind: "page",

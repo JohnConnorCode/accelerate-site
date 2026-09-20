@@ -8,6 +8,8 @@ Open **Site Studio → Edit installation website** to create pages, edit content
 
 ## Create and edit a page
 
+A new full-repository fork starts with an editable Command Center homepage. Use Identity and Theme to make it your own, then customize the homepage sections or add pages. Agency content stays disabled unless the installer explicitly selects the branded distribution. Saved drafts and published revisions remain unchanged when the deployment profile changes.
+
 1. Select **Add page**, enter a title and page address, and choose a service, landing or article starter. **Clone page** copies the current page into a new address.
 2. Edit the page fields and search description. Open a section to change its text or appearance; add, reorder, hide supported native sections, or remove sections as needed. Article controls support headings, paragraphs, formatted text, lists, quotes, code and images.
 3. Use **Ask AI** to improve copy while retaining the layout, or generate a new layout and copy. Describe the result you want, choose a model, and prepare a suggestion. Review the changes and choose **Apply to draft**. Preparing or applying a suggestion does not publish it.
@@ -50,6 +52,10 @@ If the network drops after a write, use **Retry same save** or the corresponding
 Open **Website tools** for reload, import, export and the saved preview. On phones, switch between **Edit content** and **Preview page**, and use **Editing** to choose the content area. **Unpublish** is available inside **History**.
 
 ## Shared content, assets and collections
+
+For a service or landing page, open **Connect a form**, choose **Load published forms**, select a form from this workspace and choose **Add form section**. Publish the form in Form Builder first. The page uses the existing submission and review workflow, so you can inspect the response and accept it into intake from the same workspace. Preview forms display their connection without accepting responses; test the published page with controlled data after publication.
+
+The website supports eight distinct forms. When a form is archived, its module is disabled, or its connection is unavailable, the page displays an unavailable message. Reconnect the form or remove its section before saving or publishing again. Imported websites need form bindings from the destination workspace. Website tools links to Setup and the optional ChatGPT connection, and lists the steps from business identity through the first controlled submission. In neutral mode, use images under `public/site-assets/` or an approved HTTPS origin; the agency image namespaces are disabled.
 
 Use Identity, Navigation, Footer and Theme to edit shared branding, links and appearance. The preview and published output share their theme settings. Under Assets, add an image path or HTTPS image URL and an accessible description, then use it as a logo, sharing image or article image. The asset manager references existing image files; it does not upload files. An image still referenced by content cannot be removed.
 

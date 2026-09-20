@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "full-product-neutral-fork",
+    slug: "full-product-neutral-fork",
+    title: "A complete workspace with your own editable website",
+    description:
+      "New forks start with a neutral Command Center homepage using the same page model as Site Studio. The full application remains included; agency content requires explicit branded configuration. Owners can customize pages and connect published workspace forms to the existing review and intake workflow. Public content, editor previews, and AI tools share the validated page schema. Existing installations must review their distribution setting before upgrading; deployment and live provider verification remain separate release steps.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
     id: "site-editor-mcp-form-reliability",
     slug: "site-editor-mcp-form-reliability",
     title: "Scoped ChatGPT website editing and safer form intake",

@@ -43,7 +43,12 @@ try {
       });
       try {
         assert.equal((await page.goto(base)).status(), 200);
-        await page.getByRole("heading", { name: "Harbor Operations", exact: true }).waitFor();
+        await page
+          .getByRole("heading", {
+            name: "A home for your business. A workspace to move it forward.",
+            exact: true,
+          })
+          .waitFor();
         assert.equal(await page.title(), "Harbor Operations");
         const social = await page.request.get(base + "/api/og");
         assert.equal(social.status(), 200);
@@ -54,7 +59,7 @@ try {
           "https://harbor.example",
         );
         await captureNeutral(page, `${label}-entry`);
-        await page.getByRole("link", { name: "Open your workspace", exact: true }).focus();
+        await page.getByRole("link", { name: "Open your workspace", exact: true }).first().focus();
         await page.keyboard.press("Enter");
         await page.getByRole("heading", { name: "Connect your Supabase project" }).waitFor();
         await captureNeutral(page, `${label}-setup`);

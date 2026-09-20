@@ -25,6 +25,7 @@ interface MobileNavProps {
   content?: WebsiteHeader;
   brandName?: string;
   logoSrc?: string;
+  showThemeToggle?: boolean;
 }
 
 const focusRing =
@@ -37,6 +38,7 @@ export function MobileNav({
   content = websiteHeaderContent,
   brandName,
   logoSrc,
+  showThemeToggle = true,
 }: MobileNavProps) {
   const pathname = usePathname();
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -211,7 +213,7 @@ export function MobileNav({
             </span>
           </Link>
           <div className="mt-5 flex items-center justify-between">
-            <ThemeToggle />
+            {showThemeToggle && <ThemeToggle />}
             <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--soft)]">
               Accelerate
             </span>

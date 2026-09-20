@@ -2,6 +2,7 @@ import { distributionProfile } from "@/lib/distribution/profile";
 import { readPublicWebsite } from "@/lib/site-studio/website-public";
 import { notFound } from "next/navigation";
 import { MarketingChrome } from "@/components/layout/MarketingChrome";
+import { createNeutralWebsite } from "@/lib/site-studio/neutral-website";
 
 export default async function MarketingLayout({
   children,
@@ -9,7 +10,8 @@ export default async function MarketingLayout({
   children: React.ReactNode;
 }>) {
   const website = await readPublicWebsite();
-  if (distributionProfile() === "neutral" && website.mode === "bootstrap") return <>{children}</>;
+  if (distributionProfile() === "neutral" && website.mode !== "published")
+    return <MarketingChrome website={createNeutralWebsite()}>{children}</MarketingChrome>;
   if (website.mode === "unpublished") notFound();
   if (website.mode === "unavailable")
     throw new Error("The published website is temporarily unavailable.");

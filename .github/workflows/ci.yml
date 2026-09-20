@@ -72,6 +72,10 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:open-source-stats
 
+      - name: Verify full-product neutral fork and connected website forms
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:full-product-fork
+
       - name: Verify admin design token contract
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run verify:admin-tokens
@@ -240,6 +244,9 @@ jobs:
     if: ${{ !inputs.admin_design_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Preserve explicit coverage for the original agency installation.
+      NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -375,6 +382,30 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  full-product-fork:
+    if: ${{ !inputs.admin_design_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # No profile environment: prove the complete repository's actual default.
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run resources:run -- node scripts/qa-full-product-fork.mjs
+      - name: Retain full-product fork evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: full-product-fork-evidence
+          path: /tmp/accelerate-full-product-fork-qa/
+          if-no-files-found: ignore
+          retention-days: 7
+
   neutral-starter:
     if: ${{ !inputs.admin_design_only }}
     runs-on: ubuntu-latest
@@ -433,7 +464,7 @@ jobs:
   # Keep the existing required check name and fail if either job fails or skips.
   verify:
     if: ${{ always() && !inputs.admin_design_only }}
-    needs: [checks, build, neutral-starter]
+    needs: [checks, build, full-product-fork, neutral-starter]
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
@@ -442,7 +473,8 @@ jobs:
           CHECKS_RESULT: ${{ needs.checks.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           NEUTRAL_RESULT: ${{ needs.neutral-starter.result }}
-        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success && test "$NEUTRAL_RESULT" = success
+          FULL_FORK_RESULT: ${{ needs.full-product-fork.result }}
+        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success && test "$NEUTRAL_RESULT" = success && test "$FULL_FORK_RESULT" = success
 
   admin-design:
     if: ${{ inputs.admin_design_only }}

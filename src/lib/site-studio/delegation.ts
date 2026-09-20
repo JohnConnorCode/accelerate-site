@@ -7,7 +7,7 @@ import { bindTenantDatabase } from "@/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "@/lib/tenancy/constants";
 import type { TenantSummary } from "@/lib/tenancy/context";
 import { readBoundedJson } from "@/lib/ai/bounded-json";
-import { assertWebsiteOwner } from "./website-store";
+import { assertWebsiteOwner, validateWebsiteCommandForms } from "./website-store";
 import { parseWebsiteCommand, websiteReceiptSchema } from "./website-commands";
 import { siteEditorExecuteSchema } from "./editor-contract";
 import { websiteCommandDigest } from "./editor-service";
@@ -231,6 +231,7 @@ export async function executeDelegatedSiteChange(delegation: unknown, raw: unkno
     action.payload.summary !== input.summary
   )
     throw new Error("Exact website preview and summary required");
+  await validateWebsiteCommandForms(auth, command);
   const host = siteEditorHost();
   const { data, error } = await host.rpc("execute_delegated_site_change", {
     p_grant_id: grant.id,

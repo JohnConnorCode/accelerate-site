@@ -17,7 +17,7 @@ const emptyItem = (label: string): Value | undefined =>
       links: { label: "New link", href: "/" },
       assets: {
         id: `image-${crypto.randomUUID().slice(0, 8)}`,
-        src: "/logo.png",
+        src: "/site-assets/icon.svg",
         alt: "Describe this image",
       },
       collections: {

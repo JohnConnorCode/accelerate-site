@@ -82,6 +82,7 @@ export const siteEditorReadSchema = z
       "models",
       "export",
       "schema",
+      "forms",
     ]),
     schema: z.enum(["command", "page", "document", "ai"]).default("command"),
     revisionId: z.uuid().optional(),

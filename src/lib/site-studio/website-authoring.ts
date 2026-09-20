@@ -21,6 +21,7 @@ export function createWebsitePage(
     serviceName: title,
     audience: website.identity.name,
     outcome: "Describe the result your customers can expect.",
+    contactHref: website.header.ctaHref,
   });
   if (input.starter === "landing")
     document.root = [document.root[0]!, document.root[document.root.length - 1]!];
@@ -56,6 +57,7 @@ export function websiteTextFields(page: WebsitePage): { key: string; value: stri
   const fields: { key: string; value: string }[] = [];
   const protectedKeys = new Set([
     "id",
+    "token",
     "path",
     "kind",
     "type",

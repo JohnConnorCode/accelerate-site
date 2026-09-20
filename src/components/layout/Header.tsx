@@ -32,11 +32,13 @@ export function Header({
   navLinks = defaultNavLinks,
   brandName,
   logoSrc,
+  showThemeToggle = true,
 }: {
   content?: WebsiteHeader;
   navLinks?: NavLink[];
   brandName?: string;
   logoSrc?: string;
+  showThemeToggle?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const [scrolled, setScrolled] = useState(false);
@@ -249,7 +251,7 @@ export function Header({
             >
               <Search className="size-[18px]" />
             </button>
-            <ThemeToggle />
+            {showThemeToggle && <ThemeToggle />}
             <Link
               href={content.ctaHref}
               onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "header" })}
@@ -309,6 +311,7 @@ export function Header({
         content={content}
         brandName={brandName}
         logoSrc={logoSrc}
+        showThemeToggle={showThemeToggle}
       />
 
       <SearchDialog open={searchOpen} onOpenChangeAction={setSearchOpen} />

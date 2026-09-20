@@ -8,6 +8,8 @@ import { tenant } from "@/config/tenant";
 import { nativeTemplateDefaults } from "./native-templates";
 import { parseWebsiteDocument } from "./website-document";
 import { marketingPositioning } from "@/content/marketing-positioning";
+import { distributionProfile } from "@/lib/distribution/profile";
+import { createNeutralWebsite } from "./neutral-website";
 
 export const homeSectionOrder = [
   "home-hero",
@@ -26,6 +28,7 @@ export const homeSectionOrder = [
 
 /** Local content only: importing this seed cannot reach the original installation. */
 export function createBundledWebsite() {
+  if (distributionProfile() === "neutral") return createNeutralWebsite();
   return parseWebsiteDocument({
     schemaVersion: 1,
     identity: { name: tenant.brand.name, tagline: marketingPositioning.shortOffer },

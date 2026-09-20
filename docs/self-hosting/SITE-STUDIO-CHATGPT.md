@@ -99,6 +99,14 @@ editor. Full imports retain the editor's 8 MB document limit. AI suggestions
 use the existing model gateway, budget and selected-price ceilings, with the
 same 20 requests per hour per owner as the UI.
 
+For a connected form section, ask `read_site_editor` for `view: "forms"`.
+It returns published form names and tokens from the installation workspace,
+without submissions. Use the selected token in a `form` leaf with a `heading`,
+inside a document section. Save and publication verify the form belongs to this
+workspace and remains available. Copy editing cannot change its token. Existing
+share links and form-review rules still apply; a website connection does not
+grant access to response records or authority to accept them.
+
 ## Recovery and release evidence
 
 For an uncertain execution response, retry the same action ID, digest and
