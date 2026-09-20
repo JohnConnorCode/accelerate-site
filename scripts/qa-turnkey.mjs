@@ -100,7 +100,10 @@ try {
         assert.deepEqual(accessibility.violations, [], "Accessible setup screen");
         await page.getByRole("link", { name: "Explore the fictional demo", exact: true }).focus();
         await page.keyboard.press("Enter");
-        await page.getByRole("heading", { level: 1 }).waitFor();
+        await page.waitForURL(base + "/demo/command-center");
+        await page
+          .getByRole("heading", { level: 1, name: "Choose a business. See the work." })
+          .waitFor();
         assert.equal(new URL(page.url()).pathname, "/demo/command-center");
         assert.equal(
           await page.locator('img[src*="%2Fimages%2F"], img[src^="/images/"]').count(),

@@ -144,32 +144,35 @@ async function main() {
   // ---- 2. Exhausted budget blocks before any side effect ------------------
   {
     const today = new Date().toISOString().slice(0, 10);
-    const mem = harness({
-      work_items: [itemRow({ coworker_id: "cw-1" })],
-      coworkers: [{ id: "cw-1", required_capabilities: [], status: "active" }],
-      budget_limits: [
-        {
-          id: "limit-1",
-          tenant_id: "tenant-a",
-          coworker_id: "cw-1",
-          budget_kind: "emails_sent",
-          limit_value: 3,
-          period: "daily",
-          created_at: new Date().toISOString(),
-        },
-      ],
-      budget_usage: [
-        {
-          id: "usage-1",
-          coworker_id: "cw-1",
-          period_key: today,
-          budget_kind: "emails_sent",
-          used_value: 3,
-        },
-      ],
-      audit_log: [],
-      activities: [],
-    }, ALLOWED_AUTONOMY);
+    const mem = harness(
+      {
+        work_items: [itemRow({ coworker_id: "cw-1" })],
+        coworkers: [{ id: "cw-1", required_capabilities: [], status: "active" }],
+        budget_limits: [
+          {
+            id: "limit-1",
+            tenant_id: "tenant-a",
+            coworker_id: "cw-1",
+            budget_kind: "emails_sent",
+            limit_value: 3,
+            period: "daily",
+            created_at: new Date().toISOString(),
+          },
+        ],
+        budget_usage: [
+          {
+            id: "usage-1",
+            coworker_id: "cw-1",
+            period_key: today,
+            budget_kind: "emails_sent",
+            used_value: 3,
+          },
+        ],
+        audit_log: [],
+        activities: [],
+      },
+      ALLOWED_AUTONOMY,
+    );
     handlerCalls = 0;
     const summary = await executeClaimableWork(mem.client as never, { kinds: [KIND] });
     assert.equal(handlerCalls, 0, "an over-budget item must never reach its handler");
