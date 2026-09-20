@@ -23,6 +23,7 @@ import {
   PlugZap,
   RotateCcw,
   Settings,
+  ShieldCheck,
   Target,
   UserRound,
   UserPlus,
@@ -325,6 +326,15 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/learning",
         icon: Brain,
         description: "Review reusable corrections and approve shared intelligence for future work.",
+        moreGroup: "System",
+      },
+      {
+        id: "source-authority",
+        label: "Source authority",
+        href: "/admin/source-authority",
+        icon: ShieldCheck,
+        description:
+          "Register which connected systems own which facts, and how strongly retrieval should trust them.",
         moreGroup: "System",
       },
     ],

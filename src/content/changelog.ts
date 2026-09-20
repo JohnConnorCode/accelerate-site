@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "source-authority",
+    slug: "source-authority",
+    title: "Tell the model what to believe",
+    description:
+      "A source authority registry maps each connected system to the facts it owns, with a tier, an owner and a last-verified date. Knowledge retrieval orders and tags that evidence, flags conflicts instead of silently resolving them, and marks stale knowledge as not current. Unregistered sources stay at the lowest trust.",
+    category: "feature",
+    publishedAt: "2026-09-19",
+  },
+  {
     id: "fresh-fork-install",
     slug: "fresh-fork-install",
     title: "Install from a fresh fork with the setup command",

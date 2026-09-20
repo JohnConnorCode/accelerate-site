@@ -1,0 +1,37 @@
+---
+title: "Tell the model what to believe"
+description: "Register each connected system against the facts it owns, then let retrieval order, flag and stale-mark knowledge by that authority."
+updated: "2026-09-19"
+---
+
+Open **Source authority** in Command Center to say which systems own which facts. A source is a connected system with an authority tier, an owner, a last-verified date, and the truth domains it applies to: contact identity, pipeline stage, informal notes, and so on.
+
+Authority is configured. Volume and recency never promote a source on their own.
+
+## Review the registry
+
+1. Open `/admin/source-authority`.
+2. Read each source's tier, owner, domains, and last-verified date.
+3. A **Stale** badge means the verification lapse has passed. Retrieval still shows that knowledge, tagged as not current, instead of serving it as present truth.
+4. Unregistered systems stay at the lowest authority. They are never silently trusted.
+
+Official outranks approved, which outranks working, which outranks low. When two sources disagree on the same domain, retrieval flags the conflict. It does not pick a winner.
+
+## Register a source
+
+Use **Register source** for each connected system the assistant might read: the canonical CRM, founder notes, the activity ledger, Gmail, Drive, Slack. Give it:
+
+- a stable system key
+- the truth domains it owns
+- an authority tier
+- an owner
+- the date it was last verified
+- how many days that verification remains current
+
+Save. The same registration through the assistant is a proposal: it waits in approvals and writes through the same registry after you confirm it.
+
+## What a successful result looks like
+
+The next knowledge search returns chunks tagged with their system, tier, and whether they are current. Conflicts appear as flags, not as a quietly chosen answer. Stale playbooks remain visible and marked stale.
+
+If a source is missing from the registry, treat that as low trust until you add it. If two high-tier sources disagree, inspect both records before changing a customer-facing fact.
