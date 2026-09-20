@@ -20,6 +20,14 @@ interface RevenueData {
   byClient: { name: string; monthly: number; oneTime: number }[];
   mrrTimeline: { date: string; mrr: number }[];
   proposalRevenue: number;
+  canonical: {
+    openOpportunities: number;
+    pipelineValue: number;
+    weightedValue: number;
+    wonRevenue: number;
+    opportunityCount: number;
+  };
+  dispositions: { field: string; owner: "canonical" | "retained"; note: string }[];
 }
 
 export default function RevenuePage() {
@@ -72,6 +80,46 @@ export default function RevenuePage() {
                 index={3}
               />
             </div>
+
+            <AdminSurface>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="font-display text-sm font-semibold text-[var(--admin-ink)]">
+                  Opportunity revenue (canonical)
+                </h3>
+                <span className="admin-copy text-xs">
+                  {data.canonical.openOpportunities} open of {data.canonical.opportunityCount}{" "}
+                  opportunities
+                </span>
+              </div>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <div>
+                  <p className="admin-eyebrow">Open pipeline</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums">
+                    ${data.canonical.pipelineValue.toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="admin-eyebrow">Weighted pipeline</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums">
+                    ${data.canonical.weightedValue.toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="admin-eyebrow">Won revenue</p>
+                  <p className="mt-1 text-lg font-semibold tabular-nums">
+                    ${data.canonical.wonRevenue.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              <p className="admin-copy mt-4 text-xs">
+                Monthly recurring, one-time and accepted-proposal values remain source-owned (
+                {data.dispositions
+                  .filter((item) => item.owner === "retained")
+                  .map((item) => item.field)
+                  .join(", ")}
+                ) until a canonical replacement exists. They are not cash receipts.
+              </p>
+            </AdminSurface>
 
             {/* MRR Chart */}
             <div>

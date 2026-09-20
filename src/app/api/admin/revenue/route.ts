@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
+import {
+  loadOpportunityRevenueTotals,
+  revenueDispositions,
+  summarizeRetainedContractValue,
+} from "@/lib/revenue-os/analytics";
 
 export async function GET() {
   const auth = await requireAdminForModule("revenue");
@@ -7,7 +12,7 @@ export async function GET() {
 
   const supabase = auth.database;
 
-  const [clientsRes, proposalsRes] = await Promise.all([
+  const [clientsRes, proposalsRes, canonical] = await Promise.all([
     supabase
       .from("clients")
       .select(
@@ -17,6 +22,7 @@ export async function GET() {
       .from("proposals")
       .select("id, client_name, total_monthly, total_one_time, status, created_at")
       .eq("status", "accepted"),
+    loadOpportunityRevenueTotals(supabase, auth.tenant.id),
   ]);
 
   const clients = clientsRes.data || [];
@@ -24,13 +30,9 @@ export async function GET() {
 
   // Active clients
   const activeClients = clients.filter((c: { status?: string }) => c.status === "active");
-  const totalMRR = activeClients.reduce(
-    (sum: number, c: { monthly_value?: number }) => sum + (c.monthly_value || 0),
-    0,
-  );
-  const totalOneTime = clients.reduce(
-    (sum: number, c: { one_time_value?: number }) => sum + (c.one_time_value || 0),
-    0,
+  const { totalMRR, totalOneTime, proposalRevenue } = summarizeRetainedContractValue(
+    clients,
+    proposals,
   );
 
   // Revenue by industry
@@ -90,12 +92,6 @@ export async function GET() {
   ).length;
   const churnRate = totalEverActive > 0 ? Math.round((churnedCount / totalEverActive) * 100) : 0;
 
-  // Accepted proposals value
-  const proposalRevenue = proposals.reduce(
-    (sum: number, p: { total_monthly?: number }) => sum + (p.total_monthly || 0),
-    0,
-  );
-
   return NextResponse.json({
     totalMRR,
     totalOneTime,
@@ -106,5 +102,7 @@ export async function GET() {
     byClient,
     mrrTimeline,
     proposalRevenue,
+    canonical,
+    dispositions: revenueDispositions(),
   });
 }

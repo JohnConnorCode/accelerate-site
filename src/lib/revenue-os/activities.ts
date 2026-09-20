@@ -178,3 +178,31 @@ export async function loadActivityTimeline(
   if (error) throw new Error(error.message);
   return (data ?? []) as ActivityLedgerRecord[];
 }
+
+export { activityDispositions, type ActivityFieldDisposition } from "./activity-dispositions";
+
+export interface RecentActivityFilter {
+  limit?: number;
+  before?: string;
+}
+
+/** Bounded, tenant-scoped cross-record read for the operator Activity screen.
+ * Record-scoped loadActivityTimeline stays the reader for one record. This
+ * reader never writes. */
+export async function loadRecentActivities(
+  supabase: SupabaseClient,
+  filter: RecentActivityFilter = {},
+): Promise<ActivityLedgerRecord[]> {
+  const limit = Math.min(200, Math.max(1, Math.trunc(filter.limit ?? 50)));
+  let query = supabase.from("activities").select(ACTIVITY_COLUMNS);
+  if (filter.before) {
+    if (Number.isNaN(Date.parse(filter.before))) throw new Error("Activity cursor is invalid");
+    query = query.lt("occurred_at", new Date(filter.before).toISOString());
+  }
+  const { data, error } = await query
+    .order("occurred_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ActivityLedgerRecord[];
+}

@@ -4,7 +4,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   ACTIVITY_LEDGER_CONTRACT,
+  activityDispositions,
   loadActivityTimeline,
+  loadRecentActivities,
   recordActivity,
 } from "../src/lib/revenue-os/activities";
 
@@ -132,6 +134,49 @@ async function main() {
     ["Older note"],
   );
 
+  const inboundKey = { source: "solution_request", externalId: "route-parity-inquiry-01" };
+  const firstInbound = await recordActivity(store.client, {
+    activityType: "form_submission",
+    title: "Manual lead captured",
+    source: inboundKey.source,
+    externalId: inboundKey.externalId,
+    opportunityId: "opp-1",
+    occurredAt: "2026-08-25T12:00:00.000Z",
+  });
+  const replayedInbound = await recordActivity(store.client, {
+    activityType: "form_submission",
+    title: "Manual lead captured again",
+    source: inboundKey.source,
+    externalId: inboundKey.externalId,
+    opportunityId: "opp-1",
+    occurredAt: "2026-08-25T12:00:01.000Z",
+  });
+  assert.equal(firstInbound.duplicate, false);
+  assert.equal(replayedInbound.duplicate, true);
+  assert.equal(replayedInbound.activity.id, firstInbound.activity.id);
+
+  const recent = await loadRecentActivities(store.client, { limit: 2 });
+  assert.deepEqual(
+    recent.map((row) => row.title),
+    ["Manual lead captured", "Newer email"],
+    "the cross-record reader returns the newest ledger entries without a record filter",
+  );
+  const dispositions = activityDispositions();
+  assert.deepEqual(
+    dispositions
+      .filter((item) => item.owner === "canonical")
+      .map((item) => item.field)
+      .sort(),
+    ["activityType", "occurredAt", "summary", "title"],
+  );
+  assert.deepEqual(
+    dispositions
+      .filter((item) => item.owner === "retained")
+      .map((item) => item.field)
+      .sort(),
+    ["action", "actorEmail", "entityType"],
+  );
+
   await assert.rejects(
     recordActivity(store.client, { ...base, activityType: "Bad Type", externalId: "bad:type" }),
     /snake_case/,
@@ -194,6 +239,17 @@ async function main() {
     activityRoute,
     /loadActivityTimeline/,
     "the canonical activity API must use the bounded ordered reader",
+  );
+  const operatorActivityRoute = readFileSync("src/app/api/admin/activity/route.ts", "utf8");
+  assert.match(
+    operatorActivityRoute,
+    /loadRecentActivities/,
+    "the operator Activity screen must read the canonical ledger",
+  );
+  assert.match(
+    operatorActivityRoute,
+    /listAuditHistory/,
+    "the operator Activity screen must keep the retained audit reader",
   );
 
   console.log(
