@@ -1,7 +1,7 @@
 ---
 title: "Your first result"
 description: "Take one real inquiry from a connected workspace through to a reviewed action and its receipt."
-updated: "2026-09-17"
+updated: "2026-09-19"
 ---
 
 When an inquiry arrives, the outcome that matters is a reviewed decision with a recorded result, so you can see who confirmed what and what happened next. This guide follows one inquiry from a workspace you connected through [the installation guide](/docs/self-hosting/installation) all the way to a reviewed action and its receipt, using the same screens your team will use each day.
@@ -10,11 +10,11 @@ When an inquiry arrives, the outcome that matters is a reviewed decision with a 
 
 ## 1. Confirm the workspace and enable what you need
 
-Sign in at `/admin`, then open [Setup](/docs/workspace/setup) to confirm the business identity, the database connection, and any provider you intend to use. Each area of the product ships as a module you enable per workspace, so open [Modules](/docs/start/modules) and turn on contact intake, pipeline, conversations and the work queue. [Your workspace](/docs/start/workspace) explains the membership and business context each screen expects before it shows data.
+Sign in at `/admin`, then open [Setup](/docs/workspace/setup) to confirm the business identity, the database connection, and any provider you intend to use. Review [Modules](/docs/start/modules) for the optional capabilities your workflow needs. Core customer, pipeline and work capabilities remain available. [Your workspace](/docs/start/workspace) explains the membership and business context each screen expects before it shows data.
 
 ## 2. Bring the inquiry in
 
-Open **Contact intake** to review a website submission or import a pasted list of up to 500 rows. The import checks for existing contacts before it saves, which means an address you already store is updated in place, so the same person does not appear twice in your records. [Import a contact list](/docs/contacts/import) covers the columns and the review step, and [Contact intake](/docs/contacts/overview) explains what each saved row records.
+Open **Contact intake** to review a website submission or import a pasted list of up to 500 rows. The import checks for existing contacts before it saves, so you can inspect proposed matches and decide which records to save. [Import a contact list](/docs/contacts/import) covers the columns and the review step, and [Contact intake](/docs/contacts/overview) explains what each saved row records.
 
 <DocsFigure
   src="/images/docs/contacts/import.png"
@@ -36,12 +36,14 @@ Open **Pipeline** and attach the person to an existing opportunity or create one
   caption="The pipeline board in the fictional Northline Roofing workspace, with opportunities grouped by stage. All records shown are fictional."
 />
 
-## 4. Review what the system proposes
+## 4. Record a concrete next action
 
-Open **Today** to see the work that needs a decision, ranked, with the reason attached, then open the proposal to read the exact change the system prepared. A capability starts at `always_ask`, and after three approvals across at least seven days the system proposes moving it up one rung of the autonomy ladder, so a person confirms every promotion. [Review and approve actions](/docs/command-center/approvals) shows the proposed fields and the confirmation, and [Core concepts](/docs/start/core-concepts) defines the vocabulary these screens share.
+Open the relevant customer or opportunity and use its supported follow-up control to record the next task and date. For example, assign the agreed callback about the inquiry, then inspect the saved task in **Tasks & approvals**. This gives the team visible work without requiring an external send.
+
+If AI is configured, you can instead request a supported task proposal for that exact record. Inspect it through [Approvals](/docs/command-center/approvals), then confirm the result after execution. Creating an opportunity alone does not guarantee that an AI proposal will appear.
 
 <DocsFigure
-  src="/images/docs/today-dashboard.png"
+  src="/images/docs/command-center/today.png"
   alt="Today in a fictional roofing workspace, showing the ranked priority queue and the actions waiting for review."
   width={1440}
   height={1000}
@@ -54,8 +56,8 @@ After you confirm an action, open [Check an action result](/docs/start/receipts)
 
 ## What to check
 
-- Confirm the receipt reads delivered before you tell the customer their reply went out.
+- For an external reply, check the provider result and distinguish send acceptance from a recorded delivery event.
 - Confirm every provider you rely on shows ready in Setup before you run its workflow.
 - Confirm the imported person appears once in Contact intake and that the pipeline opportunity links to that same contact.
-- Import the same file a second time and confirm existing rows update instead of creating duplicates.
+- Before importing a repeated file, inspect the existing batch and proposed matches so you do not create unintended duplicate records.
 - If a step reports a problem, follow [Troubleshooting](/docs/start/troubleshooting) by symptom before you retry.

@@ -1,10 +1,10 @@
 ---
 title: "Understand revenue figures"
-description: "Where each number on the revenue screen actually comes from, and how to chase a discrepancy."
-updated: "2026-09-09"
+description: "Where each number on the revenue screen comes from, and how to chase a discrepancy."
+updated: "2026-09-19"
 ---
 
-An opportunity's value, a signed proposal's total, and money that has actually landed in your bank account are three different numbers that happen to share a currency symbol, and confusing them is how a business ends up planning payroll around revenue it hasn't collected yet. Open `/admin/revenue` to review recorded client value and accepted proposals; this screen calculates every figure from your client and proposal records specifically, not from cash a payment provider has confirmed collecting.
+An opportunity value, a client agreement and a collected payment describe different parts of the business. **Revenue** shows recorded client and proposal values alongside a separate opportunity summary, so you can inspect where a figure comes from before using it to make a decision.
 
 <DocsFigure
   src="/images/docs/pipeline/revenue.png"
@@ -16,15 +16,20 @@ An opportunity's value, a signed proposal's total, and money that has actually l
 
 ## What the figures mean
 
-| Figure                    | Source in the current application                              |
-| ------------------------- | -------------------------------------------------------------- |
-| Monthly recurring revenue | Monthly values on active client records                        |
-| One-time value            | One-time values recorded on client records                     |
-| Average client value      | Active-client monthly total divided by the active-client count |
-| Industry breakdown        | Active-client monthly values grouped by industry               |
-| Accepted proposal value   | Monthly totals on accepted proposals                           |
+| Figure                    | Source in the current application                                   |
+| ------------------------- | ------------------------------------------------------------------- |
+| Open pipeline value       | Current open opportunities and their stored values                  |
+| Weighted value            | Current opportunity values weighted by their recorded probabilities |
+| Won revenue               | Values on opportunities recorded as won                             |
+| Monthly recurring revenue | Monthly values on active client records                             |
+| One-time value            | One-time amounts recorded on client records                         |
+| Average client value      | Active-client monthly total divided by active-client count          |
+| Industry breakdown        | Active-client monthly values grouped by industry                    |
+| Accepted proposal value   | Monthly totals on accepted proposals                                |
 
-The MRR timeline is derived from client status and contract-start dates, falling back to record creation dates when a start date is missing. Treat it as a view of your recorded client data, useful for spotting a trend, rather than an immutable ledger of every invoice, payment, and contract change that ever happened.
+The **Canonical opportunity rollup** keeps opportunity figures separate from client and proposal values. A won opportunity describes the recorded sales outcome; verify payment through the relevant provider evidence when you need collected cash.
+
+The monthly recurring revenue timeline uses client status and contract-start dates, falling back to creation dates when a start date is missing. Use it to review the recorded client data and its dates. It is a projection of those records, rather than a payment ledger.
 
 ## Investigate a difference
 
@@ -33,4 +38,4 @@ The MRR timeline is derived from client status and contract-start dates, falling
 3. Compare with [Pipeline](/docs/pipeline/board) only after checking what that view counts. An opportunity amount, a client agreement and an accepted proposal can represent different stages of the same business.
 4. Correct a demonstrated source-record error through its supported edit flow, then reload Revenue.
 
-Resist the urge to edit a record just to make two reports agree with each other; if the underlying inputs are actually correct and the calculation still comes out different, that is worth reporting, with the expected formula and a couple of example record IDs, to your technical owner rather than papering over.
+Resist the urge to edit a record just to make two reports agree with each other; if the underlying inputs are correct and the calculation still comes out different, that is worth reporting, with the expected formula and a couple of example record IDs, to your technical owner rather than papering over.

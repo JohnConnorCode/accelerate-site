@@ -4,11 +4,38 @@ import { resolve, dirname } from "node:path";
 import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { verifyDeploymentTarget } from "./deployment-preflight.mjs";
+import { verifyDeploymentTarget, verifyHostingSelection } from "./deployment-preflight.mjs";
+import { loadOriginalHosting } from "./lib/neutral-distribution.mjs";
 
 const target = { projectId: "prj_expected", teamId: "team_expected", projectName: "app" };
 const linked = { projectId: target.projectId, orgId: target.teamId };
 const project = { id: target.projectId, accountId: target.teamId, name: target.projectName };
+
+test("hosting acknowledgement is independent of the agency presentation switch", () => {
+  const original = loadOriginalHosting();
+  for (const profile of [undefined, "neutral", "branded"]) {
+    const env = { NEXT_PUBLIC_DISTRIBUTION_PROFILE: profile };
+    assert.throws(() => verifyHostingSelection(original, env), /original installation/);
+    assert.doesNotThrow(() =>
+      verifyHostingSelection(original, { ...env, ACCELERATE_ORIGINAL_HOSTING: "1" }),
+    );
+    assert.doesNotThrow(() =>
+      verifyHostingSelection({ ...target, canonicalUrl: "https://fork.example" }, env),
+    );
+  }
+  assert.throws(
+    () =>
+      verifyDeploymentTarget({
+        target: original,
+        linked: { projectId: original.projectId, orgId: original.teamId },
+        env: { ACCELERATE_ORIGINAL_HOSTING: "1" },
+        request() {
+          throw new Error("Access denied");
+        },
+      }),
+    /Access denied/,
+  );
+});
 
 test("checks the exact intended team/project, independent of default CLI scope", () => {
   assert.equal(

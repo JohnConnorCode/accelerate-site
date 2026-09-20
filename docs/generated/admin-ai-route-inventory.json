@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 113,
-  "mutationHandlerCount": 100,
+  "routeCount": 114,
+  "mutationHandlerCount": 101,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -417,13 +417,16 @@
         "POST"
       ],
       "imports": [
+        "@/lib/admin/auth",
         "@/lib/admin/module-guard",
         "@/lib/http/bounded-json",
         "@/lib/revenue-os/form-builder",
+        "@/lib/revenue-os/form-builder-contract",
+        "@/lib/tenancy/context",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "4ece6d0956a9d1e4839257a4ade24d779b17ae1a2c9e8e79e88105fdfd49f4c0"
+      "sourceSha256": "8168bca4de53ee289fc11bc8fabd2e15944efc6bec13991a6e12b0feab1bea03"
     },
     {
       "source": "src/app/api/admin/google/authorize/route.ts",
@@ -1531,6 +1534,25 @@
       "sourceSha256": "9d5249139666033a0ebc65c308607fa9edd19daf1cf5911fc832cc374bf8e2a4"
     },
     {
+      "source": "src/app/api/admin/site/delegations/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/http/bounded-json",
+        "@/lib/site-studio/delegation",
+        "@/lib/site-studio/website-store",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "3333c0a130adf584099b498e191d0d8fef5bbbc700305d5cefd4ca4770ad91fc"
+    },
+    {
       "source": "src/app/api/admin/site/drafts/[id]/route.ts",
       "handlers": [
         "DELETE",
@@ -1642,13 +1664,12 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/http/bounded-json",
-        "@/lib/rate-limit",
         "@/lib/site-studio/models",
         "@/lib/site-studio/website-ai",
         "@/lib/site-studio/website-store",
         "next/server"
       ],
-      "sourceSha256": "5efc8fcbfe8c552ce9332b10143576689acfdf5001e0005c57231dbc00624835"
+      "sourceSha256": "c2028972d6028241280776dd4c22cef38ec15fdda2391e08e0640d785da0f47c"
     },
     {
       "source": "src/app/api/admin/social-history/route.ts",

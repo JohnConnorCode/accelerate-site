@@ -143,7 +143,7 @@ const runtimeTools = JSON.parse(
       "--import",
       "tsx",
       "-e",
-      `const {getRevenueAiTools,REVENUE_TOOL_PACKS}=require('./src/lib/revenue-os/ai-tools.ts'); process.stdout.write(JSON.stringify({registered:getRevenueAiTools().map(t=>t.name),packed:REVENUE_TOOL_PACKS.flatMap(p=>getRevenueAiTools(p).map(t=>t.name))}));`,
+      `const {getRevenueAiTools,REVENUE_TOOL_PACKS}=require('./src/lib/revenue-os/ai-tools.ts'); const {SITE_EDITOR_TOOL_NAMES}=require('./src/lib/site-studio/editor-contract.ts'); process.stdout.write(JSON.stringify({registered:getRevenueAiTools().map(t=>t.name),packed:REVENUE_TOOL_PACKS.flatMap(p=>getRevenueAiTools(p).map(t=>t.name)),editor:SITE_EDITOR_TOOL_NAMES}));`,
     ],
     { cwd: repoRoot, encoding: "utf8" },
   ),
@@ -184,11 +184,17 @@ for (const tool of registeredTools) {
 // no pack lists is permanently unreachable even though every other gate
 // above it passes. This is the check that would have caught that.
 const packedTools = new Set(runtimeTools.packed);
+const editorTools = new Set(runtimeTools.editor);
 for (const tool of registeredTools) {
-  if (!packedTools.has(tool))
+  if (editorTools.has(tool) && packedTools.has(tool))
+    failures.push(`Editor-only tool "${tool}" must not enter a general runtime tool pack.`);
+  if (!packedTools.has(tool) && !editorTools.has(tool))
     failures.push(
       `AI tool "${tool}" is registered but cannot be selected from any runtime tool pack.`,
     );
+}
+for (const tool of editorTools) {
+  if (!registeredTools.has(tool)) failures.push(`Editor tool "${tool}" is not registered.`);
 }
 
 // --- Setup Center checks ---------------------------------------------------

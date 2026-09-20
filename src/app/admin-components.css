@@ -1421,10 +1421,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   box-shadow: var(--admin-hover-glow, 0 0 0 0 transparent), var(--admin-shadow-border-hover);
   transform: var(--admin-hover-lift, none);
 }
-.admin-button--primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--admin-action) 90%, var(--admin-action-ink));
-}
-.admin-button--ghost:hover:not(:disabled) {
+.admin-button--ghost:hover:not(:disabled):not([aria-pressed="true"]) {
   background: var(--admin-surface-subtle);
 }
 .admin-button:active {
@@ -1673,7 +1670,7 @@ textarea.admin-field {
 .admin-secondary-control svg {
   flex-shrink: 0;
 }
-.admin-button--secondary:hover:not(:disabled) {
+.admin-button--secondary:hover:not(:disabled):not([aria-pressed="true"]) {
   background: var(--admin-surface-subtle);
 }
 :is(.admin-shell, .admin-overlay-token-scope) [data-ui-input] {

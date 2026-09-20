@@ -1,7 +1,7 @@
 ---
 title: "Business Pulse"
 description: "See pipeline risks, overdue commitments and upcoming meetings in one report."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
 A business owner should not have to inspect three screens just to prepare for the morning. Business Pulse brings the findings together and keeps each one linked to its source.
@@ -26,7 +26,7 @@ It combines open opportunities with overdue next actions or updates older than s
 
 Treat each finding as a reason to open its source record, not as a verdict on its own. Check the inspected-record count and any truncation notice before drawing a conclusion from what's shown: each source caps at 100 records, the combined input at 64 KiB, and displayed findings at 20, so an empty result means nothing matched in that particular snapshot, not that your whole business is clear.
 
-The report itself is read-only and deterministic: it never changes a business record and never contacts anyone. Its AI/MCP tool is `run_business_pulse`, and the host checks whether the plugin is actually enabled every time it runs. Running it needs no write approval and makes no model request on its own, though hosting and database usage still apply, and an AI conversation you have around the report can still incur its own model charges.
+The report itself is read-only and deterministic: it never changes a business record and never contacts anyone. Its AI/MCP tool is `run_business_pulse`, and the host checks whether the plugin is enabled every time it runs. Running it needs no write approval and makes no model request on its own, though hosting and database usage still apply, and an AI conversation you have around the report can still incur its own model charges.
 
 ## What this example teaches you to build
 

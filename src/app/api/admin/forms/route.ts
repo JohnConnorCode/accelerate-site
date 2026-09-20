@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
+import type { AdminAuthorization } from "@/lib/admin/auth";
+import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { readBoundedJson } from "@/lib/http/bounded-json";
+import { formReviewInputSchema } from "@/lib/revenue-os/form-builder-contract";
 import {
   acceptFormSubmission,
   createFormDefinition,
@@ -51,25 +54,27 @@ const createSchema = z
 const saveSchema = z
   .object({
     id: z.uuid(),
+    expectedUpdatedAt: z.iso.datetime({ offset: true }),
     name: z.string().min(1).max(120).optional(),
     description: z.string().max(2000).optional(),
     schema: z.unknown(),
   })
   .strict();
 const statusSchema = z
-  .object({ id: z.uuid(), status: z.enum(["draft", "published", "archived"]) })
-  .strict();
-const reviewSchema = z
   .object({
     id: z.uuid(),
-    decision: z.enum(["accepted", "rejected"]),
-    requestId: z.uuid().optional(),
+    expectedUpdatedAt: z.iso.datetime({ offset: true }),
+    status: z.enum(["draft", "published", "archived"]),
   })
   .strict();
 
 export async function POST(request: Request) {
   const auth = await requireAdminForModule("form-builder");
   if (auth instanceof NextResponse) return auth;
+  return runWithTenantRequestContext(auth, () => handleFormCommand(request, auth));
+}
+
+async function handleFormCommand(request: Request, auth: AdminAuthorization) {
   let raw: unknown;
   try {
     raw = await readBoundedJson(request, 65536);
@@ -122,13 +127,14 @@ export async function POST(request: Request) {
       });
     }
     if (action === "review") {
-      const parsed = reviewSchema.safeParse(raw);
+      const parsed = formReviewInputSchema.safeParse(raw);
       if (!parsed.success) return response({ error: "Invalid review" }, 400);
       if (parsed.data.decision === "rejected") {
         await rejectFormSubmission(auth.database, {
           tenantId: auth.tenant.id,
           id: parsed.data.id,
           actorEmail: auth.user.email!,
+          requestId: parsed.data.requestId ?? crypto.randomUUID(),
         });
         return response({ reviewed: parsed.data.id, decision: "rejected" });
       }
@@ -145,11 +151,11 @@ export async function POST(request: Request) {
     return response({ error: "Unknown form action" }, 400);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Form request failed";
-    const status = /not found|cannot become|Unpublish|Archived|no email|already reviewed/i.test(
-      message,
-    )
-      ? 422
-      : 503;
+    const status = /changed|reused/i.test(message)
+      ? 409
+      : /not found|cannot become|Unpublish|Archived|no email|already reviewed/i.test(message)
+        ? 422
+        : 503;
     return response({ error: message }, status);
   }
 }

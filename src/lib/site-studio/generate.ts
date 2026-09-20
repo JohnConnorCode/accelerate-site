@@ -26,6 +26,7 @@ export interface PageBrief {
 }
 
 const HOUSE_RULES = [
+  "Never invent form tokens. Forms are connected separately by the owner from their published form list.",
   "Use 3 to 5 section containers, holding semantic leaf nodes (hero, featureGrid, faq, ctaBand, text, image, button, heading).",
   "Every section has a unique kebab-case id; every node has a unique kebab-case id.",
   "Images may only use catalog asset ids listed below; never invent image URLs.",

@@ -12,6 +12,8 @@ import { listRevenueAiCapabilities } from "@/lib/revenue-os/ai-tools";
 import { capabilities } from "@/content/command-center";
 import { getDocsPage } from "@/lib/docs";
 import { marketingPositioning } from "@/content/marketing-positioning";
+import { distributionProfile } from "@/lib/distribution/profile";
+import { tenant } from "@/config/tenant";
 
 /**
  * One index for site search.
@@ -41,6 +43,21 @@ export interface SearchEntry {
 /** Pages with no content collection behind them. */
 const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
   {
+    id: "page-chicago",
+    title: "Chicago AI consulting and business automation",
+    description:
+      "AI consulting for Chicago and Chicagoland small businesses. Downtown headquarters at Ferris; strategy, integrations and training across Chicago and the suburbs.",
+    href: "/chicago",
+    keywords: [
+      "chicago",
+      "chicagoland",
+      "suburbs",
+      "AI consulting",
+      "business automation",
+      "Ferris",
+    ],
+  },
+  {
     id: "page-home",
     title: "Home",
     description:
@@ -60,9 +77,9 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     id: "page-command-center",
     title: "Command Center",
     description:
-      "See what needs you, follow the customer conversation, and move the next action forward, in one workspace your team and AI both work from.",
+      "Connect customer context, put AI to work and combine features and plugins into workflows for your business.",
     href: "/command-center",
-    keywords: ["dashboard", "admin", "operations", "software"],
+    keywords: ["dashboard", "admin", "operations", "software", "recipes", "plugins", "workflows"],
   },
   {
     id: "page-command-center-demo",
@@ -291,7 +308,11 @@ export function buildSearchIndex(): SearchEntry[] {
                 .join(" ")
             : "",
           page.slug.join("/") === "command-center/capabilities"
-            ? capabilities.map((capability) => `${capability.title} ${capability.detail}`).join(" ")
+            ? capabilities
+                .map(
+                  (capability) => `${capability.title} ${capability.promise} ${capability.detail}`,
+                )
+                .join(" ")
             : "",
         ].join(" "),
         keywords: [
@@ -317,6 +338,21 @@ export function buildSearchIndex(): SearchEntry[] {
     keywords: ["docs", "documentation", "guides", "help", "manual"],
   });
 
-  cached = entries;
-  return entries;
+  cached =
+    distributionProfile() === "neutral"
+      ? [
+          ...entries.filter(
+            (entry) => entry.group === "Docs" || entry.href === "/demo/command-center",
+          ),
+          {
+            id: "page-home",
+            title: tenant.brand.name,
+            description: tenant.brand.tagline,
+            href: "/",
+            group: "Pages",
+            keywords: ["home", "workspace"],
+          },
+        ]
+      : entries;
+  return cached;
 }

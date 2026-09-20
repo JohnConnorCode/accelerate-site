@@ -2,6 +2,51 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "fresh-fork-first-use",
+    slug: "fresh-fork-first-use",
+    title: "Clear next steps for a fresh installation",
+    description:
+      "Unconfigured installations now show the same setup guidance on direct sign-in visits and workspace links, with keyboard-accessible actions to open the installation guide or fictional demo. First-party tracking stays inactive until a database URL is configured, and unavailable analytics cannot break a site interaction. Browser checks cover the actual homepage click, setup links, demo edits and desktop/mobile accessibility.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
+    id: "chicago-small-business-industries",
+    slug: "chicago-small-business-industries",
+    title: "More small-business workflows and a Chicago services hub",
+    description:
+      "Ten additional industry guides bring the directory to twenty industries, with forty practical recipes for inquiry review and delivery handoffs. A Chicago services hub connects local businesses to consulting, custom systems, managed execution and training. Headquarters details now appear consistently, and industry pages distinguish current platform capabilities from custom integrations. Industry guides include business-specific pilot measures and handoff checks; the new recipe guides include concrete completion criteria and example task responsibilities.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
+    id: "full-product-neutral-fork",
+    slug: "full-product-neutral-fork",
+    title: "A complete workspace with your own editable website",
+    description:
+      "New forks start with a neutral Command Center homepage using the same page model as Site Studio. The full application remains included; agency content requires explicit branded configuration. Owners can customize pages and connect published workspace forms to the existing review and intake workflow. Public content, editor previews, and AI tools share the validated page schema. Existing installations must review their distribution setting before upgrading; deployment and live provider verification remain separate release steps.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
+    id: "site-editor-mcp-form-reliability",
+    slug: "site-editor-mcp-form-reliability",
+    title: "Scoped ChatGPT website editing and safer form intake",
+    description:
+      "The owner can configure a revocable OAuth connection for ChatGPT to prepare exact website changes, save drafts, publish and restore revisions through the shared editor services. Legacy workspace keys remain proposal-only. Form submissions and notifications now commit together, review decisions queue recoverable intake, stale edits are refused, and form rendering follows the shared theme tokens. Installation requires the new migrations and explicit OAuth setup; source availability is separate from deployment and client verification.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
+    id: "public-platform-value-recipes",
+    slug: "public-platform-value-recipes",
+    title: "Practical workflows across the platform, demos and docs",
+    description:
+      "The Command Center page explains connected business workflows, with readable feature summaries, implementation options and a demo chooser in the site's shared style. Three guided demos show an inquiry reply, an onboarding checklist and a simulated invoice, including the result to check. Twenty recipes across ten industries show which features and plugins to combine, how to configure them and what result to check. Documentation gives business users and builders clear starting paths and keeps existing reference links available.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
     id: "demo-workspace-design-audit",
     slug: "demo-workspace-design-audit",
     title: "A clearer contact history and a complete demo workspace",

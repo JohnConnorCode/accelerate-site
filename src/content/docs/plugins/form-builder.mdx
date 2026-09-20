@@ -1,10 +1,18 @@
 ---
 title: "Form builder"
 description: "Publish shareable intake forms and review each response before it enters the pipeline."
-updated: "2026-09-13"
+updated: "2026-09-19"
 ---
 
 Collect structured answers without giving the public a login. Build a form, publish a link, and accept each response into the same pipeline every other surface uses. Nothing a stranger submits becomes a lead until a person reviews it.
+
+<DocsFigure
+  src="/images/docs/plugins/forms.png"
+  width={1440}
+  height={1000}
+  alt="Forms, ready to create a draft and review responses in the fictional Northline Roofing workspace."
+  caption="Forms, ready to create a draft and review responses. The real interface uses fictional demo data in this image; follow the steps below in your own workspace."
+/>
 
 ## Publish your first form
 
@@ -16,7 +24,7 @@ Enable **Form builder** in **Plugins**, then open `/admin/forms`. The plugin sta
 4. Test it in a private window with a real email shape.
 5. Open **Responses** and accept the test into the pipeline, or reject it.
 
-Accepting runs the standard identity check: duplicates are matched, not copied, and a response without an email is refused. The [demo](/demo/command-center) uses session-local fictional data.
+Accepting records your decision and queues the standard identity check: duplicates are matched, and a response without an email is refused. The completion message distinguishes a finished intake from an accepted response whose intake needs attention. Verify the form workflow in your configured workspace; the public demo currently has no complete form-intake simulation.
 
 ## Use it through AI
 
@@ -31,5 +39,9 @@ Building, rendering and reviewing are deterministic and make no paid model or pr
 Disable the plugin in **Plugins** to hide its navigation and gate its pages and API. Existing forms, responses and receipts remain. Use normal lead controls for anything already accepted.
 
 If publishing is refused, open the draft and fix the named field, then save and publish again. If accepting is refused, the response has no usable email or was already reviewed. Repeat posts with the same request identity return the original receipt instead of a duplicate.
+
+Saving and publication check the version you opened. After an edit conflict, keep a copy of your changes and reload the current form before saving again. Public responses are checked against the published fields, including required answers, allowed choices and email formats. Failed submissions preserve the visitor's answers; a network retry reuses the same request identity, producing one response and one operator notification.
+
+If acceptance reports that intake needs attention, open **Responses**, include reviewed responses, and retain the displayed action ID. Inspect the recorded failure in **Tasks & approvals**, correct the cause, then select **Retry approved intake** on the response. This resumes the same unexpired operation with its original response identity. For an expired operation, inspect the existing contact and recorded effects before planning recovery; do not submit the person's answers again to manufacture a new inquiry.
 
 The [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/form-builder/README.md) covers contracts and `npm run test:form-builder`. Controlled tests and fictional demo behavior are distinct from verification of your own workspace permissions and database.

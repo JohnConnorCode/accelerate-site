@@ -1,7 +1,7 @@
 ---
 title: "Connect an MCP client"
 description: "Point an external assistant at the right workspace, and verify a read before trusting it."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
 The recommended way to connect a workspace is the tenant HTTP endpoint, authenticated with the MCP key issued specifically for that workspace. The local stdio runner is a separate self-hosting path, with different credentials and a different scope, covered further down.
@@ -20,6 +20,11 @@ https://<your-domain>/api/public/<tenantSlug>/mcp
 Client configuration screens differ. Use your client's current MCP instructions for its connection fields. The endpoint and workspace credential above are the Command Center settings it needs.
 
 ## Choose a tool list
+
+For installation-wide website editing from ChatGPT, use the separate
+[Site Studio connection](/docs/plugins/site-studio#edit-from-chatgpt). It requires
+owner-approved OAuth setup and limits execution to website commands. The
+workspace key described on this page keeps its existing approval boundary.
 
 Append `?profile=ops` to the workspace endpoint for the Daily profile, or `?profile=core` for a smaller set of daily reads and discovery tools. Use `?profile=full` or the bare endpoint for the complete registered list. Existing bare endpoints retain the full list.
 

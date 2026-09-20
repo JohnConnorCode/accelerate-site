@@ -2,9 +2,12 @@ import { SiteModelSelectionError } from "@/lib/site-studio/models";
 import { NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { readBoundedJson } from "@/lib/http/bounded-json";
-import { rateLimit } from "@/lib/rate-limit";
 import { assertWebsiteOwner } from "@/lib/site-studio/website-store";
-import { proposeWebsitePage, websiteAiInput } from "@/lib/site-studio/website-ai";
+import {
+  proposeWebsitePage,
+  websiteAiInput,
+  WebsiteGenerationLimitError,
+} from "@/lib/site-studio/website-ai";
 export const maxDuration = 180;
 
 export async function POST(request: Request) {
@@ -35,16 +38,13 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  if (!rateLimit(`website-ai:${auth.user.id}`, 20, 60 * 60 * 1000).success)
-    return NextResponse.json(
-      { error: "Generation limit reached. Try again in an hour." },
-      { status: 429 },
-    );
   try {
     return NextResponse.json(await proposeWebsitePage(auth, input), {
       headers: { "Cache-Control": "private, no-store" },
     });
   } catch (error) {
+    if (error instanceof WebsiteGenerationLimitError)
+      return NextResponse.json({ error: error.message }, { status: 429 });
     if (error instanceof SiteModelSelectionError)
       return NextResponse.json({ error: error.message }, { status: 409 });
     console.warn("[site-studio] Website AI provider suggestion failed; no content written");

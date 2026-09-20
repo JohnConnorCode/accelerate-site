@@ -368,9 +368,9 @@ async function main() {
     );
     assert.ok(
       tool.impact === "read"
-        ? tool.confirmationRequired === false
+        ? tool.confirmationRequired === (tool.name === "suggest_site_page")
         : tool.confirmationRequired === true,
-      `${tool.name} is ${tool.impact} but confirmationRequired is ${tool.confirmationRequired}; mutating tools must require confirmation`,
+      `${tool.name} is ${tool.impact} but confirmationRequired is ${tool.confirmationRequired}; mutations and billable website suggestions require confirmation`,
     );
   }
 
@@ -481,11 +481,11 @@ async function main() {
   );
   assert.match(
     dispatch,
-    /const output = await withProposalWorkContext\([\s\S]{0,300}assertImpactHonoured\(tool, output\)/,
+    /const output = await withProposalWorkContext\([\s\S]{0,300}assertImpactHonoured\(tool, output, context\)/,
     "executeRegisteredRevenueTool must run the impact check on the tool's output before returning it",
   );
   assert.ok(
-    dispatch.indexOf("assertImpactHonoured(tool, output)") <
+    dispatch.indexOf("assertImpactHonoured(tool, output, context)") <
       dispatch.indexOf("return { output, tool }"),
     "the impact check must run before the result is handed back to the agent",
   );
@@ -606,7 +606,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v19");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v20");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.

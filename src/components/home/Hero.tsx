@@ -351,7 +351,13 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
                   scramble (ScrambleText below), restored verbatim. This is
                   the effect and speed that was actually working. */}
               <span className="word">
-                <span aria-label={content.highlighted} style={{ "--d": "1.00s" } as CSSProperties}>
+                <span style={{ "--d": "1.00s" } as CSSProperties}>
+                  {/* The visible phrase is swapped between two aria-hidden layers
+                      (the static one is display:none except under reduced motion),
+                      so the accessible copy lives in one visually-hidden node. An
+                      aria-label here was invalid: a bare <span> has no role that
+                      may be named, so assistive tech ignored it entirely. */}
+                  <span className="sr-only">{content.highlighted}</span>
                   <span className="hero-intelligent-static" aria-hidden="true">
                     {content.highlighted}
                   </span>

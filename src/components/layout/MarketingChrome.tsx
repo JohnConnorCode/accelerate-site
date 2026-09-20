@@ -1,3 +1,4 @@
+import { distributionProfile } from "@/lib/distribution/profile";
 import { websiteThemeStyle } from "@/lib/site-studio/website-theme";
 import type { WebsiteDocument } from "@/lib/site-studio/website-document";
 import { Header } from "@/components/layout/Header";
@@ -9,10 +10,11 @@ import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Dock } from "@/components/home/Dock";
+import { createNeutralWebsite } from "@/lib/site-studio/neutral-website";
 
 export function MarketingChrome({
   children,
-  website,
+  website = distributionProfile() === "neutral" ? createNeutralWebsite() : undefined,
 }: {
   children: React.ReactNode;
   website?: WebsiteDocument;
@@ -36,12 +38,18 @@ export function MarketingChrome({
         navLinks={website?.navigation}
         brandName={website?.identity.name}
         logoSrc={logoSrc}
+        showThemeToggle={!website}
       />
       <main id="main-content" className="flex-1">
         <PageTransition>{children}</PageTransition>
       </main>
-      <Footer content={website?.footer} brandName={website?.identity.name} logoSrc={logoSrc} />
-      <ChatWidget />
+      <Footer
+        showHeadquarters={!website && distributionProfile() !== "neutral"}
+        content={website?.footer}
+        brandName={website?.identity.name}
+        logoSrc={logoSrc}
+      />
+      {distributionProfile() === "branded" && <ChatWidget />}
       <Dock content={website?.dock} />
     </div>
   );

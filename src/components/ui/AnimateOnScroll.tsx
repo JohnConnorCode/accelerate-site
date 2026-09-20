@@ -6,7 +6,7 @@ import { useContext, type CSSProperties, type ReactNode } from "react";
 import { RevealOwnerContext, useRevealLifecycle } from "@/components/motion/useReveal";
 import { cn } from "@/lib/utils";
 
-type EntranceTag = "div" | "section" | "article" | "ul";
+type EntranceTag = "div" | "section" | "article" | "ul" | "li";
 
 /** Public entrances share one observer and CSS recipe. Server markup is armed
  * before paint; without JavaScript or with reduced motion it stays readable. */
@@ -36,7 +36,7 @@ export function AnimateOnScroll({
       ref={
         parentOwnsEntrance
           ? undefined
-          : (ref as React.Ref<HTMLDivElement & HTMLElement & HTMLUListElement>)
+          : (ref as React.Ref<HTMLDivElement & HTMLElement & HTMLUListElement & HTMLLIElement>)
       }
       data-reveal-state={parentOwnsEntrance ? undefined : "pending"}
       data-entrance-kind={parentOwnsEntrance ? undefined : stagger ? "stagger" : appearance}

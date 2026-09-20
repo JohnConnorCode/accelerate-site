@@ -3,16 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { trackConversion } from "@/lib/analytics";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 const SECTIONS = [
-  { id: "demo", label: "Product screens" },
-  { id: "built", label: "Built for you" },
-  { id: "how", label: "How it works" },
-  { id: "autonomy", label: "Autonomy" },
-  { id: "capabilities", label: "Capabilities" },
-  { id: "proof", label: "Proof" },
-  { id: "who", label: "Who it's for" },
+  { id: "demo", label: "Workspace" },
+  { id: "how", label: "Workflow" },
+  { id: "surface", label: "Features" },
+  { id: "recipes", label: "Recipes" },
+  { id: "capabilities", label: "Reference" },
+  { id: "who", label: "Get started" },
   { id: "faq", label: "FAQ" },
 ];
 
@@ -27,6 +26,7 @@ const SECTIONS = [
  * past a section on their own sees the nav follow along, not just on click.
  */
 export function CommandCenterNav() {
+  const reducedMotion = useReducedMotion();
   const [visible, setVisible] = useState(false);
   const [active, setActive] = useState<string>(SECTIONS[0]!.id);
   const railRef = useRef<HTMLDivElement>(null);
@@ -103,10 +103,14 @@ export function CommandCenterNav() {
     <AnimatePresence initial={false}>
       {visible && (
         <motion.nav
-          initial={{ y: "150%", opacity: 0 }}
+          initial={reducedMotion ? false : { y: "150%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: "150%", opacity: 0 }}
-          transition={{ type: "spring", damping: 26, stiffness: 260, mass: 0.7 }}
+          exit={reducedMotion ? { opacity: 0 } : { y: "150%", opacity: 0 }}
+          transition={
+            reducedMotion
+              ? { duration: 0 }
+              : { type: "spring", damping: 26, stiffness: 260, mass: 0.7 }
+          }
           data-dock
           aria-label="Command Center sections"
           className="fixed inset-x-0 bottom-0 z-[950] flex items-center gap-1 border-t border-white/10 py-2 pl-2 pr-2 sm:inset-x-auto sm:bottom-5 sm:left-1/2 sm:max-w-[calc(100vw-28px)] sm:-translate-x-1/2 sm:border sm:border-white/[0.16] sm:shadow-[0_20px_60px_rgba(0,0,0,0.34)]"
@@ -126,6 +130,7 @@ export function CommandCenterNav() {
                 key={s.id}
                 href={`#${s.id}`}
                 data-id={s.id}
+                aria-current={active === s.id ? "location" : undefined}
                 className={`flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-full px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${
                   active === s.id
                     ? "bg-white/[0.14] text-[var(--paper)]"

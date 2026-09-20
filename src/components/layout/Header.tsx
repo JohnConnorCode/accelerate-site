@@ -32,11 +32,13 @@ export function Header({
   navLinks = defaultNavLinks,
   brandName,
   logoSrc,
+  showThemeToggle = true,
 }: {
   content?: WebsiteHeader;
   navLinks?: NavLink[];
   brandName?: string;
   logoSrc?: string;
+  showThemeToggle?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const [scrolled, setScrolled] = useState(false);
@@ -121,7 +123,7 @@ export function Header({
       >
         <div className="page-shell flex items-center justify-between">
           {/* Logo */}
-          <motion.div variants={headerLogoReveal}>
+          <motion.div variants={headerLogoReveal} className="min-w-0 mr-3">
             <Logo name={brandName} logoSrc={logoSrc} />
           </motion.div>
 
@@ -249,7 +251,7 @@ export function Header({
             >
               <Search className="size-[18px]" />
             </button>
-            <ThemeToggle />
+            {showThemeToggle && <ThemeToggle />}
             <Link
               href={content.ctaHref}
               onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "header" })}
@@ -262,7 +264,7 @@ export function Header({
             </Link>
           </motion.div>
 
-          <div className="flex items-center xl:hidden">
+          <div className="flex shrink-0 items-center xl:hidden">
             <motion.button
               variants={headerCtaReveal}
               type="button"
@@ -309,6 +311,7 @@ export function Header({
         content={content}
         brandName={brandName}
         logoSrc={logoSrc}
+        showThemeToggle={showThemeToggle}
       />
 
       <SearchDialog open={searchOpen} onOpenChangeAction={setSearchOpen} />

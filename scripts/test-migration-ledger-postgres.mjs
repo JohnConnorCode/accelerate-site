@@ -45,7 +45,7 @@ try {
     "-v",
     "ON_ERROR_STOP=1",
     "-c",
-    "CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;",
+    "CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE ROLE supabase_auth_admin;",
   ]);
   console.log(
     run(process.execPath, ["scripts/test-migration-ledger.mjs"], {

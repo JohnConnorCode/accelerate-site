@@ -1,5 +1,7 @@
 "use client";
 
+import { ChicagoHeadquarters } from "@/components/sections/ChicagoHeadquarters";
+
 import Image from "next/image";
 import { Rocket, TrendingUp, Handshake } from "lucide-react";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
@@ -234,6 +236,7 @@ export function AboutPageContent() {
           </div>
         </div>
       </Section>
+      <ChicagoHeadquarters />
     </>
   );
 }

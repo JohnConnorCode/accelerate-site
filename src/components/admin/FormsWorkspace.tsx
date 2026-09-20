@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AdminSurface } from "./AdminSurface";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -210,6 +210,7 @@ function ElementEditor({
 }
 
 export function FormsWorkspace() {
+  const reviewKeys = useRef(new Map<string, string>());
   const [tab, setTab] = useState<"forms" | "responses">("forms");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
@@ -282,6 +283,7 @@ export function FormsWorkspace() {
         action: "save",
         form: {
           id: selected.id,
+          expectedUpdatedAt: selected.updated_at,
           description,
           schema: { title: title.trim() || undefined, elements },
         },
@@ -298,7 +300,10 @@ export function FormsWorkspace() {
   const changeStatus = async (form: FormDefinition, status: FormDefinition["status"]) => {
     setNotice(null);
     try {
-      await postAction({ action: "status", form: { id: form.id, status } });
+      await postAction({
+        action: "status",
+        form: { id: form.id, expectedUpdatedAt: form.updated_at, status },
+      });
       refresh();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Status change failed.");
@@ -308,18 +313,46 @@ export function FormsWorkspace() {
   const review = async (id: string, decision: "accepted" | "rejected") => {
     setNotice(null);
     try {
-      await postAction({
+      const key = `${id}:${decision}`;
+      if (!reviewKeys.current.has(key)) reviewKeys.current.set(key, crypto.randomUUID());
+      const receipt = await postAction<{ intakeStatus?: string; actionId?: string }>({
         action: "review",
         id,
         decision,
-        requestId: crypto.randomUUID(),
+        requestId: reviewKeys.current.get(key),
       });
       submissionsQuery.refetch();
       setNotice(
-        decision === "accepted" ? "Response accepted into the pipeline." : "Response rejected.",
+        decision === "rejected"
+          ? "Response rejected."
+          : receipt.intakeStatus === "completed"
+            ? "Response accepted into the pipeline."
+            : `Response accepted. Intake ${receipt.intakeStatus === "needs_attention" ? "needs attention" : "is pending"} in the action queue (action ${receipt.actionId}).`,
       );
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Review failed.");
+    }
+  };
+
+  const retryIntake = async (intake: NonNullable<FormSubmission["intake"]>) => {
+    setNotice(null);
+    try {
+      for (const decision of intake.status === "failed" ? ["retry", "approve"] : ["approve"]) {
+        await fetchJson("/api/admin/revenue-os/actions", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: intake.id, decision }),
+        });
+      }
+      setNotice("Response intake completed.");
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : "Intake still needs attention. Inspect the same action before retrying.",
+      );
+    } finally {
+      await submissionsQuery.refetch();
     }
   };
 
@@ -632,10 +665,33 @@ export function FormsWorkspace() {
                           Reject
                         </button>
                       </>
+                    ) : submission.status === "accepted" ? (
+                      <div className="space-y-2">
+                        <p className="text-xs text-[var(--admin-muted)]">
+                          {submission.intake?.status === "executed"
+                            ? "Intake completed."
+                            : `Accepted. Intake ${submission.intake?.status ?? "has no recorded action; inspect the pipeline before recovery"}.`}
+                        </p>
+                        {submission.intake && (
+                          <p className="text-xs text-[var(--admin-muted)] break-all">
+                            Action: {submission.intake.id}
+                          </p>
+                        )}
+                        {submission.intake &&
+                          ["failed", "pending"].includes(submission.intake.status) &&
+                          submission.intake.expiresAt &&
+                          Date.parse(submission.intake.expiresAt) > Date.now() && (
+                            <button
+                              type="button"
+                              className={smallButton}
+                              onClick={() => retryIntake(submission.intake!)}
+                            >
+                              Retry approved intake
+                            </button>
+                          )}
+                      </div>
                     ) : (
-                      <p className="text-xs text-[var(--admin-muted)]">
-                        Reviewed. Accepted responses live in the pipeline.
-                      </p>
+                      <p className="text-xs text-[var(--admin-muted)]">Response rejected.</p>
                     )}
                   </div>
                 </li>

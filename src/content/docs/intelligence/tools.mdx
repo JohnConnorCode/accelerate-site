@@ -1,15 +1,18 @@
 ---
 title: "AI tool reference"
 description: "Every registered tool, generated straight from the registry: what it needs and what it does."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-87 tools are registered in this application, and the split between them is the most important thing to understand before you read the list below: the large majority only read information already in your workspace, and exactly three, `propose_send_email`, `propose_conversation_reply`, and `propose_campaign_activation`, can act outside it at all. Everything else either answers a question or prepares an internal change that still waits for your approval before it does anything a customer would notice.
+When an assistant needs to answer a question or prepare a change, its registered tools define the operations it can request. This catalog is generated from the current registry and includes each tool’s description and input schema, so a builder can inspect the contract behind a request.
 
-This reference is generated directly from the application's tool registry, so it can never drift out of sync with what actually exists. Expand a tool's input schema to inspect the exact fields it accepts before you build an integration around it or debug a request that isn't behaving the way you expected.
+Read tools retrieve available context. Proposal tools prepare changes for the workspace’s review process; some approved operations can contact external providers or recipients. Inspect the specific tool and its requirements rather than assuming that every proposal has the same effect.
 
-Registering a tool in the product is not the same as that tool being available in your specific workspace: tool packs, module settings, provider readiness, and policy all affect which ones an assistant can actually call for you. Check a tool's connection requirement below, and your own [Setup Center](/docs/workspace/setup), before assuming it's live.
+Availability depends on workspace access, enabled modules, connected providers and action policy. Use [Setup Center](/docs/workspace/setup) to investigate a missing connection, [Approvals](/docs/command-center/approvals) to understand a proposed change, and [MCP clients](/docs/extend/mcp-clients) to connect an external assistant.
 
-A read tool retrieves context and nothing more. A tool that proposes a change routes through the [approval workflow](/docs/command-center/approvals) instead of running immediately, so a proposal appearing in this reference is a capability, not proof that any specific action has happened. Use the docs search above to jump straight to an exact tool name, and see [Connect an MCP client](/docs/extend/mcp-clients) for client-side setup.
+<Callout type="info" title="Find an exact operation">
+  Use documentation search for a tool name, then expand its input schema below. An entry describes a
+  supported operation; its action result records what happened in a particular run.
+</Callout>
 
 <DocsAiToolCatalog />

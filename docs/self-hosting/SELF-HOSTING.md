@@ -2,9 +2,9 @@
 
 This guide separates safe local exploration from a connected deployment. Do not point a fork at the original Accelerate database, Vercel project, provider accounts, domains, or customer records.
 
-A fork that should boot as its own business uses the [neutral distribution](NEUTRAL-DISTRIBUTION.md) profile. The original branded installation stays the default.
+A full repository fork defaults to the [neutral distribution](NEUTRAL-DISTRIBUTION.md) profile. It includes the entire application and an editable public Command Center homepage. Every installation, including ours, can turn bundled agency presentation on with `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` or off with `neutral`. Use the same profile at build and runtime, then rebuild and deploy. Profile selection never changes saved drafts or publication history and does not select a different product or hosting account.
 
-The fastest path to seeing this running is the Deploy with Vercel button in [README.md](../../README.md#quick-start): it needs no environment variables and boots straight to the marketing site and fictional demo. This guide covers the rest, connecting a real workspace, whether you got there through that button or `npm ci && npm run dev` below.
+The fastest path to seeing this running is the Deploy with Vercel button in [README.md](../../README.md#quick-start): it needs no environment variables and boots straight to the neutral product homepage and fictional demo. This guide covers the rest, connecting a real workspace, whether you got there through that button or `npm ci && npm run dev` below.
 
 ## 1. Explore locally
 
@@ -53,11 +53,12 @@ after migrations, a missing membership is established through the existing audit
 lifecycle RPC. Revoked/invited memberships, suspended accounts and mismatched
 workspace identities require explicit platform review; setup will not overwrite them.
 
+Set `NEXT_PUBLIC_BUSINESS_NAME` to the same business name for the credential-free public entry and `NEXT_PUBLIC_SITE_URL` to your canonical URL. These public values are build-time configuration; rebuild after changing them. After setup, use Site Studio's Identity and Theme controls for the published website.
+
 First installation derives all bootstrap identity fields from your business name,
 owner and site URL, with neutral defaults and optional explicit `BOOTSTRAP_*`
 overrides. Existing workspace configuration is preserved. This configures the admin
-workspace; replacing the original public agency site and protected assets remains a
-separate step described in [ASSETS.md](../../ASSETS.md).
+workspace; the neutral public site is ready to customize in Site Studio. Retained protected source assets have separate rights described in [ASSETS.md](../../ASSETS.md).
 
 Auth account creation and database migration are separate operations. If a later
 step fails, rerun the same command: the owner is reused and completed migration

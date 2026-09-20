@@ -112,6 +112,20 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "Unpublishing retires the public link. Responses collected while published and audit history remain; no automatic deletion is promised.",
   },
   {
+    actionType: "accept_form_submission",
+    impact: "external_action",
+    reversibility: "irreversible",
+    rationale:
+      "Canonical intake may acknowledge the inquiry under the configured responder policy. Review is required and delivered messages cannot be recalled.",
+  },
+  {
+    actionType: "site_website_change",
+    impact: "external_action",
+    reversibility: "compensable",
+    rationale:
+      "Immutable website revisions support a separately authorized rollback or unpublish. Prior public exposure cannot be undone.",
+  },
+  {
     actionType: "send_email",
     impact: "external_action",
     reversibility: "irreversible",

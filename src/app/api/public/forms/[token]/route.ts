@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import {
   formResponseValidator,
-  getPublishedFormByToken,
-  isFormModuleEnabled,
-  notifyFormSubmission,
-  recordFormSubmission,
+  readPublicForm,
+  submitPublicForm,
 } from "@/lib/revenue-os/form-builder";
 
 /**
@@ -21,19 +18,11 @@ export async function GET(
   context: { params: Promise<{ token: string }> },
 ) {
   const { token } = await context.params;
-  const database = createServiceRoleClient({
-    kind: "system",
-    tenantId: "public-form-surface",
-    tenantSlug: "public",
-    source: "public-form",
-  });
-  const form = await getPublishedFormByToken(database, token).catch((error: unknown) => {
+  const form = await readPublicForm(token).catch((error: unknown) => {
     console.warn("[forms] public lookup failed", error instanceof Error ? error.name : "UnknownError");
     return null;
   });
   if (!form) return NextResponse.json({ error: "Form not found" }, { status: 404 });
-  const enabled = await isFormModuleEnabled(database, form.tenantId).catch(() => false);
-  if (!enabled) return NextResponse.json({ error: "Form not found" }, { status: 404 });
   return NextResponse.json(
     { name: form.name, description: form.description, schema: form.schema },
     { status: 200, headers: { "Cache-Control": "no-store" } },
@@ -70,33 +59,13 @@ export async function POST(
   }
   const response = formResponseValidator.safeParse(parsed.data.response);
   if (!response.success) return NextResponse.json({ error: "Invalid response" }, { status: 400 });
-  const database = createServiceRoleClient({
-    kind: "system",
-    tenantId: "public-form-surface",
-    tenantSlug: "public",
-    source: "public-form",
-  });
   try {
-    const form = await getPublishedFormByToken(database, token);
-    if (!form) return NextResponse.json({ error: "Form not found" }, { status: 404 });
-    const enabled = await isFormModuleEnabled(database, form.tenantId);
-    if (!enabled) return NextResponse.json({ error: "Form not found" }, { status: 404 });
-    const receipt = await recordFormSubmission(database, {
-      formId: form.id,
-      tenantId: form.tenantId,
-      response: response.data,
-      requestId: parsed.data.requestId,
-    });
-    // Operator notice is best-effort: the response is already stored, and a
-    // notification failure must never fail the visitor's submit.
-    await notifyFormSubmission(database, {
-      tenantId: form.tenantId,
-      formName: form.name,
-      contactEmail: receipt.contactEmail ?? null,
-    });
+    const receipt = await submitPublicForm(token, response.data, parsed.data.requestId);
     return NextResponse.json({ accepted: true, ...receipt }, { status: 202 });
   } catch (error) {
     console.warn("[forms] public submission failed", error instanceof Error ? error.name : "UnknownError");
-    return NextResponse.json({ error: "Response could not be recorded" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "";
+    const status = /not found/.test(message) ? 404 : /reused|changed/.test(message) ? 409 : /answer|field|Response contains/i.test(message) || error instanceof z.ZodError ? 400 : 503;
+    return NextResponse.json({ error: status === 400 ? "Check the required fields and answer formats." : status === 409 ? "The form or response changed. Reload before submitting again." : "Response could not be recorded" }, { status });
   }
 }

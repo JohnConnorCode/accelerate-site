@@ -379,6 +379,7 @@ export async function retryPluginAction(supabase: SupabaseClient, id: string, ac
       "send_stripe_invoice",
       "create_task_batch",
       "publish_invoice_page",
+      "accept_form_submission",
     ])
     .gt("expires_at", now)
     .select("id")

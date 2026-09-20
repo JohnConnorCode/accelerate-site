@@ -29,6 +29,8 @@
  * locally rather than hotlinked. The page is about people, so it shows people.
  */
 
+import type { ReactNode } from "react";
+import { IndustryRecipes } from "@/components/command-center/WorkflowRecipes";
 import Image from "next/image";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
@@ -112,7 +114,7 @@ const WORKSHELTER_WORK = [
   },
 ];
 
-export function NonprofitLanding() {
+export function NonprofitLanding({ pilotSection }: { pilotSection?: ReactNode }) {
   return (
     <>
       {/* ── Hero: full-bleed documentary photograph. The page is about people,
@@ -198,7 +200,7 @@ export function NonprofitLanding() {
                 <div className="group grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 border-t border-[color-mix(in_srgb,var(--fg)_18%,transparent)] pt-7">
                   <span
                     aria-hidden="true"
-                    className="font-serif text-[2.1rem] font-medium leading-none tracking-[-0.02em] text-[color-mix(in_srgb,var(--fg)_28%,transparent)] transition-colors duration-500 group-hover:text-[color-mix(in_srgb,var(--fg)_55%,transparent)]"
+                    className="font-serif text-[2.1rem] font-medium leading-none tracking-[-0.02em] text-[color-mix(in_srgb,var(--fg)_52%,transparent)] transition-colors duration-500 group-hover:text-[color-mix(in_srgb,var(--fg)_72%,transparent)]"
                   >
                     {item.n}
                   </span>
@@ -274,23 +276,26 @@ export function NonprofitLanding() {
 
             <ol className="relative">
               {SEQUENCE.map((step, i) => (
-                <AnimateOnScroll key={step.what} delay={0.06 * i}>
-                  <li className="relative flex gap-7 pb-12 last:pb-0">
-                    <div className="relative flex flex-col items-center">
-                      <span className="mt-[9px] size-2 shrink-0 rounded-full bg-[var(--fg)] ring-4 ring-[color-mix(in_srgb,var(--fg)_10%,transparent)]" />
-                      {i < SEQUENCE.length - 1 && (
-                        <span className="mt-2 w-px flex-1 bg-[color-mix(in_srgb,var(--fg)_18%,transparent)]" />
-                      )}
-                    </div>
-                    <div className="pb-1">
-                      <h3 className="font-display text-[1.12rem] font-bold leading-[1.3] tracking-[-0.012em] text-heading">
-                        {step.what}
-                      </h3>
-                      <p className="mt-2.5 max-w-[48ch] text-[0.97rem] leading-[1.7] text-white-secondary">
-                        {step.detail}
-                      </p>
-                    </div>
-                  </li>
+                <AnimateOnScroll
+                  key={step.what}
+                  as="li"
+                  delay={0.06 * i}
+                  className="relative flex gap-7 pb-12 last:pb-0"
+                >
+                  <div className="relative flex flex-col items-center">
+                    <span className="mt-[9px] size-2 shrink-0 rounded-full bg-[var(--fg)] ring-4 ring-[color-mix(in_srgb,var(--fg)_10%,transparent)]" />
+                    {i < SEQUENCE.length - 1 && (
+                      <span className="mt-2 w-px flex-1 bg-[color-mix(in_srgb,var(--fg)_18%,transparent)]" />
+                    )}
+                  </div>
+                  <div className="pb-1">
+                    <h3 className="font-display text-[1.12rem] font-bold leading-[1.3] tracking-[-0.012em] text-heading">
+                      {step.what}
+                    </h3>
+                    <p className="mt-2.5 max-w-[48ch] text-[0.97rem] leading-[1.7] text-white-secondary">
+                      {step.detail}
+                    </p>
+                  </div>
                 </AnimateOnScroll>
               ))}
             </ol>
@@ -362,6 +367,9 @@ export function NonprofitLanding() {
       </section>
 
       {/* ── Close ───────────────────────────────────────────────────────── */}
+      {pilotSection}
+      <IndustryRecipes industry="nonprofits" />
+
       <section className="section-divide relative overflow-hidden border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] [&_.display-italic]:!text-white">
         <div className="absolute inset-0">
           <Image

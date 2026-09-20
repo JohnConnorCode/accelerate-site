@@ -32,9 +32,15 @@ export function verifyDeploymentTarget({ target, linked, env = process.env, requ
   return target;
 }
 
+export function verifyHostingSelection(target, env = process.env) {
+  // Hosting ownership and public presentation are independent choices.
+  // This acknowledgement never replaces the exact authenticated target checks.
+  if (env.ACCELERATE_ORIGINAL_HOSTING !== "1") assertForkHosting(target);
+}
+
 export function deploymentPreflight() {
   const target = JSON.parse(readFileSync("deployment-target.json", "utf8"));
-  if (process.env.NEXT_PUBLIC_DISTRIBUTION_PROFILE === "neutral") assertForkHosting(target);
+  verifyHostingSelection(target);
   let linked;
   try {
     linked = JSON.parse(readFileSync(".vercel/project.json", "utf8"));

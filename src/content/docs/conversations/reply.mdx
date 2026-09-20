@@ -1,10 +1,18 @@
 ---
 title: "Reply to a conversation"
-description: "Find the right thread, confirm who you're actually writing to, and check that it sent."
-updated: "2026-09-09"
+description: "Find the right thread, confirm who you're writing to, and check that it sent."
+updated: "2026-09-19"
 ---
 
 Use Conversations whenever answering a customer well means seeing what was already said to them, not just the latest message. You need access to the workspace and a working send connection for the channel you're replying on.
+
+<DocsFigure
+  src="/images/docs/conversations/overview.png"
+  width={1440}
+  height={1000}
+  alt="Conversations, with a customer thread and reply context in the fictional Northline Roofing workspace."
+  caption="Conversations, with a customer thread and reply context. The real interface uses fictional demo data in this image; follow the steps below in your own workspace."
+/>
 
 ## 1. Find the thread
 
@@ -27,4 +35,4 @@ Check the send result in the conversation. A provider accepting a send is differ
 ## What to check
 
 - If a reply won't send, check the channel connection in [Setup Center](/docs/workspace/setup) first. Gmail replies also need a valid thread anchor, and the system refuses to send rather than silently starting a new conversation when that anchor is missing; developers, this is the Message-ID and References pair used for RFC threading. Share the visible error and the conversation identifier with your administrator, leaving credentials out of the report.
-- A database conflict-target error before dispatch usually means the migration catalog is behind; run the current migrations and verify Setup before retrying, since the shared sender depends on workspace-scoped conversation and message indexes existing. Keep the same request identity on a retry of an unchanged message, and if a provider attempt's result is genuinely uncertain, reconcile its receipt before you try sending it again.
+- A database conflict-target error before dispatch usually means the migration catalog is behind; run the current migrations and verify Setup before retrying, since the shared sender depends on workspace-scoped conversation and message indexes existing. Keep the same request identity on a retry of an unchanged message, and if a provider attempt's result is uncertain, reconcile its receipt before you try sending it again.

@@ -169,6 +169,20 @@ export async function callCollectionHostRpc(
 }
 
 const MODEL_BUDGET_RPCS = ["reserve_model_call", "complete_model_call"] as const;
+/** Form commands cross the same fresh-membership host boundary as Site Studio. */
+export async function callFormBuilderRpc(
+  database: SupabaseClient,
+  operation: "write_form_definition" | "review_form_submission",
+  args: Record<string, unknown>,
+) {
+  if (!["write_form_definition", "review_form_submission"].includes(operation))
+    throw new Error("Form command is not allowed");
+  const context = getTenantRequestContext();
+  if (context?.kind === "actor" && args.p_actor_email !== (context.user.email ?? context.user.id))
+    throw new Error("Form command actor does not match verified identity");
+  return callVerifiedHostRpc(database, operation, args);
+}
+
 export async function callModelBudgetRpc(
   database: SupabaseClient,
   operation: (typeof MODEL_BUDGET_RPCS)[number],

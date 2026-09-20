@@ -1,12 +1,20 @@
 ---
 title: "Review and approve actions"
 description: "How approval works, how it earns more autonomy over time, and what to check after a decision."
-updated: "2026-09-12"
+updated: "2026-09-19"
 ---
 
-The first time your assistant drafts a reply, changes a pipeline stage, or prepares a reminder, it stops and asks you. That is not the system being cautious for its own sake: it is the system establishing a track record, one decision at a time, so it can eventually stop asking you about the ones you always say yes to. An approval is your decision on a specific proposed action, and it is also the unit the whole autonomy system is built from.
+When AI prepares a customer reply or a workflow proposes several tasks, review the exact change before it runs. Approvals keeps that decision connected to its context and recorded result. Eligible actions can earn a proposed increase in autonomy, which a person reviews separately.
 
-## What an approval actually is
+<DocsFigure
+  src="/images/docs/command-center/work.png"
+  width={1440}
+  height={1000}
+  alt="Tasks and approvals, where pending decisions are reviewed in the fictional Northline Roofing workspace."
+  caption="Tasks and approvals, where pending decisions are reviewed. The real interface uses fictional demo data in this image; follow the steps below in your own workspace."
+/>
+
+## What an approval is
 
 AI tools and connected integrations that propose a change stage it here rather than running it immediately: an email draft, a suggested pipeline move, a task change, a prepared reminder. A read-only question, like asking the assistant to summarize a deal, never creates an approval, because nothing about it changes a record.
 
@@ -16,7 +24,7 @@ A manual action you take yourself is different and does not route through this q
 
 1. Open **Today → Needs your decision** or **Work → Approvals**, and select a pending item.
 2. Read the proposed action and the context behind it. For a message, that means the actual recipient and the actual wording, not just the fact that a message exists.
-3. Choose the decision that matches what you actually want.
+3. Choose the decision that matches what you want.
 
 | Decision | What happens                                                                                                                           |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -24,15 +32,15 @@ A manual action you take yourself is different and does not route through this q
 | Revise   | The proposal goes back to whatever produced it, AI or workflow, so you can change it and review the new version before deciding again. |
 | Reject   | The action does not run. Give a reason when the screen offers one; it is what the system learns from.                                  |
 
-Approving and the action actually succeeding are two different events. A provider outage can leave an approved send unfinished, so check the result afterward rather than assuming approval was the last step. [Receipts and audit](/docs/start/receipts) covers the exact statuses to look for.
+Approving and the action succeeding are two different events. A provider outage can leave an approved send unfinished, so check the result afterward rather than assuming approval was the last step. [Receipts and audit](/docs/start/receipts) covers the exact statuses to look for.
 
 ## How approval turns into autonomy
 
-Every action type starts at `always_ask`: the system proposes, you decide, every single time, with no exceptions. That is the floor, not a permanent ceiling. Once you have approved the same kind of action three separate times, spread across at least seven days, the system proposes moving that specific action up one rung of trust. It never skips a rung, and a person has to confirm every promotion by hand; the system can suggest graduating a permission, but it cannot grant itself one.
+An autonomy policy sets how a particular action is allowed to run. New policies default to `always_ask`, which requires review. An action configured as `ask_until_trusted` can become eligible for a proposed promotion when its executed approvals meet the current threshold of three approvals over at least seven days, subject to the policy checks.
 
-From there, an action can reach `standing_permission`, where it runs without asking you first but still logs everything it did so you can audit it after the fact, and eventually `autonomous` for the narrowest, most consistently correct patterns. The point of the ladder is that your week gets shorter as it climbs: the third time you approve the same routine reply is also the last time you have to.
+A person confirms any promotion. Eligible actions may then use `standing_permission`, which authorizes work within its recorded constraints while preserving an audit history. Repeating an approval never grants a new permission by itself, and changing the permission’s scope or constraints requires renewed review.
 
-Six things never climb this ladder, regardless of how much trust everything else has earned: deleting an account, changing a credential, deleting financial history, exporting your customer database, a high-value refund, and a major financial transfer. Those stay behind a human decision permanently. And whatever rung an action type is on, the reversibility of what it actually does is fixed by design, not by trust level: sending an email, activating a campaign, and sending an invoice are permanently non-autonomous actions in this product, meaning they always require your approval no matter how long you have been running the system, because an email you did not mean to send cannot be called back.
+Hard safety floors remain in force for account deletion, credential changes, deletion of financial history, customer-database exports, high-value refunds and major financial transfers. The reversibility rules also keep sending an email, activating a campaign and sending an invoice behind a human decision. Check the policy for the specific action instead of assuming that another action’s approval history applies.
 
 ## When a standing permission changes
 

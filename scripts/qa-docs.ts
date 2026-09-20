@@ -79,7 +79,7 @@ async function main() {
             assert.ok(await page.locator("details[open] pre").isVisible());
           }
           if (route === "/docs/pipeline/revenue") {
-            await expect(page.locator("main")).toContainText("client and proposal records");
+            await expect(page.locator("main")).toContainText("recorded client and proposal values");
             await expect(page.locator("main table")).toBeVisible();
           }
           if (route === "/docs/delivery/resources") {
@@ -113,17 +113,17 @@ async function main() {
           checks.push(`${viewport.width}: ${route} renders without horizontal overflow`);
         }
         await page.goto(`${base}/docs`, { waitUntil: "domcontentloaded" });
-        const audiencePaths = page.getByRole("list", { name: "Choose your docs path" });
-        for (const href of [
-          "/docs/start/business-owners",
-          "/docs/start/agencies",
-          "/docs/extend/first-change",
-        ]) {
-          await audiencePaths.locator(`a[href="${href}"]`).click();
+        for (const [audience, href] of [
+          ["run-business", "/docs/start/business-owners"],
+          ["build-platform", "/docs/start/agencies"],
+          ["build-platform", "/docs/extend/first-change"],
+        ] as const) {
+          const audiencePath = page.locator(`section[aria-labelledby="${audience}"]`);
+          await audiencePath.locator(`a[href="${href}"]`).click();
           await page.waitForURL(`**${href}`);
           await page.locator("main h1").waitFor({ state: "visible" });
           await page.goBack({ waitUntil: "domcontentloaded" });
-          await audiencePaths.waitFor();
+          await audiencePath.waitFor();
         }
         checks.push(
           `${viewport.width}: each audience path opens its guide and Back returns to the chooser`,
@@ -307,7 +307,7 @@ async function main() {
         await homeDocs.click();
         await page.waitForURL("**/docs");
         for (const [route, label, destination] of [
-          ["/command-center", "Read the docs", "/docs"],
+          ["/command-center", "Build on the platform", "/docs/extend"],
           ["/open-source", "Read the self-hosting docs", "/docs/self-hosting"],
         ] as const) {
           await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
@@ -491,11 +491,10 @@ async function main() {
             path: `${output}/${width}-${reducedMotion}-product-gallery.png`,
           });
           await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-          await page.waitForFunction(() =>
-            [...document.querySelectorAll(".cc-product-hero .rv")].every(
-              (element) => getComputedStyle(element).opacity === "1",
-            ),
-          );
+          await page.waitForFunction(() => {
+            const heading = document.querySelector("main h1");
+            return heading && getComputedStyle(heading).opacity === "1";
+          });
           await page.screenshot({ path: `${output}/${width}-${reducedMotion}-product-header.png` });
           assert.equal(
             await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),

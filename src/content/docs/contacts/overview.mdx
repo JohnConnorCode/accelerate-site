@@ -1,10 +1,10 @@
 ---
 title: "Contacts"
-description: "One record per person, matched from every channel, with merges proposed rather than assumed."
-updated: "2026-09-09"
+description: "Find customer records, review unfamiliar senders and follow the work linked to each person."
+updated: "2026-09-19"
 ---
 
-Most businesses carry the same customer three or four times over: once from a website form in March, once because somebody pasted a trade-show list into a spreadsheet, once inside a Gmail thread nobody else can see. Each copy holds a third of the story, so when that customer calls, whoever picks up starts from a third of the story too. Contacts at `/admin/contacts` is where a person or company exists once. Every route that brings a new name into the business, your website forms, the public chat assistant, a pasted list, any mailbox you have connected, resolves here before it becomes a conversation or a deal.
+A customer may appear in a website inquiry, a mailbox and an old spreadsheet. Contacts brings those details into linked records, so your team can find the person and follow the conversations, opportunities and work attached to them. Open **Contacts** to review the available records and resolve unfamiliar senders.
 
 <DocsFigure
   src="/images/docs/contacts/overview.png"
@@ -16,15 +16,15 @@ Most businesses carry the same customer three or four times over: once from a we
 
 ## How a new row gets there
 
-A new row can arrive from your public site, from a CSV or pasted list, or from a provider sync, and every one of them goes through a review batch first rather than writing directly. The system normalizes what it sees and proposes records; nothing is actually saved until a person accepts the review. [Importing](/docs/contacts/import) walks through what that review batch looks like.
+Contacts can come from supported intake, imports and connected providers. Each path has its own validation and matching rules. A CSV or pasted list uses a review batch: inspect the proposed records and confirm the exact import. [Import contacts](/docs/contacts/import) walks through that process.
 
 ## How two records become one
 
-Canonical IDs win over a matching email whenever both exist, since an email can be shared or changed but an ID cannot. When two records look like the same person, the workspace shows you both side by side with the evidence for the match, and it waits for you to decide, on purpose: a merge you did not intend quietly destroys history you will need later, while a duplicate that sits unresolved for a day costs you thirty seconds. Ambiguous identity stays review work for exactly that reason.
+Use record identifiers and source evidence to establish which person a conversation belongs to. **Contact review** offers suggested matches for an unfamiliar sender and lets you choose the right contact, create one when appropriate or leave the item for later. A similar name alone is insufficient evidence for a match. Keep unresolved records available for review rather than merging their histories by assumption.
 
 ## Following the graph
 
-A person links to a company, a company to its opportunities, an opportunity to the conversations behind it, and that whole graph is queryable, not just clickable. Asking who at your business could actually introduce you to a target contact is a real question you can answer by walking those links instead of guessing from memory.
+Open the linked company, opportunity, conversation or task to understand the relationship behind a contact. These links help the team continue work with its source context. A recorded relationship is evidence to inspect; it does not establish permission to request or make an introduction.
 
 ## Review an unfamiliar sender
 

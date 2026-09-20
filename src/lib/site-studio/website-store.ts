@@ -1,5 +1,6 @@
 import "server-only";
 import type { AdminAuthorization } from "@/lib/admin/auth";
+import { isModuleEnabled } from "@/lib/revenue-os/modules";
 import { ACCELERATE_TENANT_ID } from "@/lib/tenancy/constants";
 import {
   createPlatformServiceRoleClient,
@@ -8,6 +9,7 @@ import {
 } from "@/lib/supabase/server";
 import { parseWebsiteDocument, type WebsiteDocument } from "./website-document";
 import { parseWebsiteCommand, websiteReceiptSchema, type WebsiteReceipt } from "./website-commands";
+import { assertWebsiteForms, websiteFormTokens } from "./website-forms";
 
 export interface WebsiteRevision {
   id: string;
@@ -35,8 +37,8 @@ export function assertWebsiteOwner(auth: AdminAuthorization): void {
     auth.tenant.status !== "active"
   )
     throw new Error("Only the installation owner can edit this website");
-  const modules = auth.tenant.config?.modules as Record<string, unknown> | undefined;
-  if (modules?.["site-studio"] !== true)
+  const modules = auth.tenant.config?.modules as Record<string, boolean> | undefined;
+  if (!isModuleEnabled("site-studio", { modules }))
     throw new Error("Site Studio is disabled for this installation");
 }
 
@@ -76,6 +78,7 @@ export async function writeWebsite(
 ): Promise<WebsiteReceipt> {
   assertWebsiteOwner(auth);
   const command = parseWebsiteCommand(input);
+  await validateWebsiteCommandForms(auth, command);
   const { data, error } = await callWebsiteRpc(
     auth.database,
     {
@@ -100,35 +103,88 @@ export async function writeWebsite(
   return websiteReceiptSchema.parse(data);
 }
 
-export async function readWebsiteHistory(auth: AdminAuthorization) {
+export async function validateWebsiteCommandForms(
+  auth: AdminAuthorization,
+  command: ReturnType<typeof parseWebsiteCommand>,
+) {
+  assertWebsiteOwner(auth);
+  if (command.operation === "unpublish") return;
+  const document =
+    command.operation === "save"
+      ? command.document
+      : await readWebsiteRevision(auth, command.revisionId);
+  if (!websiteFormTokens(document).length) return;
+  const database = createPlatformServiceRoleClient("site-studio:owner-receipts");
+  const { data, error } = await database
+    .from("site_website_receipts")
+    .select("request_key")
+    .eq("tenant_id", auth.tenant.id)
+    .eq("request_key", command.requestKey)
+    .maybeSingle();
+  if (error) throw new Error("Website receipts unavailable");
+  // A completed retry must still reach the atomic writer after a form is archived.
+  // The writer rechecks authorization and rejects reuse with a different command.
+  if (data) return;
+  await assertWebsiteForms(document, auth.tenant.id);
+}
+
+export async function wasWebsiteRevisionPublished(auth: AdminAuthorization, revisionId: string) {
+  assertWebsiteOwner(auth);
+  const database = createPlatformServiceRoleClient("site-studio:owner-history");
+  const { data, error } = await database
+    .from("site_website_receipts")
+    .select("request_key")
+    .eq("tenant_id", auth.tenant.id)
+    .eq("receipt->>publishedRevisionId", revisionId)
+    .in("receipt->>operation", ["publish", "rollback"])
+    .limit(1);
+  if (error) throw new Error("Website publication history is unavailable");
+  return !!data?.length;
+}
+
+export async function readWebsiteHistory(auth: AdminAuthorization, offset = 0, limit = 30) {
   assertWebsiteOwner(auth);
   const database = createPlatformServiceRoleClient("site-studio:owner-read");
-  const [revisions, receipts] = await Promise.all([
-    database
-      .from("site_website_revisions")
-      .select("id,created_at,checksum")
-      .eq("tenant_id", auth.tenant.id)
-      .order("created_at", { ascending: false })
-      .limit(30),
-    database
-      .from("site_website_receipts")
-      .select("receipt")
-      .eq("tenant_id", auth.tenant.id)
-      .order("created_at", { ascending: false })
-      .limit(100),
-  ]);
-  if (revisions.error || receipts.error)
+  const revisions = await database
+    .from("site_website_revisions")
+    .select("id,created_at,checksum")
+    .eq("tenant_id", auth.tenant.id)
+    .order("created_at", { ascending: false })
+    .range(offset, offset + Math.min(50, limit) - 1);
+  if (revisions.error)
     throw new Error("Website history is unavailable. Retry without changing your draft.");
-  const published = new Set(
-    receipts.data
-      .map((row) => websiteReceiptSchema.parse(row.receipt))
-      .filter((receipt) => receipt.operation === "publish" || receipt.operation === "rollback")
-      .map((receipt) => receipt.publishedRevisionId),
+  return Promise.all(
+    revisions.data.map(async (row) => ({
+      id: row.id,
+      createdAt: row.created_at,
+      checksum: row.checksum,
+      previouslyPublished: await wasWebsiteRevisionPublished(auth, row.id),
+    })),
   );
-  return revisions.data.map((row) => ({
-    id: row.id,
-    createdAt: row.created_at,
-    checksum: row.checksum,
-    previouslyPublished: published.has(row.id),
-  }));
+}
+
+export async function readWebsiteRevision(auth: AdminAuthorization, revisionId: string) {
+  assertWebsiteOwner(auth);
+  const database = createPlatformServiceRoleClient("site-studio:owner-revision");
+  const { data, error } = await database
+    .from("site_website_revisions")
+    .select("document")
+    .eq("tenant_id", auth.tenant.id)
+    .eq("id", revisionId)
+    .maybeSingle();
+  if (error || !data) throw new Error("Website revision unavailable");
+  return parseWebsiteDocument(data.document);
+}
+
+export async function readWebsiteReceipts(auth: AdminAuthorization, offset = 0, limit = 20) {
+  assertWebsiteOwner(auth);
+  const database = createPlatformServiceRoleClient("site-studio:owner-receipts");
+  const { data, error } = await database
+    .from("site_website_receipts")
+    .select("receipt")
+    .eq("tenant_id", auth.tenant.id)
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw new Error("Website receipts unavailable");
+  return (data ?? []).map((row) => websiteReceiptSchema.parse(row.receipt));
 }

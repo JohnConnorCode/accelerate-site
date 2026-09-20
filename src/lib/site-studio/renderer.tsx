@@ -1,5 +1,5 @@
 import type { SiteDocument } from "./document";
-import { renderSection, type RenderAsset } from "./components";
+import { renderSection, type RenderAsset, type RenderForm } from "./components";
 
 /** Public renderer. Turns a validated document into React using only
  * registered components. Unknown content renders an honest fallback, never
@@ -8,9 +8,15 @@ import { renderSection, type RenderAsset } from "./components";
 export function SitePageRenderer({
   document,
   assets = [],
+  renderForm,
 }: {
   document: SiteDocument;
   assets?: readonly RenderAsset[];
+  renderForm?: RenderForm;
 }) {
-  return <>{document.root.map((section) => renderSection(section, assets))}</>;
+  return (
+    <div className="site-document">
+      {document.root.map((section) => renderSection(section, assets, renderForm))}
+    </div>
+  );
 }

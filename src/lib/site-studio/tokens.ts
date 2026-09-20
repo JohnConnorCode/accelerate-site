@@ -59,7 +59,12 @@ export function resolveSectionStyle(styles?: SiteStyles): CSSProperties {
 }
 
 export function resolveContainerStyle(styles?: SiteStyles): CSSProperties {
-  const result: CSSProperties = { width: "100%" };
+  const result: CSSProperties = {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: GAP[styles?.gap ?? "md"],
+  };
   if (!styles) {
     result.maxWidth = MAX_WIDTH.content;
     result.margin = "0 auto";
@@ -71,8 +76,5 @@ export function resolveContainerStyle(styles?: SiteStyles): CSSProperties {
   result.margin = styles.maxWidth === "full" ? "0" : "0 auto";
   result.paddingLeft = "1.25rem";
   result.paddingRight = "1.25rem";
-  if (styles.gap) result.display = "flex";
-  if (styles.gap) result.flexDirection = "column";
-  if (styles.gap) result.gap = GAP[styles.gap];
   return result;
 }

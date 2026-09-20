@@ -3,6 +3,10 @@ name: CI
 on:
   workflow_dispatch:
     inputs:
+      public_pages_only:
+        description: Verify public pages and docs without repeating unrelated workspace suites
+        type: boolean
+        default: false
       admin_design_only:
         description: Capture admin appearance evidence without the full CI suite
         type: boolean
@@ -22,7 +26,7 @@ concurrency:
 
 jobs:
   checks:
-    if: ${{ !inputs.admin_design_only }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -71,6 +75,10 @@ jobs:
       - name: Verify open-source page stats match the repo
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run test:open-source-stats
+
+      - name: Verify full-product neutral fork and connected website forms
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:full-product-fork
 
       - name: Verify admin design token contract
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -193,9 +201,14 @@ jobs:
           echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
           PATH="$(pg_config --bindir):$PATH" npm run test:tenant-lifecycle:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
+          npm run test:form-builder
+          npm run test:site-editor
+          PATH="$(pg_config --bindir):$PATH" npm run test:form-builder:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:site-editor:postgres
 
       - name: Verify Social Marketing adapter and publication transactions
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
@@ -236,6 +249,9 @@ jobs:
     if: ${{ !inputs.admin_design_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Preserve explicit coverage for the original agency installation.
+      NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -265,10 +281,21 @@ jobs:
 
       - name: Install browser for first-run verification
         run: npx playwright install --with-deps chromium
+      - name: Verify industry and Chicago release pages
+        run: node scripts/qa-chicago-industries.mjs
+      - name: Retain industry and Chicago browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: industry-chicago-browser-evidence
+          path: /tmp/accelerate-chicago-qa/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Verify credential-free first-run journey
         env:
           # NextURL canonicalizes loopback IPs to localhost. Keep the server's
           # initURL on that same origin so demo rewrites never become self-proxies.
+          PUBLIC_PAGES_ONLY: ${{ inputs.public_pages_only }}
           PLAYWRIGHT_BASE_URL: http://localhost:3018
         run: |
           setsid npm run start -- --hostname localhost --port 3018 > /tmp/accelerate-first-run-server.log 2>&1 &
@@ -288,6 +315,7 @@ jobs:
           # Run every group and collect every exit status before stopping the server.
           (
             set -e
+            if [ "$PUBLIC_PAGES_ONLY" = "true" ]; then exit 0; fi
             node scripts/check-internal-demo-rewrites.mjs
             node scripts/qa-turnkey.mjs
             node scripts/qa-client-interactions.mjs
@@ -311,12 +339,12 @@ jobs:
             DOCS_QA_URL="$PLAYWRIGHT_BASE_URL" npm run qa:docs
             node scripts/qa-proposal-public-decisions.mjs
             node scripts/qa-work-portfolio.mjs
-            node scripts/qa-public-navigation-profile.mjs --services-only
             node scripts/qa-demo-business-workflows.mjs
           ) &
           public_qa_pid=$!
           (
             set -e
+            if [ "$PUBLIC_PAGES_ONLY" = "true" ]; then exit 0; fi
             node scripts/qa-social-marketing.mjs
             node scripts/qa-collections-workspace.mjs
             node scripts/qa-universal-work-board.mjs
@@ -334,6 +362,9 @@ jobs:
           for browser_pid in "$workspace_qa_pid" "$public_qa_pid" "$admin_qa_pid"; do
             if ! wait "$browser_pid"; then browser_status=1; fi
           done
+          # Measure navigation performance without competing browser suites on
+          # this runner. Keep the same 200ms limit and retain failure evidence.
+          if ! node scripts/qa-public-navigation-profile.mjs --services-only; then browser_status=1; fi
           exit "$browser_status"
       - name: Retain first-run browser evidence
         if: ${{ always() }}
@@ -371,8 +402,32 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  full-product-fork:
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # No profile environment: prove the complete repository's actual default.
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run resources:run -- node scripts/qa-full-product-fork.mjs
+      - name: Retain full-product fork evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: full-product-fork-evidence
+          path: /tmp/accelerate-full-product-fork-qa/
+          if-no-files-found: ignore
+          retention-days: 7
+
   neutral-starter:
-    if: ${{ !inputs.admin_design_only }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -428,8 +483,8 @@ jobs:
 
   # Keep the existing required check name and fail if either job fails or skips.
   verify:
-    if: ${{ always() && !inputs.admin_design_only }}
-    needs: [checks, build, neutral-starter]
+    if: ${{ always() && !inputs.admin_design_only && !inputs.public_pages_only }}
+    needs: [checks, build, full-product-fork, neutral-starter]
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
@@ -438,7 +493,8 @@ jobs:
           CHECKS_RESULT: ${{ needs.checks.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           NEUTRAL_RESULT: ${{ needs.neutral-starter.result }}
-        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success && test "$NEUTRAL_RESULT" = success
+          FULL_FORK_RESULT: ${{ needs.full-product-fork.result }}
+        run: test "$CHECKS_RESULT" = success && test "$BUILD_RESULT" = success && test "$NEUTRAL_RESULT" = success && test "$FULL_FORK_RESULT" = success
 
   admin-design:
     if: ${{ inputs.admin_design_only }}

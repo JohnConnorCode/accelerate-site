@@ -1,0 +1,59 @@
+---
+title: "Follow a trial-session inquiry"
+description: "Capture training interest, preferred session window and contact preference and assign a reviewed next step."
+updated: "2026-09-19"
+---
+
+A studio receives a trial-session request from someone interested in small-group training. Staff need to confirm the class level and availability before offering a place. Use a reviewed intake process to decide the next action.
+
+<RecipeIngredients id="fitness-trial" />
+
+## Before you start
+
+Enable Form builder and Pipeline follow-up in **Plugins** in a workspace you control. Both start disabled. Choose the response reviewer and opportunity owner. Connect a mailbox only if you intend to send a message.
+
+The [fictional demo workspaces](/demo/command-center) show the shared screens and simulated actions. Build this example configuration in your own workspace using fictional records first.
+
+<DocsFigure
+  src="/images/docs/pipeline/overview.png"
+  width={1440}
+  height={1000}
+  alt="Pipeline opportunities and next actions using fictional data."
+  caption="Shared platform screens with fictional records. Follow the source record and saved result when trying this recipe."
+/>
+
+## Work through this example
+
+**Capture.** Record training interest, preferred session window and contact preference. Use fictional details for the first test.
+
+**Decide.** Ask a qualified team member to confirm session suitability and availability. A person with responsibility for the service makes this decision.
+
+**Hand off.** Confirm the chosen membership; assign orientation; check that the member received joining instructions. Keep incomplete confirmations visible rather than marking the whole request ready.
+
+## Complete the workflow
+
+1. Open **Forms** and create a draft named **Fitness Studios inquiry**. Include name, usable email, training interest, preferred session window and contact preference. Keep sensitive records in the appropriate specialist system.
+
+2. Preview and save the draft, then publish its share link. Submit a fictional response using the situation above before sharing it with customers.
+
+3. Open **Responses** and inspect the submission. Accept the appropriate response into the pipeline and check the matched contact. Resolve an ambiguous match before proceeding.
+
+4. Open the opportunity in **Pipeline**. Assign its owner and a next action: **Ask a qualified team member to confirm session suitability and availability**. Record a realistic follow-up date; confirm any booking or purchase separately.
+
+5. Run **Pipeline follow-up**. Review the stale opportunities or overdue next actions it identifies and update the source record. Use the report to decide which source records need attention.
+
+## Check the result
+
+The accepted response appears on the correct contact and opportunity. An owner can identify the pending decision and next action without reopening the original inquiry. The trial request has a coach or coordinator responsible for reviewing session fit. Verify that the proposed session exists and that the joining instructions match its location and time.
+
+## Adapt it for your business
+
+Class capacity, membership billing and health screening remain in your specialist tools unless a separate integration has been implemented and tested. Start with a link or reviewed reference to the source record.
+
+Use [Build an extension](/docs/extend) and the [development brief](/docs/extend/ai-authoring) when those systems need a connection. Specify the source of truth, permitted data, person who approves changes, duplicate handling and the receipt that proves completion.
+
+## What to check
+
+If the contact match is incorrect or ambiguous, resolve it before updating the opportunity. If accepting a response has an uncertain result, inspect the response and linked opportunity before trying again. Pipeline follow-up is a read-only report; complete the chosen follow-up through the appropriate source screen and check its result.
+
+Keep the approval required by the action policy. Restrict customer data to what the workflow needs. Enabled plugins use your workspace permissions; hosted infrastructure and connected providers may have costs, and AI conversations use your configured model. Verify the saved source record before relying on the result.

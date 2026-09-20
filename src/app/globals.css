@@ -4,6 +4,36 @@
 @import "./admin-shape.css";
 @import "tailwindcss";
 
+/* Shared page-document presentation: bootstrap, editor preview and publication. */
+.site-document h1,
+.site-document h2,
+.site-document h3 {
+  text-wrap: balance;
+}
+.site-document p {
+  text-wrap: pretty;
+}
+.site-document a {
+  min-height: 44px;
+}
+.site-document a:focus-visible,
+.site-document summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.site-document summary {
+  min-height: 44px;
+  padding-block: 0.75rem;
+}
+.site-connected-form {
+  border-radius: var(--site-radius);
+}
+.site-connected-form h2 {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
 /* ========================================
    ACCELERATE DESIGN SYSTEM
    High-contrast black / white editorial system
@@ -15,7 +45,10 @@
   --ink: #0b0b0b;
   --paper: #fbfbfa;
   --mid: #45453f;
-  --soft: #a8a8a4;
+  /* Muted copy on the paper background. The old #a8a8a4 measured 2.3:1 and
+     failed WCAG AA everywhere it was used as body text. This is the quietest
+     gray that clears 4.5:1 on paper and on the elevated card backgrounds. */
+  --soft: #6a6a66;
   --rule: #e3e3df;
   --rule-dark: #282826;
 
@@ -52,6 +85,11 @@
   --fg: var(--ink);
   --panel: var(--ink); /* ink-panel surface — near theme-invariant */
   --panel-fg: var(--paper); /* text color on an ink-panel */
+  /* Muted text on a dark surface. The ink panel and selected rows are dark in
+     both themes, but `--soft` is redefined to a dark gray under the dark theme,
+     which dropped their copy to ~3.6:1. This derives from the panel tokens so
+     it stays light in both themes and matches `--soft` in the light theme. */
+  --muted-on-dark: color-mix(in srgb, var(--panel-fg) 64%, var(--panel));
 
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --spring: cubic-bezier(0.22, 1.2, 0.36, 1);
@@ -185,7 +223,8 @@
   --bg: var(--ink);
   --fg: var(--paper);
   --mid: #a8a8a4;
-  --soft: #6e6e6b;
+  /* Muted copy on the dark paper. Dimmer than --mid but still ~7:1. */
+  --soft: #9a9a97;
   --rule: var(--rule-dark);
   --panel: #131312;
   --panel-fg: var(--paper);
@@ -335,6 +374,12 @@ h6 {
   background: var(--panel);
   color: var(--panel-fg);
   --rule: var(--rule-dark);
+  /* The panel is dark in both themes, so muted copy inside it keeps the light
+     on-dark tone instead of the paper-tuned `--soft`. `text-white-muted`
+     consumes `--white-muted` directly, so re-declaring it here reaches every
+     descendant. */
+  --white-muted: var(--muted-on-dark);
+  --soft: var(--muted-on-dark);
   --surface-bg: rgba(255, 255, 255, 0.055);
   --surface-bg-strong: rgba(255, 255, 255, 0.085);
   --surface-highlight: rgba(255, 255, 255, 0.15);
@@ -400,8 +445,10 @@ h6 {
   max-width: 48ch;
   letter-spacing: -0.006em;
 }
+/* The ink panel is theme-invariant (near-black in both themes), so its muted
+   text uses the on-dark token rather than the theme-dependent `--soft`. */
 .ink-panel .lede {
-  color: var(--soft);
+  color: var(--muted-on-dark);
 }
 
 .it {
@@ -415,7 +462,7 @@ h6 {
   color: var(--mid);
 }
 .ink-panel .body-c {
-  color: var(--soft);
+  color: var(--muted-on-dark);
 }
 
 .shead {
@@ -815,7 +862,8 @@ a.tag:active {
   --demo-preview-header: #111110;
   --demo-preview-header-ink: #fbfbfa;
   --demo-preview-ink: rgba(11, 11, 11, 0.82);
-  --demo-preview-muted: rgba(11, 11, 11, 0.52);
+  /* Was 0.52, which landed at 3.9:1 on the preview card. Muted, still readable. */
+  --demo-preview-muted: rgba(11, 11, 11, 0.66);
   --demo-preview-faint: rgba(11, 11, 11, 0.42);
   --demo-preview-rule: rgba(11, 11, 11, 0.07);
   --demo-preview-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -1401,8 +1449,10 @@ a.tag:active {
 
 /* ─── Wordmark ─── */
 .logo-word {
-  display: inline-flex;
+  display: block;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 0.1em 0 0.06em;
   line-height: 1;
 }
@@ -1708,7 +1758,7 @@ a.tag:active {
   font-family: var(--util);
   font-size: 10px;
   letter-spacing: 0.16em;
-  color: color-mix(in srgb, var(--fg) 52%, transparent);
+  color: var(--soft);
 }
 .svc-mode-icon {
   display: inline-grid;
@@ -1726,7 +1776,7 @@ a.tag:active {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--fg) 56%, transparent);
+  color: var(--soft);
 }
 .svc-mode-title {
   font-family: var(--display);
@@ -1749,14 +1799,14 @@ a.tag:active {
   font-family: var(--util);
   font-size: 10.5px;
   letter-spacing: 0.05em;
-  color: color-mix(in srgb, var(--fg) 48%, transparent);
+  color: var(--soft);
 }
 .svc-mode-capabilities {
   margin: clamp(26px, 3vw, 40px) 0 0;
   font-family: var(--util);
   font-size: 11px;
   letter-spacing: 0.06em;
-  color: color-mix(in srgb, var(--fg) 56%, transparent);
+  color: var(--soft);
   text-wrap: pretty;
 }
 .svc-build-grid {
@@ -1916,7 +1966,7 @@ a.tag:active {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--fg) 52%, transparent);
+  color: color-mix(in srgb, var(--fg) 62%, transparent);
 }
 .svc-work-name {
   font-family: var(--display);
@@ -1976,7 +2026,7 @@ a.tag:active {
   font-family: var(--util);
   font-size: 10px;
   letter-spacing: 0.16em;
-  color: color-mix(in srgb, var(--fg) 52%, transparent);
+  color: color-mix(in srgb, var(--fg) 62%, transparent);
 }
 .svc-shape-title {
   margin: 0 0 8px;
@@ -4309,6 +4359,8 @@ summary:focus-visible {
 }
 .row.on {
   color: var(--paper);
+  --white-muted: var(--muted-on-dark);
+  --soft: var(--muted-on-dark);
 }
 .row.on::before {
   transform: scaleX(1);
@@ -4317,7 +4369,7 @@ summary:focus-visible {
   color: var(--paper);
 }
 .row.on p {
-  color: var(--soft);
+  color: var(--muted-on-dark);
 }
 .row.on .row-t {
   transform: translateX(8px);
@@ -4461,7 +4513,7 @@ summary:focus-visible {
   color: var(--mid);
 }
 .ink-panel .step p {
-  color: var(--soft);
+  color: var(--muted-on-dark);
 }
 .step-t {
   display: flex;
@@ -6084,7 +6136,7 @@ a.team-card-float:focus-visible {
 }
 
 /* --- capability catalog ---------------------------------------------------
-   Collapsible <details> rows, arranged two-up so 43 of them read as an
+   Collapsible <details> rows, arranged two-up so 52 of them read as an
    organized grid rather than one long single-file scroll. Two prior
    attempts overcorrected in opposite directions: one hid every row's detail
    behind a click with nothing else on screen (read as thin — several titles
@@ -6122,7 +6174,7 @@ a.team-card-float:focus-visible {
   list-style: none;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 13px 16px;
   transition: opacity 0.25s ease;
@@ -6144,19 +6196,34 @@ a.team-card-float:focus-visible {
   font-size: 10px;
   line-height: 1;
 }
-.cc-sum-title {
+.cc-sum-body {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cc-sum-title {
   font-family: var(--display);
   font-weight: 500;
   font-size: clamp(14.5px, 1.05vw, 16px);
   letter-spacing: -0.02em;
   line-height: 1.32;
 }
+/* The always-visible value line. A collapsed row that showed only its title
+   read as thin (several titles are two words), so every row now carries the
+   one-line promise even before it opens. It is real copy, so it uses --mid
+   (WCAG AA on every surface) rather than the lighter --soft accent. */
+.cc-sum-promise {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--mid);
+}
 .cc-row .pm {
   flex: 0 0 13px;
   position: relative;
   height: 13px;
+  margin-top: 3px;
 }
 .cc-row .pm::before,
 .cc-row .pm::after {
@@ -6226,7 +6293,7 @@ a.team-card-float:focus-visible {
 }
 .ink-panel .cc-chip,
 .ink-panel .cc-chip-inline {
-  color: var(--soft);
+  color: var(--muted-on-dark);
   border-color: var(--rule-dark);
 }
 .cc-count {
@@ -6234,7 +6301,7 @@ a.team-card-float:focus-visible {
   font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--soft);
+  color: var(--mid);
 }
 
 /* --- Command Center hero ----------------------------------------------------
@@ -6273,7 +6340,7 @@ a.team-card-float:focus-visible {
 }
 
 /* --- capability catalog: grouping ------------------------------------------
-   43 rows in one run is a wall; a header per category turns it into a list. */
+   52 rows in one run is a wall; a header per category turns it into a list. */
 .cc-group {
   display: flex;
   align-items: baseline;
@@ -6289,14 +6356,14 @@ a.team-card-float:focus-visible {
   color: var(--fg);
 }
 .cc-group-n {
-  color: var(--soft);
+  color: var(--mid);
 }
 .cc-group-b {
   margin-left: auto;
   letter-spacing: 0.04em;
   text-transform: none;
   font-size: 11.5px;
-  color: var(--soft);
+  color: var(--mid);
 }
 @media (max-width: 620px) {
   .cc-group-b {
@@ -6309,7 +6376,7 @@ a.team-card-float:focus-visible {
   margin-left: 10px;
   text-transform: none;
   letter-spacing: 0.04em;
-  color: var(--soft);
+  color: var(--mid);
 }
 
 /* --- .tag inside a reveal: the same Chromium trap .deck documents ----------
@@ -6536,6 +6603,114 @@ body.modal-open [data-dock] {
 }
 .cc-product-gallery {
   margin-top: clamp(32px, 5vw, 64px);
+}
+
+/* --- "What is running today" chapters -------------------------------------
+   Ten feature cards in one flat grid read as a single undifferentiated wall of
+   prose. Three labelled chapters give the section a story the reader can hold:
+   run the day, run the revenue, keep control. Each card leads with a plain
+   benefit headline and two sentences, replacing the release-note paragraphs. */
+.cc-chapters {
+  margin-top: clamp(34px, 5vw, 64px);
+  display: grid;
+  gap: clamp(34px, 4.5vw, 62px);
+}
+.cc-chapter-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+  padding-bottom: 14px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--rule);
+}
+.cc-chapter-rule {
+  flex: 0 0 34px;
+  align-self: center;
+  height: 2px;
+  border-radius: 2px;
+}
+.cc-chapter-n {
+  font-family: var(--util);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--mid);
+}
+.cc-chapter-t {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--heading);
+}
+.cc-chapter-b {
+  margin-left: auto;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--mid);
+}
+.cc-feat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+.cc-feat {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  padding: 22px 20px 24px;
+  background: color-mix(in srgb, var(--fg) 4%, transparent);
+  /* The card also runs the `.item-rv` entrance, whose `both` fill keeps
+     `transform` at the final keyframe and would swallow a `transform` lift on
+     hover. The standalone `translate` property composes alongside it. */
+  transition:
+    border-color 0.3s var(--ease),
+    background-color 0.3s var(--ease),
+    translate 0.3s var(--ease);
+}
+.cc-feat:hover {
+  border-color: color-mix(in srgb, var(--fg) 34%, transparent);
+  background: color-mix(in srgb, var(--fg) 7%, transparent);
+  translate: 0 -2px;
+}
+.cc-feat-n {
+  font-family: var(--util);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  color: var(--mid);
+}
+.cc-feat-t {
+  margin-top: 20px;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 1.2rem;
+  line-height: 1.12;
+  letter-spacing: -0.028em;
+  color: var(--heading);
+  text-wrap: balance;
+}
+.cc-feat-b {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--mid);
+  text-wrap: pretty;
+}
+@media (max-width: 720px) {
+  .cc-chapter-b {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc-feat {
+    transition: none;
+  }
+  .cc-feat:hover {
+    translate: none;
+  }
 }
 
 /* One declarative, bounded entrance for every committed docs route. Body

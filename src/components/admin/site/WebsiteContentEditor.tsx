@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { WebsitePage, WebsiteRichText } from "@/lib/site-studio/website-document";
 import { nativeTemplateDefaults } from "@/lib/site-studio/native-templates";
 import { servicePageTemplate } from "@/lib/site-studio/templates";
+import { WebsiteFormPicker } from "./WebsiteFormPicker";
 import {
   WebsiteFields,
   websiteButtonClass as button,
@@ -42,6 +43,35 @@ export function WebsiteContentEditor({
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-semibold">Page sections</h3>
+      {content.kind === "document" && (
+        <WebsiteFormPicker
+          disabled={rows.length >= 40}
+          onChoose={(form) => {
+            const id = `form-${crypto.randomUUID().slice(0, 8)}`;
+            onChange({
+              ...content,
+              document: {
+                ...content.document,
+                root: [
+                  ...content.document.root,
+                  {
+                    id,
+                    type: "section",
+                    styles: { paddingTop: "lg", paddingBottom: "lg", maxWidth: "narrow" },
+                    children: [
+                      {
+                        id: `${id}-input`,
+                        type: "form",
+                        props: { token: form.share_token, heading: form.name },
+                      },
+                    ],
+                  },
+                ],
+              },
+            });
+          }}
+        />
+      )}
       {rows.map((section, index) => (
         <details key={section.id} className="rounded-lg border border-[var(--admin-border)] p-3">
           <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium">

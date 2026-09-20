@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { LogoMark } from "./LogoMark";
+import { distributionProfile } from "@/lib/distribution/profile";
 
 interface LogoProps {
   name?: string;
@@ -33,7 +34,10 @@ export function Logo({
       href={href}
       onClick={onClick}
       aria-label={ariaLabel ?? `${name} home`}
-      className={cn("logo-link group inline-flex items-center gap-2.5", className)}
+      className={cn(
+        "logo-link group inline-flex min-w-0 max-w-full items-center gap-2.5",
+        className,
+      )}
     >
       {logoSrc ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -44,6 +48,13 @@ export function Logo({
           height={16}
           className={size === "sm" ? "h-[14px] w-7 object-contain" : "h-4 w-8 object-contain"}
         />
+      ) : distributionProfile() === "neutral" ? (
+        <span
+          aria-hidden
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--fg)] text-sm font-semibold text-[var(--bg)]"
+        >
+          {name.slice(0, 1)}
+        </span>
       ) : (
         <LogoMark className={size === "sm" ? "h-[14px] w-7" : "h-4 w-8"} />
       )}
@@ -53,7 +64,7 @@ export function Logo({
       <span
         aria-hidden
         className={cn(
-          "logo-word font-sans font-bold uppercase",
+          "logo-word min-w-0 font-sans font-bold uppercase",
           size === "sm" ? "text-base" : "text-lg",
           name.length > 20 && "max-w-[min(45vw,260px)] overflow-hidden",
         )}
@@ -62,7 +73,11 @@ export function Logo({
           .toUpperCase()
           .split("")
           .map((ch, i) => (
-            <span key={i} className="logo-letter" style={{ "--i": i } as CSSProperties}>
+            <span
+              key={i}
+              className="logo-letter whitespace-pre"
+              style={{ "--i": i } as CSSProperties}
+            >
               {ch}
             </span>
           ))}

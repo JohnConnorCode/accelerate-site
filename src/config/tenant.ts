@@ -22,6 +22,7 @@
  */
 
 import type { WorkspaceBrand } from "@/lib/revenue-os/branding-contract";
+import { distributionProfile } from "@/lib/distribution/profile";
 
 /** Legacy bootstrap fields stay required; live workspace presentation fields
  * come from the same validated brand contract used by documents and plugins. */
@@ -130,7 +131,7 @@ export interface TenantConfig {
  * Accelerate's bootstrap/default tenant and public marketing identity. Tenant
  * workspaces validate stored configuration against this same interface.
  */
-export const tenant: TenantConfig = {
+const agencyTenant: TenantConfig = {
   brand: {
     name: "Accelerate",
     domain: "acceleratewith.us",
@@ -190,6 +191,42 @@ export const tenant: TenantConfig = {
     supabaseProjectRef: null,
   },
 };
+
+/** Public bootstrap facts contain no secrets. Connected workspaces still use
+ * their saved tenant configuration, never this installation fallback. */
+const neutralName = process.env.NEXT_PUBLIC_BUSINESS_NAME || "Command Center";
+const neutralUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+export const tenant: TenantConfig =
+  distributionProfile() === "branded"
+    ? agencyTenant
+    : {
+        brand: {
+          name: neutralName,
+          domain: new URL(neutralUrl).hostname,
+          siteUrl: neutralUrl,
+          logoMark: neutralName.slice(0, 1).toUpperCase(),
+          accentColor: "#315c52",
+          tagline: "Your website and business, working together",
+          emailFooter: neutralName,
+        },
+        founder: {
+          name: "Owner",
+          fullName: "Workspace owner",
+          email: "owner@example.com",
+          systemActorEmail: "system@example.com",
+        },
+        capabilities: { publicBooking: false },
+        ai: {
+          businessDescriptor: `${neutralName}, an independently operated business workspace`,
+          voice: "Use clear, helpful language. Do not invent business facts.",
+          positioning:
+            "An owned website and business workspace with shared records, reviewed actions, and configurable integrations.",
+        },
+        booking: { schedulerUrl: null, url: `${neutralUrl}/`, path: "/" },
+        pipeline: { stageLabels: {} },
+        playbooks: [],
+        external: { vercelProjectUrl: null, supabaseProjectRef: null },
+      };
 
 /** Environment wins over configuration, so one deployment can be retargeted without a code change. */
 /** Resolve a configured playbook, or synthesize one from the key so a second

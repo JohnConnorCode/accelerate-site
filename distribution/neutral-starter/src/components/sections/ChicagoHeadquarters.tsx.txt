@@ -1,0 +1,4 @@
+// Original-installation headquarters never appear in a neutral starter.
+export function ChicagoHeadquarters(_props: { compact?: boolean }) {
+  return null;
+}

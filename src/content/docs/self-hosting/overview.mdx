@@ -1,7 +1,7 @@
 ---
 title: "Self-hosting quickstart"
-description: "Explore the real interface with zero credentials, then connect a workspace you actually control."
-updated: "2026-09-12"
+description: "Explore the real interface with zero credentials, then connect a workspace you control."
+updated: "2026-09-19"
 ---
 
 You can run the real Command Center interface before you've connected a single database or provider, which is the fastest way to decide whether this is worth setting up for real. A connected installation, when you're ready for one, adds your own workspace, authentication, and provider configuration on top of that same interface.
@@ -21,9 +21,13 @@ Open the local URL printed in the terminal, then visit `/demo/command-center`. C
 
 ## Start with your own business identity
 
-If you are creating a separate installation, export the neutral starter into a new directory with `node scripts/export-neutral-starter.mjs --output /absolute/new/workspace`. The exporter keeps the shared application and fictional demos while replacing business-owned content with empty collections and neutral placeholders.
+The full repository defaults to a neutral Command Center homepage. You receive the complete application, with Accelerate agency content disabled. Set `NEXT_PUBLIC_BUSINESS_NAME` and `NEXT_PUBLIC_SITE_URL` for your installation. This is one codebase: every installation, including ours, can enable bundled agency presentation with `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` or disable it with `neutral`. Keep build and runtime values aligned, then rebuild and deploy. Both profiles retain the editor, AI/MCP, plugins and workspace; hosting authorization is a separate concern.
 
-Open `src/config/tenant.ts` in that directory and replace the fictional Harbor Operations identity with your own business details. Follow `docs/self-hosting/NEUTRAL-DISTRIBUTION.md` for installation, hosting configuration, the export receipt and verification steps. Your source checkout stays intact, and provider connections remain yours to configure.
+Before a database is connected, **Open your workspace** shows a setup screen with links to the installation guide and fictional demo. Visiting `/admin/login` directly shows the same next steps. First-party analytics stays inactive on an unconfigured fork, so exploring the site does not require a database connection.
+
+After connecting your workspace, open Site Studio and choose **Edit installation website**. Update identity, theme, pages and navigation, connect published forms, then preview, save and publish. Website tools includes the setup sequence. Form responses use the existing review workflow, and private previews cannot submit. ChatGPT editing requires the owner-approved connection described in the [Site Studio guide](/docs/plugins/site-studio).
+
+An optional reduced export is available with `node scripts/export-neutral-starter.mjs --output /absolute/new/workspace`. It physically omits protected media and replaces business-owned content. It is not required to fork the complete product. Follow `docs/self-hosting/NEUTRAL-DISTRIBUTION.md` for both profiles, asset rights, hosting configuration and verification steps. Provider connections remain yours to configure.
 
 ## Connect a real workspace
 

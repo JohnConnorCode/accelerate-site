@@ -1,12 +1,22 @@
 ---
 title: "Draft public pages with Site Studio"
 description: "Create and edit website pages, review AI suggestions, and publish saved revisions."
-updated: "2026-09-13"
+updated: "2026-09-19"
 ---
 
-Open **Site Studio → Edit installation website** to create pages, edit content, preview changes and publish a saved revision. The installation owner needs an active admin membership and the Site Studio plugin enabled. Apply the installation migrations before enabling the editor. Other workspace admins can use their private page drafts without gaining control of the installation's public website.
+A website change needs a private place to prepare copy, inspect the layout and review the version to publish. Open **Site Studio → Edit installation website** for that workflow. Installation owners manage the public website; other workspace admins can use their private page drafts.
+
+<DocsFigure
+  src="/images/docs/plugins/site-studio.png"
+  width={1440}
+  height={1000}
+  alt="Site Studio, with the website editor entry point and private page drafts in the fictional Northline Roofing workspace."
+  caption="Site Studio, with the website editor entry point and private page drafts. The real interface uses fictional demo data in this image; follow the steps below in your own workspace."
+/>
 
 ## Create and edit a page
+
+A new full-repository fork starts with an editable Command Center homepage. Use Identity and Theme to make it your own, then customize the homepage sections or add pages. Agency content stays disabled unless the installer explicitly selects the branded distribution. Saved drafts and published revisions remain unchanged when the deployment profile changes.
 
 1. Select **Add page**, enter a title and page address, and choose a service, landing or article starter. **Clone page** copies the current page into a new address.
 2. Edit the page fields and search description. Open a section to change its text or appearance; add, reorder, hide supported native sections, or remove sections as needed. Article controls support headings, paragraphs, formatted text, lists, quotes, code and images.
@@ -35,13 +45,25 @@ AI changes must pass the same content validation as manual edits. Copy editing p
 
 Save your changes, then select **Review publication**. Review the saved page list and responsive previews before selecting **Publish saved revision**. The exact saved revision becomes public; subsequent draft edits stay private until another publication.
 
-**History** lists recent revisions. **Review rollback** restores a previously published version while preserving the current draft. **Unpublish** removes public website availability while retaining drafts and history. Review each confirmation before continuing. Scheduling and general-purpose AI/MCP publication tools are not provided by this editor.
+**History** lists recent revisions. **Review rollback** restores a previously published version while preserving the current draft. **Unpublish** removes public website availability while retaining drafts and history. Review each confirmation before continuing. The scoped MCP connection described below supports these same saved website operations; scheduled publication remains outside this editor.
+
+## Edit from ChatGPT
+
+When you want to describe a website change in conversation, the installation owner can connect ChatGPT to the same editor services. The connection covers pages, sections, copy, layouts, search metadata, navigation, branding, assets, collections, portable documents, publication and history. For example, ask it to clone Ledgerstone's bookkeeping page, revise its introduction and save a private draft, then review the returned changes before requesting publication.
+
+Ask the installer to follow the [ChatGPT connection setup](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/SITE-STUDIO-CHATGPT.md), then open **Site Studio → Connect ChatGPT** to review access. The connection lasts 30 days and can be revoked from that screen. The five editor tools read current content, prepare an exact preview, stage it, execute it under your delegation, and optionally request an AI suggestion. An outdated version requires a fresh preview, so concurrent edits remain protected.
+
+ChatGPT manages its write confirmations, while the server records which owner and connection delegated the action. Delegation permits saving, deleting content, publishing, unpublishing and restoring website revisions. Its scope excludes workspace records and the separate tenant-owned page draft list. Legacy workspace MCP keys retain their proposal-only write behavior. AI suggestions use the same model budget, price ceilings and generation limit as the editor; manual edits make no model request.
 
 If the network drops after a write, use **Retry same save** or the corresponding publication retry. It reuses the original request, avoiding duplicate revisions. An edit conflict preserves your local fields. **Export draft** before **Reload saved draft** if you want to retain a copy; reload asks before replacing local edits. Save and publish errors remain visible until resolved.
 
 Open **Website tools** for reload, import, export and the saved preview. On phones, switch between **Edit content** and **Preview page**, and use **Editing** to choose the content area. **Unpublish** is available inside **History**.
 
 ## Shared content, assets and collections
+
+For a service or landing page, open **Connect a form**, choose **Load published forms**, select a form from this workspace and choose **Add form section**. Publish the form in Form Builder first. The page uses the existing submission and review workflow, so you can inspect the response and accept it into intake from the same workspace. Preview forms display their connection without accepting responses; test the published page with controlled data after publication.
+
+The website supports eight distinct forms. When a form is archived, its module is disabled, or its connection is unavailable, the page displays an unavailable message. Reconnect the form or remove its section before saving or publishing again. Imported websites need form bindings from the destination workspace. Website tools links to Setup and the optional ChatGPT connection, and lists the steps from business identity through the first controlled submission. In neutral mode, use images under `public/site-assets/` or an approved HTTPS origin; the agency image namespaces are disabled.
 
 Use Identity, Navigation, Footer and Theme to edit shared branding, links and appearance. The preview and published output share their theme settings. Under Assets, add an image path or HTTPS image URL and an accessible description, then use it as a logo, sharing image or article image. The asset manager references existing image files; it does not upload files. An image still referenced by content cannot be removed.
 
@@ -60,6 +82,8 @@ The original Site Studio draft list remains available for tenant-owned service d
 In the [full admin demo](/demo/command-center), open the installation website editor to try creation, fictional AI suggestions, saving, publication receipts and rollback. Changes remain in that business scenario's browser session. They do not publish a live website, contact a provider or mutate production records. Switching scenarios isolates their drafts; resetting removes the scenario's changes.
 
 ## What to check
+
+Verify the exact preview and publication summary in ChatGPT before executing a change. Check the returned revision and receipt afterward, especially after a network interruption. Repeat an uncertain execution with the same action ID, digest and summary; if content changed, prepare and review a new command. ChatGPT client support and confirmation settings vary, so the installer must verify the intended client against the deployed connection before relying on it.
 
 If saving fails after an installation upgrade, ask the administrator to verify the
 application and database versions together. Saves use the verified server identity

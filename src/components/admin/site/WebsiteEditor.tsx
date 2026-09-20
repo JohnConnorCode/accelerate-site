@@ -220,6 +220,26 @@ export function WebsiteEditor() {
       >
         <div className="space-y-4 p-5">
           <h2 className="text-lg font-semibold">Website tools</h2>
+          <ol className="list-decimal space-y-2 pl-5 text-sm text-[var(--admin-muted)]">
+            <li>Set your business name in Identity and choose your colors and type in Theme.</li>
+            <li>Edit the homepage or add pages. Connect a published form from Page sections.</li>
+            <li>Review the phone and desktop previews, then save your private draft.</li>
+            <li>
+              Publish the saved revision. Submit a controlled response and review it in Form
+              Builder.
+            </li>
+          </ol>
+          <div className="flex flex-wrap gap-2">
+            <Link className={button} href="/admin/setup">
+              Check connections
+            </Link>
+            <Link className={button} href="/admin/site/connect">
+              Connect ChatGPT
+            </Link>
+            <Link className={button} href="/docs/plugins/site-studio">
+              Website guide
+            </Link>
+          </div>
           <div className="flex flex-wrap gap-2">
             <button
               className={button}

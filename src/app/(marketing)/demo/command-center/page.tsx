@@ -1,162 +1,232 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
+import { distributionProfile } from "@/lib/distribution/profile";
+import { ArrowRight } from "lucide-react";
 import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  GitBranch,
-  Layers,
-  SlidersHorizontal,
-} from "lucide-react";
-import { DEMO_SCENARIO_SHELL_NAMES, DEMO_SCENARIO_SUMMARIES } from "@/lib/admin/demo/scenarios";
+  DEMO_SCENARIO_SHELL_NAMES,
+  DEMO_SCENARIO_SUMMARIES,
+  type DemoScenarioId,
+} from "@/lib/admin/demo/scenarios";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
-import { DemoWorkspacePreview } from "@/components/admin/DemoWorkspacePreview";
-import { DemoStory } from "@/components/command-center/launcher/DemoStory";
-import styles from "@/components/command-center/launcher/launcher.module.css";
+import { WorkflowShowcase } from "@/components/command-center/WorkflowShowcase";
+import styles from "@/components/command-center/product.module.css";
 
 export const metadata: Metadata = {
-  title: "Try Command Center | Your business, connected",
+  title: "Explore a Command Center demo",
   description:
-    "See how an AI workspace brings customers, conversations and next steps together. Explore six interactive business demos, with no signup required.",
+    "Choose a fictional business and try the real workspace. Explore customer context, follow-up and shared work with no signup.",
   robots: { index: false, follow: false },
 };
 
-const examples = [
-  "Turn a customer inquiry into the next booked job.",
-  "Keep each client conversation connected to the case.",
-  "Stay on top of client work and upcoming deadlines.",
-  "Follow every buyer conversation through the pipeline.",
-  "Bring donor relationships and community work together.",
-  "Coordinate events, members and a growing community.",
-];
+const previews: Record<
+  DemoScenarioId,
+  { task: string; image: string; screen: string; explore: string[] }
+> = {
+  "northline-roofing": {
+    task: "Keep a customer inquiry connected to the next job.",
+    image: "northline-conversations.png",
+    screen: "Conversations",
+    explore: [
+      "Read a homeowner’s request",
+      "Open a customer conversation",
+      "Inspect an opportunity and its next action",
+    ],
+  },
+  "alder-ridge-law": {
+    task: "Follow an inquiry with the client’s context in view.",
+    image: "alder-pipeline.png",
+    screen: "Pipeline",
+    explore: [
+      "Explore the firm’s pipeline",
+      "Read the history behind an opportunity",
+      "Review assigned follow-up",
+    ],
+  },
+  "ledgerstone-advisory": {
+    task: "Coordinate client work and the commitments behind it.",
+    image: "ledgerstone-onboarding.png",
+    screen: "Client onboarding",
+    explore: [
+      "Review client records",
+      "Inspect tasks and upcoming commitments",
+      "Create a reviewed onboarding checklist",
+    ],
+  },
+  "hearthline-realty": {
+    task: "Keep buyer conversations and business activity connected.",
+    image: "hearthline-pipeline.png",
+    screen: "Pipeline",
+    explore: [
+      "Explore the buyer pipeline",
+      "Review the next customer action",
+      "Check the context behind a buyer’s next step",
+    ],
+  },
+  "common-table-network": {
+    task: "Bring community relationships and shared work together.",
+    image: "common-table-commitments.png",
+    screen: "Meeting commitments",
+    explore: [
+      "Explore supporter records",
+      "Turn meeting commitments into tasks",
+      "Review community follow-up tasks",
+    ],
+  },
+  superdebate: {
+    task: "Review customer billing alongside the work it supports.",
+    image: "superdebate-invoicing.png",
+    screen: "Invoicing",
+    explore: [
+      "Explore community relationships",
+      "Review the day’s work",
+      "Prepare and review a fictional invoice",
+    ],
+  },
+};
 
 export default function AdminDemoLauncher() {
   return (
-    <main className={`demo-launcher ${styles.page}`}>
-      <div className={styles.container}>
-        <header className={styles.hero}>
-          <div className={styles.heroCopy}>
-            <p className={styles.kicker}>
-              <span /> MEET YOUR COMMAND CENTER
-            </p>
-            <h1>
-              Your business.
-              <br />
-              <span>Working together.</span>
-            </h1>
-            <p className={styles.intro}>
-              Customers, conversations and AI in one workspace. See what needs attention, prepare
-              the next move, and give your team more time for the work that matters.
-            </p>
-            <div className={styles.heroActions}>
-              <Link href="/demo/command-center/northline-roofing/today" className={styles.primary}>
-                Try the demo <ArrowUpRight size={19} />
-              </Link>
-              <a href="#business-demos" className={styles.secondary}>
-                Find your business <ArrowDown size={16} />
-              </a>
-            </div>
-            <p className={styles.reassurance}>
-              <Check size={14} /> No signup. Explore with sample data.
-            </p>
-          </div>
-          <DemoStory />
-        </header>
-
-        <section className={styles.valueStrip} aria-label="Why Command Center">
-          <div>
-            <Layers />
-            <p>
-              <strong>One connected picture</strong>
-              <span>Customer history travels with the work.</span>
-            </p>
-          </div>
-          <div>
-            <SlidersHorizontal />
-            <p>
-              <strong>AI with your oversight</strong>
-              <span>Review proposed actions before they run.</span>
-            </p>
-          </div>
-          <div>
-            <GitBranch />
-            <p>
-              <strong>Built around your business</strong>
-              <span>Own the source. Extend the workspace.</span>
-            </p>
-          </div>
-        </section>
-
-        <section
-          id="business-demos"
-          className={styles.scenarios}
-          aria-labelledby="business-demos-title"
-        >
-          <div className={styles.sectionHeader}>
+    <main className={`${styles.page} demo-launcher`}>
+      <header className={styles.hero}>
+        <div className="wrap">
+          <div className={styles.intro}>
             <div>
-              <p className={styles.kicker}>SIX BUSINESSES. ROOM TO EXPLORE.</p>
-              <h2 id="business-demos-title">See yourself in the work.</h2>
+              <p className="label">Explore Command Center</p>
+              <h1 className={styles.title}>
+                Choose a business.
+                <br />
+                <em>See the work.</em>
+              </h1>
             </div>
-            <p>
-              Choose a business and step inside. Explore its customers, try an AI conversation, or
-              review the day’s priorities.
+            <div>
+              <p className={styles.lede}>
+                Step into the real workspace with fictional customers, conversations and tasks.
+                Choose an example close to your business and follow a piece of work through its
+                records.
+              </p>
+              <p className={styles.note}>
+                No signup. Changes stay in this browser session. Messages and other actions are
+                simulated.
+              </p>
+              <div className={styles.actions}>
+                <a href="#workflows" className={styles.primary}>
+                  Try a complete workflow <ArrowRight size={16} aria-hidden="true" />
+                </a>
+                <Link href="#business-demos" className={styles.secondary}>
+                  Browse all six businesses
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <section className={styles.section} id="workflows" aria-labelledby="demo-workflows-title">
+        <div className="wrap">
+          <p className="label">Three ways to try it</p>
+          <h2 className={styles.heading} id="demo-workflows-title">
+            Follow the work through to its result.
+          </h2>
+          <WorkflowShowcase />
+        </div>
+      </section>
+      <section
+        className={styles.section}
+        id="business-demos"
+        aria-labelledby="business-demos-title"
+      >
+        <div className="wrap">
+          <div className={styles.sectionIntro}>
+            <div>
+              <p className="label">Six fictional workspaces</p>
+              <h2 className={styles.heading} id="business-demos-title">
+                Start with a job you recognize.
+              </h2>
+            </div>
+            <p className={styles.lede}>
+              Each business uses the same platform with its own records and appearance. Open any
+              workspace and explore freely.
             </p>
           </div>
-          <div className={styles.scenarioGrid}>
-            {DEMO_SCENARIO_SUMMARIES.map((scenario, index) => (
-              <Link
-                key={scenario.id}
-                href={`/demo/command-center/${scenario.id}/today`}
-                className={`demo-launcher-card ${styles.scenarioCard}`}
-                aria-label={`Explore ${scenario.name} demo workspace`}
-              >
-                <div className={styles.scenarioIdentity}>
-                  <span className={styles.scenarioMark} style={{ background: scenario.accent }}>
-                    <DemoScenarioMark scenarioId={scenario.id} className="size-7" />
-                  </span>
-                  <span>{scenario.category}</span>
-                  <ArrowUpRight size={19} />
-                </div>
-                <h3>{DEMO_SCENARIO_SHELL_NAMES[scenario.id]}</h3>
-                <p>{examples[index]}</p>
-                <DemoWorkspacePreview scenarioId={scenario.id} />
-                <span className={styles.cardAction}>
-                  Explore this business <ArrowRight size={16} />
-                </span>
+          <div className={styles.demoGrid}>
+            {DEMO_SCENARIO_SUMMARIES.map((scenario) => {
+              const preview = previews[scenario.id];
+              return (
+                <article
+                  key={scenario.id}
+                  className={`${styles.card} ${styles.scenario} demo-launcher-card`}
+                >
+                  <div className={styles.scenarioHeading}>
+                    <p className="label">{scenario.category}</p>
+                    <DemoScenarioMark scenarioId={scenario.id} className="size-9" />
+                  </div>
+                  <h3>{DEMO_SCENARIO_SHELL_NAMES[scenario.id]}</h3>
+                  <p>{preview.task}</p>
+                  {distributionProfile() === "branded" && (
+                    <figure className={styles.figure}>
+                      <Image
+                        src={`/images/demo/${preview.image}`}
+                        alt={`${preview.screen} in the fictional ${scenario.name} workspace.`}
+                        width={1440}
+                        height={1000}
+                        sizes="(max-width: 760px) 100vw, 400px"
+                      />
+                      <figcaption className={styles.note}>
+                        {preview.screen} · Fictional demo data
+                      </figcaption>
+                    </figure>
+                  )}
+                  <ul aria-label={`Things to try in ${scenario.name}`}>
+                    {preview.explore.map((task) => (
+                      <li key={task}>{task}</li>
+                    ))}
+                  </ul>
+                  <div className={styles.actions}>
+                    <Link
+                      href={`/demo/command-center/${scenario.id}/today`}
+                      className={styles.primary}
+                      aria-label={`Explore ${scenario.name} demo workspace`}
+                    >
+                      Open this workspace <ArrowRight size={16} aria-hidden="true" />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+      <section className={styles.section}>
+        <div className="wrap">
+          <div className={styles.grid}>
+            <article className={styles.card}>
+              <p className="label">Make it useful</p>
+              <h3>Follow a complete workflow.</h3>
+              <p>
+                See which features and plugins to combine, what to set up and how to check the
+                result for your business.
+              </p>
+              <Link href="/docs/recipes" className={styles.textLink}>
+                Explore workflow recipes <ArrowRight size={16} aria-hidden="true" />
               </Link>
-            ))}
+            </article>
+            <article className={styles.card}>
+              <p className="label">Make it yours</p>
+              <h3>Build on the open-source platform.</h3>
+              <p>
+                Run the workspace yourself or extend it with a custom App, connector or plugin using
+                the shared business services.
+              </p>
+              <Link href="/docs/extend" className={styles.textLink}>
+                Read the builder guides <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </article>
           </div>
-          <p className={styles.demoNote}>
-            Every business is fictional. Your demo changes stay in this browser session, and
-            messages are simulated.
-          </p>
-        </section>
-
-        <section className={styles.closing} aria-labelledby="make-it-yours">
-          <div>
-            <p className={styles.kicker}>START WITH WHAT YOUR TEAM NEEDS</p>
-            <h2 id="make-it-yours">
-              Imagine this.
-              <br />
-              Built for your business.
-            </h2>
-            <p>
-              We help you find the right use for AI, build around your existing tools, and keep
-              improving the work with your team.
-            </p>
-          </div>
-          <div className={styles.closingActions}>
-            <Link href="/contact" className={styles.primary}>
-              Let’s talk about your business <ArrowUpRight size={18} />
-            </Link>
-            <Link href="/command-center" className={styles.secondary}>
-              Explore Command Center <ArrowRight size={16} />
-            </Link>
-            <p>From a focused automation to a complete workspace.</p>
-          </div>
-        </section>
-      </div>
+          <Link href="/command-center" className={styles.textLink}>
+            Explore the platform’s capabilities <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }

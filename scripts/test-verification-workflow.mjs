@@ -165,28 +165,58 @@ try {
     assert.notEqual(refused.status, 0);
   });
   reset();
+  check("navigation performance runs after parallel browser suites finish", () => {
+    const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
+    const command = "node scripts/qa-public-navigation-profile.mjs --services-only";
+    assert.equal(workflow.split(command).length, 2, "Exactly one performance run");
+    assert.ok(
+      workflow.indexOf(command) > workflow.indexOf('wait "$browser_pid"'),
+      "No competing browser group while measuring performance",
+    );
+    assert.match(
+      workflow,
+      /if ! node scripts\/qa-public-navigation-profile\.mjs --services-only; then browser_status=1; fi/,
+    );
+  });
   check("CI aggregate fails on every failed, cancelled or skipped dependency", () => {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
     assert.match(
       workflow,
-      /verify:\s+if: \$\{\{ always\(\) && !inputs\.admin_design_only \}\}\s+needs: \[checks, build, neutral-starter\]/,
+      /verify:\s+if: \$\{\{ always\(\) && !inputs\.admin_design_only && !inputs\.public_pages_only \}\}\s+needs: \[checks, build, full-product-fork, neutral-starter\]/,
     );
     assert.match(workflow, /admin_design_only:[\s\S]*?type: boolean\s+default: false/);
-    for (const job of ["checks", "build"])
-      assert.ok(workflow.includes(`${job}:\n    if: \${{ !inputs.admin_design_only }}`));
+    assert.match(workflow, /public_pages_only:[\s\S]*?type: boolean\s+default: false/);
+    assert.ok(workflow.includes(`build:\n    if: \${{ !inputs.admin_design_only }}`));
+    for (const job of ["checks", "full-product-fork", "neutral-starter"])
+      assert.ok(
+        workflow.includes(
+          `${job}:\n    if: \${{ !inputs.admin_design_only && !inputs.public_pages_only }}`,
+        ),
+      );
     assert.match(workflow, /admin-design:\s+if: \$\{\{ inputs\.admin_design_only \}\}/);
     const command = workflow.match(/run: (test "\$CHECKS_RESULT"[^\n]+)/)?.[1];
     assert.ok(command);
     for (const checks of ["success", "failure", "cancelled", "skipped"]) {
       for (const build of ["success", "failure", "cancelled", "skipped"]) {
         for (const neutral of ["success", "failure", "cancelled", "skipped"]) {
-          const result = spawnSync("sh", ["-c", command], {
-            env: { ...env, CHECKS_RESULT: checks, BUILD_RESULT: build, NEUTRAL_RESULT: neutral },
-          });
-          assert.equal(
-            result.status === 0,
-            checks === "success" && build === "success" && neutral === "success",
-          );
+          for (const fullFork of ["success", "failure", "cancelled", "skipped"]) {
+            const result = spawnSync("sh", ["-c", command], {
+              env: {
+                ...env,
+                CHECKS_RESULT: checks,
+                BUILD_RESULT: build,
+                NEUTRAL_RESULT: neutral,
+                FULL_FORK_RESULT: fullFork,
+              },
+            });
+            assert.equal(
+              result.status === 0,
+              checks === "success" &&
+                build === "success" &&
+                neutral === "success" &&
+                fullFork === "success",
+            );
+          }
         }
       }
     }
@@ -205,7 +235,7 @@ try {
     assert.equal(run("git", ["config", "--get", "core.hooksPath"]).status, 1);
     assert.match(readFileSync(legacyHook, "utf8"), /preserved legacy hook/);
   });
-  console.log(JSON.stringify({ result: "passed", cases, aggregateCombinations: 64 }));
+  console.log(JSON.stringify({ result: "passed", cases, aggregateCombinations: 256 }));
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }
