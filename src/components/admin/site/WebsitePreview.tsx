@@ -95,6 +95,7 @@ export function WebsitePreview({ pageId }: { pageId?: string }) {
             content={document.header}
             navLinks={document.navigation}
             brandName={document.identity.name}
+            showThemeToggle={false}
             logoSrc={document.assets.find((a) => a.id === document.identity.logoAssetId)?.src}
           />
           <WebsitePageContent

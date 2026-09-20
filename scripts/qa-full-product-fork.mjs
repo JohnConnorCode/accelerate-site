@@ -84,6 +84,7 @@ try {
     );
     await page.keyboard.press("Tab");
     assert.equal(await page.locator(":focus").innerText(), "Skip to main content");
+    await page.locator("h1").click();
     const accessibility = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
       .analyze();
@@ -157,8 +158,16 @@ try {
       JSON.stringify(saved.draft.document).includes("a".repeat(64)),
       "Binding persisted through the existing draft path",
     );
+    await page
+      .getByRole("group", { name: "Connect a form" })
+      .screenshot({ path: `${output}/form-picker-${width}.png` });
     if (width < 768) await page.getByRole("button", { name: "Preview page", exact: true }).click();
     const preview = page.frameLocator('iframe[title="Live website preview"]');
+    assert.equal(
+      await preview.getByRole("button", { name: /Switch to (dark|light) mode/ }).count(),
+      0,
+      "Preview and publication share the document-owned theme",
+    );
     await preview
       .getByText("Connected form. Submissions are disabled in this preview.", { exact: true })
       .waitFor();

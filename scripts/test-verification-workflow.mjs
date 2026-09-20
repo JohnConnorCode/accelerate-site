@@ -169,7 +169,7 @@ try {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
     assert.match(
       workflow,
-      /verify:\s+if: \$\{\{ always\(\) && !inputs\.admin_design_only \}\}\s+needs: \[checks, build, neutral-starter\]/,
+      /verify:\s+if: \$\{\{ always\(\) && !inputs\.admin_design_only \}\}\s+needs: \[checks, build, full-product-fork, neutral-starter\]/,
     );
     assert.match(workflow, /admin_design_only:[\s\S]*?type: boolean\s+default: false/);
     for (const job of ["checks", "build"])
@@ -180,13 +180,24 @@ try {
     for (const checks of ["success", "failure", "cancelled", "skipped"]) {
       for (const build of ["success", "failure", "cancelled", "skipped"]) {
         for (const neutral of ["success", "failure", "cancelled", "skipped"]) {
-          const result = spawnSync("sh", ["-c", command], {
-            env: { ...env, CHECKS_RESULT: checks, BUILD_RESULT: build, NEUTRAL_RESULT: neutral },
-          });
-          assert.equal(
-            result.status === 0,
-            checks === "success" && build === "success" && neutral === "success",
-          );
+          for (const fullFork of ["success", "failure", "cancelled", "skipped"]) {
+            const result = spawnSync("sh", ["-c", command], {
+              env: {
+                ...env,
+                CHECKS_RESULT: checks,
+                BUILD_RESULT: build,
+                NEUTRAL_RESULT: neutral,
+                FULL_FORK_RESULT: fullFork,
+              },
+            });
+            assert.equal(
+              result.status === 0,
+              checks === "success" &&
+                build === "success" &&
+                neutral === "success" &&
+                fullFork === "success",
+            );
+          }
         }
       }
     }
@@ -205,7 +216,7 @@ try {
     assert.equal(run("git", ["config", "--get", "core.hooksPath"]).status, 1);
     assert.match(readFileSync(legacyHook, "utf8"), /preserved legacy hook/);
   });
-  console.log(JSON.stringify({ result: "passed", cases, aggregateCombinations: 64 }));
+  console.log(JSON.stringify({ result: "passed", cases, aggregateCombinations: 256 }));
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }
