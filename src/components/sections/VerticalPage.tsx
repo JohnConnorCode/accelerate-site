@@ -1,5 +1,6 @@
 import { distributionProfile } from "@/lib/distribution/profile";
 import Link from "next/link";
+import { IndustryPilot } from "./IndustryPilot";
 import type { Vertical } from "@/lib/types";
 import { IndustryRecipes } from "@/components/command-center/WorkflowRecipes";
 import { BookCallButton } from "@/components/v2/studio/primitives";
@@ -59,37 +60,7 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
           </div>
         </div>
       </section>
-      {vertical.pilot && (
-        <section className={styles.section} aria-labelledby="pilot-title">
-          <div className="wrap">
-            <div className={styles.sectionIntro}>
-              <div>
-                <p className="label">Make the first project measurable</p>
-                <h2 id="pilot-title" className={styles.heading}>
-                  Decide what better looks like.
-                </h2>
-              </div>
-              <p className={styles.lede}>
-                Pick one workflow, one responsible person and a review date. Record how it works
-                today, then try the agreed change on a small set of real work before expanding it.
-              </p>
-            </div>
-            <dl className={styles.outcomes}>
-              <div>
-                <dt>Measure the starting point</dt>
-                <dd>{vertical.pilot.measure}</dd>
-              </div>
-              <div>
-                <dt>Check the handoff</dt>
-                <dd>{vertical.pilot.readyWhen}</dd>
-              </div>
-            </dl>
-            <p className={styles.note}>
-              These are suggested evaluation criteria. Your baseline and pilot determine the result.
-            </p>
-          </div>
-        </section>
-      )}
+      <IndustryPilot pilot={vertical.pilot} />
       <IndustryRecipes industry={vertical.slug} />
       <section className={styles.section}>
         <div className="wrap">

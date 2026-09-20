@@ -265,6 +265,16 @@ jobs:
 
       - name: Install browser for first-run verification
         run: npx playwright install --with-deps chromium
+      - name: Verify industry and Chicago release pages
+        run: node scripts/qa-chicago-industries.mjs
+      - name: Retain industry and Chicago browser evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: industry-chicago-browser-evidence
+          path: /tmp/accelerate-chicago-qa/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Verify credential-free first-run journey
         env:
           # NextURL canonicalizes loopback IPs to localhost. Keep the server's
