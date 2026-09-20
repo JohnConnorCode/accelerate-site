@@ -1,7 +1,8 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { spawnSync } from "node:child_process";
+import { execFile, spawnSync } from "node:child_process";
+import { promisify } from "node:util";
 import { createServer } from "node:net";
 
 /**
@@ -423,14 +424,12 @@ try {
 
   // AC1 concurrency: two workers race one pending item in parallel
   // transactions. The advisory lock serializes them; exactly one wins.
-  const [raceResultA, raceResultB] = await Promise.all([
-    new Promise((resolve) =>
-      resolve(spawnSync(psql, [...args, "-t", "-A", "-f", raceA], { encoding: "utf8" })),
+  const runConcurrent = promisify(execFile);
+  const [raceResultA, raceResultB] = await Promise.all(
+    [raceA, raceB].map((file) =>
+      runConcurrent(psql, [...args, "-t", "-A", "-f", file], { timeout: 30000 }),
     ),
-    new Promise((resolve) =>
-      resolve(spawnSync(psql, [...args, "-t", "-A", "-f", raceB], { encoding: "utf8" })),
-    ),
-  ]);
+  );
   const outcomes = [
     String(raceResultA.stdout).trim().split("\n").at(-1),
     String(raceResultB.stdout).trim().split("\n").at(-1),

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { distributionProfile } from "@/lib/distribution/profile";
 import { ArrowRight } from "lucide-react";
 import {
   DEMO_SCENARIO_SHELL_NAMES,
@@ -161,18 +162,20 @@ export default function AdminDemoLauncher() {
                   </div>
                   <h3>{DEMO_SCENARIO_SHELL_NAMES[scenario.id]}</h3>
                   <p>{preview.task}</p>
-                  <figure className={styles.figure}>
-                    <Image
-                      src={`/images/demo/${preview.image}`}
-                      alt={`${preview.screen} in the fictional ${scenario.name} workspace.`}
-                      width={1440}
-                      height={1000}
-                      sizes="(max-width: 760px) 100vw, 400px"
-                    />
-                    <figcaption className={styles.note}>
-                      {preview.screen} · Fictional demo data
-                    </figcaption>
-                  </figure>
+                  {distributionProfile() === "branded" && (
+                    <figure className={styles.figure}>
+                      <Image
+                        src={`/images/demo/${preview.image}`}
+                        alt={`${preview.screen} in the fictional ${scenario.name} workspace.`}
+                        width={1440}
+                        height={1000}
+                        sizes="(max-width: 760px) 100vw, 400px"
+                      />
+                      <figcaption className={styles.note}>
+                        {preview.screen} · Fictional demo data
+                      </figcaption>
+                    </figure>
+                  )}
                   <ul aria-label={`Things to try in ${scenario.name}`}>
                     {preview.explore.map((task) => (
                       <li key={task}>{task}</li>

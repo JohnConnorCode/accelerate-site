@@ -98,6 +98,16 @@ try {
           .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
           .analyze();
         assert.deepEqual(accessibility.violations, [], "Accessible setup screen");
+        await page.getByRole("link", { name: "Explore the fictional demo", exact: true }).focus();
+        await page.keyboard.press("Enter");
+        await page.getByRole("heading", { level: 1 }).waitFor();
+        assert.equal(new URL(page.url()).pathname, "/demo/command-center");
+        assert.equal(
+          await page.locator('img[src*="%2Fimages%2F"], img[src^="/images/"]').count(),
+          0,
+          "Neutral demo chooser does not request protected screenshots",
+        );
+        await captureNeutral(page, `${label}-chooser`);
         const demo = base + "/demo/command-center/northline-roofing";
         await page.goto(demo + "/pipeline");
         await page.getByPlaceholder("Search company, person, or email").waitFor();

@@ -169,11 +169,17 @@ try {
     const workflow = readFileSync(resolve(source, ".github/workflows/ci.yml"), "utf8");
     assert.match(
       workflow,
-      /verify:\s+if: \$\{\{ always\(\) && !inputs\.admin_design_only \}\}\s+needs: \[checks, build, full-product-fork, neutral-starter\]/,
+      /verify:\s+if: \$\{\{ always\(\) && !inputs\.admin_design_only && !inputs\.public_pages_only \}\}\s+needs: \[checks, build, full-product-fork, neutral-starter\]/,
     );
     assert.match(workflow, /admin_design_only:[\s\S]*?type: boolean\s+default: false/);
-    for (const job of ["checks", "build"])
-      assert.ok(workflow.includes(`${job}:\n    if: \${{ !inputs.admin_design_only }}`));
+    assert.match(workflow, /public_pages_only:[\s\S]*?type: boolean\s+default: false/);
+    assert.ok(workflow.includes(`build:\n    if: \${{ !inputs.admin_design_only }}`));
+    for (const job of ["checks", "full-product-fork", "neutral-starter"])
+      assert.ok(
+        workflow.includes(
+          `${job}:\n    if: \${{ !inputs.admin_design_only && !inputs.public_pages_only }}`,
+        ),
+      );
     assert.match(workflow, /admin-design:\s+if: \$\{\{ inputs\.admin_design_only \}\}/);
     const command = workflow.match(/run: (test "\$CHECKS_RESULT"[^\n]+)/)?.[1];
     assert.ok(command);

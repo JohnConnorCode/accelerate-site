@@ -201,6 +201,7 @@ jobs:
           echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
           PATH="$(pg_config --bindir):$PATH" npm run test:tenant-lifecycle:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
@@ -400,7 +401,7 @@ jobs:
           retention-days: 7
 
   full-product-fork:
-    if: ${{ !inputs.admin_design_only }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

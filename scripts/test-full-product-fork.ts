@@ -105,6 +105,7 @@ async function main() {
   assert.doesNotMatch(JSON.stringify(document), /acceleratewith|John Connor|\/images\//i);
   for (const path of [
     "/about",
+    "/chicago",
     "/services",
     "/team/john-connor",
     "/learn/example",

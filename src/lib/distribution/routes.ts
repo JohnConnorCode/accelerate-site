@@ -4,6 +4,7 @@ export const AGENCY_ROUTE_ROOTS = [
   "about",
   "blog",
   "changelog",
+  "chicago",
   "contact",
   "industries",
   "learn",

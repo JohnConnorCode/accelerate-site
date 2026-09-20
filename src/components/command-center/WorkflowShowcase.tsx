@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { demoWorkflows } from "@/content/demo-workflows";
+import { distributionProfile } from "@/lib/distribution/profile";
 import styles from "./product.module.css";
 
 export function WorkflowShowcase() {
@@ -44,25 +45,27 @@ export function WorkflowShowcase() {
           </Link>
         </div>
         <div>
-          <figure className={styles.figure}>
-            <a
-              href={workflow.image}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`Enlarge ${workflow.business} workflow screenshot`}
-            >
-              <Image
-                src={workflow.image}
-                alt={`${workflow.business}: ${workflow.result}`}
-                width={1440}
-                height={1000}
-                sizes="(max-width: 760px) 100vw, 650px"
-              />
-            </a>
-            <figcaption className={styles.note}>
-              Real interface. Fictional records and simulated actions.
-            </figcaption>
-          </figure>
+          {distributionProfile() === "branded" && (
+            <figure className={styles.figure}>
+              <a
+                href={workflow.image}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Enlarge ${workflow.business} workflow screenshot`}
+              >
+                <Image
+                  src={workflow.image}
+                  alt={`${workflow.business}: ${workflow.result}`}
+                  width={1440}
+                  height={1000}
+                  sizes="(max-width: 760px) 100vw, 650px"
+                />
+              </a>
+              <figcaption className={styles.note}>
+                Real interface. Fictional records and simulated actions.
+              </figcaption>
+            </figure>
+          )}
           <div className={styles.result}>
             <p className="label">The result to check</p>
             <p>{workflow.result}</p>

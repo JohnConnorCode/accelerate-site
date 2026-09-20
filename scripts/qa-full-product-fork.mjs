@@ -37,6 +37,7 @@ try {
   assert.ok(log.includes("Ready in"), "Production server ready");
   for (const path of [
     "/about",
+    "/chicago",
     "/services",
     "/team/john-connor",
     "/images/john.jpg",

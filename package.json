@@ -319,6 +319,8 @@
     "test:agent-checkpoint": "node scripts/test-agent-checkpoint.mjs",
     "test:work-board-resume": "node scripts/test-work-board-resume.mjs",
     "agent:run": "node scripts/agent-run.mjs",
+    "test:phase-b-gates": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-phase-b-gates.ts",
+    "test:phase-b-proof:postgres": "node scripts/test-phase-b-proof-postgres.mjs",
     "qa:admin-core": "node scripts/resource-run.mjs node scripts/qa-admin-core.mjs",
     "stack:up": "node scripts/stack.mjs up",
     "stack:down": "node scripts/stack.mjs down",

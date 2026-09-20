@@ -183,7 +183,7 @@ For coding agents and humans: add a module, an integration adapter, a plugin, or
 - [Plugins](https://www.acceleratewith.us/docs/extend/plugins) (updated 2026-09-19): Register a plugin manifest with tools and triggers that still route through real governance.
 - [Add an AI tool](https://www.acceleratewith.us/docs/extend/tools) (updated 2026-09-19): Register a schema, an impact tier, and a service boundary; a mutating tool always proposes.
 - [MCP concepts](https://www.acceleratewith.us/docs/extend/mcp) (updated 2026-09-19): Bounded reads, staged writes, and tenant isolation, using the exact same registry the UI uses.
-- [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-09): Point an external assistant at the right workspace, and verify a read before trusting it.
+- [Connect an MCP client](https://www.acceleratewith.us/docs/extend/mcp-clients) (updated 2026-09-19): Point an external assistant at the right workspace, and verify a read before trusting it.
 - [Inbound webhooks](https://www.acceleratewith.us/docs/extend/webhooks) (updated 2026-09-19): A tenant-scoped public route that checks the signature before anything touches real data.
 
 ## Self-hosting
