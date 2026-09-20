@@ -1,19 +1,31 @@
 ---
 title: "The Command Center"
-description: "What the Command Center is, what it is not, and when a smaller solution wins."
-updated: "2026-09-04"
+description: "Where ranked work, records, approvals, and audit history live after you sign in at /admin."
+updated: "2026-09-20"
 ---
 
-The Command Center is one integrated solution we build when a business benefits from a shared operating layer: its work, records, and decisions in one place with durable context.
+After [installation](/docs/self-hosting), sign in at `/admin`. The Command Center is the authenticated operator shell. Navigation labels below match `src/lib/admin/navigation.ts`. A fictional walkthrough lives at `/demo/command-center` and does not write to your workspace.
 
-## What it is
+## Today
 
-A single place to run the business. Inquiries, pipeline, communication, tasks, and reporting connect instead of living in separate tools that nobody fully trusts.
+**Today** (`/admin/today`) is the ranked queue. Each row has a reason and a recommended next action. Tasks from inbound capture show **Complete task** and **Snooze until tomorrow**. Proposed actions show **Review before approving**. If the live read fails, the page title stays **Today** and the subtitle is **The founder queue could not be assembled yet.** Retry the read, or open Setup Center. No work is hidden by that failure.
 
-## What it is not
+## Pipeline
 
-It is not the company, the default deliverable, or a requirement for working with us. It is not a SaaS platform you rent, and it is not a lead-generation service.
+**Pipeline** (`/admin/pipeline`) is the opportunity board. A captured lead lands in the **New** column on the default seed (`new`). Open a card to see the contact, company, next action, **Verified activity**, and **Related work**. Stage moves go through the pipeline service; leaving a won or lost stage requires a reason.
 
-## When a smaller solution wins
+## Inbox
 
-For many businesses the right answer is a focused workflow, an AI agent, an integration, a custom tool, or training. We recommend the smallest solution that solves the real problem, and we say so when the Command Center would be more than you need.
+**Inbox** (`/admin/inbox`) is unowned or untriaged work: leads, contacts, chat handoffs, tasks, proposals, partners, coworker items, and actions. Use it when Today is filtered or a task is easy to miss.
+
+## Setup Center and Integrations
+
+**Setup Center** (`/admin/setup`) reports connection and readiness. Status values are ready, action, degraded, optional, and disabled. Configuration is not delivery health. **Integrations** (`/admin/integrations`) lists capabilities, evidence, and planned providers that remain unavailable until their card ships.
+
+## Activity
+
+**Activity** (`/admin/activity`) is the audit history: actor, origin, target, and before/after for material changes. Opportunity-level **Verified activity** on the record page is the canonical activity ledger, including capture receipts such as **Manual lead captured**.
+
+## Approvals versus work
+
+Work is a task you complete or snooze. An approval is a queued action that must be confirmed before it executes. [Workspace, record, work, approval, and receipt](/docs/start) defines those words. [Your first result](/docs/start/first-value) walks one inquiry through both the task and the receipt.
