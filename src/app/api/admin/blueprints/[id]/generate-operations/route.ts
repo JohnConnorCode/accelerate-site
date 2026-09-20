@@ -5,12 +5,11 @@ import { generateWorkspaceOperations } from "@/lib/revenue-os/workspace-architec
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Compose boards, views, navigation, workflow proposals and Coworker
+ * Compose boards, views, navigation, and capability-cited workflow/Coworker
  * recommendations from an approved/applied Workspace Blueprint. Reuses the
- * existing Kanban column primitive and the existing action-queue approval
- * path (`proposeAction`) — this route never writes lifecycle state itself
- * and never auto-applies from chat; workflow/Coworker proposals still need
- * their own approval through the normal action-queue surface.
+ * existing Kanban column primitive. This route never writes lifecycle state,
+ * never auto-applies from chat, and never enqueues action types the executor
+ * cannot run.
  */
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin();
@@ -41,7 +40,11 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not generate operations";
     console.warn("Blueprint generate-operations failed:", message);
-    const status = /not found/i.test(message) ? 404 : /approved or applied/i.test(message) ? 409 : 400;
+    const status = /not found/i.test(message)
+      ? 404
+      : /approved or applied|current approved Blueprint version/i.test(message)
+        ? 409
+        : 400;
     return NextResponse.json({ error: message }, { status });
   }
 }

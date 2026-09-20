@@ -301,17 +301,8 @@ async function main() {
   db.tables.kanban_columns = [];
   db.tables.action_queue = [];
 
-  const proposedActionTypes: string[] = [];
   const adapters = {
     collectContext: async () => liveContext(),
-    proposeAction: async (
-      _client: SupabaseClient,
-      proposal: { actionType: string; dedupeKey?: string },
-    ) => {
-      proposedActionTypes.push(proposal.actionType);
-      db.tables.action_queue!.push({ id: randomUUID(), ...proposal });
-      return { id: randomUUID() };
-    },
   };
 
   // A draft/backlog Blueprint cannot generate operations (mirrors apply's
@@ -329,6 +320,15 @@ async function main() {
     /approved or applied/,
   );
 
+  await assert.rejects(
+    generateWorkspaceOperations(
+      client,
+      { tenantId, blueprintId, version: 2, requestKey: randomUUID(), actorEmail: "founder@example.com" },
+      adapters,
+    ),
+    /current approved Blueprint version/,
+  );
+
   const requestKey = randomUUID();
   const first = await generateWorkspaceOperations(
     client,
@@ -336,9 +336,15 @@ async function main() {
     adapters,
   );
   assert.equal(first.replayed, false);
-  assert.ok(proposedActionTypes.includes("generate_workspace_workflow"));
-  assert.ok(proposedActionTypes.includes("recommend_workspace_coworker"));
-  assert.equal(proposedActionTypes.length, 2, "one workflow + one ready coworker; blocked coworker is not proposed");
+  const readyWorkflow = first.receipt.workflows.find((item) => item.key === "won_welcome");
+  assert.equal(readyWorkflow?.status, "ready");
+  assert.equal(readyWorkflow?.actionId, null, "recommendations are not unregistered action types");
+  const readyCoworker = first.receipt.coworkers.find((item) => item.key === "sales_coworker");
+  assert.equal(readyCoworker?.status, "ready");
+  assert.equal(readyCoworker?.actionId, null);
+  const blockedCoworker = first.receipt.coworkers.find((item) => item.key === "sms_coworker");
+  assert.equal(blockedCoworker?.status, "blocked");
+  assert.equal(db.tables.action_queue!.length, 0, "no action_queue rows for unregistered types");
 
   const pipelineColumns = db.tables.kanban_columns.filter(
     (row) => row.board_key === "pipeline" && row.tenant_id === tenantId,
@@ -378,7 +384,7 @@ async function main() {
     adapters,
   );
   assert.equal(second.replayed, true);
-  assert.equal(proposedActionTypes.length, 2, "replay must not create new action_queue proposals");
+  assert.equal(db.tables.action_queue!.length, 0, "replay must not enqueue unregistered actions");
   assert.equal(
     db.tables.kanban_columns.filter((row) => row.board_key === "pipeline" && row.tenant_id === tenantId).length,
     2,
@@ -392,6 +398,21 @@ async function main() {
   );
   assert.equal(sameRequestReplay.replayed, true);
   assert.deepEqual(sameRequestReplay.receipt, first.receipt);
+
+  await assert.rejects(
+    generateWorkspaceOperations(
+      client,
+      {
+        tenantId,
+        blueprintId,
+        version: 1,
+        requestKey: "x".repeat(181),
+        actorEmail: "founder@example.com",
+      },
+      adapters,
+    ),
+    /1 to 180 characters/,
+  );
 
   console.log("test:workspace-architect-generated-operations passed");
 }
