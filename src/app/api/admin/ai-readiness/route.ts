@@ -11,7 +11,7 @@ type AssessmentRow = {
   created_at: string;
   unlocked_at: string | null;
   previewed_at: string | null;
-  profile: { bottleneck?: string } | null;
+  profile: { bottleneck?: string; websiteUrl?: string } | null;
   utm_source: string | null;
   utm_medium: string | null;
   utm_campaign: string | null;
@@ -75,11 +75,17 @@ export async function GET(request: NextRequest) {
       score < 40 ? "0–39" : score < 65 ? "40–64" : score < 85 ? "65–84" : "85–100",
     ),
   );
+  const websiteAudited = rows.filter((row) => Boolean(row.profile?.websiteUrl?.trim())).length;
 
   return NextResponse.json({
     schemaReady: true,
     windowDays: days,
-    funnel: { starts: rows.length, previews: previewed.length, unlocked: unlocked.length },
+    funnel: {
+      starts: rows.length,
+      previews: previewed.length,
+      unlocked: unlocked.length,
+      websiteAudited,
+    },
     averageScore,
     completionRate: rows.length ? Math.round((unlocked.length / rows.length) * 1000) / 10 : null,
     bottlenecks,

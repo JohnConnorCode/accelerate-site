@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { calculateReadiness, readinessQuestions } from "../src/lib/ai-readiness";
 import { createAIReadinessPdf } from "../src/lib/ai-readiness-pdf";
+import { auditWebsite } from "../src/lib/ai-readiness-website";
 
 const profile = {
   businessType: "professional services",
@@ -37,7 +38,31 @@ assert.ok(incompleteReport.coverage < 100);
 const pdf = createAIReadinessPdf(strongReport);
 assert.equal(pdf.subarray(0, 8).toString(), "%PDF-1.4");
 assert.ok(pdf.includes(Buffer.from("AI READINESS ACTION PLAN")));
+const websitePdf = createAIReadinessPdf({
+  ...strongReport,
+  websiteAudit: {
+    url: "https://example.com",
+    checkedAt: new Date().toISOString(),
+    status: "completed",
+    score: 80,
+    summary: "The homepage scored 80/100 on visible foundations.",
+    categories: [{ key: "seo", label: "Search foundations", score: 80, summary: "Title found." }],
+    findings: [],
+    note: "Surface audit only.",
+  },
+});
+assert.ok(websitePdf.includes(Buffer.from("Website snapshot")));
 
 console.log(
   "AI readiness scoring, unknown-answer handling, recommendation selection and PDF output passed.",
 );
+
+void auditWebsite("http://localhost")
+  .then((audit) => {
+    assert.equal(audit?.status, "blocked");
+    console.log("Website audit SSRF guard passed.");
+  })
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });

@@ -1,6 +1,15 @@
 import Link from "next/link";
-import { ArrowUpRight, Check, CircleHelp, Download, ShieldCheck, Sparkles } from "lucide-react";
-import type { ReadinessReport } from "@/lib/ai-readiness";
+import {
+  AlertTriangle,
+  ArrowUpRight,
+  Check,
+  CircleHelp,
+  Download,
+  Globe2,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
+import type { ReadinessReport, WebsiteAudit } from "@/lib/ai-readiness";
 
 function scoreText(score: number | null) {
   return score === null ? "—" : `${score}`;
@@ -80,6 +89,8 @@ export function AIReadinessReport({
           </div>
         ))}
       </section>
+
+      {report.websiteAudit && <WebsiteAuditSection audit={report.websiteAudit} />}
 
       <section className="grid gap-8 lg:grid-cols-[1.2fr_.8fr]">
         <div className="space-y-4">
@@ -232,5 +243,105 @@ export function AIReadinessReport({
         </div>
       </div>
     </div>
+  );
+}
+
+function WebsiteAuditSection({ audit }: { audit: WebsiteAudit }) {
+  const completed = audit.status === "completed";
+  return (
+    <section className="rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
+      <div className="flex flex-wrap items-start justify-between gap-5">
+        <div>
+          <div className="flex items-center gap-3">
+            <Globe2 className="h-5 w-5" />
+            <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
+              Website snapshot
+            </p>
+          </div>
+          <h2 className="mt-3 max-w-2xl break-all font-display text-2xl font-semibold tracking-[-0.035em] sm:text-3xl">
+            {audit.url}
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--soft)]">{audit.summary}</p>
+        </div>
+        {audit.score !== null && (
+          <div className="shrink-0 rounded-2xl bg-[var(--ink)] px-5 py-4 text-right text-[var(--paper)]">
+            <p className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-white/60">
+              Surface score
+            </p>
+            <p className="mt-1 font-display text-4xl font-semibold tabular-nums">
+              {audit.score}
+              <span className="ml-1 text-lg text-white/50">/100</span>
+            </p>
+          </div>
+        )}
+      </div>
+      {!completed ? (
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm leading-6">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
+          <p>
+            {audit.note} {audit.summary}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {audit.categories.map((item) => (
+              <div
+                key={item.key}
+                className="rounded-xl border border-black/10 p-4 dark:border-white/10"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">{item.label}</p>
+                  <p className="font-semibold tabular-nums">{item.score}</p>
+                </div>
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+                  <span
+                    className="block h-full rounded-full bg-[var(--ink)] dark:bg-white"
+                    style={{ width: `${item.score}%` }}
+                  />
+                </div>
+                <p className="mt-3 text-xs leading-5 text-[var(--soft)]">{item.summary}</p>
+              </div>
+            ))}
+          </div>
+          {audit.findings.length > 0 && (
+            <div className="mt-7 border-t border-black/10 pt-6 dark:border-white/10">
+              <p className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--soft)]">
+                What to improve first
+              </p>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {audit.findings.map((finding) => (
+                  <article
+                    key={`${finding.category}-${finding.title}`}
+                    className="rounded-xl border border-black/10 p-4 dark:border-white/10"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`mt-1 h-2 w-2 shrink-0 rounded-full ${finding.severity === "priority" ? "bg-amber-500" : finding.severity === "strength" ? "bg-emerald-500" : "bg-[var(--ink)] dark:bg-white"}`}
+                      />
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--soft)]">
+                          {finding.category}
+                        </p>
+                        <h3 className="mt-1 font-semibold">{finding.title}</h3>
+                        <p className="mt-2 text-sm leading-5 text-[var(--soft)]">
+                          {finding.detail}
+                        </p>
+                        <p className="mt-2 text-sm leading-5">
+                          <span className="font-semibold">Next:</span> {finding.action}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+      <p className="mt-6 text-xs leading-5 text-[var(--soft)]">
+        {audit.note} Checked {new Date(audit.checkedAt).toLocaleDateString()}.
+      </p>
+    </section>
   );
 }

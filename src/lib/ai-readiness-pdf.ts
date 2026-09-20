@@ -119,6 +119,37 @@ function buildPages(report: ReadinessReport) {
     );
     y -= 29;
   }
+  if (report.websiteAudit) {
+    rule();
+    heading("Website snapshot");
+    paragraph(`${report.websiteAudit.url}. ${report.websiteAudit.summary}`, 10, 15);
+    if (report.websiteAudit.score !== null) {
+      text(
+        page.commands,
+        MARGIN,
+        y,
+        `SURFACE SCORE  ${report.websiteAudit.score}/100`,
+        10,
+        "0.1 0.1 0.1",
+      );
+      y -= 20;
+      for (const item of report.websiteAudit.categories) {
+        ensure(28);
+        text(page.commands, MARGIN, y, `${item.label}  ${item.score}/100`, 9, "0.1 0.1 0.1");
+        paragraph(item.summary, 9, 13);
+      }
+      if (report.websiteAudit.findings.length) {
+        text(page.commands, MARGIN, y, "FIRST IMPROVEMENTS", 9, "0.28 0.28 0.26");
+        y -= 16;
+        for (const finding of report.websiteAudit.findings.slice(0, 4)) {
+          ensure(42);
+          paragraph(`${finding.title}. ${finding.action}`, 9, 13);
+        }
+      }
+    } else {
+      paragraph(report.websiteAudit.note, 9, 13);
+    }
+  }
   rule();
   heading("Where to start");
   for (const [index, recommendation] of report.recommendations.entries()) {
