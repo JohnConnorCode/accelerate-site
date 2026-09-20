@@ -102,3 +102,5 @@ Saved web/PDF reports remain usable when email delivery needs attention.
 An isolated PostgreSQL regression proves concurrent completion, immutable replay,
 rollback, authenticated tenant RLS, service-only writes and repeatable migration.
 The original readiness migration remains unchanged; the repair is additive.
+
+The expanded combined tree exceeds the unchanged 3 GiB process-group budget with Turbopack, locally and in the full-product fork job. The production build defaults to Next's supported Webpack compiler, which passed the same application build locally. CPU and memory limits remain unchanged; no process outside the owned job is stopped. Both parser resolution and output tracing support this build path.
