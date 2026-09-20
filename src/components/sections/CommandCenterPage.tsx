@@ -1,3 +1,4 @@
+import { PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
@@ -50,24 +51,24 @@ const jobs = [
 export function CommandCenterPageContent() {
   return (
     <div className={styles.page}>
-      <section className={styles.hero} id="top">
+      <PublicHeroEntrance className={styles.hero} id="top">
         <div className="wrap">
           <div className={styles.intro}>
             <div>
               <p className="label">Command Center · Open-source business platform</p>
-              <h1 className={styles.title}>
+              <h1 className={styles.title} data-hero-step={1}>
                 Your customer work.
                 <br />
                 <em>Connected.</em>
               </h1>
             </div>
             <div>
-              <p className={styles.lede}>
+              <p className={styles.lede} data-hero-step={2}>
                 Keep customer conversations, follow-up and delivery in one workspace your team and
                 AI can use. Adapt the open-source platform to your process, with Accelerate’s help
                 or your own builders.
               </p>
-              <div className={styles.actions}>
+              <div className={styles.actions} data-hero-step={3}>
                 <Link href="/demo/command-center#workflows" className={styles.primary}>
                   Try a business workflow <ArrowRight size={16} aria-hidden="true" />
                 </Link>
@@ -89,7 +90,7 @@ export function CommandCenterPageContent() {
             </p>
           </div>
         </div>
-      </section>
+      </PublicHeroEntrance>
 
       <section className={styles.section} id="how">
         <div className="wrap">

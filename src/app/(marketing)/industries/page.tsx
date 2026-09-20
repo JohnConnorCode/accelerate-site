@@ -1,3 +1,4 @@
+import { PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import Link from "next/link";
 import { publishedWebsiteOverride, publishedWebsiteMetadata } from "@/lib/site-studio/website-page";
 import { seoMetadata } from "@/lib/og";
@@ -30,21 +31,21 @@ export default async function IndustriesPage() {
           ),
         }}
       />
-      <section className={styles.hero}>
+      <PublicHeroEntrance className={styles.hero}>
         <div className="wrap">
           <p className="label">
             {verticals.length} industries · {workflowRecipes.length} practical recipes
           </p>
           <div className={`${styles.intro} ${styles.directoryIntro}`}>
-            <h1 className={styles.title}>
+            <h1 className={styles.title} data-hero-step={1}>
               Start with the work <em>your business does.</em>
             </h1>
             <div>
-              <p className={styles.lede}>
+              <p className={styles.lede} data-hero-step={2}>
                 Find a workflow your team recognizes. We help choose the right AI project, build and
                 connect the tools, and support the people doing the work.
               </p>
-              <div className={styles.actions}>
+              <div className={styles.actions} data-hero-step={3}>
                 <BookCallButton label="Discuss your business" location="industries_hero" />
                 <Link className={styles.secondary} href="/docs/recipes">
                   Browse the recipes
@@ -60,7 +61,7 @@ export default async function IndustriesPage() {
             ))}
           </nav>
         </div>
-      </section>
+      </PublicHeroEntrance>
       {groups.map((group, index) => (
         <section id={`industry-group-${index}`} key={group} className={styles.section}>
           <div className="wrap">

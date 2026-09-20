@@ -1,3 +1,4 @@
+import { PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { distributionProfile } from "@/lib/distribution/profile";
 import Link from "next/link";
 import { IndustryPilot } from "./IndustryPilot";
@@ -9,19 +10,21 @@ import styles from "@/components/command-center/product.module.css";
 export function VerticalPage({ vertical }: { vertical: Vertical }) {
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
+      <PublicHeroEntrance className={styles.hero}>
         <div className="wrap">
           <Link className={styles.textLink} href="/industries">
             All industries
           </Link>
           <p className="label mt-8">AI &amp; automation for {vertical.name}</p>
           <div className={`${styles.intro} ${styles.directoryIntro}`}>
-            <h1 className={styles.title}>
+            <h1 className={styles.title} data-hero-step={1}>
               {vertical.heroHeadlineWhite} <em>{vertical.heroHeadlineGold}</em>
             </h1>
             <div>
-              <p className={styles.lede}>{vertical.heroSubheadline}</p>
-              <div className={styles.actions}>
+              <p className={styles.lede} data-hero-step={2}>
+                {vertical.heroSubheadline}
+              </p>
+              <div className={styles.actions} data-hero-step={3}>
                 <BookCallButton
                   label="Discuss your workflow"
                   location={`industry_${vertical.slug}_hero`}
@@ -37,7 +40,7 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
             </div>
           </div>
         </div>
-      </section>
+      </PublicHeroEntrance>
       <section className={styles.section}>
         <div className="wrap">
           <div className={styles.sectionIntro}>

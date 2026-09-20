@@ -1,3 +1,4 @@
+import { PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import { chicagoHeadquarters } from "@/content/chicago";
 import { distributionProfile } from "@/lib/distribution/profile";
 import { notFound } from "next/navigation";
@@ -74,20 +75,20 @@ export default async function ChicagoPage() {
           ),
         }}
       />
-      <section className={styles.hero}>
+      <PublicHeroEntrance className={styles.hero}>
         <div className="wrap">
           <p className="label">Chicago &amp; the suburbs</p>
           <div className={styles.intro}>
-            <h1 className={styles.title}>
+            <h1 className={styles.title} data-hero-step={1}>
               AI consulting for Chicago. <em>Built around your business.</em>
             </h1>
             <div>
-              <p className={styles.lede}>
+              <p className={styles.lede} data-hero-step={2}>
                 AI consulting and business automation for Chicago small businesses. We help you
                 choose the right project, build around your existing tools, and support the team
                 using it.
               </p>
-              <div className={styles.actions}>
+              <div className={styles.actions} data-hero-step={3}>
                 <BookCallButton label="Discuss your Chicago business" location="chicago_hero" />
                 <Link className={styles.secondary} href="#projects">
                   Explore practical projects
@@ -99,7 +100,7 @@ export default async function ChicagoPage() {
             </div>
           </div>
         </div>
-      </section>
+      </PublicHeroEntrance>
       <section className={styles.section}>
         <div className="wrap">
           <div className={styles.sectionIntro}>
