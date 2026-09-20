@@ -510,7 +510,7 @@ assert.match(
 );
 assert.match(
   JSON.parse(packageJson).scripts.build,
-  /^node scripts\/resource-run\.mjs node scripts\/next-release\.mjs build$/,
+  /^node scripts\/resource-run\.mjs node scripts\/next-release\.mjs build --webpack$/,
   "Local production builds must retain both the resource gate and release identity used by start",
 );
 assert.match(

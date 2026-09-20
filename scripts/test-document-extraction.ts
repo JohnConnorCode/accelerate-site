@@ -1,6 +1,35 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { extractDocument, DOCUMENT_MAX_BYTES } from "../src/lib/revenue-os/document-extraction";
+import { readFileSync, readdirSync } from "node:fs";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import {
+  extractDocument as sourceExtractDocument,
+  DOCUMENT_MAX_BYTES,
+} from "../src/lib/revenue-os/document-extraction";
+// Exercise the actual server bundle too: source tests cannot detect bundler path rewrites.
+function compiledExtractor(): typeof sourceExtractDocument {
+  const require = createRequire(resolve("package.json"));
+  require(resolve(".next/server/app/api/admin/knowledge/documents/route.js"));
+  const runtime = require(resolve(".next/server/webpack-runtime.js"));
+  let parser: string | undefined;
+  for (const file of readdirSync(".next/server/chunks").filter((file) => file.endsWith(".js"))) {
+    const chunk = require(resolve(".next/server/chunks", file));
+    if (!chunk.modules) continue;
+    runtime.C(chunk);
+    for (const [id, factory] of Object.entries(chunk.modules)) {
+      if (String(factory).includes("Use PDF, DOCX, plain text or Markdown")) parser = id;
+    }
+  }
+  assert.ok(parser, "Document parser must exist in the server bundle");
+  const extract = Object.values(runtime(parser)).find(
+    (value) => typeof value === "function" && String(value).includes("Upload a nonempty document"),
+  );
+  assert.equal(typeof extract, "function");
+  return extract as typeof sourceExtractDocument;
+}
+const extractDocument = process.argv.includes("--compiled")
+  ? compiledExtractor()
+  : sourceExtractDocument;
 function pdf(content: string) {
   const stream = `BT /F1 12 Tf 50 700 Td (${content}) Tj ET`;
   const objects = [

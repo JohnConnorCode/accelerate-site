@@ -300,7 +300,7 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
     "src/lib/revenue-os/ai-operations.ts": "ae39bc1112700f7af976bdf68a1308d7c720747ed82191d589817ba78b4aa945",
     "src/lib/revenue-os/ai-stream-contract.ts": "813ce466f99ba479b50cfee912921003a8e21bf812dba9e16494a4df3b5d00c7",
-    "src/lib/revenue-os/ai-tools.ts": "b4bf73e64e9216dfbdd68f761aede623a4e0609a548150c52c7aae1a169c2b59",
+    "src/lib/revenue-os/ai-tools.ts": "331da267e2f4c43c52ca5213a44f2681edfb31c6b46f9f242a00df548b80eb39",
     "src/lib/revenue-os/analytics.ts": "9214e72876cce37f295a123f5e025d385908b2f82038543f22e0eadc893b9b1a",
     "src/lib/revenue-os/architect-understanding.ts": "5e0764b46aaacd1f9d4e9d519d38348f8617b2d639fc3e4716b50de84ea39a18",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",

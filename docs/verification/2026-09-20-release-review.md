@@ -75,7 +75,7 @@ The inbound responder now requires its v3 standing-policy approval. Do not silen
 renew approval during deployment. Source/index availability, provider configuration,
 model execution and measured learning quality remain distinct readiness signals.
 
-Production ledger inspection found the readiness assessment migration already applied. Its exact immutable SQL and catalog entry are retained for checksum compatibility. The feature is reconciled with safety repairs rather than removed from production. The only pending migrations are connected learning, knowledge documents and learning signals; every existing checksum matches.
+Production ledger inspection found the readiness assessment migration already applied. Its exact immutable SQL and catalog entry are retained for checksum compatibility. The feature is reconciled with safety repairs rather than removed from production. The connected-learning, knowledge-document, learning-signal and atomic-readiness migrations were subsequently applied through the checked catalog. All 940 live schema checks passed; receipt `b600d4c5-581f-4288-8275-5d8b80a62865` records contract `revenue-os.2026-09-28.2`.
 
 ## Readiness integration repairs
 
@@ -104,3 +104,5 @@ rollback, authenticated tenant RLS, service-only writes and repeatable migration
 The original readiness migration remains unchanged; the repair is additive.
 
 The expanded combined tree exceeds the unchanged 3 GiB process-group budget with Turbopack, locally and in the full-product fork job. The production build defaults to Next's supported Webpack compiler, which passed the same application build locally. CPU and memory limits remain unchanged; no process outside the owned job is stopped. Both parser resolution and output tracing support this build path.
+
+Compiled document extraction now has a CI regression covering PDF, DOCX, cancellation and invalid input against the actual server bundle. Final integration also removes a layout-constant circular import and updates the agent-loop fixture for shared knowledge search.
