@@ -10,7 +10,6 @@ import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Dock } from "@/components/home/Dock";
-import { distributionProfile } from "@/lib/distribution/profile";
 import { createNeutralWebsite } from "@/lib/site-studio/neutral-website";
 
 export function MarketingChrome({

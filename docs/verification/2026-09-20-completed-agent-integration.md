@@ -92,6 +92,10 @@ blocked.” Successful read access does not prove deployment permission.
 The original installation must explicitly set
 `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` before its next build. Fresh forks stay
 neutral by default. No production environment setting is changed by this merge.
+Read-only environment-name inspection confirms the production profile setting is
+absent; the four required database/owner variable names are present. Values and
+secrets were not printed. Initial integration CI also caught a duplicate profile
+import from the overlapping branches; the shared import is now declared once.
 
 Before release, verify the five new migrations against the intended database,
 the branded production environment, hosting eligibility and recovery. Live
