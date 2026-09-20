@@ -2,6 +2,7 @@ import "server-only";
 import { createRequire } from "node:module";
 import { Worker } from "node:worker_threads";
 import { pathToFileURL } from "node:url";
+import { dirname, join } from "node:path";
 
 export const DOCUMENT_MAX_BYTES = 4 * 1024 * 1024;
 export const DOCUMENT_MIME_TYPES = [
@@ -69,8 +70,10 @@ export async function extractDocument(
       workerData: {
         data,
         mime,
-        pdfPath: pathToFileURL(parserRequire.resolve("pdfjs-dist/legacy/build/pdf.mjs")).href,
-        docxPath: require.resolve("mammoth"),
+        pdfPath: pathToFileURL(
+          join(dirname(parserRequire.resolve("pdfjs-dist/package.json")), "legacy/build/pdf.mjs"),
+        ).href,
+        docxPath: parserRequire.resolve("mammoth"),
       },
       resourceLimits: { maxOldGenerationSizeMb: 128, maxYoungGenerationSizeMb: 32 },
     },
