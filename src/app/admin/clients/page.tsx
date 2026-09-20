@@ -4,13 +4,14 @@ import { adminPageName } from "@/lib/admin/navigation";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
-import { Search, ArrowRight } from "lucide-react";
+import { Search } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { fetchJson } from "@/lib/admin/fetchJson";
+import { isInteractiveTarget } from "@/lib/admin/interaction";
 
 interface Client {
   id: string;
@@ -171,7 +172,7 @@ export default function ClientsPage() {
             <table className="admin-table w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]">
-                  {["Business", "Contact", "Industry", "MRR", "Status", "Since", ""].map(
+                  {["Business", "Contact", "Industry", "MRR", "Status", "Since"].map(
                     (label, index) => (
                       <th
                         key={label}
@@ -189,16 +190,21 @@ export default function ClientsPage() {
                   <tr
                     key={client.id}
                     data-client-row={client.id}
+                    tabIndex={0}
+                    aria-label={`Open ${client.business_name}`}
                     onClick={(event) => {
-                      if (
-                        !(event.target instanceof Element) ||
-                        event.target.closest("a,button,input,select,textarea")
-                      )
-                        return;
+                      if (isInteractiveTarget(event.target)) return;
                       if (window.getSelection()?.toString()) return;
                       navigation.push(`/admin/clients/${client.id}`);
                     }}
-                    className="cursor-pointer border-b border-[var(--admin-border)] transition-colors last:border-b-0 hover:bg-[var(--admin-surface-subtle)]"
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        navigation.push(`/admin/clients/${client.id}`);
+                      }
+                    }}
+                    className="cursor-pointer border-b border-[var(--admin-border)] transition-colors last:border-b-0 hover:bg-[var(--admin-surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)]"
                   >
                     <td className="px-3 py-2.5">
                       <Link
@@ -234,15 +240,6 @@ export default function ClientsPage() {
                       {client.contract_start
                         ? new Date(client.contract_start).toLocaleDateString()
                         : new Date(client.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <Link
-                        href={`/admin/clients/${client.id}`}
-                        aria-label={`Open ${client.business_name}`}
-                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-[var(--admin-muted)] hover:bg-[var(--admin-surface-subtle)] focus-visible:outline focus-visible:outline-2"
-                      >
-                        <ArrowRight className="size-4" />
-                      </Link>
                     </td>
                   </tr>
                 ))}

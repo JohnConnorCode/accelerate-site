@@ -206,9 +206,6 @@ export default function ChatLeadsPage() {
                   <th className="hidden px-4 py-3 text-left text-xs font-semibold uppercase text-white-muted md:table-cell">
                     Received
                   </th>
-                  <th className="w-12 px-4 py-3">
-                    <span className="sr-only">Expand</span>
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -229,14 +226,19 @@ export default function ChatLeadsPage() {
                             onClick={() => setExpandedId(expanded ? null : lead.id)}
                             aria-expanded={expanded}
                             aria-controls={panelId}
-                            className="text-left"
+                            className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-elevated"
                           >
-                            <span className="block font-medium text-white-primary">
-                              {lead.name}
+                            <span className="min-w-0">
+                              <span className="block font-medium text-white-primary">{lead.name}</span>
+                              <span className="mt-0.5 block break-all text-xs text-white-muted">
+                                {lead.email}
+                              </span>
                             </span>
-                            <span className="mt-0.5 block break-all text-xs text-white-muted">
-                              {lead.email}
-                            </span>
+                            {expanded ? (
+                              <ChevronUp className="h-4 w-4 shrink-0 text-white-muted" aria-hidden="true" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 shrink-0 text-white-muted" aria-hidden="true" />
+                            )}
                           </button>
                         </td>
                         <td className="px-4 py-3 text-white-secondary">
@@ -256,22 +258,6 @@ export default function ChatLeadsPage() {
                         >
                           {relativeTime(lead.created_at)}
                         </td>
-                        <td className="px-4 py-3">
-                          <button
-                            type="button"
-                            onClick={() => setExpandedId(expanded ? null : lead.id)}
-                            aria-expanded={expanded}
-                            aria-controls={panelId}
-                            aria-label={`${expanded ? "Collapse" : "Open"} conversation with ${lead.name}`}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white-muted transition-[color,background-color,transform] hover:bg-white/5 hover:text-white-primary active:scale-[0.96]"
-                          >
-                            {expanded ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                          </button>
-                        </td>
                       </motion.tr>
                       <AnimatePresence initial={false}>
                         {expanded && (
@@ -282,7 +268,7 @@ export default function ChatLeadsPage() {
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <td colSpan={5} className="bg-bg-elevated px-4 py-4">
+                            <td colSpan={4} className="bg-bg-elevated px-4 py-4">
                               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-white-muted">
                                   Conversation

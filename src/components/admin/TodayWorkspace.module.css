@@ -100,12 +100,6 @@
 .card[data-today-module="attention"] .cardHeader h2 {
   font-size: 20px;
 }
-.card[data-today-module="attention"] .rowAction {
-  background: var(--admin-action);
-  color: var(--admin-action-ink);
-  border-radius: var(--admin-control-radius);
-  padding-inline: 14px;
-}
 .card[data-today-module="changes"],
 .card[data-today-module="upcoming"],
 .card[data-today-module="handling"] {
@@ -324,6 +318,11 @@
   min-width: 0;
   flex: 1;
   text-align: left;
+  width: 100%;
+  min-height: 44px;
+  cursor: pointer;
+  border-radius: var(--admin-control-radius);
+  padding: 4px;
 }
 .rowMain:hover strong {
   text-decoration: underline;
@@ -362,11 +361,6 @@
 .urgent {
   background: color-mix(in srgb, var(--admin-warning) 12%, var(--admin-surface));
   color: var(--admin-ink);
-}
-.rowAction {
-  align-self: center;
-  flex-shrink: 0;
-  padding-inline: 8px;
 }
 .quiet {
   padding: 4px 18px 12px;

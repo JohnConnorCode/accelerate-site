@@ -28,6 +28,7 @@ import { StatusBadge } from "./StatusBadge";
 import { Pagination } from "./Pagination";
 import { EmptyState } from "./EmptyState";
 import { LeadDetail } from "./LeadDetail";
+import { isInteractiveTarget } from "@/lib/admin/interaction";
 
 interface Lead {
   id: string;
@@ -542,6 +543,8 @@ export function LeadsTable({
               const score = calculateLeadScore(lead);
               const scoreColor = getScoreColor(score);
               const label = getScoreLabel(score);
+              const expanded = expandedId === lead.id;
+              const panelId = `lead-detail-${lead.id}`;
 
               return (
                 <Fragment key={lead.id}>
@@ -549,10 +552,24 @@ export function LeadsTable({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.03 }}
-                    className="border-b border-border-glass hover:bg-white/[0.02] cursor-pointer transition-colors"
-                    onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
+                    tabIndex={0}
+                    aria-label={`Open ${lead.contact_name}`}
+                    aria-expanded={expanded}
+                    aria-controls={panelId}
+                    className="border-b border-border-glass cursor-pointer transition-colors hover:bg-white/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--gold-base)]"
+                    onClick={(event) => {
+                      if (isInteractiveTarget(event.target)) return;
+                      setExpandedId(expanded ? null : lead.id);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setExpandedId(expanded ? null : lead.id);
+                      }
+                    }}
                   >
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-4 py-3">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(lead.id)}
@@ -566,7 +583,6 @@ export function LeadsTable({
                         <p className="text-white-primary font-medium">{lead.contact_name}</p>
                         <Link
                           href={`/admin/contacts/${encodeURIComponent(lead.contact_email)}`}
-                          onClick={(e) => e.stopPropagation()}
                           className="text-xs text-white-muted hover:text-gold-light transition-colors"
                         >
                           {lead.contact_email}
@@ -599,8 +615,9 @@ export function LeadsTable({
                     </td>
                   </motion.tr>
                   <AnimatePresence>
-                    {expandedId === lead.id && (
+                    {expanded && (
                       <motion.tr
+                        id={panelId}
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}

@@ -2,9 +2,11 @@
 
 import { adminPageName } from "@/lib/admin/navigation";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -13,6 +15,7 @@ import { EmptyState } from "@/components/admin/EmptyState";
 import { ProposalEditor } from "@/components/admin/ProposalEditor";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
+import { isInteractiveTarget } from "@/lib/admin/interaction";
 
 interface Proposal {
   id: string;
@@ -55,7 +58,8 @@ export default function ProposalsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
   const [generating] = useState(false);
-  const deepLinkHandled = useRef(false);
+  const searchParams = useSearchParams();
+  const navigation = useAdminNavigation();
 
   const fetchProposals = useCallback(async () => {
     try {
@@ -82,14 +86,20 @@ export default function ProposalsPage() {
   }, [fetchProposals]);
 
   useEffect(() => {
-    const requestedId = new URLSearchParams(window.location.search).get("proposal");
-    if (!requestedId || deepLinkHandled.current) return;
+    const requestedId = searchParams.get("proposal");
     const requested = proposals.find((proposal) => proposal.id === requestedId);
-    if (requested) {
-      deepLinkHandled.current = true;
-      setSelectedProposal(requested);
-    }
-  }, [proposals]);
+    setSelectedProposal(requested ?? null);
+  }, [proposals, searchParams]);
+
+  const openProposal = (proposal: Proposal) => {
+    setSelectedProposal(proposal);
+    navigation.push(`/admin/proposals?proposal=${encodeURIComponent(proposal.id)}`, "preserve");
+  };
+
+  const closeProposal = () => {
+    setSelectedProposal(null);
+    navigation.replace("/admin/proposals", "preserve");
+  };
 
   const handleSave = async (updates: Record<string, unknown>) => {
     try {
@@ -130,7 +140,7 @@ export default function ProposalsPage() {
         }),
       });
       if (data.proposal) {
-        setSelectedProposal(data.proposal);
+        openProposal(data.proposal);
         await fetchProposals();
       }
     } catch (err) {
@@ -147,28 +157,6 @@ export default function ProposalsPage() {
     );
   }
 
-  if (selectedProposal) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="mb-4">
-          <button
-            onClick={() => setSelectedProposal(null)}
-            className="inline-flex items-center gap-1.5 text-xs text-white-muted hover:text-white-secondary transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back to Proposals
-          </button>
-        </div>
-        <PageHeader title={selectedProposal.title} subtitle={selectedProposal.client_name} />
-        <ProposalEditor proposal={selectedProposal} onSave={handleSave} />
-      </motion.div>
-    );
-  }
-
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
@@ -177,8 +165,9 @@ export default function ProposalsPage() {
         actions={
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={handleCreateBlank}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gold-gradient hover:brightness-110 transition-[filter,transform] cursor-pointer"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-gold-gradient px-3 text-sm font-medium transition-[filter,transform] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
             >
               + New Proposal
             </button>
@@ -214,55 +203,108 @@ export default function ProposalsPage() {
       {proposals.length === 0 ? (
         <EmptyState message="No proposals yet. Create one from a lead or start blank." />
       ) : (
-        <GlassCard hover="none">
-          <div className="overflow-x-auto">
-            <table className="admin-table w-full text-sm">
-              <thead>
-                <tr className="border-b border-border-glass">
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase">Title</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase">Client</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">
-                    Monthly
-                  </th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">
-                    One-Time
-                  </th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase">Status</th>
-                  <th className="text-left px-3 py-2 text-xs text-white-muted uppercase hidden sm:table-cell">
-                    Created
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {proposals.map((proposal, i) => (
-                  <motion.tr
-                    key={proposal.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="border-b border-border-glass last:border-b-0 hover:bg-white/[0.02] transition-colors cursor-pointer"
-                    onClick={() => setSelectedProposal(proposal)}
-                  >
-                    <td className="px-3 py-2.5 text-white-primary font-medium">{proposal.title}</td>
-                    <td className="px-3 py-2.5 text-white-secondary">{proposal.client_name}</td>
-                    <td className="px-3 py-2.5 text-emerald-400 hidden sm:table-cell">
-                      ${proposal.total_monthly?.toLocaleString() || "0"}/mo
-                    </td>
-                    <td className="px-3 py-2.5 text-white-secondary hidden sm:table-cell">
-                      ${proposal.total_one_time?.toLocaleString() || "0"}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <StatusBadge status={statusMap[proposal.status] || proposal.status} />
-                    </td>
-                    <td className="px-3 py-2.5 text-white-muted text-xs hidden sm:table-cell">
-                      {new Date(proposal.created_at).toLocaleDateString()}
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
+          <div className={selectedProposal ? "min-w-0 hidden lg:block" : "min-w-0"}>
+            <GlassCard hover="none">
+              <div className="overflow-x-auto">
+                <table className="admin-table w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border-glass">
+                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">Title</th>
+                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">Client</th>
+                      <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
+                        Monthly
+                      </th>
+                      <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
+                        One-Time
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">Status</th>
+                      <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
+                        Created
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {proposals.map((proposal, i) => (
+                      <motion.tr
+                        key={proposal.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.03 }}
+                        tabIndex={0}
+                        aria-label={`Open ${proposal.title}`}
+                        aria-selected={selectedProposal?.id === proposal.id}
+                        className="cursor-pointer border-b border-border-glass transition-colors hover:bg-white/[0.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] last:border-b-0"
+                        onClick={(event) => {
+                          if (isInteractiveTarget(event.target)) return;
+                          openProposal(proposal);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.target !== event.currentTarget) return;
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            openProposal(proposal);
+                          }
+                        }}
+                      >
+                        <td className="px-3 py-2.5 font-medium text-white-primary">{proposal.title}</td>
+                        <td className="px-3 py-2.5 text-white-secondary">{proposal.client_name}</td>
+                        <td className="hidden px-3 py-2.5 text-emerald-400 2xl:table-cell">
+                          ${proposal.total_monthly?.toLocaleString() || "0"}/mo
+                        </td>
+                        <td className="hidden px-3 py-2.5 text-white-secondary 2xl:table-cell">
+                          ${proposal.total_one_time?.toLocaleString() || "0"}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <StatusBadge status={statusMap[proposal.status] || proposal.status} />
+                        </td>
+                        <td className="hidden px-3 py-2.5 text-xs text-white-muted 2xl:table-cell">
+                          {new Date(proposal.created_at).toLocaleDateString()}
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </GlassCard>
           </div>
-        </GlassCard>
+          <section
+            className={selectedProposal ? "min-w-0 block" : "min-w-0 hidden lg:block"}
+            aria-label="Proposal details"
+          >
+            {selectedProposal ? (
+              <div className="min-w-0 space-y-4">
+                <button
+                  type="button"
+                  onClick={closeProposal}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-white-muted transition-colors hover:bg-white/5 hover:text-white-primary focus-visible:outline focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] lg:hidden"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to Proposals
+                </button>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white-muted">
+                    Selected proposal
+                  </p>
+                  <h2 className="mt-1 text-lg font-semibold text-white-primary">
+                    {selectedProposal.title}
+                  </h2>
+                  <p className="text-sm text-white-muted">{selectedProposal.client_name}</p>
+                </div>
+                <ProposalEditor proposal={selectedProposal} onSave={handleSave} />
+              </div>
+            ) : (
+              <GlassCard hover="none" className="hidden min-h-56 place-items-center text-center lg:grid">
+                <div>
+                  <p className="text-sm font-semibold text-white-primary">Select a proposal</p>
+                  <p className="mt-1 text-xs text-white-muted">
+                    Choose a row to edit its content, pricing, status, or share link.
+                  </p>
+                </div>
+              </GlassCard>
+            )}
+          </section>
+        </div>
       )}
     </motion.div>
   );
