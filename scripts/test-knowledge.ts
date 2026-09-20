@@ -178,9 +178,10 @@ async function runTests() {
     assert.equal(companyChunk?.source, "canonical_record");
     assert.equal(companyChunk?.confidence, 1.0);
 
-    const noteChunk = result.chunks.find((c) => c.entityType === "note");
+    const noteChunk = result.chunks.find((c) => c.title === "Pricing alignment note");
     assert.ok(noteChunk);
     assert.equal(noteChunk?.source, "founder_note");
+    assert.equal(noteChunk?.entityType, "note");
     assert.equal(noteChunk?.confidence, 0.95);
     assert.equal(noteChunk?.occurredAt, "2026-08-15T12:00:00.000Z");
   }
@@ -215,7 +216,7 @@ async function runTests() {
     assert.equal(result.found, true);
     const noteChunk = result.chunks.find((c) => c.entityType === "note");
     assert.ok(noteChunk);
-    assert.ok(noteChunk?.discrepancy?.includes("Canonical record governs"));
+    assert.ok(noteChunk?.discrepancy?.includes("neither is auto-resolved"));
     assert.ok(noteChunk?.discrepancy?.includes("discovery"));
   }
 

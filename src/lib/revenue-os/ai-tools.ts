@@ -1061,7 +1061,7 @@ const registry: AiToolRegistration[] = [
   {
     name: "search_knowledge_base",
     description:
-      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, and activity timeline. Returns tagged chunks with confidence and recency or refuses cleanly.",
+      "Query grounded knowledge with provenance across companies, contacts, opportunities, founder notes, and activity timeline. Returns chunks tagged with source authority, recency and confidence; flags conflicts instead of resolving them; marks stale knowledge as not current; refuses cleanly when nothing matches.",
     inputSchema: {
       type: "object",
       properties: {
@@ -2417,6 +2417,64 @@ const registry: AiToolRegistration[] = [
     },
   },
   {
+    name: "list_source_authorities",
+    description:
+      "List the source authority registry: which connected systems own which truth domains, with tier, owner and last-verified date. Unregistered sources stay at the lowest trust. Use this before trusting retrieved knowledge.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+    outputSchema: ARRAY_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.knowledge-retrieval",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }) => {
+      const { listSourceAuthorities } = await import("./source-authority");
+      return listSourceAuthorities(supabase, { limit: 100 });
+    },
+  },
+  {
+    name: "register_source_authority",
+    description:
+      "Propose a source-authority registry change for human review: map a connected system to the truth domains it owns, with an explicit tier, owner and last-verified date. Authority is never inferred from volume or recency. Approval writes through the same domain service as the admin registry.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        systemKey: { type: "string" },
+        displayName: { type: "string" },
+        truthDomains: { type: "array", items: { type: "string" } },
+        authorityTier: { type: "string", enum: ["official", "approved", "working", "low"] },
+        ownerEmail: { type: "string" },
+        lastVerifiedAt: { type: "string" },
+        verificationLapseDays: { type: "number" },
+      },
+      required: [
+        "systemKey",
+        "displayName",
+        "truthDomains",
+        "authorityTier",
+        "ownerEmail",
+        "lastVerifiedAt",
+      ],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.memory-write",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail }, input) =>
+      proposeAction(supabase, {
+        actionType: "register_source_authority",
+        title: "Register source authority",
+        payload: input,
+        sourceContext: "runtime_tool",
+        proposedBy: actorEmail,
+      }),
+  },
+  {
     name: "check_budgets",
     description:
       "Check whether a coworker has remaining budget for work execution. Shows current usage vs limits for model spend, API calls, emails, research depth, retries, and runtime. Budgets are per-day by default.",
@@ -2614,6 +2672,8 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "record_learned_policy",
     "list_learning_proposals",
     "propose_learning",
+    "list_source_authorities",
+    "register_source_authority",
     "check_budgets",
     "get_budget_limits",
     "propose_task",
