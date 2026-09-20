@@ -5,6 +5,7 @@ import { IndustryPilot } from "./IndustryPilot";
 import type { Vertical } from "@/lib/types";
 import { IndustryRecipes } from "@/components/command-center/WorkflowRecipes";
 import { BookCallButton } from "@/components/v2/studio/primitives";
+import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScroll";
 import styles from "@/components/command-center/product.module.css";
 
 export function VerticalPage({ vertical }: { vertical: Vertical }) {
@@ -12,45 +13,52 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
     <div className={styles.page}>
       <PublicHeroEntrance className={styles.hero}>
         <div className="wrap">
-          <Link className={styles.textLink} href="/industries">
+          <Link className={styles.textLink} href="/industries" data-hero-step={1}>
             All industries
           </Link>
-          <p className="label mt-8">AI &amp; automation for {vertical.name}</p>
+          <p className="label mt-8" data-hero-step={2}>
+            AI &amp; automation for {vertical.name}
+          </p>
           <div className={`${styles.intro} ${styles.directoryIntro}`}>
-            <h1 className={styles.title} data-hero-step={1}>
+            <h1 className={styles.title} data-hero-step={3}>
               {vertical.heroHeadlineWhite} <em>{vertical.heroHeadlineGold}</em>
             </h1>
             <div>
-              <p className={styles.lede} data-hero-step={2}>
+              <p className={styles.lede} data-hero-step={4}>
                 {vertical.heroSubheadline}
               </p>
-              <div className={styles.actions} data-hero-step={3}>
-                <BookCallButton
-                  label="Discuss your workflow"
-                  location={`industry_${vertical.slug}_hero`}
-                />
-                <Link className={styles.secondary} href="#workflow-recipes">
-                  Explore the recipes
-                </Link>
+              <div data-hero-step={5}>
+                <div className={styles.actions}>
+                  <BookCallButton
+                    label="Discuss your workflow"
+                    location={`industry_${vertical.slug}_hero`}
+                  />
+                  <Link className={styles.secondary} href="#workflow-recipes">
+                    Explore the recipes
+                  </Link>
+                </div>
+                <p className={styles.note}>
+                  Bring one recent example and the tools your team uses. We will discuss where a
+                  focused improvement could help.
+                </p>
               </div>
-              <p className={styles.note}>
-                Bring one recent example and the tools your team uses. We will discuss where a
-                focused improvement could help.
-              </p>
             </div>
           </div>
         </div>
       </PublicHeroEntrance>
       <section className={styles.section}>
         <div className="wrap">
-          <div className={styles.sectionIntro}>
+          <AnimateOnScroll className={styles.sectionIntro} stagger>
             <div>
               <p className="label">A workflow to start with</p>
               <h2 className={styles.heading}>See what changes in the day-to-day work.</h2>
             </div>
             <p className={styles.lede}>Illustrative workflow: {vertical.workflowExample}</p>
-          </div>
-          <div className={`${styles.grid} ${vertical.painPoints.length === 3 ? styles.steps : ""}`}>
+          </AnimateOnScroll>
+          <StaggerContainer
+            className={`${styles.grid} ${vertical.painPoints.length === 3 ? styles.steps : ""}`}
+            staggerDelay={0.1}
+          >
             {vertical.painPoints.map((point, index) => (
               <article className={styles.card} key={point.title}>
                 <p className="label">
@@ -60,14 +68,14 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
                 <p>{point.description}</p>
               </article>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
       <IndustryPilot pilot={vertical.pilot} />
       <IndustryRecipes industry={vertical.slug} />
       <section className={styles.section}>
         <div className="wrap">
-          <div className={styles.sectionIntro}>
+          <AnimateOnScroll className={styles.sectionIntro} stagger>
             <div>
               <p className="label">Choose the right scope</p>
               <h2 className={styles.heading}>Build around the tools and people you have.</h2>
@@ -77,8 +85,8 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
               Command Center is an option when shared customer context and reviewed work would help
               your team.
             </p>
-          </div>
-          <div className={`${styles.grid} ${styles.steps}`}>
+          </AnimateOnScroll>
+          <StaggerContainer className={`${styles.grid} ${styles.steps}`} staggerDelay={0.1}>
             <article className={styles.card}>
               <h3>Available in Command Center</h3>
               <p>
@@ -106,14 +114,18 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
                 Training and optimization
               </Link>
             </article>
-          </div>
+          </StaggerContainer>
         </div>
       </section>
       <section className={styles.section}>
         <div className="wrap">
-          <p className="label">Before you begin</p>
-          <h2 className={styles.heading}>Common questions</h2>
-          <div className={styles.faq}>
+          <AnimateOnScroll className={styles.sectionIntro} stagger>
+            <div>
+              <p className="label">Before you begin</p>
+              <h2 className={styles.heading}>Common questions</h2>
+            </div>
+          </AnimateOnScroll>
+          <StaggerContainer className={styles.faq} staggerDelay={0.08}>
             <details>
               <summary>Do we need to replace our existing software?</summary>
               <p>
@@ -140,8 +152,8 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
                 </p>
               </details>
             )}
-          </div>
-          <div className={styles.actions}>
+          </StaggerContainer>
+          <AnimateOnScroll className={styles.actions} delay={0.2}>
             <BookCallButton
               label="Talk through your first project"
               location={`industry_${vertical.slug}_closing`}
@@ -149,7 +161,7 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
             <Link className={styles.secondary} href="/demo/command-center">
               Explore the fictional demos
             </Link>
-          </div>
+          </AnimateOnScroll>
         </div>
       </section>
     </div>
