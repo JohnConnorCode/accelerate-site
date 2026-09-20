@@ -166,15 +166,18 @@ try {
       const question = page.getByText("Do you work with businesses outside downtown?", {
         exact: true,
       });
-      // The menu hides page content until the body visibility effect has settled.
+      // Follow the real keyboard path. A programmatic focus call can fail while
+      // the menu's visibility update settles, leaving Enter on the menu trigger.
       await question.waitFor({ state: "visible" });
-      await question.scrollIntoViewIfNeeded();
-      await page.evaluate(
-        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      for (let step = 0; step < 60; step++) {
+        if (await question.evaluate((element) => element === document.activeElement)) break;
+        await page.keyboard.press("Tab");
+      }
+      assert(
+        await question.evaluate((element) => element === document.activeElement),
+        `${width}/${theme}: FAQ reachable by keyboard after closing navigation`,
       );
-      // Target the summary in one Playwright action so focus and the key cannot
-      // be separated by a React focus-restoration update.
-      await question.press("Enter");
+      await page.keyboard.press("Enter");
       await page.waitForFunction(() => document.querySelector("main details")?.open === true);
       assert.equal(errors.length, 0, errors.join("\n"));
       await context.close();
