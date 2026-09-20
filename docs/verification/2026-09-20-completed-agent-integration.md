@@ -24,11 +24,12 @@ checkpoint refs and live claims remain untouched.
 Submission is evidence to review, not automatic release approval.
 
 - `brain-source-authority`, source `60539b31`: its migration now enables RLS,
-  unlike the old draft PR81, but the writer still omits tenant identity when
-  inserting into a table defaulted to the bootstrap tenant. Replay compares only
-  the system key, returns a conflicting insert winner without checking the exact
-  payload, and commits the write separately from its audit. No real two-tenant
-  database proof accompanies this handoff. Retained for repair, not merged.
+  unlike the old draft PR81, and its schema registration uses the existing client
+  wrapper to attach tenant identity. Replay still compares only the system key,
+  returns a conflicting insert winner without checking the exact payload, and
+  commits the write separately from its audit. An audit failure followed by retry
+  therefore returns the saved row without recovering the missing audit. No real
+  two-tenant database proof accompanies this handoff. Retained for repair, not merged.
 - `roles-and-permissions`: the submitted full SHA does not resolve. The actual
   `cf808a045d07a4b9228682f21fe0ad01a1959ca7` migration creates one row per permission,
   then changes multiple distinct permissions to the same unique read key, which
