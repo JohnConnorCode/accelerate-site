@@ -104,6 +104,7 @@ test("rejects wrong remote owner and inaccessible project", () => {
 for (const shape of [
   "static",
   "dynamic",
+  "mapped-native",
   "wrong-static-id",
   "wrong-dynamic-id",
   "runtime-override",
@@ -122,14 +123,23 @@ for (const shape of [
     };
     try {
       const documentRoot = ".vercel/output/functions/api/admin/knowledge/documents.func";
-      put(`${documentRoot}/.vc-config.json`, JSON.stringify({ architecture: "x86_64" }));
+      const nativePath = "node_modules/@napi-rs/canvas-linux-x64-gnu/skia.linux-x64-gnu.node";
+      put(
+        `${documentRoot}/.vc-config.json`,
+        JSON.stringify({
+          architecture: "x86_64",
+          ...(shape === "mapped-native"
+            ? { filePathMap: { [nativePath]: "shared/skia.node" } }
+            : {}),
+        }),
+      );
       if (shape !== "missing-native") {
         const native = Buffer.alloc(20);
         Buffer.from("7f454c46", "hex").copy(native);
         native[5] = 1;
         native.writeUInt16LE(shape === "wrong-native" ? 183 : 62, 18);
         put(
-          `${documentRoot}/node_modules/@napi-rs/canvas-linux-x64-gnu/skia.linux-x64-gnu.node`,
+          shape === "mapped-native" ? "shared/skia.node" : `${documentRoot}/${nativePath}`,
           native,
         );
       }
@@ -157,7 +167,8 @@ for (const shape of [
         [resolve("scripts/next-release.mjs"), "verify-prebuilt"],
         { cwd: root, env: { ...process.env, NEXT_DEPLOYMENT_ID: id }, encoding: "utf8" },
       );
-      if (["static", "dynamic"].includes(shape)) assert.equal(result.status, 0, result.stderr);
+      if (["static", "dynamic", "mapped-native"].includes(shape))
+        assert.equal(result.status, 0, result.stderr);
       else assert.notEqual(result.status, 0, "An unverified artifact must refuse deployment");
     } finally {
       rmSync(root, { recursive: true, force: true });

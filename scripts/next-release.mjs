@@ -36,11 +36,15 @@ function readJson(file) {
 
 function verifyPrebuiltIdentity() {
   const documentRoot = ".vercel/output/functions/api/admin/knowledge/documents.func";
-  const architecture = readJson(`${documentRoot}/.vc-config.json`).architecture || "x86_64";
+  const documentConfig = readJson(`${documentRoot}/.vc-config.json`);
+  const architecture = documentConfig.architecture || "x86_64";
   const nativeArch = { x86_64: "x64", arm64: "arm64" }[architecture];
   if (!nativeArch) throw new Error("Unsupported document function architecture");
+  const nativePath = `node_modules/@napi-rs/canvas-linux-${nativeArch}-gnu/skia.linux-${nativeArch}-gnu.node`;
+  // Current Vercel builds reference source files through a repository-relative map.
+  // Standalone artifacts can instead carry the file within the function directory.
   const native = readFileSync(
-    `${documentRoot}/node_modules/@napi-rs/canvas-linux-${nativeArch}-gnu/skia.linux-${nativeArch}-gnu.node`,
+    documentConfig.filePathMap?.[nativePath] || join(documentRoot, nativePath),
   );
   if (
     native.length < 20 ||
