@@ -64,6 +64,29 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
     routes: ["/admin/client-onboarding"],
     setupChecks: [],
     docsUrl: "/docs/plugins/client-onboarding",
+    knowledge: {
+      version: 1,
+      sourceNames: ["opportunity"],
+      guidanceTypes: ["workflow_preference", "process_rule"],
+      signalTypes: ["explicit_correction", "missing_source", "verified_outcome"],
+      prerequisites: ["A won opportunity, valid assignee and dated delivery tasks"],
+      success: {
+        artifact: "task",
+        description: "Approved onboarding tasks linked to the selected opportunity",
+      },
+      evaluations: [
+        {
+          name: "Available source",
+          scenario: "A won opportunity, valid assignee and dated delivery tasks",
+          expectedArtifact: "task",
+        },
+        {
+          name: "Disabled plugin",
+          scenario: "Plugin is disabled before the source read or effect",
+          expectedArtifact: "refusal",
+        },
+      ],
+    },
     workflow: {
       version: 1,
       inputSchema: {
@@ -136,7 +159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "fabc01db2ce9b6ae0db203379a2ff20542b9b323ee5f6792c40788d0112c7d86",
+      contractHash: "de5087b175c4c18736e445771d91417ff34c7e6805dcc99214e1fe7177268fa8",
       tools: [
         {
           operation: "prepare-workflow",
@@ -441,7 +464,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "internal_write",
         reversibility: "compensable",
       },
-      contractHash: "3eafe69f8ebf08ddf6eb3b8ff821eadc196fead3b26328591cd751afee59c73f",
+      contractHash: "8f2661a7b047d3df8420ae43fcf3111c42799b9b4f71cd1503c4399b3221aa91",
       tools: [
         {
           operation: "prepare-workflow",
@@ -596,6 +619,29 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
           name: "records",
           type: "report_calendar_events",
           columns: ["id", "title", "status", "start_at", "end_at"],
+        },
+      ],
+    },
+    knowledge: {
+      version: 1,
+      sourceNames: ["records"],
+      guidanceTypes: ["workflow_preference", "process_rule"],
+      signalTypes: ["explicit_correction", "missing_source", "verified_outcome"],
+      prerequisites: ["Readable stored calendar events"],
+      success: {
+        artifact: "report",
+        description: "A cited report of stored meetings in the next 48 hours",
+      },
+      evaluations: [
+        {
+          name: "Available source",
+          scenario: "Readable stored calendar events",
+          expectedArtifact: "report",
+        },
+        {
+          name: "Disabled plugin",
+          scenario: "Plugin is disabled before the source read or effect",
+          expectedArtifact: "refusal",
         },
       ],
     },
@@ -1113,7 +1159,7 @@ export const EXTENSION_MODULES: readonly RevenueOSModule[] = [
         impact: "external_action",
         reversibility: "irreversible",
       },
-      contractHash: "523aeae8b117824aec1d5b0bd0e83ba847fc340c06373d305a18232de10674f4",
+      contractHash: "356fb72f01a9f1c9bfa2a7e8ef68b8019e5e6c302d3741dec137f689b1926bba",
       tools: [
         {
           operation: "prepare-workflow",

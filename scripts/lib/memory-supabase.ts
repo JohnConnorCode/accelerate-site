@@ -22,6 +22,19 @@ function orPredicate(expression: string): (row: Row) => boolean {
     return (row: Row) => {
       const actual = row[column ?? ""];
       switch (op) {
+        case "ilike": {
+          const pattern = value
+            .split("")
+            .map((char) =>
+              char === "%"
+                ? ".*"
+                : char === "_"
+                  ? "."
+                  : char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            )
+            .join("");
+          return actual != null && new RegExp(`^${pattern}$`, "i").test(String(actual));
+        }
         case "is":
           return value === "null" ? actual === null || actual === undefined : actual === value;
         case "eq":
@@ -115,7 +128,7 @@ export class MemorySupabase {
     let ignoreDuplicates = false;
     let payload: Row = {};
     let one = false;
-    let sort: { column: string; ascending: boolean } | null = null;
+    const sorts: Array<{ column: string; ascending: boolean }> = [];
     let cap: number | null = null;
     let countRequested = false,
       head = false;
@@ -138,7 +151,7 @@ export class MemorySupabase {
       return self;
     };
     self.order = (column: string, options?: { ascending?: boolean }) => {
-      sort = { column, ascending: options?.ascending !== false };
+      sorts.push({ column, ascending: options?.ascending !== false });
       return self;
     };
 
@@ -359,11 +372,15 @@ export class MemorySupabase {
         const removing = new Set(matched);
         this.tables[table] = this.tables[table]!.filter((row) => !removing.has(row));
       }
-      if (sort) {
-        const { column, ascending } = sort;
-        matched = [...matched].sort(
-          (a, b) => (String(a[column]) < String(b[column]) ? -1 : 1) * (ascending ? 1 : -1),
-        );
+      if (sorts.length) {
+        matched = [...matched].sort((a, b) => {
+          for (const { column, ascending } of sorts) {
+            if (a[column] === b[column]) continue;
+            const comparison = String(a[column]) < String(b[column]) ? -1 : 1;
+            return comparison * (ascending ? 1 : -1);
+          }
+          return 0;
+        });
       }
       const count = matched.length;
       if (cap !== null) matched = matched.slice(0, cap);

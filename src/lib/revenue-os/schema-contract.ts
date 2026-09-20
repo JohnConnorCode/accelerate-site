@@ -5,9 +5,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-25.2";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-28.1";
 
 export const TENANT_SCOPED_TABLES = [
+  "knowledge_documents",
+  "learning_signals",
   "today_view_proposals",
   "today_workspace_views",
   "today_view_receipts",
@@ -573,6 +575,46 @@ const BASE_REVENUE_SCHEMA_TABLE_NAMES = new Set<string>(
 
 export const REVENUE_SCHEMA_TABLES = [
   {
+    table: "knowledge_documents",
+    columns: [
+      "id",
+      "tenant_id",
+      "title",
+      "mime_type",
+      "storage_path",
+      "content_hash",
+      "owner_email",
+      "visibility",
+      "status",
+      "extracted_text",
+      "locations",
+      "extraction_error",
+      "created_at",
+      "indexed_at",
+    ],
+  },
+  {
+    table: "learning_signals",
+    columns: [
+      "id",
+      "tenant_id",
+      "kind",
+      "source_kind",
+      "source_id",
+      "receipt_key",
+      "details",
+      "rule",
+      "plugin_id",
+      "correction_input",
+      "actor_email",
+      "category",
+      "remedy",
+      "proposal_id",
+      "processed_at",
+      "created_at",
+    ],
+  },
+  {
     table: "collection_reminder_attempts",
     columns: [
       "tenant_id",
@@ -852,6 +894,10 @@ export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
 ] as const;
 
 export const REVENUE_SCHEMA_FUNCTIONS = [
+  "public.record_learned_policy(jsonb,text,uuid,text)",
+  "public.approve_learning_proposal(uuid,text)",
+  "public.search_document_knowledge(text,integer)",
+  "public.collect_learning_signals()",
   "public.save_today_views(text,bigint,jsonb,uuid)",
   ...REVENUE_SCHEMA_SERVICE_FUNCTIONS.map(({ name }) => name),
   "private.advance_client_handoff_revision()",

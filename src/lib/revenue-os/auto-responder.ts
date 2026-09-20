@@ -1,3 +1,4 @@
+import { loadContextPack, contextReceipt } from "./shared-context";
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenant } from "@/config/tenant";
@@ -6,7 +7,7 @@ import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { AI_CONTEXT_VERSION } from "./ai-context";
 import { recordAudit } from "./audit";
 import { sendRecordedEmail } from "./communications";
-import { finishAgentRun, startAgentRun } from "./agent-trace";
+import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
 import { InactiveTenantExecutionError } from "@/lib/tenancy/system";
 
 /**
@@ -36,7 +37,7 @@ import { InactiveTenantExecutionError } from "@/lib/tenancy/system";
  * Bump this on any material change to the envelope, guardrails, or prompt. The
  * founder's stored approval is version-pinned, so a bump suspends sending.
  */
-export const RESPONDER_POLICY_VERSION = "inbound-responder.v2";
+export const RESPONDER_POLICY_VERSION = "inbound-responder.v3";
 
 /** Non-secret admin_settings keys. Lowercase so they cannot collide with an
  *  environment variable name, which `getSetting` would let win permanently. */
@@ -60,6 +61,7 @@ export const RESPONDER_POLICY = {
 
 export const RESPONDER_CONTEXT_SOURCE_ALLOWLIST = [
   "approved_responder_policy",
+  "reviewed_workspace_guidance",
   "approved_tenant_identity",
   "untrusted_inquiry_submission",
   "approved_booking_link",
@@ -451,6 +453,16 @@ export async function respondToInbound(
 
   let draft: string;
   try {
+    const context = await loadContextPack(supabase, {
+      entity: { type: "opportunity", id: input.opportunityId },
+      includeEvidence: false,
+      authorities: ["official", "approved"],
+      maxChars: 4000,
+    });
+    await recordAgentRunEvent(supabase, run, {
+      eventType: "context_loaded",
+      output: contextReceipt(context),
+    });
     const record = buildResponderContext({ ...input, now }, bookingLink);
 
     const response = await openRouterChat({
@@ -461,6 +473,7 @@ export async function respondToInbound(
       temperature: 0.4,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: context.text },
         { role: "user", content: record },
       ],
     });

@@ -287,6 +287,14 @@ export const adminNavSections: AdminNavSection[] = [
         moreGroup: "System",
       },
       {
+        id: "get-started",
+        label: "Get started",
+        href: "/admin/get-started",
+        icon: ListChecks,
+        description: "Complete one inquiry-to-follow-up journey and verify the learning loop.",
+        moreGroup: "System",
+      },
+      {
         id: "setup",
         label: "Setup",
         href: "/admin/setup",

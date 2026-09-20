@@ -14,7 +14,7 @@ function fixture() {
     coworker_id: "sales",
     kind: "qualify_lead",
     entity_type: "contact",
-    entity_id: "contact",
+    entity_id: "10000000-0000-4000-8000-000000000002",
     objective: "Qualify fictional inquiry",
     reason: "New inquiry",
     source: "test",
@@ -57,13 +57,18 @@ function fixture() {
     ],
     work_items: [{ ...wi }],
     contacts: [
-      { id: "contact", tenant_id: tenant, email: "fixture@example.test", first_name: "Fixture" },
+      {
+        id: "10000000-0000-4000-8000-000000000002",
+        tenant_id: tenant,
+        email: "fixture@example.test",
+        first_name: "Fixture",
+      },
     ],
     opportunities: [
       {
         id: "opportunity",
         tenant_id: tenant,
-        contact_id: "contact",
+        contact_id: "10000000-0000-4000-8000-000000000002",
         stage: "new",
         company_name: "Fictional company",
         created_at: new Date().toISOString(),
@@ -137,7 +142,7 @@ export async function verifySalesQualificationHandoff() {
 
     const f = fixture();
     const result = await run(f);
-    assert.equal(result.status, "completed");
+    assert.equal(result.status, "completed", JSON.stringify(result));
     assert.equal(calls, 2);
     assert.ok("runId" in result);
     assert.equal(result.runId, f.db.rows("agent_runs")[0]!.id);
@@ -168,11 +173,13 @@ export async function verifySalesQualificationHandoff() {
     cases.push("replay returns the same durable draft and does not duplicate inbox work");
 
     delete process.env.OPENROUTER_AGENT_MODEL;
+    delete process.env.OPENROUTER_API_KEY;
     const deterministic = fixture();
     assert.equal((await run(deterministic)).status, "completed");
     assert.equal(calls, 0);
     assert.equal(drafts(deterministic.db).length, 1);
     process.env.OPENROUTER_AGENT_MODEL = "fixture-model";
+    process.env.OPENROUTER_API_KEY = "fixture-placeholder";
     cases.push("deterministic qualification retains the same handoff");
 
     for (const disposition of ["partial", "failure"] as const) {

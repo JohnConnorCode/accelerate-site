@@ -1,17 +1,27 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { retrievePluginKnowledge } from "./plugin-knowledge";
+import { searchDocumentKnowledge } from "./document-knowledge";
 import { loadFounderKnowledgeNotes } from "./notes";
 import { loadActivityTimeline } from "./activities";
 
 export const SECOND_BRAIN_KNOWLEDGE_CONTRACT = "revenue-os-knowledge.v1";
 
 export type KnowledgeSource =
-  "canonical_record" | "founder_note" | "activity_ledger" | "conversation";
+  "canonical_record" | "founder_note" | "activity_ledger" | "conversation" | "document" | "plugin";
 
 export interface KnowledgeChunk {
   id: string;
   source: KnowledgeSource;
-  entityType: "company" | "contact" | "opportunity" | "note" | "activity";
+  entityType:
+    | "company"
+    | "contact"
+    | "opportunity"
+    | "note"
+    | "activity"
+    | "document"
+    | "conversation"
+    | "plugin_record";
   entityId: string;
   title: string;
   content: string;
@@ -19,9 +29,16 @@ export interface KnowledgeChunk {
   confidence: number;
   author: string | null;
   discrepancy?: string | null;
+  revision?: string;
+  sourceLocation?: string;
+  authority?: "official" | "approved" | "working" | "historical";
 }
 
 export interface KnowledgeQueryInput {
+  pluginId?: string;
+  pluginInput?: Record<string, unknown>;
+  entityType?: "company" | "contact" | "opportunity";
+  entityId?: string;
   entityName?: string;
   email?: string;
   domain?: string;
@@ -42,6 +59,21 @@ export interface KnowledgeSearchResult {
   chunks: KnowledgeChunk[];
   refusalReason: string | null;
   generatedAt: string;
+  missing?: string[];
+  guidance?: Array<{
+    id: string;
+    revision: string;
+    authority: string;
+    rule: string;
+    source: string;
+  }>;
+  pluginContract?: {
+    pluginId: string;
+    version: number;
+    revision: string;
+    prerequisites: string[];
+    success: { artifact: string; description: string };
+  };
 }
 
 /**
@@ -49,13 +81,20 @@ export interface KnowledgeSearchResult {
  * Queries companies, contacts, opportunities, founder notes, and activity timeline.
  * Refuses explicitly if nothing matches rather than hallucinating facts.
  */
-export async function retrieveKnowledge(
+async function retrieveCanonicalKnowledge(
   supabase: SupabaseClient,
   input: KnowledgeQueryInput,
 ): Promise<KnowledgeSearchResult> {
-  const queryStr = (input.entityName || input.email || input.domain || input.topic || "").trim();
+  const queryStr = (
+    input.entityName ||
+    input.email ||
+    input.domain ||
+    input.topic ||
+    input.entityId ||
+    ""
+  ).trim();
 
-  if (!queryStr) {
+  if (!queryStr || (!input.entityId && !/[\p{L}\p{N}]/u.test(queryStr))) {
     return {
       contract: SECOND_BRAIN_KNOWLEDGE_CONTRACT,
       found: false,
@@ -68,34 +107,57 @@ export async function retrieveKnowledge(
     };
   }
 
-  const cleanQuery = queryStr.replace(/[,%]/g, "");
+  const cleanQuery = queryStr.replace(/[^\p{L}\p{N}@ _-]/gu, " ");
 
   // 1. Search for matching companies
   let companyQuery = supabase.from("companies").select("*").limit(5);
-  if (input.domain) {
+  if (input.entityId) {
+    companyQuery = companyQuery.eq(
+      "id",
+      input.entityType === "company" ? input.entityId : "00000000-0000-0000-0000-000000000000",
+    );
+  } else if (input.domain) {
     companyQuery = companyQuery.eq("domain", input.domain.toLowerCase().trim());
   } else {
     companyQuery = companyQuery.or(`name.ilike.%${cleanQuery}%,domain.ilike.%${cleanQuery}%`);
   }
-  const { data: companies } = await companyQuery;
-
   // 2. Search for matching contacts
   let contactQuery = supabase.from("contacts").select("*").limit(5);
-  if (input.email) {
+  if (input.entityId) {
+    contactQuery = contactQuery.eq(
+      "id",
+      input.entityType === "contact" ? input.entityId : "00000000-0000-0000-0000-000000000000",
+    );
+  } else if (input.email) {
     contactQuery = contactQuery.eq("primary_email", input.email.toLowerCase().trim());
   } else {
     contactQuery = contactQuery.or(
       `full_name.ilike.%${cleanQuery}%,primary_email.ilike.%${cleanQuery}%`,
     );
   }
-  const { data: contacts } = await contactQuery;
-
   // 3. Search for matching opportunities
-  const { data: opportunities } = await supabase
-    .from("opportunities")
-    .select("*")
-    .or(`name.ilike.%${cleanQuery}%,email.ilike.%${cleanQuery}%`)
-    .limit(5);
+  let opportunityQuery = supabase.from("opportunities").select("*").limit(5);
+  opportunityQuery = input.entityId
+    ? opportunityQuery.eq(
+        "id",
+        input.entityType === "opportunity"
+          ? input.entityId
+          : "00000000-0000-0000-0000-000000000000",
+      )
+    : opportunityQuery.or(`name.ilike.%${cleanQuery}%,email.ilike.%${cleanQuery}%`);
+  const [companyResult, contactResult, opportunityResult] = await Promise.all([
+    companyQuery,
+    contactQuery,
+    opportunityQuery,
+  ]);
+  const { data: companies, error: companyError } = companyResult;
+  const { data: contacts, error: contactError } = contactResult;
+  const { data: opportunities, error: opportunityError } = opportunityResult;
+  const missing: string[] = [];
+  if (companyError) missing.push("Company records could not be searched; coverage is incomplete.");
+  if (contactError) missing.push("Contact records could not be searched; coverage is incomplete.");
+  if (opportunityError)
+    missing.push("Opportunity records could not be searched; coverage is incomplete.");
 
   const matchedCompany = companies?.[0] || null;
   const matchedContact = contacts?.[0] || null;
@@ -103,13 +165,14 @@ export async function retrieveKnowledge(
 
   // If no primary entity is found, search founder notes directly by text match
   if (!matchedCompany && !matchedContact && !matchedOpp) {
-    const { data: directNotes } = await supabase
+    const { data: directNotes, error: noteError } = await supabase
       .from("activities")
       .select("*")
       .eq("activity_type", "founder_note")
       .ilike("summary", `%${cleanQuery}%`)
       .limit(5);
 
+    if (noteError) missing.push("Founder notes could not be searched; coverage is incomplete.");
     if (!directNotes || directNotes.length === 0) {
       return {
         contract: SECOND_BRAIN_KNOWLEDGE_CONTRACT,
@@ -117,7 +180,10 @@ export async function retrieveKnowledge(
         query: queryStr,
         entitySummary: null,
         chunks: [],
-        refusalReason: `No canonical records, founder notes, or activities found for "${queryStr}".`,
+        refusalReason: missing.length
+          ? "Knowledge search is incomplete because some sources are unavailable. Retry before concluding that no matching records exist."
+          : `No canonical records, founder notes, or activities found for "${queryStr}".`,
+        missing,
         generatedAt: new Date().toISOString(),
       };
     }
@@ -139,7 +205,8 @@ export async function retrieveKnowledge(
       found: true,
       query: queryStr,
       entitySummary: null,
-      chunks: noteChunks,
+      chunks: noteChunks.slice(0, input.limit),
+      missing,
       refusalReason: null,
       generatedAt: new Date().toISOString(),
     };
@@ -260,7 +327,7 @@ export async function retrieveKnowledge(
       });
     }
   } catch {
-    // If founder note loading fails gracefully, proceed with other chunks
+    missing.push("Founder notes could not be loaded; coverage is incomplete.");
   }
 
   // E. Recent Activity timeline chunks
@@ -288,7 +355,7 @@ export async function retrieveKnowledge(
         });
       }
     } catch {
-      // Proceed gracefully
+      missing.push("Recent activity could not be loaded; coverage is incomplete.");
     }
   }
 
@@ -301,7 +368,81 @@ export async function retrieveKnowledge(
     query: queryStr,
     entitySummary,
     chunks: limitedChunks,
+    missing,
     refusalReason: limitedChunks.length > 0 ? null : "No relevant facts or notes found.",
     generatedAt: new Date().toISOString(),
   };
+}
+
+/** Canonical records retain precedence. Documents are cited evidence, never
+ * instructions, and search failures are explicit context gaps. */
+export async function retrieveKnowledge(
+  db: SupabaseClient,
+  input: KnowledgeQueryInput,
+): Promise<KnowledgeSearchResult> {
+  if (input.pluginId) {
+    const result = await retrievePluginKnowledge(db, input.pluginId, input.pluginInput);
+    return {
+      contract: SECOND_BRAIN_KNOWLEDGE_CONTRACT,
+      found: result.chunks.length > 0,
+      query: input.pluginId,
+      chunks: result.chunks,
+      entitySummary: null,
+      refusalReason: result.chunks.length ? null : "No readable plugin sources found",
+      generatedAt: new Date().toISOString(),
+      missing: result.missing,
+      pluginContract: result.contract,
+      guidance: result.guidance,
+    };
+  }
+  if (
+    input.entityId &&
+    (!input.entityType ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.entityId))
+  )
+    throw new Error("Use a canonical entity type and UUID together");
+  const query = (input.topic || input.entityName || input.email || input.domain || "").trim();
+  if (query.length > 200) throw new Error("Knowledge queries are limited to 200 characters");
+  const limit = Math.min(
+    25,
+    Math.max(1, Math.trunc(Number.isFinite(input.limit) ? input.limit! : 10)),
+  );
+  const canonical = await retrieveCanonicalKnowledge(db, { ...input, limit });
+  if (query.length < 2 || input.entityId) return canonical;
+  try {
+    const documents = await searchDocumentKnowledge(db, query, limit);
+    // Preserve the leading canonical fact, then alternate sources so notes and
+    // activity cannot consume every slot before relevant documents are considered.
+    const chunks: KnowledgeChunk[] = [];
+    for (
+      let i = 0;
+      chunks.length < limit && i < Math.max(canonical.chunks.length, documents.chunks.length);
+      i++
+    ) {
+      if (canonical.chunks[i]) chunks.push(canonical.chunks[i]!);
+      if (chunks.length < limit && documents.chunks[i]) chunks.push(documents.chunks[i]!);
+    }
+    return {
+      ...canonical,
+      chunks,
+      found: chunks.length > 0,
+      refusalReason: chunks.length
+        ? null
+        : canonical.missing?.length || documents.missing.length
+          ? "Knowledge search is incomplete because some sources could not be verified. Retry before concluding that no matching records exist."
+          : canonical.refusalReason,
+      missing: [...(canonical.missing ?? []), ...documents.missing],
+    };
+  } catch {
+    return {
+      ...canonical,
+      refusalReason: canonical.found
+        ? null
+        : "Knowledge search is incomplete because document sources are unavailable. Retry before concluding that no matching records exist.",
+      missing: [
+        ...(canonical.missing ?? []),
+        "Document knowledge search is unavailable; check the connection and retry.",
+      ],
+    };
+  }
 }

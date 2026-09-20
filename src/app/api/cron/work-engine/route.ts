@@ -1,3 +1,8 @@
+import {
+  registerLearningSignalHandlers,
+  scheduleLearningSignals,
+} from "@/lib/revenue-os/learning-signals";
+import { registerKnowledgeHandlers } from "@/lib/revenue-os/knowledge-documents";
 import { registerSocialWorkHandlers } from "@/lib/revenue-os/social-marketing-work";
 import { ProviderCircuit } from "@/lib/revenue-os/bounded-execution";
 import { NextRequest, NextResponse } from "next/server";
@@ -16,6 +21,8 @@ import { registerProactiveIntelHandlers } from "@/lib/revenue-os/proactive-intel
 import { withJobRun } from "@/lib/revenue-os/runs";
 
 // Register all coworker handlers on module load.
+registerKnowledgeHandlers();
+registerLearningSignalHandlers();
 registerSocialWorkHandlers();
 registerSalesWorkHandlers();
 registerBusinessPulseWorkHandlers();
@@ -59,6 +66,13 @@ export async function GET(request: NextRequest) {
           return withJobRun(supabase, "work-engine", async () => {
             // Schedule recurring work (daily + weekly on Mondays) before execution.
             const scheduling = await scheduleRecurringWork(supabase);
+            try {
+              await scheduleLearningSignals(supabase);
+            } catch (error) {
+              scheduling.errors.push(
+                `learning-signals: ${error instanceof Error ? error.message : "collection failed"}`,
+              );
+            }
             const circuit = tenantCircuits.get(context.tenantSlug) ?? new ProviderCircuit();
             if (!tenantCircuits.has(context.tenantSlug) && tenantCircuits.size >= 500)
               tenantCircuits.delete(tenantCircuits.keys().next().value!);

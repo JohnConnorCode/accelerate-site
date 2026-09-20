@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import {
   listLearningProposals,
+  listDisplacedLearnings,
   proposeLearning,
   LEARNING_PROPOSAL_TYPES,
   type LearningConfidence,
@@ -29,7 +30,8 @@ export async function GET(request: NextRequest) {
       status,
       limit: 50,
     });
-    return NextResponse.json({ proposals });
+    const displaced = await listDisplacedLearnings(auth.database);
+    return NextResponse.json({ proposals, displaced });
   } catch (error) {
     console.error("Database error:", (error as Error).message);
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });

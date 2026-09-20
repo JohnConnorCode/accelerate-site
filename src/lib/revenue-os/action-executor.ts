@@ -69,6 +69,7 @@ export const APPROVABLE_ACTIONS = [
   "store_agent_memory",
   "record_learned_policy",
   "approve_learning",
+  "knowledge_document_change",
   "send_collection_reminder",
   "save_form_definition",
   "publish_form",
@@ -176,6 +177,12 @@ export async function approveAndExecuteAction(
     });
     let result: unknown;
     switch (action.action_type) {
+      case "knowledge_document_change": {
+        if (mode !== "approved") throw new Error("Knowledge changes require human approval");
+        const { executeKnowledgeChange } = await import("./knowledge-documents");
+        result = await executeKnowledgeChange(supabase, payload, actorEmail);
+        break;
+      }
       case "send_radar_outreach": {
         result = await executeRadarOutreach(supabase, id, actorEmail);
         break;

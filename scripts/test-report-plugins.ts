@@ -1,3 +1,4 @@
+import { retrievePluginKnowledge } from "../src/lib/revenue-os/plugin-knowledge";
 import assert from "node:assert/strict";
 import { updateModuleConfiguration } from "../src/lib/revenue-os/module-configuration";
 import { MemorySupabase } from "./lib/memory-supabase";
@@ -80,6 +81,12 @@ async function main() {
   });
   const db = bindTenantDatabase(mem.client, tenantId, true);
   for (const id of ids) {
+    if (id === "meeting-prep") {
+      const knowledge = await retrievePluginKnowledge(db, id);
+      assert(knowledge.chunks.length > 0);
+      assert(knowledge.chunks.every((chunk) => chunk.revision && chunk.sourceLocation));
+      assert(!JSON.stringify(knowledge).includes("Private foreign"));
+    }
     const report = await runReportPlugin(db, id, "qa@example.example");
     assert.equal(report.items.length, id === "business-pulse" ? 3 : 1, id);
     assert.equal(report.totalFindings, id === "business-pulse" ? 3 : 1);
@@ -91,6 +98,7 @@ async function main() {
     );
     (mem.rows("tenants")[0]!.config as typeof config).modules[id] = false;
     await assert.rejects(() => runReportPlugin(db, id, "qa"), /disabled/);
+    if (id === "meeting-prep") await assert.rejects(retrievePluginKnowledge(db, id), /disabled/);
     // A stale AI context must not override current tenant enablement.
     await assert.rejects(
       () =>

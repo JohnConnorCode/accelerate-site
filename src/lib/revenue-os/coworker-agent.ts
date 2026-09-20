@@ -1,14 +1,20 @@
+import { MAX_ACTIVE_AI_TOOLS } from "./ai-tool-bundles";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import "server-only";
+import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { getOpenRouterModel, openRouterChat, type OpenRouterMessage } from "@/lib/ai/openrouter";
 import { claimResourceBudget } from "./budgets";
 import { getCoworker } from "./coworkers";
 import { listWorkspaceCapabilities } from "./capabilities";
-import { listLearnedPolicies, retrieveAgentMemory } from "./memory";
+import { retrieveAgentMemory } from "./memory";
+import { loadContextPack, contextReceipt } from "./shared-context";
 import {
   executeRegisteredRevenueTool,
   toOpenRouterTools,
+  toActivatedOpenRouterTools,
+  refreshRevenueToolContext,
+  getRevenueAiTools,
   type RevenueToolPackId,
 } from "./ai-tools";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
@@ -40,7 +46,7 @@ import { findWorkDraft } from "./work-drafts";
 // of the coworker's role rather than a founder-facing copilot.
 // ---------------------------------------------------------------------------
 
-const MAX_COWORKER_TOOL_TURNS = 3;
+const MAX_COWORKER_TOOL_TURNS = 5;
 
 function coworkerSystemPrompt(coworkerRole: string, coworkerId: string, workspace: string): string {
   return [
@@ -61,11 +67,11 @@ export async function runCoworkerAgentTask(
   workItem: WorkItem,
   options: { chat?: typeof openRouterChat; signal?: AbortSignal } = {},
 ): Promise<CoworkerAgentResult> {
-  if (!process.env.OPENROUTER_AGENT_MODEL)
-    return { ...deferWork("AI model is not configured"), runId: "" };
   const tenantId = tenantIdForDatabase(supabase);
   if (!tenantId || tenantId !== workItem.tenant_id)
     throw new Error("Coworker work item must belong to the bound tenant");
+  if (!options.chat && !(await isTenantOpenRouterConfigured(supabase)))
+    return { ...deferWork("Connect an AI provider to run this coworker"), runId: "" };
   // Resolve the coworker to get its role and tool pack.
   const coworkerId = workItem.coworker_id;
   if (!coworkerId) {
@@ -139,6 +145,25 @@ export async function runCoworkerAgentTask(
   let inputTokens = 0;
   let outputTokens = 0;
   let toolErrors = 0;
+  let activeBundleId: string | null = null;
+  const permittedWrites = new Set(
+    getRevenueAiTools(toolPack)
+      .filter(
+        (tool) =>
+          tool.impact !== "read" && !["propose_learning", "propose_correction"].includes(tool.name),
+      )
+      .map((tool) => tool.name),
+  );
+  const toolAllowed = (name: string) => {
+    if (workItem.kind === "daily_digest")
+      return ["get_today_workspace", "get_today_snapshot", "get_record_timeline"].includes(name);
+    const tool = getRevenueAiTools().find((tool) => tool.name === name);
+    if (!tool) return false;
+    if (tool.impact === "read") return true;
+    if (workItem.kind === "draft_followup")
+      return ["propose_send_email", "propose_conversation_reply"].includes(name);
+    return permittedWrites.has(name);
+  };
 
   try {
     // Load bounded context for the coworker.
@@ -152,16 +177,21 @@ export async function runCoworkerAgentTask(
           .join(", ")}`
       : "No workspace capabilities registered.";
 
-    const activePolicies = await listLearnedPolicies(supabase, { coworkerId });
+    const contextPack = await loadContextPack(supabase, {
+      coworkerId,
+      entity:
+        workItem.entity_type && workItem.entity_id
+          ? { type: workItem.entity_type, id: workItem.entity_id }
+          : undefined,
+    });
+    await recordAgentRunEvent(supabase, run, {
+      eventType: "context_loaded",
+      output: contextReceipt(contextPack),
+    });
     const recentMemory = await retrieveAgentMemory(supabase, { coworkerId, limit: 5 });
     const memorySummary =
       [
-        activePolicies.length
-          ? `Learned policies: ${activePolicies
-              .slice(0, 10)
-              .map((p) => `"${p.rule.slice(0, 400)}"`)
-              .join("; ")}`
-          : undefined,
+        contextPack.text,
         recentMemory.length
           ? `Recent memory: ${recentMemory.map((m) => `${m.subject}`).join("; ")}`
           : undefined,
@@ -181,6 +211,34 @@ export async function runCoworkerAgentTask(
         toolPack,
       });
 
+      const liveToolContext = await refreshRevenueToolContext({
+        supabase,
+        actorEmail: `coworker:${coworkerId}`,
+        tenantConfig: workspace.config,
+        workItemId: workItem.id,
+        ...(workItem.kind === "draft_followup" ? { workItem } : {}),
+      });
+      const tools = (
+        workItem.kind === "daily_digest"
+          ? toOpenRouterTools(toolPack)
+          : Array.from(
+              new Map(
+                [
+                  ...(workItem.kind === "draft_followup"
+                    ? toOpenRouterTools(toolPack).filter((t) =>
+                        ["propose_send_email", "propose_conversation_reply"].includes(
+                          t.function.name,
+                        ),
+                      )
+                    : []),
+                  ...toActivatedOpenRouterTools(activeBundleId, liveToolContext),
+                ].map((t) => [t.function.name, t]),
+              ).values(),
+            )
+      )
+        .filter((tool) => toolAllowed(tool.function.name))
+        .slice(0, MAX_ACTIVE_AI_TOOLS);
+      const advertisedNames = new Set(tools.map((tool) => tool.function.name));
       const response = await (options.chat ?? openRouterChat)({
         database: supabase,
         beforeAttempt: async (attempt) => {
@@ -203,16 +261,7 @@ export async function runCoworkerAgentTask(
           },
           ...transcript,
         ],
-        tools: toOpenRouterTools(toolPack).filter(
-          (tool) =>
-            (workItem.kind !== "daily_digest" ||
-              ["get_today_workspace", "get_today_snapshot", "get_record_timeline"].includes(
-                tool.function.name,
-              )) &&
-            (workItem.kind !== "draft_followup" ||
-              !tool.function.name.startsWith("propose_") ||
-              ["propose_send_email", "propose_conversation_reply"].includes(tool.function.name)),
-        ),
+        tools,
       });
 
       inputTokens += response.usage?.prompt_tokens ?? 0;
@@ -301,18 +350,18 @@ export async function runCoworkerAgentTask(
           )
             throw new Error("Draft work may only propose its email or conversation reply");
           options.signal?.throwIfAborted();
+          if (!advertisedNames.has(name) || !toolAllowed(name))
+            throw new Error(
+              "Discover and activate an allowed tool bundle before calling this tool",
+            );
+          const dispatchContext = await refreshRevenueToolContext(liveToolContext);
           const { output, tool } = await executeRegisteredRevenueTool(
-            {
-              supabase,
-              actorEmail: `coworker:${coworkerId}`,
-              toolPack,
-              workItemId: workItem.id,
-              ...(workItem.kind === "draft_followup" ? { workItem } : {}),
-              tenantConfig: workspace.config,
-            },
+            dispatchContext,
             name,
             toolInput,
           );
+          if (name === "activate_tool_bundle")
+            activeBundleId = (output as { activeBundleId: string }).activeBundleId;
           successfulTools++;
           successfulToolNames.push(name);
           if (tool.impact !== "read") {
@@ -404,6 +453,6 @@ export async function tryCoworkerAgentTask(
   item: WorkItem,
   signal?: AbortSignal,
 ): Promise<CoworkerAgentResult | null> {
-  if (!process.env.OPENROUTER_AGENT_MODEL) return null;
+  if (!(await isTenantOpenRouterConfigured(supabase))) return null;
   return runCoworkerAgentTask(supabase, item, { signal });
 }

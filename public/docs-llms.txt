@@ -9,7 +9,7 @@ Learn the essentials and try your first complete workflow.
 - [For business owners](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-09-19): Decide whether it fits, run a small pilot, and know what to check before you rely on it.
 - [For agencies](https://www.acceleratewith.us/docs/start/agencies) (updated 2026-09-19): Plan one client pilot: who owns what, how to prove data stays separated, and how to hand it over.
 - [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-19): Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened.
-- [Your first result](https://www.acceleratewith.us/docs/start/first-value) (updated 2026-09-19): Take one real inquiry from a connected workspace through to a reviewed action and its receipt.
+- [Your first result](https://www.acceleratewith.us/docs/start/first-value) (updated 2026-09-20): Take one real inquiry from a connected workspace through to a reviewed action and its receipt.
 - [Core concepts](https://www.acceleratewith.us/docs/start/core-concepts) (updated 2026-09-19): The vocabulary every other guide assumes: workspace, record, approval, receipt, and how they connect.
 - [Your workspace](https://www.acceleratewith.us/docs/start/workspace) (updated 2026-09-19): Check your business context, membership, and available features.
 - [Modules](https://www.acceleratewith.us/docs/start/modules) (updated 2026-09-19): Turn a whole area of the product on or off per workspace, without forking the application.
@@ -133,7 +133,7 @@ The assistant, run traces, knowledge, and source-to-revenue analytics.
 - [Put AI to work with your business context](https://www.acceleratewith.us/docs/intelligence/overview) (updated 2026-09-19): Ask a real question, see the evidence behind the answer, and review whatever it prepares.
 - [Review opportunities with Radar](https://www.acceleratewith.us/docs/intelligence/opportunity-radar) (updated 2026-09-19): Review sourced opportunities and relationships, with model spend off by default and every send reviewed.
 - [AI tool reference](https://www.acceleratewith.us/docs/intelligence/tools) (updated 2026-09-19): Every registered tool, generated straight from the registry: what it needs and what it does.
-- [Teach the business with the Learning Inbox](https://www.acceleratewith.us/docs/intelligence/learning-inbox) (updated 2026-09-19): Propose reusable corrections once, review them in one inbox, and let approved learnings guide future work.
+- [Teach the business with the Learning Inbox](https://www.acceleratewith.us/docs/intelligence/learning-inbox) (updated 2026-09-20): Propose reusable corrections once, review them in one inbox, and let approved learnings guide future work.
 - [Use the AI Workspace](https://www.acceleratewith.us/docs/intelligence/workspace) (updated 2026-09-19): Ask a specific question, check the sources behind the answer, then inspect what ran.
 
 ## Workspace
@@ -155,12 +155,12 @@ See what you can build: reports, reviewed workflows and dedicated business works
 
 - [Plugin examples](https://www.acceleratewith.us/docs/plugins/overview) (updated 2026-09-19): Explore bundled reports, reviewed workflows and business workspaces, with setup and extension guides.
 - [Business Pulse](https://www.acceleratewith.us/docs/plugins/business-pulse) (updated 2026-09-19): See pipeline risks, overdue commitments and upcoming meetings in one report.
-- [Client onboarding](https://www.acceleratewith.us/docs/plugins/client-onboarding) (updated 2026-09-19): Turn a won opportunity into a reviewed, assigned kickoff checklist.
+- [Client onboarding](https://www.acceleratewith.us/docs/plugins/client-onboarding) (updated 2026-09-20): Turn a won opportunity into a reviewed, assigned kickoff checklist.
 - [Overdue commitments](https://www.acceleratewith.us/docs/plugins/commitment-watch) (updated 2026-09-19): Find overdue tasks and return to the work behind each commitment.
 - [Inventory registration example](https://www.acceleratewith.us/docs/plugins/example-inventory) (updated 2026-09-19): The smallest possible extension: a manifest, a page, and a setting, with nothing else.
 - [Form builder](https://www.acceleratewith.us/docs/plugins/form-builder) (updated 2026-09-19): Publish shareable intake forms and review each response before it enters the pipeline.
 - [Meeting commitments](https://www.acceleratewith.us/docs/plugins/meeting-commitments) (updated 2026-09-19): Turn what got agreed in a meeting into assigned, dated tasks someone owns.
-- [Meeting preparation](https://www.acceleratewith.us/docs/plugins/meeting-prep) (updated 2026-09-19): See which meetings are approaching so you can plan preparation time.
+- [Meeting preparation](https://www.acceleratewith.us/docs/plugins/meeting-prep) (updated 2026-09-20): See which meetings are approaching so you can plan preparation time.
 - [Opportunity Radar](https://www.acceleratewith.us/docs/plugins/opportunity-radar) (updated 2026-09-19): A business-specific workspace for source-backed growth opportunities and relationship reviews.
 - [Pipeline follow-up](https://www.acceleratewith.us/docs/plugins/pipeline-watch) (updated 2026-09-19): Find open opportunities whose next action or update needs attention.
 - [Receivables Collections](https://www.acceleratewith.us/docs/plugins/receivables-collections) (updated 2026-09-09): Chase an overdue balance from verified invoice evidence, with every reminder reviewed first.

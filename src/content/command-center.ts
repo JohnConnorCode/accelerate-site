@@ -329,7 +329,7 @@ export const capabilities: Capability[] = [
     title: "Reusable corrections",
     promise: "Propose guidance your team wants future work to follow.",
     detail:
-      "Learning Inbox keeps the proposed rule, scope and source available for review. Approving shared guidance is an explicit operation; editing a draft does not automatically retrain the model.",
+      "Learning Inbox keeps the proposed rule, scope and source available for review. Approved independent rules stay active together, and edited replies can propose reusable corrections. Cited references and later context receipts make their use inspectable.",
   },
   {
     id: "rejections",
