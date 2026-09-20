@@ -1,23 +1,31 @@
 ---
-title: "Start with your business"
-description: "We find where AI and automation can free up time or increase revenue before anyone builds anything."
-updated: "2026-09-04"
+title: "Workspace, record, work, approval, and receipt"
+description: "The five terms every other page uses, taken from the screens and services that already ship."
+updated: "2026-09-20"
 ---
 
-Every engagement starts with your business: how it works, what it is trying to do, and where the hours actually go.
+These guides use five words the way the running application uses them. Read this page once, then [install a connected workspace](/docs/self-hosting) and complete [your first result](/docs/start/first-value).
 
-## Find where AI fits
+## Workspace
 
-We learn the operation first, then identify the useful opportunities and put them in the right order. Nothing gets built until the order is agreed.
+A workspace is one business's isolated environment: its people, records, settings, and connected accounts. The product code also calls this a tenant. After you sign in at `/admin`, **Tenant operations** at `/admin/tenants` is where workspaces are provisioned, membership is granted, and a workspace can be paused. What you can see depends on that membership. A fictional demo at `/demo/command-center` is a separate browser-only sandbox; it never writes to your workspace.
 
-- Workflow audit: what happens today, step by step
-- Opportunity map: where time is lost or revenue waits
-- Practical roadmap: what to do first, and what to skip
+## Record
 
-## Build only what is missing
+A record is a saved business object with a stable identity. The first-value journey creates three that stay linked: a contact, a company, and an opportunity. Open the opportunity at `/admin/pipeline/[id]` to see the people, the next action, and the **Verified activity** that belong to it. Ambiguous identity matches are not merged automatically; they wait on **Identity Review** at `/admin/identity-review`.
 
-The right solution is usually small: a focused workflow, an AI agent, an integration, or a custom internal tool. We create it around the systems and habits your team already has.
+## Work
 
-## Run it with you
+Work is an operator commitment with a due date, a related record, and a completion path. Capturing an inquiry creates a task titled `Qualify manually created lead: {company}` (or `Reply to new inquiry` for a website form). That task appears on **Today** at `/admin/today`. Complete it with **Complete task**, or **Snooze until tomorrow**. The same open work also appears in **Inbox** under the Tasks filter.
 
-Software alone rarely holds. We can operate the sales, marketing, service, content, reporting, or administrative work the solution is built to handle, then train your team, document the system, and keep improving it as the business changes.
+## Approval
+
+An approval is a decision on a proposed action that has not run yet. Proposed actions sit in `action_queue` until someone confirms them. On Today they appear in the decisions list. Opening one shows **Review before approving**; **Approve** (or **Approve and send** for email, Gmail, or campaign activation) runs the same service the admin screens use, and **Reject** records the refusal. A task you complete yourself is work, not an approval. This is separate from a sales proposal document on `/admin/proposals`.
+
+## Receipt
+
+A receipt is the recorded outcome of something that was actually attempted. Capture writes an activity titled **Manual lead captured** (or **Website inquiry captured** / **Chat inquiry captured**) onto the opportunity's **Verified activity** list, keyed by source and source-record id so a retry does not invent a second event. Completing a task writes an activity receipt and an audit row. **Activity** at `/admin/activity` is the actor, origin, target, and before/after history for those material changes. A success toast is not a receipt; if the activity line is missing, the write did not finish.
+
+<Callout type="important" title="Missing providers stay missing">
+Email sending needs a verified Resend connection. AI drafts need a tenant OpenRouter key. Gmail, Calendar, and Drive need Google OAuth. None of those are required to finish [your first result](/docs/start/first-value). Setup Center at `/admin/setup` reports configuration separately from a successful delivery or sync receipt.
+</Callout>

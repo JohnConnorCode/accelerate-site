@@ -81,6 +81,22 @@ for (const key of manifestKeys) {
   const file = path.join(DOCS_DIR, ...key.split("/")) + ".mdx";
   if (!fs.existsSync(file)) continue;
   const { data, content } = matter(fs.readFileSync(file, "utf-8"));
+  const proseOnly = content
+    .replace(/<[^>]*>/g, "")
+    .replace(/^\s*#+.*$/gm, "")
+    .trim();
+  if (
+    !proseOnly ||
+    /^(?:TODO|TBD|Coming soon|Under construction|Placeholder)[.!:]?\s*$/im.test(proseOnly)
+  ) {
+    failures.push(`"${key}" has empty or placeholder prose; write the actual task guidance.`);
+  }
+  const entry = flattenDocsPages().find((page) => page.slug.join("/") === key);
+  if (entry && (entry.title !== data.title || entry.description !== data.description)) {
+    failures.push(
+      `"${key}" title/description must match the manifest so navigation and search agree with the page.`,
+    );
+  }
   for (const field of REQUIRED_FRONTMATTER) {
     if (typeof data[field] !== "string" || !data[field].trim()) {
       failures.push(`"${key}" frontmatter needs a non-empty "${field}".`);
@@ -103,6 +119,53 @@ for (const key of manifestKeys) {
     const linkPattern = new RegExp(`\\]\\(\\s*${href.replace("/", "\\/")}[^)]*\\)`);
     if (linkPattern.test(content)) {
       failures.push(`"${key}" must not link to "${href}" (a docs page ending in a booking call reads as marketing).`);
+    }
+  }
+}
+
+// 5. Internal docs, admin, and demo links resolve to a shipped route.
+const docsHrefs = new Set([
+  "/docs",
+  ...docsManifest.map((section) => `/docs/${section.id}`),
+  ...flattenDocsPages().map((page) => `/docs/${page.slug.join("/")}`),
+]);
+
+function appPageExists(pathname: string): boolean {
+  const cleaned = pathname.replace(/\/$/, "") || "/";
+  const segments = cleaned.split("/").filter(Boolean);
+  const roots = [
+    path.join(process.cwd(), "src/app"),
+    path.join(process.cwd(), "src/app/(marketing)"),
+  ];
+  for (const root of roots) {
+    const exact = path.join(root, ...segments, "page.tsx");
+    if (fs.existsSync(exact)) return true;
+  }
+  return false;
+}
+
+for (const key of manifestKeys) {
+  const file = path.join(DOCS_DIR, ...key.split("/")) + ".mdx";
+  if (!fs.existsSync(file)) continue;
+  const { content } = matter(fs.readFileSync(file, "utf-8"));
+  const links = [...content.matchAll(/\]\(\s*([^)\s]+)(?:\s+"[^"]*")?\s*\)|\bhref=["']([^"']+)["']/g)];
+  for (const match of links) {
+    const href = match[1] ?? match[2] ?? "";
+    if (!href || /^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith("//") || href.startsWith("#")) {
+      continue;
+    }
+    const url = new URL(href, `https://docs.invalid/docs/${key}`);
+    const resolved = url.pathname.replace(/\/$/, "") || "/";
+    if (resolved === "/docs" || resolved.startsWith("/docs/")) {
+      if (!docsHrefs.has(resolved)) {
+        failures.push(`"${key}" links to "${href}", which is not a manifest docs route.`);
+      }
+      continue;
+    }
+    if (resolved.startsWith("/admin") || resolved.startsWith("/demo")) {
+      if (!appPageExists(resolved)) {
+        failures.push(`"${key}" links to "${href}", which has no matching page.tsx.`);
+      }
     }
   }
 }
