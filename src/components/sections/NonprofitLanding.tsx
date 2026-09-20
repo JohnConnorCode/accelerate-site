@@ -29,6 +29,7 @@
  * locally rather than hotlinked. The page is about people, so it shows people.
  */
 
+import type { ReactNode } from "react";
 import { IndustryRecipes } from "@/components/command-center/WorkflowRecipes";
 import Image from "next/image";
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
@@ -113,7 +114,7 @@ const WORKSHELTER_WORK = [
   },
 ];
 
-export function NonprofitLanding() {
+export function NonprofitLanding({ pilotSection }: { pilotSection?: ReactNode }) {
   return (
     <>
       {/* ── Hero: full-bleed documentary photograph. The page is about people,
@@ -363,6 +364,7 @@ export function NonprofitLanding() {
       </section>
 
       {/* ── Close ───────────────────────────────────────────────────────── */}
+      {pilotSection}
       <IndustryRecipes industry="nonprofits" />
 
       <section className="section-divide relative overflow-hidden border-t border-[color-mix(in_srgb,var(--fg)_12%,transparent)] [&_.display-italic]:!text-white">
