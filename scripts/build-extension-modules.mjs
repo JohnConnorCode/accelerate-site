@@ -403,6 +403,10 @@ if (existsSync(extensionsDir)) {
     validateManifest(name, manifest, seenIds, seenNavIds, coreIds);
     validateReport(name, manifest);
     validateWorkflow(name, manifest);
+    if (manifest.knowledge) {
+      const declared = new Set((manifest.report?.sources ?? manifest.workflow?.sources ?? []).map(source => source.name));
+      for (const name of manifest.knowledge.sourceNames) if (!declared.has(name)) fail(name, "Knowledge must reuse an existing host-reviewed report or workflow source");
+    }
     manifests.push(manifest);
   }
 }
@@ -442,6 +446,7 @@ const modules = manifests.map((manifest) => ({
   ...(manifest.settings?.length ? { settings: manifest.settings } : {}),
   ...(manifest.settingsContract ? { settingsContract: manifest.settingsContract } : {}),
   ...(manifest.report ? { report: manifest.report } : {}),
+  ...(manifest.knowledge ? { knowledge: manifest.knowledge } : {}),
   ...(manifest.today ? { today: manifest.today } : {}),
   ...(manifest.workflow ? { workflow: manifest.workflow } : {}),
 }));

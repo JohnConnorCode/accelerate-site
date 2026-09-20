@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Brain, Loader2, Plus } from "lucide-react";
+import { LearningEvidence } from "@/components/admin/LearningEvidence";
+import { KnowledgeSources } from "@/components/admin/KnowledgeSources";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
@@ -34,6 +36,18 @@ const statusTone: Record<LearningStatus, string> = {
 
 export default function LearningInboxPage() {
   const [proposals, setProposals] = useState<LearningProposal[]>([]);
+  const [displaced, setDisplaced] = useState<
+    Array<{
+      id: string;
+      rule: string;
+      affected_workers: string[] | null;
+      scope: Record<string, unknown> | null;
+      proposal_type: LearningProposalType | null;
+    }>
+  >([]);
+  const [recoveryScope, setRecoveryScope] = useState<Record<string, unknown> | null>(null);
+  const [recoveryId, setRecoveryId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<LearningStatus | "all">("all");
   const [showForm, setShowForm] = useState(false);
@@ -47,13 +61,18 @@ export default function LearningInboxPage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const fetchProposals = useCallback(async () => {
+    setLoadError(null);
     try {
       const query = filter === "all" ? "" : `?status=${filter}`;
       const res = await fetch(`/api/admin/learning${query}`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load learnings");
       setProposals(data.proposals || []);
+      setDisplaced(data.displaced || []);
     } catch {
-      setToast({ message: "Failed to load learnings", type: "error" });
+      setLoadError(
+        "Learnings could not be loaded. Retry to see the current proposals and approval status.",
+      );
     } finally {
       setLoading(false);
     }
@@ -84,6 +103,8 @@ export default function LearningInboxPage() {
           rationale: formRationale,
           confidence: formConfidence,
           affectedWorkers,
+          scope: recoveryScope,
+          sourceRefs: recoveryId ? { displacedPolicyId: recoveryId } : null,
         }),
       });
       if (!res.ok) throw new Error("Propose failed");
@@ -93,6 +114,8 @@ export default function LearningInboxPage() {
       setFormWorkers("");
       setFormConfidence("medium");
       setShowForm(false);
+      setRecoveryScope(null);
+      setRecoveryId(null);
       await fetchProposals();
     } catch {
       setToast({ message: "Failed to propose learning", type: "error" });
@@ -140,6 +163,45 @@ export default function LearningInboxPage() {
       />
 
       <div className="space-y-6">
+        <KnowledgeSources />
+        <LearningEvidence />
+        {loadError && (
+          <AdminSurface padding="lg">
+            <p role="alert">{loadError}</p>
+            <Button onClick={fetchProposals} className="mt-3">
+              Retry
+            </Button>
+          </AdminSurface>
+        )}
+        {displaced.length > 0 && (
+          <AdminSurface padding="lg">
+            <h2 className="text-lg font-semibold">Earlier rules need review</h2>
+            <p className="mt-2 text-sm text-[var(--admin-muted)]">
+              These rules were replaced without an explicit replacement choice. They remain
+              inactive. Review each rule before proposing it again.
+            </p>
+            <ul className="mt-4 space-y-3">
+              {displaced.map((p) => (
+                <li key={p.id} className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="min-w-0 flex-1 text-sm">{p.rule}</p>
+                  <Button
+                    onClick={() => {
+                      setFormRule(p.rule);
+                      setFormWorkers((p.affected_workers ?? []).join(", "));
+                      setFormType(p.proposal_type ?? "other");
+                      setRecoveryScope(p.scope);
+                      setRecoveryId(p.id);
+                      setFormRationale(`Review of previously displaced rule ${p.id}`);
+                      setShowForm(true);
+                    }}
+                  >
+                    Review rule
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </AdminSurface>
+        )}
         <div>
           <AdminSurface padding="lg">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -243,7 +305,7 @@ export default function LearningInboxPage() {
               ))}
             </div>
 
-            {proposals.length === 0 ? (
+            {!loadError && proposals.length === 0 ? (
               <p className="admin-copy rounded-xl bg-[var(--admin-surface-subtle)] px-4 py-6 text-center text-sm">
                 No learnings here yet. Corrections you mark as reusable will appear for review.
               </p>

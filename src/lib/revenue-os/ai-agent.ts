@@ -12,7 +12,8 @@ import { loadAgentLearningSignals } from "./agent-learning";
 import { listClaimableWork } from "./work-items";
 import { listWorkspaceCapabilities } from "./capabilities";
 import { listClaimsForEntity } from "./claims";
-import { listLearnedPolicies, retrieveAgentMemory } from "./memory";
+import { retrieveAgentMemory } from "./memory";
+import { loadContextPack, contextReceipt } from "./shared-context";
 import {
   AI_TOOL_REGISTRY_VERSION,
   executeRegisteredRevenueTool,
@@ -188,13 +189,15 @@ export async function runRevenueCommandAgent(
       }
     }
     // Memory summary: active learned policies + recent agent memory.
-    const activePolicies = await listLearnedPolicies(supabase);
+    const contextPack = await loadContextPack(supabase, { entity: pageEntity ?? undefined });
+    await recordAgentRunEvent(supabase, run, {
+      eventType: "context_loaded",
+      output: contextReceipt(contextPack),
+    });
     const recentAgentMemory = await retrieveAgentMemory(supabase, { limit: 5 });
     const memorySummary =
       [
-        activePolicies.length
-          ? `Learned policies (${activePolicies.length}): ${activePolicies.map((p) => `"${p.rule}" (${p.action_key}${p.authority ? `, ${p.authority}` : ""})`).join("; ")}. Use get_learned_policies for details.`
-          : undefined,
+        contextPack.text,
         recentAgentMemory.length
           ? `Recent agent memory (${recentAgentMemory.length}): ${recentAgentMemory.map((m) => `${m.category}: ${m.subject}`).join("; ")}. Use get_agent_memory for details.`
           : undefined,

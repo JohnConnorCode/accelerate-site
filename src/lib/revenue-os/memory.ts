@@ -178,6 +178,8 @@ export async function recordLearnedPolicy(
   supabase: SupabaseClient,
   input: {
     actionKey: string;
+    supersedesPolicyId?: string;
+    receiptKey?: string;
     rule: string;
     rationale: string;
     source: LearnedPolicyEntry["source"];
@@ -193,37 +195,8 @@ export async function recordLearnedPolicy(
     authority?: "official" | "approved" | "working" | "historical" | null;
   },
 ): Promise<LearnedPolicyEntry> {
-  // Only one active (superseded_at IS NULL) row may exist per action_key +
-  // scope (learned_policies_active_global / _active_scoped partial unique
-  // indexes) — so the old row must be superseded BEFORE the new one is
-  // inserted, not after, or the insert violates that constraint. Generating
-  // the new row's id up front (rather than letting the DB default it) lets
-  // the supersede step point at it without a placeholder value or a second
-  // back-fill write, and keeps this race-free across concurrent action keys.
-  const newId = crypto.randomUUID();
-
-  let supersedeQuery = supabase
-    .from("learned_policies")
-    .update({ superseded_at: new Date().toISOString(), superseded_by: newId })
-    .eq("action_key", input.actionKey)
-    .is("superseded_at", null);
-
-  supersedeQuery =
-    input.scopeEntityType && input.scopeEntityId
-      ? supersedeQuery
-          .eq("scope_entity_type", input.scopeEntityType)
-          .eq("scope_entity_id", input.scopeEntityId)
-      : supersedeQuery.is("scope_entity_type", null).is("scope_entity_id", null);
-
-  const { error: supersedeError } = await supersedeQuery;
-  if (supersedeError) {
-    throw new Error(`Failed to supersede prior learned policy: ${supersedeError.message}`);
-  }
-
-  const { data, error } = await supabase
-    .from("learned_policies")
-    .insert({
-      id: newId,
+  const { data, error } = await supabase.rpc("record_learned_policy", {
+    p_policy: {
       action_key: input.actionKey,
       rule: input.rule,
       rationale: input.rationale,
@@ -235,23 +208,14 @@ export async function recordLearnedPolicy(
       scope: input.scope ?? null,
       confidence: input.confidence ?? null,
       conflicts: input.conflicts ?? null,
-      affected_workers: input.affectedWorkers ?? null,
-      authority: input.authority ?? null,
-    })
-    .select()
-    .single();
-
-  if (error) throw new Error(`Failed to record learned policy: ${error.message}`);
-
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail || "system",
-    action: "learned_policy.recorded",
-    entityType: "learned_policy",
-    entityId: data.id,
-    source: input.source === "human_decision" ? "admin" : "automation",
-    after: { actionKey: input.actionKey, rule: input.rule, source: input.source },
+      affected_workers: input.affectedWorkers ?? [],
+      authority: input.authority ?? "working",
+    },
+    p_actor: input.actorEmail ?? "system",
+    p_supersedes: input.supersedesPolicyId ?? null,
+    p_receipt_key: input.receiptKey ?? null,
   });
-
+  if (error) throw new Error(`Failed to record learned policy: ${error.message}`);
   return data as LearnedPolicyEntry;
 }
 

@@ -45,12 +45,19 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/*": [
       "./plugins/receivables-collections/plan.js",
+      "./node_modules/pdfjs-dist/legacy/build/*.mjs",
+      "./node_modules/mammoth/**/*",
       "./node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm",
     ],
   },
 
   // Server external packages that should not be bundled
-  serverExternalPackages: ["@react-pdf/renderer", "@jitl/quickjs-wasmfile-release-sync"],
+  serverExternalPackages: [
+    "pdfjs-dist",
+    "mammoth",
+    "@react-pdf/renderer",
+    "@jitl/quickjs-wasmfile-release-sync",
+  ],
 
   // Plausible analytics proxy (bypasses ad blockers)
   async rewrites() {

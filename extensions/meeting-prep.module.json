@@ -7,16 +7,58 @@
   "defaultEnabled": false,
   "navLinks": [],
   "routes": [],
-  "aiToolNames": ["run_meeting_prep"],
+  "aiToolNames": [
+    "run_meeting_prep"
+  ],
   "report": {
     "version": 1,
     "sources": [
       {
         "name": "records",
         "type": "report_calendar_events",
-        "columns": ["id", "title", "status", "start_at", "end_at"]
+        "columns": [
+          "id",
+          "title",
+          "status",
+          "start_at",
+          "end_at"
+        ]
       }
     ]
   },
-  "docsUrl": "/docs/plugins/meeting-prep"
+  "docsUrl": "/docs/plugins/meeting-prep",
+  "knowledge": {
+    "version": 1,
+    "sourceNames": [
+      "records"
+    ],
+    "guidanceTypes": [
+      "workflow_preference",
+      "process_rule"
+    ],
+    "signalTypes": [
+      "explicit_correction",
+      "missing_source",
+      "verified_outcome"
+    ],
+    "prerequisites": [
+      "Stored upcoming calendar events and an enabled Calendar connection"
+    ],
+    "success": {
+      "artifact": "report",
+      "description": "A cited agenda for the stored meetings in the next 48 hours"
+    },
+    "evaluations": [
+      {
+        "name": "Available source",
+        "scenario": "Stored upcoming calendar events and an enabled Calendar connection",
+        "expectedArtifact": "report"
+      },
+      {
+        "name": "Disabled plugin",
+        "scenario": "Plugin is disabled before the source read or effect",
+        "expectedArtifact": "refusal"
+      }
+    ]
+  }
 }

@@ -44,6 +44,8 @@ export function diffDrafts(input: {
   if (typeof input.before !== "string" || typeof input.after !== "string") {
     throw new Error("before and after must be strings");
   }
+  if (input.before.length > 50000 || input.after.length > 50000)
+    throw new Error("Draft comparison is limited to 50000 characters");
   const beforeCounts = new Map<string, number>();
   for (const s of splitSegments(input.before)) beforeCounts.set(s, (beforeCounts.get(s) ?? 0) + 1);
   const removed: string[] = [];

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { approveAndExecuteAction } from "../src/lib/revenue-os/action-executor";
 import { getRevenueAiTools } from "../src/lib/revenue-os/ai-tools";
 import {
@@ -23,6 +24,58 @@ import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixtu
       audit_log: [],
       activities: [],
     });
+    mem.idFactory = () => randomUUID();
+    // Adapter-level fixture only. Real locking, rollback and tenant boundaries
+    // are exercised by test-connected-learning-postgres.mjs.
+    mem.rpc("record_learned_policy", ({ p_policy, p_supersedes, p_receipt_key }) => {
+      const policy = {
+        id: randomUUID(),
+        ...(p_policy as Record<string, unknown>),
+        receipt_key: p_receipt_key,
+      };
+      mem.tables.learned_policies!.push(policy);
+      const previous = mem.rows("learned_policies").find((r) => r.id === p_supersedes);
+      if (previous)
+        Object.assign(previous, {
+          superseded_at: new Date().toISOString(),
+          superseded_by: policy.id,
+        });
+      mem.tables.audit_log!.push({ action: "learned_policy.recorded" });
+      return policy;
+    });
+    mem.rpc("approve_learning_proposal", ({ p_proposal_id, p_actor }) => {
+      const p = mem.rows("learning_proposals").find((r) => r.id === p_proposal_id)!;
+      if (!["proposed", "approved"].includes(String(p.status)))
+        throw new Error("Only proposed learnings can be approved");
+      const action = mem.rows("action_queue").find((r) => r.id === p.approval_action_id);
+      if (
+        !action ||
+        !["executing", "executed"].includes(String(action.status)) ||
+        action.approved_by !== p_actor
+      )
+        throw new Error("Learning requires its human-approved action");
+      if (p.status === "approved")
+        return {
+          proposal: p,
+          policy: mem.rows("learned_policies").find((r) => r.id === p.learned_policy_id),
+        };
+      const policy = {
+        id: randomUUID(),
+        action_key: `learning:${p.id}`,
+        rule: p.rule,
+        source: "approved_learning",
+        authority: "approved",
+        proposal_type: p.proposal_type,
+        affected_workers: p.affected_workers,
+      };
+      mem.tables.learned_policies!.push(policy);
+      const old = mem.rows("learned_policies").find((r) => r.id === p.supersedes_policy_id);
+      if (old)
+        Object.assign(old, { superseded_at: new Date().toISOString(), superseded_by: policy.id });
+      Object.assign(p, { status: "approved", authority: "approved", learned_policy_id: policy.id });
+      mem.tables.audit_log!.push({ action: "learned_policy.recorded" });
+      return { proposal: p, policy };
+    });
     return { mem, client: mem.client as never };
   }
 
@@ -43,7 +96,14 @@ import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixtu
     assert.equal(p.authority, "working");
     assert.equal(p.confidence, "high");
     assert.deepEqual(p.affected_workers, ["proposal-writer"]);
-    assert.equal(p.dedupe_key, learningDedupeKey({ type: "positioning_policy", rule: RULE }));
+    assert.equal(
+      p.dedupe_key,
+      learningDedupeKey({
+        type: "positioning_policy",
+        rule: RULE,
+        affectedWorkers: ["proposal-writer"],
+      }),
+    );
   }
 
   // AC1 replay: duplicate collapses onto the idempotency key.
@@ -154,7 +214,7 @@ import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixtu
     const policy = policies[0];
     assert.ok(policy);
     assert.equal(policy.source, "approved_learning");
-    assert.equal(policy.authority, "working");
+    assert.equal(policy.authority, "approved");
     assert.equal(policy.proposal_type, "positioning_policy");
     assert.equal(done?.learned_policy_id, policy.id);
     const auditKinds = mem.rows("audit_log").map((r) => r.action);
@@ -178,6 +238,8 @@ import { AuthorizedMemorySupabase as MemorySupabase } from "./lib/autonomy-fixtu
       supersedesPolicyId: old.id,
       actorEmail: ACTOR,
     });
+    const action = await requestLearningApproval(client, { id: p.id, actorEmail: ACTOR });
+    await approveAndExecuteAction(client, String(action.id), ACTOR);
     const first = await approveLearningProposal(client, { proposalId: p.id, actorEmail: ACTOR });
     assert.equal(first.proposal.status, "approved");
     const superseded = mem.rows("learned_policies").find((r) => r.id === old.id);

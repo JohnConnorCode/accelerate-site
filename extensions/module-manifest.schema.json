@@ -3,16 +3,30 @@
   "title": "Revenue OS extension module manifest",
   "description": "Declarative registration for a pluggable Revenue OS module. Contains no executable code; see extensions/README.md.",
   "type": "object",
-  "required": ["id", "name", "description", "category", "defaultEnabled", "navLinks", "docsUrl"],
+  "required": [
+    "id",
+    "name",
+    "description",
+    "category",
+    "defaultEnabled",
+    "navLinks",
+    "docsUrl"
+  ],
   "additionalProperties": false,
   "properties": {
     "today": {
       "type": "object",
-      "required": ["source", "href"],
+      "required": [
+        "source",
+        "href"
+      ],
       "additionalProperties": false,
       "properties": {
         "source": {
-          "enum": ["collection_case", "radar_opportunity"]
+          "enum": [
+            "collection_case",
+            "radar_opportunity"
+          ]
         },
         "href": {
           "type": "string",
@@ -39,7 +53,13 @@
       "maxLength": 400
     },
     "category": {
-      "enum": ["revenue", "delivery", "intelligence", "sources", "system"]
+      "enum": [
+        "revenue",
+        "delivery",
+        "intelligence",
+        "sources",
+        "system"
+      ]
     },
     "defaultEnabled": {
       "type": "boolean"
@@ -49,7 +69,13 @@
       "maxItems": 8,
       "items": {
         "type": "object",
-        "required": ["id", "label", "href", "icon", "description"],
+        "required": [
+          "id",
+          "label",
+          "href",
+          "icon",
+          "description"
+        ],
         "additionalProperties": false,
         "properties": {
           "id": {
@@ -78,7 +104,13 @@
             "maxLength": 200
           },
           "moreGroup": {
-            "enum": ["Revenue", "Delivery", "Intelligence", "System", "Sources"]
+            "enum": [
+              "Revenue",
+              "Delivery",
+              "Intelligence",
+              "System",
+              "Sources"
+            ]
           }
         }
       }
@@ -124,7 +156,11 @@
       "description": "Configurable values rendered by the shared ModuleSettingsForm. Never secrets: tenants.config, where values are stored, reaches client components, so a secret-shaped key or label is rejected at build time regardless of what this schema alone permits.",
       "items": {
         "type": "object",
-        "required": ["key", "label", "type"],
+        "required": [
+          "key",
+          "label",
+          "type"
+        ],
         "additionalProperties": false,
         "properties": {
           "key": {
@@ -141,7 +177,13 @@
             "maxLength": 200
           },
           "type": {
-            "enum": ["string", "number", "boolean", "enum", "url"]
+            "enum": [
+              "string",
+              "number",
+              "boolean",
+              "enum",
+              "url"
+            ]
           },
           "options": {
             "type": "array",
@@ -151,7 +193,11 @@
             "maxItems": 20
           },
           "default": {
-            "type": ["string", "number", "boolean"]
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
           },
           "min": {
             "type": "number"
@@ -165,7 +211,10 @@
     "report": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["version", "sources"],
+      "required": [
+        "version",
+        "sources"
+      ],
       "properties": {
         "version": {
           "const": 1
@@ -177,7 +226,11 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["name", "type", "columns"],
+            "required": [
+              "name",
+              "type",
+              "columns"
+            ],
             "properties": {
               "name": {
                 "type": "string",
@@ -227,7 +280,10 @@
           "minItems": 1,
           "maxItems": 3,
           "items": {
-            "enum": ["create_stripe_invoice_draft", "create_task_batch"]
+            "enum": [
+              "create_stripe_invoice_draft",
+              "create_task_batch"
+            ]
           }
         },
         "sources": {
@@ -236,7 +292,12 @@
           "maxItems": 3,
           "items": {
             "type": "object",
-            "required": ["name", "type", "columns", "inputKey"],
+            "required": [
+              "name",
+              "type",
+              "columns",
+              "inputKey"
+            ],
             "additionalProperties": false,
             "properties": {
               "name": {
@@ -292,7 +353,13 @@
     "upstream": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["repository", "license", "revision", "connector", "deploymentGuide"],
+      "required": [
+        "repository",
+        "license",
+        "revision",
+        "connector",
+        "deploymentGuide"
+      ],
       "properties": {
         "repository": {
           "type": "string",
@@ -317,6 +384,127 @@
         "deploymentGuide": {
           "type": "string",
           "pattern": "^plugins/[a-z0-9-]+/[^.].*\\.md$"
+        }
+      }
+    },
+    "knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "sourceNames",
+        "guidanceTypes",
+        "signalTypes",
+        "prerequisites",
+        "success",
+        "evaluations"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "sourceNames": {
+          "type": "array",
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,31}$"
+          }
+        },
+        "guidanceTypes": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "positioning_policy",
+              "workflow_preference",
+              "offering",
+              "messaging",
+              "process_rule",
+              "other"
+            ]
+          }
+        },
+        "signalTypes": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "draft_edit",
+              "rejection",
+              "explicit_correction",
+              "tool_failure",
+              "missing_source",
+              "verified_outcome"
+            ]
+          }
+        },
+        "prerequisites": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "success": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "artifact",
+            "description"
+          ],
+          "properties": {
+            "artifact": {
+              "enum": [
+                "report",
+                "action",
+                "task"
+              ]
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          }
+        },
+        "evaluations": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "scenario",
+              "expectedArtifact"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "scenario": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "expectedArtifact": {
+                "enum": [
+                  "report",
+                  "action",
+                  "task",
+                  "refusal"
+                ]
+              }
+            }
+          }
         }
       }
     }

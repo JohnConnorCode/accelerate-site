@@ -67,7 +67,7 @@
       "impact": "internal_write",
       "reversibility": "compensable"
     },
-    "contractHash": "fabc01db2ce9b6ae0db203379a2ff20542b9b323ee5f6792c40788d0112c7d86",
+    "contractHash": "8140da8caedb124562939bf5fb4c0a2bf98c06b3ea426f51cba51c477adaca31",
     "tools": [
       {
         "operation": "prepare-workflow",
@@ -176,5 +176,28 @@
       }
     ]
   },
-  "docsUrl": "/docs/plugins/client-onboarding"
+  "docsUrl": "/docs/plugins/client-onboarding",
+  "knowledge": {
+    "version": 1,
+    "sourceNames": ["opportunity"],
+    "guidanceTypes": ["workflow_preference", "process_rule"],
+    "signalTypes": ["explicit_correction", "missing_source", "verified_outcome"],
+    "prerequisites": ["A won opportunity, valid assignee and dated delivery tasks"],
+    "success": {
+      "artifact": "task",
+      "description": "Approved onboarding tasks linked to the selected opportunity"
+    },
+    "evaluations": [
+      {
+        "name": "Available source",
+        "scenario": "A won opportunity, valid assignee and dated delivery tasks",
+        "expectedArtifact": "task"
+      },
+      {
+        "name": "Disabled plugin",
+        "scenario": "Plugin is disabled before the source read or effect",
+        "expectedArtifact": "refusal"
+      }
+    ]
+  }
 }

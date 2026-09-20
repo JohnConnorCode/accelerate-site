@@ -5,9 +5,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-25.2";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-28.1";
 
 export const TENANT_SCOPED_TABLES = [
+  "knowledge_documents",
+  "learning_signals",
   "today_view_proposals",
   "today_workspace_views",
   "today_view_receipts",
@@ -572,6 +574,8 @@ const BASE_REVENUE_SCHEMA_TABLE_NAMES = new Set<string>(
 );
 
 export const REVENUE_SCHEMA_TABLES = [
+  { table: "knowledge_documents", columns: ["id", "tenant_id", "title", "mime_type", "storage_path", "content_hash", "owner_email", "visibility", "status", "extracted_text", "locations", "extraction_error", "created_at", "indexed_at"] },
+  { table: "learning_signals", columns: ["id", "tenant_id", "kind", "source_kind", "source_id", "receipt_key", "details", "rule", "plugin_id", "category", "remedy", "proposal_id", "processed_at", "created_at"] },
   {
     table: "collection_reminder_attempts",
     columns: [

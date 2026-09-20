@@ -64,6 +64,19 @@ export interface ModuleSettingField {
 }
 
 export interface RevenueOSModule {
+  knowledge?: {
+    version: 1;
+    sourceNames: string[];
+    guidanceTypes: string[];
+    signalTypes: string[];
+    prerequisites: string[];
+    success: { artifact: "report" | "action" | "task"; description: string };
+    evaluations: Array<{
+      name: string;
+      scenario: string;
+      expectedArtifact: "report" | "action" | "task" | "refusal";
+    }>;
+  };
   upstream?: {
     repository: string;
     license: string;
@@ -206,6 +219,11 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     routes: ["/admin/ai", "/admin/blueprints", "/admin/learning"],
     aiToolNames: [
       "search_knowledge_base",
+      "get_first_use_progress",
+      "get_learning_evidence",
+      "propose_correction",
+      "list_knowledge_documents",
+      "propose_knowledge_change",
       "query_memory",
       "store_agent_memory",
       "get_agent_memory",
@@ -225,8 +243,9 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     category: "system",
     isCore: true,
     defaultEnabled: true,
-    navLinkIds: ["tenants", "setup", "features", "settings", "branding"],
+    navLinkIds: ["get-started", "tenants", "setup", "features", "settings", "branding"],
     routes: [
+      "/admin/get-started",
       "/admin/tenants",
       "/admin/setup",
       "/admin/features",
