@@ -6,6 +6,7 @@ import {
   type AgentMemoryEntry,
   type LearnedPolicyEntry,
 } from "./memory";
+import { registerSourceAuthority, SOURCE_AUTHORITY_TIERS } from "./source-authority";
 
 function text(
   input: Record<string, unknown>,
@@ -101,5 +102,27 @@ export async function executeRuntimeAction(
       scopeEntityId: text(input, "scopeEntityId"),
       actorEmail,
     });
+  if (actionType === "register_source_authority") {
+    const domains = input.truthDomains;
+    if (!Array.isArray(domains) || domains.some((domain) => typeof domain !== "string")) {
+      throw new Error("Invalid truthDomains");
+    }
+    return registerSourceAuthority(db, {
+      systemKey: text(input, "systemKey", true, 64)!,
+      displayName: text(input, "displayName", true, 120)!,
+      truthDomains: domains as string[],
+      authorityTier: choice(
+        input,
+        "authorityTier",
+        SOURCE_AUTHORITY_TIERS,
+      ) as (typeof SOURCE_AUTHORITY_TIERS)[number],
+      ownerEmail: text(input, "ownerEmail", true, 240)!,
+      lastVerifiedAt: text(input, "lastVerifiedAt", true, 40)!,
+      verificationLapseDays:
+        typeof input.verificationLapseDays === "number" ? input.verificationLapseDays : undefined,
+      requestKey: text(input, "requestKey"),
+      actorEmail,
+    });
+  }
   throw new Error("Unknown runtime action");
 }
