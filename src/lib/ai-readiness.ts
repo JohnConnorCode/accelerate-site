@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const AI_READINESS_VERSION = "2026-09-v2";
+export const AI_READINESS_VERSION = "2026-09-v1";
 
 export const readinessDimensions = [
   {
@@ -244,47 +244,10 @@ export const profileSchema = z.object({
   ]),
   bottleneck: z.enum(["follow_up", "admin", "intake", "delivery", "reporting", "unknown"]),
   details: z.string().trim().max(500).optional(),
-  websiteUrl: z
-    .string()
-    .trim()
-    .max(2048)
-    .refine(
-      (value) => !value || /^https?:\/\/[^\s]+$/i.test(value),
-      "Use a public http:// or https:// URL",
-    )
-    .optional(),
 });
 
 export type AssessmentAnswers = z.infer<typeof assessmentAnswerSchema>;
 export type AssessmentProfile = z.infer<typeof profileSchema>;
-
-export type WebsiteAuditFinding = {
-  severity: "priority" | "improvement" | "strength";
-  category: string;
-  title: string;
-  detail: string;
-  action: string;
-};
-
-export type WebsiteAuditCategory = {
-  key: "performance" | "seo" | "mobile" | "accessibility" | "conversion" | "trust";
-  label: string;
-  score: number;
-  summary: string;
-};
-
-export type WebsiteAudit = {
-  url: string;
-  finalUrl?: string;
-  checkedAt: string;
-  status: "completed" | "unreachable" | "blocked" | "too_large";
-  statusCode?: number;
-  score: number | null;
-  summary: string;
-  categories: WebsiteAuditCategory[];
-  findings: WebsiteAuditFinding[];
-  note: string;
-};
 
 export const recommendationCatalog = {
   follow_up: {
@@ -389,7 +352,6 @@ export type ReadinessReport = {
   pilot: { title: string; baseline: string; success: string; owner: string; review: string };
   actionPlan: Array<{ week: string; title: string; detail: string }>;
   aiStatus: "rules" | "enriched";
-  websiteAudit?: WebsiteAudit | null;
 };
 
 export function scoreLabel(score: number | null, coverage: number) {
@@ -524,6 +486,5 @@ export function publicPreview(report: ReadinessReport) {
     focusDimension: report.focusDimension,
     summary: report.summary,
     previewRecommendation: report.recommendations[0],
-    websiteAudit: report.websiteAudit ?? null,
   };
 }

@@ -7,7 +7,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 type Analytics = {
   schemaReady: boolean;
   windowDays?: number;
-  funnel?: { starts: number; previews: number; unlocked: number; websiteAudited?: number };
+  funnel?: { starts: number; previews: number; unlocked: number };
   averageScore?: number | null;
   completionRate?: number | null;
   bottlenecks?: { label: string; value: number }[];
@@ -48,7 +48,7 @@ export function AIReadinessPanel() {
         </p>
       </GlassCard>
     );
-  const funnel = data.funnel || { starts: 0, previews: 0, unlocked: 0, websiteAudited: 0 };
+  const funnel = data.funnel || { starts: 0, previews: 0, unlocked: 0 };
   return (
     <section className="mb-8 space-y-4" aria-labelledby="ai-readiness-analytics-heading">
       <div className="flex items-end justify-between gap-4">
@@ -63,20 +63,10 @@ export function AIReadinessPanel() {
         </div>
         <p className="text-xs text-white-muted">Server-confirmed assessment records</p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Metric label="Started" value={number(funnel.starts)} icon={BarChart3} />
         <Metric label="Previewed" value={number(funnel.previews)} icon={Target} />
         <Metric label="Unlocked" value={number(funnel.unlocked)} icon={Users} />
-        <Metric label="Sites audited" value={number(funnel.websiteAudited)} icon={Target} />
-        <Metric
-          label="Unlock rate"
-          value={
-            data.completionRate === null || data.completionRate === undefined
-              ? "—"
-              : `${data.completionRate}%`
-          }
-          icon={Target}
-        />
         <Metric
           label="Avg. score"
           value={

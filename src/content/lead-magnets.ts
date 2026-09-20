@@ -7,7 +7,7 @@ export const leadMagnets: LeadMagnet[] = [
     title: "AI Readiness Assessment",
     subtitle: "Find where to start",
     description:
-      "Answer focused questions about your workflows, data, tools, team, and guardrails. Optionally add your public homepage for a useful surface audit, then get a transparent readiness score, practical first pilot, and 30-day action plan.",
+      "Answer focused questions about your workflows, data, tools, team, and guardrails. Get a transparent readiness score, a practical first pilot, and a 30-day action plan built around your business.",
     icon: "ClipboardCheck",
     fileUrl: "/resources/ai-readiness-checklist.pdf",
     category: "checklist",

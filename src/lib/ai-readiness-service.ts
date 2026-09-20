@@ -7,7 +7,6 @@ import { ingestInboundLead } from "@/lib/revenue-os/inbound";
 import { scheduleEmailSequence } from "@/lib/email/sequences";
 import { siteUrl } from "@/config/tenant";
 import { openRouterJson } from "@/lib/ai/openrouter";
-import { auditWebsite } from "@/lib/ai-readiness-website";
 import {
   assessmentAnswerSchema,
   calculateReadiness,
@@ -58,11 +57,6 @@ export function validateAssessment(input: { answers: unknown; profile: unknown }
   const profile = profileSchema.parse(input.profile) as AssessmentProfile;
   const report = calculateReadiness(answers, profile);
   return { answers, profile, report };
-}
-
-async function addWebsiteAudit(report: ReadinessReport, profile: AssessmentProfile) {
-  const websiteAudit = await auditWebsite(profile.websiteUrl);
-  return websiteAudit ? { ...report, websiteAudit } : report;
 }
 
 async function enrichReport(
@@ -142,7 +136,6 @@ async function enrichReport(
             metric: item.metric,
             prerequisites: item.prerequisites,
           })),
-          websiteAudit: report.websiteAudit,
           currentPlan: report.actionPlan,
         }),
       },
@@ -197,8 +190,7 @@ export async function previewAssessment(input: {
   profile: unknown;
   attribution?: AssessmentAttribution;
 }): Promise<AssessmentSession> {
-  const { answers, profile, report: rulesReport } = validateAssessment(input);
-  const report = await addWebsiteAudit(rulesReport, profile);
+  const { answers, profile, report } = validateAssessment(input);
   const sessionToken = input.sessionToken || token();
   let reportToken: string | null = null;
   let persisted = false;
@@ -233,12 +225,11 @@ export async function unlockAssessment(input: {
   attribution?: AssessmentAttribution;
 }): Promise<AssessmentSession> {
   const { answers, profile, report: rulesReport } = validateAssessment(input);
-  const reportWithWebsite = await addWebsiteAudit(rulesReport, profile);
   if (!input.contact.consentGiven) throw new Error("Consent is required to save your report.");
   const sessionToken = input.sessionToken || token();
   const supabase = database();
   const reportToken = supabase ? token() : null;
-  let report = reportWithWebsite;
+  let report = rulesReport;
   if (supabase) {
     try {
       report = await enrichReport(supabase, rulesReport);
