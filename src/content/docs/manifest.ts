@@ -1,3 +1,5 @@
+import { workflowRecipes } from "@/content/workflow-recipes";
+
 /**
  * The single authority for docs structure, ordering, and section card
  * metadata. MDX files hold only prose; everything structural lives here so
@@ -116,14 +118,33 @@ export const docsManifest: DocsSection[] = [
         slug: ["start", "receipts"],
         title: "Check an action result",
         description:
-          "Read the receipt, not the confirmation toast, to know whether an action actually finished.",
+          "Read the receipt, not the confirmation toast, to know whether an action finished.",
       },
       {
         slug: ["start", "troubleshooting"],
         title: "Troubleshooting",
         description:
-          "The recovery step for the setup, access, and action failures you'll actually hit, by symptom.",
+          "The recovery step for the setup, access, and action failures you'll hit, by symptom.",
       },
+    ],
+  },
+  {
+    id: "recipes",
+    track: "operator",
+    title: "Workflow recipes",
+    description: "Combine features and plugins around a specific business outcome.",
+    pages: [
+      {
+        slug: ["recipes", "overview"],
+        title: "Workflow recipes for your business",
+        description:
+          "Practical guides to combining Command Center features and plugins for industry-specific workflows.",
+      },
+      ...workflowRecipes.map((recipe) => ({
+        slug: ["recipes", recipe.id],
+        title: recipe.title,
+        description: recipe.description,
+      })),
     ],
   },
   {
@@ -144,7 +165,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["command-center", "capabilities"],
         title: "Capability reference",
         description:
-          "52 capabilities in six categories, from what the system sees to what it never does without you.",
+          "Find supported capabilities, their business purpose and the setup or review each needs.",
       },
       {
         slug: ["command-center", "today"],
@@ -173,7 +194,7 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["command-center", "activity"],
         title: "Inspect activity",
-        description: "Trace a change back to who made it, what actually happened, and when.",
+        description: "Trace a change back to who made it, what happened, and when.",
       },
       {
         slug: ["command-center", "ask"],
@@ -194,13 +215,13 @@ export const docsManifest: DocsSection[] = [
         slug: ["conversations", "overview"],
         title: "Conversations",
         description:
-          "Every message from every channel, landed on the same thread, the same person, and the same deal.",
+          "Read supported message threads with customer context, prepare a reply and check its result.",
       },
       {
         slug: ["conversations", "reply"],
         title: "Reply to a conversation",
         description:
-          "Find the right thread, confirm who you're actually writing to, and check that it sent.",
+          "Find the right thread, confirm who you're writing to, and check that it sent.",
       },
     ],
   },
@@ -215,13 +236,13 @@ export const docsManifest: DocsSection[] = [
         slug: ["contacts", "overview"],
         title: "Contacts",
         description:
-          "One record per person, matched from every channel, with merges proposed rather than assumed.",
+          "Find customer records, review unfamiliar senders and follow the work linked to each person.",
       },
       {
         slug: ["contacts", "import"],
         title: "Import contacts",
         description:
-          "Bring in a CSV or pasted list through a review batch that writes nothing until you confirm it.",
+          "Review a CSV or pasted list, resolve contact matches and confirm the records to import.",
       },
     ],
   },
@@ -235,19 +256,19 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["pipeline", "overview"],
         title: "Pipeline",
-        description: "Every open deal on one board, ranked by what actually moves revenue next.",
+        description: "Every open deal on one board, ranked by what moves revenue next.",
       },
       {
         slug: ["pipeline", "revenue"],
         title: "Understand revenue figures",
         description:
-          "Where each number on the revenue screen actually comes from, and how to chase a discrepancy.",
+          "Where each number on the revenue screen comes from, and how to chase a discrepancy.",
       },
       {
         slug: ["pipeline", "board"],
         title: "Use the pipeline board",
         description:
-          "Drag a card when the evidence actually changed, and leave the next action clear behind it.",
+          "Drag a card when the evidence changed, and leave the next action clear behind it.",
       },
     ],
   },
@@ -298,13 +319,13 @@ export const docsManifest: DocsSection[] = [
         slug: ["outreach", "overview"],
         title: "Outreach",
         description:
-          "Outbound that stops the moment someone replies or asks to be left alone, no exceptions.",
+          "Review audiences and messages, run approved campaigns, and inspect delivery results.",
       },
       {
         slug: ["outreach", "collections"],
         title: "Review collection reminders",
         description:
-          "Chase what invoicing actually confirms is owed, with every reminder requiring your approval.",
+          "Chase what invoicing confirms is owed, with every reminder requiring your approval.",
       },
       {
         slug: ["outreach", "campaigns"],
@@ -321,8 +342,7 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["outreach", "recovery"],
         title: "Review recovery outreach",
-        description:
-          "Check who actually qualifies and the proposed playbook before reopening a past lead.",
+        description: "Check who qualifies and the proposed playbook before reopening a past lead.",
       },
     ],
   },
@@ -337,24 +357,23 @@ export const docsManifest: DocsSection[] = [
         slug: ["delivery", "overview"],
         title: "Delivery",
         description:
-          "The workspace for what happens after a deal is won: retainers, meetings, publishing, downloads.",
+          "Coordinate client accounts, bookings, editorial work and resource-download follow-up.",
       },
       {
         slug: ["delivery", "clients"],
         title: "Review client accounts",
-        description:
-          "Find an account, check what it's actually worth, and open its delivery record.",
+        description: "Find an account, check what it's worth, and open its delivery record.",
       },
       {
         slug: ["delivery", "bookings"],
         title: "Review bookings",
-        description: "Prep for the call, then record what actually happened once it's over.",
+        description: "Prep for the call, then record what happened once it's over.",
       },
       {
         slug: ["delivery", "content"],
         title: "Manage editorial work",
         description:
-          "Track a brief from idea to published, and verify a review actually caught what mattered.",
+          "Track a brief from idea to published, and verify a review caught what mattered.",
       },
       {
         slug: ["delivery", "resources"],
@@ -374,14 +393,13 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["sources", "overview"],
         title: "Sources",
-        description:
-          "Where a new name actually enters the business, before it becomes a canonical contact.",
+        description: "Where a new name enters the business, before it becomes a canonical contact.",
       },
       {
         slug: ["sources", "leads"],
         title: "Review leads and chat handoffs",
         description:
-          "Qualify a new inquiry, check whether it's actually someone you already know, and record what's next.",
+          "Qualify a new inquiry, check whether it's someone you already know, and record what's next.",
       },
     ],
   },
@@ -420,7 +438,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["intelligence", "workspace"],
         title: "Use the AI Workspace",
         description:
-          "Ask a specific question, check the sources behind the answer, then inspect what actually ran.",
+          "Ask a specific question, check the sources behind the answer, then inspect what ran.",
       },
     ],
   },
@@ -457,7 +475,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["workspace", "settings"],
         title: "Change workspace settings",
         description:
-          "Change a notification or your workspace's look, then confirm the change actually saved.",
+          "Change a notification or your workspace's look, then confirm the change saved.",
       },
     ],
   },
@@ -486,7 +504,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["plugins", "overview"],
         title: "Plugin examples",
         description:
-          "Fourteen working examples, from a read-only report to a full business workspace, all shipped disabled.",
+          "Explore bundled reports, reviewed workflows and business workspaces, with setup and extension guides.",
       },
       {
         slug: ["plugins", "business-pulse"],
@@ -518,8 +536,7 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["plugins", "meeting-commitments"],
         title: "Meeting commitments",
-        description:
-          "Turn what got agreed in a meeting into assigned, dated tasks someone actually owns.",
+        description: "Turn what got agreed in a meeting into assigned, dated tasks someone owns.",
       },
       {
         slug: ["plugins", "meeting-prep"],
@@ -610,7 +627,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["extend", "first-change"],
         title: "Your first developer change",
         description:
-          "Run the demo, learn where code actually lives, and make one small, safe extension change.",
+          "Run the demo, learn where code lives, and make one small, safe extension change.",
       },
       {
         slug: ["extend", "modules"],
@@ -667,7 +684,7 @@ export const docsManifest: DocsSection[] = [
         slug: ["self-hosting", "overview"],
         title: "Self-hosting quickstart",
         description:
-          "Explore the real interface with zero credentials, then connect a workspace you actually control.",
+          "Explore the real interface with zero credentials, then connect a workspace you control.",
       },
       {
         slug: ["self-hosting", "installation"],

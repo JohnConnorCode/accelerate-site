@@ -29,7 +29,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I try Command Center before setting it up?",
     answer:
-      "Yes. Open the demo, preview how an inquiry moves through an AI draft to a reviewed result, then explore one of six fictional businesses. Try the demo opens Northline Roofing directly, with no signup required. The full workspaces use sample records and simulated actions saved in your browser session.",
+      "Yes. Choose one of six fictional businesses in the demo chooser. Each opens the real workspace with sample customers, conversations and tasks. No signup is required, and simulated changes stay in your browser session. The workflow recipes explain how to combine features and plugins in a connected workspace.",
   },
   {
     question: "Can we create our own workspace theme?",
@@ -79,7 +79,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Where can I explore the bundled plugins?",
     answer:
-      "The public documentation includes individual guides for all fourteen bundled plugins, with fictional examples, setup steps, approval requirements, costs and recovery instructions. Start at /docs/plugins to explore reports, invoice workflows, Collections, Opportunity Radar, Social Marketing, subscriptions and the form builder, then adapt the open-source examples to your business.",
+      "The public documentation includes individual guides for bundled plugins, with fictional examples, setup steps, approval requirements, costs and recovery instructions. Start at /docs/plugins to explore reports, invoice workflows, Collections, Opportunity Radar, Social Marketing, subscriptions and the form builder, then adapt the open-source examples to your business.",
   },
   {
     question: "What can Opportunity Radar do today?",
@@ -87,19 +87,19 @@ export const commandCenterFaqs: FAQ[] = [
       "It keeps supplied sources, reviewed business opportunities, relationship evidence, and drafts together, and you review exact changes before anything saves. Source briefing can use a model budget you set explicitly, with spending off by default. Reviewed outreach uses the configured sender only after an exact human approval, with cooldowns and receipt recovery. Automated discovery, publication, and verified outcome measurement are still being built. The fictional demo lets you try the review workflow without provider calls.",
   },
   {
-    question: "What stops it doing something stupid on my behalf?",
+    question: "How do we control what AI can do?",
     answer:
-      "Nothing it writes leaves the building until you approve it. That is how it ships on day one and it stays that way until you change it, one category of work at a time. You can also turn any single part of it off in a click.",
+      "AI-proposed changes go through the shared approval process. You review the target and exact change, and execution checks current permissions and source state. External sends and other consequential operations retain required human approval. Internal autonomy depends on the action’s policy, and you can disable optional modules or plugins.",
   },
   {
     question: "Do I have to learn new software?",
     answer:
-      "We build it around the way you already work and hand it over running. Your team is trained on whatever they touch. You are not handed a blank app and a login.",
+      "Start with one familiar job, such as following up on an inquiry. The demo and recipes show which screens and records are involved. You can configure and self-host the platform, or work with Accelerate to implement the workflow and train your team.",
   },
   {
     question: "Our records are a mess. Should we clean them up first?",
     answer:
-      "No. Waiting to tidy up is the single most common reason this never gets started. It reads what already exists, flags the duplicates for you to settle, and improves the rest as it goes.",
+      "Start with a small set of records you can verify. Contact imports support a review batch, and ambiguous identities need a person’s decision. Connect sources incrementally and check their processing results before relying on the available context.",
   },
   {
     question: "We bought an AI tool last year and nobody used it.",
@@ -119,11 +119,23 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How is this different from the notetaker we already have?",
     answer:
-      "A notetaker gives you a transcript and a summary, and you still do the work. This reads the same call and then drafts the follow-up, updates the deal, and books the next step, and it holds all of it for your approval. The transcript is the raw material, not the product.",
+      "Command Center connects customer records, conversations, opportunities and tasks. A supported transcript source can contribute context, while Meeting commitments turns an explicitly entered checklist into reviewed tasks. The useful result is assigned follow-up linked to its source. Automatic extraction or booking depends on the specific implemented workflow and connections.",
   },
   {
     question: "What does it cost, and how long does it take?",
     answer:
-      "The session and the written plan are free. The build is a fixed price agreed before anything starts, and ongoing support is optional. Something is running inside a couple of weeks, and because it loads your history first, there is work waiting in the queue the first morning you log in.",
+      "Explore the fictional demo without an account. Self-hosting uses infrastructure and provider accounts you control, with their normal usage costs. For implementation help, start with a discovery session and written plan; scope, price and timing are agreed around the workflow and connections your business needs.",
   },
 ];
+
+/** The buying questions shown on the product page and in its structured data. */
+export const productFaqs = commandCenterFaqs.filter((faq) =>
+  [
+    "Can I try Command Center before setting it up?",
+    "Can we build a completely different App or interface?",
+    "Can AI create Apps inside Command Center?",
+    "Where does our data live?",
+    "How do we control what AI can do?",
+    "What does it cost, and how long does it take?",
+  ].includes(faq.question),
+);

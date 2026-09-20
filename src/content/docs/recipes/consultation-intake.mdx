@@ -1,0 +1,61 @@
+---
+title: "Review a consultation inquiry"
+description: "Review a legal consultation inquiry and assign the next contact while preserving the firm’s intake process."
+updated: "2026-09-19"
+---
+
+A prospective client has asked for a consultation. Collect basic contact and routing information so the intake team can decide the next step with the relevant context.
+
+<RecipeIngredients id="consultation-intake" />
+
+## Before you start
+
+Use an authorized workspace with Form builder and Pipeline follow-up enabled in **Plugins**. Both start disabled. Choose who will review responses and own the resulting opportunities. A connected mailbox is needed only when you send a reply.
+
+Explore the [law firms workspace](/demo/command-center/alder-ridge-law/today) with fictional records. Use it to inspect the shared screens and simulated actions; configure real forms or provider connections in a workspace you control.
+
+<DocsFigure
+  src="/images/docs/pipeline/overview.png"
+  width={1440}
+  height={1000}
+  alt="Pipeline showing fictional opportunities and next actions."
+  caption="The shared pipeline workflow with fictional demo data. Use the source record and saved result to follow the example; this image is not a live customer result."
+/>
+
+## Work through this example
+
+A fictional Alder Ridge prospect asks whether the firm can arrange an initial consultation. The intake coordinator needs enough context to route the request.
+
+**Capture.** Name, email, callback availability and a brief inquiry category using the firm’s approved intake wording.
+
+**Decide.** Have the authorized intake owner complete the firm’s conflict and suitability checks in its established system.
+
+**Hand off.** Record the approved next contact and its owner. Collect detailed documents through the firm’s approved channel.
+
+## Complete the workflow
+
+1. Include a name and usable email address so the reviewed response can be linked to a customer. Open **Forms** and create a draft called **Consultation request**. Include name, contact email, broad practice area and preferred callback time.
+
+2. Preview the form, save it and publish its share link. Submit one fictional example through that link before using it with customers.
+
+3. Open **Responses**, review the example and accept the appropriate response into the pipeline. Check the matched contact instead of creating a second record for the same person.
+
+4. Open the resulting opportunity in **Pipeline**. Record an owner and the next action: **Assign an intake callback to the appropriate team member**.
+
+5. Enable and run **Pipeline follow-up** from Plugins. Use its findings to review stale opportunities or overdue next actions, then update the source record. The report itself does not send a message.
+
+## Check the result
+
+The accepted response is represented in the pipeline with the correct customer context and a recorded next action. The follow-up report gives the owner a reason to inspect a record when its update or next action becomes overdue.
+
+## Adapt it for your business
+
+Add a verified practice-management connection through an adapter; conflict checks and legal assessments require their own implemented process.
+
+For a coded variation, use [Build an extension](/docs/extend) and include this example’s decision, owner and completion check in your [development brief](/docs/extend/ai-authoring). Keep customer identity and task history in the shared services.
+
+## What to check
+
+If a response cannot be accepted, check for a usable email address and whether it was already reviewed. If the report is empty, inspect its coverage and the opportunity dates. To send a reply, open the conversation and verify the sender connection and recorded send result.
+
+Plugins must be enabled for their operations to run. Hosted infrastructure and connected providers may have costs; AI conversations use your configured model. Keep each human decision required by the action’s policy, and verify the result in the source screen before relying on it.

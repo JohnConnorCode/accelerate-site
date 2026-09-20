@@ -14,6 +14,10 @@ import { normalize, searchEntries } from "../src/lib/search/score";
 // Exercise legacy agency search explicitly; neutral isolation has its own test.
 process.env.NEXT_PUBLIC_DISTRIBUTION_PROFILE = "branded";
 const index = buildSearchIndex();
+assert.equal(new Set(index.map((item) => item.id)).size, index.length);
+assert(
+  searchEntries(index, "Chicago business automation", 5).some((item) => item.href === "/chicago"),
+);
 
 function top(query: string, count = 5) {
   return searchEntries(index, query, count).map((entry) => entry.title);

@@ -1,0 +1,65 @@
+---
+title: "Review outstanding invoices and prepare follow-up"
+description: "Review an overdue advisory invoice, customer context and payment evidence before preparing a reminder."
+updated: "2026-09-19"
+---
+
+An invoice remains open and the account owner needs to know whether to follow up, wait for a promised payment or resolve a dispute. Review the evidence before preparing the next message.
+
+<RecipeIngredients id="invoice-follow-up" />
+
+## Try invoice preparation first
+
+If you want to see how an invoice is created before reviewing collections, open [SuperDebate Invoicing](/demo/command-center/superdebate/invoicing). Choose **Use sample invoice**, inspect the customer and line items, then select **Prepare invoice**. Use **Request draft approval** and **Approve & create draft** to create the fictional draft. Follow with **Request sending approval** and **Approve & send invoice**, then inspect the recorded result. These demo actions are simulated; the [Stripe invoicing guide](/docs/plugins/stripe-invoicing) explains setup for a connected workspace.
+
+## Before you start
+
+Use an authorized workspace with Collections and Stripe invoicing enabled, a configured Stripe connection and a customer-linked invoice observation. Confirm the source is current before deciding how to follow up. A real reminder also needs a working sender and the required approval.
+
+Explore the [professional services workspace](/demo/command-center/ledgerstone-advisory/today) with fictional records. Use it to inspect the shared screens and simulated actions; configure real forms or provider connections in a workspace you control.
+
+<DocsFigure
+  src="/images/docs/plugins/collections.png"
+  width={1440}
+  height={1000}
+  alt="Collections showing fictional invoice evidence and customer follow-up."
+  caption="The shared collections workflow with fictional demo data. Use the source record and saved result to follow the example; this image is not a live customer result."
+/>
+
+## Work through this example
+
+A fictional Ledgerstone customer has an overdue invoice and says the payment is being processed. The finance owner needs to decide whether a reminder is appropriate.
+
+**Inspect.** Check the recorded invoice balance, observation time and latest customer message together.
+
+**Decide.** Record the promised payment date or dispute and use the case’s hold or snooze controls when appropriate.
+
+**Check.** After an approved reminder, inspect the send result. Close the collection only when payment evidence supports it.
+
+## Complete the workflow
+
+1. Open **Collections** and choose the customer-linked case. Read the invoice evidence, observation time and balance before preparing any action.
+
+2. Review the customer’s conversation history and any payment promise, dispute or hold on the case.
+
+3. Record the appropriate decision in the case: preserve a hold or promise when it applies, or prepare a reminder when follow-up is appropriate.
+
+4. Review the recipient, amount, wording and exact reminder proposal. Submit it through the existing approval process.
+
+5. Inspect the case history and execution receipt. Confirm the provider result before recording the message as sent, and use new invoice evidence to determine whether the balance changed.
+
+## Check the result
+
+A reviewed collection decision with a case history and a checkable action result. The customer decision and any reminder stay attached to the collection case; new payment evidence determines whether the balance is resolved.
+
+## Adapt it for your business
+
+Connect another accounting provider through an adapter before describing its balances as live data.
+
+For a coded variation, use [Build an extension](/docs/extend) and include this example’s decision, owner and completion check in your [development brief](/docs/extend/ai-authoring). Keep customer identity and task history in the shared services.
+
+## What to check
+
+If invoice evidence is missing or stale, repair the configured source and inspect the new observation. If a send is uncertain, check its existing receipt before retrying. Keep disputes and holds visible so the team can resolve them before continuing reminders.
+
+Plugins must be enabled for their operations to run. Hosted infrastructure and connected providers may have costs; AI conversations use your configured model. Keep each human decision required by the action’s policy, and verify the result in the source screen before relying on it.

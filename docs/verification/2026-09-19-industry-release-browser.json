@@ -1,0 +1,1030 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "route": "/chicago",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 189,
+        "resourceCount": 67
+      }
+    },
+    {
+      "route": "/industries",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 129,
+        "resourceCount": 97
+      }
+    },
+    {
+      "route": "/industries/home-services",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 116,
+        "resourceCount": 92
+      }
+    },
+    {
+      "route": "/industries/nonprofits",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 271,
+        "resourceCount": 113
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-inquiry",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 143,
+        "resourceCount": 96
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-event-handoff",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 132,
+        "resourceCount": 100
+      }
+    },
+    {
+      "route": "/learn/chicago-small-businesses-ai-2026",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 59,
+        "resourceCount": 90
+      }
+    },
+    {
+      "route": "/industries/restaurants-catering",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 130,
+        "resourceCount": 94
+      }
+    },
+    {
+      "route": "/industries/retail-ecommerce",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 126,
+        "resourceCount": 87
+      }
+    },
+    {
+      "route": "/industries/salons-spas",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 111,
+        "resourceCount": 90
+      }
+    },
+    {
+      "route": "/industries/fitness-studios",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 113,
+        "resourceCount": 90
+      }
+    },
+    {
+      "route": "/industries/pet-services",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 115,
+        "resourceCount": 90
+      }
+    },
+    {
+      "route": "/industries/auto-repair",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 134,
+        "resourceCount": 92
+      }
+    },
+    {
+      "route": "/industries/property-management",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 133,
+        "resourceCount": 90
+      }
+    },
+    {
+      "route": "/industries/cleaning-companies",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 115,
+        "resourceCount": 93
+      }
+    },
+    {
+      "route": "/industries/staffing-recruiting",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 116,
+        "resourceCount": 91
+      }
+    },
+    {
+      "route": "/industries/events-venues",
+      "width": 1440,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 60,
+        "resourceCount": 92
+      }
+    },
+    {
+      "route": "/chicago",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 140,
+        "resourceCount": 105
+      }
+    },
+    {
+      "route": "/industries",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 116,
+        "resourceCount": 117
+      }
+    },
+    {
+      "route": "/industries/home-services",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 92,
+        "resourceCount": 92
+      }
+    },
+    {
+      "route": "/industries/nonprofits",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 139,
+        "resourceCount": 93
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-inquiry",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 161,
+        "resourceCount": 95
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-event-handoff",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 161,
+        "resourceCount": 105
+      }
+    },
+    {
+      "route": "/learn/chicago-small-businesses-ai-2026",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 149,
+        "resourceCount": 94
+      }
+    },
+    {
+      "route": "/industries/restaurants-catering",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 117,
+        "resourceCount": 91
+      }
+    },
+    {
+      "route": "/industries/retail-ecommerce",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 132,
+        "resourceCount": 94
+      }
+    },
+    {
+      "route": "/industries/salons-spas",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 138,
+        "resourceCount": 89
+      }
+    },
+    {
+      "route": "/industries/fitness-studios",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 116,
+        "resourceCount": 90
+      }
+    },
+    {
+      "route": "/industries/pet-services",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 56,
+        "resourceCount": 92
+      }
+    },
+    {
+      "route": "/industries/auto-repair",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 121,
+        "resourceCount": 91
+      }
+    },
+    {
+      "route": "/industries/property-management",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 64,
+        "resourceCount": 89
+      }
+    },
+    {
+      "route": "/industries/cleaning-companies",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 122,
+        "resourceCount": 90
+      }
+    },
+    {
+      "route": "/industries/staffing-recruiting",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 126,
+        "resourceCount": 89
+      }
+    },
+    {
+      "route": "/industries/events-venues",
+      "width": 1440,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 125,
+        "resourceCount": 82
+      }
+    },
+    {
+      "route": "/chicago",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 132,
+        "resourceCount": 100
+      }
+    },
+    {
+      "route": "/industries",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 111,
+        "resourceCount": 129
+      }
+    },
+    {
+      "route": "/industries/home-services",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 114,
+        "resourceCount": 101
+      }
+    },
+    {
+      "route": "/industries/nonprofits",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 166,
+        "resourceCount": 113
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-inquiry",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 140,
+        "resourceCount": 101
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-event-handoff",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 122,
+        "resourceCount": 93
+      }
+    },
+    {
+      "route": "/learn/chicago-small-businesses-ai-2026",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 94,
+        "resourceCount": 111
+      }
+    },
+    {
+      "route": "/industries/restaurants-catering",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 119,
+        "resourceCount": 88
+      }
+    },
+    {
+      "route": "/industries/retail-ecommerce",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 124,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/salons-spas",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 115,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/fitness-studios",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 117,
+        "resourceCount": 95
+      }
+    },
+    {
+      "route": "/industries/pet-services",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 114,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/auto-repair",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 152,
+        "resourceCount": 95
+      }
+    },
+    {
+      "route": "/industries/property-management",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 109,
+        "resourceCount": 106
+      }
+    },
+    {
+      "route": "/industries/cleaning-companies",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 115,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/staffing-recruiting",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 60,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/events-venues",
+      "width": 768,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 121,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/chicago",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 145,
+        "resourceCount": 99
+      }
+    },
+    {
+      "route": "/industries",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 116,
+        "resourceCount": 127
+      }
+    },
+    {
+      "route": "/industries/home-services",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 51,
+        "resourceCount": 103
+      }
+    },
+    {
+      "route": "/industries/nonprofits",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 139,
+        "resourceCount": 91
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-inquiry",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 75,
+        "resourceCount": 93
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-event-handoff",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 121,
+        "resourceCount": 72
+      }
+    },
+    {
+      "route": "/learn/chicago-small-businesses-ai-2026",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 143,
+        "resourceCount": 101
+      }
+    },
+    {
+      "route": "/industries/restaurants-catering",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 132,
+        "resourceCount": 102
+      }
+    },
+    {
+      "route": "/industries/retail-ecommerce",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 133,
+        "resourceCount": 101
+      }
+    },
+    {
+      "route": "/industries/salons-spas",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 57,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/fitness-studios",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 57,
+        "resourceCount": 101
+      }
+    },
+    {
+      "route": "/industries/pet-services",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 123,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/auto-repair",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 63,
+        "resourceCount": 106
+      }
+    },
+    {
+      "route": "/industries/property-management",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 114,
+        "resourceCount": 108
+      }
+    },
+    {
+      "route": "/industries/cleaning-companies",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 115,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/staffing-recruiting",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 151,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/events-venues",
+      "width": 768,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 121,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/chicago",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 166,
+        "resourceCount": 112
+      }
+    },
+    {
+      "route": "/industries",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 115,
+        "resourceCount": 129
+      }
+    },
+    {
+      "route": "/industries/home-services",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 54,
+        "resourceCount": 105
+      }
+    },
+    {
+      "route": "/industries/nonprofits",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 199,
+        "resourceCount": 104
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-inquiry",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 128,
+        "resourceCount": 95
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-event-handoff",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 118,
+        "resourceCount": 94
+      }
+    },
+    {
+      "route": "/learn/chicago-small-businesses-ai-2026",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 128,
+        "resourceCount": 108
+      }
+    },
+    {
+      "route": "/industries/restaurants-catering",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 119,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/retail-ecommerce",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 120,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/salons-spas",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 122,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/fitness-studios",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 116,
+        "resourceCount": 107
+      }
+    },
+    {
+      "route": "/industries/pet-services",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 116,
+        "resourceCount": 107
+      }
+    },
+    {
+      "route": "/industries/auto-repair",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 137,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/property-management",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 121,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/cleaning-companies",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 113,
+        "resourceCount": 107
+      }
+    },
+    {
+      "route": "/industries/staffing-recruiting",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 133,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/events-venues",
+      "width": 390,
+      "theme": "light",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 118,
+        "resourceCount": 107
+      }
+    },
+    {
+      "route": "/chicago",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 147,
+        "resourceCount": 107
+      }
+    },
+    {
+      "route": "/industries",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 116,
+        "resourceCount": 129
+      }
+    },
+    {
+      "route": "/industries/home-services",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 132,
+        "resourceCount": 105
+      }
+    },
+    {
+      "route": "/industries/nonprofits",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 143,
+        "resourceCount": 107
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-inquiry",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 132,
+        "resourceCount": 104
+      }
+    },
+    {
+      "route": "/docs/recipes/catering-event-handoff",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 121,
+        "resourceCount": 95
+      }
+    },
+    {
+      "route": "/learn/chicago-small-businesses-ai-2026",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 128,
+        "resourceCount": 112
+      }
+    },
+    {
+      "route": "/industries/restaurants-catering",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 117,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/retail-ecommerce",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 126,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/salons-spas",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 115,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/fitness-studios",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 120,
+        "resourceCount": 107
+      }
+    },
+    {
+      "route": "/industries/pet-services",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 72,
+        "resourceCount": 107
+      }
+    },
+    {
+      "route": "/industries/auto-repair",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 118,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/property-management",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 114,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/cleaning-companies",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 140,
+        "resourceCount": 107
+      }
+    },
+    {
+      "route": "/industries/staffing-recruiting",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 123,
+        "resourceCount": 109
+      }
+    },
+    {
+      "route": "/industries/events-venues",
+      "width": 390,
+      "theme": "dark",
+      "status": "passed",
+      "localTiming": {
+        "domContentLoadedMs": 117,
+        "resourceCount": 107
+      }
+    },
+    {
+      "status": "passed",
+      "checks": "20 unique industry pages, 40 guides, HQ consistency, schemas, sitemap, internal links, unknown route and normal motion"
+    }
+  ],
+  "boundary": "Local production build; analytics stubbed; no connected-provider or ranking claim."
+}

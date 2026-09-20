@@ -1,10 +1,10 @@
 ---
 title: "Plugin examples"
-description: "Fourteen working examples, from a read-only report to a full business workspace, all shipped disabled."
-updated: "2026-09-13"
+description: "Explore bundled reports, reviewed workflows and business workspaces, with setup and extension guides."
+updated: "2026-09-19"
 ---
 
-The gap between "the product could theoretically support this" and "here is a working example you can actually open" is usually where extending software gets hard, because you're guessing at patterns instead of copying one that already runs. These fourteen bundled examples close that gap: they ship in the source, disabled by default, and each one's own guide explains exactly what it does today, how to try it, and which parts you'd actually adapt for your business.
+Choose a plugin by the work you want it to help with. The bundled examples show how to turn shared records into a useful report, an assigned checklist or a dedicated business workspace. Each guide explains what the example does today, how to try it and how a builder can adapt it.
 
 <DocsFigure
   src="/images/docs/plugins/radar.png"
@@ -14,9 +14,13 @@ The gap between "the product could theoretically support this" and "here is a wo
   caption="One example of a tailored workspace: Radar keeps business opportunities and their evidence together. This is the real interface with fictional demo data."
 />
 
+## Combine plugins into a workflow
+
+Start with the [industry recipes](/docs/recipes) when you want several capabilities to work together. For example, [client engagement onboarding](/docs/recipes/engagement-onboarding) combines a won opportunity, Client onboarding, shared tasks and overdue-commitment review. Each plugin below also has a focused guide for its own setup and behavior.
+
 ## Reports that turn records into a useful review
 
-Four examples compute a factual finding without ever calling a model, which is worth noticing: [Business Pulse](/docs/plugins/business-pulse) combines pipeline risks, overdue commitments, and upcoming meetings into one report. [Pipeline follow-up](/docs/plugins/pipeline-watch) surfaces open deals with a stale update or an overdue next action. [Overdue commitments](/docs/plugins/commitment-watch) lists overdue tasks linked back to the work behind them. [Meeting preparation](/docs/plugins/meeting-prep) flags upcoming meetings that actually need prep time. Together they're a useful pattern for keeping a factual business rule in plain code while still letting AI help interpret what the report found.
+Four examples compute a factual finding without ever calling a model, which is worth noticing: [Business Pulse](/docs/plugins/business-pulse) combines pipeline risks, overdue commitments, and upcoming meetings into one report. [Pipeline follow-up](/docs/plugins/pipeline-watch) surfaces open deals with a stale update or an overdue next action. [Overdue commitments](/docs/plugins/commitment-watch) lists overdue tasks linked back to the work behind them. [Meeting preparation](/docs/plugins/meeting-prep) flags upcoming meetings that need prep time. Together they're a useful pattern for keeping a factual business rule in plain code while still letting AI help interpret what the report found.
 
 ## Workflows that create something you can use
 
@@ -28,16 +32,16 @@ Two examples go further and become a small business process on their own. [Recei
 
 ## Learning the smallest building block
 
-The [Inventory registration example](/docs/plugins/example-inventory) demonstrates a page, navigation entry, and settings, and nothing more; it's a scaffold for learning module registration, not an inventory product you'd actually run.
+The [Inventory registration example](/docs/plugins/example-inventory) demonstrates a page, navigation entry, and settings, and nothing more; it's a scaffold for learning module registration, not an inventory product you'd run.
 
 ## Building your own
 
-Choose an example close to what you want, read its guide, and follow the linked source. Describe your desired business outcome to a coding assistant along with the records it should use and the approvals it has to preserve, then implement and test a focused change using [the extension guide](/docs/extend). A good extension feels like part of the same workspace, the same customers, the same permissions, a result your team can actually inspect, and that shared foundation is what frees you to spend your effort on the part that's genuinely specific to your business.
+Choose an example close to what you want, read its guide, and follow the linked source. Describe your desired business outcome to a coding assistant along with the records it should use and the approvals it has to preserve, then implement and test a focused change using [the extension guide](/docs/extend). A good extension feels like part of the same workspace, the same customers, the same permissions, a result your team can inspect, and that shared foundation is what frees you to spend your effort on the part that's specific to your business.
 
 ## Going beyond the examples
 
-These fourteen are a starting library, not a ceiling. You can build an App with its own records, a custom lifecycle, its own queue, and a bespoke interface. Follow [the customization path](/docs/customize) to choose between a settings change and a source change, or use [the AI development brief](/docs/extend/ai-authoring) to describe a new App to a coding assistant. General-purpose App creation inside Command Center itself is planned but not shipped; today's path runs through the source repository.
+The examples are a starting library you can extend. You can build an App with its own records, a custom lifecycle, its own queue, and a bespoke interface. Follow [the customization path](/docs/customize) to choose between a settings change and a source change, or use [the AI development brief](/docs/extend/ai-authoring) to describe a new App to a coding assistant. General-purpose App creation inside Command Center itself is planned but not shipped; today's path runs through the source repository.
 
-[Site Studio](/docs/plugins/site-studio) starts disabled. Once enabled, installation owners can create and edit pages, choose an AI model, and explicitly publish or roll back a saved website revision. Private tenant drafts remain separate from the installation website.
+[Site Studio](/docs/plugins/site-studio) is enabled by default in the current module manifest. With the required access, installation owners can create and edit pages, choose an AI model, and explicitly publish or roll back a saved website revision. Private tenant drafts remain separate from the installation website.
 
 [Social Marketing](/docs/plugins/social-marketing) adds source-backed LinkedIn drafts, exact batch approval, a publishing calendar and provider receipts through a separately hosted Postiz service. Its guide explains tenant setup, private images, weekly preparation and recovery from uncertain publication outcomes.

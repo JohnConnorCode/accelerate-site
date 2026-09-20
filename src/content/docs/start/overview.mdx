@@ -1,12 +1,12 @@
 ---
 title: "An AI command center you can make your own"
 description: "Connect your business, work with AI that earns more trust over time, and build on an open-source foundation you control."
-updated: "2026-09-09"
+updated: "2026-09-19"
 ---
 
-A customer calls to ask when their project starts. Whoever picks up needs the thread from last spring, the proposal they accepted, and the date your team promised, and today those three things usually live in three different places: an inbox, a spreadsheet, and someone's memory. Command Center puts them in one workspace, so the person answering the phone is never reconstructing a story from fragments.
+A customer calls to ask when their project starts. Whoever picks up needs the thread from last spring, the proposal they accepted, and the date your team promised, and today those three things usually live in three different places: an inbox, a spreadsheet, and someone's memory. Command Center puts them in one workspace, so the person answering can review the available history before responding.
 
-That single workspace is also what AI needs to be useful rather than generic. An assistant that can only see the message in front of it can draft a plausible reply. An assistant that can see the deal, the history, and what your team already promised can draft the _right_ reply, and tell you why it drafted it that way.
+That single workspace is also what AI needs to be useful rather than generic. An assistant that can only see the message in front of it can draft a plausible reply. An assistant that can see the deal, the history, and what your team already promised can prepare a reply using that context, and tell you why it drafted it that way.
 
 <DocsFigure
   src="/images/open-source/slide-today-paper.png"
@@ -16,21 +16,21 @@ That single workspace is also what AI needs to be useful rather than generic. An
   caption="Today, in the fictional Northline Roofing workspace: the work that needs a decision, ranked, with the reason attached. This is the real Command Center interface using fictional demo data."
 />
 
-## What you actually get back
+## What the shared context makes possible
 
-Your week gets smaller as the system earns your trust. Every action the assistant can take starts out requiring your review, every time. Once you have approved the same kind of action three times over at least a week, the system proposes moving it up a rung, so a stage change or a routine reply that used to cost you a click starts clearing itself, and the exceptions are what land in front of you. You are never opting into blanket autonomy; you are watching a specific, narrow permission earn its way up, one proven pattern at a time. [Approvals](/docs/command-center/approvals) walks through exactly how that ladder works.
+A customer record can carry the conversation, opportunity and promised work together. Your team can inspect that history before replying, while AI can use available records to explain the situation or prepare a supported next step. The [industry recipes](/docs/recipes) show practical combinations, from a roofing inquiry to a client kickoff checklist.
 
-Some things never move up that ladder, on purpose. Deleting an account, changing a credential, exporting your customer database, a high-value refund: those stay behind a human decision permanently, regardless of how much the system has earned your trust elsewhere. Of the 87 tools your assistant can call, only three can act outside the workspace at all: sending an email, replying to a conversation, and activating a campaign. Everything else reads what already exists or prepares a change that still needs your yes the first several times, and then, if you let it, on its own after that.
+Review the exact work where its action policy requires a decision, then inspect the saved result. For eligible actions, a configured trust policy can propose a higher level of autonomy after sufficient approval history. A person confirms that change, and hard safety floors remain in force. Read [Approvals](/docs/command-center/approvals) for the current rules and [AI tools](/docs/intelligence/tools) for the registered operations.
 
 ## One workspace, built to be extended
 
-The application ships with the records a service business actually runs on: customer contacts, conversations, a pipeline, campaigns, proposals, tasks, and analytics. You turn on the modules you need and leave the rest off. Ten bundled examples ship disabled by default and show working patterns, from a read-only report that flags overdue commitments to a full Collections workspace that tracks a payment promise against a verified invoice balance. The [plugin examples](/docs/plugins) walk through what each one actually does, not what it might one day do.
+The application ships with the records a service business runs on: customer contacts, conversations, a pipeline, campaigns, proposals, tasks, and analytics. You turn on the modules you need and leave the rest off. Bundled plugins provide reusable examples and show working patterns, from a read-only report that flags overdue commitments to a full Collections workspace that tracks a payment promise against a verified invoice balance. The [plugin examples](/docs/plugins) walk through what each one does, not what it might one day do.
 
 When none of that fits, you extend it. A coding assistant can build a new report, a new workflow, or a new AI tool using the same records, permissions, and approval queue the rest of the application already runs on, so a maintenance company can add an equipment-service workspace tied to its existing customers without re-inventing identity resolution or the approval flow underneath it. [Build on it](/docs/extend) is the starting brief.
 
 ## Try it before you connect anything
 
-Open the [fictional demo](/demo/command-center) and pick one of six businesses, roofing to a law firm to a nonprofit, then follow [your first workflow](/docs/start/daily-path). It needs no account and no provider keys, and nothing it does reaches a real customer. Look at Today, open a conversation, and review an approval to see how the pieces actually connect to each other before you decide whether any of this is worth setting up for real.
+Open the [fictional demo](/demo/command-center) and pick one of six businesses, roofing to a law firm to a nonprofit, then follow [your first workflow](/docs/start/daily-path). It needs no account and no provider keys, and nothing it does reaches a real customer. Look at Today, open a conversation, and review an approval to see how the pieces connect to each other before you decide whether any of this is worth setting up for real.
 
 When you are ready to use your own data, [installation](/docs/self-hosting/installation) and [workspace setup](/docs/workspace/setup) walk through connecting your own database and provider accounts. You own the deployment. The providers you connect, email, calendar, your model of choice, still process what you send them under their own terms, and hosting, email, and AI usage can cost real money once you are past the demo.
 

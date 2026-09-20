@@ -21,6 +21,7 @@ import {
 /** One icon per docs section. Shared by the sidebar and the landing index. */
 export const DOCS_SECTION_ICONS: Record<string, LucideIcon> = {
   start: Compass,
+  recipes: Puzzle,
   plugins: Puzzle,
   "command-center": LayoutDashboard,
   pipeline: KanbanSquare,

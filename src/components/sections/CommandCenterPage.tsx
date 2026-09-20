@@ -1,574 +1,333 @@
-"use client";
-
-import { useState } from "react";
-import type { CSSProperties } from "react";
+import { PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
 import Link from "next/link";
-import { BookCallButton } from "@/components/v2/studio/primitives";
-import { Reveal, useRv } from "@/components/home/reveal";
-import { AmbientField } from "@/components/home/AmbientField";
+import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import { CapabilityCatalog } from "@/components/command-center/CapabilityCatalog";
 import { CommandCenterNav } from "@/components/command-center/CommandCenterNav";
+import { RecipeCards } from "@/components/command-center/WorkflowRecipes";
 import { ProductSlider } from "@/components/media/ProductSlider";
-import { commandCenterFaqs } from "@/content/command-center-faq";
-import {
-  CURRENT_SURFACES,
-  LOOP_STEPS,
-  TRUST_LADDER,
-  MARQUEE_ITEMS,
-  SURFACE_GROUPS,
-  WHO_ITS_FOR,
-} from "@/content/command-center";
 import { PRODUCT_SCREENSHOTS } from "@/content/product-screenshots";
-import type { MouseEvent } from "react";
+import { workflowRecipes } from "@/content/workflow-recipes";
+import { productFaqs } from "@/content/command-center-faq";
+import { WorkflowShowcase } from "@/components/command-center/WorkflowShowcase";
+import { workProjects } from "@/content/work";
+import styles from "@/components/command-center/product.module.css";
 
-/* /command-center, built on the homepage editorial system (.sect / .wrap /
-   .ink-panel / .steps / .appr / .efaq / .deck) rather than the inner-page
-   primitives, because this page needs the ink-panel alternation to have any
-   structure at all. The v2 `bg-section-warm|deep` tokens are aliased to the
-   page background, so section-level contrast can only come from .ink-panel. */
+const jobs = [
+  {
+    title: "Know the customer before you reply",
+    text: "Bring contacts, conversations and notes into shared context. Your team can pick up a relationship with the history in front of them, and AI can use the available records to prepare a useful response.",
+    parts: ["Contacts", "Conversations", "AI workspace"],
+    image: "conversations/overview",
+    href: "/docs/conversations",
+    action: "Connect the customer conversation",
+  },
+  {
+    title: "Give every opportunity a next step",
+    text: "Keep the owner, stage and next action visible. Combine Pipeline with the Pipeline follow-up plugin to find quiet opportunities, then inspect the customer context and decide how to follow up.",
+    parts: ["Pipeline", "Pipeline follow-up", "Proposals"],
+    image: "pipeline/overview",
+    href: "/docs/recipes/roofing-inquiry",
+    action: "Follow an inquiry through the workflow",
+  },
+  {
+    title: "Carry commitments into delivery",
+    text: "Turn won work or an agreed meeting checklist into assigned tasks. The source stays attached, so the person doing the work can see why it exists and the team can check its progress.",
+    parts: ["Client onboarding", "Meeting commitments", "Work"],
+    image: "plugins/client-onboarding",
+    href: "/docs/recipes/engagement-onboarding",
+    action: "Build a client kickoff checklist",
+  },
+  {
+    title: "Follow the money with the evidence",
+    text: "Review revenue records, prepare invoices through Stripe and manage collection decisions against invoice evidence. Keep a payment promise, an invoice and a collected payment distinct so you know what to do next.",
+    parts: ["Revenue", "Stripe invoicing", "Receivables Collections"],
+    image: "plugins/collections",
+    href: "/docs/recipes/invoice-follow-up",
+    action: "Review an outstanding invoice",
+  },
+];
 
 export function CommandCenterPageContent() {
   return (
-    <>
-      <Hero />
-      <Marquee />
-      <Problem />
-      <Built />
-      <CurrentSurface />
-      <HowItWorks />
-      <TrustLadder />
-      <Catalog />
-      <OpenSource />
-      <Proof />
-      <WhoItsFor />
-      <Faq />
-      <Closing />
-      <CommandCenterNav />
-    </>
-  );
-}
-
-/* ── hero ─────────────────────────────────────────────────────────────── */
-
-function Hero() {
-  return (
-    <section className="sect page-offset cc-product-hero" id="top">
-      <div className="wrap">
-        <div className="grid gap-8 lg:grid-cols-2 lg:items-end lg:gap-16">
-          <div>
-            <Reveal rv as="p" className="label eyebrow-anim">
-              Command Center
-            </Reveal>
-            <Reveal rv as="h1" className="cc-product-title" delay={0.08}>
-              Your work.
-              <br />
-              <span className="it">One clear view.</span>
-            </Reveal>
-          </div>
-          <div>
-            <Reveal rv as="p" className="lede" delay={0.16}>
-              See what needs you, follow the customer conversation, and move the next action
-              forward. Command Center connects your records, approvals, and workflows in one
-              workspace.
-            </Reveal>
-            <Reveal
-              rv
-              as="div"
-              delay={0.24}
-              className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3"
-            >
-              <Link
-                href="/demo/command-center"
-                className="inline-flex min-h-12 items-center rounded-xl bg-[var(--fg)] px-5 text-sm font-semibold text-[var(--bg)] transition-opacity hover:opacity-80"
-              >
-                Explore the demo{" "}
-                <span aria-hidden="true" className="ml-3">
-                  ↗
-                </span>
-              </Link>
-              <Link href="/docs" className="ink-sweep inline-flex min-h-11 items-center text-sm">
-                Read the docs{" "}
-                <span aria-hidden="true" className="ml-2">
-                  →
-                </span>
-              </Link>
-            </Reveal>
-          </div>
-        </div>
-        <Reveal rv id="demo" className="cc-product-gallery" delay={0.12}>
-          <ProductSlider slides={PRODUCT_SCREENSHOTS} groupLabel="Command Center screens" />
-          <p className="mt-3 text-center text-xs leading-relaxed text-[var(--mid)]">
-            Captured from the real product demo with fictional business data. Select a screen to
-            enlarge it.
-          </p>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-/* ── capability marquee ───────────────────────────────────────────────── */
-
-function Marquee() {
-  const loop = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
-  return (
-    <div className="ink-panel">
-      <div className="mq">
-        <div className="mq-track marquee-track" aria-hidden="true">
-          {loop.map((item, i) => (
-            <span key={i}>
-              <b>{item}</b> /
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── the problem ──────────────────────────────────────────────────────── */
-
-function Problem() {
-  return (
-    <section className="sect">
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
-            When it fits
-          </Reveal>
-          <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
-              Use one operating layer
-              <br />
-              when the work <span className="it">needs one.</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              A focused workflow is enough for many teams. The Command Center fits when
-              communications, records, approvals, and recurring work need durable context across the
-              operation.
-            </Reveal>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── what we actually build ───────────────────────────────────────────── */
-
-function Built() {
-  return (
-    <section className="sect ink-panel" id="built">
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
-            What we build
-          </Reveal>
-          <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
-              Built for how
-              <br />
-              your business
-              <br />
-              <span className="it">already runs.</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Off-the-shelf software asks you to change how you work. We put the system into the
-              tools, channels, and rules you already have. From day one it knows your clients and
-              speaks the trade.
-            </Reveal>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── the current product surface ──────────────────────────────────────── */
-
-function CurrentSurface() {
-  return (
-    <section className="sect" id="surface">
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
-            What is running today
-          </Reveal>
-          <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
-              One place to run the day,
-              <br />
-              and <span className="it">the work behind it.</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              These are the surfaces your team uses every day. They read the same records, and
-              anything that leaves the business goes through the same approval queue, so nothing
-              happens twice and nothing happens unwatched.
-            </Reveal>
-          </div>
-        </div>
-
-        <div className="cc-chapters">
-          {SURFACE_GROUPS.map((group, gi) => {
-            const items = CURRENT_SURFACES.filter((surface) => surface.group === group.id);
-            return (
-              <div key={group.id} className="cc-chapter">
-                <Reveal rv as="div" className="cc-chapter-head">
-                  <span
-                    className="cc-chapter-rule"
-                    aria-hidden="true"
-                    style={{ background: `rgb(${group.rgb})` }}
-                  />
-                  <span className="cc-chapter-n">{String(gi + 1).padStart(2, "0")}</span>
-                  <h3 className="cc-chapter-t">{group.label}</h3>
-                  <p className="cc-chapter-b">{group.blurb}</p>
-                </Reveal>
-                <div className="cc-feat-grid">
-                  {items.map((surface, i) => (
-                    <Reveal
-                      key={surface.n}
-                      as="article"
-                      className="cc-feat item-rv"
-                      style={{ "--d": `${0.05 * i}s` } as CSSProperties}
-                    >
-                      <span className="cc-feat-n">{surface.n}</span>
-                      <h4 className="cc-feat-t">{surface.title}</h4>
-                      <p className="cc-feat-b">{surface.body}</p>
-                    </Reveal>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── the demonstration ────────────────────────────────────────────────── */
-
-/* ── how it works: the loop ───────────────────────────────────────────── */
-
-function HowItWorks() {
-  return (
-    <section className="sect" id="how">
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
-            The process
-          </Reveal>
-          <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
-              The 4-step loop
-              <br />
-              that <span className="it">runs your work.</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Most tools wait around for you to ask. Your custom system stays ahead: capturing
-              context, staging drafts, and queueing every next action so you can clear a morning of
-              admin in minutes.
-            </Reveal>
-          </div>
-        </div>
-
-        <div className="steps">
-          {LOOP_STEPS.map((step, i) => (
-            <Reveal
-              key={step.n}
-              as="div"
-              className="step item-rv"
-              style={{ "--d": `${0.06 * i}s` } as CSSProperties}
-            >
-              <p className="step-n">STEP {step.n}</p>
-              <div className="step-t">
-                <h3 className="h3">{step.title}</h3>
-                <span className="tag">{step.tag}</span>
-              </div>
-              <p>{step.body}</p>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── the autonomy ladder ──────────────────────────────────────────────── */
-
-function TrustLadder() {
-  return (
-    <section className="sect ink-panel" id="autonomy">
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
-            Smart approvals
-          </Reveal>
-          <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
-              Approvals that learn.
-              <br />
-              Autonomy that <span className="it">compounds.</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              The queue starts strict and gets smarter. As the system nails your voice and your
-              calls, whole categories of routine work graduate to running on their own, and your
-              attention goes only where it is genuinely worth attention.
-            </Reveal>
-          </div>
-        </div>
-
-        <Reveal as="div" className="appr" style={{ marginTop: "clamp(44px,6vw,80px)" }}>
-          {TRUST_LADDER.map((rung, i) => (
-            <div key={rung.k} className="appr-c" style={{ "--d": `${0.12 * i}s` } as CSSProperties}>
-              <span className="k">{rung.k}</span>
-              <h3 className="h3">{rung.title}</h3>
-              <p>{rung.body}</p>
+    <div className={styles.page}>
+      <PublicHeroEntrance className={styles.hero} id="top">
+        <div className="wrap">
+          <div className={styles.intro}>
+            <div>
+              <p className="label">Command Center · Open-source business platform</p>
+              <h1 className={styles.title} data-hero-step={1}>
+                Your customer work.
+                <br />
+                <em>Connected.</em>
+              </h1>
             </div>
-          ))}
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-/* ── the full surface ─────────────────────────────────────────────────── */
-
-function Catalog() {
-  return (
-    <section className="sect" id="capabilities">
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead" style={{ marginBottom: "clamp(30px,4vw,50px)" }}>
-          <Reveal rv as="p" className="label eyebrow-anim">
-            Capabilities
-          </Reveal>
-          <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
-              End-to-end automation
-              <br />
-              for your <span className="it">entire operation.</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              Every capability below is available to a workspace. Most teams start with the one that
-              is costing them the most time, then add the next once the first is running. Which ones
-              are live depends on the modules and providers your workspace has connected.
-            </Reveal>
-          </div>
-        </div>
-        <CapabilityCatalog />
-      </div>
-    </section>
-  );
-}
-
-/* ── open source ──────────────────────────────────────────────────────── */
-
-function OpenSource() {
-  return (
-    <section className="sect" id="open-source">
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
-            Open source
-          </Reveal>
-          <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
-              Read the code. Or have
-              <br />
-              us <span className="it">build and run it.</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              This is the actual application behind our own agency, published under the MIT license.
-              Run it yourself for free, or have us configure and run a custom version for your
-              business, the same managed execution behind every Accelerate engagement.
-            </Reveal>
-            <Reveal rv as="div" delay={0.16} style={{ marginTop: 28 }}>
-              <Link
-                href="/open-source"
-                data-cursor="link"
-                className="inline-flex min-h-12 items-center rounded-xl bg-[var(--fg)] px-5 text-xs font-semibold text-[var(--bg)] transition-[opacity,transform] hover:opacity-80 active:scale-[0.96]"
-              >
-                See both paths →
-              </Link>
-            </Reveal>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── proof ────────────────────────────────────────────────────────────── */
-
-function Proof() {
-  return (
-    <section className="sect ink-panel" id="proof">
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
-            Real-world tested
-          </Reveal>
-          <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
-              Tested daily in our
-              <br />
-              <span className="it">own business.</span>
-            </Reveal>
-            <Reveal rv as="p" className="lede" delay={0.12} style={{ marginTop: 20 }}>
-              We run our own agency on this system every day: intake, call notes, follow-ups,
-              proposals. On the strategy call we will screen-share the live production system so you
-              can see how it actually runs.
-            </Reveal>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── who it's for ─────────────────────────────────────────────────────── */
-
-function WhoItsFor() {
-  return (
-    <section className="sect" id="who">
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead">
-          <Reveal rv as="p" className="label eyebrow-anim">
-            Who this fits
-          </Reveal>
-          <div>
-            <Reveal rv as="h2" className="h2" delay={0.06}>
-              Built for high-output
-              <br />
-              founders and <span className="it">lean teams.</span>
-            </Reveal>
-            <ul className="plan-list" style={{ marginTop: 26 }}>
-              {WHO_ITS_FOR.map((item, i) => (
-                <Reveal
-                  key={item}
-                  as="li"
-                  className="item-rv"
-                  style={{ "--d": `${0.06 * i}s` } as CSSProperties}
-                >
-                  <i>{String(i + 1).padStart(2, "0")}</i>
-                  <span>{item}</span>
-                </Reveal>
-              ))}
-            </ul>
-            <Reveal rv as="p" className="lede" delay={0.1}>
-              A full operations team gets more out of this, not less. The routine work runs itself,
-              so people spend the week on what actually needs a person.
-            </Reveal>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── faq ──────────────────────────────────────────────────────────────── */
-
-function Faq() {
-  const [open, setOpen] = useState(0);
-
-  return (
-    <section className="sect" id="faq" style={{ paddingTop: 0 }}>
-      <AmbientField />
-      <div className="wrap">
-        <div className="shead" style={{ marginBottom: "clamp(28px,3.6vw,46px)" }}>
-          <Reveal rv as="p" className="label eyebrow-anim">
-            Before you book
-          </Reveal>
-          <Reveal rv as="h2" className="h2" delay={0.06}>
-            The questions people
-            <br />
-            actually <span className="it">ask.</span>
-          </Reveal>
-        </div>
-
-        <div className="efaq">
-          {commandCenterFaqs.map((faq, i) => (
-            <Reveal
-              key={faq.question}
-              as="details"
-              className="item-rv"
-              style={{ "--d": `${0.06 * i}s` } as CSSProperties}
-              open={open === i}
-              onClick={(e: MouseEvent) => {
-                e.preventDefault();
-                setOpen(open === i ? -1 : i);
-              }}
-            >
-              <summary>
-                {faq.question}
-                <span className="pm" />
-              </summary>
-              <div className="ans">
-                <div>
-                  <p>{faq.answer}</p>
-                </div>
+            <div>
+              <p className={styles.lede} data-hero-step={2}>
+                Keep customer conversations, follow-up and delivery in one workspace your team and
+                AI can use. Adapt the open-source platform to your process, with Accelerate’s help
+                or your own builders.
+              </p>
+              <div className={styles.actions} data-hero-step={3}>
+                <Link href="/demo/command-center#workflows" className={styles.primary}>
+                  Try a business workflow <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+                <Link href="/docs/extend" className={styles.secondary}>
+                  Build on the platform <ArrowRight size={16} aria-hidden="true" />
+                </Link>
               </div>
-            </Reveal>
+              <p className={styles.note}>
+                Try fictional business data without an account. Own the source and build around the
+                way your team works.
+              </p>
+            </div>
+          </div>
+          <div className={styles.figure} id="demo">
+            <ProductSlider slides={PRODUCT_SCREENSHOTS} groupLabel="Command Center screens" />
+            <p className={styles.note}>
+              The real interface with fictional business data. Enlarge a screen to inspect it, or
+              choose a business in the demo.
+            </p>
+          </div>
+        </div>
+      </PublicHeroEntrance>
+
+      <section className={styles.section} id="how">
+        <div className="wrap">
+          <p className="label">See a complete piece of work</p>
+          <h2 className={styles.heading}>Start with a result your team needs.</h2>
+          <WorkflowShowcase />
+        </div>
+      </section>
+
+      <section className={styles.section} id="surface">
+        <div className="wrap">
+          <p className="label">Features with a job to do</p>
+          <h2 className={styles.heading}>Keep the context. Move the work forward.</h2>
+          <div className={styles.featureGrid}>
+            {jobs.map((job, index) => (
+              <article key={job.title} className={styles.feature}>
+                <div>
+                  <p className="label">0{index + 1}</p>
+                  <h3>{job.title}</h3>
+                  <p>{job.text}</p>
+                  <ul className={styles.parts}>
+                    {job.parts.map((part) => (
+                      <li key={part}>{part}</li>
+                    ))}
+                  </ul>
+                  <Link href={job.href} className={styles.textLink}>
+                    {job.action} <ArrowRight size={16} aria-hidden="true" />
+                  </Link>
+                </div>
+                <figure className={styles.figure}>
+                  <a
+                    href={`/images/docs/${job.image}.png`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Open full-size screenshot: ${job.title}`}
+                  >
+                    <Image
+                      src={`/images/docs/${job.image}.png`}
+                      width={1440}
+                      height={1000}
+                      sizes="(max-width: 760px) 100vw, 600px"
+                      alt={`${job.parts[0]} in the real workspace with fictional demo records.`}
+                    />
+                  </a>
+                  <figcaption className={styles.note}>
+                    Fictional demo data. Select to enlarge.
+                  </figcaption>
+                </figure>
+              </article>
+            ))}
+          </div>
+          <article className={styles.card} id="built">
+            <p className="label">05 · Build around your business</p>
+            <h3>Combine what exists. Extend what your process needs.</h3>
+            <p>
+              Use settings for supported configuration, plugins for business capabilities and
+              connectors for external systems. Build a custom App when you need your own records,
+              process or interface. The shared platform supplies identity, permissions, customer
+              context and action history.
+            </p>
+            <div className={styles.actions}>
+              <Link href="/docs/plugins" className={styles.secondary}>
+                Explore the plugin library
+              </Link>
+              <Link href="/docs/extend/apps" className={styles.textLink}>
+                Build a custom App <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+            <p className={styles.note}>
+              Custom Apps use the source repository today. General-purpose App creation inside
+              Command Center is planned.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section className={styles.section} id="recipes">
+        <div className="wrap">
+          <div className={styles.sectionIntro}>
+            <div>
+              <p className="label">Built from the same foundation</p>
+              <h2 className={styles.heading}>A practical starting point for your industry.</h2>
+            </div>
+            <p className={styles.lede}>
+              See which features and plugins work together, what to configure and how to check the
+              result. Each recipe includes an adaptation path for builders.
+            </p>
+          </div>
+          <RecipeCards
+            recipes={workflowRecipes.filter((item) =>
+              ["roofing-inquiry", "engagement-onboarding"].includes(item.id),
+            )}
+          />
+          <Link href="/docs/recipes" className={styles.textLink}>
+            Explore the complete industry recipe library <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+
+      <section className={styles.section} id="autonomy">
+        <div className="wrap">
+          <div className={styles.sectionIntro}>
+            <div>
+              <p className="label">AI with a clear role</p>
+              <h2 className={styles.heading}>Prepare, review, then act.</h2>
+            </div>
+            <div>
+              <p className={styles.lede}>
+                AI reads the connected context and prepares supported actions. Review the exact
+                change before approval, then follow its recorded result. Eligible internal actions
+                can use approved standing permissions; restricted actions keep human review.
+              </p>
+              <Link href="/docs/command-center/approvals" className={styles.textLink}>
+                Understand approvals and autonomy <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.section} id="capabilities">
+        <div className="wrap">
+          <p className="label">The full feature reference</p>
+          <h2 className={styles.heading}>Find the capability you need.</h2>
+          <p className={styles.lede}>
+            Read the purpose at a glance. Expand a capability for details, or search for the work
+            you want to do.
+          </p>
+          <details className={styles.reference}>
+            <summary>Browse and search the complete capability reference</summary>
+            <div className="mt-6">
+              <CapabilityCatalog />
+            </div>
+          </details>
+          <Link href="/docs/command-center/capabilities" className={styles.textLink}>
+            Open the detailed reference <ArrowRight size={16} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+
+      <section className={styles.section} id="who">
+        <div className="wrap">
+          <span id="proof" />
+          <div className={styles.sectionIntro}>
+            <div>
+              <p className="label">Choose how you start</p>
+              <h2 className={styles.heading}>Build it with us. Or make it your own.</h2>
+            </div>
+            <p className={styles.lede}>
+              A shared workspace is useful when several people and tools need the same customer
+              context. We can also recommend a focused integration when that solves the job.
+            </p>
+          </div>
+          <div className={styles.grid}>
+            <article className={styles.card}>
+              <p className="label">For business teams</p>
+              <h3>Have Accelerate implement it.</h3>
+              <p>
+                We map one workflow, agree on its success check, configure the required connections
+                and build the pieces your team needs.
+              </p>
+              <ul className={styles.checklist}>
+                <li>A written scope, price and responsibilities before implementation</li>
+                <li>A tested workflow, team training and operating documentation</li>
+                <li>An agreed handoff, with optional managed execution and ongoing improvement</li>
+              </ul>
+              <p className={styles.note}>
+                Implementation is scoped to your business. Hosting, provider usage and ongoing
+                support are agreed separately.
+              </p>
+              <Link href="/contact" className={styles.primary}>
+                Discuss your workflow <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </article>
+            <article className={styles.card}>
+              <p className="label">For builders and agencies</p>
+              <h3>Run and extend the source.</h3>
+              <p>
+                Build your own operating screen or client solution using the existing customer
+                records, permissions, AI tools and action history.
+              </p>
+              <ul className={styles.checklist}>
+                <li>Explore locally with fictional data and no provider credentials</li>
+                <li>Use your infrastructure and connect the accounts you control</li>
+                <li>Add modules, plugins and adapters through the documented source interfaces</li>
+              </ul>
+              <p className={styles.note}>
+                Your team owns installation, backups, updates and provider costs. Custom Apps
+                require source development today.
+              </p>
+              <Link href="/docs/extend/first-change" className={styles.secondary}>
+                Start building <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </article>
+          </div>
+          <div className={styles.portfolio} id="implementation-experience">
+            <p className="label">Implementation experience</p>
+            <h3>See the work behind Accelerate.</h3>
+            <p>
+              These published projects show our experience building around real operations. Each
+              case study identifies our role and delivered scope.
+            </p>
+            <div className={styles.grid}>
+              {workProjects
+                .filter((project) => ["work-shelter", "superdebate"].includes(project.slug))
+                .map((project) => (
+                  <Link
+                    key={project.slug}
+                    href={`/work/${project.slug}`}
+                    className={styles.proofLink}
+                  >
+                    <span className="label">{project.relationship}</span>
+                    <strong>{project.name}</strong>
+                    <span>{project.description}</span>
+                    <span className={styles.textLink}>
+                      Read the case study <ArrowRight size={16} aria-hidden="true" />
+                    </span>
+                  </Link>
+                ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.section} id="faq">
+        <div className="wrap">
+          <p className="label">Questions, answered</p>
+          <h2 className={styles.heading}>Understand what you can build on.</h2>
+          {productFaqs.map((faq) => (
+            <details className={styles.faq} key={faq.question}>
+              <summary>{faq.question}</summary>
+              <p>{faq.answer}</p>
+            </details>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── closing ──────────────────────────────────────────────────────────── */
-
-function Closing() {
-  const headingRef = useRv<HTMLHeadingElement>();
-
-  return (
-    <section className="sect ink-panel" id="call">
-      <AmbientField />
-      <div className="wrap">
-        <div className="fcta">
-          <Reveal rv as="p" className="label eyebrow-anim">
-            Next steps
-          </Reveal>
-          <h2 ref={headingRef} className="h2 line-h">
-            <span className="line">
-              <span style={{ "--d": ".05s" } as CSSProperties}>Leave the first session</span>
-            </span>
-            <span className="line">
-              <span className="it" style={{ "--d": ".12s" } as CSSProperties}>
-                with a written plan.
-              </span>
-            </span>
-          </h2>
-          <Reveal rv as="p" className="lede" delay={0.1}>
-            A free strategy session, thirty minutes. We map where your team loses the week and write
-            the plan for taking that work over. Yours to keep either way.
-          </Reveal>
-          <Reveal rv as="div" delay={0.16}>
-            <BookCallButton variant="inverse" location="command_center_closing" />
-          </Reveal>
-          <Reveal
-            rv
-            as="div"
-            delay={0.22}
-            className="cta-cluster"
-            style={{ justifyContent: "center", marginTop: 30 }}
-          >
-            <span className="tag">Free</span>
-            <span className="tag">30 min</span>
-            <span className="tag">Yours to keep</span>
-            <span className="tag">Straight to the founder</span>
-          </Reveal>
-        </div>
-      </div>
-    </section>
+      </section>
+      <CommandCenterNav />
+    </div>
   );
 }

@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-19",
   },
   {
+    id: "chicago-small-business-industries",
+    slug: "chicago-small-business-industries",
+    title: "More small-business workflows and a Chicago services hub",
+    description:
+      "Ten additional industry guides bring the directory to twenty industries, with forty practical recipes for inquiry review and delivery handoffs. A Chicago services hub connects local businesses to consulting, custom systems, managed execution and training. Headquarters details now appear consistently, and industry pages distinguish current platform capabilities from custom integrations. Industry guides include business-specific pilot measures and handoff checks; the new recipe guides include concrete completion criteria and example task responsibilities.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
     id: "full-product-neutral-fork",
     slug: "full-product-neutral-fork",
     title: "A complete workspace with your own editable website",
@@ -25,6 +34,15 @@ export const changelogEntries: ChangelogEntry[] = [
     title: "Scoped ChatGPT website editing and safer form intake",
     description:
       "The owner can configure a revocable OAuth connection for ChatGPT to prepare exact website changes, save drafts, publish and restore revisions through the shared editor services. Legacy workspace keys remain proposal-only. Form submissions and notifications now commit together, review decisions queue recoverable intake, stale edits are refused, and form rendering follows the shared theme tokens. Installation requires the new migrations and explicit OAuth setup; source availability is separate from deployment and client verification.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
+    id: "public-platform-value-recipes",
+    slug: "public-platform-value-recipes",
+    title: "Practical workflows across the platform, demos and docs",
+    description:
+      "The Command Center page explains connected business workflows, with readable feature summaries, implementation options and a demo chooser in the site's shared style. Three guided demos show an inquiry reply, an onboarding checklist and a simulated invoice, including the result to check. Twenty recipes across ten industries show which features and plugins to combine, how to configure them and what result to check. Documentation gives business users and builders clear starting paths and keeps existing reference links available.",
     category: "improvement",
     publishedAt: "2026-09-19",
   },

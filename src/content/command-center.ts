@@ -75,46 +75,45 @@ export const capabilities: Capability[] = [
   {
     id: "transcripts",
     category: "capture",
-    title: "Meeting transcripts",
+    title: "Meeting transcript context",
     promise:
-      "Point it at a folder and every new transcript is read, filed, and turned into proposed records within the hour.",
+      "Bring supported transcript content from a configured Drive source into the workspace.",
     detail:
-      "You connect the folder once. After that nobody opens a transcript by hand: the system reads it, works out who was in the room and what was decided, and stages the records for your review.",
+      "Connected Drive indexing retains extracted text from supported files. Review extracted information against the source; processing depends on the configured sync, supported file type and available AI workflow.",
   },
   {
     id: "paste",
     category: "capture",
-    title: "Anything you paste in",
+    title: "Pasted contact lists and context",
     promise:
-      "A wall of text from your phone, notes from a call in the car, or a forwarded email chain goes through the same pipeline as the rest.",
+      "Turn a pasted contact list into a review batch, or supply context for a specific AI request.",
     detail:
-      "Paste the text into the workspace and it proposes the contacts, deals, and follow-ups inside it. Messy input is normal, and the review step is where you correct it before anything saves.",
+      "Contact import lets you inspect proposed records before confirming them. Other requests use the assistant’s available tools and may need a separately reviewed proposal.",
   },
   {
     id: "email",
     category: "capture",
-    title: "Email in both directions",
-    promise:
-      "Sent and received mail is attached to the right person and the right deal, so you can see which reply answers which pitch.",
+    title: "Connected email history",
+    promise: "Read supported email threads alongside the customer and work they belong to.",
     detail:
-      "Connect a mailbox and the history threads itself. Replies land against the conversation they belong to instead of sitting in a shared inbox nobody owns.",
+      "Connect and verify the mailbox, then inspect sync results and identity matches. Unfamiliar senders can be reviewed before their conversations are linked to a contact.",
   },
   {
     id: "calendar",
     category: "capture",
-    title: "Calendar",
-    promise: "Meetings become records, and the people you met are matched to their files.",
+    title: "Calendar context",
+    promise: "Keep available meeting records and attendees connected to the workspace.",
     detail:
-      "You get the who and the what without writing anything down. The meeting, the attendees, and what came out of it sit on the same record as everything else.",
+      "A configured calendar connection provides meeting context. Meeting preparation identifies upcoming appointments; Meeting commitments turns an explicitly entered checklist into assigned tasks.",
   },
   {
     id: "backfill",
     category: "capture",
-    title: "Your history, loaded first",
+    title: "Bring in available history",
     promise:
-      "It reads the archive before you start, so day one opens on a system that already knows your last two years of email and meetings.",
+      "Use configured sync and backfill to make earlier email and calendar records available.",
     detail:
-      "You do not begin with an empty database. The past is indexed and attached to the people and companies it belongs to, which is what lets the workspace answer a question about a customer on the first morning.",
+      "Review the provider permissions, job limits and sync results to understand the history imported. A connected account does not guarantee that its entire archive has been read.",
   },
   {
     id: "voice",
@@ -130,11 +129,10 @@ export const capabilities: Capability[] = [
   {
     id: "people",
     category: "organize",
-    title: "People",
-    promise:
-      "Everyone you deal with, with the full history, what you last said, and what you still owe them.",
+    title: "Customer records",
+    promise: "Find the available conversations, notes and commitments linked to a person.",
     detail:
-      "One page per person replaces the search across inbox, phone, and memory. Open a name and the whole relationship is there in order.",
+      "Open a contact and follow its linked records to understand the relationship. Missing sources or unresolved identities remain visible work for the team to check.",
   },
   {
     id: "companies",
@@ -147,38 +145,34 @@ export const capabilities: Capability[] = [
   {
     id: "pipeline",
     category: "organize",
-    title: "Deals and pipeline",
-    promise:
-      "Stages, values, and what has actually moved, with a recorded reason behind each change.",
+    title: "Opportunities and pipeline",
+    promise: "See current stages, values and next actions, with recorded stage history.",
     detail:
-      "The board shows the deal as it stands rather than as you remember it, and every stage change keeps the evidence that caused it.",
+      "Open the opportunity to inspect its customer, activity and next step. Use the evidence you have before moving it, and confirm the saved position afterward.",
   },
   {
     id: "projects",
     category: "organize",
-    title: "Projects, tasks, and subtasks",
-    promise:
-      "Work broken down to the level you can act on, with each piece linked to the person or deal it came from.",
+    title: "Tasks and commitments",
+    promise: "Give work a title, date and source context so the team can follow it through.",
     detail:
-      "A task never floats free. It keeps the customer, conversation, or proposal that produced it attached, so whoever picks it up has the context.",
+      "Use Tasks & approvals to inspect shared tasks. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
   },
   {
     id: "notes",
     category: "organize",
-    title: "Notes that stay findable",
-    promise:
-      "As many notes as you need on a person, pinned when they matter and searchable in full a year later.",
+    title: "Customer notes",
+    promise: "Keep useful customer details attached to a shared record.",
     detail:
-      "Notes are attached to the record rather than to someone's notebook, so the detail survives the person who wrote it leaving the account.",
+      "Save notes where the team can find them alongside the relationship history. Inspect the original source when a note affects a decision or commitment.",
   },
   {
     id: "custom-fields",
     category: "organize",
-    title: "Custom fields on anything",
-    promise:
-      "Track what your business actually tracks, like matter status, job type, case number, or permit stage.",
+    title: "Business-specific records",
+    promise: "Adapt the platform to track the information your process needs.",
     detail:
-      "The workspace stores your vocabulary instead of forcing a generic set of defaults, which is what makes a record worth reading.",
+      "Use supported settings where available. New fields, record types or lifecycles may require a source extension that reuses the existing identity and permission services.",
   },
   {
     id: "graph",
@@ -192,20 +186,18 @@ export const capabilities: Capability[] = [
   {
     id: "timeline",
     category: "organize",
-    title: "One timeline per person",
-    promise:
-      "Email, meetings, calls, notes, and every AI action in one ordered feed, each line labelled with who did it.",
+    title: "Customer activity history",
+    promise: "Follow available messages, notes and recorded work in the context of a customer.",
     detail:
-      "You read one history rather than stitching together four. Human and AI entries sit side by side, and you can see which is which.",
+      "Open the linked source to inspect a timeline entry. The activity record helps distinguish human decisions, proposed work and executed results.",
   },
   {
     id: "dupes",
     category: "organize",
-    title: "Duplicate detection that asks first",
-    promise:
-      "When two records look like one person, it proposes the merge and shows you the evidence instead of merging on its own.",
+    title: "Review contact matches",
+    promise: "Check suggested identities before linking an unfamiliar sender to a customer.",
     detail:
-      "Sometimes two records really are two people. A merge you did not ask for quietly destroys history, so the decision stays with you and only the clear matches clear themselves.",
+      "Contact review lets you match a sender, create a contact when appropriate or leave the item for later. Imports also surface possible matches for review.",
   },
   {
     id: "opportunity-radar",
@@ -260,50 +252,47 @@ export const capabilities: Capability[] = [
   {
     id: "draft-email",
     category: "act",
-    title: "Email drafted from your own sent mail",
-    promise:
-      "It reads the thread and how you have written to that person before, then produces the reply you would have written at your desk.",
+    title: "Context-aware reply drafts",
+    promise: "Ask AI to prepare a reply using the available conversation and business records.",
     detail:
-      "You review the draft and the recipient before anything goes out. The first few you approve are what teach it your voice.",
+      "Review the wording, recipient and commitments before approving a send. Source context helps the draft, while your review establishes whether it is appropriate.",
     gated: true,
   },
   {
     id: "followups",
     category: "act",
-    title: "Follow-ups scheduled from what was said",
-    promise:
-      "You promised Thursday on the call, and Thursday is on the calendar with the reason attached before you have hung up.",
+    title: "Follow-up commitments",
+    promise: "Turn an agreed next step into visible work with a date and an owner.",
     detail:
-      "The commitment is captured as work rather than left in your head, and it routes through an approval like any other outbound step.",
+      "Enter the commitment directly or use a supported task proposal. Meeting commitments takes an explicit checklist; automatic transcript extraction is a separate workflow.",
     gated: true,
   },
   {
     id: "decompose",
     category: "act",
-    title: "Big tasks broken into small ones",
-    promise: "It proposes the subtasks and the order, and you keep the ones that are real.",
+    title: "Assigned task checklists",
+    promise: "Break an onboarding or meeting follow-up into tasks the team can complete.",
     detail:
-      "A large piece of work becomes a list you can start on. Nothing is created until you accept the breakdown.",
+      "The bundled workflow plugins prepare one to ten tasks with descriptions, dates and assignees. Review the plan and confirm the created tasks after execution.",
     gated: true,
   },
   {
     id: "stage-moves",
     category: "act",
-    title: "Pipeline moved on evidence",
-    promise:
-      "When a reply says yes, it proposes the stage change and shows you the exact sentence it read.",
+    title: "Reviewed pipeline changes",
+    promise: "Ask AI to propose a stage change for a specific opportunity.",
     detail:
-      "You are approving a fact you can check rather than a hunch, and the sentence stays attached to the change.",
+      "Inspect the record, proposed stage and supporting context in the approval flow. Confirm the saved stage and activity after the action runs.",
     gated: true,
   },
   {
     id: "sequences",
     category: "act",
-    title: "Multi-step outreach",
+    title: "Campaign follow-up",
     promise:
-      "A sequence stops the second somebody replies and refuses to run over anyone who asked to be left alone.",
+      "Prepare multi-step outreach with recipient checks, stop rules and reviewed activation.",
     detail:
-      "Each step is an approval while the action type is still earning trust, so you see the follow-up before the customer does.",
+      "Inspect the audience, sender, content, timing and limits before activation. Reply and suppression handling stop eligible future work through the shared campaign services.",
     gated: true,
   },
   {
@@ -318,20 +307,18 @@ export const capabilities: Capability[] = [
   {
     id: "automations",
     category: "act",
-    title: "Rules that fire on their own",
-    promise:
-      "When a deal reaches a stage, the steps that always happen next run without you remembering them.",
+    title: "Configured recurring work",
+    promise: "Use supported jobs and workflow triggers to keep repeated work visible.",
     detail:
-      "Rules are configured once and shown in the workspace, so the work they do is visible rather than hidden inside someone's habits.",
+      "Configure the required capabilities and schedules, then inspect job and action results. A new business rule may require a source extension rather than a setting.",
   },
   {
     id: "queue",
     category: "act",
-    title: "One approval queue",
-    promise:
-      "Every outbound action routes through one place where you approve, edit, or reject it, and each decision teaches the system.",
+    title: "Shared approvals",
+    promise: "Review AI proposals and workflow plans in one place, with their source context.",
     detail:
-      "Categories you trust often enough graduate to running without asking, one rung at a time and with a person confirming every promotion.",
+      "Approval records the decision; execution records the result. Eligible autonomy changes need a separate human decision, and restricted external actions keep their approval requirements.",
     gated: true,
   },
 
@@ -339,29 +326,27 @@ export const capabilities: Capability[] = [
   {
     id: "edits",
     category: "learn",
-    title: "Your edits are the training",
-    promise:
-      "Every word you change is recorded against the draft it came from, so the next draft starts closer to what you would have written.",
+    title: "Reusable corrections",
+    promise: "Propose guidance your team wants future work to follow.",
     detail:
-      "The correction is attached to the exact decision, which is what makes the improvement specific rather than general.",
+      "Learning Inbox keeps the proposed rule, scope and source available for review. Approving shared guidance is an explicit operation; editing a draft does not automatically retrain the model.",
   },
   {
     id: "rejections",
     category: "learn",
-    title: "Rejections count too",
-    promise:
-      "Tell it why you turned a draft down and it stops making that particular mistake with that kind of person.",
+    title: "Recorded decisions",
+    promise: "Keep the reason for declining a proposal available with the work.",
     detail:
-      "A reason on the rejection is what turns a no into a rule. Without one, the same draft comes back next week.",
+      "A recorded rejection helps the team understand the decision. Propose reusable guidance through Learning Inbox when the correction should apply beyond that one action.",
   },
   {
     id: "outcomes",
     category: "learn",
-    title: "It tracks whether the work worked",
+    title: "Results you can inspect",
     promise:
-      "Did they reply, did the deal move, did the email bounce: the system grades its own output against what happened next.",
+      "Compare recorded replies, stage changes and provider results with the work you requested.",
     detail:
-      "It grades itself on the result rather than on how busy it looked, so the measure is what the work produced.",
+      "Activity and action receipts retain evidence of execution. Use those records to assess the result; a completed action alone does not establish a business outcome.",
   },
   {
     id: "trust",
@@ -375,37 +360,34 @@ export const capabilities: Capability[] = [
   {
     id: "brief",
     category: "learn",
-    title: "A brief every morning",
-    promise:
-      "What happened, what is owed, and what the system intends to do about it today, waiting when you open the workspace.",
-    detail: "You start from a summary of the operation instead of a blank screen or a search.",
+    title: "A view of today’s work",
+    promise: "Start with decisions, follow-up and business changes drawn from available records.",
+    detail:
+      "Today provides source-linked attention and supporting context. Open a finding to inspect its record before acting.",
   },
   {
     id: "precall",
     category: "learn",
-    title: "A briefing before every call",
-    promise:
-      "Fifteen minutes out, the history, the open questions, and what you promised them last time arrive before you dial.",
+    title: "Prepare for upcoming meetings",
+    promise: "Find upcoming meetings and use their linked context to plan your preparation.",
     detail:
-      "The brief is built from the same records the rest of the workspace uses, so it matches what your team already knows.",
+      "The Meeting preparation plugin provides a time-ordered report. A configured Meeting Intelligence Coworker can support richer briefs; its sources and execution must be set up separately.",
   },
   {
     id: "at-risk",
     category: "learn",
-    title: "It tells you who is going cold",
-    promise:
-      "Relationships that are slipping surface while there is still time to save them, ranked by what they are worth.",
+    title: "Find overdue follow-up",
+    promise: "Use stale opportunity and overdue-task reports to decide what needs another look.",
     detail:
-      "A quiet account looks healthy until it is gone. This puts the cooling ones in front of you early.",
+      "Pipeline follow-up and Overdue commitments apply defined rules to available records. Inspect the source and report coverage before drawing conclusions about the customer.",
   },
   {
     id: "questions",
     category: "learn",
-    title: "Open questions, held until useful",
-    promise:
-      "The thing you meant to ask in March comes back the next time you are actually in a room with them.",
+    title: "Keep open questions with the work",
+    promise: "Record an unanswered question as a note or next action linked to the customer.",
     detail:
-      "Unanswered questions stay attached to the person and resurface at the moment they are worth raising.",
+      "The team can return to that context before the next conversation. Use an assigned task when the question needs a specific owner and due date.",
   },
 
   // ── Connect: reachable from anywhere ──────────────────────────────────
@@ -448,9 +430,10 @@ export const capabilities: Capability[] = [
   {
     id: "api",
     category: "connect",
-    title: "An API",
-    promise: "Anything else you run can read from the workspace and write back to it.",
-    detail: "The API uses the same permissions and approval rules as the interface.",
+    title: "Shared service interfaces",
+    promise: "Build integrations against the platform’s supported operations.",
+    detail:
+      "Use the documented tool, adapter and service contracts. A custom integration needs implementation and permission checks for the particular records and actions it exposes.",
   },
   {
     id: "reports",
@@ -484,11 +467,10 @@ export const capabilities: Capability[] = [
   {
     id: "modules",
     category: "govern",
-    title: "Turn capabilities on and off",
-    promise:
-      "Each part of the workspace, from proposals to campaigns, can be switched off, which removes its navigation and its AI tools at the same time.",
+    title: "Choose optional capabilities",
+    promise: "Enable the optional parts of the workspace your business needs.",
     detail:
-      "A workspace enables what it needs and hides the rest, so the surface matches the business rather than a fixed feature list.",
+      "Core capabilities remain available. Disabling an optional module removes its navigation and gates its routes and tools, while preserving existing records.",
   },
   {
     id: "agent-workflow",
@@ -502,20 +484,18 @@ export const capabilities: Capability[] = [
   {
     id: "audit",
     category: "govern",
-    title: "Every action logged",
-    promise:
-      "Who did it, when, and whether it was a person or the AI, with nothing in the system happening invisibly.",
+    title: "Trace recorded actions",
+    promise: "Inspect who initiated a change and the result recorded for it.",
     detail:
-      "Each entry can be checked against the record it points to, and sensitive content stays out of the log while the authorized record keeps it.",
+      "Activity and receipts link actions to source records. Sensitive content stays in authorized records rather than being copied into every audit entry.",
   },
   {
     id: "killswitch",
     category: "govern",
-    title: "A switch on every AI feature",
-    promise:
-      "Turn any single part of the system off in one click while everything else keeps running.",
+    title: "Disable optional automation",
+    promise: "Turn off a supported module or capability when your team needs to stop its work.",
     detail:
-      "Nothing here is all or nothing. A workspace can stop one capability without bringing down the rest.",
+      "Use the relevant configuration control and inspect any pending work. Historical records remain available according to the feature’s retention and access rules.",
   },
   {
     id: "own-db",
@@ -529,27 +509,27 @@ export const capabilities: Capability[] = [
   {
     id: "roles",
     category: "govern",
-    title: "Role-based access",
-    promise: "The bookkeeper sees the invoices and does not see the pipeline.",
-    detail: "Access follows the role, so people have the records they need and no more.",
+    title: "Workspace and record access",
+    promise: "Keep business data behind active membership, roles and record permissions.",
+    detail:
+      "The runtime rechecks access for supported operations. Review your workspace’s configured permissions instead of assuming a job title automatically grants or hides particular screens.",
   },
   {
     id: "health",
     category: "govern",
-    title: "It audits its own data",
-    promise:
-      "Nightly checks look for duplicates, broken links, stale records, and numbers that stopped making sense.",
+    title: "Connection and execution health",
+    promise: "Find missing setup, failed jobs and results that need recovery.",
     detail:
-      "Findings arrive as review work rather than silent changes, so a cleanup never rewrites something you rely on.",
+      "Setup Center and operational health views show supported checks with their evidence. Follow the named recovery step and verify the specific connection or job afterward.",
   },
   {
     id: "ownership",
     category: "govern",
-    title: "You own all of it",
+    title: "An open-source foundation",
     promise:
-      "The accounts, the data, and the export, so leaving is a download rather than a negotiation.",
+      "Run and extend the MIT-licensed application with infrastructure and provider accounts you control.",
     detail:
-      "The underlying application is MIT licensed, and your records are exportable at any time.",
+      "Use the neutral starter and self-hosting guides for your own installation. Review the documented content exports, data ownership and support arrangements when planning a handoff.",
   },
 ];
 
@@ -557,46 +537,46 @@ export const capabilities: Capability[] = [
 export const LOOP_STEPS = [
   {
     n: "01",
-    title: "It watches",
-    tag: "no input from you",
-    body: "Transcripts, email, and calendar arrive on their own. It pulls out who was there, what was decided, and what somebody promised.",
+    title: "Read the context",
+    tag: "available records",
+    body: "The assistant uses registered tools to inspect the customer, conversation and work available to your workspace.",
   },
   {
     n: "02",
-    title: "It drafts the work",
-    tag: "nothing sent yet",
-    body: "The follow-up email, the task list, the stage change, the calendar hold. Written, attached to the right records, and staged.",
+    title: "Prepare a next step",
+    tag: "specific proposal",
+    body: "A supported request becomes a proposed change with the record, recipient or task details available for review.",
   },
   {
     n: "03",
-    title: "You approve",
-    tag: "your call, every time",
-    body: "One queue. Approve, edit, or throw it out. A morning of admin clears in about the time it takes to drink a coffee.",
+    title: "Apply the action policy",
+    tag: "explicit authority",
+    body: "Review actions that require a decision. Eligible actions can use a standing permission within its approved limits.",
   },
   {
     n: "04",
-    title: "It learns from what you did",
-    tag: "compounding",
-    body: "Your edits move the next draft closer. Work it gets right often enough is work you can eventually stop reading.",
+    title: "Check the result",
+    tag: "recorded outcome",
+    body: "Inspect what completed, open the source record and resolve any failure before repeating the work.",
   },
 ];
 
 /** The autonomy ladder. Rendered with the .appr three-column primitive. */
 export const TRUST_LADDER = [
   {
-    k: "WEEK ONE",
-    title: "It drafts. You approve all of it.",
-    body: "Everything waits for you. You are reading a lot of drafts and fixing the tone on most of them. That is the part that teaches it how you work.",
+    k: "REVIEW",
+    title: "Begin with a specific decision",
+    body: "Inspect the proposed work and its context. Your decision is recorded alongside the action result.",
   },
   {
-    k: "MONTH TWO",
-    title: "The routine stops asking.",
-    body: "Notes file themselves. Standard follow-ups go out on their own. Anything touching money or a new relationship still comes to you first.",
+    k: "CONFIGURE",
+    title: "Grant a bounded permission",
+    body: "Eligible actions may be proposed for a higher trust level. A person confirms the scope and constraints.",
   },
   {
-    k: "MONTH SIX",
-    title: "You only see the exceptions.",
-    body: "Most of the day runs without you. What reaches your queue is the work that genuinely needed a human, which is the only work you wanted to spend attention on.",
+    k: "VERIFY",
+    title: "Keep results visible",
+    body: "Standing permission retains action history. Safety floors continue to require human decisions for restricted operations.",
   },
 ];
 
