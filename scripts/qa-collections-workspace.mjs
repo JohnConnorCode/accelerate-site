@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { chromium } from "playwright";
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3036";
 const output = "/tmp/accelerate-collections-workspace";
 await mkdir(output, { recursive: true });
+const registryVersion = (
+  await readFile(new URL("../src/lib/revenue-os/ai-tool-contract.ts", import.meta.url), "utf8")
+).match(/AI_TOOL_REGISTRY_VERSION = "([^"]+)"/)?.[1];
+assert.ok(registryVersion, "The canonical tool registry version must be declared");
 const browser = await chromium.launch();
 const scenarios = [
   "northline-roofing",
@@ -97,7 +101,7 @@ try {
         }
         const verifyCollectionCapabilities = async (enabled) => {
           await page.goto(root + "/ai?view=capabilities");
-          await page.getByText("Registry revenue-os-tools.v20", { exact: true }).waitFor();
+          await page.getByText(`Registry ${registryVersion}`, { exact: true }).waitFor();
           for (const [label, ready, connection] of [
             ["Read collection cases", "Ready to read", "No provider connection required"],
             ["preview collection reminder", "Ready to read", "Connection required"],
