@@ -137,6 +137,8 @@
     "test:schema-verification": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-schema-verification.ts",
     "test:secret-storage": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-secret-storage.ts",
     "test:learning-inbox": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-learning-inbox.ts",
+    "test:source-authority": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-source-authority.ts",
+    "qa:source-authority": "node --env-file=.env.local scripts/qa-source-authority.mjs",
     "test:correction-capture": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-correction-capture.ts",
     "verify:founder-access": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-founder-access.ts",
     "test:api-contracts": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-api-contract-basics.ts",

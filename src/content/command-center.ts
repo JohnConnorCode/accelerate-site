@@ -260,6 +260,13 @@ export const capabilities: Capability[] = [
 
   // Learn
   {
+    id: "source-authority",
+    category: "learn",
+    title: "Source authority, named explicitly",
+    detail:
+      "Each connected system is registered against the facts it owns, with a tier, an owner and a last-verified date. Retrieval orders that evidence so an approved policy outranks a Slack aside, flags conflicts instead of picking a winner, and marks stale knowledge as stale.",
+  },
+  {
     id: "edits",
     category: "learn",
     title: "Your edits are the training",
