@@ -91,9 +91,13 @@ No resource gate is bypassed and no unrelated process is stopped.
 The exact Vercel project/team is accessible and `deploy:check` passes in the
 existing linked checkout. GitHub's Vercel status separately says “Account is
 blocked.” Successful read access does not prove deployment permission.
-The original installation must explicitly set
-`NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` before its next build. Fresh forks stay
-neutral by default. No production environment setting is changed by this merge.
+To retain the existing agency presentation, the original installation must select
+`NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` before its next build. It can also run
+neutral on the same hosting project. Fresh forks stay neutral by default. Hosting
+acknowledgement now uses `ACCELERATE_ORIGINAL_HOSTING=1` independently of the profile,
+with exact authenticated target checks still required. This corrects the earlier
+coupling that would have prevented our own installation from turning agency
+presentation off. No production environment setting is changed by this merge.
 Read-only environment-name inspection confirms the production profile setting is
 absent; the four required database/owner variable names are present. Values and
 secrets were not printed. Initial integration CI also caught a duplicate profile

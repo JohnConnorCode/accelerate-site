@@ -84,7 +84,7 @@ The full repository starts with a neutral Command Center homepage and the fictio
 
 In Site Studio, edit the starter's identity, theme, navigation and pages, connect published forms, then preview and publish. The same website document and approval flow support UI editing, AI and owner-authorized ChatGPT MCP. See [Website setup and profiles](docs/self-hosting/NEUTRAL-DISTRIBUTION.md) and [ChatGPT setup](docs/self-hosting/SITE-STUDIO-CHATGPT.md). The optional reduced export is not required to fork the complete product.
 
-The original installation must explicitly set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` at build and runtime before upgrading. Changing profiles does not delete saved website revisions.
+This is one codebase and one complete product, including our own installation. `NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` turns the bundled agency presentation off; `branded` turns it on. Unset defaults to off. Choose the same value at build and runtime, then rebuild and deploy; this is not a live admin toggle. Both profiles retain the full workspace, editor, AI/MCP, plugins and governed business services. Changing profiles does not delete saved website revisions. Hosting ownership is verified separately in [Deployment](DEPLOY.md).
 
 This repository ships with automatic Git deployments off (`git.deploymentEnabled: false` in `vercel.json`), which exists to keep the maintainer's own production project on a separate prebuilt release path. It carries over to your fork's Vercel project too, so a `git push` after the first deploy won't redeploy until you turn Git deployments back on in your new project's **Settings → Git**.
 

@@ -1,6 +1,8 @@
 # Deployment
 
-The complete repository defaults to neutral. Before upgrading the original Accelerate installation, set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` in both its build and runtime environments. This is an explicit maintainer action, not an automatic migration. Neutral deployments refuse the original hosting target.
+One complete codebase serves every installation, including ours. Agency presentation is off by default (`NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` or unset). Choose `branded` to enable it, using the same value at build and runtime, then rebuild and deploy. Either profile retains the full product and can run on our existing hosting project. To preserve the current agency website during an upgrade, explicitly choose `branded`; choosing neutral instead is supported, not a different application.
+
+Hosting ownership is separate from that presentation choice. Original-target IDs are refused by default in either profile. After verifying the original account and target below, its authorized maintainer must set `ACCELERATE_ORIGINAL_HOSTING=1` in the release shell. This acknowledgement does not bypass authenticated project/team, local-link or environment-override checks. Forks must use their own target and never set this acknowledgement.
 
 The repository supports a prebuilt Vercel release path, but every fork must link its own hosting project and configure its own environment.
 
@@ -29,7 +31,7 @@ vercel api '/v9/projects/prj_w46n3AgV4L4IGEJZ0WzCBCZhDTot?teamId=team_aoXdtupaCm
 
 If access fails, correct the CLI login with `vercel login` using the existing project owner's account or an authorized team member. Do not create a replacement project, copy another checkout's hosting configuration, investigate billing, or infer suspension from an unrelated account. If the request fails after identity matches, distinguish network/authentication errors from an explicit provider restriction.
 
-After confirming access, use `vercel link --project accelerate-site --scope <verified-team-slug>` in this checkout and run `npm run deploy:check`. The check compares the local link and environment overrides with the declared IDs and verifies authenticated access to that exact project/team. It stops before configuration pull, Vercel build, upload or rollback when identity cannot be verified.
+After confirming access, use `vercel link --project accelerate-site --scope <verified-team-slug>` in this checkout. For the original target only, run `export ACCELERATE_ORIGINAL_HOSTING=1`, then `npm run deploy:check`. Keep that acknowledgement in the same shell for the release commands. The check compares the local link and environment overrides with the declared IDs and verifies authenticated access to that exact project/team. It stops before configuration pull, Vercel build, upload or rollback when identity cannot be verified.
 
 ## First deployment
 

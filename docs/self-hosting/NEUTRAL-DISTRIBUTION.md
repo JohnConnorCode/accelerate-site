@@ -1,13 +1,13 @@
 # Neutral fork distribution
 
-This repository can run two profiles. They share the same admin, runtime, plugins and approval services.
+This is one codebase and one complete product. The profiles switch bundled agency presentation, not product capabilities. They share the same admin, editor, AI/MCP, runtime, plugins and approval services. Our own installation uses this same choice. The business website is an entry point into the shared operating system, not a separate agency-only application.
 
-| Profile             | When                                 | Identity                                                                                                   |
-| ------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| `branded`           | The original Accelerate installation | Explicit opt-in to the bundled agency site                                                                 |
-| `neutral` (default) | A fork or a new business             | Entry pages, authentication chrome, AI identity, metadata and email footer come from the configured tenant |
+| Profile             | When                                  | Identity                                                                                                   |
+| ------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `branded`           | Bundled agency presentation is wanted | Explicit opt-in to the bundled agency site, subject to asset rights                                        |
+| `neutral` (default) | Agency presentation is off            | Entry pages, authentication chrome, AI identity, metadata and email footer come from the configured tenant |
 
-The full repository now defaults to neutral. Set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` explicitly in the original installation's build and runtime environment before upgrading. No production environment is changed automatically. Profile selection never deletes drafts or publication history.
+The full repository defaults to neutral. Set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` to enable the bundled agency presentation, or `neutral` to disable it, including on our own installation. Use the same value in build and runtime environments, then rebuild and deploy. This is a deployment configuration switch, not a live admin toggle. No production environment is changed automatically. Profile selection never deletes drafts or publication history, and owner-published pages remain authoritative.
 
 Set `NEXT_PUBLIC_BUSINESS_NAME` and `NEXT_PUBLIC_SITE_URL`, connect your own workspace through the installation guide, and open **Site Studio → Edit installation website**. Identity, Theme, page sections, navigation, preview and publication all use the same website document. **Website tools** contains the setup sequence and links to connection checks and ChatGPT setup.
 
@@ -25,7 +25,7 @@ Copy `deployment-target.example.json` to `deployment-target.json` and fill IDs f
 node scripts/generate-fork-hosting.mjs --project prj_your_id --team team_your_id --name my-revenue-os --url https://your-business.example
 ```
 
-The generator refuses the original Accelerate project, team and canonical URL. `vercel.json` keeps automatic Git deployments off until you enable them in your project. Cron routes require `CRON_SECRET` and a scheduler you own; remove or configure scheduled triggers explicitly for your hosting account. `npm run deploy:check` in the neutral profile also refuses original IDs.
+The generator refuses the original Accelerate project, team and canonical URL. `vercel.json` keeps automatic Git deployments off until you enable them in your project. Cron routes require `CRON_SECRET` and a scheduler you own; remove or configure scheduled triggers explicitly for your hosting account. `npm run deploy:check` refuses original IDs by default in either profile. The original maintainer follows the separate hosting acknowledgement and authenticated target verification in [Deployment](../../DEPLOY.md); turning agency presentation on never grants hosting access.
 
 This does not deploy the original production account.
 

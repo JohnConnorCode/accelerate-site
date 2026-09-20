@@ -21,7 +21,7 @@ Open the local URL printed in the terminal, then visit `/demo/command-center`. C
 
 ## Start with your own business identity
 
-The full repository defaults to a neutral Command Center homepage. You receive the complete application, with Accelerate agency content disabled. Set `NEXT_PUBLIC_BUSINESS_NAME` and `NEXT_PUBLIC_SITE_URL` for your installation. The original agency site requires an explicit `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` build and runtime setting.
+The full repository defaults to a neutral Command Center homepage. You receive the complete application, with Accelerate agency content disabled. Set `NEXT_PUBLIC_BUSINESS_NAME` and `NEXT_PUBLIC_SITE_URL` for your installation. This is one codebase: every installation, including ours, can enable bundled agency presentation with `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` or disable it with `neutral`. Keep build and runtime values aligned, then rebuild and deploy. Both profiles retain the editor, AI/MCP, plugins and workspace; hosting authorization is a separate concern.
 
 Before a database is connected, **Open your workspace** shows a setup screen with links to the installation guide and fictional demo. Visiting `/admin/login` directly shows the same next steps. First-party analytics stays inactive on an unconfigured fork, so exploring the site does not require a database connection.
 
