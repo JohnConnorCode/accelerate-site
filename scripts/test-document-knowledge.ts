@@ -13,6 +13,7 @@ async function main() {
       tenants: [{ id: "fixture", status: "active" }],
       integration_connections: [
         {
+          id: "google-connection",
           tenant_id: "fixture",
           provider: "google",
           status: "connected",
@@ -39,6 +40,14 @@ async function main() {
     let mode = "current";
     globalThis.fetch = async (input) => {
       assert(String(input).startsWith("https://www.googleapis.com/drive/v3/files/file?"));
+      if (mode === "suspend-during-read") mem.rows("tenants")[0]!.status = "suspended";
+      if (mode === "disconnect-during-read")
+        mem.rows("integration_connections")[0]!.status = "disconnected";
+      if (mode === "remove-folder-during-read")
+        mem.rows("integration_connections")[0]!.settings = { drive_folder_ids: [] };
+      if (mode === "replace-account-during-read")
+        mem.rows("integration_connections")[0]!.encrypted_refresh_token =
+          encryptSecret("other-account");
       return mode === "revoked"
         ? Response.json({}, { status: 403 })
         : Response.json({
@@ -55,7 +64,23 @@ async function main() {
       assert.equal(result.chunks.length, 0);
       assert(result.missing.length);
     }
+    for (const failure of [
+      "disconnect-during-read",
+      "remove-folder-during-read",
+      "replace-account-during-read",
+      "suspend-during-read",
+    ]) {
+      const connection = mem.rows("integration_connections")[0]!;
+      mem.rows("tenants")[0]!.status = "active";
+      connection.status = "connected";
+      connection.settings = { drive_folder_ids: ["selected"] };
+      mode = failure;
+      const result = await searchDocumentKnowledge(db, "appointment", 5);
+      assert.equal(result.chunks.length, 0, failure);
+      assert(result.missing.length, failure);
+    }
     mode = "current";
+    mem.rows("tenants")[0]!.status = "active";
     mem.rows("integration_connections")[0]!.settings = { drive_folder_ids: [] };
     assert.equal((await searchDocumentKnowledge(db, "appointment", 5)).chunks.length, 0);
     mem.rows("integration_connections")[0]!.status = "disconnected";

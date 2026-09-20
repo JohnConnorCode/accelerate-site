@@ -74,3 +74,15 @@ assert.equal(
 console.log(
   "Shared context: scope, workers, disabled plugins, provenance, budget and dedupe checks passed.",
 );
+
+assert.equal(
+  policyApplies(policy("untyped", { proposal_type: null }), { guidanceTypes: ["messaging"] }),
+  false,
+);
+assert.deepEqual(
+  buildContextPack(
+    [policy("oversized", { rule: "x".repeat(2000), authority: "official" }), policy("fits")],
+    { maxChars: 1000 },
+  ).guidance.map((p) => p.id),
+  ["fits"],
+);

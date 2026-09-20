@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getGoogleAccessToken } from "./google";
+import { assertActiveTenantExecution } from "@/lib/tenancy/system";
 import type { KnowledgeChunk } from "./knowledge";
 
 interface SearchRow {
@@ -36,6 +37,7 @@ export async function searchDocumentKnowledge(db: SupabaseClient, query: string,
   if (drive.length) {
     try {
       const { token, connection } = await getGoogleAccessToken(db);
+      const refreshTokenRevision = connection.encrypted_refresh_token;
       const folders =
         (connection.settings as { drive_folder_ids?: string[] } | null)?.drive_folder_ids ?? [];
       await Promise.all(
@@ -69,7 +71,30 @@ export async function searchDocumentKnowledge(db: SupabaseClient, query: string,
           }
         }),
       );
+      // Provider verification can take seconds. Re-read the local connection
+      // before disclosing text so a concurrent disconnect or folder removal wins.
+      await assertActiveTenantExecution(db, "google");
+      const { data: current, error: connectionError } = await db
+        .from("integration_connections")
+        .select("id,status,settings,encrypted_refresh_token")
+        .eq("id", connection.id)
+        .eq("provider", "google")
+        .maybeSingle();
+      if (
+        connectionError ||
+        !current ||
+        current.status !== "connected" ||
+        current.encrypted_refresh_token !== refreshTokenRevision
+      ) {
+        permitted.clear();
+      } else {
+        const currentFolders =
+          (current.settings as { drive_folder_ids?: string[] } | null)?.drive_folder_ids ?? [];
+        for (const row of drive)
+          if (!row.folderId || !currentFolders.includes(row.folderId)) permitted.delete(row.id);
+      }
     } catch {
+      permitted.clear();
       missing.push("Google Workspace access could not be verified.");
     }
     if (permitted.size < drive.length)

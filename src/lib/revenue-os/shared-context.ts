@@ -39,8 +39,7 @@ export function policyApplies(policy: LearnedPolicyEntry, request: ContextReques
   if (policy.superseded_at || policy.authority === "historical") return false;
   if (
     request.guidanceTypes &&
-    policy.proposal_type &&
-    !request.guidanceTypes.includes(policy.proposal_type)
+    (!policy.proposal_type || !request.guidanceTypes.includes(policy.proposal_type))
   )
     return false;
   if (policy.coworker_id && policy.coworker_id !== request.coworkerId) return false;
@@ -109,10 +108,11 @@ export function buildContextPack(
     };
     const line = JSON.stringify(item) + "\n";
     if (pack.text.length + line.length > maxChars) {
-      pack.missing.push(
-        "Some applicable guidance exceeds the context budget; retrieve more before relying on complete coverage.",
-      );
-      break;
+      if (!pack.missing.length)
+        pack.missing.push(
+          "Some applicable guidance exceeds the context budget; retrieve more before relying on complete coverage.",
+        );
+      continue;
     }
     pack.guidance.push(item);
     pack.text += line;
@@ -137,18 +137,36 @@ export async function loadContextPack(
       ),
     };
   }
-  const { data, error } = await db
-    .from("learned_policies")
-    .select("*")
-    .is("superseded_at", null)
-    .order("authority", { ascending: true })
-    .order("created_at", { ascending: false })
-    .limit(201);
-  if (error) throw new Error(`Cannot load workspace guidance: ${error.message}`);
-  const rows = (data ?? []) as LearnedPolicyEntry[];
-  const pack = buildContextPack(rows.slice(0, 200), request);
-  if (rows.length > 200)
-    pack.missing.push("Guidance retrieval reached its 200-rule limit; coverage is incomplete.");
+  // Bound each authority independently: a large approved/working backlog must
+  // not crowd official guidance out before the in-memory authority sort runs.
+  const authorities = ["official", "approved", "working"].filter(
+    (authority) => !request.authorities || request.authorities.includes(authority),
+  );
+  const groups = await Promise.all(
+    authorities.map(async (authority) => {
+      let query = db.from("learned_policies").select("*").is("superseded_at", null);
+      query =
+        authority === "working"
+          ? query.or("authority.eq.working,authority.is.null")
+          : query.eq("authority", authority);
+      const { data, error } = await query
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .limit(201);
+      if (error)
+        throw new Error("Cannot load workspace guidance; retry before relying on learned rules");
+      return { authority, rows: (data ?? []) as LearnedPolicyEntry[] };
+    }),
+  );
+  const pack = buildContextPack(
+    groups.flatMap(({ rows }) => rows.slice(0, 200)),
+    request,
+  );
+  for (const { authority, rows } of groups)
+    if (rows.length > 200)
+      pack.missing.push(
+        `Guidance retrieval reached its 200-rule ${authority} limit; coverage is incomplete.`,
+      );
   const entityType =
     request.entity && ["company", "contact", "opportunity"].includes(request.entity.type)
       ? (request.entity.type as "company" | "contact" | "opportunity")

@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "connected-learning-knowledge",
     title: "Reviewed corrections and cited workspace references",
     description:
-      "Independent learning rules remain active together, with explicit replacements and atomic approval history. Private PDF, DOCX and text references feed cited search; edited replies can propose reusable corrections. Meeting preparation and Client onboarding declare their shared sources and expected results. Get started follows saved work from an inquiry through a completed task and later guidance use. Installation requires the new migrations and an active work engine; model quality and live outcomes need separate verification.",
+      "Independent learning rules remain active together, with explicit replacements and atomic approval history. Private PDF, DOCX and text references feed cited search; edited replies can propose reusable corrections. Meeting preparation and Client onboarding declare their shared sources and expected results. Get started follows saved work from an inquiry through a completed task and later guidance use. Source failures report incomplete coverage, large rule collections preserve official guidance, and completed first-use tasks remain recognized as more work is added. Installation requires the new migrations and an active work engine; model quality and live outcomes need separate verification.",
     category: "improvement",
     publishedAt: "2026-09-20",
   },
