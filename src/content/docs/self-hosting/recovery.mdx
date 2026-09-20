@@ -1,0 +1,111 @@
+---
+title: "Recover a failing workspace"
+description: "Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims."
+updated: "2026-09-20"
+---
+
+**You need:** the checkout, a `.env.local` that points at a Supabase project **you control**, and PostgreSQL client tools for migration commands. Inspect the project ref and database host each command prints before continuing. Do not run mutating verify scripts against a customer production database.
+
+**Revenue Recovery** at `/admin/recovery` is a demand playbook. Skip it here.
+
+## Diagnose on the operator screens
+
+1. Sign in at `/admin`.
+2. Open **Setup Center** (`/admin/setup`). Note every **Action needed** or **Degraded** row, including Operations health.
+3. Open **Today** (`/admin/today`) and read **Connection and job health**.
+4. Open **Tenant operations** (`/admin/tenants`) if sign-in works but the shell has no workspace.
+5. Open **Activity** (`/admin/activity`) after a repair to confirm a new receipt.
+
+Then run only the command that matches the row. Each command below exists in `package.json`. `scripts/verify-docs.ts` fails this guide if a documented `npm run` script is removed.
+
+## Schema and identity
+
+When Core system schema is **Action needed**, or login says **Connect your Supabase project**:
+
+```bash
+npm run db:migrate:all
+npm run db:verify-schema
+npm run db:verify-schema -- --record
+npm run verify:bootstrap-identity
+```
+
+| Command | Environment | Working reference |
+| ------- | ----------- | ----------------- |
+| `npm run db:migrate:all` | Local checkout; `.env.local` pooler vars for a project you control | `scripts/run-all-migrations.mjs` |
+| `npm run db:verify-schema` | Same; read-only metadata | `scripts/verify-revenue-schema.ts` |
+| `npm run db:verify-schema -- --record` | Same; writes a schema verification receipt Setup Center reads | `scripts/verify-revenue-schema.ts` |
+| `npm run verify:bootstrap-identity` | Same; confirms the seed is not the reference identity | `scripts/verify-bootstrap-identity.mjs` |
+
+Re-running `db:migrate:all` after a fix is safe on a new install. On a long-lived database, prefer `db:verify-schema` instead of replaying the full list; see `docs/self-hosting/REVENUE-OS-SETUP.md`. Refresh Setup Center. Ready means the contract receipt matches, not that email is healthy.
+
+## Health, stalled jobs, and the scheduler
+
+Health is `loadOperationalHealth` in `src/lib/revenue-os/health.ts`. A job stuck `running` longer than 30 minutes is stalled. Failed webhook receipts stay visible for 48 hours. Empty `failed`/`partial` counts must not make the system look green.
+
+There is no operator Unstick button. The next authenticated cron claim takes a stale row over inside `claim_revenue_job_run` (`migrations/20260819-stale-claim-recovery.sql`). Setup Center reports the takeover on Operations health.
+
+If the 15-minute system-health snapshot never wakes:
+
+```bash
+npm run scheduler:configure
+```
+
+| Command | Environment | Working reference |
+| ------- | ----------- | ----------------- |
+| `npm run scheduler:configure` | `.env.local` with production HTTPS `NEXT_PUBLIC_SITE_URL` (no localhost) and `CRON_SECRET` of at least 32 characters. Stores the endpoint and bearer in Supabase Vault and does not print them. | `scripts/configure-command-center-scheduler.mjs` |
+
+Prove the health rules on a disposable project:
+
+```bash
+npm run test:setup-status
+npm run verify:health-truth
+npm run verify:stale-claim-recovery
+```
+
+| Command | Environment | Working reference |
+| ------- | ----------- | ----------------- |
+| `npm run test:setup-status` | Local, no database. Keys without receipts stay Action needed. | `scripts/test-setup-status.ts` |
+| `npm run verify:health-truth` | Local `.env.local` project you control. Inserts then deletes synthetic stalled-job and failed-webhook rows. | `scripts/verify-health-truth.ts` |
+| `npm run verify:stale-claim-recovery` | Same. Uses a reserved job key and removes it. | `scripts/verify-stale-claim-recovery.ts` |
+
+**Saved result:** Operations health no longer lists the stalled key, and the next snapshot job has a terminal receipt. `verify:health-truth` and `verify:stale-claim-recovery` print a pass line and exit 0.
+
+## Membership and founder access
+
+If the admin shell has no workspace, follow [Founder authority and tenant membership](/docs/self-hosting/permissions). Activate the tenant, invite the operator, and match `ADMIN_EMAIL` to the Auth user. There is no CLI that grants platform rights.
+
+## Feature Board claims
+
+**Feature Board** (`/admin/features`) is founder-only. Leases last 30 minutes. Heartbeat from a worker checkout:
+
+```bash
+npm run agent:heartbeat -- --card <key>
+```
+
+Release a claim you still hold:
+
+```bash
+npm run agent:release -- --card <key>
+```
+
+| Command | Environment | Working reference |
+| ------- | ----------- | ----------------- |
+| `npm run agent:heartbeat -- --card <key>` | Local; `WORK_BOARD_URL` and a founder-issued `WORK_BOARD_TOKEN`. Session files stay outside Git. | `scripts/agent-dispatch.ts` |
+| `npm run agent:release -- --card <key>` | Same; only the holder with the unexpired token can release. | `scripts/agent-dispatch.ts` |
+
+An expired claim still occupies a WIP slot. `scripts/agent-dispatch.ts` has no force bypass; it tells the worker to ask an operator to review the claim on Feature Board. Do not delete another agent's worktree to "fix" startup.
+
+## Missing providers
+
+Leave unused providers unset. Add one, then prove it with a receipt on Setup Center:
+
+- Resend: verified sender, then an outbound `sent` message.
+- OpenRouter: tenant key, then an AI run receipt.
+- Google: OAuth connect, then a named sync.
+- Calendly: signed booking or cancellation receipt.
+
+Configuration without that receipt stays **Action needed**. That is the truthful state.
+
+## After repair
+
+Return to Setup Center, press **Refresh checks**, and confirm the failing row moved. Open Activity for the migrate, sync, or task you ran. If the row is still Degraded, stop and keep the error text; do not rotate keys in a loop.

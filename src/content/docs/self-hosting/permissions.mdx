@@ -1,0 +1,57 @@
+---
+title: "Founder authority and tenant membership"
+description: "Platform administration is the ADMIN_EMAIL identity; tenant operators need an active membership in an active workspace."
+updated: "2026-09-20"
+---
+
+**You need:** a connected workspace from [Install a connected workspace](/docs/self-hosting). This page is about who can do what after sign-in. It does not grant extra access.
+
+## Two gates
+
+`src/lib/admin/auth.ts` enforces both:
+
+1. **Tenant admin.** `requireAdmin` needs a signed-in Auth user, a configured `ADMIN_EMAIL`, an explicit workspace slug, a tenant whose status is `active`, and a `tenant_memberships` row for that user with `status = active` and `role = admin`. Failure is **Unauthorized** (401), **Admin access not configured** (503), **Explicit tenant context required** (403), or **Tenant access forbidden** (403).
+2. **Platform founder.** `requirePlatformAdmin` runs the tenant admin gate, then requires `isConfiguredAdmin`: the user's email equals `ADMIN_EMAIL` (`src/lib/admin/access.ts`). Anyone else gets **Platform access forbidden**.
+
+`ADMIN_EMAIL` is an environment value on the deployment. Membership is a database row per workspace. Changing one does not change the other.
+
+## What each identity can open
+
+| Surface | Route | Who |
+| ------- | ----- | --- |
+| Today, Inbox, Pipeline, Activity | `/admin/today`, `/admin/inbox`, `/admin/pipeline`, `/admin/activity` | Tenant admin (`requireAdmin`) |
+| Integrations | `/admin/integrations` | Tenant admin |
+| Setup Center | `/admin/setup` | Founder only (`requirePlatformAdmin`) |
+| Feature Board | `/admin/features` | Founder only |
+| Tenant directory read | `/admin/tenants` GET | Tenant admin sees the directory; non-founders only see their own memberships |
+| Create, invite, revoke, activate, suspend, archive | `/admin/tenants` POST | Founder only |
+
+Google sync, tasks, and most revenue APIs are tenant-admin. Feature Board agent credentials, Setup Center, and tenant lifecycle writes stay founder-only.
+
+## Provision membership on Tenant operations
+
+Start at **Tenant operations** (`/admin/tenants`). The heading is **Tenant operations**. The eyebrow is **Platform control**.
+
+Workspace statuses and the copy on each card:
+
+| Status | Meaning on the screen |
+| ------ | --------------------- |
+| Active | Members and tenant operations are enabled. |
+| Provisioning | Configuration is being reviewed before activation. |
+| Suspended | Access, jobs, ingest, and provider effects are paused. |
+| Archived | Data is retained, but this workspace cannot operate. |
+
+Founder actions on an active workspace: **Enter workspace** (opens `/t/\{slug\}/admin/today`), **Suspend** (confirm **Suspend workspace**). Provisioning or suspended workspaces show **Activate**. Create and invite are founder POSTs with a client request id.
+
+**Saved result:** the directory card shows the new status, and the invited email appears as `invited` then `active` after that person signs in. A toast is not membership; reload the directory if the row is missing.
+
+Suspending the bootstrap `accelerate` workspace is blocked on the page. Archiving retains rows; it does not delete receipts.
+
+## Typical failures
+
+- Sign-in works, every admin API returns 403 **Explicit tenant context required**: the request has no workspace slug. Use **Enter workspace** from Tenant operations, or sign in again so the login response can set `x-workspace-path`.
+- 403 **Tenant access forbidden**: the workspace is not `active`, or your membership is missing, invited, or revoked. A founder activates the workspace and invites the admin email.
+- 403 **Platform access forbidden** on Setup Center or Feature Board: your email is not `ADMIN_EMAIL`. Ask the founder, or change the environment value and recreate the matching Auth user. Do not share the service-role key to bypass this.
+- Login heading **Connect your Supabase project**: `ADMIN_EMAIL` or Supabase keys are unset. Return to installation.
+
+Tenant MCP and public intake stay bound to the selected workspace. They never include the platform Feature Board. Details: `docs/contracts/MULTI-TENANCY-CONTRACT.md` and `docs/contracts/UNIVERSAL-WORK-BOARD.md` in the checkout.
