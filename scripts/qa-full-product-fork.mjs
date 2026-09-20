@@ -187,6 +187,28 @@ try {
     });
     await context.close();
   }
+  await browser.close();
+  browser = undefined;
+  await new Promise((resolve, reject) => {
+    const journey = spawn(process.execPath, ["scripts/qa-turnkey.mjs", "--neutral"], {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        PLAYWRIGHT_BASE_URL: base,
+        QA_SITE_NAME: "Command Center",
+        QA_SITE_URL: "http://localhost:3000",
+        QA_OUTPUT: `${output}/first-use`,
+      },
+    });
+    journey.on("error", reject);
+    journey.on("exit", (code) =>
+      code === 0 ? resolve() : reject(new Error(`First-use journey failed: ${code}`)),
+    );
+  });
+  results.push({
+    firstUse:
+      "desktop/mobile CTA, direct setup, keyboard guide, accessibility, demo edits, docs, no failed requests",
+  });
   console.log(JSON.stringify({ result: "passed", results, output }, null, 2));
   await writeFile(`${output}/results.json`, JSON.stringify({ result: "passed", results }, null, 2));
 } catch (error) {

@@ -137,24 +137,60 @@ assert.ok(
 
 const originalWindow = globalThis.window;
 const originalFetch = globalThis.fetch;
+const originalDocument = globalThis.document;
+const originalStorage = globalThis.sessionStorage;
+const originalAnalyticsUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 let previewTrackingCalls = 0;
 try {
-  Reflect.set(globalThis, "window", {
-    location: { pathname: "/site-preview" },
-    gtag: () => previewTrackingCalls++,
-  });
   globalThis.fetch = async () => {
     previewTrackingCalls++;
     throw new Error("Preview attempted tracking");
   };
-  trackEvent("Private preview click");
-  trackConversion("Private preview conversion");
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://workspace.example";
+  for (const pathname of [
+    "/site-preview",
+    "/site-preview/nested",
+    "/admin",
+    "/admin/site/website",
+    "/t/example/admin",
+    "/demo/command-center/northline-roofing",
+  ]) {
+    Reflect.set(globalThis, "window", {
+      location: { pathname },
+      gtag: () => previewTrackingCalls++,
+      fbq: () => previewTrackingCalls++,
+    });
+    trackEvent("Private preview click");
+    trackConversion("Private preview conversion");
+  }
+  delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+  Reflect.set(globalThis, "window", { location: { pathname: "/" } });
+  trackEvent("Unconfigured homepage click");
   assert.equal(
     previewTrackingCalls,
     0,
     "Private preview interactions never count as public analytics or conversions",
   );
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://workspace.example";
+  Reflect.set(globalThis, "document", { referrer: "" });
+  Reflect.set(globalThis, "sessionStorage", {
+    getItem: () => "11111111-1111-4111-8111-111111111111",
+  });
+  globalThis.fetch = async (url, init) => {
+    previewTrackingCalls++;
+    assert.equal(url, "/api/analytics/events");
+    const event = JSON.parse(String(init?.body));
+    assert.equal(event.path, "/");
+    assert.equal(event.name, "configured_homepage_click");
+    return new Response(null, { status: 202 });
+  };
+  trackEvent("Configured homepage click");
+  assert.equal(previewTrackingCalls, 1, "Configured public analytics remains enabled");
 } finally {
   Reflect.set(globalThis, "window", originalWindow);
   globalThis.fetch = originalFetch;
+  Reflect.set(globalThis, "document", originalDocument);
+  Reflect.set(globalThis, "sessionStorage", originalStorage);
+  if (originalAnalyticsUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+  else process.env.NEXT_PUBLIC_SUPABASE_URL = originalAnalyticsUrl;
 }
