@@ -8,6 +8,7 @@ import { parseWebsiteDocument } from "../src/lib/site-studio/website-document";
 import { assertWebsiteForms, websiteFormTokens } from "../src/lib/site-studio/website-forms";
 import { websiteTextFields } from "../src/lib/site-studio/website-authoring";
 import { middleware } from "../src/middleware";
+import { POST as recordAnalytics } from "../src/app/api/analytics/events/route";
 import { tenant } from "../src/config/tenant";
 import { buildSearchIndex } from "../src/lib/search";
 import { validateWebsiteCommandForms } from "../src/lib/site-studio/website-store";
@@ -17,6 +18,77 @@ import { MemorySupabase } from "./lib/memory-supabase";
 import type { AdminAuthorization } from "../src/lib/admin/auth";
 
 async function main() {
+  const originalUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const originalKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const originalFetch = globalThis.fetch;
+  const originalError = console.error;
+  const event = {
+    eventId: crypto.randomUUID(),
+    visitorId: crypto.randomUUID(),
+    name: "cta_click",
+    path: "/",
+  };
+  const request = (body: unknown = event, origin = "http://localhost") =>
+    new NextRequest("http://localhost/api/analytics/events", {
+      method: "POST",
+      headers: { origin, "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  let writes = 0;
+  try {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    globalThis.fetch = async () => {
+      writes++;
+      throw new Error("Unexpected external request");
+    };
+    assert.equal((await recordAnalytics(request({}, "https://foreign.example"))).status, 403);
+    assert.equal((await recordAnalytics(request({}))).status, 400);
+    const absent = await recordAnalytics(request());
+    assert.equal(absent.status, 202);
+    assert.deepEqual(await absent.json(), { accepted: false, reason: "not_configured" });
+    assert.equal(writes, 0);
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://database.example";
+    assert.deepEqual(await (await recordAnalytics(request())).json(), {
+      accepted: false,
+      reason: "not_configured",
+    });
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "test-only-key";
+    globalThis.fetch = async (_url, init) => {
+      writes++;
+      const body = JSON.parse(String(init?.body));
+      assert.equal(body.event_id, event.eventId);
+      assert.equal(body.tenant_id, ACCELERATE_TENANT_ID);
+      assert.match(
+        String(init?.headers && new Headers(init.headers).get("prefer")),
+        /resolution=ignore-duplicates/,
+      );
+      return new Response(null, { status: 201 });
+    };
+    assert.deepEqual(await (await recordAnalytics(request())).json(), { accepted: true });
+    assert.deepEqual(await (await recordAnalytics(request())).json(), { accepted: true });
+    assert.equal(writes, 2, "Replay uses the same event identity and database deduplication");
+    console.error = () => undefined;
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ message: "Controlled unavailable database" }), {
+        status: 400,
+        headers: { "content-type": "application/json" },
+      });
+    assert.deepEqual(await (await recordAnalytics(request())).json(), { accepted: false });
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "invalid-url";
+    assert.deepEqual(
+      await (await recordAnalytics(request())).json(),
+      { accepted: false },
+      "Client construction errors also degrade without a 500",
+    );
+  } finally {
+    if (originalUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    else process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl;
+    if (originalKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = originalKey;
+    globalThis.fetch = originalFetch;
+    console.error = originalError;
+  }
   assert.equal(distributionProfile({}), "neutral");
   assert.equal(distributionProfile({ NEXT_PUBLIC_DISTRIBUTION_PROFILE: "branded" }), "branded");
   assert.doesNotMatch(JSON.stringify(tenant), /acceleratewith|John Connor|john-accelerate/i);

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "fresh-fork-first-use",
+    slug: "fresh-fork-first-use",
+    title: "Clear next steps for a fresh installation",
+    description:
+      "Unconfigured installations now show the same setup guidance on direct sign-in visits and workspace links, with keyboard-accessible actions to open the installation guide or fictional demo. First-party tracking stays inactive until a database URL is configured, and unavailable analytics cannot break a site interaction. Browser checks cover the actual homepage click, setup links, demo edits and desktop/mobile accessibility.",
+    category: "improvement",
+    publishedAt: "2026-09-19",
+  },
+  {
     id: "full-product-neutral-fork",
     slug: "full-product-neutral-fork",
     title: "A complete workspace with your own editable website",

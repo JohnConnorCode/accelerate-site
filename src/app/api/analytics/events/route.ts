@@ -42,25 +42,29 @@ export async function POST(request: NextRequest) {
   const parsed = eventSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success)
     return NextResponse.json({ error: "Invalid analytics event" }, { status: 400 });
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY)
+    return NextResponse.json({ accepted: false, reason: "not_configured" }, { status: 202 });
   const event = parsed.data;
-  const { error } = await createBootstrapServiceRoleClient("legacy-public-analytics")
-    .from("website_events")
-    .upsert(
-      {
-        event_id: event.eventId,
-        visitor_id: event.visitorId,
-        event_name: event.name,
-        path: event.path,
-        referrer_host: event.referrerHost || null,
-        ...event.attribution,
-        properties: event.properties || {},
-      },
-      { onConflict: "event_id", ignoreDuplicates: true },
-    );
-  if (error) {
+  try {
+    const { error } = await createBootstrapServiceRoleClient("legacy-public-analytics")
+      .from("website_events")
+      .upsert(
+        {
+          event_id: event.eventId,
+          visitor_id: event.visitorId,
+          event_name: event.name,
+          path: event.path,
+          referrer_host: event.referrerHost || null,
+          ...event.attribution,
+          properties: event.properties || {},
+        },
+        { onConflict: "event_id", ignoreDuplicates: true },
+      );
+    if (error) throw error;
+    return NextResponse.json({ accepted: true }, { status: 202 });
+  } catch {
     // Tracking must never interrupt a site conversion. Setup Center will surface a missing schema.
-    console.error("First-party analytics event failed", error.message);
+    console.error("First-party analytics event could not be recorded");
     return NextResponse.json({ accepted: false }, { status: 202 });
   }
-  return NextResponse.json({ accepted: true }, { status: 202 });
 }

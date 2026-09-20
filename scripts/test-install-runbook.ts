@@ -142,7 +142,12 @@ async function main() {
   prove("AC04", "provider-free demo stays distinct from connected setup states", () => {
     const readme = read("README.md");
     assert.match(readme, /fictional demo works with zero setup/);
-    assert.match(readme, /connect your Supabase project/);
+    assert.match(readme, /connect your (?:own )?Supabase project/);
+    const login = read("src/app/admin/login/page.tsx");
+    assert.match(login, /!process\.env\.NEXT_PUBLIC_SUPABASE_URL/);
+    assert.match(login, /!process\.env\.NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+    assert.match(login, /href="\/docs\/self-hosting\/installation"/);
+    assert.match(login, /href="\/demo\/command-center"/);
     const hosting = read("docs/self-hosting/SELF-HOSTING.md");
     assert.match(hosting, /without provider credentials/);
     assert.match(hosting, /Setup Center/);

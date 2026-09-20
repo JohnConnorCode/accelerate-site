@@ -23,6 +23,8 @@ Open the local URL printed in the terminal, then visit `/demo/command-center`. C
 
 The full repository defaults to a neutral Command Center homepage. You receive the complete application, with Accelerate agency content disabled. Set `NEXT_PUBLIC_BUSINESS_NAME` and `NEXT_PUBLIC_SITE_URL` for your installation. The original agency site requires an explicit `NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded` build and runtime setting.
 
+Before a database is connected, **Open your workspace** shows a setup screen with links to the installation guide and fictional demo. Visiting `/admin/login` directly shows the same next steps. First-party analytics stays inactive on an unconfigured fork, so exploring the site does not require a database connection.
+
 After connecting your workspace, open Site Studio and choose **Edit installation website**. Update identity, theme, pages and navigation, connect published forms, then preview, save and publish. Website tools includes the setup sequence. Form responses use the existing review workflow, and private previews cannot submit. ChatGPT editing requires the owner-approved connection described in the [Site Studio guide](/docs/plugins/site-studio).
 
 An optional reduced export is available with `node scripts/export-neutral-starter.mjs --output /absolute/new/workspace`. It physically omits protected media and replaces business-owned content. It is not required to fork the complete product. Follow `docs/self-hosting/NEUTRAL-DISTRIBUTION.md` for both profiles, asset rights, hosting configuration and verification steps. Provider connections remain yours to configure.
