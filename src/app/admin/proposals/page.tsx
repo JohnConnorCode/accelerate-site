@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -136,14 +137,6 @@ export default function ProposalsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Proposals" />
-        <LoadingSkeleton variant="table" count={5} />
-      </div>
-    );
-  }
 
   if (selectedProposal) {
     return (
@@ -183,6 +176,13 @@ export default function ProposalsPage() {
           </div>
         }
       />
+      <AdminReadBody
+        loading={loading}
+        hasData={!loading || proposals.length > 0}
+        onRetry={() => void fetchProposals()}
+        loadingFallback={<LoadingSkeleton variant="table" />}
+        label="Loading proposals"
+      >
 
       {/* Filter */}
       <div className="flex gap-3 mb-4">
@@ -262,6 +262,8 @@ export default function ProposalsPage() {
           </div>
         </GlassCard>
       )}
+    
+      </AdminReadBody>
     </motion.div>
   );
 }

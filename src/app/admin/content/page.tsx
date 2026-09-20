@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { Button } from "@/components/ui/Button";
 import { ContentKanban } from "@/components/admin/ContentKanban";
 import { ContentItemForm } from "@/components/admin/ContentItemForm";
@@ -88,15 +89,6 @@ export default function AdminContentPage() {
     setShowForm(true);
   };
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Content Calendar" />
-        <LoadingSkeleton variant="cards" count={5} />
-      </div>
-    );
-  }
-
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
@@ -115,6 +107,13 @@ export default function AdminContentPage() {
           </Button>
         }
       />
+      <AdminReadBody
+        loading={loading}
+        hasData={!loading || items.length > 0}
+        onRetry={() => void fetchItems()}
+        loadingFallback={<LoadingSkeleton variant="cards" count={5} />}
+        label="Loading content calendar"
+      >
 
       <div className="mb-3 flex justify-end">
         <KanbanViewSwitcher value={view} onChange={setView} />
@@ -171,6 +170,7 @@ export default function AdminContentPage() {
         onClose={() => setShowForm(false)}
         statusOptions={statusOptions}
       />
+      </AdminReadBody>
     </motion.div>
   );
 }

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Plus, X, Save } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LeadsTable } from "@/components/admin/LeadsTable";
 import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
 import { AddLeadModal } from "@/components/admin/AddLeadModal";
@@ -238,15 +239,6 @@ export default function AdminLeadsPage() {
     setSavedViews(removeSavedView(id));
   };
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Leads" />
-        <LoadingSkeleton variant="table" count={8} />
-      </div>
-    );
-  }
-
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
@@ -259,6 +251,13 @@ export default function AdminLeadsPage() {
           </Button>
         }
       />
+      <AdminReadBody
+        loading={loading}
+        hasData={!loading || total > 0}
+        onRetry={() => void fetchLeads()}
+        loadingFallback={<LoadingSkeleton variant="table" count={8} />}
+        label="Loading leads"
+      >
 
       <AddLeadModal
         isOpen={showAddLead}
@@ -399,6 +398,7 @@ export default function AdminLeadsPage() {
         sortField={sortField}
         sortOrder={sortOrder}
       />
+      </AdminReadBody>
     </motion.div>
   );
 }

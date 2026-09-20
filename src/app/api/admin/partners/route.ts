@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
+import { retainedSourceDispositions } from "@/lib/revenue-os/retained-source-dispositions";
 
 const VALID_PARTNER_STATUSES = new Set(["pending", "approved", "rejected", "active", "inactive"]);
 
@@ -43,6 +44,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     partners: linked.records,
     canonicalSchemaReady: linked.schemaReady,
+    dispositions: retainedSourceDispositions("/admin/partners")[0]?.fields ?? [],
     total: count || 0,
     page,
     totalPages: Math.ceil((count || 0) / limit),
