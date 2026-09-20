@@ -349,6 +349,14 @@
       "module": "core-intelligence"
     },
     {
+      "tool": "list_source_authorities",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "register_source_authority",
+      "module": "core-intelligence"
+    },
+    {
       "tool": "get_claims_for_entity",
       "module": "core-intelligence"
     },
