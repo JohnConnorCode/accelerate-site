@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "chicago-small-business-industries",
     title: "More small-business workflows and a Chicago services hub",
     description:
-      "Ten additional industry guides bring the directory to twenty industries, with forty practical recipes for inquiry review and delivery handoffs. A Chicago services hub connects local businesses to consulting, custom systems, managed execution and training. Headquarters details now appear consistently, and industry pages distinguish current platform capabilities from custom integrations.",
+      "Ten additional industry guides bring the directory to twenty industries, with forty practical recipes for inquiry review and delivery handoffs. A Chicago services hub connects local businesses to consulting, custom systems, managed execution and training. Headquarters details now appear consistently, and industry pages distinguish current platform capabilities from custom integrations. Industry guides include business-specific pilot measures and handoff checks; the new recipe guides include concrete completion criteria and example task responsibilities.",
     category: "improvement",
     publishedAt: "2026-09-19",
   },

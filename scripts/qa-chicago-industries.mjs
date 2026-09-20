@@ -19,7 +19,32 @@ const verticals = JSON.parse(
     { encoding: "utf8" },
   ),
 );
-const newIndustries = verticals.slice(10);
+const newIndustries = verticals.filter((vertical) =>
+  [
+    "restaurants-catering",
+    "retail-ecommerce",
+    "salons-spas",
+    "fitness-studios",
+    "pet-services",
+    "auto-repair",
+    "property-management",
+    "cleaning-companies",
+    "staffing-recruiting",
+    "events-venues",
+  ].includes(vertical.slug),
+);
+const articles = JSON.parse(
+  execFileSync(
+    process.execPath,
+    [
+      "--import",
+      "tsx",
+      "-e",
+      'console.log(JSON.stringify(require("./src/lib/mdx.ts").getAllArticles().map(article => article.frontmatter)))',
+    ],
+    { encoding: "utf8" },
+  ),
+);
 const recipes = readdirSync("src/content/docs/recipes")
   .filter((name) => name.endsWith(".mdx") && name !== "overview.mdx")
   .map((name) => `/docs/recipes/${name.replace(/\.mdx$/, "")}`);
@@ -69,7 +94,14 @@ async function inspect(page, route, width, theme) {
   assert.equal(await page.locator("html").getAttribute("data-theme"), theme);
   const name = route.replace(/^\//, "").replaceAll("/", "-");
   await page.screenshot({ path: `${output}/${name}-${width}-${theme}.png`, fullPage: true });
-  checks.push({ route, width, theme, status: "passed" });
+  const timing = await page.evaluate(() => {
+    const navigation = performance.getEntriesByType("navigation")[0];
+    return {
+      domContentLoadedMs: Math.round(navigation.domContentLoadedEventEnd),
+      resourceCount: performance.getEntriesByType("resource").length,
+    };
+  });
+  checks.push({ route, width, theme, status: "passed", localTiming: timing });
 }
 try {
   for (let attempt = 0; attempt < 60; attempt++) {
@@ -140,8 +172,9 @@ try {
       await page.evaluate(
         () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
       );
-      await question.focus();
-      await page.keyboard.press("Enter");
+      // Target the summary in one Playwright action so focus and the key cannot
+      // be separated by a React focus-restoration update.
+      await question.press("Enter");
       await page.waitForFunction(() => document.querySelector("main details")?.open === true);
       assert.equal(errors.length, 0, errors.join("\n"));
       await context.close();
@@ -164,6 +197,12 @@ try {
     const schemas = await page.locator('script[type="application/ld+json"]').allTextContents();
     assert(schemas.map(JSON.parse).some((schema) => schema["@type"] === "Service"));
     assert(!(await page.locator('meta[name="robots"][content*="noindex"]').count()));
+    assert.equal(
+      await page.locator('meta[name="description"]').getAttribute("content"),
+      vertical.shortDescription,
+    );
+    assert((await page.locator("main").innerText()).includes(vertical.pilot.measure));
+    assert((await page.locator("main").innerText()).includes(vertical.pilot.readyWhen));
   }
   for (const route of recipes) await visit(page, route);
   for (const route of ["/chicago", "/about", "/contact"]) {
@@ -187,6 +226,27 @@ try {
   ])
     assert(sitemap.includes(`${route}</loc>`), `${route}: sitemap`);
   assert(!sitemap.includes("/demo/"));
+  const collections = new Map([["/learn", articles]]);
+  for (const article of articles) {
+    collections.set(
+      `/learn/category/${article.category}`,
+      articles.filter((item) => item.category === article.category),
+    );
+    for (const tag of article.tags) {
+      const matched = articles.filter((item) => item.tags.includes(tag));
+      if (matched.length >= 2) collections.set(`/learn/tag/${encodeURIComponent(tag)}`, matched);
+    }
+  }
+  for (const [route, matched] of collections) {
+    const entry = sitemap.split("<url>").find((item) => item.includes(`${route}</loc>`));
+    const expected = new Date(
+      Math.max(...matched.map((item) => Date.parse(item.updatedDate || item.date))),
+    ).toISOString();
+    assert(
+      entry?.includes(`<lastmod>${expected}</lastmod>`),
+      `${route}: newest publication or revision date`,
+    );
+  }
   await visit(page, "/chicago");
   const internal = await page
     .locator('main a[href^="/"]')

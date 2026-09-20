@@ -14,7 +14,7 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
             All industries
           </Link>
           <p className="label mt-8">AI &amp; automation for {vertical.name}</p>
-          <div className={styles.intro}>
+          <div className={`${styles.intro} ${styles.directoryIntro}`}>
             <h1 className={styles.title}>
               {vertical.heroHeadlineWhite} <em>{vertical.heroHeadlineGold}</em>
             </h1>
@@ -29,6 +29,10 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
                   Explore the recipes
                 </Link>
               </div>
+              <p className={styles.note}>
+                Bring one recent example and the tools your team uses. We will discuss where a
+                focused improvement could help.
+              </p>
             </div>
           </div>
         </div>
@@ -37,15 +41,17 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
         <div className="wrap">
           <div className={styles.sectionIntro}>
             <div>
-              <p className="label">A practical starting point</p>
-              <h2 className={styles.heading}>Make the next decision easier.</h2>
+              <p className="label">A workflow to start with</p>
+              <h2 className={styles.heading}>See what changes in the day-to-day work.</h2>
             </div>
             <p className={styles.lede}>Illustrative workflow: {vertical.workflowExample}</p>
           </div>
           <div className={`${styles.grid} ${vertical.painPoints.length === 3 ? styles.steps : ""}`}>
             {vertical.painPoints.map((point, index) => (
               <article className={styles.card} key={point.title}>
-                <p className="label">Step {index + 1}</p>
+                <p className="label">
+                  {vertical.painPoints.length === 3 ? "Step" : "Workflow"} {index + 1}
+                </p>
                 <h3>{point.title}</h3>
                 <p>{point.description}</p>
               </article>
@@ -53,6 +59,37 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
           </div>
         </div>
       </section>
+      {vertical.pilot && (
+        <section className={styles.section} aria-labelledby="pilot-title">
+          <div className="wrap">
+            <div className={styles.sectionIntro}>
+              <div>
+                <p className="label">Make the first project measurable</p>
+                <h2 id="pilot-title" className={styles.heading}>
+                  Decide what better looks like.
+                </h2>
+              </div>
+              <p className={styles.lede}>
+                Pick one workflow, one responsible person and a review date. Record how it works
+                today, then try the agreed change on a small set of real work before expanding it.
+              </p>
+            </div>
+            <dl className={styles.outcomes}>
+              <div>
+                <dt>Measure the starting point</dt>
+                <dd>{vertical.pilot.measure}</dd>
+              </div>
+              <div>
+                <dt>Check the handoff</dt>
+                <dd>{vertical.pilot.readyWhen}</dd>
+              </div>
+            </dl>
+            <p className={styles.note}>
+              These are suggested evaluation criteria. Your baseline and pilot determine the result.
+            </p>
+          </div>
+        </section>
+      )}
       <IndustryRecipes industry={vertical.slug} />
       <section className={styles.section}>
         <div className="wrap">
@@ -112,11 +149,11 @@ export function VerticalPage({ vertical }: { vertical: Vertical }) {
               </p>
             </details>
             <details>
-              <summary>Does an inquiry automatically confirm a booking or order?</summary>
+              <summary>What affects the scope and cost?</summary>
               <p>
-                A reviewed inquiry creates a next step. Availability, professional judgment and
-                customer agreement still need confirmation. The linked recipes identify the
-                decisions and saved results to check.
+                The work depends on the systems involved, the quality of the source information, who
+                can approve changes and the support your team needs. We agree on those details and a
+                useful first deliverable before setting the implementation scope.
               </p>
             </details>
             {distributionProfile() !== "neutral" && (
