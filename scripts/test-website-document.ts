@@ -61,6 +61,8 @@ for (const path of [
   "/proposal/private-token",
   "/plan/private-token",
   "/plan-builder",
+  "/ai-readiness",
+  "/ai-readiness/report/private-token",
   "/foo?bar",
   "/foo/../bar",
   "/foo/",

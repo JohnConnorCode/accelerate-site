@@ -377,7 +377,7 @@
     "src/lib/site-studio/revision.ts": "3a945fd87c2524a81bbd3b321ecefa97a0a5a3764a39fde3f8a3764313cafb20",
     "src/lib/site-studio/website-ai.ts": "b415d7603fe776e0f726de6b051b8e3285360b3c24c8712ac057cdf7e0584f08",
     "src/lib/site-studio/website-commands.ts": "064486605dce783b163a46b9620947f4b0b01b8c080eb746b4e90076500ecad2",
-    "src/lib/site-studio/website-document.ts": "aad9c72218528f44dce257481b1abf03d014174657106de3558c319a91a30b56",
+    "src/lib/site-studio/website-document.ts": "f11491f0a4fa55a8a34833469737a233f2d7d5b03cbaec17f9deeb0483bb601f",
     "src/lib/site-studio/website-seed.ts": "16c3e4fcb517c18278d230aee6bbf7ccbd9b41f6bcfea13e2f954c4cb0785255",
     "src/lib/site-studio/website-store.ts": "00cb5c9da5ba8fd5faed1b16c9444e9462d8959316d668503aab813367f340f4",
     "src/lib/tenancy/context.ts": "980fc542bbc744ffa66bc58cd463ef0c7508ac1d847c560f0de7a9cfefd38c7d",
