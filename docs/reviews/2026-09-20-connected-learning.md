@@ -170,3 +170,77 @@ Receipts: `/tmp/connected-hardening-checks.log`,
 `/tmp/accelerate-connected-learning-qa/result.json`. No production migration,
 merge, deployment, real invitation, paid model evaluation or live Google action
 was performed in this continuation.
+
+## Continuation: independent learning recovery and credential readiness
+
+A failed correction previously aborted a batch of up to 50 signals. If its source
+had been removed or its plugin disabled, the same oldest item could repeatedly
+prevent later evidence from being reviewed. The existing signal service now
+classifies each item independently and records `recovery_required` with a remedy
+and the last attempt time. The original correction and actor remain unchanged.
+Completed signals stay complete. Cancellation and database failures that prevent
+saving recovery still propagate rather than producing a false success.
+
+Both scheduler and handler use the same bounded selector. Each batch contains at
+most 50 signals, with up to 25 due recovery items and capacity reserved for fresh
+evidence. Failed items wait 15 minutes and are retried oldest-attempt-first, so a
+large failed backlog rotates without excluding new work. The cooldown bounds retry
+frequency, not the total number of attempts; unresolved source or plugin issues
+remain visible for an operator to repair. No model call or authority promotion is
+part of classification. The existing work engine owns leases and batch outcomes.
+
+Corrections whose original input or actor is missing or invalid are classified as
+`manual_review` rather than retried indefinitely. Their evidence stays available
+with an instruction to inspect the source and submit a new correction.
+
+Learning evidence prioritizes up to 25 items needing recovery or manual review ahead of recent evidence,
+deduplicates the combined list and caps it at 50. It shows the affected correction
+rule alongside its remedy, with wrapping for long text. The service retains the
+same tenant authorization and public response excludes stored recovery inputs
+and actor credentials.
+
+First-use AI readiness now calls the same credential resolver as coworkers and
+the responder. It recognizes only the permitted bootstrap environment fallback,
+never exposes the key and never lends it to another tenant. An unreadable tenant
+credential reports needs attention while manual progress stays available. A
+configured credential remains separate from a verified model execution.
+
+The recovery pattern follows [AWS's partial-batch guidance](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html):
+retain successful items and retry failed items independently. This is applied to
+the existing database-backed work engine, without introducing AWS or another
+queue. The new deterministic regression covers removed sources, independent
+outcomes, cooldown, due-only scheduling, replay, a 30-failure/60-fresh backlog,
+cancellation, database failure, visible recovery evidence, and credential
+isolation. The test database now preserves multi-column ordering, matching the
+queries it is meant to exercise.
+
+Public Learning Inbox, first-result guidance and the changelog were updated.
+Command Center descriptions and FAQ were reviewed and remain accurate. No schema,
+permission, provider or autonomous-action boundary changed. Live-provider trials,
+fresh human onboarding trials and comparative model-quality evaluations remain
+separate validation; this work does not establish their outcomes.
+
+Verification for this continuation passed: `verify:agent-contract`, full lint,
+`test:connected-learning` (including the new recovery suite and real PostgreSQL),
+learning inbox, correction capture, all 58 work-completion cases, knowledge,
+report plugins, business workflows, responder envelope, tenant isolation and all
+six first-value scenarios. After adding the terminal manual-review case, affected
+lint, connected-learning tests and documentation checks passed again. The final
+production build passed TypeScript and generated all 537 pages.
+
+Production-browser QA passed at 1440px and 390px with zero page errors, persisted
+proposals, separate approval, first-use error recovery, visible recovery rule and
+remedy, keyboard navigation, overflow checks and reduced motion. The initial
+keyboard assertion incorrectly expected Tab from the last control to stay inside
+the document; the test now starts from a defined control. Recovery screenshots
+were centered above the mobile dock, opened and inspected. All owned servers and
+browsers closed after each run.
+
+Evidence: `/tmp/connected-recovery-checks.log`,
+`/tmp/connected-recovery-final-checks.log`,
+`/tmp/connected-recovery-build.log`,
+`/tmp/connected-recovery-browser.log` (resolved test assertion),
+`/tmp/connected-recovery-browser-verified.log`, and
+`/tmp/accelerate-connected-learning-qa/result.json`. The implementation remains a
+review handoff, without production migration, merge, deployment or live-provider
+activation.

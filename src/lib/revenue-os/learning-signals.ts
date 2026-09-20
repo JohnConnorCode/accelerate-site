@@ -93,27 +93,60 @@ export async function recordCorrectionSignal(db: SupabaseClient, raw: unknown, a
   return proposal;
 }
 export async function listLearningSignals(db: SupabaseClient) {
-  const { data, error } = await db
-    .from("learning_signals")
-    .select(
-      "id,kind,source_kind,source_id,details,category,remedy,proposal_id,processed_at,created_at",
-    )
-    .order("created_at", { ascending: false })
-    .limit(50);
-  if (error) throw new Error("Learning signals could not be loaded");
-  return data ?? [];
+  const columns =
+    "id,kind,source_kind,source_id,rule,details,category,remedy,proposal_id,processed_at,created_at";
+  const [recovery, recent] = await Promise.all([
+    db
+      .from("learning_signals")
+      .select(columns)
+      .in("category", ["recovery_required", "manual_review"])
+      .order("processed_at")
+      .order("id")
+      .limit(25),
+    db
+      .from("learning_signals")
+      .select(columns)
+      .order("created_at", { ascending: false })
+      .order("id")
+      .limit(50),
+  ]);
+  if (recovery.error || recent.error) throw new Error("Learning signals could not be loaded");
+  return [
+    ...new Map(
+      [...(recovery.data ?? []), ...(recent.data ?? [])].map((row) => [row.id, row]),
+    ).values(),
+  ].slice(0, 50);
+}
+/** Keep fresh evidence moving while retrying older failures fairly. A failed
+ * classification retains its input and gets a 15-minute retry cooldown. */
+async function pendingLearningSignals(db: SupabaseClient) {
+  const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  const [fresh, retry] = await Promise.all([
+    db
+      .from("learning_signals")
+      .select("*")
+      .is("processed_at", null)
+      .order("created_at")
+      .order("id")
+      .limit(50),
+    db
+      .from("learning_signals")
+      .select("*")
+      .eq("category", "recovery_required")
+      .lte("processed_at", cutoff)
+      .order("processed_at")
+      .order("id")
+      .limit(25),
+  ]);
+  if (fresh.error || retry.error) throw new Error("Pending learning signals could not be read");
+  const retries = retry.data ?? [];
+  return [...(fresh.data ?? []).slice(0, 50 - retries.length), ...retries];
 }
 export async function scheduleLearningSignals(db: SupabaseClient) {
   const { error } = await db.rpc("collect_learning_signals");
   if (error) throw new Error("Learning signal collection failed");
-  const { data, error: readError } = await db
-    .from("learning_signals")
-    .select("id")
-    .is("processed_at", null)
-    .order("created_at")
-    .limit(50);
-  if (readError) throw new Error("Pending learning signals could not be read");
-  if (data?.length)
+  const data = await pendingLearningSignals(db);
+  if (data.length)
     await createWorkItem(db, {
       kind: "review_learning_signals",
       objective: "Review new learning evidence",
@@ -124,58 +157,92 @@ export async function scheduleLearningSignals(db: SupabaseClient) {
 }
 export function registerLearningSignalHandlers() {
   registerWorkKindHandler("review_learning_signals", async (db, _item, signal) => {
-    const { data, error } = await db
-      .from("learning_signals")
-      .select("*")
-      .is("processed_at", null)
-      .order("created_at")
-      .limit(50);
-    if (error) throw new Error("Learning signals could not be read");
-    for (const row of data ?? []) {
+    const data = await pendingLearningSignals(db);
+    let recoveredLater = 0;
+    let manualReview = 0;
+    for (const value of data) {
+      const row = { ...value };
       signal?.throwIfAborted();
-      if (row.kind === "draft_edit" || row.kind === "explicit_correction") {
-        if (!row.correction_input || !row.actor_email)
-          throw new Error("Correction recovery is missing its original input or actor");
-        await recordCorrectionSignal(db, row.correction_input, row.actor_email);
-        continue;
+      try {
+        let category: string;
+        let remedy: string;
+        if (row.kind === "draft_edit" || row.kind === "explicit_correction") {
+          const parsed = correctionSignalSchema.safeParse(row.correction_input);
+          if (parsed.success && typeof row.actor_email === "string" && row.actor_email.trim()) {
+            await recordCorrectionSignal(db, parsed.data, row.actor_email);
+            signal?.throwIfAborted();
+            continue;
+          }
+          category = "manual_review";
+          remedy =
+            "The original correction input or author is missing or invalid. Review the source and submit the correction again through its original workflow. This evidence is retained and will not retry automatically.";
+        } else {
+          category =
+            row.kind === "tool_failure"
+              ? "execution_defect"
+              : row.kind === "missing_source"
+                ? "knowledge_gap"
+                : row.kind === "verified_outcome"
+                  ? "outcome"
+                  : "workflow_review";
+          remedy =
+            category === "execution_defect"
+              ? "Inspect the linked failed run and repair the failing service before retrying."
+              : category === "knowledge_gap"
+                ? "Add or reconnect the missing source, index it, then repeat the same query."
+                : category === "outcome"
+                  ? "A successful action receipt is recorded. Improvement requires a comparable outcome and review."
+                  : "Review the rejection and decide whether the issue is data, timing, workflow or guidance.";
+        }
+        if (category === "execution_defect")
+          await createRevenueTask(db, {
+            title: "Review an execution failure",
+            description: `${row.details}\n${remedy}`,
+            relatedType: row.source_kind,
+            relatedId: row.source_id,
+            source: "learning-signals",
+            dedupeKey: `learning-signal:${row.id}`,
+            actorEmail: "system",
+          });
+        signal?.throwIfAborted();
+        let update = db
+          .from("learning_signals")
+          .update({ category, remedy, processed_at: new Date().toISOString() })
+          .eq("id", row.id);
+        update = row.processed_at
+          ? update.eq("category", "recovery_required").eq("processed_at", row.processed_at)
+          : update.is("processed_at", null);
+        const { error: writeError } = await update;
+        if (writeError) throw new Error("Learning review status could not be saved");
+        if (category === "manual_review") manualReview++;
+      } catch {
+        signal?.throwIfAborted();
+        const remedy =
+          "Automatic review could not finish. Check the source, plugin and workspace connection. The original evidence is retained and review will retry after 15 minutes. No new guidance was approved.";
+        // Mark only classification failures. Do not overwrite a successful
+        // correction linked by another worker while this attempt was running.
+        let recovery = db
+          .from("learning_signals")
+          .update({
+            category: "recovery_required",
+            remedy,
+            processed_at: new Date().toISOString(),
+          })
+          .eq("id", row.id);
+        recovery = row.processed_at
+          ? recovery.eq("category", "recovery_required").eq("processed_at", row.processed_at)
+          : recovery.is("processed_at", null);
+        const { error: recoveryError } = await recovery;
+        if (recoveryError)
+          throw new Error(
+            "Learning recovery status could not be saved; the batch remains retryable",
+          );
+        recoveredLater++;
       }
-      const category =
-        row.kind === "tool_failure"
-          ? "execution_defect"
-          : row.kind === "missing_source"
-            ? "knowledge_gap"
-            : row.kind === "verified_outcome"
-              ? "outcome"
-              : "workflow_review";
-      const remedy =
-        category === "execution_defect"
-          ? "Inspect the linked failed run and repair the failing service before retrying."
-          : category === "knowledge_gap"
-            ? "Add or reconnect the missing source, index it, then repeat the same query."
-            : category === "outcome"
-              ? "A successful action receipt is recorded. Improvement requires a comparable outcome and review."
-              : "Review the rejection and decide whether the issue is data, timing, workflow or guidance.";
-      if (category === "execution_defect")
-        await createRevenueTask(db, {
-          title: "Review an execution failure",
-          description: `${row.details}\n${remedy}`,
-          relatedType: row.source_kind,
-          relatedId: row.source_id,
-          source: "learning-signals",
-          dedupeKey: `learning-signal:${row.id}`,
-          actorEmail: "system",
-        });
-      signal?.throwIfAborted();
-      const { error: writeError } = await db
-        .from("learning_signals")
-        .update({ category, remedy, processed_at: new Date().toISOString() })
-        .eq("id", row.id)
-        .is("processed_at", null);
-      if (writeError) throw new Error("Learning review status could not be saved");
     }
     return {
-      status: "completed",
-      outcome: `Classified ${data?.length ?? 0} new learning signals. No authority was changed.`,
+      status: recoveredLater ? "partial" : "completed",
+      outcome: `Reviewed ${data.length} learning signals; ${recoveredLater} require a later retry and ${manualReview} need manual review. No authority was changed.`,
     };
   });
 }

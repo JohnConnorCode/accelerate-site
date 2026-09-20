@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 
 export interface FirstUseStep {
@@ -47,10 +48,12 @@ export async function getFirstUseProgress(db: SupabaseClient): Promise<FirstUseP
       .eq("event_type", "context_loaded")
       .order("created_at", { ascending: false })
       .limit(50),
-    db
-      .from("integration_connections")
-      .select("provider,status")
-      .in("provider", ["openrouter", "google"]),
+    isTenantOpenRouterConfigured(db)
+      .then((configured) => ({
+        data: { state: configured ? "connected" : "optional" },
+        error: null,
+      }))
+      .catch(() => ({ data: { state: "needs attention" }, error: null })),
     db
       .from("job_runs")
       .select("id,status,finished_at")
@@ -128,8 +131,6 @@ export async function getFirstUseProgress(db: SupabaseClient): Promise<FirstUseP
         ),
     ),
   );
-  const connection = (provider: string) =>
-    connections.data?.find((c) => c.provider === provider)?.status === "connected";
   const retrieval = retrievals.data?.find((event) => event.output?.result?.found === true);
   const schedulerRecent =
     scheduler.data?.status === "success" &&
@@ -206,8 +207,11 @@ export async function getFirstUseProgress(db: SupabaseClient): Promise<FirstUseP
     readiness: [
       {
         label: "AI connection",
-        state: connection("openrouter") ? "connected" : "optional",
-        detail: "Needed for AI drafts; manual task completion does not require it.",
+        state: connections.data.state,
+        detail:
+          connections.data.state === "needs attention"
+            ? "The AI credential could not be read. Check the OpenRouter connection in Integrations; manual tasks remain available."
+            : "Needed for AI drafts; manual task completion does not require it.",
       },
       {
         label: "Document index",
