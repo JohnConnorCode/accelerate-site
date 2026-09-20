@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "How does the assistant decide what to believe?",
+    answer:
+      "You register each connected system against the facts it owns, with an authority tier, an owner and a verification date. Retrieval tags every snippet with that authority, flags conflicts instead of silently resolving them, and surfaces stale knowledge instead of serving it as current. Unregistered sources stay at the lowest trust. Open Source authority in Command Center to review the registry.",
+  },
+  {
     question: "Can I actually work with clients in the demo?",
     answer:
       "Yes. Search or filter clients, open an account, save notes and add a follow-up. Open the saved follow-up in Tasks & approvals or follow a contact timeline to its specific conversation or opportunity. Changes persist in that fictional business session and never contact customers.",

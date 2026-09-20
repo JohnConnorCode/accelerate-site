@@ -411,6 +411,12 @@ export const docsManifest: DocsSection[] = [
           "Propose reusable corrections once, review them in one inbox, and let approved learnings guide future work.",
       },
       {
+        slug: ["intelligence", "source-authority"],
+        title: "Tell the model what to believe",
+        description:
+          "Register each connected system against the facts it owns, then let retrieval order, flag and stale-mark knowledge by that authority.",
+      },
+      {
         slug: ["intelligence", "workspace"],
         title: "Use the AI Workspace",
         description:
