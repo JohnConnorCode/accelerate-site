@@ -51,7 +51,7 @@ Suspending the bootstrap `accelerate` workspace is blocked on the page. Archivin
 
 - Sign-in works, every admin API returns 403 **Explicit tenant context required**: the request has no workspace slug. Use **Enter workspace** from Tenant operations, or sign in again so the login response can set `x-workspace-path`.
 - 403 **Tenant access forbidden**: the workspace is not `active`, or your membership is missing, invited, or revoked. A founder activates the workspace and invites the admin email.
-- 403 **Platform access forbidden** on Setup Center or Feature Board: your email is not `ADMIN_EMAIL`. Ask the founder, or change the environment value and recreate the matching Auth user. Do not share the service-role key to bypass this.
+- 403 **Platform access forbidden** on Setup Center or Feature Board: your email is not `ADMIN_EMAIL`. Ask the installation owner to verify the configured founder email and the existing Auth identity. Do not share the service-role key to bypass this.
 - Login heading **Connect your Supabase project**: `ADMIN_EMAIL` or Supabase keys are unset. Return to installation.
 
 Tenant MCP and public intake stay bound to the selected workspace. They never include the platform Feature Board. Details: `docs/contracts/MULTI-TENANCY-CONTRACT.md` and `docs/contracts/UNIVERSAL-WORK-BOARD.md` in the checkout.

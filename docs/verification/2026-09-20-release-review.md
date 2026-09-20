@@ -1,0 +1,81 @@
+# Agent release integration review
+
+The founder explicitly authorized evaluating all agent work, merging verified work,
+and publishing the application. Published base: `59167a013d6085e8ff94abc30009a085e93a404a`.
+The isolated integration checkout preserves every existing worker and dirty file.
+The adjacent branch-audit JSON records every local branch, checkpoint and worktree.
+No live work claim was found in the bounded canonical board audit.
+
+## Included work
+
+| Source                                                        | Treatment                                                                                                                                                                                         |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Connected learning `2ca419e3031918564ea1ab7d240bba6faf6a8fef` | Complete submitted source merged; independent correction recovery, cited private references, plugin context and persisted first use.                                                              |
+| Revenue/activity `dfa1467dc10bbe82f1651cb7a1d6c4902d116fae`   | Prior canonical page work already in main; remaining reviewed delta from `38143a4c4dfcbdcb23efbd7833c3ffca8191ff5f` integrated.                                                                   |
+| Retained tools `528320a299306ad0996fb2e863d7ac62130c0bec`     | Source dispositions and canonical links retained. Resolve shared-page conflicts against current navigation, bulk actions and query recovery. Content already uses the newer shared read boundary. |
+| Admin interactions `908e9d688f906a9553b3a74ab2850a4211a83441` | Shared record controls, keyboard handling and proposal details integrated.                                                                                                                        |
+| Recovery docs `c13a36e543ca87b799a3d492a6b9d61c159a9a46`      | Setup/access/recovery guidance reconciled with current pages. Preserve the newer docs verifier and full manifest. Correct obsolete WIP/recovery instructions and founder identity advice.         |
+| First value `988af039f1aec48012b65936b0485e49ccbaba15`        | Already reconciled in published main; learning source extends the current guide. Do not overwrite newer product documentation.                                                                    |
+
+Earlier integration `4a588a2c934fa6f1f41df9be951041ea90c96607`
+has identical tree contents to published PR118. Its neutral distribution,
+Site Studio/plugin hardening, Chicago/industries, recipes, first-use setup and
+Phase B proof remain included. The prior dated integration review identifies
+all exact predecessor sources and previous exclusions.
+
+## Findings that prevent release of other branches
+
+- Source authority `208638c790b47e843cf503b866040348a538e0d6`: the repair still performs
+  a separate write and audit, then compensates by updating/deleting solely by row ID.
+  If request B succeeds while request A's audit fails, A can overwrite or delete B's
+  acknowledged change. Existing replay audit lookup accepts any audit for the entity,
+  rather than this operation. Use an atomic transaction with durable request receipts
+  and a concurrent failure test before release. The two-tenant RLS proof does not
+  establish atomicity. The empty successor checkpoint is not a newer repair.
+- Generated Blueprint operations `7163c79e0e51027b6316aeb287154c78859414c7`: columns and
+  receipt are saved before the audit. A failed audit leaves a receipt that replay
+  returns without restoring the missing audit. Concurrent column creation also lacks
+  a complete atomic operation receipt. Its submitted evidence does not establish the
+  full custom-board/workflow/fictional-workspace acceptance or public docs contract.
+- AI readiness `d71df12596515c7cb3b906e0fb2a9b5dcee29b54`: neither assessment table is
+  registered in tenant-scoped database access. Admin reads therefore lack the wrapper's
+  tenant filter. Website fetch resolves DNS again after checking an address and misses
+  mapped/private IPv6 cases. Unlock retry rotates public report tokens and overwrites
+  revision one; concurrent attempts can disagree. Website audit is discarded during
+  successful AI enrichment. `resource_welcome` is scheduled without marketing consent
+  and its random sequence ID cannot deduplicate retries. These are release blockers,
+  despite the scoring/PDF tests passing. The source branch remains intact; the trial
+  integration was reverted in full, including its dependent presentation commits.
+- Architect review/simulation is planned, with retained dirty predecessor and an
+  unverified checkpoint. It is not a completed handoff.
+- Roles/permissions, old decision-memory PR81, stale redesign and Drive-provenance
+  submissions retain the prior review findings. No newer verified handoff clears them.
+- Retained Resources, Site-home clarity, old neutral-distribution/industry dirty trees,
+  historical Site Studio and social pilot/checkpoint branches remain preserved. Dirty
+  predecessor files are not independent releases of their completed successor work.
+- Dependabot PR107/108 are dependency proposals rather than accepted agent handoffs.
+  The staleness-gate branch has no accepted card-linked evidence. Neither is silently
+  enabled during this release.
+
+## Integration checks and release gates
+
+Maintainer doctor confirms JohnConnorCode, current published main, required verify CI,
+strict updates and administrator enforcement. Vercel authenticated access and
+`deploy:check` match `deployment-target.json`. Production environment retains the
+branded presentation. The configured database API matches the verified production
+project `skjypuwkceoiunyhhqlm`; its configured pooler is
+`aws-1-us-east-1.pooler.supabase.com`. No secret values are recorded.
+
+The scoped learning/PostgreSQL, analytics, activity, retained-source, legacy telemetry
+and tenant-isolation suites pass. Final build/browser/CI, migration verification,
+merged-tree parity and production identity still require their own receipts; this
+review does not claim those operations completed.
+
+Database review follows current [Supabase RLS guidance](https://supabase.com/docs/guides/database/postgres/row-level-security)
+and the September 20 changelog inspection. Address-resolution review follows
+[Node DNS documentation](https://nodejs.org/api/dns.html). This release keeps the
+existing tenant/RLS contracts and leaves rejected features unavailable.
+
+The inbound responder now requires its v3 standing-policy approval. Do not silently
+renew approval during deployment. Source/index availability, provider configuration,
+model execution and measured learning quality remain distinct readiness signals.

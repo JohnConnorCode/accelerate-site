@@ -2,7 +2,7 @@
 
 import { adminPageName } from "@/lib/admin/navigation";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
@@ -81,7 +81,10 @@ export default function ContactsPage() {
     canonicalSchemaReady?: boolean;
     dispositions?: SourceFieldDisposition[];
   }>(["admin", "contacts", page], `/api/admin/contacts?page=${page}`);
-  const contacts = useMemo(() => contactsQuery.data?.contacts ?? [], [contactsQuery.data?.contacts]);
+  const contacts = useMemo(
+    () => contactsQuery.data?.contacts ?? [],
+    [contactsQuery.data?.contacts],
+  );
   const total = contactsQuery.data?.total ?? 0;
   const totalPages = contactsQuery.data?.totalPages ?? 1;
   const loading = contactsQuery.isPending;
@@ -188,159 +191,159 @@ export default function ContactsPage() {
         loadingFallback={<LoadingSkeleton variant="table" />}
         label="Loading contact submissions"
       >
-      <AdminSurface padding="none" className="overflow-hidden">
-        <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="admin-eyebrow">Website submissions</p>
-            <h2 className="mt-1 text-balance font-display text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
-              Incoming contact requests
-            </h2>
-            <p className="admin-copy mt-1 text-xs">
-              <span className="tabular-nums">{total}</span> captured through the website form
+        <AdminSurface padding="none" className="overflow-hidden">
+          <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="admin-eyebrow">Website submissions</p>
+              <h2 className="mt-1 text-balance font-display text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
+                Incoming contact requests
+              </h2>
+              <p className="admin-copy mt-1 text-xs">
+                <span className="tabular-nums">{total}</span> captured through the website form
+              </p>
+            </div>
+            <div className="admin-toolbar">
+              <label className="relative">
+                <span className="sr-only">Search submissions</span>
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search name, email, or company"
+                  className="admin-field pl-10"
+                />
+              </label>
+              <label>
+                <span className="sr-only">From date</span>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(event) => setDateFrom(event.target.value)}
+                  className="admin-field min-w-[148px] [color-scheme:light] dark:[color-scheme:dark]"
+                />
+              </label>
+              <label>
+                <span className="sr-only">To date</span>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(event) => setDateTo(event.target.value)}
+                  className="admin-field min-w-[148px] [color-scheme:light] dark:[color-scheme:dark]"
+                />
+              </label>
+            </div>
+          </div>
+
+          {loading ? (
+            <LoadingSkeleton variant="table" />
+          ) : filtered.length === 0 ? (
+            <div className="border-t border-[var(--admin-border)]">
+              <EmptyState
+                title={
+                  contacts.length
+                    ? "No submissions match these filters"
+                    : "No website submissions yet"
+                }
+                description={
+                  contacts.length
+                    ? "Clear the search or date range to return to the full intake."
+                    : "New website contact requests will appear here. You can still add an external list through the reviewed import flow."
+                }
+                icon={Inbox}
+                actionLabel={contacts.length ? "Clear filters" : "Import a contact list"}
+                actionHref={contacts.length ? undefined : "/admin/contact-imports"}
+                onAction={
+                  contacts.length
+                    ? () => {
+                        setSearchQuery("");
+                        setDateFrom("");
+                        setDateTo("");
+                      }
+                    : undefined
+                }
+              />
+            </div>
+          ) : (
+            <motion.div
+              variants={adminListVariants}
+              initial={false}
+              animate="visible"
+              className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]"
+            >
+              {filtered.map((contact) => {
+                return (
+                  <motion.article key={contact.id} variants={adminListItemVariants}>
+                    <button
+                      type="button"
+                      onClick={(event) => openContact(contact.id, event.currentTarget)}
+                      className="admin-record-row group grid min-h-[76px] w-full items-center gap-3 px-4 py-3 text-left transition-[background-color,box-shadow,transform] duration-150 hover:bg-black/[0.022] hover:shadow-[inset_3px_0_0_var(--admin-ink)] active:scale-[0.995] dark:hover:bg-white/[0.025] sm:px-5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)_minmax(0,1.2fr)_auto]"
+                      aria-haspopup="dialog"
+                      data-contact-row-toggle={contact.id}
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-[var(--admin-ink)]">
+                          {contact.name}
+                        </span>
+                        <span className="admin-copy mt-0.5 block truncate text-xs">
+                          {contact.email}
+                        </span>
+                        <span className="mt-1 block">
+                          <CanonicalSourceLink
+                            link={contact.revenue_os}
+                            schemaReady={contactsQuery.data?.canonicalSchemaReady}
+                          />
+                        </span>
+                      </span>
+                      <span className="admin-copy hidden truncate text-xs md:block">
+                        {contact.business_name || contact.business_type || "No company supplied"}
+                      </span>
+                      <span className="admin-copy hidden truncate text-xs md:block">
+                        {contact.message || "No message supplied"}
+                      </span>
+                      <span className="flex items-center justify-between gap-3 md:justify-end">
+                        <span className="font-mono text-[9px] font-medium uppercase tracking-[0.07em] text-[var(--admin-muted)]">
+                          {formatDate(contact.created_at)}
+                        </span>
+                        <ChevronRight className="size-4 text-[var(--admin-muted)] transition-transform duration-150 group-hover:translate-x-0.5" />
+                      </span>
+                    </button>
+                  </motion.article>
+                );
+              })}
+            </motion.div>
+          )}
+        </AdminSurface>
+
+        {totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between">
+            <p className="admin-copy text-xs">
+              Page <span className="tabular-nums">{page}</span> of{" "}
+              <span className="tabular-nums">{totalPages}</span>
             </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+                className="min-h-10 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => current + 1)}
+                className="min-h-10 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
           </div>
-          <div className="admin-toolbar">
-            <label className="relative">
-              <span className="sr-only">Search submissions</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" />
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search name, email, or company"
-                className="admin-field pl-10"
-              />
-            </label>
-            <label>
-              <span className="sr-only">From date</span>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(event) => setDateFrom(event.target.value)}
-                className="admin-field min-w-[148px] [color-scheme:light] dark:[color-scheme:dark]"
-              />
-            </label>
-            <label>
-              <span className="sr-only">To date</span>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(event) => setDateTo(event.target.value)}
-                className="admin-field min-w-[148px] [color-scheme:light] dark:[color-scheme:dark]"
-              />
-            </label>
-          </div>
-        </div>
-
-        {loading ? (
-          <LoadingSkeleton variant="table" />
-        ) : filtered.length === 0 ? (
-          <div className="border-t border-[var(--admin-border)]">
-            <EmptyState
-              title={
-                contacts.length
-                  ? "No submissions match these filters"
-                  : "No website submissions yet"
-              }
-              description={
-                contacts.length
-                  ? "Clear the search or date range to return to the full intake."
-                  : "New website contact requests will appear here. You can still add an external list through the reviewed import flow."
-              }
-              icon={Inbox}
-              actionLabel={contacts.length ? "Clear filters" : "Import a contact list"}
-              actionHref={contacts.length ? undefined : "/admin/contact-imports"}
-              onAction={
-                contacts.length
-                  ? () => {
-                      setSearchQuery("");
-                      setDateFrom("");
-                      setDateTo("");
-                    }
-                  : undefined
-              }
-            />
-          </div>
-        ) : (
-          <motion.div
-            variants={adminListVariants}
-            initial={false}
-            animate="visible"
-            className="divide-y divide-[var(--admin-border)] border-t border-[var(--admin-border)]"
-          >
-            {filtered.map((contact) => {
-              return (
-                <motion.article key={contact.id} variants={adminListItemVariants}>
-                  <button
-                    type="button"
-                    onClick={(event) => openContact(contact.id, event.currentTarget)}
-                    className="admin-record-row group grid min-h-[76px] w-full items-center gap-3 px-4 py-3 text-left transition-[background-color,box-shadow,transform] duration-150 hover:bg-black/[0.022] hover:shadow-[inset_3px_0_0_var(--admin-ink)] active:scale-[0.995] dark:hover:bg-white/[0.025] sm:px-5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)_minmax(0,1.2fr)_auto]"
-                    aria-haspopup="dialog"
-                    data-contact-row-toggle={contact.id}
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-[var(--admin-ink)]">
-                        {contact.name}
-                      </span>
-                      <span className="admin-copy mt-0.5 block truncate text-xs">
-                        {contact.email}
-                      </span>
-                      <span className="mt-1 block">
-                        <CanonicalSourceLink
-                          link={contact.revenue_os}
-                          schemaReady={contactsQuery.data?.canonicalSchemaReady}
-                        />
-                      </span>
-                    </span>
-                    <span className="admin-copy hidden truncate text-xs md:block">
-                      {contact.business_name || contact.business_type || "No company supplied"}
-                    </span>
-                    <span className="admin-copy hidden truncate text-xs md:block">
-                      {contact.message || "No message supplied"}
-                    </span>
-                    <span className="flex items-center justify-between gap-3 md:justify-end">
-                      <span className="font-mono text-[9px] font-medium uppercase tracking-[0.07em] text-[var(--admin-muted)]">
-                        {formatDate(contact.created_at)}
-                      </span>
-                      <ChevronRight className="size-4 text-[var(--admin-muted)] transition-transform duration-150 group-hover:translate-x-0.5" />
-                    </span>
-                  </button>
-                </motion.article>
-              );
-            })}
-          </motion.div>
         )}
-      </AdminSurface>
-
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <p className="admin-copy text-xs">
-            Page <span className="tabular-nums">{page}</span> of{" "}
-            <span className="tabular-nums">{totalPages}</span>
-          </p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={page <= 1}
-              onClick={() => setPage((current) => current - 1)}
-              className="min-h-10 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <button
-              type="button"
-              disabled={page >= totalPages}
-              onClick={() => setPage((current) => current + 1)}
-              className="min-h-10 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
-      <SourceToolDispositions
-        schemaReady={contactsQuery.data?.canonicalSchemaReady}
-        dispositions={contactsQuery.data?.dispositions}
-      />
+        <SourceToolDispositions
+          schemaReady={contactsQuery.data?.canonicalSchemaReady}
+          dispositions={contactsQuery.data?.dispositions}
+        />
       </AdminReadBody>
       <AdminDialog
         open={contactOpen && Boolean(displayedContact)}

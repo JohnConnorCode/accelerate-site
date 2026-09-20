@@ -65,6 +65,7 @@ Combine features and plugins around a specific business outcome.
 One shared operating layer for the businesses that need it, and how to run the daily workspace.
 
 - [The Command Center](https://www.acceleratewith.us/docs/command-center/overview) (updated 2026-09-19): Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.
+- [Setup, integrations, and health](https://www.acceleratewith.us/docs/command-center/setup) (updated 2026-09-20): Read Setup Center and Integrations, tell missing configuration from a real receipt, and recover when health is degraded.
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-19): Find supported capabilities, their business purpose and the setup or review each needs.
 - [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-19): Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-19): Every new lead, message, and staged action that hasn't found an owner yet, in one queue.
@@ -190,6 +191,8 @@ For coding agents and humans: add a module, an integration adapter, a plugin, or
 Run the Command Center yourself: what you need, how to start, and when to bring us in.
 
 - [Self-hosting quickstart](https://www.acceleratewith.us/docs/self-hosting/overview) (updated 2026-09-19): Explore the real interface with zero credentials, then connect a workspace you control.
+- [Founder authority and tenant membership](https://www.acceleratewith.us/docs/self-hosting/permissions) (updated 2026-09-20): Platform administration is the ADMIN_EMAIL identity; tenant operators need an active membership in an active workspace.
+- [Recover a failing workspace](https://www.acceleratewith.us/docs/self-hosting/recovery) (updated 2026-09-20): Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims.
 - [Connect your installation](https://www.acceleratewith.us/docs/self-hosting/installation) (updated 2026-09-19): Create the owner account, apply the ordered schema, and sign in to a workspace you control.
 
 - [Documentation landing](https://www.acceleratewith.us/docs): all guides.

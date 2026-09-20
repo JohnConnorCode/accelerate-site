@@ -155,12 +155,17 @@ export const docsManifest: DocsSection[] = [
       "One shared operating layer for the businesses that need it, and how to run the daily workspace.",
     modules: ["core-command"],
     pages: [
-      { slug: ["command-center", "setup"], title: "Setup, integrations, and health", description: "Read Setup Center and Integrations, tell missing configuration from a real receipt, and recover when health is degraded." },
       {
         slug: ["command-center", "overview"],
         title: "The Command Center",
         description:
           "Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.",
+      },
+      {
+        slug: ["command-center", "setup"],
+        title: "Setup, integrations, and health",
+        description:
+          "Read Setup Center and Integrations, tell missing configuration from a real receipt, and recover when health is degraded.",
       },
       {
         slug: ["command-center", "capabilities"],
@@ -681,13 +686,23 @@ export const docsManifest: DocsSection[] = [
     description:
       "Run the Command Center yourself: what you need, how to start, and when to bring us in.",
     pages: [
-      { slug: ["self-hosting", "recovery"], title: "Recover a failing workspace", description: "Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims." },
-      { slug: ["self-hosting", "permissions"], title: "Founder authority and tenant membership", description: "Platform administration is the ADMIN_EMAIL identity; tenant operators need an active membership in an active workspace." },
       {
         slug: ["self-hosting", "overview"],
         title: "Self-hosting quickstart",
         description:
           "Explore the real interface with zero credentials, then connect a workspace you control.",
+      },
+      {
+        slug: ["self-hosting", "permissions"],
+        title: "Founder authority and tenant membership",
+        description:
+          "Platform administration is the ADMIN_EMAIL identity; tenant operators need an active membership in an active workspace.",
+      },
+      {
+        slug: ["self-hosting", "recovery"],
+        title: "Recover a failing workspace",
+        description:
+          "Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims.",
       },
       {
         slug: ["self-hosting", "installation"],

@@ -16,7 +16,7 @@ updated: "2026-09-20"
 4. Open **Tenant operations** (`/admin/tenants`) if sign-in works but the shell has no workspace.
 5. Open **Activity** (`/admin/activity`) after a repair to confirm a new receipt.
 
-Then run only the command that matches the row. Each command below exists in `package.json`. `scripts/verify-docs.ts` fails this guide if a documented `npm run` script is removed.
+Then run only the command that matches the row. The commands below are defined in `package.json`; use the release checkout whose schema you are verifying.
 
 ## Schema and identity
 
@@ -93,7 +93,7 @@ npm run agent:release -- --card <key>
 | `npm run agent:heartbeat -- --card <key>` | Local; `WORK_BOARD_URL` and a founder-issued `WORK_BOARD_TOKEN`. Session files stay outside Git. | `scripts/agent-dispatch.ts` |
 | `npm run agent:release -- --card <key>` | Same; only the holder with the unexpired token can release. | `scripts/agent-dispatch.ts` |
 
-An expired claim still occupies a WIP slot. `scripts/agent-dispatch.ts` has no force bypass; it tells the worker to ask an operator to review the claim on Feature Board. Do not delete another agent's worktree to "fix" startup.
+Work volume is advisory. Run `npm run agent:go -- --card <key>` to resume specifically authorized expired work through revision-checked recovery. The runner preserves retained source and audit history and refuses takeover of a live claim. Use the configured private board profile; keep every other worker checkout intact.
 
 ## Missing providers
 
