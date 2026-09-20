@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { workflowRecipes, type WorkflowRecipe } from "@/content/workflow-recipes";
-import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScroll";
 import styles from "./product.module.css";
 
 export function RecipeIngredients({ id }: { id: string }) {
@@ -23,7 +22,7 @@ export function RecipeIngredients({ id }: { id: string }) {
 
 export function RecipeCards({ recipes }: { recipes: WorkflowRecipe[] }) {
   return (
-    <StaggerContainer className={styles.grid} staggerDelay={0.1}>
+    <div className={styles.grid}>
       {recipes.map((recipe) => (
         <article className={styles.card} key={recipe.id}>
           <p className="label">{recipe.industryName}</p>
@@ -39,7 +38,7 @@ export function RecipeCards({ recipes }: { recipes: WorkflowRecipe[] }) {
           </Link>
         </article>
       ))}
-    </StaggerContainer>
+    </div>
   );
 }
 
@@ -69,7 +68,7 @@ export function IndustryRecipes({ industry }: { industry: string }) {
       aria-labelledby="workflow-recipes-title"
     >
       <div className="wrap">
-        <AnimateOnScroll className={styles.sectionIntro} stagger>
+        <div className={styles.sectionIntro}>
           <div>
             <p className="label">Practical platform recipes</p>
             <h2 id="workflow-recipes-title" className={styles.heading}>
@@ -80,13 +79,11 @@ export function IndustryRecipes({ industry }: { industry: string }) {
             When a connected workspace fits your needs, combine Command Center features and plugins
             around a specific job. These guides show the setup, the steps and the result to check.
           </p>
-        </AnimateOnScroll>
+        </div>
         <RecipeCards recipes={recipes} />
-        <AnimateOnScroll as="div" delay={0.24}>
-          <Link className={styles.textLink} href="/docs/recipes">
-            Browse all workflow recipes <ArrowRight size={16} aria-hidden="true" />
-          </Link>
-        </AnimateOnScroll>
+        <Link className={styles.textLink} href="/docs/recipes">
+          Browse all workflow recipes <ArrowRight size={16} aria-hidden="true" />
+        </Link>
       </div>
     </section>
   );

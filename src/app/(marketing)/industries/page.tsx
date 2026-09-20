@@ -6,7 +6,6 @@ import { generateBreadcrumbJsonLd } from "@/lib/seo";
 import { verticals } from "@/content/verticals";
 import { workflowRecipes } from "@/content/workflow-recipes";
 import { BookCallButton } from "@/components/v2/studio/primitives";
-import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScroll";
 import styles from "@/components/command-center/product.module.css";
 
 const bundledMetadata = seoMetadata({
@@ -34,19 +33,19 @@ export default async function IndustriesPage() {
       />
       <PublicHeroEntrance className={styles.hero}>
         <div className="wrap">
-          <p className="label" data-hero-step={1}>
+          <p className="label">
             {verticals.length} industries · {workflowRecipes.length} practical recipes
           </p>
           <div className={`${styles.intro} ${styles.directoryIntro}`}>
-            <h1 className={styles.title} data-hero-step={2}>
+            <h1 className={styles.title} data-hero-step={1}>
               Start with the work <em>your business does.</em>
             </h1>
             <div>
-              <p className={styles.lede} data-hero-step={3}>
+              <p className={styles.lede} data-hero-step={2}>
                 Find a workflow your team recognizes. We help choose the right AI project, build and
                 connect the tools, and support the people doing the work.
               </p>
-              <div className={styles.actions} data-hero-step={4}>
+              <div className={styles.actions} data-hero-step={3}>
                 <BookCallButton label="Discuss your business" location="industries_hero" />
                 <Link className={styles.secondary} href="/docs/recipes">
                   Browse the recipes
@@ -54,7 +53,7 @@ export default async function IndustriesPage() {
               </div>
             </div>
           </div>
-          <nav aria-label="Industry categories" className={styles.actions} data-hero-step={5}>
+          <nav aria-label="Industry categories" className={styles.actions}>
             {groups.map((group, index) => (
               <a className={styles.secondary} key={group} href={`#industry-group-${index}`}>
                 {group}
@@ -66,12 +65,8 @@ export default async function IndustriesPage() {
       {groups.map((group, index) => (
         <section id={`industry-group-${index}`} key={group} className={styles.section}>
           <div className="wrap">
-            <AnimateOnScroll className={styles.sectionIntro}>
-              <div>
-                <h2 className={styles.heading}>{group}</h2>
-              </div>
-            </AnimateOnScroll>
-            <StaggerContainer className={styles.grid} staggerDelay={0.08}>
+            <h2 className={styles.heading}>{group}</h2>
+            <div className={styles.grid}>
               {verticals
                 .filter((vertical) => vertical.group === group)
                 .map((vertical) => (
@@ -87,28 +82,24 @@ export default async function IndustriesPage() {
                     </Link>
                   </article>
                 ))}
-            </StaggerContainer>
+            </div>
           </div>
         </section>
       ))}
       <section className={styles.section}>
         <div className="wrap">
-          <AnimateOnScroll className={styles.sectionIntro} stagger>
-            <div>
-              <h2 className={styles.heading}>Your workflow can be different.</h2>
-            </div>
-            <p className={styles.lede}>
-              These examples show possible starting points. We can scope a focused integration, custom
-              tool, training or managed execution around your business. Command Center is available
-              when a shared workspace helps.
-            </p>
-          </AnimateOnScroll>
-          <AnimateOnScroll className={styles.actions} delay={0.18}>
+          <h2 className={styles.heading}>Your workflow can be different.</h2>
+          <p className={styles.lede}>
+            These examples show possible starting points. We can scope a focused integration, custom
+            tool, training or managed execution around your business. Command Center is available
+            when a shared workspace helps.
+          </p>
+          <div className={styles.actions}>
             <BookCallButton label="Talk through your workflow" location="industries_closing" />
             <Link className={styles.secondary} href="/chicago">
               Based in Chicago, serving small businesses
             </Link>
-          </AnimateOnScroll>
+          </div>
         </div>
       </section>
     </div>
