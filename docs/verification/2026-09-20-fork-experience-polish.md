@@ -52,8 +52,12 @@ documentation; generated docs index; public statistics; guardrails; whitespace.
 
 The clean-install production compilation passed, but the shared machine's memory
 availability dropped to 10% during type checking, and the resource gate stopped
-the job. No successful local final build is claimed. Build, lint and browser
-evidence will be recorded from clean CI runners after final verification.
+the job. No successful local final build is claimed. CI run `35481783297` passed
+both complete-repository and exported-starter builds and desktop/mobile journeys,
+including zero setup accessibility violations. Its navigation source contract
+caught the new login links using Next Link directly; they now use the existing
+AdminLink adapter, preserving one shared navigation path. Final CI evidence is
+attached to PR117 and the card handoff; no local-machine capacity is required.
 
 Dependency setup initially stopped at the shared memory threshold. The interrupted
 install left a truncated native compiler and missing icon declarations. Incremental

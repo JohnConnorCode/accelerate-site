@@ -37,7 +37,7 @@
     "src/app/admin/invoicing/page.tsx": "47c4ec0ddd509e7631abd0dac7d363a0129df8a67568ca2a74051b6293c1a903",
     "src/app/admin/leads/page.tsx": "d944021e575fa6be391b6ec020c33a7ae9dd88f532a8b6ad51a07ed64c8e3dce",
     "src/app/admin/learning/page.tsx": "87c34e14deb5a811e719fc706518503b4737b6761bf1d55dc11c08b947c9bcfb",
-    "src/app/admin/login/page.tsx": "00c0e9b6a17a143c8b6945ade7ea96b04de3a790435c0c00eadbc3a64e443716",
+    "src/app/admin/login/page.tsx": "4ee0470ad1fd6f5a3fd16d3d23c60ef3e6fd73604bca5b9b9c80d39c446c3f34",
     "src/app/admin/meeting-commitments/page.tsx": "8321baededd9c74b3f742cfdefbe5dacb221c79f153ad78293d07690dfb12174",
     "src/app/admin/page.tsx": "b298bd7de29700f58c08d73f4344b8713fc4bae5480324020820d2b183608784",
     "src/app/admin/partners/page.tsx": "3c90c8dae9fb4288b710822c1818c1cbb382d950fc2cb7ae8419c7d1e313c3b8",

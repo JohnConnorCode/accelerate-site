@@ -3,7 +3,7 @@
 import { tenant } from "@/config/tenant";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { Suspense } from "react";
 import { MotionConfig, motion } from "framer-motion";
 import { ArrowRight, LockKeyhole } from "lucide-react";
