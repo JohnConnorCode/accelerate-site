@@ -462,7 +462,7 @@ export function summarizeReplySignals(
  * believable 4% to 57%, which would have made the marketing view worse than
  * useless for deciding anything.
  */
-const ENGAGEMENT_EVENTS = /^(scroll_depth|time_on_page|article_read|article_scroll_\d+)$/;
+const ENGAGEMENT_EVENTS = /^(scroll_depth|time_on_page|article_read|article_scroll_\d+|ai_readiness_started|ai_readiness_profile_started|ai_readiness_questions_started|ai_readiness_question_answered|ai_readiness_previewed|ai_readiness_gate_viewed)$/;
 
 const isEngagement = (name: string) => ENGAGEMENT_EVENTS.test(name);
 const isConversion = (name: string) => name !== "page_view" && !isEngagement(name);

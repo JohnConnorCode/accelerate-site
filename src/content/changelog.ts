@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-20",
   },
   {
+    id: "ai-readiness-assessment-action-plan",
+    slug: "ai-readiness-assessment-action-plan",
+    title: "AI Readiness now produces a useful action plan",
+    description:
+      "The former AI Readiness Checklist is now an interactive assessment for small business leaders. It scores process, data, tools, team and guardrails separately, shows a useful preview before the email gate, and produces a personalized web report, true PDF and 30-day pilot plan. The Resources admin view now includes assessment funnel, source, constraint and lead reporting. Scores describe readiness signals and never promise savings or revenue.",
+    category: "feature",
+    publishedAt: "2026-09-20",
+  },
+  {
     id: "fresh-fork-first-use",
     slug: "fresh-fork-first-use",
     title: "Clear next steps for a fresh installation",
