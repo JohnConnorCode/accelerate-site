@@ -45,6 +45,7 @@ export const TENANT_SCOPED_TABLES = [
   "workspace_blueprints",
   "workspace_blueprint_versions",
   "workspace_blueprint_applies",
+  "workspace_generated_operations",
   "workspace_capabilities",
   "coworkers",
   "claims",
@@ -481,6 +482,10 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     columns: ["tenant_id", "id", "blueprint_id", "version", "request_key", "receipt", "created_at"],
   },
   {
+    table: "workspace_generated_operations",
+    columns: ["tenant_id", "id", "blueprint_id", "version", "request_key", "receipt", "created_at"],
+  },
+  {
     table: "ai_conversation_sources",
     columns: [
       "id",
@@ -691,6 +696,8 @@ export const REVENUE_SCHEMA_INDEXES = [
   "idx_workspace_blueprint_versions_history",
   "idx_workspace_blueprint_applies_replay",
   "idx_workspace_blueprint_applies_blueprint",
+  "idx_workspace_generated_operations_replay",
+  "idx_workspace_generated_operations_version",
   "idx_ai_messages_tenant_client_replay",
   "idx_ai_messages_conversation_order",
   "idx_agent_runs_conversation",
