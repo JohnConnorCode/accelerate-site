@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "connected-admin-release-review",
     title: "Consistent record controls and clearer recovery",
     description:
-      "Admin lists share keyboard-accessible record controls and retain their page identity while loading. Source tools show existing canonical links and explain which fields remain source-owned. Revenue keeps opportunity totals separate from client contract values and accepted proposals. Setup, access and recovery guides explain how to verify a repair and safely resume interrupted agent work.",
+      "Admin lists share keyboard-accessible record controls and retain their page identity while loading. Opening an approval from Today closes the context panel, so keyboard dismissal stays predictable. Source tools show existing canonical links and explain which fields remain source-owned. Revenue keeps opportunity totals separate from client contract values and accepted proposals. Setup, access and recovery guides explain how to verify a repair and safely resume interrupted agent work.",
     category: "improvement",
     publishedAt: "2026-09-20",
   },

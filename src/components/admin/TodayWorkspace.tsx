@@ -335,6 +335,7 @@ export function TodayWorkspace() {
       return;
     }
     dismissedAction.current = null;
+    setInspectorOpen(false);
     setReviewing(action);
     setReviewOpen(true);
     router.push("/admin/today?focus=approval&action=" + encodeURIComponent(action.id), "preserve");

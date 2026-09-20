@@ -126,7 +126,15 @@ try {
         .getByRole("button", { name: "Review exact change", exact: true })
         .click();
       let review = page.getByRole("dialog", { name: approval.title, exact: true });
+      await page
+        .getByRole("dialog", { name: "Work context", exact: true })
+        .waitFor({ state: "hidden" });
       await review.waitFor();
+      await page.waitForFunction(
+        () =>
+          document.activeElement?.closest('[role="dialog"]')?.getAttribute("aria-labelledby") ===
+          "action-review-title",
+      );
       await page.keyboard.press("Escape");
       await review.waitFor({ state: "hidden" });
       await page.waitForTimeout(750);
