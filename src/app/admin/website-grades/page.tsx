@@ -14,7 +14,10 @@ import { Pagination } from "@/components/admin/Pagination";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { EmptyState } from "@/components/admin/EmptyState";
+import { CanonicalSourceLink } from "@/components/admin/CanonicalSourceLink";
+import { SourceToolDispositions } from "@/components/admin/SourceToolDispositions";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
+import type { SourceFieldDisposition } from "@/lib/revenue-os/retained-source-dispositions";
 
 interface GradeCategory {
   score: number;
@@ -36,6 +39,12 @@ interface WebsiteGrade {
   };
   ai_recommendations?: string[];
   created_at: string;
+  revenue_os?: {
+    contact_id: string | null;
+    opportunity_id: string | null;
+    stage: string | null;
+    linked_by: "source" | "identity" | "email" | null;
+  };
 }
 
 function getScoreColor(score: number): string {
@@ -59,6 +68,8 @@ export default function WebsiteGradesPage() {
     grades?: WebsiteGrade[];
     total?: number;
     totalPages?: number;
+    canonicalSchemaReady?: boolean;
+    dispositions?: SourceFieldDisposition[];
   }>(["admin", "website-grades", page], `/api/admin/website-grades?page=${page}`);
   const grades = useMemo(() => gradesQuery.data?.grades ?? [], [gradesQuery.data?.grades]);
   const total = gradesQuery.data?.total ?? 0;
@@ -139,6 +150,9 @@ export default function WebsiteGradesPage() {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
                   Date
                 </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Canonical
+                </th>
                 <th className="px-4 py-3 w-10"></th>
               </tr>
             </thead>
@@ -173,6 +187,12 @@ export default function WebsiteGradesPage() {
                       {new Date(grade.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
+                      <CanonicalSourceLink
+                        link={grade.revenue_os}
+                        schemaReady={gradesQuery.data?.canonicalSchemaReady}
+                      />
+                    </td>
+                    <td className="px-4 py-3">
                       {expandedId === grade.id ? (
                         <ChevronUp className="h-4 w-4 text-white-muted" />
                       ) : (
@@ -188,7 +208,7 @@ export default function WebsiteGradesPage() {
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <td colSpan={5} className="px-4 py-4 bg-bg-elevated">
+                        <td colSpan={6} className="px-4 py-4 bg-bg-elevated">
                           <div className="space-y-4">
                             {grade.categories && (
                               <div>
@@ -253,6 +273,10 @@ export default function WebsiteGradesPage() {
         </GlassCard>
 
         <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+        <SourceToolDispositions
+          schemaReady={gradesQuery.data?.canonicalSchemaReady}
+          dispositions={gradesQuery.data?.dispositions}
+        />
       </AdminReadBody>
     </motion.div>
   );

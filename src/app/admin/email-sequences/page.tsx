@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Pagination } from "@/components/admin/Pagination";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { Toast } from "@/components/ui/Toast";
 
@@ -71,14 +72,6 @@ export default function EmailSequencesPage() {
     fetchData();
   }, [fetchData]);
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Email Sequences" />
-        <LoadingSkeleton variant="page" />
-      </div>
-    );
-  }
 
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
@@ -86,6 +79,16 @@ export default function EmailSequencesPage() {
         title="Email Sequences"
         subtitle="Monitor every active nurture path and its delivery lifecycle."
       />
+      <AdminReadBody
+        loading={loading}
+        hasData={!loading}
+        onRetry={() => {
+          setLoading(true);
+          void fetchData();
+        }}
+        loadingFallback={<LoadingSkeleton variant="table" />}
+        label="Loading retained source tool"
+      >
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4 mb-6">
@@ -195,6 +198,8 @@ export default function EmailSequencesPage() {
           onClose={() => setToast(null)}
         />
       )}
+    
+      </AdminReadBody>
     </motion.div>
   );
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
+import { retainedSourceDispositions } from "@/lib/revenue-os/retained-source-dispositions";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdminForModule("website-grades");
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     grades: linked.records,
     canonicalSchemaReady: linked.schemaReady,
+    dispositions: retainedSourceDispositions("/admin/website-grades")[0]?.fields ?? [],
     total: count || 0,
     page,
     totalPages: Math.ceil((count || 0) / limit),

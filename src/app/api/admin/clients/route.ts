@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
+import { retainedSourceDispositions } from "@/lib/revenue-os/retained-source-dispositions";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdminForModule("clients");
@@ -74,6 +75,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     clients: linked.records,
     canonicalSchemaReady: linked.schemaReady,
+    dispositions: retainedSourceDispositions("/admin/clients")[0]?.fields ?? [],
     totalMRR,
     activeCount: activeClients.length,
   });
