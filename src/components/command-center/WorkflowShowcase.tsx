@@ -27,12 +27,7 @@ export function WorkflowShowcase() {
           </button>
         ))}
       </div>
-      <div
-        key={workflow.id}
-        id="workflow-example"
-        className={styles.workflow}
-        aria-live="polite"
-      >
+      <div id="workflow-example" className={styles.workflow}>
         <div>
           <p className="label">Fictional example · {workflow.business}</p>
           <h3 className={styles.heading}>{workflow.title}</h3>

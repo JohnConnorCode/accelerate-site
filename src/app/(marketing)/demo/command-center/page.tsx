@@ -10,14 +10,12 @@ import {
 } from "@/lib/admin/demo/scenarios";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
 import { WorkflowShowcase } from "@/components/command-center/WorkflowShowcase";
-import { DemoStory } from "@/components/command-center/launcher/DemoStory";
-import { AnimateOnScroll, StaggerContainer } from "@/components/ui/AnimateOnScroll";
 import styles from "@/components/command-center/product.module.css";
 
 export const metadata: Metadata = {
   title: "Explore a Command Center demo",
   description:
-    "Explore a real Command Center workflow with fictional business data. See customer context, AI review and the next action in one workspace.",
+    "Choose a fictional business and try the real workspace. Explore customer context, follow-up and shared work with no signup.",
   robots: { index: false, follow: false },
 };
 
@@ -89,68 +87,56 @@ const previews: Record<
 
 export default function AdminDemoLauncher() {
   return (
-    <main className={`${styles.page} ${styles.launcherPage}`}>
+    <main className={`${styles.page} demo-launcher`}>
       <header className={styles.hero}>
-        <div className={styles.heroGridField} aria-hidden="true" />
         <div className="wrap">
-          <AnimateOnScroll as="div" stagger className={styles.heroGrid}>
-            <div className={styles.heroCopy}>
+          <div className={styles.intro}>
+            <div>
               <p className="label">Explore Command Center</p>
               <h1 className={styles.title}>
-                Your business.
+                Choose a business.
                 <br />
-                <em>Working together.</em>
+                <em>See the work.</em>
               </h1>
+            </div>
+            <div>
               <p className={styles.lede}>
-                See the work that needs attention, give AI the context it needs, and keep every
-                decision connected to the customer and the result.
+                Step into the real workspace with fictional customers, conversations and tasks.
+                Choose an example close to your business and follow a piece of work through its
+                records.
               </p>
               <p className={styles.note}>
-                Fictional data. No signup. Explore the real workspace in this browser session.
+                No signup. Changes stay in this browser session. Messages and other actions are
+                simulated.
               </p>
               <div className={styles.actions}>
                 <a href="#workflows" className={styles.primary}>
                   Try a complete workflow <ArrowRight size={16} aria-hidden="true" />
                 </a>
                 <Link href="#business-demos" className={styles.secondary}>
-                  Find your business <span aria-hidden="true">↓</span>
+                  Browse all six businesses
                 </Link>
               </div>
             </div>
-            <div className={styles.heroStage}>
-              <DemoStory />
-            </div>
-          </AnimateOnScroll>
+          </div>
         </div>
       </header>
-
       <section className={styles.section} id="workflows" aria-labelledby="demo-workflows-title">
         <div className="wrap">
-          <AnimateOnScroll className={styles.sectionIntro}>
-            <div>
-              <p className="label">Three ways to try it</p>
-              <h2 className={styles.heading} id="demo-workflows-title">
-                Follow the work through to its result.
-              </h2>
-            </div>
-            <p className={styles.lede}>
-              Pick a real operating moment. See the records, decisions and next action that make
-              the workflow useful.
-            </p>
-          </AnimateOnScroll>
-          <AnimateOnScroll className={styles.workflowShell} delay={0.08}>
-            <WorkflowShowcase />
-          </AnimateOnScroll>
+          <p className="label">Three ways to try it</p>
+          <h2 className={styles.heading} id="demo-workflows-title">
+            Follow the work through to its result.
+          </h2>
+          <WorkflowShowcase />
         </div>
       </section>
-
       <section
         className={styles.section}
         id="business-demos"
         aria-labelledby="business-demos-title"
       >
         <div className="wrap">
-          <AnimateOnScroll className={styles.sectionIntro}>
+          <div className={styles.sectionIntro}>
             <div>
               <p className="label">Six fictional workspaces</p>
               <h2 className={styles.heading} id="business-demos-title">
@@ -161,12 +147,15 @@ export default function AdminDemoLauncher() {
               Each business uses the same platform with its own records and appearance. Open any
               workspace and explore freely.
             </p>
-          </AnimateOnScroll>
-          <StaggerContainer className={styles.demoGrid} staggerDelay={0.06}>
+          </div>
+          <div className={styles.demoGrid}>
             {DEMO_SCENARIO_SUMMARIES.map((scenario) => {
               const preview = previews[scenario.id];
               return (
-                <article key={scenario.id} className={`${styles.card} ${styles.scenario}`}>
+                <article
+                  key={scenario.id}
+                  className={`${styles.card} ${styles.scenario} demo-launcher-card`}
+                >
                   <div className={styles.scenarioHeading}>
                     <p className="label">{scenario.category}</p>
                     <DemoScenarioMark scenarioId={scenario.id} className="size-9" />
@@ -204,23 +193,12 @@ export default function AdminDemoLauncher() {
                 </article>
               );
             })}
-          </StaggerContainer>
+          </div>
         </div>
       </section>
-
       <section className={styles.section}>
         <div className="wrap">
-          <AnimateOnScroll className={styles.sectionIntro}>
-            <div>
-              <p className="label">Keep going</p>
-              <h2 className={styles.heading}>Build a system that gets better with use.</h2>
-            </div>
-            <p className={styles.lede}>
-              The demo is a starting point. Learn how the platform fits together, then run it for
-              the work your business actually does.
-            </p>
-          </AnimateOnScroll>
-          <StaggerContainer className={styles.grid} staggerDelay={0.1}>
+          <div className={styles.grid}>
             <article className={styles.card}>
               <p className="label">Make it useful</p>
               <h3>Follow a complete workflow.</h3>
@@ -243,12 +221,10 @@ export default function AdminDemoLauncher() {
                 Read the builder guides <ArrowRight size={16} aria-hidden="true" />
               </Link>
             </article>
-          </StaggerContainer>
-          <AnimateOnScroll delay={0.12}>
-            <Link href="/command-center" className={styles.textLink}>
-              Explore the platform’s capabilities <ArrowRight size={16} aria-hidden="true" />
-            </Link>
-          </AnimateOnScroll>
+          </div>
+          <Link href="/command-center" className={styles.textLink}>
+            Explore the platform’s capabilities <ArrowRight size={16} aria-hidden="true" />
+          </Link>
         </div>
       </section>
     </main>
