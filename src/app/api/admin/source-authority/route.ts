@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = (error as Error).message;
     if (
-      /must be a lowercase slug|must not be empty|Unknown authority tier|must be a valid email|must be an ISO date|must be an integer|already bound|appliesTo/.test(
+      /must be a lowercase slug|must not be empty|Unknown authority tier|must be a valid email|must be an ISO date|must be an integer|already bound|does not match this request|appliesTo/.test(
         message,
       )
     ) {

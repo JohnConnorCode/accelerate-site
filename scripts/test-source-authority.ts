@@ -380,7 +380,124 @@ const base = {
     assert.ok(core.has("list_source_authorities") && core.has("register_source_authority"));
   }
 
-  console.log(JSON.stringify({ result: "source-authority coverage added", checks: 10 }));
+  // Same explicit request key cannot change the authority tier.
+  {
+    const { mem, client } = db();
+    const first = await registerSourceAuthority(client, {
+      systemKey: "canonical_crm",
+      ...base,
+      requestKey: "explicit-replay-key",
+      actorEmail: ACTOR,
+    });
+    await assert.rejects(
+      () =>
+        registerSourceAuthority(client, {
+          systemKey: "canonical_crm",
+          ...base,
+          authorityTier: "working",
+          requestKey: "explicit-replay-key",
+          actorEmail: ACTOR,
+        }),
+      /already bound to a different payload/,
+    );
+    assert.equal(mem.rows("source_authority_registry")[0]?.authority_tier, "official");
+    assert.equal(first.authority_tier, "official");
+  }
+
+  // Audit failure does not leave a committed registry row; retry restores both.
+  {
+    const { mem, client } = db();
+    mem.fail("audit_log", { message: "injected audit failure" });
+    await assert.rejects(
+      () => registerSourceAuthority(client, { systemKey: "canonical_crm", ...base, actorEmail: ACTOR }),
+      /injected audit failure/,
+    );
+    assert.equal(mem.rows("source_authority_registry").length, 0);
+    mem.recover("audit_log");
+    const retried = await registerSourceAuthority(client, {
+      systemKey: "canonical_crm",
+      ...base,
+      actorEmail: ACTOR,
+    });
+    assert.equal(mem.rows("source_authority_registry").length, 1);
+    assert.ok(mem.rows("audit_log").some((row) => row.entity_id === retried.id));
+  }
+
+  // A successful write whose audit was lost is repaired on exact replay.
+  {
+    const { mem, client } = db();
+    const first = await registerSourceAuthority(client, {
+      systemKey: "canonical_crm",
+      ...base,
+      requestKey: "restore-audit",
+      actorEmail: ACTOR,
+    });
+    mem.tables.audit_log = [];
+    const second = await registerSourceAuthority(client, {
+      systemKey: "canonical_crm",
+      ...base,
+      requestKey: "restore-audit",
+      actorEmail: ACTOR,
+    });
+    assert.equal(first.id, second.id);
+    assert.ok(mem.rows("audit_log").some((row) => row.entity_id === first.id));
+  }
+
+  // Unique-conflict recovery requires an exact payload match.
+  {
+    const winner = {
+      id: "winner-1",
+      tenant_id: "tenant-a",
+      system_key: "canonical_crm",
+      display_name: base.displayName,
+      truth_domains: base.truthDomains,
+      authority_tier: "official",
+      owner_email: ACTOR,
+      last_verified_at: new Date(VERIFIED).toISOString(),
+      verification_lapse_days: 90,
+      applies_to: null,
+      request_key: "winner-key",
+      created_at: VERIFIED,
+      updated_at: VERIFIED,
+    };
+    let selects = 0;
+    const conflictClient = {
+      from(table: string) {
+        let op = "select";
+        const self: Record<string, unknown> = {};
+        const chain = () => self;
+        for (const method of ["select", "eq", "limit", "update", "delete"]) self[method] = chain;
+        self.insert = () => {
+          op = "insert";
+          return self;
+        };
+        self.maybeSingle = self.single = () => self;
+        self.then = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
+          if (table === "audit_log") return resolve({ data: [], error: null });
+          if (op === "insert")
+            return resolve({ data: null, error: { code: "23505", message: "duplicate" } });
+          selects += 1;
+          if (selects === 1) return resolve({ data: null, error: null });
+          if (selects === 2) return resolve({ data: null, error: null });
+          return resolve({ data: winner, error: null });
+        };
+        return self;
+      },
+    };
+    await assert.rejects(
+      () =>
+        registerSourceAuthority(conflictClient as never, {
+          systemKey: "canonical_crm",
+          ...base,
+          authorityTier: "working",
+          requestKey: "other-key",
+          actorEmail: ACTOR,
+        }),
+      /does not match this request/,
+    );
+  }
+
+  console.log(JSON.stringify({ result: "source-authority coverage added", checks: 14 }));
 })().catch((error) => {
   console.error(error);
   process.exit(1);
