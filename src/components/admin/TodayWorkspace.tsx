@@ -439,7 +439,8 @@ export function TodayWorkspace() {
                     <button
                       className={styles.rowMain}
                       onClick={() => inspect(item)}
-                      aria-label={"Inspect " + item.title}
+                      aria-label={"Open " + item.title}
+                      aria-haspopup="dialog"
                     >
                       <strong>{item.title}</strong>
                       {item.sourceType !== "operational_health" && <p>{item.priorityReason}</p>}
@@ -463,17 +464,6 @@ export function TodayWorkspace() {
                         {item.dueAt && <span>{dateLabel(item.dueAt)}</span>}
                         {preferences.pins.includes(attentionKey(item)) && <Pin size={11} />}
                       </span>
-                    </button>
-                    <button
-                      className={cn(styles.textLink, styles.rowAction)}
-                      aria-label={
-                        (item.attentionKind === "decision" ? "Review " : "Open ") + item.title
-                      }
-                      onClick={() =>
-                        item.attentionKind === "decision" ? review(item) : inspect(item)
-                      }
-                    >
-                      {item.attentionKind === "decision" ? "Review" : "Open"}
                     </button>
                   </article>
                 </div>

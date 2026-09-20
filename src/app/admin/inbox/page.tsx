@@ -4,11 +4,10 @@ import { adminPageName } from "@/lib/admin/navigation";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import Link from "@/components/admin/AdminLink";
+import { useAdminNavigation } from "@/components/admin/AdminLink";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
-  ArrowUpRight,
   AtSign,
   Bot,
   Check,
@@ -39,6 +38,7 @@ import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
 import { adminListItemVariants, adminListVariants, adminSectionVariants } from "@/lib/admin/motion";
 import type { AdminInboxKind, AdminInboxResponse, AdminInboxItem } from "@/lib/admin/inbox";
+import { isInteractiveTarget } from "@/lib/admin/interaction";
 
 const filters: { key: AdminInboxKind | "all"; label: string; icon: LucideIcon }[] = [
   { key: "all", label: "All", icon: Inbox },
@@ -74,6 +74,7 @@ function timeAgo(value: string) {
 }
 
 export default function AdminInboxPage() {
+  const navigation = useAdminNavigation();
   const queryClient = useQueryClient();
   const inboxQuery = useAdminQuery<AdminInboxResponse>(["admin", "inbox"], "/api/admin/inbox");
   const data = inboxQuery.data ?? null;
@@ -318,7 +319,20 @@ export default function AdminInboxPage() {
                   <motion.article
                     key={`${item.kind}-${item.id}`}
                     variants={adminListItemVariants}
-                    className="group grid gap-3 border-b border-black/[0.07] p-4 last:border-b-0 dark:border-white/[0.07] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:px-5"
+                    tabIndex={0}
+                    aria-label={`Open ${item.title}`}
+                    onClick={(event) => {
+                      if (isInteractiveTarget(event.target)) return;
+                      navigation.push(item.href);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        navigation.push(item.href);
+                      }
+                    }}
+                    className="group grid cursor-pointer gap-3 border-b border-black/[0.07] p-4 outline-none transition-[background-color,box-shadow] duration-150 hover:bg-[var(--admin-accent-soft)] focus-visible:bg-[var(--admin-accent-soft)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)] last:border-b-0 dark:border-white/[0.07] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:px-5"
                   >
                     <div
                       className={cn(
@@ -443,12 +457,6 @@ export default function AdminInboxPage() {
                           </button>
                         </>
                       )}
-                      <Link
-                        href={item.href}
-                        className="ml-1 inline-flex min-h-10 items-center gap-1.5 rounded-[var(--admin-control-radius)] bg-[#0b0b0b] px-3 text-xs font-medium text-white transition-[background-color,transform] duration-150 hover:bg-[#252525] active:scale-[0.96]"
-                      >
-                        Open <ArrowUpRight className="h-3.5 w-3.5" />
-                      </Link>
                     </div>
                   </motion.article>
                 );

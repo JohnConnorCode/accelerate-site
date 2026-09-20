@@ -41,6 +41,29 @@ Core pages, extensions and fictional demos must inherit them.
 - Descriptions explain what users can see or do. Avoid source filenames, runtime
   terminology, vague synonyms and claims that are not visible in the interface.
 
+## Records, rows and details
+
+- Every collection has one primary record opener. Use a real link when the
+  destination is a route and a button when the record opens a local detail pane.
+  The title, supporting content and unused row space use that same opener.
+- Keep secondary controls outside the opener. Selection, switches, menus,
+  completion, approval and drag handles must not also open the record. Use an
+  overflow menu for infrequent actions instead of repeating Open, View and
+  Inspect buttons in one row.
+- Use responsive list-detail composition for record browsing. Large layouts keep
+  the list and selected detail visible together; compact layouts replace the list
+  with the detail and provide a labelled Back control. Detail selection is
+  navigable state, so direct links and browser history remain truthful.
+- Use dialogs for focused edits, confirmations and short review steps. Read-only
+  record context and complex editors belong in a detail pane or route. All
+  overlays use `AdminDialog` so Escape, focus containment, labelled titles,
+  scroll lock and focus restoration stay consistent.
+- Static text must not look actionable. If a message says “Set next action,” it
+  must be an actual control; otherwise say “No next action.”
+- Rows and controls expose visible focus, keyboard activation and at least the
+  shared 44px control floor. Coarse-pointer layouts preserve the same target
+  floor and never rely on hover to reveal the only opener.
+
 ## Verification
 
 Run the shared admin navigation and mobile journeys against an isolated local

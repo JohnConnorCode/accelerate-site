@@ -14,8 +14,10 @@ content has its own styling system.
   `npm run themes:generate`. Existing custom version-1 themes inherit the new
   foundations without changing their stored format.
 
-`AdminSurface`, `AdminButton`, `AdminTable`, `PageHeader`, `AdminDialog`,
-`AdminStatusMessage` and `EmptyState` are the core vocabulary. Existing public
+`AdminSurface`, `AdminButton`, `AdminTable`, `AdminRecordRow`, `PageHeader`,
+`AdminDialog`, `AdminStatusMessage` and `EmptyState` are the core vocabulary.
+Use `AdminRecordRow` for list records that open a route or local detail pane;
+keep row actions in its separate action slot. Existing public
 Button/Input consumers explicitly opt into the admin recipes inside admin;
 their public appearance stays unchanged. Use semantic `admin-field` and
 `admin-field-label` classes for native fields. Use a real link for navigation.

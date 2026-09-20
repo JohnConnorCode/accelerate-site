@@ -6,7 +6,6 @@ import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { FilterX, ScrollText } from "lucide-react";
-import Link from "@/components/admin/AdminLink";
 import { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
@@ -336,7 +335,21 @@ export default function ActivityPage() {
                   <motion.article
                     key={entry.id}
                     variants={adminListItemVariants}
-                    className="grid gap-2 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start"
+                    tabIndex={href ? 0 : undefined}
+                    role={href ? "link" : undefined}
+                    aria-label={
+                      href ? `Open ${entry.entityType.replace(/_/g, " ")} record` : undefined
+                    }
+                    className={`grid gap-2 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start ${href ? "cursor-pointer transition-colors hover:bg-[var(--admin-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)]" : ""}`}
+                    onClick={() => {
+                      if (href) nav.push(href);
+                    }}
+                    onKeyDown={(event) => {
+                      if (href && (event.key === "Enter" || event.key === " ")) {
+                        event.preventDefault();
+                        nav.push(href);
+                      }
+                    }}
                   >
                     <div className="min-w-0">
                       <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
@@ -360,14 +373,6 @@ export default function ActivityPage() {
                       >
                         {formatTime(entry.createdAt)}
                       </time>
-                      {href && (
-                        <Link
-                          href={href}
-                          className="text-xs font-semibold text-[var(--admin-ink)] underline-offset-2 hover:underline"
-                        >
-                          Open record
-                        </Link>
-                      )}
                     </div>
                   </motion.article>
                 );

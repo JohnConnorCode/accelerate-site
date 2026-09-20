@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isInteractiveTarget } from "@/lib/admin/interaction";
 import { AdminSurface } from "./AdminSurface";
 import { EmptyState } from "./EmptyState";
 
@@ -24,6 +25,7 @@ interface AdminTableProps<T> {
   sortOrder?: "asc" | "desc";
   onSort?: (field: string) => void;
   onRowClick?: (item: T) => void;
+  rowLabel?: (item: T) => string;
   expandedId?: string | null;
   renderExpanded?: (item: T) => ReactNode;
   emptyMessage?: string;
@@ -38,6 +40,7 @@ export function AdminTable<T>({
   sortOrder,
   onSort,
   onRowClick,
+  rowLabel,
   expandedId,
   renderExpanded,
   emptyMessage = "No data found",
@@ -101,9 +104,10 @@ export function AdminTable<T>({
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.03, duration: 0.18 }}
                     className={cn(
-                      "border-b border-[var(--admin-border)] transition-[background-color] duration-150 hover:bg-[var(--admin-accent-soft)]",
+                      "border-b border-[var(--admin-border)] transition-[background-color] duration-150 hover:bg-[var(--admin-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)]",
                       onRowClick && "cursor-pointer",
                     )}
+                    aria-label={rowLabel?.(item)}
                     tabIndex={onRowClick ? 0 : undefined}
                     onKeyDown={(event) => {
                       if (event.target !== event.currentTarget || !onRowClick) return;
@@ -112,7 +116,10 @@ export function AdminTable<T>({
                         onRowClick(item);
                       }
                     }}
-                    onClick={() => onRowClick?.(item)}
+                    onClick={(event) => {
+                      if (isInteractiveTarget(event.target)) return;
+                      onRowClick?.(item);
+                    }}
                   >
                     {columns.map((col) => (
                       <td key={col.key} className={col.className}>

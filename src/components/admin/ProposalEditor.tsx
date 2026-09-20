@@ -94,7 +94,7 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
   return (
     <div className="space-y-6">
       {/* Header actions */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-wrap items-center gap-3">
         <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
           <Save className="h-3.5 w-3.5 mr-1.5" />
           {saving ? "Saving..." : "Save"}
@@ -109,23 +109,22 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
           href={shareUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs text-white-muted hover:text-gold-light transition-colors"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs text-white-muted transition-colors hover:bg-white/5 hover:text-gold-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
         >
           <Eye className="h-3.5 w-3.5" />
           Preview
         </a>
-        <div className="flex-1" />
-        <div className="text-xs text-white-muted">
+        <div className="basis-full text-xs text-white-muted sm:ml-auto sm:basis-auto">
           Status: <span className="text-white-secondary capitalize">{proposal.status}</span>
-          {proposal.viewed_at && " · Viewed"}
+          {proposal.viewed_at && proposal.status !== "viewed" && " · Viewed"}
         </div>
       </div>
 
       {/* Share link */}
       <GlassCard hover="none" padding="sm">
         <p className="text-[10px] text-white-muted uppercase font-semibold mb-1">Share Link</p>
-        <div className="flex items-center gap-2">
-          <code className="flex-1 text-xs text-white-secondary bg-white/5 rounded px-2 py-1 truncate">
+        <div className="flex min-w-0 items-center gap-2">
+          <code className="min-w-0 flex-1 truncate rounded bg-white/5 px-2 py-1 text-xs text-white-secondary">
             {shareUrl}
           </code>
           <button
@@ -133,7 +132,8 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
               navigator.clipboard.writeText(shareUrl);
               setToast({ message: "Link copied!", type: "success" });
             }}
-            className="text-xs text-gold-light hover:text-gold cursor-pointer shrink-0"
+            type="button"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-xs text-gold-light transition-colors hover:bg-white/5 hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
           >
             Copy
           </button>
@@ -175,8 +175,10 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
               className="font-semibold"
             />
             <button
+              type="button"
               onClick={() => removeSection(idx)}
-              className="text-white-muted hover:text-red-400 transition-colors cursor-pointer ml-2"
+              aria-label={`Remove ${section.title} section`}
+              className="ml-2 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-white-muted transition-colors hover:bg-white/5 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -252,8 +254,9 @@ export function ProposalEditor({ proposal, onSave }: ProposalEditorProps) {
       ))}
 
       <button
+        type="button"
         onClick={addSection}
-        className="flex items-center gap-2 text-sm text-white-muted hover:text-gold-light transition-colors cursor-pointer"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm text-white-muted transition-colors hover:bg-white/5 hover:text-gold-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
       >
         <Plus className="h-4 w-4" />
         Add Section

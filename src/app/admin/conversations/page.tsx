@@ -29,6 +29,7 @@ import Link from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -1093,9 +1094,13 @@ export default function ConversationsPage() {
       </AdminReadBody>
 
       {/* Modal: Create Opportunity */}
-      {showCreateOppModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
+      <AdminDialog
+        open={showCreateOppModal}
+        onClose={() => setShowCreateOppModal(false)}
+        title="Create opportunity from conversation"
+        maxWidth="sm"
+      >
+          <div className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold text-[var(--admin-ink)]">
                 Create Opportunity from Conversation
@@ -1103,7 +1108,8 @@ export default function ConversationsPage() {
               <button
                 type="button"
                 onClick={() => setShowCreateOppModal(false)}
-                className="text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
+                aria-label="Close create opportunity"
+                className="admin-icon-button"
               >
                 <X className="size-4" />
               </button>
@@ -1153,13 +1159,16 @@ export default function ConversationsPage() {
               </div>
             </form>
           </div>
-        </div>
-      )}
+      </AdminDialog>
 
       {/* Modal: Create Task */}
-      {showCreateTaskModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
+      <AdminDialog
+        open={showCreateTaskModal}
+        onClose={() => setShowCreateTaskModal(false)}
+        title="Add follow-up task"
+        maxWidth="sm"
+      >
+          <div className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold text-[var(--admin-ink)]">
                 Add Follow-up Task
@@ -1167,7 +1176,8 @@ export default function ConversationsPage() {
               <button
                 type="button"
                 onClick={() => setShowCreateTaskModal(false)}
-                className="text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
+                aria-label="Close follow-up task"
+                className="admin-icon-button"
               >
                 <X className="size-4" />
               </button>
@@ -1216,12 +1226,18 @@ export default function ConversationsPage() {
               </div>
             </form>
           </div>
-        </div>
-      )}
+      </AdminDialog>
 
-      {showLinkOpp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
+      <AdminDialog
+        open={showLinkOpp}
+        onClose={() => {
+          setShowLinkOpp(false);
+          setOppResults([]);
+        }}
+        title="Link existing opportunity"
+        maxWidth="sm"
+      >
+          <div className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold text-[var(--admin-ink)]">
                 Link existing opportunity
@@ -1232,7 +1248,7 @@ export default function ConversationsPage() {
                   setShowLinkOpp(false);
                   setOppResults([]);
                 }}
-                className="text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
+                className="admin-icon-button"
                 aria-label="Close link opportunity"
               >
                 <X className="size-4" />
@@ -1285,8 +1301,7 @@ export default function ConversationsPage() {
               )}
             </div>
           </div>
-        </div>
-      )}
+      </AdminDialog>
     </div>
   );
 }

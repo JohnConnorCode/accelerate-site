@@ -1,7 +1,6 @@
 "use client";
 import {
   AlarmClock,
-  ArrowRight,
   CheckCircle2,
   CircleAlert,
   CalendarDays,
@@ -64,34 +63,45 @@ export function AttentionList({
                     data-source-id={item.sourceId}
                     className="flex items-start gap-3 px-4 py-3"
                   >
-                    <div className="min-w-0 flex-1">
-                      {item.sourceType === "approval" ? (
-                        <button
-                          type="button"
-                          onClick={(event) => onReview(item.sourceId, event.currentTarget)}
-                          data-approval-review={item.sourceId}
-                          aria-haspopup="dialog"
-                          className="min-h-11 text-left text-sm font-semibold text-[var(--admin-ink)] hover:underline"
-                        >
+                    {item.sourceType === "approval" ? (
+                      <button
+                        type="button"
+                        onClick={(event) => onReview(item.sourceId, event.currentTarget)}
+                        data-approval-review={item.sourceId}
+                        aria-haspopup="dialog"
+                        className="min-w-0 flex-1 rounded-md p-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                      >
+                        <span className="block min-h-11 text-sm font-semibold text-[var(--admin-ink)] hover:underline">
                           {item.title}
-                        </button>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--admin-ink)] hover:underline"
-                        >
+                        </span>
+                        <span className="block text-sm leading-5 text-[var(--admin-muted)]">
+                          {item.priorityReason || item.summary}
+                        </span>
+                        {item.dueAt && (
+                          <span className="mt-1 block text-xs tabular-nums text-[var(--admin-muted)]">
+                            {relativeTime(item.dueAt)}
+                          </span>
+                        )}
+                      </button>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        aria-label={`Open ${item.title}`}
+                        className="min-w-0 flex-1 rounded-md p-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+                      >
+                        <span className="block min-h-11 text-sm font-semibold text-[var(--admin-ink)] hover:underline">
                           {item.title}
-                        </Link>
-                      )}
-                      <p className="text-sm leading-5 text-[var(--admin-muted)]">
-                        {item.priorityReason || item.summary}
-                      </p>
-                      {item.dueAt && (
-                        <p className="mt-1 text-xs tabular-nums text-[var(--admin-muted)]">
-                          {relativeTime(item.dueAt)}
-                        </p>
-                      )}
-                    </div>
+                        </span>
+                        <span className="block text-sm leading-5 text-[var(--admin-muted)]">
+                          {item.priorityReason || item.summary}
+                        </span>
+                        {item.dueAt && (
+                          <span className="mt-1 block text-xs tabular-nums text-[var(--admin-muted)]">
+                            {relativeTime(item.dueAt)}
+                          </span>
+                        )}
+                      </Link>
+                    )}
                     {item.sourceType === "task" ? (
                       <div className="flex shrink-0 flex-col sm:flex-row">
                         <button
@@ -117,25 +127,7 @@ export function AttentionList({
                           <AlarmClock className="size-4" />
                         </button>
                       </div>
-                    ) : item.sourceType === "approval" ? (
-                      <button
-                        type="button"
-                        onClick={(event) => onReview(item.sourceId, event.currentTarget)}
-                        aria-label={`Review ${item.title}`}
-                        className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-medium text-[var(--admin-ink)] hover:bg-[var(--admin-surface-subtle)]"
-                      >
-                        Review
-                        <ArrowRight className="size-4" />
-                      </button>
-                    ) : (
-                      <Link
-                        href={item.href}
-                        aria-label={`Open ${item.title}`}
-                        className="grid size-11 shrink-0 place-items-center rounded-lg text-[var(--admin-muted)] hover:bg-[var(--admin-surface-subtle)]"
-                      >
-                        <ArrowRight className="size-4" />
-                      </Link>
-                    )}
+                    ) : null}
                   </li>
                 ))}
               </ul>
