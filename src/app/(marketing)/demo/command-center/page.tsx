@@ -89,7 +89,7 @@ const previews: Record<
 
 export default function AdminDemoLauncher() {
   return (
-    <div className={`${styles.page} ${styles.launcherPage}`}>
+    <main className={`${styles.page} ${styles.launcherPage}`}>
       <header className={styles.hero}>
         <div className={styles.heroGridField} aria-hidden="true" />
         <div className="wrap">
@@ -251,6 +251,6 @@ export default function AdminDemoLauncher() {
           </AnimateOnScroll>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
