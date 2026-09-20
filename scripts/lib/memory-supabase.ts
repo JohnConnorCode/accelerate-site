@@ -320,6 +320,19 @@ export class MemorySupabase {
             error: { code: "23505", message: "duplicate AI source" },
           });
         }
+        if (
+          table === "source_authority_registry" &&
+          this.tables[table]!.some(
+            (row) =>
+              (row.system_key === payload.system_key && row.tenant_id === payload.tenant_id) ||
+              (row.request_key === payload.request_key && row.tenant_id === payload.tenant_id),
+          )
+        ) {
+          return resolve({
+            data: null,
+            error: { code: "23505", message: "duplicate source authority" },
+          });
+        }
         // Honour the partial unique index the real action_queue carries: one
         // pending row per dedupe key. Several tests hinge on that constraint.
         const key = payload.dedupe_key;

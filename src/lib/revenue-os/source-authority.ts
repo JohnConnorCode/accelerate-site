@@ -151,6 +151,91 @@ function toEntry(row: unknown): SourceAuthorityEntry {
   return row as SourceAuthorityEntry;
 }
 
+function sameInstant(left: string | null | undefined, right: string): boolean {
+  return Date.parse(left ?? "") === Date.parse(right);
+}
+
+function samePayload(
+  entry: SourceAuthorityEntry,
+  expected: {
+    systemKey: string;
+    displayName: string;
+    truthDomains: string[];
+    authorityTier: SourceAuthorityTier;
+    ownerEmail: string;
+    lastVerifiedAt: string;
+    verificationLapseDays: number;
+    appliesTo: SourceAuthorityAppliesTo | null;
+  },
+): boolean {
+  return (
+    entry.system_key === expected.systemKey &&
+    entry.display_name === expected.displayName &&
+    entry.authority_tier === expected.authorityTier &&
+    entry.owner_email === expected.ownerEmail &&
+    entry.verification_lapse_days === expected.verificationLapseDays &&
+    sameInstant(entry.last_verified_at, expected.lastVerifiedAt) &&
+    JSON.stringify(entry.truth_domains) === JSON.stringify(expected.truthDomains) &&
+    JSON.stringify(entry.applies_to ?? null) === JSON.stringify(expected.appliesTo)
+  );
+}
+
+async function ensureRegistryAudit(
+  supabase: SupabaseClient,
+  entry: SourceAuthorityEntry,
+  event: {
+    actorEmail: string;
+    action: "source_authority.registered" | "source_authority.updated";
+    before?: Record<string, unknown>;
+    after: Record<string, unknown>;
+  },
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("audit_log")
+    .select("id")
+    .eq("entity_type", "source_authority")
+    .eq("entity_id", entry.id)
+    .limit(1);
+  if (error) throw new Error(`Failed to read source authority audit: ${error.message}`);
+  if (data && data.length > 0) return;
+  await recordAudit(supabase, {
+    actorEmail: event.actorEmail,
+    action: event.action,
+    entityType: "source_authority",
+    entityId: entry.id,
+    before: event.before ?? null,
+    after: event.after,
+  });
+}
+
+async function revertRegistryWrite(
+  supabase: SupabaseClient,
+  entryId: string,
+  before: SourceAuthorityEntry | null,
+): Promise<void> {
+  if (before) {
+    const { error } = await supabase
+      .from("source_authority_registry")
+      .update({
+        system_key: before.system_key,
+        display_name: before.display_name,
+        truth_domains: before.truth_domains,
+        authority_tier: before.authority_tier,
+        owner_email: before.owner_email,
+        last_verified_at: before.last_verified_at,
+        verification_lapse_days: before.verification_lapse_days,
+        applies_to: before.applies_to,
+        request_key: before.request_key,
+        updated_at: before.updated_at,
+      })
+      .eq("id", entryId);
+    if (error) throw new Error(`Failed to revert source authority: ${error.message}`);
+    return;
+  }
+  const { error } = await supabase.from("source_authority_registry").delete().eq("id", entryId);
+  if (error) throw new Error(`Failed to revert source authority: ${error.message}`);
+}
+
 export interface RegisterSourceAuthorityInput {
   systemKey: string;
   displayName: string;
@@ -167,7 +252,7 @@ export interface RegisterSourceAuthorityInput {
 /**
  * Register or update a connected system against the truth domains it owns.
  * Authority is explicit: never inferred from volume or recency. Replay of the
- * same request key returns the existing row without mutation.
+ * same request key returns the existing row only when the payload matches.
  */
 export async function registerSourceAuthority(
   supabase: SupabaseClient,
@@ -182,19 +267,19 @@ export async function registerSourceAuthority(
   const lastVerifiedAt = requireIsoDate(input.lastVerifiedAt, "lastVerifiedAt");
   const verificationLapseDays = requireLapse(input.verificationLapseDays ?? 90);
   const appliesTo = normalizeAppliesTo(input.appliesTo ?? null);
-  const requestKey =
-    input.requestKey?.trim() ||
-    sourceAuthorityRequestKey({
-      systemKey,
-      displayName,
-      truthDomains,
-      authorityTier,
-      ownerEmail,
-      lastVerifiedAt,
-      verificationLapseDays,
-      appliesTo,
-    });
+  const expected = {
+    systemKey,
+    displayName,
+    truthDomains,
+    authorityTier,
+    ownerEmail,
+    lastVerifiedAt,
+    verificationLapseDays,
+    appliesTo,
+  };
+  const requestKey = input.requestKey?.trim() || sourceAuthorityRequestKey(expected);
   if (!requestKey) throw new Error("requestKey must not be empty");
+  const actorEmail = input.actorEmail || "system";
 
   const { data: replay, error: replayError } = await supabase
     .from("source_authority_registry")
@@ -207,6 +292,14 @@ export async function registerSourceAuthority(
     if (existing.system_key !== systemKey) {
       throw new Error("requestKey is already bound to a different system");
     }
+    if (!samePayload(existing, expected)) {
+      throw new Error("requestKey is already bound to a different payload");
+    }
+    await ensureRegistryAudit(supabase, existing, {
+      actorEmail,
+      action: "source_authority.registered",
+      after: { system_key: existing.system_key, authority_tier: existing.authority_tier },
+    });
     return existing;
   }
 
@@ -241,22 +334,27 @@ export async function registerSourceAuthority(
       .single();
     if (error) throw new Error(`Failed to update source authority: ${error.message}`);
     const entry = toEntry(data);
-    await recordAudit(supabase, {
-      actorEmail: input.actorEmail || "system",
-      action: "source_authority.updated",
-      entityType: "source_authority",
-      entityId: entry.id,
-      before: {
-        system_key: before.system_key,
-        authority_tier: before.authority_tier,
-        last_verified_at: before.last_verified_at,
-      },
-      after: {
-        system_key: entry.system_key,
-        authority_tier: entry.authority_tier,
-        last_verified_at: entry.last_verified_at,
-      },
-    });
+    try {
+      await recordAudit(supabase, {
+        actorEmail,
+        action: "source_authority.updated",
+        entityType: "source_authority",
+        entityId: entry.id,
+        before: {
+          system_key: before.system_key,
+          authority_tier: before.authority_tier,
+          last_verified_at: before.last_verified_at,
+        },
+        after: {
+          system_key: entry.system_key,
+          authority_tier: entry.authority_tier,
+          last_verified_at: entry.last_verified_at,
+        },
+      });
+    } catch (cause) {
+      await revertRegistryWrite(supabase, entry.id, before);
+      throw cause;
+    }
     return entry;
   }
 
@@ -272,19 +370,35 @@ export async function registerSourceAuthority(
         .select("*")
         .eq("system_key", systemKey)
         .maybeSingle();
-      if (!winner.error && winner.data) return toEntry(winner.data);
+      if (!winner.error && winner.data) {
+        const existing = toEntry(winner.data);
+        if (!samePayload(existing, expected) || existing.request_key !== requestKey) {
+          throw new Error("source authority conflict: existing row does not match this request");
+        }
+        await ensureRegistryAudit(supabase, existing, {
+          actorEmail,
+          action: "source_authority.registered",
+          after: { system_key: existing.system_key, authority_tier: existing.authority_tier },
+        });
+        return existing;
+      }
     }
     throw new Error(`Failed to register source authority: ${error.message}`);
   }
 
   const entry = toEntry(data);
-  await recordAudit(supabase, {
-    actorEmail: input.actorEmail || "system",
-    action: "source_authority.registered",
-    entityType: "source_authority",
-    entityId: entry.id,
-    after: { system_key: entry.system_key, authority_tier: entry.authority_tier },
-  });
+  try {
+    await recordAudit(supabase, {
+      actorEmail,
+      action: "source_authority.registered",
+      entityType: "source_authority",
+      entityId: entry.id,
+      after: { system_key: entry.system_key, authority_tier: entry.authority_tier },
+    });
+  } catch (cause) {
+    await revertRegistryWrite(supabase, entry.id, null);
+    throw cause;
+  }
   return entry;
 }
 

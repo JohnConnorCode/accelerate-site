@@ -138,6 +138,7 @@
     "test:secret-storage": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-secret-storage.ts",
     "test:learning-inbox": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-learning-inbox.ts",
     "test:source-authority": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-source-authority.ts",
+    "test:source-authority-postgres": "node scripts/test-source-authority-postgres.mjs",
     "qa:source-authority": "node --env-file=.env.local scripts/qa-source-authority.mjs",
     "test:correction-capture": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-correction-capture.ts",
     "verify:founder-access": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-founder-access.ts",
