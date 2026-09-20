@@ -1,7 +1,7 @@
 ---
 title: "Meeting preparation"
 description: "See which meetings are approaching so you can plan preparation time."
-updated: "2026-09-19"
+updated: "2026-09-20"
 ---
 
 Preparing well starts with knowing what is coming. Meeting preparation brings the next meetings into a time-ordered report, with links back to the calendar records your team already uses.
@@ -39,3 +39,9 @@ Start with the [report source](https://github.com/JohnConnorCode/accelerate-site
 Turning the plugin off in **Plugins** stops new evaluations immediately; source records and historical receipts stay exactly as they were. For a missing-source or access error, check the workspace's source registration and permissions, correct them, and rerun, and for a truncated result, go inspect the source records directly rather than assuming whatever got cut off would have been clear. Running the report again never creates a duplicate task or message, so re-running it to double-check is always safe.
 
 The [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/meeting-prep/README.md) links the source contracts and controlled tests, including `npm run test:report-plugins`. Those fixtures exercise the report behavior; they do not verify every installation's data or provider connections.
+
+## Use the same sources in an AI conversation
+
+With this plugin enabled, the assistant can request its declared knowledge sources through the shared search tool. Results include source references, revisions, applicable reviewed guidance and the plugin's prerequisites. This uses the same host-reviewed source permissions as the plugin itself, so disabling the plugin also stops new source retrieval.
+
+The manifest declares which correction signals it accepts and what saved artifact counts as success. These declarations help an assistant choose and inspect the workflow; the report or approved workflow still performs the actual work. Review the resulting report or tasks and their source records before treating the example as complete.

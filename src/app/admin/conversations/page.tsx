@@ -2,6 +2,7 @@
 
 import { adminPageName } from "@/lib/admin/navigation";
 
+import { DraftLearning } from "@/components/admin/DraftLearning";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -82,6 +83,7 @@ export default function ConversationsPage() {
 
   // Action / Composer states
   const [reply, setReply] = useState("");
+  const [originalDraft, setOriginalDraft] = useState<{ id: string; body: string } | null>(null);
   const [reviewing, setReviewing] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [sending, setSending] = useState(false);
@@ -360,6 +362,7 @@ export default function ConversationsPage() {
       });
       toast.success("Reply recorded and dispatched.");
       setReply("");
+      setOriginalDraft(null);
       setReviewing(false);
       await load();
     } catch (sendError) {
@@ -372,6 +375,7 @@ export default function ConversationsPage() {
   };
 
   const applySuggestedReply = (body: string) => {
+    if (selectedId) setOriginalDraft({ id: selectedId, body });
     setReply(body);
     toast.info("Suggested draft inserted into composer.");
   };
@@ -883,6 +887,13 @@ export default function ConversationsPage() {
                                 Review & Send
                               </button>
                             </div>
+                            {originalDraft?.id === selectedId && selectedId && (
+                              <DraftLearning
+                                before={originalDraft.body}
+                                after={reply}
+                                conversationId={selectedId}
+                              />
+                            )}
                             <p className="mt-2 px-1 text-[11px] text-[var(--admin-muted)]">
                               Replies create audited receipts on the activity ledger.
                             </p>

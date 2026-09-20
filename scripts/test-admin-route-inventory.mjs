@@ -30,6 +30,7 @@ test("a route needs an executable action and an explicit service disposition", (
   const inventory = copy();
   inventory.routes[0].primaryAction = "";
   inventory.routes[0].specialBoundary = null;
+  inventory.routes[0].adapters = [];
   const errors = verifyInventory(inventory);
   assert.ok(errors.some((error) => error.startsWith("Missing action/boundary:")));
   assert.ok(errors.some((error) => error.startsWith("Missing service disposition:")));

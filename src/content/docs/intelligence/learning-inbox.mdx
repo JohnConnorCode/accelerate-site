@@ -1,7 +1,7 @@
 ---
 title: "Teach the business with the Learning Inbox"
 description: "Propose reusable corrections once, review them in one inbox, and let approved learnings guide future work."
-updated: "2026-09-19"
+updated: "2026-09-20"
 ---
 
 A correction becomes useful beyond one conversation when the team agrees it should guide future work. The **Learning Inbox** lets you propose and review reusable guidance with its scope and source, so future work can use an explicit decision rather than an informal assumption.
@@ -27,4 +27,24 @@ Conversation-derived content always starts at the lowest authority tier. Officia
 
 Use **Propose learning** for anything you find yourself correcting twice: positioning, workflow preferences, offerings, messaging, or process rules. Give it a confidence and the workers it affects. The assistant can also propose learnings conversationally through the same governed path; those proposals wait in the inbox like any other.
 
-Approved learnings appear in agent context with their authority, so the next draft, brief, or proposal starts from what the business already decided.
+Approved rules are supplied to interactive assistants, scheduled coworkers, reply drafting, proposal drafting and content briefs when their scope matches. Independent rules remain active together, while an explicit replacement preserves the older rule in history.
+
+## Add the reference behind the rule
+
+Open **Business references** in Learning Inbox, choose a PDF, DOCX, text or Markdown file, and confirm that workspace members and agents may use it. Uploads accept up to 4 MB; PDFs support up to 100 pages, and extracted text is limited to 500,000 characters. The file stays in private workspace storage while the work engine extracts its text. Once it shows **Searchable**, ask the assistant a specific question about its contents and inspect the returned source.
+
+For example, Northline Roofing could upload its appointment policy, then ask which information a customer should provide before a site visit. Search also draws from customer records, notes, conversations and authorized indexed Drive documents. This baseline uses text search, so it needs no embedding service or additional AI key. Your database, storage and any model calls still use your installation's resources.
+
+## Capture a correction while replying
+
+Apply a suggested reply in **Conversations**, then edit its wording. The correction control identifies changed sentences and lets you describe the general rule worth keeping. Choose **Save correction for review** to create a proposal, then use the normal Learning Inbox and approval steps. Keep customer-specific facts in the conversation so a one-off instruction does not become guidance for everyone.
+
+**Learning evidence** separates corrections, rejected actions, missing sources and execution failures. The work engine reviews new receipts once, creates a review task for execution failures, and records the proposed remedy. Successful actions remain useful evidence; compare the original failing example with later results before judging whether an approved correction improved the work.
+
+## What to check
+
+If a document stays queued, inspect the work engine and scheduler. A failed extraction offers **Retry**; scanned PDFs need OCR before upload. **Archive** removes a reference from later searches while retaining its history. Drive results are withheld when current access or the indexed revision cannot be verified; reconnect or sync Drive, then repeat the query.
+
+After approving a rule, run a relevant task and inspect its context receipt and actual result. The receipt proves which guidance was supplied, while reviewing the result establishes whether it helped. Rules with unknown older scopes stay out of context until reviewed. If **Earlier rules need review** appears, review each suggestion before proposing it again.
+
+The fictional demo supports proposal and approval practice. Use your own workspace to verify private uploads, scheduled indexing, model execution and real outcomes. When upgrading the inbound responder, review and approve its current policy version in Setup before automated replies resume.

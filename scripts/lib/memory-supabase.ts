@@ -22,6 +22,19 @@ function orPredicate(expression: string): (row: Row) => boolean {
     return (row: Row) => {
       const actual = row[column ?? ""];
       switch (op) {
+        case "ilike": {
+          const pattern = value
+            .split("")
+            .map((char) =>
+              char === "%"
+                ? ".*"
+                : char === "_"
+                  ? "."
+                  : char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            )
+            .join("");
+          return actual != null && new RegExp(`^${pattern}$`, "i").test(String(actual));
+        }
         case "is":
           return value === "null" ? actual === null || actual === undefined : actual === value;
         case "eq":

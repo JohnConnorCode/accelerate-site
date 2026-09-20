@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
 import { proposeAction } from "./actions";
-import { recordLearnedPolicy, type LearnedPolicyEntry } from "./memory";
+import type { LearnedPolicyEntry } from "./memory";
 import type {
   LearningConfidence,
   LearningProposal,
@@ -48,9 +48,21 @@ export function learningDedupeKey(input: {
   type: LearningProposalType;
   rule: string;
   scope?: Record<string, unknown> | null;
+  affectedWorkers?: string[];
+  supersedesPolicyId?: string | null;
 }): string {
   return createHash("sha256")
-    .update(`${input.type}|${normalizeRule(input.rule)}|${JSON.stringify(input.scope ?? null)}`)
+    .update(
+      JSON.stringify([
+        input.type,
+        normalizeRule(input.rule),
+        input.scope
+          ? Object.fromEntries(Object.entries(input.scope).sort(([a], [b]) => a.localeCompare(b)))
+          : null,
+        [...new Set(input.affectedWorkers ?? [])].sort(),
+        input.supersedesPolicyId ?? null,
+      ]),
+    )
     .digest("hex");
 }
 
@@ -90,11 +102,18 @@ export async function proposeLearning(
 ): Promise<LearningProposal> {
   if (!LEARNING_PROPOSAL_TYPES.includes(input.type)) throw new Error("Unknown proposal type");
   if (!normalizeRule(input.rule)) throw new Error("Rule must not be empty");
+  if (input.rule.length > 10000 || (input.rationale?.length ?? 0) > 10000)
+    throw new Error("Learning text exceeds 10000 characters");
+  if (
+    (input.affectedWorkers?.length ?? 0) > 50 ||
+    input.affectedWorkers?.some((worker) => !/^[a-z0-9_-]{1,100}$/.test(worker))
+  )
+    throw new Error("Invalid affected workers");
   const confidence = input.confidence ?? "medium";
   if (!LEARNING_CONFIDENCES.includes(confidence)) throw new Error("Unknown confidence");
   if (input.supersedesPolicyId) requireUuid(input.supersedesPolicyId, "supersedesPolicyId");
 
-  const dedupeKey = learningDedupeKey({ type: input.type, rule: input.rule, scope: input.scope });
+  const dedupeKey = learningDedupeKey(input);
 
   const { data: existing, error: readError } = await supabase
     .from("learning_proposals")
@@ -174,6 +193,7 @@ export async function setLearningDisposition(
     .from("learning_proposals")
     .update({ status: input.to, decided_at: new Date().toISOString() })
     .eq("id", input.id)
+    .eq("status", current.status)
     .select("*")
     .single();
   if (error) throw new Error(`Failed to set learning disposition: ${error.message}`);
@@ -237,63 +257,14 @@ export async function approveLearningProposal(
   supabase: SupabaseClient,
   input: { proposalId: string; actorEmail?: string | null },
 ): Promise<{ proposal: LearningProposal; policy: LearnedPolicyEntry }> {
-  const current = await getProposal(supabase, input.proposalId);
-  if (!current) throw new Error("Learning proposal not found");
-
-  if (current.status === "approved") {
-    if (!current.learned_policy_id)
-      throw new Error("Proposal approved without a recorded policy; refusing to diverge");
-    const { data: policy, error: policyError } = await supabase
-      .from("learned_policies")
-      .select("*")
-      .eq("id", current.learned_policy_id)
-      .maybeSingle();
-    if (policyError || !policy)
-      throw new Error("Approved learning lost its policy record; refusing to diverge");
-    return { proposal: current, policy: policy as unknown as LearnedPolicyEntry };
-  }
-  if (current.status !== "proposed")
-    throw new Error(`Only proposed learnings can be approved (status: ${current.status})`);
-
-  const policy = await recordLearnedPolicy(supabase, {
-    actionKey: `learning:${current.proposal_type}`,
-    rule: current.rule,
-    rationale: current.rationale || `Approved from learning proposal ${current.id}`,
-    source: "approved_learning",
-    scopeEntityType: null,
-    scopeEntityId: null,
-    actorEmail: input.actorEmail,
-    proposalType: current.proposal_type,
-    scope: current.scope,
-    confidence: current.confidence,
-    conflicts: current.conflicts,
-    affectedWorkers: current.affected_workers,
-    authority: current.authority,
+  requireUuid(input.proposalId, "proposalId");
+  const { data, error } = await supabase.rpc("approve_learning_proposal", {
+    p_proposal_id: input.proposalId,
+    p_actor: input.actorEmail ?? "system",
   });
-
-  // Forward-link an explicitly superseded policy, if it is still active.
-  if (current.supersedes_policy_id) {
-    await supabase
-      .from("learned_policies")
-      .update({ superseded_at: new Date().toISOString(), superseded_by: policy.id })
-      .eq("id", current.supersedes_policy_id)
-      .is("superseded_at", null);
-  }
-
-  const { data, error } = await supabase
-    .from("learning_proposals")
-    .update({
-      status: "approved",
-      learned_policy_id: policy.id,
-      decided_at: new Date().toISOString(),
-    })
-    .eq("id", current.id)
-    .eq("status", "proposed")
-    .select("*")
-    .single();
-  if (error) throw new Error(`Failed to close approved learning: ${error.message}`);
-
-  return { proposal: toProposal(data), policy };
+  if (error) throw new Error(`Failed to approve learning: ${error.message}`);
+  if (!data?.proposal || !data?.policy) throw new Error("Approval returned no learning receipt");
+  return data as { proposal: LearningProposal; policy: LearnedPolicyEntry };
 }
 
 /** Reject a proposal with a truthful terminal receipt. No shared residue. */
@@ -333,4 +304,31 @@ export async function listLearningProposals(
   const { data, error } = await query;
   if (error) throw new Error(`Failed to list learnings: ${error.message}`);
   return ((data ?? []) as unknown[]).map(toProposal);
+}
+
+/** Flag legacy broad replacements for review. An explicit replacement is
+ * intentional; a type-wide replacement must not silently reactivate history. */
+export async function listDisplacedLearnings(supabase: SupabaseClient) {
+  const { data, error } = await supabase
+    .from("learned_policies")
+    .select("id,rule,superseded_by,affected_workers,scope,proposal_type")
+    .eq("source", "approved_learning")
+    .not("superseded_at", "is", null)
+    .order("superseded_at", { ascending: false })
+    .limit(100);
+  if (error) throw new Error(`Failed to inspect learning history: ${error.message}`);
+  if (!data?.length) return [];
+  const replacementIds = data.map((p) => p.superseded_by).filter(Boolean);
+  if (!replacementIds.length) return [];
+  const { data: replacements, error: replacementError } = await supabase
+    .from("learning_proposals")
+    .select("learned_policy_id,supersedes_policy_id")
+    .in("learned_policy_id", replacementIds);
+  if (replacementError)
+    throw new Error(`Failed to inspect replacements: ${replacementError.message}`);
+  return data.filter((p) =>
+    replacements?.some(
+      (r) => r.learned_policy_id === p.superseded_by && r.supersedes_policy_id !== p.id,
+    ),
+  );
 }

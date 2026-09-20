@@ -1,7 +1,7 @@
 ---
 title: "Your first result"
 description: "Take one real inquiry from a connected workspace through to a reviewed action and its receipt."
-updated: "2026-09-19"
+updated: "2026-09-20"
 ---
 
 When an inquiry arrives, the outcome that matters is a reviewed decision with a recorded result, so you can see who confirmed what and what happened next. This guide follows one inquiry from a workspace you connected through [the installation guide](/docs/self-hosting/installation) all the way to a reviewed action and its receipt, using the same screens your team will use each day.
@@ -10,7 +10,15 @@ When an inquiry arrives, the outcome that matters is a reviewed decision with a 
 
 ## 1. Confirm the workspace and enable what you need
 
-Sign in at `/admin`, then open [Setup](/docs/workspace/setup) to confirm the business identity, the database connection, and any provider you intend to use. Review [Modules](/docs/start/modules) for the optional capabilities your workflow needs. Core customer, pipeline and work capabilities remain available. [Your workspace](/docs/start/workspace) explains the membership and business context each screen expects before it shows data.
+Sign in at `/admin` and open **Get started** to follow your first saved opportunity. Invited workspace owners use their invitation; self-hosted owners complete [Setup](/docs/workspace/setup) first. The checklist reads saved records, so progress survives reloads and stays available from the navigation. Review [Modules](/docs/start/modules) for the optional capabilities your workflow needs. Core customer, pipeline and work capabilities remain available. [Your workspace](/docs/start/workspace) explains the membership and business context each screen expects before it shows data.
+
+<DocsFigure
+  src="/images/docs/start/first-use.png"
+  width={1440}
+  height={1000}
+  alt="Get started checklist showing saved progress in the fictional Northline Roofing workspace."
+  caption="The first-follow-up checklist uses the same screens in hosted and self-hosted workspaces. This example contains fictional demo data."
+/>
 
 ## 2. Bring the inquiry in
 
@@ -54,10 +62,16 @@ If AI is configured, you can instead request a supported task proposal for that 
 
 After you confirm an action, open [Check an action result](/docs/start/receipts) to read the receipt the system recorded for that specific effect. The receipt names the action, its source record and its terminal state, so you can tell a finished delivery from a queued or failed one without trusting a confirmation message.
 
+## 6. Carry the lesson into the next inquiry
+
+Add a reference document in [Learning Inbox](/docs/intelligence/learning-inbox), then propose a correction worth reusing. After reviewing and approving it, run another relevant AI task and inspect which guidance it received. **Get started** checks the reference, linked task, approved correction and later context receipt separately, so you can see the next unfinished step.
+
+Manual contact, opportunity and task work needs no AI or email credentials. Document indexing needs the work engine, and the final guidance check needs a configured model. The readiness section distinguishes a connection from a successful search, model call, scheduler run and completed follow-up.
+
 ## What to check
 
 - For an external reply, check the provider result and distinguish send acceptance from a recorded delivery event.
-- Confirm every provider you rely on shows ready in Setup before you run its workflow.
+- Confirm the provider in Integrations, then check its successful execution receipt in Get started. Ask your platform operator to inspect Setup when installation work is required.
 - Confirm the imported person appears once in Contact intake and that the pipeline opportunity links to that same contact.
 - Before importing a repeated file, inspect the existing batch and proposed matches so you do not create unintended duplicate records.
 - If a step reports a problem, follow [Troubleshooting](/docs/start/troubleshooting) by symptom before you retry.

@@ -1,7 +1,7 @@
 ---
 title: "Client onboarding"
 description: "Turn a won opportunity into a reviewed, assigned kickoff checklist."
-updated: "2026-09-19"
+updated: "2026-09-20"
 ---
 
 Winning the work is the beginning of delivery. This plugin helps a team carry the customer’s context into the tasks needed to start the project, without copying the deal into another system.
@@ -46,3 +46,9 @@ Disabling the plugin in **Plugins** blocks any later execution, including approv
 If the source or an assignee is missing, correct the input and preview it again. When a result comes back uncertain, inspect the original receipt and reuse its request identity for a retry, rather than submitting a fresh request just to route around the uncertainty. A code or policy upgrade can invalidate an existing preview too, in which case it simply needs a fresh review.
 
 The [developer guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/plugins/client-onboarding/README.md) covers the contracts and `npm run test:business-workflows`. Controlled tests and fictional demo behavior are distinct from verification of your own workspace permissions and database.
+
+## Use the same sources in an AI conversation
+
+With this plugin enabled, the assistant can request its declared knowledge sources through the shared search tool. Results include source references, revisions, applicable reviewed guidance and the plugin's prerequisites. This uses the same host-reviewed source permissions as the plugin itself, so disabling the plugin also stops new source retrieval.
+
+The manifest declares which correction signals it accepts and what saved artifact counts as success. These declarations help an assistant choose and inspect the workflow; the report or approved workflow still performs the actual work. Review the resulting report or tasks and their source records before treating the example as complete.

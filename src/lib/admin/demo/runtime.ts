@@ -1,3 +1,8 @@
+import {
+  handleDemoLearning,
+  initialDemoLearning,
+  type DemoLearningState,
+} from "./learning-runtime";
 import { revenueDispositions } from "@/lib/revenue-os/revenue-dispositions";
 import { activityDispositions } from "@/lib/revenue-os/activity-dispositions";
 import { SITE_STUDIO_MODELS, SITE_MODELS_OBSERVED_AT } from "@/lib/site-studio/models";
@@ -158,6 +163,7 @@ export type DemoState = {
   campaignCopies?: ReturnType<typeof campaignDraftCopy>[];
   campaignDuplicateReceipts?: Record<string, { fingerprint: string; copyId: string }>;
   business: DemoBusinessState | null;
+  learning?: DemoLearningState;
   completedActions: string[];
   completedTasks: string[];
   resolvedIdentityReviews: string[];
@@ -2519,6 +2525,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       init?.body && typeof init.body === "string"
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
+    state.learning ??= initialDemoLearning();
+    const learningResponse = handleDemoLearning(
+      state.learning,
+      business,
+      pack,
+      url,
+      method,
+      body,
+      state.completedTasks,
+    );
+    if (learningResponse) {
+      if (method !== "GET" && learningResponse.ok) saveState(scenarioId, state);
+      return learningResponse;
+    }
     if (path === "/api/admin/site/models" && method === "GET") {
       if (state.moduleOverrides["site-studio"] === false)
         return jsonResponse(

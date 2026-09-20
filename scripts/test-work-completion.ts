@@ -40,7 +40,7 @@ function item(overrides: Row = {}): WorkItem {
     reason: "Customer awaits reply",
     source: "test",
     entity_type: "opportunity",
-    entity_id: "opp-1",
+    entity_id: "10000000-0000-4000-8000-000000000001",
     priority: "high",
     status: "in_progress",
     lease_owner: "worker-a",
@@ -72,7 +72,7 @@ function seed(wi = item()) {
     contacts: [{ id: "contact-1", tenant_id: "tenant-a", email: "customer@example.test" }],
     opportunities: [
       {
-        id: "opp-1",
+        id: "10000000-0000-4000-8000-000000000001",
         tenant_id: "tenant-a",
         contact_id: "contact-1",
         stage: "proposal",
@@ -83,7 +83,7 @@ function seed(wi = item()) {
       {
         id: "conv-1",
         tenant_id: "tenant-a",
-        opportunity_id: "opp-1",
+        opportunity_id: "10000000-0000-4000-8000-000000000001",
         contact_id: "contact-1",
         channel: "gmail",
       },
@@ -494,7 +494,7 @@ async function main() {
         };
         const input = {
           to: "customer@example.test",
-          opportunityId: "opp-1",
+          opportunityId: "10000000-0000-4000-8000-000000000001",
           subject: "Follow-up",
           body: "Hello",
           reasoning: "Awaiting reply",
@@ -601,7 +601,7 @@ async function main() {
               return chat([
                 call("propose_send_email", {
                   to: "customer@example.test",
-                  opportunityId: "opp-1",
+                  opportunityId: "10000000-0000-4000-8000-000000000001",
                   subject: "Follow-up",
                   body: "Hello",
                   reasoning: "Awaiting reply",

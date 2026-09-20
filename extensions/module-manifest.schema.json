@@ -319,6 +319,111 @@
           "pattern": "^plugins/[a-z0-9-]+/[^.].*\\.md$"
         }
       }
+    },
+    "knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "sourceNames",
+        "guidanceTypes",
+        "signalTypes",
+        "prerequisites",
+        "success",
+        "evaluations"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "sourceNames": {
+          "type": "array",
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,31}$"
+          }
+        },
+        "guidanceTypes": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "positioning_policy",
+              "workflow_preference",
+              "offering",
+              "messaging",
+              "process_rule",
+              "other"
+            ]
+          }
+        },
+        "signalTypes": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "draft_edit",
+              "rejection",
+              "explicit_correction",
+              "tool_failure",
+              "missing_source",
+              "verified_outcome"
+            ]
+          }
+        },
+        "prerequisites": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "success": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["artifact", "description"],
+          "properties": {
+            "artifact": {
+              "enum": ["report", "action", "task"]
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          }
+        },
+        "evaluations": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "scenario", "expectedArtifact"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "scenario": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "expectedArtifact": {
+                "enum": ["report", "action", "task", "refusal"]
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

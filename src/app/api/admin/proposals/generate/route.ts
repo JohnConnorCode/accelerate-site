@@ -1,3 +1,4 @@
+import { loadContextPack } from "@/lib/revenue-os/shared-context";
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
@@ -141,6 +142,11 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const context = await loadContextPack(supabase, {
+      entity: { type: "solution_request", id: lead_id },
+      includeEvidence: false,
+      maxChars: 4000,
+    });
     const intakeStr = lead.intake_data
       ? JSON.stringify(lead.intake_data, null, 2)
       : "No intake data available";
@@ -160,6 +166,7 @@ export async function POST(request: NextRequest) {
       validate: validateProposal,
       messages: [
         { role: "system", content: PROPOSAL_SYSTEM_PROMPT },
+        { role: "system", content: context.text },
         {
           role: "user",
           content: `Client details:

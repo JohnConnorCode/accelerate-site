@@ -333,6 +333,26 @@
       "module": "core-intelligence"
     },
     {
+      "tool": "get_first_use_progress",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "get_learning_evidence",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "propose_correction",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "list_knowledge_documents",
+      "module": "core-intelligence"
+    },
+    {
+      "tool": "propose_knowledge_change",
+      "module": "core-intelligence"
+    },
+    {
       "tool": "query_memory",
       "module": "core-intelligence"
     },

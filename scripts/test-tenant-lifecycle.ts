@@ -177,9 +177,11 @@ assert.ok(
   "tenant invitations must use a branded first-party email template",
 );
 assert.match(
-  setup,
+  readFileSync("scripts/lib/migration-manifest.mjs", "utf8"),
   /20260831-tenant-lifecycle-rpcs\.sql/,
-  "setup order must include atomic tenant lifecycle RPCs",
+  "canonical migration order must include atomic tenant lifecycle RPCs",
 );
+
+assert.match(setup, /migration-manifest\.mjs/, "setup must link the canonical migration order");
 
 console.log(JSON.stringify({ result: "passed", atomicLifecycleFunctions: 4, hardDeletes: 0 }));
