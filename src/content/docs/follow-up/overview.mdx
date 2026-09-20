@@ -1,19 +1,34 @@
 ---
-title: "Never lose an inquiry"
-description: "Response time, steady follow-up, and a clear next step on every page."
-updated: "2026-09-04"
+title: "Follow up on an inquiry"
+description: "Find the next action on the opportunity, complete or snooze the Today task, and confirm the activity receipt."
+updated: "2026-09-20"
 ---
 
-Most lost inquiries are not lost to competitors with better offers. They are lost to slow first response, estimates that go quiet, and follow-up that depends on somebody remembering.
+Inbound capture always writes the inquiry, the canonical records, the activity receipt, and an operator task before it attempts an automated reply. A mail or model outage cannot drop the lead. Use this page after [your first result](/docs/start/first-value).
 
-## Respond first
+## Starting screen
 
-The business that responds first usually keeps the conversation. Measure response time in minutes, assign every inquiry an owner, and confirm receipt right away even when the full answer takes longer.
+Open **Today** at `/admin/today`, or **Inbox** at `/admin/inbox` with the Tasks filter. Website forms set the next action to `Reply to new inquiry`. Chat sets `Reply to new chat inquiry`. A lead created with **New Lead** sets `Qualify manually created lead`.
 
-## Follow through
+## Required input
 
-An inquiry that waits for you while you serve customers is an inquiry at risk. Give every open thread a next action with a date, and review the list daily until each one is booked, closed, or released.
+You need the opportunity open long enough to see the person, the next action, and **Verified activity**. Completing the task needs no extra form fields. Sending a real reply later needs a verified Resend (or Google) connection, which this page does not assume.
 
-## Make the next step obvious
+## Ordered actions
 
-Every page should offer one clear action: call, book a conversation, or request a quote. If a visitor has to figure out what to do next, most of them will not do it.
+1. Open the task or the linked opportunity.
+2. Confirm **Verified activity** already contains the capture receipt (**Website inquiry captured**, **Chat inquiry captured**, or **Manual lead captured**).
+3. Do the human follow-up outside the product, or from **Conversations** if mail is connected.
+4. On Today, choose **Complete task**. Use **Snooze until tomorrow** when the commitment should wait.
+5. Re-open the opportunity and **Activity** at `/admin/activity` to confirm the completion receipt.
+
+## Saved result
+
+The task is no longer open. The opportunity still holds the next-action text until someone changes it on the record. The activity ledger keeps both the capture receipt and the task-completion receipt. Repeating the same inbound source id does not create a second capture activity.
+
+## Recovery
+
+- No capture receipt: treat the inquiry as unfiled. Check **Identity Review** if the email is ambiguous.
+- Task already completed: do not complete a lookalike task for the same opportunity; the inbound dedupe key is `inbound-follow-up:{opportunity id}`.
+- Automated reply did not send: that is expected without an approved responder policy and a mail provider. The records and task still exist.
+- Duplicate open opportunities for one email: stop. Resolve **Identity Review** before creating another lead.

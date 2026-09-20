@@ -7,7 +7,7 @@ import { seoMetadata } from "@/lib/og";
 export const metadata: Metadata = seoMetadata({
   title: "Documentation",
   description:
-    "Guides for working with Accelerate and running the Command Center: start with your business, then run follow-up that never loses an inquiry.",
+    "Install a workspace, learn the operator vocabulary, and take one inquiry through to a recorded result.",
 });
 
 export default function DocsLandingPage() {
@@ -17,11 +17,12 @@ export default function DocsLandingPage() {
         Documentation
       </p>
       <h1 className="max-w-[20ch] text-balance font-display text-[clamp(2.2rem,5vw,3.75rem)] font-medium leading-[1.02] tracking-[-0.04em] text-heading">
-        Run your business on rails
+        Install, then complete one inquiry
       </h1>
       <p className="mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-white-secondary">
-        Practical guides, not marketing. Start with your business, use the
-        Command Center where it earns its place, and follow up every inquiry.
+        Connect a workspace you control, capture one fictional lead, complete
+        the follow-up task, and read the receipt. Provider keys stay optional
+        until a later workflow needs them.
       </p>
 
       <div className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

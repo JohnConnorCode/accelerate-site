@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-The public site and fictional Command Center demo can be explored without provider credentials.
+The public site and fictional Command Center demo can be explored without provider credentials. After you can sign in to a workspace you control, follow the in-app first-value guide at `/docs/start/first-value`.
 
 ## 2. Create your environment
 
