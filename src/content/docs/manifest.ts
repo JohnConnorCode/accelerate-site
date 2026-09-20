@@ -28,40 +28,45 @@ export const docsManifest: DocsSection[] = [
     id: "start",
     title: "Start",
     description:
-      "How every engagement begins: your business first, then the smallest solution that solves the problem.",
+      "The words these guides use, then one inquiry from a connected workspace through to a recorded result.",
     pages: [
       {
         slug: ["start", "overview"],
-        title: "Start with your business",
+        title: "Workspace, record, work, approval, and receipt",
         description:
-          "We find where AI and automation can free up time or increase revenue before anyone builds anything.",
+          "The five terms every other page uses, taken from the screens and services that already ship.",
+      },
+      {
+        slug: ["start", "first-value"],
+        title: "Your first result",
+        description:
+          "Install a workspace, capture one controlled lead, complete the follow-up task, and read the recorded result.",
       },
     ],
   },
   {
     id: "command-center",
     title: "Command Center",
-    description:
-      "One shared operating layer for the businesses that need it — and how to tell whether you do.",
+    description: "The daily operator screens: Today, Pipeline, Inbox, Setup Center, and Activity.",
     pages: [
       {
         slug: ["command-center", "overview"],
         title: "The Command Center",
         description:
-          "What the Command Center is, what it is not, and when a smaller solution wins.",
+          "Where ranked work, records, approvals, and audit history live after you sign in at /admin.",
       },
     ],
   },
   {
     id: "follow-up",
     title: "Follow-up",
-    description:
-      "The discipline that decides most inquiries: respond first, follow through, and let nothing wait.",
+    description: "How a captured inquiry becomes a dated next action and a completable task.",
     pages: [
       {
         slug: ["follow-up", "overview"],
-        title: "Never lose an inquiry",
-        description: "Response time, steady follow-up, and a clear next step on every page.",
+        title: "Follow up on an inquiry",
+        description:
+          "Find the next action on the opportunity, complete or snooze the Today task, and confirm the activity receipt.",
       },
     ],
   },
@@ -69,13 +74,13 @@ export const docsManifest: DocsSection[] = [
     id: "self-hosting",
     title: "Self-hosting",
     description:
-      "Run the Command Center yourself: what you need, how to start, and when to bring us in.",
+      "Explore the fictional demo with no credentials, then connect a workspace you control.",
     pages: [
       {
         slug: ["self-hosting", "overview"],
-        title: "Self-hosting quickstart",
+        title: "Install a connected workspace",
         description:
-          "Clone the repository, connect Supabase, and run the Command Center behind your own agency.",
+          "Clone the repository, apply the ordered migrations, sign in, and recover when a provider or membership step is missing.",
       },
     ],
   },
