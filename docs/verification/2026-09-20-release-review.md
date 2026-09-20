@@ -79,3 +79,5 @@ existing tenant/RLS contracts and leaves rejected features unavailable.
 The inbound responder now requires its v3 standing-policy approval. Do not silently
 renew approval during deployment. Source/index availability, provider configuration,
 model execution and measured learning quality remain distinct readiness signals.
+
+Production ledger inspection found the readiness assessment migration already applied. Its exact immutable SQL and catalog entry are retained for checksum compatibility; excluding its application feature does not delete stored records. The only pending migrations are connected learning, knowledge documents and learning signals; every existing checksum matches.
