@@ -146,7 +146,7 @@ export function Footer({
           {/* Link Columns */}
           {content.columns.map((col, i) => (
             <FooterSection key={col.heading} index={i + 1}>
-              <h3 className="text-sm font-semibold text-white-primary mb-4">{col.heading}</h3>
+              <h2 className="text-sm font-semibold text-white-primary mb-4">{col.heading}</h2>
               <ul aria-label={`${col.heading} links`}>
                 {col.links.map((link) => (
                   <li key={link.href}>
@@ -168,9 +168,9 @@ export function Footer({
           <FooterSection index={5} className="mt-14 pt-8 border-t border-[var(--border-subtle)]">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-white-primary mb-1">
+                <h2 className="text-sm font-semibold text-white-primary mb-1">
                   {content.newsletter.heading}
-                </h3>
+                </h2>
                 <p className="text-sm text-white-muted">{content.newsletter.description}</p>
               </div>
               {status === "success" ? (

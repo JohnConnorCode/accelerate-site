@@ -100,7 +100,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export default function StyleGuide() {
   return (
-    <main className="bg-bg-base text-white-secondary">
+    <div className="bg-bg-base text-white-secondary">
       {/* hero */}
       <Section width="text" className="pt-40">
         <Stack gap="roomy">
@@ -280,6 +280,6 @@ export default function StyleGuide() {
           </Stack>
         </Row>
       </Section>
-    </main>
+    </div>
   );
 }

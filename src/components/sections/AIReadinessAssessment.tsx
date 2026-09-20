@@ -208,7 +208,7 @@ export function AIReadinessAssessment({
     );
 
   return (
-    <main className="mx-auto max-w-4xl px-5 pb-24 pt-28 sm:px-8 sm:pt-36">
+    <div className="mx-auto max-w-4xl px-5 pb-24 pt-28 sm:px-8 sm:pt-36">
       <div className="mb-10 flex items-center justify-between gap-4">
         <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
           AI readiness /{" "}
@@ -678,6 +678,6 @@ export function AIReadinessAssessment({
           {error}
         </p>
       )}
-    </main>
+    </div>
   );
 }

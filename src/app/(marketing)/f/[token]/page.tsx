@@ -44,9 +44,9 @@ export default async function PublicFormPage({ params }: { params: Promise<{ tok
       {form.description && (
         <p className="mt-2 text-sm text-[var(--site-muted,var(--mid))]">{form.description}</p>
       )}
-      <main className="mt-8">
+      <div className="mt-8">
         <PublicFormView token={token} schema={form.schema} />
-      </main>
+      </div>
     </div>
   );
 }
