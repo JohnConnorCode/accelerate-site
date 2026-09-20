@@ -83,108 +83,112 @@ export default function ResourcesPage() {
         loadingFallback={<LoadingSkeleton variant="page" />}
         label="Loading resource downloads"
       >
+        <AIReadinessPanel />
 
-      <AIReadinessPanel />
-
-      <div className="grid gap-4 sm:grid-cols-2 mb-6">
-        <StatCard label="Total Downloads" value={stats.totalDownloads} icon={Download} index={0} />
-        <StatCard label="Unique Users" value={stats.uniqueUsers} icon={Users} index={1} />
-      </div>
-
-      {/* Search & Filters */}
-      <div className="flex flex-wrap gap-3 mb-4">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
-          <Input
-            type="text"
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+        <div className="grid gap-4 sm:grid-cols-2 mb-6">
+          <StatCard
+            label="Total Downloads"
+            value={stats.totalDownloads}
+            icon={Download}
+            index={0}
           />
+          <StatCard label="Unique Users" value={stats.uniqueUsers} icon={Users} index={1} />
         </div>
-        {resourceTypes.length > 1 && (
-          <select
-            value={resourceFilter}
-            onChange={(e) => setResourceFilter(e.target.value)}
-            aria-label="Filter by resource type"
-            className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
-          >
-            <option value="all">All Resources</option>
-            {resourceTypes.map((type) => (
-              <option key={type} value={type}>
-                {type.replace(/[-_]/g, " ")}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
 
-      <GlassCard padding="none" hover="none" className="overflow-clip">
-        <table className="admin-table w-full text-sm">
-          <thead>
-            <tr className="border-b border-border-glass">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Name
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Email
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Resource
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Date
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Canonical
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((dl, index) => (
-              <motion.tr
-                key={dl.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: index * 0.03 }}
-                className="border-b border-border-glass hover:bg-white/[0.02] transition-colors"
-              >
-                <td className="px-4 py-3 text-white-primary font-medium">{dl.name}</td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/admin/contacts/${encodeURIComponent(dl.email)}`}
-                    className="text-white-secondary hover:text-gold-light transition-colors"
-                  >
-                    {dl.email}
-                  </Link>
-                </td>
-                <td className="px-4 py-3 text-white-secondary capitalize">
-                  {dl.resource_id.replace(/[-_]/g, " ")}
-                </td>
-                <td className="px-4 py-3 text-white-muted text-xs">
-                  {new Date(dl.downloaded_at).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3">
-                  <CanonicalSourceLink
-                    link={dl.revenue_os}
-                    schemaReady={downloadsQuery.data?.canonicalSchemaReady}
-                  />
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-        {filtered.length === 0 && (
-          <EmptyState message="No resource downloads found" icon={Download} />
-        )}
-      </GlassCard>
+        {/* Search & Filters */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+            <Input
+              type="text"
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          {resourceTypes.length > 1 && (
+            <select
+              value={resourceFilter}
+              onChange={(e) => setResourceFilter(e.target.value)}
+              aria-label="Filter by resource type"
+              className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+            >
+              <option value="all">All Resources</option>
+              {resourceTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type.replace(/[-_]/g, " ")}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
 
-      <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
-      <SourceToolDispositions
-        schemaReady={downloadsQuery.data?.canonicalSchemaReady}
-        dispositions={downloadsQuery.data?.dispositions}
-      />
+        <GlassCard padding="none" hover="none" className="overflow-clip">
+          <table className="admin-table w-full text-sm">
+            <thead>
+              <tr className="border-b border-border-glass">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Name
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Email
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Resource
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Date
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Canonical
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((dl, index) => (
+                <motion.tr
+                  key={dl.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="border-b border-border-glass hover:bg-white/[0.02] transition-colors"
+                >
+                  <td className="px-4 py-3 text-white-primary font-medium">{dl.name}</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/contacts/${encodeURIComponent(dl.email)}`}
+                      className="text-white-secondary hover:text-gold-light transition-colors"
+                    >
+                      {dl.email}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-white-secondary capitalize">
+                    {dl.resource_id.replace(/[-_]/g, " ")}
+                  </td>
+                  <td className="px-4 py-3 text-white-muted text-xs">
+                    {new Date(dl.downloaded_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <CanonicalSourceLink
+                      link={dl.revenue_os}
+                      schemaReady={downloadsQuery.data?.canonicalSchemaReady}
+                    />
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+          {filtered.length === 0 && (
+            <EmptyState message="No resource downloads found" icon={Download} />
+          )}
+        </GlassCard>
+
+        <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+        <SourceToolDispositions
+          schemaReady={downloadsQuery.data?.canonicalSchemaReady}
+          dispositions={downloadsQuery.data?.dispositions}
+        />
       </AdminReadBody>
     </motion.div>
   );

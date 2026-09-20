@@ -134,8 +134,8 @@ export default function AdminDemoLauncher() {
               </h2>
             </div>
             <p className={styles.lede}>
-              Pick a real operating moment. See the records, decisions and next action that make
-              the workflow useful.
+              Pick a real operating moment. See the records, decisions and next action that make the
+              workflow useful.
             </p>
           </AnimateOnScroll>
           <AnimateOnScroll className={styles.workflowShell} delay={0.08}>

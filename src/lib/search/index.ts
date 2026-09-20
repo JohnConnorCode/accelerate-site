@@ -168,14 +168,7 @@ const STATIC_PAGES: Array<Omit<SearchEntry, "group">> = [
     description:
       "Find where AI and automation can improve inquiry handling, estimates, scheduling, follow-up, reporting, and office operations for a roofing company.",
     href: "/roofing",
-    keywords: [
-      "roofing",
-      "roofers",
-      "contractors",
-      "estimates",
-      "scheduling",
-      "field operations",
-    ],
+    keywords: ["roofing", "roofers", "contractors", "estimates", "scheduling", "field operations"],
   },
   {
     id: "page-partners",

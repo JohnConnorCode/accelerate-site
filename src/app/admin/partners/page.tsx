@@ -94,98 +94,99 @@ export default function PartnersPage() {
         loadingFallback={<LoadingSkeleton variant="table" />}
         label="Loading partner applications"
       >
-
-      <GlassCard padding="none" hover="none" className="overflow-clip">
-        <table className="admin-table w-full text-sm">
-          <thead>
-            <tr className="border-b border-border-glass">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Name
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Company
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Type
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Status
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Date
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {partners.map((partner, index) => (
-              <motion.tr
-                key={partner.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: index * 0.03 }}
-                className="border-b border-border-glass hover:bg-white/[0.02]"
-              >
-                <td className="px-4 py-3">
-                  <div>
-                    <p className="text-white-primary font-medium">{partner.name}</p>
-                    <p className="text-xs text-white-muted">{partner.email}</p>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-white-secondary">
-                  {partner.company}
-                  {partner.website && <p className="text-xs text-white-muted">{partner.website}</p>}
-                </td>
-                <td className="px-4 py-3 text-white-secondary capitalize">
-                  {partner.partner_type}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={partner.status} />
-                </td>
-                <td className="px-4 py-3 text-white-muted text-xs">
-                  {new Date(partner.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3">
-                  {partner.status === "pending" && (
-                    <div className="flex gap-2">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleStatusChange(partner.id, "approved")}
-                        className="text-emerald-300 text-xs px-2 py-1"
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleStatusChange(partner.id, "declined")}
-                        className="text-red-300 text-xs px-2 py-1"
-                      >
-                        Decline
-                      </Button>
+        <GlassCard padding="none" hover="none" className="overflow-clip">
+          <table className="admin-table w-full text-sm">
+            <thead>
+              <tr className="border-b border-border-glass">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Name
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Company
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Type
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Status
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Date
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {partners.map((partner, index) => (
+                <motion.tr
+                  key={partner.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="border-b border-border-glass hover:bg-white/[0.02]"
+                >
+                  <td className="px-4 py-3">
+                    <div>
+                      <p className="text-white-primary font-medium">{partner.name}</p>
+                      <p className="text-xs text-white-muted">{partner.email}</p>
                     </div>
-                  )}
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-        {partners.length === 0 && (
-          <EmptyState message="No partner applications yet" icon={Handshake} />
-        )}
-      </GlassCard>
+                  </td>
+                  <td className="px-4 py-3 text-white-secondary">
+                    {partner.company}
+                    {partner.website && (
+                      <p className="text-xs text-white-muted">{partner.website}</p>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-white-secondary capitalize">
+                    {partner.partner_type}
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={partner.status} />
+                  </td>
+                  <td className="px-4 py-3 text-white-muted text-xs">
+                    {new Date(partner.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    {partner.status === "pending" && (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleStatusChange(partner.id, "approved")}
+                          className="text-emerald-300 text-xs px-2 py-1"
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleStatusChange(partner.id, "declined")}
+                          className="text-red-300 text-xs px-2 py-1"
+                        >
+                          Decline
+                        </Button>
+                      </div>
+                    )}
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+          {partners.length === 0 && (
+            <EmptyState message="No partner applications yet" icon={Handshake} />
+          )}
+        </GlassCard>
 
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          isVisible={true}
-          onClose={() => setToast(null)}
-        />
-      )}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            isVisible={true}
+            onClose={() => setToast(null)}
+          />
+        )}
       </AdminReadBody>
     </motion.div>
   );

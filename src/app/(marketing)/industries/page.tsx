@@ -98,9 +98,9 @@ export default async function IndustriesPage() {
               <h2 className={styles.heading}>Your workflow can be different.</h2>
             </div>
             <p className={styles.lede}>
-              These examples show possible starting points. We can scope a focused integration, custom
-              tool, training or managed execution around your business. Command Center is available
-              when a shared workspace helps.
+              These examples show possible starting points. We can scope a focused integration,
+              custom tool, training or managed execution around your business. Command Center is
+              available when a shared workspace helps.
             </p>
           </AnimateOnScroll>
           <AnimateOnScroll className={styles.actions} delay={0.18}>

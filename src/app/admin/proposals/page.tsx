@@ -149,7 +149,6 @@ export default function ProposalsPage() {
     }
   };
 
-
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
@@ -174,138 +173,150 @@ export default function ProposalsPage() {
         loadingFallback={<LoadingSkeleton variant="table" />}
         label="Loading proposals"
       >
-
-      {/* Filter */}
-      <div className="flex gap-3 mb-4">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          aria-label="Filter by status"
-          className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
-        >
-          {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {generating && (
-        <GlassCard hover="none" padding="md" className="mb-4">
-          <div className="flex items-center gap-3">
-            <Loader2 className="h-4 w-4 animate-spin text-gold-light" />
-            <p className="text-sm text-white-secondary">Generating proposal with AI...</p>
-          </div>
-        </GlassCard>
-      )}
-
-      {proposals.length === 0 ? (
-        <EmptyState message="No proposals yet. Create one from a lead or start blank." />
-      ) : (
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
-          <div className={selectedProposal ? "min-w-0 hidden lg:block" : "min-w-0"}>
-            <GlassCard hover="none">
-              <div className="overflow-x-auto">
-                <table className="admin-table w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border-glass">
-                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">Title</th>
-                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">Client</th>
-                      <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
-                        Monthly
-                      </th>
-                      <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
-                        One-Time
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">Status</th>
-                      <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
-                        Created
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {proposals.map((proposal, i) => (
-                      <motion.tr
-                        key={proposal.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: i * 0.03 }}
-                        tabIndex={0}
-                        aria-label={`Open ${proposal.title}`}
-                        aria-selected={selectedProposal?.id === proposal.id}
-                        className="cursor-pointer border-b border-border-glass transition-colors hover:bg-white/[0.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] last:border-b-0"
-                        onClick={(event) => {
-                          if (isInteractiveTarget(event.target)) return;
-                          openProposal(proposal);
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.target !== event.currentTarget) return;
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            openProposal(proposal);
-                          }
-                        }}
-                      >
-                        <td className="px-3 py-2.5 font-medium text-white-primary">{proposal.title}</td>
-                        <td className="px-3 py-2.5 text-white-secondary">{proposal.client_name}</td>
-                        <td className="hidden px-3 py-2.5 text-emerald-400 2xl:table-cell">
-                          ${proposal.total_monthly?.toLocaleString() || "0"}/mo
-                        </td>
-                        <td className="hidden px-3 py-2.5 text-white-secondary 2xl:table-cell">
-                          ${proposal.total_one_time?.toLocaleString() || "0"}
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <StatusBadge status={statusMap[proposal.status] || proposal.status} />
-                        </td>
-                        <td className="hidden px-3 py-2.5 text-xs text-white-muted 2xl:table-cell">
-                          {new Date(proposal.created_at).toLocaleDateString()}
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </GlassCard>
-          </div>
-          <section
-            className={selectedProposal ? "min-w-0 block" : "min-w-0 hidden lg:block"}
-            aria-label="Proposal details"
+        {/* Filter */}
+        <div className="flex gap-3 mb-4">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filter by status"
+            className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
           >
-            {selectedProposal ? (
-              <div className="min-w-0 space-y-4">
-                <button
-                  type="button"
-                  onClick={closeProposal}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-white-muted transition-colors hover:bg-white/5 hover:text-white-primary focus-visible:outline focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] lg:hidden"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Back to Proposals
-                </button>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white-muted">
-                    Selected proposal
-                  </p>
-                  <h2 className="mt-1 text-lg font-semibold text-white-primary">
-                    {selectedProposal.title}
-                  </h2>
-                  <p className="text-sm text-white-muted">{selectedProposal.client_name}</p>
-                </div>
-                <ProposalEditor proposal={selectedProposal} onSave={handleSave} />
-              </div>
-            ) : (
-              <GlassCard hover="none" className="hidden min-h-56 place-items-center text-center lg:grid">
-                <div>
-                  <p className="text-sm font-semibold text-white-primary">Select a proposal</p>
-                  <p className="mt-1 text-xs text-white-muted">
-                    Choose a row to edit its content, pricing, status, or share link.
-                  </p>
+            {statusOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {generating && (
+          <GlassCard hover="none" padding="md" className="mb-4">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-4 w-4 animate-spin text-gold-light" />
+              <p className="text-sm text-white-secondary">Generating proposal with AI...</p>
+            </div>
+          </GlassCard>
+        )}
+
+        {proposals.length === 0 ? (
+          <EmptyState message="No proposals yet. Create one from a lead or start blank." />
+        ) : (
+          <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
+            <div className={selectedProposal ? "min-w-0 hidden lg:block" : "min-w-0"}>
+              <GlassCard hover="none">
+                <div className="overflow-x-auto">
+                  <table className="admin-table w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border-glass">
+                        <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
+                          Title
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
+                          Client
+                        </th>
+                        <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
+                          Monthly
+                        </th>
+                        <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
+                          One-Time
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
+                          Status
+                        </th>
+                        <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
+                          Created
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {proposals.map((proposal, i) => (
+                        <motion.tr
+                          key={proposal.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: i * 0.03 }}
+                          tabIndex={0}
+                          aria-label={`Open ${proposal.title}`}
+                          aria-selected={selectedProposal?.id === proposal.id}
+                          className="cursor-pointer border-b border-border-glass transition-colors hover:bg-white/[0.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] last:border-b-0"
+                          onClick={(event) => {
+                            if (isInteractiveTarget(event.target)) return;
+                            openProposal(proposal);
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.target !== event.currentTarget) return;
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              openProposal(proposal);
+                            }
+                          }}
+                        >
+                          <td className="px-3 py-2.5 font-medium text-white-primary">
+                            {proposal.title}
+                          </td>
+                          <td className="px-3 py-2.5 text-white-secondary">
+                            {proposal.client_name}
+                          </td>
+                          <td className="hidden px-3 py-2.5 text-emerald-400 2xl:table-cell">
+                            ${proposal.total_monthly?.toLocaleString() || "0"}/mo
+                          </td>
+                          <td className="hidden px-3 py-2.5 text-white-secondary 2xl:table-cell">
+                            ${proposal.total_one_time?.toLocaleString() || "0"}
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <StatusBadge status={statusMap[proposal.status] || proposal.status} />
+                          </td>
+                          <td className="hidden px-3 py-2.5 text-xs text-white-muted 2xl:table-cell">
+                            {new Date(proposal.created_at).toLocaleDateString()}
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </GlassCard>
-            )}
-          </section>
-        </div>
-      )}
+            </div>
+            <section
+              className={selectedProposal ? "min-w-0 block" : "min-w-0 hidden lg:block"}
+              aria-label="Proposal details"
+            >
+              {selectedProposal ? (
+                <div className="min-w-0 space-y-4">
+                  <button
+                    type="button"
+                    onClick={closeProposal}
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-white-muted transition-colors hover:bg-white/5 hover:text-white-primary focus-visible:outline focus-visible:ring-2 focus-visible:ring-[var(--gold-base)] lg:hidden"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    Back to Proposals
+                  </button>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white-muted">
+                      Selected proposal
+                    </p>
+                    <h2 className="mt-1 text-lg font-semibold text-white-primary">
+                      {selectedProposal.title}
+                    </h2>
+                    <p className="text-sm text-white-muted">{selectedProposal.client_name}</p>
+                  </div>
+                  <ProposalEditor proposal={selectedProposal} onSave={handleSave} />
+                </div>
+              ) : (
+                <GlassCard
+                  hover="none"
+                  className="hidden min-h-56 place-items-center text-center lg:grid"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-white-primary">Select a proposal</p>
+                    <p className="mt-1 text-xs text-white-muted">
+                      Choose a row to edit its content, pricing, status, or share link.
+                    </p>
+                  </div>
+                </GlassCard>
+              )}
+            </section>
+          </div>
+        )}
       </AdminReadBody>
     </motion.div>
   );

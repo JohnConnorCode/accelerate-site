@@ -74,7 +74,6 @@ export default function EmailSequencesPage() {
     fetchData();
   }, [fetchData]);
 
-
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <PageHeader
@@ -91,115 +90,114 @@ export default function EmailSequencesPage() {
         loadingFallback={<LoadingSkeleton variant="table" />}
         label="Loading retained source tool"
       >
+        {/* Stats */}
+        <div className="grid gap-4 sm:grid-cols-4 mb-6">
+          <StatCard label="Total" value={stats.total} icon={Mail} index={0} />
+          <StatCard label="Active" value={stats.active} icon={Play} index={1} />
+          <StatCard label="Completed" value={stats.completed} icon={CheckCircle2} index={2} />
+          <StatCard label="Paused" value={stats.paused} icon={PauseCircle} index={3} />
+        </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-4 mb-6">
-        <StatCard label="Total" value={stats.total} icon={Mail} index={0} />
-        <StatCard label="Active" value={stats.active} icon={Play} index={1} />
-        <StatCard label="Completed" value={stats.completed} icon={CheckCircle2} index={2} />
-        <StatCard label="Paused" value={stats.paused} icon={PauseCircle} index={3} />
-      </div>
+        {/* Filters */}
+        <div className="flex gap-3 mb-4">
+          <Select
+            value={typeFilter}
+            onChange={(e) => {
+              setTypeFilter(e.target.value);
+              setPage(1);
+            }}
+            options={[
+              { value: "all", label: "All Types" },
+              { value: "plan_nurture", label: "Plan Nurture" },
+              { value: "resource_welcome", label: "Resource Welcome" },
+              { value: "grader_followup", label: "Grader Followup" },
+              { value: "booking_nurture", label: "Booking Nurture" },
+              { value: "roofing_nurture", label: "Roofing Nurture" },
+              { value: "manual_audit_followup", label: "Manual Audit Followup" },
+            ]}
+            className="w-44"
+          />
+          <Select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            options={[
+              { value: "all", label: "All Statuses" },
+              { value: "completed", label: "Completed" },
+              { value: "active", label: "Active" },
+              { value: "paused", label: "Paused" },
+              { value: "unsubscribed", label: "Unsubscribed" },
+            ]}
+            className="w-44"
+          />
+        </div>
 
-      {/* Filters */}
-      <div className="flex gap-3 mb-4">
-        <Select
-          value={typeFilter}
-          onChange={(e) => {
-            setTypeFilter(e.target.value);
-            setPage(1);
-          }}
-          options={[
-            { value: "all", label: "All Types" },
-            { value: "plan_nurture", label: "Plan Nurture" },
-            { value: "resource_welcome", label: "Resource Welcome" },
-            { value: "grader_followup", label: "Grader Followup" },
-            { value: "booking_nurture", label: "Booking Nurture" },
-            { value: "roofing_nurture", label: "Roofing Nurture" },
-            { value: "manual_audit_followup", label: "Manual Audit Followup" },
-          ]}
-          className="w-44"
-        />
-        <Select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
-          options={[
-            { value: "all", label: "All Statuses" },
-            { value: "completed", label: "Completed" },
-            { value: "active", label: "Active" },
-            { value: "paused", label: "Paused" },
-            { value: "unsubscribed", label: "Unsubscribed" },
-          ]}
-          className="w-44"
-        />
-      </div>
+        {/* Table */}
+        <GlassCard padding="none" hover="none" className="overflow-clip">
+          <table className="admin-table w-full text-sm">
+            <thead>
+              <tr className="border-b border-border-glass">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Email
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Type
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Emails
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Status
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Enrolled
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {sequences.map((seq, index) => {
+                const emailCount = seq.metadata?.resend_email_ids?.length ?? seq.current_step ?? 0;
+                return (
+                  <motion.tr
+                    key={seq.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: index * 0.03 }}
+                    className="border-b border-border-glass hover:bg-white/[0.02]"
+                  >
+                    <td className="px-4 py-3 text-white-primary">{seq.email}</td>
+                    <td className="px-4 py-3 text-white-secondary capitalize">
+                      {seq.sequence_type?.replace(/_/g, " ")}
+                    </td>
+                    <td className="px-4 py-3 text-white-secondary">{emailCount} emails</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={seq.status} />
+                    </td>
+                    <td className="px-4 py-3 text-white-muted text-xs">
+                      {seq.created_at ? new Date(seq.created_at).toLocaleDateString() : "-"}
+                    </td>
+                  </motion.tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {sequences.length === 0 && (
+            <EmptyState message="No email sequences yet" icon={AlertCircle} />
+          )}
+        </GlassCard>
 
-      {/* Table */}
-      <GlassCard padding="none" hover="none" className="overflow-clip">
-        <table className="admin-table w-full text-sm">
-          <thead>
-            <tr className="border-b border-border-glass">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Email
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Type
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Emails
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Status
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Enrolled
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {sequences.map((seq, index) => {
-              const emailCount = seq.metadata?.resend_email_ids?.length ?? seq.current_step ?? 0;
-              return (
-                <motion.tr
-                  key={seq.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.03 }}
-                  className="border-b border-border-glass hover:bg-white/[0.02]"
-                >
-                  <td className="px-4 py-3 text-white-primary">{seq.email}</td>
-                  <td className="px-4 py-3 text-white-secondary capitalize">
-                    {seq.sequence_type?.replace(/_/g, " ")}
-                  </td>
-                  <td className="px-4 py-3 text-white-secondary">{emailCount} emails</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={seq.status} />
-                  </td>
-                  <td className="px-4 py-3 text-white-muted text-xs">
-                    {seq.created_at ? new Date(seq.created_at).toLocaleDateString() : "-"}
-                  </td>
-                </motion.tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {sequences.length === 0 && (
-          <EmptyState message="No email sequences yet" icon={AlertCircle} />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            isVisible={true}
+            onClose={() => setToast(null)}
+          />
         )}
-      </GlassCard>
-
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          isVisible={true}
-          onClose={() => setToast(null)}
-        />
-      )}
       </AdminReadBody>
     </motion.div>
   );

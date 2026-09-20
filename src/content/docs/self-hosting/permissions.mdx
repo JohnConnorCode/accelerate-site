@@ -17,14 +17,14 @@ updated: "2026-09-20"
 
 ## What each identity can open
 
-| Surface | Route | Who |
-| ------- | ----- | --- |
-| Today, Inbox, Pipeline, Activity | `/admin/today`, `/admin/inbox`, `/admin/pipeline`, `/admin/activity` | Tenant admin (`requireAdmin`) |
-| Integrations | `/admin/integrations` | Tenant admin |
-| Setup Center | `/admin/setup` | Founder only (`requirePlatformAdmin`) |
-| Feature Board | `/admin/features` | Founder only |
-| Tenant directory read | `/admin/tenants` GET | Tenant admin sees the directory; non-founders only see their own memberships |
-| Create, invite, revoke, activate, suspend, archive | `/admin/tenants` POST | Founder only |
+| Surface                                            | Route                                                                | Who                                                                          |
+| -------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Today, Inbox, Pipeline, Activity                   | `/admin/today`, `/admin/inbox`, `/admin/pipeline`, `/admin/activity` | Tenant admin (`requireAdmin`)                                                |
+| Integrations                                       | `/admin/integrations`                                                | Tenant admin                                                                 |
+| Setup Center                                       | `/admin/setup`                                                       | Founder only (`requirePlatformAdmin`)                                        |
+| Feature Board                                      | `/admin/features`                                                    | Founder only                                                                 |
+| Tenant directory read                              | `/admin/tenants` GET                                                 | Tenant admin sees the directory; non-founders only see their own memberships |
+| Create, invite, revoke, activate, suspend, archive | `/admin/tenants` POST                                                | Founder only                                                                 |
 
 Google sync, tasks, and most revenue APIs are tenant-admin. Feature Board agent credentials, Setup Center, and tenant lifecycle writes stay founder-only.
 
@@ -34,12 +34,12 @@ Start at **Tenant operations** (`/admin/tenants`). The heading is **Tenant opera
 
 Workspace statuses and the copy on each card:
 
-| Status | Meaning on the screen |
-| ------ | --------------------- |
-| Active | Members and tenant operations are enabled. |
-| Provisioning | Configuration is being reviewed before activation. |
-| Suspended | Access, jobs, ingest, and provider effects are paused. |
-| Archived | Data is retained, but this workspace cannot operate. |
+| Status       | Meaning on the screen                                  |
+| ------------ | ------------------------------------------------------ |
+| Active       | Members and tenant operations are enabled.             |
+| Provisioning | Configuration is being reviewed before activation.     |
+| Suspended    | Access, jobs, ingest, and provider effects are paused. |
+| Archived     | Data is retained, but this workspace cannot operate.   |
 
 Founder actions on an active workspace: **Enter workspace** (opens `/t/\{slug\}/admin/today`), **Suspend** (confirm **Suspend workspace**). Provisioning or suspended workspaces show **Activate**. Create and invite are founder POSTs with a client request id.
 

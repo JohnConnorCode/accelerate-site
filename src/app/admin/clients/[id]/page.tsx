@@ -144,26 +144,26 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
         loadingFallback={<LoadingSkeleton variant="page" />}
         label="Loading client"
       >
-      <Link
-        href={`/admin/contacts/${encodeURIComponent(client.contact_email)}`}
-        className="mb-5 inline-flex min-h-11 items-center text-sm font-medium text-[var(--admin-ink)] underline underline-offset-4"
-      >
-        Open {client.contact_name}&apos;s contact history
-      </Link>
+        <Link
+          href={`/admin/contacts/${encodeURIComponent(client.contact_email)}`}
+          className="mb-5 inline-flex min-h-11 items-center text-sm font-medium text-[var(--admin-ink)] underline underline-offset-4"
+        >
+          Open {client.contact_name}&apos;s contact history
+        </Link>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <ClientDetail client={client} onUpdate={handleUpdate} />
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <ClientDetail client={client} onUpdate={handleUpdate} />
+          </div>
+          <div>
+            <AdminSurface padding="md">
+              <h4 className="mb-4 text-sm font-semibold text-[var(--admin-ink)]">
+                Activity Timeline
+              </h4>
+              <ContactTimeline items={timeline} />
+            </AdminSurface>
+          </div>
         </div>
-        <div>
-          <AdminSurface padding="md">
-            <h4 className="mb-4 text-sm font-semibold text-[var(--admin-ink)]">
-              Activity Timeline
-            </h4>
-            <ContactTimeline items={timeline} />
-          </AdminSurface>
-        </div>
-      </div>
       </AdminReadBody>
     </div>
   );

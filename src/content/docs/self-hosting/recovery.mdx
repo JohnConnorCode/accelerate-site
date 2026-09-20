@@ -37,12 +37,12 @@ npm run db:verify-schema -- --record
 npm run verify:bootstrap-identity
 ```
 
-| Command | Environment | Working reference |
-| ------- | ----------- | ----------------- |
-| `npm run db:migrate:all` | Local checkout; `.env.local` pooler vars for a project you control | `scripts/run-all-migrations.mjs` |
-| `npm run db:verify-schema` | Same; read-only metadata | `scripts/verify-revenue-schema.ts` |
-| `npm run db:verify-schema -- --record` | Same; writes a schema verification receipt Setup Center reads | `scripts/verify-revenue-schema.ts` |
-| `npm run verify:bootstrap-identity` | Same; confirms the seed is not the reference identity | `scripts/verify-bootstrap-identity.mjs` |
+| Command                                | Environment                                                        | Working reference                       |
+| -------------------------------------- | ------------------------------------------------------------------ | --------------------------------------- |
+| `npm run db:migrate:all`               | Local checkout; `.env.local` pooler vars for a project you control | `scripts/run-all-migrations.mjs`        |
+| `npm run db:verify-schema`             | Same; read-only metadata                                           | `scripts/verify-revenue-schema.ts`      |
+| `npm run db:verify-schema -- --record` | Same; writes a schema verification receipt Setup Center reads      | `scripts/verify-revenue-schema.ts`      |
+| `npm run verify:bootstrap-identity`    | Same; confirms the seed is not the reference identity              | `scripts/verify-bootstrap-identity.mjs` |
 
 Re-running `db:migrate:all` after a fix is safe on a new install. On a long-lived database, prefer `db:verify-schema` instead of replaying the full list; see `docs/self-hosting/REVENUE-OS-SETUP.md`. Refresh Setup Center. Ready means the contract receipt matches, not that email is healthy.
 
@@ -58,8 +58,8 @@ If the 15-minute system-health snapshot never wakes:
 npm run scheduler:configure
 ```
 
-| Command | Environment | Working reference |
-| ------- | ----------- | ----------------- |
+| Command                       | Environment                                                                                                                                                                                     | Working reference                                |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | `npm run scheduler:configure` | `.env.local` with production HTTPS `NEXT_PUBLIC_SITE_URL` (no localhost) and `CRON_SECRET` of at least 32 characters. Stores the endpoint and bearer in Supabase Vault and does not print them. | `scripts/configure-command-center-scheduler.mjs` |
 
 Prove the health rules on a disposable project:
@@ -70,11 +70,11 @@ npm run verify:health-truth
 npm run verify:stale-claim-recovery
 ```
 
-| Command | Environment | Working reference |
-| ------- | ----------- | ----------------- |
-| `npm run test:setup-status` | Local, no database. Keys without receipts stay Action needed. | `scripts/test-setup-status.ts` |
-| `npm run verify:health-truth` | Local `.env.local` project you control. Inserts then deletes synthetic stalled-job and failed-webhook rows. | `scripts/verify-health-truth.ts` |
-| `npm run verify:stale-claim-recovery` | Same. Uses a reserved job key and removes it. | `scripts/verify-stale-claim-recovery.ts` |
+| Command                               | Environment                                                                                                 | Working reference                        |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `npm run test:setup-status`           | Local, no database. Keys without receipts stay Action needed.                                               | `scripts/test-setup-status.ts`           |
+| `npm run verify:health-truth`         | Local `.env.local` project you control. Inserts then deletes synthetic stalled-job and failed-webhook rows. | `scripts/verify-health-truth.ts`         |
+| `npm run verify:stale-claim-recovery` | Same. Uses a reserved job key and removes it.                                                               | `scripts/verify-stale-claim-recovery.ts` |
 
 **Saved result:** Operations health no longer lists the stalled key, and the next snapshot job has a terminal receipt. `verify:health-truth` and `verify:stale-claim-recovery` print a pass line and exit 0.
 
@@ -96,10 +96,10 @@ Release a claim you still hold:
 npm run agent:release -- --card <key>
 ```
 
-| Command | Environment | Working reference |
-| ------- | ----------- | ----------------- |
+| Command                                   | Environment                                                                                      | Working reference           |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------- |
 | `npm run agent:heartbeat -- --card <key>` | Local; `WORK_BOARD_URL` and a founder-issued `WORK_BOARD_TOKEN`. Session files stay outside Git. | `scripts/agent-dispatch.ts` |
-| `npm run agent:release -- --card <key>` | Same; only the holder with the unexpired token can release. | `scripts/agent-dispatch.ts` |
+| `npm run agent:release -- --card <key>`   | Same; only the holder with the unexpired token can release.                                      | `scripts/agent-dispatch.ts` |
 
 Work volume is advisory. Run `npm run agent:go -- --card <key>` to resume specifically authorized expired work through revision-checked recovery. The runner preserves retained source and audit history and refuses takeover of a live claim. Use the configured private board profile; keep every other worker checkout intact.
 

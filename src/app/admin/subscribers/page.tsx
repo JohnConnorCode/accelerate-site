@@ -90,100 +90,99 @@ export default function SubscribersPage() {
         loadingFallback={<LoadingSkeleton variant="page" />}
         label="Loading subscribers"
       >
-
-      <div className="admin-grid admin-grid--metrics mb-6">
-        <StatCard label="Total" value={stats.total} icon={AtSign} index={0} />
-        <StatCard
-          label="Active"
-          value={stats.active}
-          icon={Users}
-          index={1}
-          trend="up"
-          change={`${stats.total ? Math.round((stats.active / stats.total) * 100) : 0}% active`}
-        />
-        <StatCard label="Unsubscribed" value={stats.unsubscribed} icon={UserX} index={2} />
-      </div>
-
-      {/* Search & Filters */}
-      <div className="flex flex-wrap gap-3 mb-4">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
-          <Input
-            type="text"
-            placeholder="Search by email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+        <div className="admin-grid admin-grid--metrics mb-6">
+          <StatCard label="Total" value={stats.total} icon={AtSign} index={0} />
+          <StatCard
+            label="Active"
+            value={stats.active}
+            icon={Users}
+            index={1}
+            trend="up"
+            change={`${stats.total ? Math.round((stats.active / stats.total) * 100) : 0}% active`}
           />
+          <StatCard label="Unsubscribed" value={stats.unsubscribed} icon={UserX} index={2} />
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          aria-label="Filter by status"
-          className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="unsubscribed">Unsubscribed</option>
-        </select>
-        <Button variant="secondary" size="sm" onClick={handleExport}>
-          <Download className="h-4 w-4 mr-2" />
-          Export
-        </Button>
-      </div>
 
-      <GlassCard padding="none" hover="none" className="overflow-clip">
-        <table className="admin-table w-full text-sm">
-          <thead>
-            <tr className="border-b border-border-glass">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Email
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Source
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Status
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
-                Date
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((sub, index) => (
-              <motion.tr
-                key={sub.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: index * 0.03 }}
-                className="border-b border-border-glass hover:bg-white/[0.02] transition-colors"
-              >
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/admin/contacts/${encodeURIComponent(sub.email)}`}
-                    className="text-white-primary hover:text-gold-light transition-colors"
-                  >
-                    {sub.email}
-                  </Link>
-                </td>
-                <td className="px-4 py-3 text-white-secondary capitalize">
-                  {sub.source || "website"}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={sub.unsubscribed_at ? "unsubscribed" : "active"} />
-                </td>
-                <td className="px-4 py-3 text-white-muted text-xs">
-                  {new Date(sub.subscribed_at).toLocaleDateString()}
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-        {filtered.length === 0 && <EmptyState message="No subscribers found" icon={AtSign} />}
-      </GlassCard>
+        {/* Search & Filters */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white-muted" />
+            <Input
+              type="text"
+              placeholder="Search by email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filter by status"
+            className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="unsubscribed">Unsubscribed</option>
+          </select>
+          <Button variant="secondary" size="sm" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
 
-      <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+        <GlassCard padding="none" hover="none" className="overflow-clip">
+          <table className="admin-table w-full text-sm">
+            <thead>
+              <tr className="border-b border-border-glass">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Email
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Source
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Status
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-white-muted uppercase">
+                  Date
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((sub, index) => (
+                <motion.tr
+                  key={sub.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="border-b border-border-glass hover:bg-white/[0.02] transition-colors"
+                >
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/contacts/${encodeURIComponent(sub.email)}`}
+                      className="text-white-primary hover:text-gold-light transition-colors"
+                    >
+                      {sub.email}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-white-secondary capitalize">
+                    {sub.source || "website"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={sub.unsubscribed_at ? "unsubscribed" : "active"} />
+                  </td>
+                  <td className="px-4 py-3 text-white-muted text-xs">
+                    {new Date(sub.subscribed_at).toLocaleDateString()}
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+          {filtered.length === 0 && <EmptyState message="No subscribers found" icon={AtSign} />}
+        </GlassCard>
+
+        <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
       </AdminReadBody>
     </motion.div>
   );

@@ -74,7 +74,6 @@ export default function ClientsPage() {
     fetchClients();
   }, [fetchClients]);
 
-
   return (
     <div>
       <PageHeader
@@ -91,167 +90,169 @@ export default function ClientsPage() {
         loadingFallback={<LoadingSkeleton variant="table" />}
         label="Loading retained source tool"
       >
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-4">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          aria-label="Filter by status"
-          className="admin-field admin-field--inline min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
-        >
-          {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search clients"
-            placeholder="Search clients..."
-            className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none placeholder:text-[var(--admin-muted)] focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
-          />
-        </div>
-      </div>
-
-      {/* MRR Summary Cards */}
-      <div className="mb-6 admin-grid admin-grid--metrics">
-        <AdminSurface padding="sm">
-          <p className="admin-eyebrow">Monthly recurring</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
-            ${totalMRR.toLocaleString()}
-          </p>
-        </AdminSurface>
-        <AdminSurface padding="sm">
-          <button
-            type="button"
-            aria-label="Show active clients"
-            aria-pressed={statusFilter === "active"}
-            onClick={() => setStatusFilter(statusFilter === "active" ? "all" : "active")}
-            className="min-h-11 w-full text-left focus-visible:outline focus-visible:outline-2"
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filter by status"
+            className="admin-field admin-field--inline min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
           >
-            <span className="admin-eyebrow">Active clients</span>
-            <span className="mt-1 block text-xl font-semibold tabular-nums text-[var(--admin-success)]">
-              {activeCount}
-            </span>
-          </button>
-        </AdminSurface>
-        <AdminSurface padding="sm" className="hidden sm:block">
-          <p className="admin-eyebrow">Average MRR / client</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
-            ${activeCount > 0 ? Math.round(totalMRR / activeCount).toLocaleString() : "0"}
-          </p>
-        </AdminSurface>
-      </div>
-
-      {error && (
-        <p role="alert" className="mb-4 text-sm">
-          {error}{" "}
-          <button type="button" className="min-h-11 underline" onClick={() => void fetchClients()}>
-            Retry
-          </button>
-        </p>
-      )}
-      {/* Client Table */}
-      {clients.length === 0 ? (
-        <EmptyState
-          message={
-            search || statusFilter !== "all"
-              ? "No clients match these filters. Try another name or status."
-              : "No clients yet. Win a lead to create your first client!"
-          }
-        />
-      ) : (
-        <AdminSurface padding="none" className="overflow-hidden">
-          <p className="px-4 py-3 text-xs text-[var(--admin-muted)]">
-            Open a client to review their history, update their plan, or add a follow-up.
-          </p>
-          <div className="overflow-x-auto">
-            <table className="admin-table w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]">
-                  {["Business", "Contact", "Industry", "MRR", "Status", "Since"].map(
-                    (label, index) => (
-                      <th
-                        key={label}
-                        scope="col"
-                        className={`px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)] ${index === 1 ? "hidden md:table-cell" : index === 2 || index === 5 ? "hidden sm:table-cell" : ""}`}
-                      >
-                        {label}
-                      </th>
-                    ),
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {clients.map((client) => (
-                  <tr
-                    key={client.id}
-                    data-client-row={client.id}
-                    tabIndex={0}
-                    aria-label={`Open ${client.business_name}`}
-                    onClick={(event) => {
-                      if (isInteractiveTarget(event.target)) return;
-                      if (window.getSelection()?.toString()) return;
-                      navigation.push(`/admin/clients/${client.id}`);
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.target !== event.currentTarget) return;
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        navigation.push(`/admin/clients/${client.id}`);
-                      }
-                    }}
-                    className="cursor-pointer border-b border-[var(--admin-border)] transition-colors last:border-b-0 hover:bg-[var(--admin-surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)]"
-                  >
-                    <td className="px-3 py-2.5">
-                      <Link
-                        href={`/admin/clients/${client.id}`}
-                        className="inline-flex min-h-11 items-center font-semibold text-[var(--admin-ink)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2"
-                      >
-                        {client.business_name}
-                      </Link>
-                    </td>
-                    <td className="hidden px-3 py-2.5 md:table-cell">
-                      <div>
-                        <Link
-                          href={`/admin/contacts/${encodeURIComponent(client.contact_email)}`}
-                          className="inline-flex min-h-10 items-center text-xs text-[var(--admin-ink)] hover:underline"
-                        >
-                          {client.contact_name}
-                        </Link>
-                        <p className="text-[10px] text-[var(--admin-muted)]">
-                          {client.contact_email}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="hidden px-3 py-2.5 text-xs capitalize text-[var(--admin-muted)] sm:table-cell">
-                      {client.industry?.replace(/_/g, " ") || "N/A"}
-                    </td>
-                    <td className="px-3 py-2.5 font-semibold tabular-nums text-[var(--admin-ink)]">
-                      ${client.monthly_value?.toLocaleString() || "0"}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <StatusBadge status={client.status} />
-                    </td>
-                    <td className="hidden px-3 py-2.5 text-xs text-[var(--admin-muted)] sm:table-cell">
-                      {client.contract_start
-                        ? new Date(client.contract_start).toLocaleDateString()
-                        : new Date(client.created_at).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {statusOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search clients"
+              placeholder="Search clients..."
+              className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none placeholder:text-[var(--admin-muted)] focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+            />
           </div>
-        </AdminSurface>
-      )}
+        </div>
 
+        {/* MRR Summary Cards */}
+        <div className="mb-6 admin-grid admin-grid--metrics">
+          <AdminSurface padding="sm">
+            <p className="admin-eyebrow">Monthly recurring</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
+              ${totalMRR.toLocaleString()}
+            </p>
+          </AdminSurface>
+          <AdminSurface padding="sm">
+            <button
+              type="button"
+              aria-label="Show active clients"
+              aria-pressed={statusFilter === "active"}
+              onClick={() => setStatusFilter(statusFilter === "active" ? "all" : "active")}
+              className="min-h-11 w-full text-left focus-visible:outline focus-visible:outline-2"
+            >
+              <span className="admin-eyebrow">Active clients</span>
+              <span className="mt-1 block text-xl font-semibold tabular-nums text-[var(--admin-success)]">
+                {activeCount}
+              </span>
+            </button>
+          </AdminSurface>
+          <AdminSurface padding="sm" className="hidden sm:block">
+            <p className="admin-eyebrow">Average MRR / client</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums text-[var(--admin-ink)]">
+              ${activeCount > 0 ? Math.round(totalMRR / activeCount).toLocaleString() : "0"}
+            </p>
+          </AdminSurface>
+        </div>
+
+        {error && (
+          <p role="alert" className="mb-4 text-sm">
+            {error}{" "}
+            <button
+              type="button"
+              className="min-h-11 underline"
+              onClick={() => void fetchClients()}
+            >
+              Retry
+            </button>
+          </p>
+        )}
+        {/* Client Table */}
+        {clients.length === 0 ? (
+          <EmptyState
+            message={
+              search || statusFilter !== "all"
+                ? "No clients match these filters. Try another name or status."
+                : "No clients yet. Win a lead to create your first client!"
+            }
+          />
+        ) : (
+          <AdminSurface padding="none" className="overflow-hidden">
+            <p className="px-4 py-3 text-xs text-[var(--admin-muted)]">
+              Open a client to review their history, update their plan, or add a follow-up.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="admin-table w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--admin-border)] bg-[var(--admin-surface-subtle)]">
+                    {["Business", "Contact", "Industry", "MRR", "Status", "Since"].map(
+                      (label, index) => (
+                        <th
+                          key={label}
+                          scope="col"
+                          className={`px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--admin-muted)] ${index === 1 ? "hidden md:table-cell" : index === 2 || index === 5 ? "hidden sm:table-cell" : ""}`}
+                        >
+                          {label}
+                        </th>
+                      ),
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {clients.map((client) => (
+                    <tr
+                      key={client.id}
+                      data-client-row={client.id}
+                      tabIndex={0}
+                      aria-label={`Open ${client.business_name}`}
+                      onClick={(event) => {
+                        if (isInteractiveTarget(event.target)) return;
+                        if (window.getSelection()?.toString()) return;
+                        navigation.push(`/admin/clients/${client.id}`);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.target !== event.currentTarget) return;
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          navigation.push(`/admin/clients/${client.id}`);
+                        }
+                      }}
+                      className="cursor-pointer border-b border-[var(--admin-border)] transition-colors last:border-b-0 hover:bg-[var(--admin-surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)]"
+                    >
+                      <td className="px-3 py-2.5">
+                        <Link
+                          href={`/admin/clients/${client.id}`}
+                          className="inline-flex min-h-11 items-center font-semibold text-[var(--admin-ink)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2"
+                        >
+                          {client.business_name}
+                        </Link>
+                      </td>
+                      <td className="hidden px-3 py-2.5 md:table-cell">
+                        <div>
+                          <Link
+                            href={`/admin/contacts/${encodeURIComponent(client.contact_email)}`}
+                            className="inline-flex min-h-10 items-center text-xs text-[var(--admin-ink)] hover:underline"
+                          >
+                            {client.contact_name}
+                          </Link>
+                          <p className="text-[10px] text-[var(--admin-muted)]">
+                            {client.contact_email}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="hidden px-3 py-2.5 text-xs capitalize text-[var(--admin-muted)] sm:table-cell">
+                        {client.industry?.replace(/_/g, " ") || "N/A"}
+                      </td>
+                      <td className="px-3 py-2.5 font-semibold tabular-nums text-[var(--admin-ink)]">
+                        ${client.monthly_value?.toLocaleString() || "0"}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <StatusBadge status={client.status} />
+                      </td>
+                      <td className="hidden px-3 py-2.5 text-xs text-[var(--admin-muted)] sm:table-cell">
+                        {client.contract_start
+                          ? new Date(client.contract_start).toLocaleDateString()
+                          : new Date(client.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </AdminSurface>
+        )}
       </AdminReadBody>
     </div>
   );

@@ -15,7 +15,9 @@ page.on("console", (message) => {
   if (message.type() === "error") errors.push(message.text());
 });
 
-await page.goto(`${base}/demo/command-center/northline-roofing/today`, { waitUntil: "networkidle" });
+await page.goto(`${base}/demo/command-center/northline-roofing/today`, {
+  waitUntil: "networkidle",
+});
 await page.getByRole("heading", { name: "Today" }).waitFor();
 const todayRow = page.locator('[data-attention-kind] button[aria-label^="Open "]').first();
 await todayRow.click();
@@ -23,7 +25,10 @@ await page.locator('[data-admin-overlay="dialog"]').waitFor();
 assert.match(await page.locator('[data-admin-overlay="dialog"]').innerText(), /Work context/);
 await page.keyboard.press("Escape");
 await page.locator('[data-admin-overlay="dialog"]').waitFor({ state: "hidden" });
-assert.match(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") || ""), /^Open /);
+assert.match(
+  await page.evaluate(() => document.activeElement?.getAttribute("aria-label") || ""),
+  /^Open /,
+);
 await page.screenshot({ path: `${output}/today-row-detail.png`, fullPage: true });
 
 await page.goto(`${base}/demo/command-center/northline-roofing/work`, { waitUntil: "networkidle" });
@@ -35,7 +40,9 @@ await page.locator('[data-admin-overlay="dialog"]').waitFor();
 await page.getByRole("button", { name: "Close task" }).click();
 await page.locator('[data-admin-overlay="dialog"]').waitFor({ state: "hidden" });
 
-await page.goto(`${base}/demo/command-center/northline-roofing/proposals`, { waitUntil: "networkidle" });
+await page.goto(`${base}/demo/command-center/northline-roofing/proposals`, {
+  waitUntil: "networkidle",
+});
 await page.getByRole("heading", { name: "Proposals" }).waitFor();
 const proposalRow = page.locator("tr[tabindex='0']").first();
 assert.ok(await proposalRow.count(), "Proposal rows are keyboard focusable");
@@ -44,10 +51,17 @@ await Promise.all([
   proposalRow.click(),
 ]);
 await page.getByText("Selected proposal").waitFor();
-assert.ok(await page.locator('section[aria-label="Proposal details"]').getByText("Selected proposal").count());
+assert.ok(
+  await page
+    .locator('section[aria-label="Proposal details"]')
+    .getByText("Selected proposal")
+    .count(),
+);
 assert.ok(await page.locator("table").isVisible(), "Desktop keeps proposal list beside detail");
 
-await page.goto(`${base}/demo/command-center/northline-roofing/inbox`, { waitUntil: "networkidle" });
+await page.goto(`${base}/demo/command-center/northline-roofing/inbox`, {
+  waitUntil: "networkidle",
+});
 await page.getByRole("heading", { name: "Review queue" }).waitFor();
 const inboxRow = page.locator("article[tabindex='0']").first();
 assert.ok(await inboxRow.count(), "Review queue rows are keyboard focusable");
@@ -58,11 +72,17 @@ await Promise.all([
 assert.doesNotMatch(page.url(), /\/inbox(?:$|\?)/, "Clicking row content opens its record");
 await page.goBack({ waitUntil: "networkidle" });
 
-await page.goto(`${base}/demo/command-center/northline-roofing/pipeline`, { waitUntil: "networkidle" });
+await page.goto(`${base}/demo/command-center/northline-roofing/pipeline`, {
+  waitUntil: "networkidle",
+});
 await page.getByRole("heading", { name: "Pipeline" }).waitFor();
 await page.getByRole("button", { name: "List view" }).click();
 const pipelineRow = page.locator("tr[data-opportunity-id]").first();
-assert.equal(await pipelineRow.getAttribute("tabindex"), "0", "Pipeline rows are keyboard focusable");
+assert.equal(
+  await pipelineRow.getAttribute("tabindex"),
+  "0",
+  "Pipeline rows are keyboard focusable",
+);
 await pipelineRow.focus();
 await Promise.all([
   page.waitForURL((url) => /\/pipeline\/[^/]+$/.test(url.pathname)),
@@ -71,13 +91,21 @@ await Promise.all([
 await page.goBack({ waitUntil: "networkidle" });
 const pipelineLink = page.locator('a[href*="/pipeline/"]').first();
 await pipelineLink.waitFor();
-assert.ok((await pipelineLink.getAttribute("class"))?.includes("w-full"), "Pipeline opener spans its cell");
+assert.ok(
+  (await pipelineLink.getAttribute("class"))?.includes("w-full"),
+  "Pipeline opener spans its cell",
+);
 assert.doesNotMatch(await page.locator("body").innerText(), /Set next action/);
 await page.screenshot({ path: `${output}/pipeline-list.png`, fullPage: true });
 
-const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+const mobile = await browser.newContext({
+  viewport: { width: 390, height: 844 },
+  reducedMotion: "reduce",
+});
 const mobilePage = await mobile.newPage();
-await mobilePage.goto(`${base}/demo/command-center/northline-roofing/inbox`, { waitUntil: "networkidle" });
+await mobilePage.goto(`${base}/demo/command-center/northline-roofing/inbox`, {
+  waitUntil: "networkidle",
+});
 await Promise.all([
   mobilePage.waitForURL((url) => !url.pathname.endsWith("/inbox")),
   mobilePage.locator("article[tabindex='0']").first().locator("h2").click(),
@@ -85,7 +113,9 @@ await Promise.all([
 assert.doesNotMatch(mobilePage.url(), /\/inbox(?:$|\?)/, "Mobile rows use the same opener");
 await mobilePage.screenshot({ path: `${output}/inbox-mobile-open.png`, fullPage: true });
 
-await mobilePage.goto(`${base}/demo/command-center/northline-roofing/proposals`, { waitUntil: "networkidle" });
+await mobilePage.goto(`${base}/demo/command-center/northline-roofing/proposals`, {
+  waitUntil: "networkidle",
+});
 await Promise.all([
   mobilePage.waitForURL((url) => url.searchParams.has("proposal")),
   mobilePage.locator("tr[tabindex='0']").first().click(),

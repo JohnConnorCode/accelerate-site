@@ -284,149 +284,148 @@ export default function AdminLeadsPage() {
         loadingFallback={<LoadingSkeleton variant="table" count={8} />}
         label="Loading leads"
       >
-
-      <AddLeadModal
-        isOpen={showAddLead}
-        onClose={() => setShowAddLead(false)}
-        onLeadCreated={() => fetchLeads()}
-      />
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-4">
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
-          aria-label="Filter by status"
-          className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
-        >
-          {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={industryFilter}
-          onChange={(e) => {
-            setIndustryFilter(e.target.value);
-            setPage(1);
-          }}
-          aria-label="Filter by industry"
-          className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
-        >
-          {industryOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <DateRangeFilter
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          onDateFromChange={(v) => {
-            setDateFrom(v);
-            setPage(1);
-          }}
-          onDateToChange={(v) => {
-            setDateTo(v);
-            setPage(1);
-          }}
+        <AddLeadModal
+          isOpen={showAddLead}
+          onClose={() => setShowAddLead(false)}
+          onLeadCreated={() => fetchLeads()}
         />
-      </div>
 
-      {/* Saved views */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        {savedViews.map((view) => (
-          <span
-            key={view.id}
-            className="inline-flex items-center gap-1.5 rounded-full bg-bg-subtle border border-border-glass pl-3 pr-1 py-1 text-xs text-white-secondary"
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            aria-label="Filter by status"
+            className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
           >
-            <button
-              type="button"
-              onClick={() => applyView(view.filters)}
-              className="hover:text-white-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] rounded cursor-pointer"
-            >
-              {view.name}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleRemoveView(view.id)}
-              aria-label={`Remove view ${view.name}`}
-              className="text-white-muted hover:text-red-400 transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </span>
-        ))}
+            {statusOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={industryFilter}
+            onChange={(e) => {
+              setIndustryFilter(e.target.value);
+              setPage(1);
+            }}
+            aria-label="Filter by industry"
+            className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-3 py-1.5 text-sm text-white-primary focus-visible:outline-none focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-[var(--gold-base)]/30 transition-[border-color,box-shadow,background-color]"
+          >
+            {industryOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <DateRangeFilter
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onDateFromChange={(v) => {
+              setDateFrom(v);
+              setPage(1);
+            }}
+            onDateToChange={(v) => {
+              setDateTo(v);
+              setPage(1);
+            }}
+          />
+        </div>
 
-        {showSaveView ? (
-          <span className="inline-flex items-center gap-1">
-            <input
-              type="text"
-              value={viewName}
-              onChange={(e) => setViewName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSaveView();
-                if (e.key === "Escape") {
+        {/* Saved views */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {savedViews.map((view) => (
+            <span
+              key={view.id}
+              className="inline-flex items-center gap-1.5 rounded-full bg-bg-subtle border border-border-glass pl-3 pr-1 py-1 text-xs text-white-secondary"
+            >
+              <button
+                type="button"
+                onClick={() => applyView(view.filters)}
+                className="hover:text-white-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] rounded cursor-pointer"
+              >
+                {view.name}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRemoveView(view.id)}
+                aria-label={`Remove view ${view.name}`}
+                className="text-white-muted hover:text-red-400 transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+
+          {showSaveView ? (
+            <span className="inline-flex items-center gap-1">
+              <input
+                type="text"
+                value={viewName}
+                onChange={(e) => setViewName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveView();
+                  if (e.key === "Escape") {
+                    setShowSaveView(false);
+                    setViewName("");
+                  }
+                }}
+                placeholder="View name"
+                autoFocus
+                className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-2.5 py-1 text-xs text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color] placeholder:text-white-muted w-32"
+              />
+              <button
+                type="button"
+                onClick={handleSaveView}
+                disabled={!viewName.trim()}
+                className="text-xs text-gold-light hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-[filter,opacity,transform] rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer px-1"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => {
                   setShowSaveView(false);
                   setViewName("");
-                }
-              }}
-              placeholder="View name"
-              autoFocus
-              className="admin-field admin-field--inline rounded-lg bg-bg-subtle border border-border-glass px-2.5 py-1 text-xs text-white-primary focus:outline-none focus:border-gold transition-[border-color,box-shadow,background-color] placeholder:text-white-muted w-32"
-            />
+                }}
+                aria-label="Cancel saving view"
+                className="text-white-muted hover:text-white-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </span>
+          ) : (
             <button
               type="button"
-              onClick={handleSaveView}
-              disabled={!viewName.trim()}
-              className="text-xs text-gold-light hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-[filter,opacity,transform] rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer px-1"
+              onClick={() => setShowSaveView(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border-glass px-3 py-1 text-xs text-white-muted hover:text-white-secondary hover:border-white/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
             >
-              Save
+              <Save className="h-3 w-3" />
+              Save current view
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowSaveView(false);
-                setViewName("");
-              }}
-              aria-label="Cancel saving view"
-              className="text-white-muted hover:text-white-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowSaveView(true)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border-glass px-3 py-1 text-xs text-white-muted hover:text-white-secondary hover:border-white/20 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold-base)] cursor-pointer"
-          >
-            <Save className="h-3 w-3" />
-            Save current view
-          </button>
-        )}
-      </div>
+          )}
+        </div>
 
-      <LeadsTable
-        leads={leads}
-        total={total}
-        page={page}
-        totalPages={totalPages}
-        onUpdateLead={handleUpdateLead}
-        onBulkStatus={handleBulkStatus}
-        onBulkDelete={handleBulkDelete}
-        onBulkTag={handleBulkTag}
-        onBulkSuppress={handleBulkSuppress}
-        onBulkEnroll={handleBulkEnroll}
-        onPageChange={setPage}
-        onSort={handleSort}
-        sortField={sortField}
-        sortOrder={sortOrder}
-      />
+        <LeadsTable
+          leads={leads}
+          total={total}
+          page={page}
+          totalPages={totalPages}
+          onUpdateLead={handleUpdateLead}
+          onBulkStatus={handleBulkStatus}
+          onBulkDelete={handleBulkDelete}
+          onBulkTag={handleBulkTag}
+          onBulkSuppress={handleBulkSuppress}
+          onBulkEnroll={handleBulkEnroll}
+          onPageChange={setPage}
+          onSort={handleSort}
+          sortField={sortField}
+          sortOrder={sortOrder}
+        />
       </AdminReadBody>
     </motion.div>
   );

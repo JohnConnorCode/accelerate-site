@@ -1100,65 +1100,65 @@ export default function ConversationsPage() {
         title="Create opportunity from conversation"
         maxWidth="sm"
       >
-          <div className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-[var(--admin-ink)]">
-                Create Opportunity from Conversation
-              </h3>
+        <div className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-semibold text-[var(--admin-ink)]">
+              Create Opportunity from Conversation
+            </h3>
+            <button
+              type="button"
+              onClick={() => setShowCreateOppModal(false)}
+              aria-label="Close create opportunity"
+              className="admin-icon-button"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+          <form onSubmit={handleCreateOpportunity} className="mt-4 space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-[var(--admin-ink)]">
+                Opportunity Name
+              </label>
+              <input
+                type="text"
+                required
+                value={oppName}
+                onChange={(e) => setOppName(e.target.value)}
+                className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
+                placeholder="e.g. Acme Commercial Retainer"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[var(--admin-ink)]">
+                Estimated Value ($)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={oppValue}
+                onChange={(e) => setOppValue(e.target.value)}
+                aria-label="Estimated value in dollars"
+                className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+              />
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setShowCreateOppModal(false)}
-                aria-label="Close create opportunity"
-                className="admin-icon-button"
+                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[var(--admin-muted)]"
               >
-                <X className="size-4" />
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingModal || !oppName.trim()}
+                className="rounded-lg bg-[var(--admin-ink)] px-3.5 py-1.5 text-xs font-semibold text-[var(--admin-surface)] disabled:opacity-50"
+              >
+                {isSubmittingModal ? "Creating..." : "Create & Link"}
               </button>
             </div>
-            <form onSubmit={handleCreateOpportunity} className="mt-4 space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-[var(--admin-ink)]">
-                  Opportunity Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={oppName}
-                  onChange={(e) => setOppName(e.target.value)}
-                  className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
-                  placeholder="e.g. Acme Commercial Retainer"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[var(--admin-ink)]">
-                  Estimated Value ($)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={oppValue}
-                  onChange={(e) => setOppValue(e.target.value)}
-                  aria-label="Estimated value in dollars"
-                  className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
-                />
-              </div>
-              <div className="mt-5 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateOppModal(false)}
-                  className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[var(--admin-muted)]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingModal || !oppName.trim()}
-                  className="rounded-lg bg-[var(--admin-ink)] px-3.5 py-1.5 text-xs font-semibold text-[var(--admin-surface)] disabled:opacity-50"
-                >
-                  {isSubmittingModal ? "Creating..." : "Create & Link"}
-                </button>
-              </div>
-            </form>
-          </div>
+          </form>
+        </div>
       </AdminDialog>
 
       {/* Modal: Create Task */}
@@ -1168,64 +1168,62 @@ export default function ConversationsPage() {
         title="Add follow-up task"
         maxWidth="sm"
       >
-          <div className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-[var(--admin-ink)]">
-                Add Follow-up Task
-              </h3>
+        <div className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-semibold text-[var(--admin-ink)]">Add Follow-up Task</h3>
+            <button
+              type="button"
+              onClick={() => setShowCreateTaskModal(false)}
+              aria-label="Close follow-up task"
+              className="admin-icon-button"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+          <form onSubmit={handleCreateTask} className="mt-4 space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-[var(--admin-ink)]">
+                Task Title
+              </label>
+              <input
+                type="text"
+                required
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+                className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
+                placeholder="e.g. Send proposal follow-up"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[var(--admin-ink)]">
+                Due Date
+              </label>
+              <input
+                type="date"
+                value={taskDueDate}
+                onChange={(e) => setTaskDueDate(e.target.value)}
+                aria-label="Due date"
+                className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
+              />
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setShowCreateTaskModal(false)}
-                aria-label="Close follow-up task"
-                className="admin-icon-button"
+                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[var(--admin-muted)]"
               >
-                <X className="size-4" />
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingModal || !taskTitle.trim()}
+                className="rounded-lg bg-[var(--admin-ink)] px-3.5 py-1.5 text-xs font-semibold text-[var(--admin-surface)] disabled:opacity-50"
+              >
+                {isSubmittingModal ? "Adding..." : "Add Task"}
               </button>
             </div>
-            <form onSubmit={handleCreateTask} className="mt-4 space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-[var(--admin-ink)]">
-                  Task Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={taskTitle}
-                  onChange={(e) => setTaskTitle(e.target.value)}
-                  className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
-                  placeholder="e.g. Send proposal follow-up"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[var(--admin-ink)]">
-                  Due Date
-                </label>
-                <input
-                  type="date"
-                  value={taskDueDate}
-                  onChange={(e) => setTaskDueDate(e.target.value)}
-                  aria-label="Due date"
-                  className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-action)] focus-visible:ring-offset-2"
-                />
-              </div>
-              <div className="mt-5 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateTaskModal(false)}
-                  className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[var(--admin-muted)]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingModal || !taskTitle.trim()}
-                  className="rounded-lg bg-[var(--admin-ink)] px-3.5 py-1.5 text-xs font-semibold text-[var(--admin-surface)] disabled:opacity-50"
-                >
-                  {isSubmittingModal ? "Adding..." : "Add Task"}
-                </button>
-              </div>
-            </form>
-          </div>
+          </form>
+        </div>
       </AdminDialog>
 
       <AdminDialog
@@ -1237,70 +1235,70 @@ export default function ConversationsPage() {
         title="Link existing opportunity"
         maxWidth="sm"
       >
-          <div className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-[var(--admin-ink)]">
-                Link existing opportunity
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowLinkOpp(false);
-                  setOppResults([]);
-                }}
-                className="admin-icon-button"
-                aria-label="Close link opportunity"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-            <form
-              className="mt-4 space-y-3"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void searchOpportunities();
+        <div className="rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-2xl">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-semibold text-[var(--admin-ink)]">
+              Link existing opportunity
+            </h3>
+            <button
+              type="button"
+              onClick={() => {
+                setShowLinkOpp(false);
+                setOppResults([]);
               }}
+              className="admin-icon-button"
+              aria-label="Close link opportunity"
             >
-              <label className="block text-xs font-semibold text-[var(--admin-ink)]">
-                Search pipeline
-                <input
-                  type="search"
-                  value={oppSearch}
-                  onChange={(event) => setOppSearch(event.target.value)}
-                  className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
-                  placeholder="Opportunity name or email"
-                  aria-label="Search opportunities to link"
-                />
-              </label>
-              <button
-                type="submit"
-                className="rounded-lg bg-[var(--admin-ink)] px-3.5 py-1.5 text-xs font-semibold text-[var(--admin-surface)]"
-              >
-                Search
-              </button>
-            </form>
-            <div className="mt-3 space-y-1.5">
-              {oppResults.map((opportunity) => (
-                <button
-                  key={opportunity.id}
-                  type="button"
-                  disabled={linkingOpp}
-                  onClick={() => void linkExistingOpportunity(opportunity)}
-                  className="flex w-full items-center justify-between rounded-lg border border-[var(--admin-border)] px-3 py-2 text-left text-xs text-[var(--admin-ink)] hover:bg-black/[0.04] disabled:opacity-50 dark:hover:bg-white/[0.04]"
-                >
-                  <span className="truncate font-medium">{opportunity.name}</span>
-                  <span className="text-[10px] uppercase text-[var(--admin-muted)]">
-                    {opportunity.stage}
-                  </span>
-                </button>
-              ))}
-              {!oppResults.length && (
-                <p className="text-[11px] text-[var(--admin-muted)]">
-                  Search for a canonical opportunity. Linking never guesses from a name alone.
-                </p>
-              )}
-            </div>
+              <X className="size-4" />
+            </button>
           </div>
+          <form
+            className="mt-4 space-y-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void searchOpportunities();
+            }}
+          >
+            <label className="block text-xs font-semibold text-[var(--admin-ink)]">
+              Search pipeline
+              <input
+                type="search"
+                value={oppSearch}
+                onChange={(event) => setOppSearch(event.target.value)}
+                className="admin-field mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3 py-2 text-xs text-[var(--admin-ink)] outline-none"
+                placeholder="Opportunity name or email"
+                aria-label="Search opportunities to link"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-lg bg-[var(--admin-ink)] px-3.5 py-1.5 text-xs font-semibold text-[var(--admin-surface)]"
+            >
+              Search
+            </button>
+          </form>
+          <div className="mt-3 space-y-1.5">
+            {oppResults.map((opportunity) => (
+              <button
+                key={opportunity.id}
+                type="button"
+                disabled={linkingOpp}
+                onClick={() => void linkExistingOpportunity(opportunity)}
+                className="flex w-full items-center justify-between rounded-lg border border-[var(--admin-border)] px-3 py-2 text-left text-xs text-[var(--admin-ink)] hover:bg-black/[0.04] disabled:opacity-50 dark:hover:bg-white/[0.04]"
+              >
+                <span className="truncate font-medium">{opportunity.name}</span>
+                <span className="text-[10px] uppercase text-[var(--admin-muted)]">
+                  {opportunity.stage}
+                </span>
+              </button>
+            ))}
+            {!oppResults.length && (
+              <p className="text-[11px] text-[var(--admin-muted)]">
+                Search for a canonical opportunity. Linking never guesses from a name alone.
+              </p>
+            )}
+          </div>
+        </div>
       </AdminDialog>
     </div>
   );
