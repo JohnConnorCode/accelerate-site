@@ -130,11 +130,15 @@ try {
         .getByRole("dialog", { name: "Work context", exact: true })
         .waitFor({ state: "hidden" });
       await review.waitFor();
-      await page.waitForFunction(
-        () =>
-          document.activeElement?.closest('[role="dialog"]')?.getAttribute("aria-labelledby") ===
-          "action-review-title",
-      );
+      await page.waitForFunction(() => {
+        const dialog = document.querySelector('[aria-labelledby="action-review-title"]');
+        return (
+          dialog &&
+          Number(getComputedStyle(dialog).opacity) >= 0.999 &&
+          document.activeElement?.closest('[role="dialog"]') === dialog &&
+          !document.querySelector('[role="dialog"][data-state="closed"]')
+        );
+      });
       await page.keyboard.press("Escape");
       await review.waitFor({ state: "hidden" });
       await page.waitForTimeout(750);
