@@ -89,18 +89,34 @@ export async function getFirstUseProgress(db: SupabaseClient): Promise<FirstUseP
   ] = results;
   if (workspace.data?.status !== "active") throw new Error("Workspace is not active");
   const opportunityId = opportunity.data?.id ?? null;
-  const taskResult = opportunityId
-    ? await db
-        .from("tasks")
-        .select("id,status,due_date")
-        .eq("related_type", "opportunity")
-        .eq("related_id", opportunityId)
-        .order("created_at", { ascending: false })
-        .limit(20)
-    : { data: [], error: null };
-  if (taskResult.error) throw new Error("Linked task progress could not be verified");
-  const task = taskResult.data?.find((t) => t.due_date);
-  const completed = taskResult.data?.find((t) => t.status === "completed");
+  // Ask whether proof exists rather than looking through the latest tasks:
+  // adding more work must not erase an earlier completed onboarding result.
+  const taskResults = opportunityId
+    ? await Promise.all([
+        db
+          .from("tasks")
+          .select("id")
+          .eq("related_type", "opportunity")
+          .eq("related_id", opportunityId)
+          .not("due_date", "is", null)
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+        db
+          .from("tasks")
+          .select("id")
+          .eq("related_type", "opportunity")
+          .eq("related_id", opportunityId)
+          .eq("status", "completed")
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+      ])
+    : [];
+  if (taskResults.some((result) => result.error))
+    throw new Error("Linked task progress could not be verified");
+  const task = taskResults[0]?.data;
+  const completed = taskResults[1]?.data;
   const reused = contexts.data?.find((context) =>
     learnings.data?.some(
       (proposal) =>

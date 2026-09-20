@@ -121,8 +121,6 @@ async function retrieveCanonicalKnowledge(
   } else {
     companyQuery = companyQuery.or(`name.ilike.%${cleanQuery}%,domain.ilike.%${cleanQuery}%`);
   }
-  const { data: companies } = await companyQuery;
-
   // 2. Search for matching contacts
   let contactQuery = supabase.from("contacts").select("*").limit(5);
   if (input.entityId) {
@@ -137,8 +135,6 @@ async function retrieveCanonicalKnowledge(
       `full_name.ilike.%${cleanQuery}%,primary_email.ilike.%${cleanQuery}%`,
     );
   }
-  const { data: contacts } = await contactQuery;
-
   // 3. Search for matching opportunities
   let opportunityQuery = supabase.from("opportunities").select("*").limit(5);
   opportunityQuery = input.entityId
@@ -149,7 +145,19 @@ async function retrieveCanonicalKnowledge(
           : "00000000-0000-0000-0000-000000000000",
       )
     : opportunityQuery.or(`name.ilike.%${cleanQuery}%,email.ilike.%${cleanQuery}%`);
-  const { data: opportunities } = await opportunityQuery;
+  const [companyResult, contactResult, opportunityResult] = await Promise.all([
+    companyQuery,
+    contactQuery,
+    opportunityQuery,
+  ]);
+  const { data: companies, error: companyError } = companyResult;
+  const { data: contacts, error: contactError } = contactResult;
+  const { data: opportunities, error: opportunityError } = opportunityResult;
+  const missing: string[] = [];
+  if (companyError) missing.push("Company records could not be searched; coverage is incomplete.");
+  if (contactError) missing.push("Contact records could not be searched; coverage is incomplete.");
+  if (opportunityError)
+    missing.push("Opportunity records could not be searched; coverage is incomplete.");
 
   const matchedCompany = companies?.[0] || null;
   const matchedContact = contacts?.[0] || null;
@@ -157,13 +165,14 @@ async function retrieveCanonicalKnowledge(
 
   // If no primary entity is found, search founder notes directly by text match
   if (!matchedCompany && !matchedContact && !matchedOpp) {
-    const { data: directNotes } = await supabase
+    const { data: directNotes, error: noteError } = await supabase
       .from("activities")
       .select("*")
       .eq("activity_type", "founder_note")
       .ilike("summary", `%${cleanQuery}%`)
       .limit(5);
 
+    if (noteError) missing.push("Founder notes could not be searched; coverage is incomplete.");
     if (!directNotes || directNotes.length === 0) {
       return {
         contract: SECOND_BRAIN_KNOWLEDGE_CONTRACT,
@@ -171,7 +180,10 @@ async function retrieveCanonicalKnowledge(
         query: queryStr,
         entitySummary: null,
         chunks: [],
-        refusalReason: `No canonical records, founder notes, or activities found for "${queryStr}".`,
+        refusalReason: missing.length
+          ? "Knowledge search is incomplete because some sources are unavailable. Retry before concluding that no matching records exist."
+          : `No canonical records, founder notes, or activities found for "${queryStr}".`,
+        missing,
         generatedAt: new Date().toISOString(),
       };
     }
@@ -193,7 +205,8 @@ async function retrieveCanonicalKnowledge(
       found: true,
       query: queryStr,
       entitySummary: null,
-      chunks: noteChunks,
+      chunks: noteChunks.slice(0, input.limit),
+      missing,
       refusalReason: null,
       generatedAt: new Date().toISOString(),
     };
@@ -314,7 +327,7 @@ async function retrieveCanonicalKnowledge(
       });
     }
   } catch {
-    // If founder note loading fails gracefully, proceed with other chunks
+    missing.push("Founder notes could not be loaded; coverage is incomplete.");
   }
 
   // E. Recent Activity timeline chunks
@@ -342,7 +355,7 @@ async function retrieveCanonicalKnowledge(
         });
       }
     } catch {
-      // Proceed gracefully
+      missing.push("Recent activity could not be loaded; coverage is incomplete.");
     }
   }
 
@@ -355,6 +368,7 @@ async function retrieveCanonicalKnowledge(
     query: queryStr,
     entitySummary,
     chunks: limitedChunks,
+    missing,
     refusalReason: limitedChunks.length > 0 ? null : "No relevant facts or notes found.",
     generatedAt: new Date().toISOString(),
   };
@@ -393,22 +407,42 @@ export async function retrieveKnowledge(
     25,
     Math.max(1, Math.trunc(Number.isFinite(input.limit) ? input.limit! : 10)),
   );
-  const canonical = await retrieveCanonicalKnowledge(db, input);
+  const canonical = await retrieveCanonicalKnowledge(db, { ...input, limit });
   if (query.length < 2 || input.entityId) return canonical;
   try {
     const documents = await searchDocumentKnowledge(db, query, limit);
-    const chunks = [...canonical.chunks, ...documents.chunks].slice(0, limit);
+    // Preserve the leading canonical fact, then alternate sources so notes and
+    // activity cannot consume every slot before relevant documents are considered.
+    const chunks: KnowledgeChunk[] = [];
+    for (
+      let i = 0;
+      chunks.length < limit && i < Math.max(canonical.chunks.length, documents.chunks.length);
+      i++
+    ) {
+      if (canonical.chunks[i]) chunks.push(canonical.chunks[i]!);
+      if (chunks.length < limit && documents.chunks[i]) chunks.push(documents.chunks[i]!);
+    }
     return {
       ...canonical,
       chunks,
       found: chunks.length > 0,
-      refusalReason: chunks.length ? null : canonical.refusalReason,
-      missing: documents.missing,
+      refusalReason: chunks.length
+        ? null
+        : canonical.missing?.length || documents.missing.length
+          ? "Knowledge search is incomplete because some sources could not be verified. Retry before concluding that no matching records exist."
+          : canonical.refusalReason,
+      missing: [...(canonical.missing ?? []), ...documents.missing],
     };
-  } catch (error) {
+  } catch {
     return {
       ...canonical,
-      missing: [error instanceof Error ? error.message : "Document search failed"],
+      refusalReason: canonical.found
+        ? null
+        : "Knowledge search is incomplete because document sources are unavailable. Retry before concluding that no matching records exist.",
+      missing: [
+        ...(canonical.missing ?? []),
+        "Document knowledge search is unavailable; check the connection and retry.",
+      ],
     };
   }
 }

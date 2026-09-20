@@ -112,3 +112,61 @@ installation trial and a real new-user observation remain separate operational
 proof. No invitations, real customer sends, production schema changes or live
 model evaluations were performed as part of the local verification. The UI
 therefore reports receipts and evidence, not an invented improvement score.
+
+## Continuation: retrieval and recovery hardening
+
+The follow-up inspection found several bounded-context failures that were not
+covered by the initial happy paths. Canonical query errors were silently treated
+as no matches, document results could be crowded out by notes, and the first
+200 alphabetically ordered policies could omit every official rule. The shared
+services now report partial coverage, alternate canonical and document evidence,
+normalize result limits once, and retrieve at most 200 rules per authority with
+explicit overflow warnings. Oversized rules are skipped whole so smaller rules
+can still fit. Plugin guidance allowlists reject untyped rules. Canonical entity
+reads run concurrently; no new provider, dependency or schema is introduced.
+
+Drive retrieval rechecks workspace activity, the selected connection and folders
+after provider verification. Disconnects, account replacements and folder removals
+during the request withhold evidence. This closes the observed request window;
+it does not claim a distributed transaction with Google or prevent revocation
+after a response has already been delivered.
+
+First-use task proof now queries for dated and completed records directly, so
+newer open tasks cannot push completed proof outside a 20-row window. The later
+learning-reuse indicator still examines the latest 50 context events and 20
+approved proposals; it is recent evidence rather than a permanent achievement.
+
+Regression coverage includes concurrent access changes, 201 approved rules plus
+older official guidance, untyped plugin guidance, oversized rules, partial data
+failures, source diversity, invalid limits, and completed tasks followed by 25
+new tasks. The document work handler is exercised through damaged storage bytes,
+successful retry, replay, archive during extraction and cancellation. Storage and
+Google are controlled fixtures, not live provider verification.
+
+The follow-up research uses [Anthropic's context engineering guidance](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+for bounded, targeted retrieval and [Glean's connector guidance](https://docs.glean.com/connectors/about)
+for preserving source permissions. These implementation choices are our application
+of those principles, not vendor guarantees or measured model-quality gains.
+Supabase's current changelog and [filter reference](https://supabase.com/docs/reference/javascript/using-filters-or)
+were checked; the changes use the installed client's existing filter API.
+Public Learning Inbox guidance and the changelog explain recovery; Command Center
+capability descriptions and FAQ were reviewed and remain accurate.
+
+Follow-up verification passed: agent contract, lint, knowledge retrieval,
+connected-learning service/parser/PostgreSQL tests, all 58 work-completion cases,
+report plugins, business workflows, responder envelope, documentation checks,
+and the production build with all 537 static pages and TypeScript. An initial
+build caught a test-fixture spread type; the fixture was corrected, its test and
+lint rerun, and the final build passed. Both build logs remain under `/tmp`.
+Production-browser QA passed at 1440px and 390px with zero page errors,
+persisted proposals, separate approval, recovery, keyboard and reduced-motion
+checks. Desktop Learning Inbox, mobile guide and mobile first-use screenshots
+were opened and inspected. The QA server and browser exited normally.
+
+Receipts: `/tmp/connected-hardening-checks.log`,
+`/tmp/connected-hardening-build.log` (resolved fixture failure),
+`/tmp/connected-hardening-build-final.log`,
+`/tmp/connected-hardening-browser.log`, and
+`/tmp/accelerate-connected-learning-qa/result.json`. No production migration,
+merge, deployment, real invitation, paid model evaluation or live Google action
+was performed in this continuation.
