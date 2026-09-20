@@ -17,7 +17,6 @@ import { CanonicalSourceLink } from "@/components/admin/CanonicalSourceLink";
 import { SourceToolDispositions } from "@/components/admin/SourceToolDispositions";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import type { SourceFieldDisposition } from "@/lib/revenue-os/retained-source-dispositions";
-import { AIReadinessPanel } from "@/components/admin/AIReadinessPanel";
 
 interface ResourceDownload {
   id: string;
@@ -83,8 +82,6 @@ export default function ResourcesPage() {
         loadingFallback={<LoadingSkeleton variant="page" />}
         label="Loading resource downloads"
       >
-
-      <AIReadinessPanel />
 
       <div className="grid gap-4 sm:grid-cols-2 mb-6">
         <StatCard label="Total Downloads" value={stats.totalDownloads} icon={Download} index={0} />

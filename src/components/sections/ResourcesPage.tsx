@@ -17,7 +17,6 @@ import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { leadMagnets } from "@/content/lead-magnets";
 import { ResourceGate } from "@/components/sections/ResourceGate";
-import Link from "next/link";
 
 const iconMap: Record<string, LucideIcon> = { ClipboardCheck, Zap, BarChart3 };
 const categoryLabels: Record<string, string> = {
@@ -85,15 +84,15 @@ export function ResourcesPage() {
                     <p className="mt-4 text-sm leading-relaxed text-white-secondary">
                       {featured.description}
                     </p>
-                    <Link
-                      href="/ai-readiness"
+                    <button
+                      type="button"
                       data-cursor="link"
+                      onClick={() => setGatedResource(featured.id)}
                       className="group mt-6 inline-flex items-center gap-2.5 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-btn-text transition-opacity hover:opacity-90"
                     >
-                      <ClipboardCheck className="h-4 w-4" />
-                      Take the assessment
-                      <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </Link>
+                      <Download className="h-4 w-4" />
+                      Download free
+                    </button>
                   </HeroEntranceItem>
                 );
               })()}

@@ -92,7 +92,6 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260918-campaign-duplicate-receipts.sql",
   "migrations/20260915-contact-tags.sql",
   "migrations/20260919-contact-bulk-transactions.sql",
-  "migrations/20260920-ai-readiness-assessment.sql",
   "migrations/20260920-delivery-handoff-convergence.sql",
   "migrations/20260921-architect-sessions.sql",
   "migrations/20260922-architect-understanding.sql",

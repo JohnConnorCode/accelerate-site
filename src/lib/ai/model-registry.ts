@@ -136,15 +136,6 @@ export const AI_JOBS: readonly JobRegistration[] = [
     defaultModel: BUILT_IN_MODEL_ID,
   },
   {
-    key: "ai-readiness-report",
-    label: "AI readiness report language enrichment",
-    consequential: false,
-    requiresTools: false,
-    requiresJson: true,
-    minContextWindow: 32_000,
-    defaultModel: BUILT_IN_MODEL_ID,
-  },
-  {
     key: "contact-extract",
     label: "Contact import extraction",
     consequential: false,
