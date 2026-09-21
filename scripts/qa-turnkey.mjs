@@ -151,6 +151,25 @@ try {
         assert.equal(await page.locator(".kanban-scroller [data-opportunity-id]").count(), 0);
         await empty.scrollIntoViewIfNeeded();
         await captureNeutral(page, `${label}-empty`);
+        await page.goto(demo + "/work");
+        await page.getByRole("heading", { level: 1, name: "Work", exact: true }).waitFor();
+        await page.keyboard.press("Control+k");
+        await page.getByText("Add task", { exact: true }).click();
+        const firstTask = `Cold-start follow-up ${label}`;
+        await page.getByLabel("What needs to happen?").fill(firstTask);
+        await page.getByRole("button", { name: "Add task", exact: true }).click();
+        await page
+          .getByRole("heading", { name: "Add a follow-up", exact: true })
+          .waitFor({ state: "hidden" });
+        await page.reload();
+        await page.getByText(firstTask, { exact: true }).waitFor();
+        await captureNeutral(page, `${label}-first-saved-task`);
+        await page.getByRole("button", { name: `Complete ${firstTask}`, exact: true }).click();
+        await page.getByText(firstTask, { exact: true }).waitFor({ state: "hidden" });
+        await page.reload();
+        await page.getByLabel("Task status", { exact: true }).selectOption("completed");
+        await page.getByText(firstTask, { exact: true }).waitFor();
+        await captureNeutral(page, `${label}-first-completed-task`);
         await page.goto(demo + "/branding");
         await page.getByLabel("Display name", { exact: true }).fill("Harbor Demo Team");
         await page.getByRole("button", { name: "Save branding", exact: true }).focus();

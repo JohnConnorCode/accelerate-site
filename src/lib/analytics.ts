@@ -1,3 +1,4 @@
+import { isSupabasePublicConfigured } from "@/lib/supabase/configuration.mjs";
 // ========================================
 // ANALYTICS & CONVERSION TRACKING
 // Merged from tracking.ts + analytics.ts
@@ -117,7 +118,14 @@ function safeEventName(name: string) {
 }
 
 function sendFirstPartyEvent(name: string, props?: Record<string, string | number>) {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !isPublicAnalyticsPage()) return;
+  if (
+    !isSupabasePublicConfigured(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    ) ||
+    !isPublicAnalyticsPage()
+  )
+    return;
   const attribution = getUTMParams() || undefined;
   const referrerHost = (() => {
     try {

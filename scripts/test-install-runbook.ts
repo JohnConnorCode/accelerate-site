@@ -144,8 +144,7 @@ async function main() {
     assert.match(readme, /fictional demo works with zero setup/);
     assert.match(readme, /connect your (?:own )?Supabase project/);
     const login = read("src/app/admin/login/page.tsx");
-    assert.match(login, /!process\.env\.NEXT_PUBLIC_SUPABASE_URL/);
-    assert.match(login, /!process\.env\.NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+    assert.match(login, /!isSupabasePublicConfigured/);
     assert.match(login, /href="\/docs\/self-hosting\/installation"/);
     assert.match(login, /href="\/demo\/command-center"/);
     const hosting = read("docs/self-hosting/SELF-HOSTING.md");
@@ -179,8 +178,12 @@ async function main() {
       };
       assert.match(deploy, new RegExp(target.projectId));
       assert.equal(target.canonicalUrl, "https://www.acceleratewith.us");
-      const vercel = JSON.parse(read("vercel.json")) as { git: { deploymentEnabled: boolean } };
-      assert.equal(vercel.git.deploymentEnabled, false);
+      const vercel = JSON.parse(read("vercel.json")) as {
+        git?: { deploymentEnabled: boolean };
+        crons: unknown[];
+      };
+      assert.notEqual(vercel.git?.deploymentEnabled, false);
+      assert.deepEqual(vercel.crons, []);
       const pkg = JSON.parse(read("package.json")) as { scripts: Record<string, string> };
       assert.ok(pkg.scripts["deploy:check"]);
       assert.doesNotMatch(read("README.md"), /vercel deploy --prod/);

@@ -1,3 +1,4 @@
+import { isSupabasePublicConfigured } from "@/lib/supabase/configuration.mjs";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { rateLimit } from "@/lib/rate-limit";
@@ -9,6 +10,20 @@ function requestKey(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (
+    !isSupabasePublicConfigured(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    )
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "Connect your Supabase project before signing in. Follow /docs/self-hosting/installation.",
+      },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
   const { success } = rateLimit(requestKey(request), 10, 15 * 60 * 1000);
   if (!success) {
     return NextResponse.json(

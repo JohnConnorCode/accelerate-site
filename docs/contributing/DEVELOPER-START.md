@@ -109,3 +109,18 @@ Submission enters review. Reviewer acceptance, Git integration, deployment and p
 ## Maintainer activation checklist
 
 Before announcing open shared dispatch, publish the candidate and every referenced base branch, provide access and the isolated test setup, apply the ordered migration catalog through `20260907-work-packet-quality.sql`, deploy compatible adapters through the authorized release process, and verify strict write enforcement. Confirm a worker credential passes `dev:doctor -- --board` and perform one controlled claim, heartbeat, release/reclaim and evidence-review drill. Keep the drill's exact revision and receipt with the rollout card. Do not replace this proof with a local demo or a green build.
+
+### Continue a manually prepared agent checkout
+
+Normal backlog pickup records the worker checkout automatically. If an older claim
+was deliberately created with `--no-worktree`, review the retained source and attach
+it with `npm run agent:checkpoint -- --card <key> --worktree /path/to/worker --checkpoint-file /path/to/checkpoint.json`.
+The command checks the repository and current ownership before saving a checkpoint.
+It does not reset the checkout or grant the worker review authority. Use `agent:show`
+to read a task without changing its claim; `agent:resume` takes over eligible expired work.
+
+### Resume an interrupted local provider
+
+The optional machine supervisor can continue a registered original Codex, Claude Code or OpenCode thread with `node scripts/supervisor/cli.mjs recover --provider codex --thread <original-id>`. Its retained repository must be enrolled and machine pressure must have cleared. The foreground provider keeps the registered process identity; only one continuation starts at a time. Existing provider permissions and saved history remain authoritative. Missing history, credentials or credit are reported by the provider, not replaced with a new conversation.
+
+Run heavy tool commands through `node scripts/resource-run.mjs <command> [args...]`. Other launch paths remain unmanaged; `coverage` reports that boundary. `uninstall` resumes owned paused producers safely before disabling management, or explains why management must remain enabled. No repository, transcript or unrelated process is removed.

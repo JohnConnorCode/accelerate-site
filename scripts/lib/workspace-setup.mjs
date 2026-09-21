@@ -1,8 +1,12 @@
+import {
+  isSupabasePublicConfigured,
+  isSetupPlaceholder,
+} from "../../src/lib/supabase/configuration.mjs";
 /** Installation orchestration only. Business membership writes use the existing host RPC. */
 export class SetupError extends Error {}
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
-const placeholder = (value) => !value || /^(your-|use-a-local|generate-a-)/i.test(value);
+const placeholder = isSetupPlaceholder;
 export function setupConfiguration(env) {
   const issues = [];
   const required = (key) => {
@@ -12,6 +16,10 @@ export function setupConfiguration(env) {
   };
   const apiUrl = required("NEXT_PUBLIC_SUPABASE_URL");
   const anonKey = required("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  if (!isSupabasePublicConfigured(apiUrl, anonKey))
+    issues.push(
+      "Set a valid Supabase API origin and publishable or legacy anon key. Never use a secret key in a NEXT_PUBLIC variable.",
+    );
   const serviceKey = required("SUPABASE_SERVICE_ROLE_KEY");
   const project = required("SUPABASE_PROJECT_REF");
   const databaseHost = required("SUPABASE_DB_HOST");

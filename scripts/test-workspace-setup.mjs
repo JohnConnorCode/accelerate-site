@@ -7,7 +7,7 @@ const ownerId = "11111111-1111-4111-8111-111111111111",
   tenantId = "22222222-2222-4222-8222-222222222222";
 const env = {
   NEXT_PUBLIC_SUPABASE_URL: "https://fixtureproject.supabase.co",
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-public",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "sb_publishable_fixturepublic",
   SUPABASE_SERVICE_ROLE_KEY: "fixture-private",
   SUPABASE_PROJECT_REF: "fixtureproject",
   SUPABASE_DB_HOST: "db.fixtureproject.supabase.co",

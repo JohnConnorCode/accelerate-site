@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "cold-start-onboarding",
+    slug: "cold-start-onboarding",
+    title: "A clearer path from demo to your own workspace",
+    description:
+      "Example credentials now show setup guidance instead of a broken login form. Installation instructions separate required settings from optional providers and walk through a saved first task. Fork deployments start without scheduled jobs and retain Git updates; existing production schedules remain explicit.",
+    category: "improvement",
+    publishedAt: "2026-09-21",
+  },
+  {
     id: "connected-admin-release-review",
     slug: "connected-admin-release-review",
     title: "Consistent record controls and clearer recovery",
