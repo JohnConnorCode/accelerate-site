@@ -18,19 +18,34 @@ async function captureErrorRecovery(page, label) {
   const html = renderToStaticMarkup(boundary.render());
   assert(!html.includes("private-fixture-detail"));
   assert(!html.includes("No work was changed"));
-  await page.locator(".admin-main").evaluate((main, content) => {
-    main.innerHTML = content;
-  }, html);
-  const alert = page.getByRole("alert");
-  await alert.getByRole("heading", { name: "Something went wrong in this section" }).waitFor();
-  assert((await alert.innerText()).includes("check its status before repeating it"));
-  const retry = alert.getByRole("button", { name: "Try again", exact: true });
-  await retry.focus();
-  assert(await retry.evaluate((element) => element === document.activeElement));
-  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
-  const accessibility = await new AxeBuilder({ page }).include('[role="alert"]').analyze();
-  assert.deepEqual(accessibility.violations, []);
-  await page.screenshot({ path: `${output}/${label}-error-recovery-fixture.png`, fullPage: true });
+  // Keep the live React tree intact: inspect a script-free snapshot in a
+  // separate page, with the same loaded CSS, theme and viewport.
+  const markup = (await page.content())
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace("<head>", `<head><base href="${base}">`);
+  const fixture = await page.context().newPage();
+  try {
+    await fixture.setContent(markup);
+    page = fixture;
+    await page.locator(".admin-main").evaluate((main, content) => {
+      main.innerHTML = content;
+    }, html);
+    const alert = page.getByRole("alert");
+    await alert.getByRole("heading", { name: "Something went wrong in this section" }).waitFor();
+    assert((await alert.innerText()).includes("check its status before repeating it"));
+    const retry = alert.getByRole("button", { name: "Try again", exact: true });
+    await retry.focus();
+    assert(await retry.evaluate((element) => element === document.activeElement));
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
+    const accessibility = await new AxeBuilder({ page }).include('[role="alert"]').analyze();
+    assert.deepEqual(accessibility.violations, []);
+    await page.screenshot({
+      path: `${output}/${label}-error-recovery-fixture.png`,
+      fullPage: true,
+    });
+  } finally {
+    await fixture.close();
+  }
 }
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3018";
 const neutral = process.argv.includes("--neutral");
