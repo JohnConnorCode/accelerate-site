@@ -2,6 +2,20 @@
  * checked against the marketing route tree so migrations cannot omit a page. */
 export const installationRoutes = [
   {
+    path: "/ai-readiness",
+    source: "src/app/(marketing)/ai-readiness/page.tsx",
+    kind: "application",
+    collection: null,
+    preserve: "Readiness assessment, consent and report completion",
+  },
+  {
+    path: "/ai-readiness/report/[token]",
+    source: "src/app/(marketing)/ai-readiness/report/[token]/page.tsx",
+    kind: "application",
+    collection: null,
+    preserve: "Private token-based readiness report and PDF access",
+  },
+  {
     path: "/site-pages/[...websitePath]",
     source: "src/app/(marketing)/site-pages/[...websitePath]/page.tsx",
     kind: "application",

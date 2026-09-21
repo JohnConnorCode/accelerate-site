@@ -2,6 +2,33 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "connected-admin-release-review",
+    slug: "connected-admin-release-review",
+    title: "Consistent record controls and clearer recovery",
+    description:
+      "Admin lists share keyboard-accessible record controls and retain their page identity while loading. Opening an approval from Today closes the context panel, so keyboard dismissal stays predictable. Source tools show existing canonical links and explain which fields remain source-owned. Revenue keeps opportunity totals separate from client contract values and accepted proposals. Setup, access and recovery guides explain how to verify a repair and safely resume interrupted agent work.",
+    category: "improvement",
+    publishedAt: "2026-09-20",
+  },
+  {
+    id: "connected-learning-knowledge",
+    slug: "connected-learning-knowledge",
+    title: "Reviewed corrections and cited workspace references",
+    description:
+      "Independent learning rules remain active together, with explicit replacements and atomic approval history. Private PDF, DOCX and text references feed cited search; edited replies can propose reusable corrections. Meeting preparation and Client onboarding declare their shared sources and expected results. Get started follows saved work from an inquiry through a completed task and later guidance use. Source failures report incomplete coverage, large rule collections preserve official guidance, and completed first-use tasks remain recognized as more work is added. Failed evidence reviews retry independently after a cooldown, with the affected rule and remedy visible. AI readiness uses the execution credential check while manual tasks remain available. Installation requires the new migrations and an active work engine; model quality and live outcomes need separate verification.",
+    category: "improvement",
+    publishedAt: "2026-09-20",
+  },
+  {
+    id: "ai-readiness-assessment-action-plan",
+    slug: "ai-readiness-assessment-action-plan",
+    title: "AI Readiness now produces a useful action plan",
+    description:
+      "The former AI Readiness Checklist is now an interactive assessment for small business leaders. It scores process, data, tools, team and guardrails separately, can inspect a prospect's public homepage for visible SEO, mobile, accessibility, trust and conversion signals, shows a useful preview before the email gate, and produces a personalized web report, true PDF and 30-day pilot plan. The Resources admin view now includes assessment funnel, website-audit count, source, constraint and lead reporting. Scores describe readiness signals and never promise savings or revenue. Concurrent retries preserve one saved report and link, tenant reports remain isolated, and requested report email uses recorded delivery without automatic marketing enrollment.",
+    category: "feature",
+    publishedAt: "2026-09-20",
+  },
+  {
     id: "fresh-fork-first-use",
     slug: "fresh-fork-first-use",
     title: "Clear next steps for a fresh installation",

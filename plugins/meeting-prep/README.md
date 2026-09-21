@@ -56,3 +56,12 @@ fields and referenced record IDs. Reuse
 access inside guest code. Run `npm run build:extensions`,
 `npm run verify:extensions` and the scoped tests after changes. Follow the
 [documentation contract](../../docs/contracts/PLUGIN-DOCUMENTATION.md).
+
+## Shared knowledge
+
+The manifest declares a versioned subset of this plugin's existing sources,
+accepted correction signals and expected artifact. The host rechecks enablement
+and returns cited revisions through `search_knowledge_base`. Corrections create
+reviewable proposals; they cannot grant permissions or execute workflow writes.
+See [the knowledge contract](../../extensions/README.md#shared-knowledge-and-learning-declarations)
+and run the connected-learning regression checks alongside this plugin's tests.

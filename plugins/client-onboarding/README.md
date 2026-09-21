@@ -57,3 +57,12 @@ Business writes belong in the shared domain service, not the guest. Run
 `npm run test:plugin-workflow-contract` and the business fixture after edits.
 Host/guest upgrades can invalidate pending previews; prepare them again.
 Follow the [documentation contract](../../docs/contracts/PLUGIN-DOCUMENTATION.md).
+
+## Shared knowledge
+
+The manifest declares a versioned subset of this plugin's existing sources,
+accepted correction signals and expected artifact. The host rechecks enablement
+and returns cited revisions through `search_knowledge_base`. Corrections create
+reviewable proposals; they cannot grant permissions or execute workflow writes.
+See [the knowledge contract](../../extensions/README.md#shared-knowledge-and-learning-declarations)
+and run the connected-learning regression checks alongside this plugin's tests.

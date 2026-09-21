@@ -339,6 +339,7 @@ export async function rejectAction(
         reason ||
         "Rejection without explicit reason — pattern may indicate incorrect action target, timing, or content",
       source: "human_decision",
+      receiptKey: `action-rejection:${id}`,
       coworkerId,
       scopeEntityType: pending.entity_type,
       scopeEntityId: pending.entity_id,

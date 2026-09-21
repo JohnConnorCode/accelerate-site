@@ -1,3 +1,4 @@
+import { retrievePluginKnowledge } from "../src/lib/revenue-os/plugin-knowledge";
 import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
 import { MODULE_MAP } from "../src/lib/revenue-os/modules";
 import { EXTENSION_WORKFLOWS } from "../src/lib/revenue-os/extension-workflows.generated";
@@ -158,6 +159,15 @@ async function main() {
       },
     ];
     const input = { [sourceKey]: sourceId, tasks };
+    if (pluginId === "client-onboarding") {
+      const knowledge = await retrievePluginKnowledge(db, pluginId, { opportunityId });
+      assert.equal(knowledge.chunks.length, 1);
+      assert.equal(knowledge.chunks[0]!.entityId, opportunityId);
+      await assert.rejects(
+        retrievePluginKnowledge(foreign, pluginId, { opportunityId }),
+        /disabled|unavailable/,
+      );
+    }
     const compiled = EXTENSION_WORKFLOWS[pluginId]!;
     const originalCode = compiled.code;
     const declaration = MODULE_MAP.get(pluginId)!.workflow!;

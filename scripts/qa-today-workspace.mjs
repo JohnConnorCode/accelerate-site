@@ -303,7 +303,7 @@ try {
     );
     const task = page.locator('[data-attention-kind="work"]').first();
     if (await task.count()) {
-      await task.getByRole("button", { name: /^Inspect / }).click();
+      await task.getByRole("button", { name: /^Open / }).click();
       await page.getByRole("heading", { name: "Why this matters" }).waitFor();
       await page.keyboard.press("Escape");
       await page.getByRole("dialog", { name: "Work context" }).waitFor({ state: "hidden" });

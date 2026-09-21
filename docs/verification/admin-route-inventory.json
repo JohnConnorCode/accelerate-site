@@ -7,7 +7,7 @@
   },
   "evidenceLevel": "local source inventory; no row, field, browser or production parity asserted",
   "sources": {
-    "src/app/admin/activity/page.tsx": "115e9682a0d981b34a858eab63f8930516365983327a8acc464ecb53fbf8ebd2",
+    "src/app/admin/activity/page.tsx": "c4b241ef52db45e5bfbb922fb8b8177aafaf17f2a90bd5d0238b41cb2088f02c",
     "src/app/admin/ai-operations/page.tsx": "92aae0344b61a69def1d4fd711c387863b1c9bf18c433f33706271b7c6c4d2aa",
     "src/app/admin/ai/page.tsx": "ae4d9cbb09dcba05beffdf3d618210e5286273f7c651c4eb0c03aada76c07ed3",
     "src/app/admin/analytics/page.tsx": "51afc1e135cd11d16b9484fc231d2609a34426e52352c83e3a3fb20ebd96a5b9",
@@ -16,42 +16,43 @@
     "src/app/admin/bookings/page.tsx": "f2bba023bce346991cec024f86a21976af8b69ca8389d5528f5235fb0169ab05",
     "src/app/admin/branding/page.tsx": "61797f78f22ee9693a39a049abdf9cf92a428ddcc99b819d346440b2a1ebe780",
     "src/app/admin/campaigns/page.tsx": "1f9d7d2420a0e699bc510f5495357b5294c3c770025ab1b4064fd0a311ea3acc",
-    "src/app/admin/chat-leads/page.tsx": "a9ebc4976f138b0b616226dd028fa0ee61efe785829ea6ca6a6c2358755c0245",
+    "src/app/admin/chat-leads/page.tsx": "f7cb489a8f6e8960daf3c2b7df03ee039ad6abacdb614a2afbc8e87101cc3078",
     "src/app/admin/client-onboarding/page.tsx": "4d5539fa0198edaabf7dd3494d3d5b8c6b0dd20957b2cf1b9fc95c8624f12ca8",
-    "src/app/admin/clients/[id]/page.tsx": "c8358457e2a8970ebc1da771e32ea91b9d3912e7a5f4c7f5748382ae6a1100b7",
-    "src/app/admin/clients/page.tsx": "62f73ca733ef988ed7b45989e546c4a6b8a5fe40adb60f74bfbc0095c4ae38ae",
+    "src/app/admin/clients/[id]/page.tsx": "8f5fbeae59219848af049bb9cc10d914124cf33b800e71da577e0f1916113ab7",
+    "src/app/admin/clients/page.tsx": "8d2f0d2532c7d087f92f6f96b7d61efd0d46aa6413aeed1a115f77125a034a3d",
     "src/app/admin/collections/page.tsx": "0564cde5a5e31bd65faeb64668a47ce9fbef778d7d6d0b0570fc93e9471e8482",
     "src/app/admin/contact-imports/page.tsx": "056efae7fda9b0a2560f418dcbc13d535fc31998585d3d67b4340447e7487fdb",
-    "src/app/admin/contacts/[email]/page.tsx": "80fddacfd0f89ee0e55fc5de5c46018f724f237127e941f37639808ddc90d989",
-    "src/app/admin/contacts/page.tsx": "93a8139a024e3499c19393be92a1f38e8929bedd5dc39ffa0b303ade46210b6e",
+    "src/app/admin/contacts/[email]/page.tsx": "d99e606d248504325af4db6bc1d4935221c6707c0c90850283f650201383b209",
+    "src/app/admin/contacts/page.tsx": "d41583ce9aea53264df267e19030146d892dd6e0505042290aeb9bfd4b3a4ab4",
     "src/app/admin/content/page.tsx": "a0030f8d7358b117a1ee97ddc8321aefdeb07f665c9d72238929f441035fef60",
-    "src/app/admin/conversations/page.tsx": "d31ea1db7d644c9a5341fcf87c341e04ece89d19bc2a72d5d44a597ce9b0fffa",
-    "src/app/admin/email-sequences/page.tsx": "aa21e9d313ec48fe410396e9d2489db5b4d08c78b5a7a8232ee3b484bce8875c",
+    "src/app/admin/conversations/page.tsx": "bd265281c241928e52d832a844116dc577d206d47c4738cb59952be96c9dc19d",
+    "src/app/admin/email-sequences/page.tsx": "a0653d19827ea87cffd77c12501180118ce97099238e09ed1617c27e23aaa881",
     "src/app/admin/emails/page.tsx": "08f46f76e4c42134b0fbfa6b77a54b7400969f6eff03b60f246c7feaaea98a02",
     "src/app/admin/example-inventory/page.tsx": "18eeaa9e5c5802e02b01a471271db10ab5a7cdfb447af33667c524890fba691b",
     "src/app/admin/features/page.tsx": "5ed7a5159c0d1d5234b620c98da60006e3029821575d91d4808d684252278830",
     "src/app/admin/forms/page.tsx": "8b2b917e0174872a6c7b2b1314540c0b00a4d20fbbfd80e5101c4858c0f8ec65",
+    "src/app/admin/get-started/page.tsx": "9f4510837f1626a2262d2bec3258aaf1a1d8aa4992da7098acfc2811676f5ffd",
     "src/app/admin/identity-review/page.tsx": "93d875e879ea45822a3a66a45c017fee081c2ff13a89dc2f745fcf27549e7631",
-    "src/app/admin/inbox/page.tsx": "32a3f1dfdca304199d12aa21fdc28b8306d6470ec8424c4d37ac647c231d08e3",
+    "src/app/admin/inbox/page.tsx": "b1629c03a57338dcf12003224c8263a1473489f13cd49e38759be186372a1f31",
     "src/app/admin/integrations/page.tsx": "7754f8f4c11df9045a2eabe00b1afe98cd69e4f7a6af1ac041e2ad41076775c2",
     "src/app/admin/invoicing/page.tsx": "47c4ec0ddd509e7631abd0dac7d363a0129df8a67568ca2a74051b6293c1a903",
-    "src/app/admin/leads/page.tsx": "d944021e575fa6be391b6ec020c33a7ae9dd88f532a8b6ad51a07ed64c8e3dce",
-    "src/app/admin/learning/page.tsx": "87c34e14deb5a811e719fc706518503b4737b6761bf1d55dc11c08b947c9bcfb",
+    "src/app/admin/leads/page.tsx": "6bc4b71a8835b96c5a98508fbcd50d6d27489447de9ec648378a91354935549d",
+    "src/app/admin/learning/page.tsx": "5353ba86822567bd7756e262889bce288c87c6e8b3888eafa70b24dfa9fa22da",
     "src/app/admin/login/page.tsx": "4ee0470ad1fd6f5a3fd16d3d23c60ef3e6fd73604bca5b9b9c80d39c446c3f34",
     "src/app/admin/meeting-commitments/page.tsx": "8321baededd9c74b3f742cfdefbe5dacb221c79f153ad78293d07690dfb12174",
-    "src/app/admin/page.tsx": "b298bd7de29700f58c08d73f4344b8713fc4bae5480324020820d2b183608784",
-    "src/app/admin/partners/page.tsx": "3c90c8dae9fb4288b710822c1818c1cbb382d950fc2cb7ae8419c7d1e313c3b8",
+    "src/app/admin/page.tsx": "98c79d9db2288115c77c549e3ab5c391cecae1f0db649d2c3a3b84764203bed3",
+    "src/app/admin/partners/page.tsx": "f8f10cdafdf18f44f63b50e1b5e92af4002cad7d3ee79e2efc28ef10d784d8cc",
     "src/app/admin/pipeline/[id]/page.tsx": "8c68643fc06af47ce8d74c3b6cbd419ca81c3b5bce4a151a0fb8c9214c011920",
-    "src/app/admin/pipeline/page.tsx": "17a5ce6d20db6616245a5afc5b9c7dfe6dd1f3a3e0451555f2708cd7e36a583f",
+    "src/app/admin/pipeline/page.tsx": "6a77faa463a5304e0c83cfb4840bb240d0eea08c0f2927e083960e252bf5e86e",
     "src/app/admin/plugins/page.tsx": "6a92761f3882c61cdf48b288dac64f0fbd8536dc3e505f858e68c52135358e6c",
-    "src/app/admin/proposals/page.tsx": "59e0927e1596d0bdf6641e4dd5e50afb0228b9c1540c62a5b298b3972787a9a5",
+    "src/app/admin/proposals/page.tsx": "c486ad78c5612a3279a7e29450bb370154a467a904077a86e7461a9ee22c61b9",
     "src/app/admin/radar/history/page.tsx": "623933fc9c5c073ae71be3f4b1811dc7be3b1da2b708d71b1e2a1f7fbc22329f",
     "src/app/admin/radar/opportunities/[id]/page.tsx": "d07e3a8bcfc257339da4b4fa6ff5f3abe7dc693186e0a217f8fe6ab9a0f396f5",
     "src/app/admin/radar/page.tsx": "952f463a826f122874794dd91cded3498578f4bc73d222e2cc871ddd005bc246",
     "src/app/admin/radar/today/page.tsx": "9c2bf2c18ffc537d0cdac03e7a831185d5cce208d625d9c69726547ec23bb7ec",
     "src/app/admin/recovery/page.tsx": "84bd99914a266402a187c8b846b93f461ecfe95697546fd658c741e2def77073",
-    "src/app/admin/resources/page.tsx": "55d7dc6906ec6bc7c68bf30df77ed9972974b6286fee9fdc720b5e0148495b5d",
-    "src/app/admin/revenue/page.tsx": "1cd4bbbc5ce600ef3481d2fd8e8b54495d166541005746628cbdc7c806306dbc",
+    "src/app/admin/resources/page.tsx": "4f9c6539ebcdd69d96e0e81d5f60b746fc8d37b643ef33a94c1535902da0a3a3",
+    "src/app/admin/revenue/page.tsx": "15339ff31bf48d4beb225fc4fa31260ffcdb16a2fb3fffb6e236e2a4be11b4a0",
     "src/app/admin/settings/page.tsx": "aa786e9c57c5dc78eca0aed6f1d8f3479ecdb1260d6b2a92d507a50c701f0e5c",
     "src/app/admin/setup/page.tsx": "eefc276b3ae866faf65858ef27c0bea93fbb0d9b685c54906fd3d37235b39a23",
     "src/app/admin/site/[id]/page.tsx": "967b7d53e5e731e05e9c88fa943853ee977b8bd8afd8ee2bb88a8d7ce016fee9",
@@ -61,26 +62,27 @@
     "src/app/admin/site/website/preview/page.tsx": "ba3b9457651a48b4045b913c4bb959f80cd510e356968c66b20bdae666eb1582",
     "src/app/admin/social/history/page.tsx": "86febd1247f7fb57489a0daa4e71f31f57bb2809989f4972b6dff1a233d30672",
     "src/app/admin/social/page.tsx": "e28a7c16b4d5ac7c66ba78ad5686bfb236aa15bf37d9e50a3c7a23c7fc58ef32",
-    "src/app/admin/subscribers/page.tsx": "66e9a6958c736a36b7e96e286087a321f98d722dd624403a6e879ab1876617c6",
+    "src/app/admin/subscribers/page.tsx": "a6e6a3a70e99bd893cce87b09767af6530e8e94cd7b4ac2acefc88941c7b7b99",
     "src/app/admin/subscriptions/page.tsx": "1ede8016a1f569d01f081b0ad9f5151287be7e93fc4e8afce953b5714d104cf6",
     "src/app/admin/tenants/page.tsx": "b80ccf7b64c9b909ec879ef90e6d440aa2ec53690a25fcbb8a777327412e0f77",
     "src/app/admin/today/page.tsx": "cbbba1645450b9ecc3bce1771bd06029306e62c33025bff07d5b7b1a30d13a4c",
     "src/app/admin/update-password/page.tsx": "a3c4ec821033acc0efe1dbb6929843e49bcd6720c6534def104e5e10072b7109",
-    "src/app/admin/website-grades/page.tsx": "b7d777f68e6daf61053c2ee38d0348426124f051e52a4bc72069403a1be9b8dc",
-    "src/app/admin/work/page.tsx": "761ec87236b6ac561d7e7bfaa709e55676820d817381df0746a3d7d369c85215",
+    "src/app/admin/website-grades/page.tsx": "81e08a663b69ba64ae3f123857d3558dc7e71b8c562161f3df6df2f1c1765639",
+    "src/app/admin/work/page.tsx": "2931c9603ec6ace70ff27256ad3b7966c02c0cb1a718f27e15966c794ef4d35f",
     "src/app/api/admin/activity/route.ts": "e60e1e665e017301187159476c84b36def2506c69a49db031e1653c4be79c68f",
     "src/app/api/admin/blueprints/[id]/route.ts": "0f320be38283c086d60f7bc49c8138abba4e99ca967b14c90c20bb2a7047f67f",
     "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",
     "src/app/api/admin/bookings/route.ts": "57b07eb5f5da312bc972daec1cfa68584d9e4f65f0451940dabd42f04565341e",
-    "src/app/api/admin/chat-leads/route.ts": "8712c08abc9a1e130bdbf50d3a19cc19956246056bf9eeac186cd06a0a4eaa70",
-    "src/app/api/admin/clients/route.ts": "e0b0db321d70eb56f11965e0f71b3235c5832a407f522123d536c8bfb3326e1c",
+    "src/app/api/admin/chat-leads/route.ts": "1252546fd8002454ebf50caceca306f1c31a31c08dfef3fbdb64ce6bdf2526a1",
+    "src/app/api/admin/clients/route.ts": "fec7982f6a38a8b1ac40d9de0de6ff1d94138899ab4b4ad1f0097c7f9c6d7d4b",
     "src/app/api/admin/collections/reminders/route.ts": "04216824ae8bab39007829cd39dc033a7c55407b16040e739cfbc68aae5d302d",
     "src/app/api/admin/collections/route.ts": "11969cd591fe4f421e4a59b2359fc643309db8fb0ee043a54dc418f2ac1d7d66",
     "src/app/api/admin/collections/workspace/route.ts": "6570443cb6cc77d53e128dd6fd435afede6d6ad6e75731bb753f1d9eba124780",
     "src/app/api/admin/contacts/export/route.ts": "8a25082eec41bafa5cdf74c482b9fe0bedde5d4f3190693394b695ca54df6c21",
-    "src/app/api/admin/contacts/route.ts": "d4f0c45b7e4bc1641492f4864d46ad20fb1342c70d5f58f9760ebcaba73f1994",
+    "src/app/api/admin/contacts/route.ts": "9b36abcbf2b01af819c7a7ba2ba254cba8c5ca129fb1fa3a80d4c8c579f9e258",
     "src/app/api/admin/contacts/timeline/route.ts": "cecaa7448a188a1f85ddd5a8ead117bfa0a65c6c09e104404d0cb40babd88034",
     "src/app/api/admin/content/route.ts": "b06d515300ab33b481fece9744c0c30fbe598aab42167ce04035778ead5dc7d4",
+    "src/app/api/admin/corrections/detect/route.ts": "74315d275feaaf6bec1d247cff193480819677efa3a50278fe88eb8af30e92a2",
     "src/app/api/admin/email-sequences/route.ts": "9f3ccd0bff8a241ab65bb0a5cf08c750e7d6f558254ba1cb0b01af26ce6240b1",
     "src/app/api/admin/emails/history/route.ts": "7e0d48ee096aaa52047b23e748570e89da1a7b46c0729e37fb9e1e0ee5c7a02c",
     "src/app/api/admin/emails/preview/route.ts": "74e83fb3d54ac25280e13ef4282e852f2e597f639b820c834ec69a42c20dbd65",
@@ -88,25 +90,28 @@
     "src/app/api/admin/features/route.ts": "0e864c3544c47c54146f56d1900e3248e11e9be2c63563bd6715f22bb949d88a",
     "src/app/api/admin/features/views/route.ts": "0f61e13ec15b8df5d1b543366b102ba62bb87d93f1076d9b394b08fddc02a395",
     "src/app/api/admin/forms/route.ts": "8168bca4de53ee289fc11bc8fabd2e15944efc6bec13991a6e12b0feab1bea03",
+    "src/app/api/admin/get-started/route.ts": "fe02a68b546dcb6e8101056ca5ef54b568ec15c9d1a98aca836e55ea64f2c287",
     "src/app/api/admin/google/sync/route.ts": "2a3dcc7eb967145319ec89f31edfba2875628e5cde6eb8c77da63f5aa986a303",
     "src/app/api/admin/inbox/route.ts": "cccb2726c649b723803094a08b45459d2f95c01299c7170a92ffa52e7a2667cf",
     "src/app/api/admin/integrations/route.ts": "a774774dfc90ba9f3f6e02e5b2f7cf4300cd923817fd90937ced7086e9e1bccb",
     "src/app/api/admin/invoicing/pages/route.ts": "61dc263ccce886dafba788a7576e91981a72259bb39b5a1fb7ae669ed4323683",
     "src/app/api/admin/invoicing/route.ts": "5f4c2479a6239162bd1591fad503818c7276e09e2dc3ffa167910391a8ebe54c",
-    "src/app/api/admin/leads/route.ts": "fa21cb9caaa32e8e670cc379ca07dd7712186af88706f1a9137cdf9d93212437",
+    "src/app/api/admin/knowledge/documents/route.ts": "2bd5551ffa70098c449cbcfac12e60bc9684c10af0a895ef84df9a72a2c18f35",
+    "src/app/api/admin/leads/route.ts": "b7f1d99d549d1241decef4e98a223bd587f2691491c748342f15c960df9ac3d7",
     "src/app/api/admin/learning/[id]/route.ts": "03e5ad746d03ce0c1c7208a4195b62f98d950989f4ddffda48f8229d6e8b63e9",
-    "src/app/api/admin/learning/route.ts": "c1b38435a93e2a75073d0a6cad999597e8e5ef50124b7289db339223db5f7b07",
+    "src/app/api/admin/learning/route.ts": "b4e52515cf9b941fbbdf48fab13dba201a36fa7d23209d2e50f171f354823e0e",
+    "src/app/api/admin/learning/signals/route.ts": "290e50ce5c6e89be4df197ef8b12d9faa4fbedd0f62d953b15942f8af7e0b2a5",
     "src/app/api/admin/login/route.ts": "5a52c3e65c60164b8af12a8b36a5eb6b3ca8eba6004247c56fe5891f4f6e0d2b",
-    "src/app/api/admin/partners/route.ts": "81e12fd33147bff54eb137ff67a25cad875937bb3dd042bc63a92d310e88d734",
+    "src/app/api/admin/partners/route.ts": "ae44503e05ecc4181c565dde831f3b5d29f7347cb49f3d28e2d06667122498a6",
     "src/app/api/admin/password-reset/route.ts": "4bc2cfed97fff1179b09fffc935ffc82b828393cea4514562472cd561adcf892",
     "src/app/api/admin/plugins/run/route.ts": "63116ab1a496af78539b3801fb57da3ec9bebbb47efbf52a6de6fd34bf892084",
     "src/app/api/admin/plugins/tasks/route.ts": "b99c65e9d43524894b64968e3e06d86593324435699e106d2bc4fab81f1013b0",
     "src/app/api/admin/plugins/workflow/route.ts": "9b2c2929f67e0980c347aa00ae475dd79c9dc111d2ffedf617e24e7c7c702dd6",
-    "src/app/api/admin/proposals/generate/route.ts": "7b36969fd098b914dc1ed15e020b6857ddde89ea8d55b7f38cdc9e66be70444f",
+    "src/app/api/admin/proposals/generate/route.ts": "306ffb40838d461b8a7a2017f15d500e47e911935ce304c20c6646a1f6444063",
     "src/app/api/admin/proposals/route.ts": "9ee5f3c32dc9c3de7a51d3db521caf4b72fc812cd8b94eee74b058cb73099eff",
     "src/app/api/admin/radar/commands/route.ts": "0fdf546a31f30bb8c23ef6f9709cc8b17ad557b0b8e3a8b6609a8986971f806b",
     "src/app/api/admin/radar/workspace/route.ts": "2dd44773ded01b396cefe982db2bf2d327fb96b6c4e29b09c1080b30330eff00",
-    "src/app/api/admin/resources/route.ts": "d78eadde6bce745c27b8853065f36b42d8947b467fd52952c4c6a0e7277102aa",
+    "src/app/api/admin/resources/route.ts": "9e9b8c2d48eebfa36feedfd096b290438a56cd21b706fedb001583636f8c7831",
     "src/app/api/admin/revenue-os/actions/route.ts": "d00621269c6885c8e78ad906024f635b602b39ece01a9e9ff2ec7bef9d4e11e6",
     "src/app/api/admin/revenue-os/ai/capabilities/route.ts": "6f7ac4fefdbf00690a036eba905643d7406beb4cb3bba458e703236b73a64655",
     "src/app/api/admin/revenue-os/ai/conversations/[id]/context/route.ts": "f30f24f1f3697c37230c6da8ac4c07d7905b7bd1b6e884f91b2f2f36736461f0",
@@ -133,7 +138,7 @@
     "src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts": "bef9ce8396d295bb1ec3aa98cb5be52aead4e845559262b74d4fd0e670ca0384",
     "src/app/api/admin/revenue-os/recovery/route.ts": "618f42369e72b357efd35a846c19cfa21b1e32f06d405a20ccf7cf650fc8f288",
     "src/app/api/admin/revenue-os/tasks/route.ts": "0ac406649d939e53d45100d122044654aa52eb228f7b07243227f66387abcb95",
-    "src/app/api/admin/revenue/route.ts": "55a1794a41c280b83b60a5875c2d21eebdc2629fe03f1225afe344a47aab78be",
+    "src/app/api/admin/revenue/route.ts": "62cea43d4598d5996c29cc57ee8f7eb33eaec82ade8a8a9bfbcfc1f53e6c2e3d",
     "src/app/api/admin/settings/route.ts": "7f2356ae469f754ec265ab3f64e759533f39d7b86c462c08b05f6f7794caa62e",
     "src/app/api/admin/settings/test/route.ts": "f6b83ed5979d5187b406f402308d12b982370adb735a2664717cf5770ea013bc",
     "src/app/api/admin/setup/route.ts": "9d5249139666033a0ebc65c308607fa9edd19daf1cf5911fc832cc374bf8e2a4",
@@ -146,7 +151,7 @@
     "src/app/api/admin/social-history/route.ts": "6c763c4d22eeadf9cd10b64256416fb06bda6439f0fa53a38c0fb899d313ee0b",
     "src/app/api/admin/social/route.ts": "3ed15ebef11c14c15ca17526cf2e03f1296cafb4090cbb20bb83593f6864a57c",
     "src/app/api/admin/subscribers/export/route.ts": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63",
-    "src/app/api/admin/subscribers/route.ts": "dadb0fc001e5ecc9e1340a1d363e0c24771f492e7e88650aa8e78f2d5a6a18e0",
+    "src/app/api/admin/subscribers/route.ts": "3463b6ca89854e49bd045cf80ae1076332078bcfdd602c09ac482031a16573e9",
     "src/app/api/admin/subscriptions/route.ts": "0ce8c7d379219cc74fba1dedb6cffb5ccc9756fa0ae5a043028e2af71063b855",
     "src/app/api/admin/tasks/route.ts": "dc148f3e6fc5d6ce6e9666696d9a1ecad25b309ad307d9503df40a24c9c793c6",
     "src/app/api/admin/tenant/branding/route.ts": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5",
@@ -154,8 +159,9 @@
     "src/app/api/admin/tenant/providers/route.ts": "bdb7821e7409e4c79e742271390e31e021f7aae7d03bae7fff6cac597e97224e",
     "src/app/api/admin/tenants/route.ts": "6012e4113dce8b981fc72d7f59fe96c86c3380924dffebd75d9e9987821c0b4c",
     "src/app/api/admin/website-grades/export/route.ts": "010d8a442b984a7223fb7003e78a0ae3bafd5d98c090f996f1ed370587a60772",
-    "src/app/api/admin/website-grades/route.ts": "7421016a0d3d5cb10d2b9998fdb7606650ecedb975c8fe38d78682b14b649659",
+    "src/app/api/admin/website-grades/route.ts": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98",
     "src/components/admin/AICapabilities.tsx": "a002a0ed29cca7fbbb4be4599b317dafbf5be1fad7b8ad17aef54864945c3b2b",
+    "src/components/admin/AIReadinessPanel.tsx": "900a125a59bf92a1d91c7757b53deaf99c327aa7cc5f7aa92f731642a13064ce",
     "src/components/admin/AIRunHistory.tsx": "f3de821f6215618c41e221b4e85b6831927bb007fba58e277ef5c5030c1c2906",
     "src/components/admin/ActionReviewDialog.tsx": "dda011650885506a6f7c7d1a34a7f77a41bce8a6764537d34bf1278eb51a09bf",
     "src/components/admin/AddLeadModal.tsx": "30c1ba2bb1a4b0a648dac085f6a4c607c0e1bba48490fe24cd2a13e6c5b36fc0",
@@ -179,6 +185,7 @@
     "src/components/admin/AdminPageLoading.tsx": "599a73d33e924dabc3fa5027ed814799b0d9c638e6298cef8fb610358068832e",
     "src/components/admin/AdminQueryProvider.tsx": "64e5872bd4521ba4f391782d3f9f1d261917e8dd8bed32f99b453a9cd7335336",
     "src/components/admin/AdminReadBody.tsx": "297d8b05af97e45da6e0df779e99e7c7e10bb5f695c4fe5221e297fa6ecdf7a5",
+    "src/components/admin/AdminRecordRow.tsx": "9748f883c556dfdbfd1f24a08ceb76e6b600aa962fee3dc69a2663a0259309af",
     "src/components/admin/AdminRouteSkeleton.tsx": "0249268d08d6dc7ec8a69f78185022a89d716ea798a615e87f9c1f4e7e101e03",
     "src/components/admin/AdminRouteStage.tsx": "5fff9f23d43a219c7b2cbe238c12c8da729035de5035fd9646620af6614c5186",
     "src/components/admin/AdminShell.tsx": "118f6da2afc05bf7cfc295bfde41250d0bf5991602a0120a1830d64790d4cd48",
@@ -186,14 +193,15 @@
     "src/components/admin/AdminStatusMessage.tsx": "2a6a04a62b69e69db7100cb7a768ff328d5c2dfea3bb04763863f848141583fe",
     "src/components/admin/AdminSurface.tsx": "e7b452317be1082926abf851d663d80ab9c18447482b3763762c4542a3ee5f25",
     "src/components/admin/AdminSwitch.tsx": "672d58f94a4a2e31b9efa33f29a49b39253103f071695eee675135e5d12bfb9e",
-    "src/components/admin/AdminTable.tsx": "50b4665014c7dddc08547916d95a39550dcf6a2cbff2cf4d475e9cee6bd44e8a",
+    "src/components/admin/AdminTable.tsx": "d503b511de047215ab9dc622e2301ce7dcb0bb5f34a5ca95e172f1754c044f87",
     "src/components/admin/AdminThemeEditor.tsx": "30215c12098d8fd136cb490185d892ff1e3b5b7f7a2cfe36712505e49e79b263",
     "src/components/admin/AdminThemeProvider.tsx": "8e6a151e4c0b8c9211ee35b88d89e8cd3808a5bed7c9d865d12f61e0d79176e3",
     "src/components/admin/ArchitectEvidencePanel.tsx": "5d3763ebfc64b6e5a0c301d88c96979d0bf66be387b292382fbf5bcea0ea300e",
     "src/components/admin/ArchitectUnderstandingPanel.tsx": "3cc664230ebb00d1d31554bb537d8db12a83969cdd2df1f53c95d97db0d17366",
-    "src/components/admin/AttentionList.tsx": "e39a1c0f6699a413a9e3ac543342e3492a475e02a647ced612d31a1a8d19fa00",
+    "src/components/admin/AttentionList.tsx": "ed7468bc4c78b694e8a333db014b3ff5981d405db7879bf868e1ac18f50e843a",
     "src/components/admin/BlueprintReview.tsx": "407f1a47329c3c07a03b773ef1cfdfb92a8545763a8af1e4b063c00a8c3434e3",
     "src/components/admin/BlueprintsWorkspace.tsx": "253c805e70938cf8b5c0bcdbeb58776b9e894175531baf66c0fa94c3824f2179",
+    "src/components/admin/CanonicalSourceLink.tsx": "edc89be4aaafce6a7777ac6212687311ca14c15d0e784c9087bd46643875c04a",
     "src/components/admin/ChannelBreakdown.tsx": "fb6deda8fab795f0988422f4cbe3f57cbeeb49b7b17c543bef37f54c239d1429",
     "src/components/admin/ClientDetail.tsx": "0c94e721c951df00d2d3269b706df3b20e064e947517851885135824b1a14ec0",
     "src/components/admin/CollectionsWorkspace.tsx": "536bcafcbf9d4cd1da07dedfae524ceda9be80e8a9959718cb7353416a695960",
@@ -207,17 +215,20 @@
     "src/components/admin/DemoBusinessNotice.tsx": "006392b9131053d3272373cd2b8d96043fb42eeefccf7ebe5d88ef0611b5a3dd",
     "src/components/admin/DemoScenarioMark.tsx": "a15549b733fcfdefa670fe2114feca52f06692e20a76f2d4120130804bad377b",
     "src/components/admin/DemoWorkspacePreview.tsx": "fa7eec0268731a7b14984941b3307a8843236978b0fd366d783b9a182a667034",
+    "src/components/admin/DraftLearning.tsx": "25bfadb4c6b8a57f7cfea068fd5174482fc06f0c784daf1cd27b9c8adcfa9591",
     "src/components/admin/EmailBlockComposer.tsx": "a998e2a4688c975023f4c86393d45910b286b3a6196e6b73483823e865a3edb7",
     "src/components/admin/EmailComposeModal.tsx": "d227b386185d1d6c5e28562c9790899c5f622d9a8f69e9f4cca71ab364665983",
     "src/components/admin/EmptyState.tsx": "d4b0e4eaadb174e06ee6b310ee877811d1bdac6a401c6b3457beb3eb1006c7fb",
     "src/components/admin/FormsWorkspace.tsx": "4029feb6ee217b4b7f028f34b6319cac7907d28f77fba6049e4815e0ab40572b",
     "src/components/admin/InvoicePageDesigner.tsx": "8f23de09a4bbe8e5c58fcd3f87af34c74daac70b89bed0e3925456e1ef725e08",
+    "src/components/admin/KnowledgeSources.tsx": "84fe6c5bcb787c4b75655166911cdf695edb22347074b0e1f2c9f3d304d1d6c8",
     "src/components/admin/LayoutCustomizeDialog.tsx": "b44371cf020302b208208d68d674d6554020030518c4e57d87c34b714ead7510",
     "src/components/admin/LayoutScopeCard.tsx": "2392593a0b7b7b2995dabfba624fbbb72928690eb05e2b92eef12da243928df3",
     "src/components/admin/LeadDetail.tsx": "21ff8b7ccb91efe541cfb09e1c7e02e9e045ff0e40067d38388837a790765dd5",
     "src/components/admin/LeadPipeline.tsx": "d6f4f95172aa2f19bc4165b314bde0e91f5fc98e30de66fe15c4b80a25d770c3",
     "src/components/admin/LeadsChart.tsx": "35471c65770f8be8b5002a777be7f79dd761af2111663a969e2fd06589054900",
-    "src/components/admin/LeadsTable.tsx": "4665d38068931ee81350b2920b12923def3d979deb82dd276fec914c9d190d3a",
+    "src/components/admin/LeadsTable.tsx": "b009477205160851eb7d6ca5cd21a8ca7934ea0862a481edd17bbf23e97e72b8",
+    "src/components/admin/LearningEvidence.tsx": "09c775fc4961dc88ff96613c6dfaaa1e91c487d673dcebe0a19a3e5a13723fbc",
     "src/components/admin/LegacyToday.tsx": "5f87d5c9fa45bf54becca833573abecf6bf128c49ac72870fde0abf54b826dd9",
     "src/components/admin/LoadingSkeleton.tsx": "bd08a210a066cc92a0fc51e09fcdb892a152ed9973c800cc422a89a5314e4aa9",
     "src/components/admin/MRRChart.tsx": "c053302eec2b71ba8eb02ab2a7f84d7fb89c3b106543faf9acaf6d56a0c86447",
@@ -227,7 +238,7 @@
     "src/components/admin/PageHeader.tsx": "5bf46188e8678543501dc4f248900a2cc2d5746088a348b3f6f1f0444d589a3f",
     "src/components/admin/Pagination.tsx": "b3d4081852df3883f4e1ff0dfa7cb3e3a57e7920bcc5d69bebc0fcfd25bb18f3",
     "src/components/admin/PlausibleWidget.tsx": "250f81a9de33b8432d902c626757002def6ea084e88c26dfa0c933f6e54ebeed",
-    "src/components/admin/ProposalEditor.tsx": "a39e2fae836275917a132e787043749d2e333e15be2929527286cb3c31579323",
+    "src/components/admin/ProposalEditor.tsx": "7cf12792d78b7fceefaca96a06c928a438d1dfe1f30e74eda95f15e043f36a6d",
     "src/components/admin/QuickActions.tsx": "56f5b4b70153e6b787b4f1ab9547b580de0ab0e6af9cda76a06a9440117719ff",
     "src/components/admin/RadarEditorDialog.tsx": "0d04b53db4ba0a0d3132e29a94f8a1c5e50a3892683cbf31120bd37b0b336320",
     "src/components/admin/RadarOpportunityDetail.tsx": "5162c7af417ebbebde1c349b3ffda0faafbbd48f8638e35bdefc095f6db9bdde",
@@ -240,6 +251,7 @@
     "src/components/admin/RevenueSetupGate.tsx": "6b5d9f2c34d994a381ca4c884ede07596400e460cb5087c7fe0572329637344e",
     "src/components/admin/RevenueSnapshot.tsx": "204facd6f0a92962bce28fcbfd39af38b2218914a5fc07b5a7da7211f675e275",
     "src/components/admin/SocialMarketingWorkspace.tsx": "5238d73333f1c571862ed83be19a261d0e514b1b2ffd4a47a250224018d3283d",
+    "src/components/admin/SourceToolDispositions.tsx": "7d46e897d09a1c4b1e26220f290b5a0d1b3ec723c76238eceee4bf13f2fa8ef2",
     "src/components/admin/StatCard.tsx": "6286532a370c017df492f4bd3d787cf5278f4102cf000bc3328942258570195e",
     "src/components/admin/StatusBadge.tsx": "3a5cc477a064efa4a14a1946819a0a6ff8f7fb64774fa2a8614681e559c7ceb1",
     "src/components/admin/TaskQuickAdd.tsx": "9eb389d6c8fd522e4e6e8b4c566b1a94a4c67f057033d1d2e5d2f4cdba6dcef1",
@@ -248,7 +260,7 @@
     "src/components/admin/TenantProviderControls.tsx": "164865e87507ee9548928f0421542fdd8caa23d560481931e98bcdb2f46f23c8",
     "src/components/admin/Toaster.tsx": "e05c110e50f2a3eccdd32a99daf5749d2f62d125bf29e7a06bfb551deb7b8672",
     "src/components/admin/TodayViewEditor.tsx": "1bf5c21077acd727e91051f0295eaf1e84b231eccecdded83eb64712b3a90246",
-    "src/components/admin/TodayWorkspace.tsx": "98d5feeb7d7f7ced34e7dcc909bae36716062ddbbc6f52631a0851c92bbc238a",
+    "src/components/admin/TodayWorkspace.tsx": "26e6851e92812b07c1bd61948aa22432dc2d6e2b21232c20e491d17aa62360e6",
     "src/components/admin/TodaysPriorities.tsx": "7aacbf6802c467c7db99987d3c7c8dd03843118de743c82b24bb5179947a8064",
     "src/components/admin/site/SiteEditorConnections.tsx": "164b15dae0b5a73f15768d79c16a872e244da1cd9786619179b260dc38fbb576",
     "src/components/admin/site/WebsiteAssets.tsx": "b5e4a83a145f48bfb9139712edd4e9dfff12baa8e10404aba44c80e3d0651a72",
@@ -267,7 +279,7 @@
     "src/components/admin/work-board/WorkAgents.tsx": "7e96691a1e56e251155055c2345a3e1f42c12109eeb80544c2fb51a331940364",
     "src/components/admin/work-board/WorkControls.tsx": "23dcd10ad062ac68bfe51523fa05fd584a8882ca29d3c5b4267df7d30d51e6c3",
     "src/components/admin/work-board/WorkViews.tsx": "ce1bc8be4a18f70f2d80881d9f077ee113cca7bf11324c192d7cc43eba732ee0",
-    "src/lib/admin/navigation.ts": "f9c621bb4994724548f595e8ee17ef3d2acfbe87754f14594743eead7c882ce3",
+    "src/lib/admin/navigation.ts": "7850ce9ccf5a1080be31ad3e27c60ddcdb708ec7ce16596a071906a337711d5e",
     "src/lib/ai/approved-pricing.ts": "de3c37eddce5b73b90acc8e38f72d01865e9a1b207ea3a27972de4bfbd34dc42",
     "src/lib/ai/openrouter-credentials.ts": "ad6d8b9729a4fe8d228ad4154d5e75e94880c5af1bdb1b51bb463cd4408a6135",
     "src/lib/ai/openrouter-models.ts": "005042ecb73505abc050af9b753e47db588f80fcfe3598fd81a04112a7b72784",
@@ -278,18 +290,18 @@
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
     "src/lib/revenue-os/README.md": "eb3e7c9684ec29a2175bbf0d59ce976dc47bf60b3e2c3272fb9456a7e746a035",
-    "src/lib/revenue-os/action-executor.ts": "702c8a78674c59d3541f405cd141fc9b1e0c3ba217b9281d77dc4f1201886322",
-    "src/lib/revenue-os/actions.ts": "2e4809471f0124ee8f89c5862510a79a9780c83398c932947f7181aff857727e",
+    "src/lib/revenue-os/action-executor.ts": "9a62214ea707a2e87257fc6a80b44ebe1bac7e3ecef1ee0a2dcab6d6434057fb",
+    "src/lib/revenue-os/actions.ts": "50539fc9fa13b951d83739761e12eae4891ffe121124385b0e8294ff623e597c",
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
-    "src/lib/revenue-os/ai-agent.ts": "f647dcf5be00de09ec273bf914e3dc8dd4854452d1324140f21092f793cf1d37",
+    "src/lib/revenue-os/ai-agent.ts": "a86d3c62f3216d89ccf8f350997278898ada0ddd15d81e804a3ed947480120a1",
     "src/lib/revenue-os/ai-conversations.ts": "42666ef100685c3b93e6f4487cd5af7b689220a56aa5efc10e6725659e9b0491",
     "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
     "src/lib/revenue-os/ai-operations.ts": "ae39bc1112700f7af976bdf68a1308d7c720747ed82191d589817ba78b4aa945",
     "src/lib/revenue-os/ai-stream-contract.ts": "813ce466f99ba479b50cfee912921003a8e21bf812dba9e16494a4df3b5d00c7",
-    "src/lib/revenue-os/ai-tools.ts": "d6faa8f45cbe59fc5a68e3c4d01d14e0a15749ce6f5241e2db958e4b66b8d1f9",
-    "src/lib/revenue-os/analytics.ts": "73ff35801bb23997930e197bae131c9d063ff29912675f5af9fb2146cfc7a65e",
+    "src/lib/revenue-os/ai-tools.ts": "331da267e2f4c43c52ca5213a44f2681edfb31c6b46f9f242a00df548b80eb39",
+    "src/lib/revenue-os/analytics.ts": "9214e72876cce37f295a123f5e025d385908b2f82038543f22e0eadc893b9b1a",
     "src/lib/revenue-os/architect-understanding.ts": "5e0764b46aaacd1f9d4e9d519d38348f8617b2d639fc3e4716b50de84ea39a18",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
     "src/lib/revenue-os/branding-contract.ts": "928a37ea33689f746e8df5cbbbaa0505e193ba0a1e40bc711508ffaa2caae5f2",
@@ -302,11 +314,14 @@
     "src/lib/revenue-os/communications.ts": "86a48ad957fe47f6c9db0f2d50645068ebcfdacaece907aaa30a722abc80aca9",
     "src/lib/revenue-os/contact-imports.ts": "f59146dec4f9045903e33c377a977ffa4cb1358ee2acad27a57b305bf0716017",
     "src/lib/revenue-os/conversations.ts": "6be8f7e1052a99c7dd938b4770308a74ba9d6057baaaf728709bcfa46d4dd25a",
+    "src/lib/revenue-os/correction-capture.ts": "4fe7e40961eed06f2e02f6d2aa926efaa41f630ae5b67b07980ac7749dbd9832",
     "src/lib/revenue-os/db.ts": "167cc018fe0d8387547c174be0fc105edb9efbee6608bf93e2d0e9ca05d038cb",
     "src/lib/revenue-os/delivery-handoff-contract.ts": "fdaddaa73123e99c372bb279626a3ab3072a2cc13418c10bb8244f791d1cbace",
     "src/lib/revenue-os/delivery-handoff.ts": "eb6284e7b352259df2f18d8c1f23231d12082a74ae1d8cf8b8d6cc5ce8c5788d",
+    "src/lib/revenue-os/document-extraction.ts": "8612e2e4c43bd0f5ea84e0238ed6a76a01d84599e50baa70edf24214592fa007",
     "src/lib/revenue-os/drive-sync-plan.ts": "21ee095a4de699ddb85b3056ded69a6e929ddfcb051b15d6c2862101d7f6834a",
     "src/lib/revenue-os/encryption.ts": "68748b621a25f182ba20a5b5f362220b4ac59b93103b6a81c202f0e34e09c405",
+    "src/lib/revenue-os/first-use.ts": "11163b96f7b92f510ac70dced96d1159e975c11fcc3d2f7d51a00d0e17fc6ded",
     "src/lib/revenue-os/form-builder-contract.ts": "a2a3403c5b9aff4d70c55a64cb3b672bb84484f81fcba33d5ab2deee015d280a",
     "src/lib/revenue-os/form-builder.ts": "3f2c181efe1dca678ccd9457e8f76d309657770badb16429cc70a27fc835f862",
     "src/lib/revenue-os/google-oauth.ts": "2d9c5c5464096402cfdd3ceac244835ddbd4da4677bfeda58508051efcfa68bc",
@@ -318,12 +333,14 @@
     "src/lib/revenue-os/integrations.ts": "38673d0ab3959857063045b2e466cc2c970768d04752188bd3cf8686ac4bae96",
     "src/lib/revenue-os/invoice-page-contract.ts": "350da047e7317f8e8e6d73cbce19749be9dd40bda82f180f8f0b8bd037da8baa",
     "src/lib/revenue-os/invoice-pages.ts": "6572730905437cc60ff24cb31bd2f80724c4f49d67d1297fe567c454656c3d06",
-    "src/lib/revenue-os/learning-inbox.ts": "7d6104ca4bd043f20334468e4136fba54a2d51e3c7cffab0690ec72e31fc85e6",
+    "src/lib/revenue-os/knowledge-documents.ts": "47a34d44a1dd97fc57b136f4d1f746b18572f627a0d8b18b8c24f9d1c8b99481",
+    "src/lib/revenue-os/learning-inbox.ts": "fbc4ec8939a3b12bc90c074beceddea3a14793887ac6b3bbb30a970977f47ac4",
+    "src/lib/revenue-os/learning-signals.ts": "952ade0d696341fd1c1c48471cdc695cd591d4b38863bad9eaaa4cf98c6123e9",
     "src/lib/revenue-os/legacy-adapter.ts": "3f370c91fa4557508c6af3b98cc063c5d9ac6e47da41a169f9f2f7e2b4642e89",
     "src/lib/revenue-os/mcp-server.ts": "29146bd0891b73bf2b8fb89da52503e7e05b292d9b01df46843210a056c104e6",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
     "src/lib/revenue-os/module-configuration.ts": "49dc143f9117ac8dcb9554f077ccd7cd108ca4f5c4f81196104ba536cd91004b",
-    "src/lib/revenue-os/modules.ts": "642d6512ad12f09988721817871e3d3c7be88be0cf0800b408476cb3e2394472",
+    "src/lib/revenue-os/modules.ts": "d9be2451f6c09f5e5f359c645b76ce0948f65eef08b3d557c13e3f56c7b68632",
     "src/lib/revenue-os/pipeline-stage-resolver.ts": "3581116b6b179a7955feba43e7b535fdfd7febc5f5823eebf804113665486f94",
     "src/lib/revenue-os/pipeline.ts": "c01c688af0c25fffd4f926e55ad4c134ccf12f2cbcfd553d27525a91f6ecb886",
     "src/lib/revenue-os/proposals.ts": "1cfb2a6d157df923f7f910c13fc41410af1617a5d11e765cb9cb5e4daa4d7fb3",
@@ -332,9 +349,11 @@
     "src/lib/revenue-os/records.ts": "68cfc52f8b97ffde1a73c3722801832cc196e3f2141e8ce1820df08ba3df9c5c",
     "src/lib/revenue-os/recovery.ts": "e241965bf543e98a53cfde892c5e7627d47383ed20e47f3bbf77dee3d338d282",
     "src/lib/revenue-os/report-plugins.ts": "c6b9feb3e88e2f48c7b63936145068854e2e53ce3d415ded4b0664af281176ba",
+    "src/lib/revenue-os/retained-source-dispositions.ts": "3dadabae5e8fc129bd51d1c3027093634c30a1836bd8d37f206cfc788243ac23",
     "src/lib/revenue-os/runs.ts": "94ea4fe446cc959aaf90cb4ab968f9b0baf0c165f3c393081b9fd6e4d8015fdd",
-    "src/lib/revenue-os/schema-contract.ts": "e53db83d64f467110af377f6dd6c61ceafc873797b85ba916f5cd64468067c1a",
+    "src/lib/revenue-os/schema-contract.ts": "548d8a16aff9f2e580bb15a6e45a679cf9e0eccfac00be261fe4dd9a645f601b",
     "src/lib/revenue-os/setup-status.ts": "7a34c50801504f238690d67b0cffc94cc52ef7b7e4c54ef160c9f50fc64d1004",
+    "src/lib/revenue-os/shared-context.ts": "2886f194671f3b671cfafb7bd289c8b2d54414608df083165bc509b5d3f76e8d",
     "src/lib/revenue-os/social-marketing.ts": "a5421a504fd070c4826a0fb62037abe6f83786781c0dd7c21f4d27c94b901ea8",
     "src/lib/revenue-os/stage-history.ts": "83ce2f34e57acab509375b99ef6042d3cd77605a859923974aecd871692608a9",
     "src/lib/revenue-os/stripe-invoicing.ts": "bc2e40ff511b5334b574feaa0321f3494eff82f73189b6cce2dcd0b68a746e3a",
@@ -358,7 +377,7 @@
     "src/lib/site-studio/revision.ts": "3a945fd87c2524a81bbd3b321ecefa97a0a5a3764a39fde3f8a3764313cafb20",
     "src/lib/site-studio/website-ai.ts": "b415d7603fe776e0f726de6b051b8e3285360b3c24c8712ac057cdf7e0584f08",
     "src/lib/site-studio/website-commands.ts": "064486605dce783b163a46b9620947f4b0b01b8c080eb746b4e90076500ecad2",
-    "src/lib/site-studio/website-document.ts": "aad9c72218528f44dce257481b1abf03d014174657106de3558c319a91a30b56",
+    "src/lib/site-studio/website-document.ts": "f11491f0a4fa55a8a34833469737a233f2d7d5b03cbaec17f9deeb0483bb601f",
     "src/lib/site-studio/website-seed.ts": "16c3e4fcb517c18278d230aee6bbf7ccbd9b41f6bcfea13e2f954c4cb0785255",
     "src/lib/site-studio/website-store.ts": "00cb5c9da5ba8fd5faed1b16c9444e9462d8959316d668503aab813367f340f4",
     "src/lib/tenancy/context.ts": "980fc542bbc744ffa66bc58cd463ef0c7508ac1d847c560f0de7a9cfefd38c7d",
@@ -369,11 +388,17 @@
     {
       "route": "/admin",
       "page": "src/app/admin/page.tsx",
-      "primaryAction": "Open Today",
-      "adapters": [],
-      "boundary": "Existing entry redirect; no record source.",
+      "primaryAction": "Open the first-use checklist or Today from saved follow-up progress",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/get-started/route.ts",
+          "domainImports": ["@/lib/revenue-os/first-use"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Authenticated tenant-scoped progress selects the destination; failures open Get started with retry.",
       "followUp": null,
-      "specialBoundary": "redirect:/admin/today"
+      "specialBoundary": null
     },
     {
       "route": "/admin/activity",
@@ -595,7 +620,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/chat-leads/route.ts",
-          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "domainImports": [
+            "@/lib/revenue-os/legacy-adapter",
+            "@/lib/revenue-os/retained-source-dispositions"
+          ],
           "directTables": ["chat_leads"]
         }
       ],
@@ -655,7 +683,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/clients/route.ts",
-          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "domainImports": [
+            "@/lib/revenue-os/legacy-adapter",
+            "@/lib/revenue-os/retained-source-dispositions"
+          ],
           "directTables": ["clients"]
         }
       ],
@@ -673,7 +704,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/clients/route.ts",
-          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "domainImports": [
+            "@/lib/revenue-os/legacy-adapter",
+            "@/lib/revenue-os/retained-source-dispositions"
+          ],
           "directTables": ["clients"]
         },
         {
@@ -777,7 +811,10 @@
         },
         {
           "path": "src/app/api/admin/contacts/route.ts",
-          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "domainImports": [
+            "@/lib/revenue-os/legacy-adapter",
+            "@/lib/revenue-os/retained-source-dispositions"
+          ],
           "directTables": ["contact_submissions"]
         }
       ],
@@ -885,9 +922,19 @@
             "opportunities",
             "stage_events"
           ]
+        },
+        {
+          "path": "src/app/api/admin/corrections/detect/route.ts",
+          "domainImports": ["@/lib/revenue-os/correction-capture"],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/learning/signals/route.ts",
+          "domainImports": ["@/lib/revenue-os/learning-signals"],
+          "directTables": []
         }
       ],
-      "boundary": "Conversation and Google services own triage and threaded replies.",
+      "boundary": "Conversation and Google services own triage and threaded replies. Draft comparisons remain read-only; saving a correction creates a reviewable learning proposal.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -992,7 +1039,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/contacts/route.ts",
-          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "domainImports": [
+            "@/lib/revenue-os/legacy-adapter",
+            "@/lib/revenue-os/retained-source-dispositions"
+          ],
           "directTables": ["contact_submissions"]
         },
         {
@@ -1138,7 +1188,8 @@
             "@/lib/revenue-os/inbound",
             "@/lib/revenue-os/legacy-adapter",
             "@/lib/revenue-os/pipeline",
-            "@/lib/revenue-os/pipeline-stage-resolver"
+            "@/lib/revenue-os/pipeline-stage-resolver",
+            "@/lib/revenue-os/retained-source-dispositions"
           ],
           "directTables": ["clients", "opportunities", "solution_requests", "tasks"]
         }
@@ -1219,7 +1270,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/partners/route.ts",
-          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "domainImports": [
+            "@/lib/revenue-os/legacy-adapter",
+            "@/lib/revenue-os/retained-source-dispositions"
+          ],
           "directTables": ["partner_applications"]
         }
       ],
@@ -1313,7 +1367,8 @@
           "domainImports": [
             "@/lib/ai/approved-pricing",
             "@/lib/ai/openrouter",
-            "@/lib/ai/openrouter-credentials"
+            "@/lib/ai/openrouter-credentials",
+            "@/lib/revenue-os/shared-context"
           ],
           "directTables": ["solution_requests"]
         },
@@ -1356,7 +1411,10 @@
       "adapters": [
         {
           "path": "src/app/api/admin/resources/route.ts",
-          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "domainImports": [
+            "@/lib/revenue-os/legacy-adapter",
+            "@/lib/revenue-os/retained-source-dispositions"
+          ],
           "directTables": ["resource_downloads"]
         }
       ],
@@ -1419,9 +1477,22 @@
           "path": "src/app/api/admin/learning/[id]/route.ts",
           "domainImports": ["@/lib/revenue-os/learning-inbox"],
           "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/knowledge/documents/route.ts",
+          "domainImports": [
+            "@/lib/revenue-os/document-extraction",
+            "@/lib/revenue-os/knowledge-documents"
+          ],
+          "directTables": []
+        },
+        {
+          "path": "src/app/api/admin/learning/signals/route.ts",
+          "domainImports": ["@/lib/revenue-os/learning-signals"],
+          "directTables": []
         }
       ],
-      "boundary": "Learning proposal lifecycle owns capture and disposition; approval executes only through the action/autonomy path and persists via the learned-policy record. Unapproved content never reaches shared reads.",
+      "boundary": "Learning proposals and dispositions use the shared owner. Atomic human-approved actions create scoped policy. Document storage and indexing use tenant-bound private services. Signals capture evidence, never automatic authority.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1486,7 +1557,10 @@
         },
         {
           "path": "src/app/api/admin/subscribers/route.ts",
-          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "domainImports": [
+            "@/lib/revenue-os/legacy-adapter",
+            "@/lib/revenue-os/retained-source-dispositions"
+          ],
           "directTables": ["subscribers"]
         }
       ],
@@ -1600,7 +1674,10 @@
         },
         {
           "path": "src/app/api/admin/website-grades/route.ts",
-          "domainImports": ["@/lib/revenue-os/legacy-adapter"],
+          "domainImports": [
+            "@/lib/revenue-os/legacy-adapter",
+            "@/lib/revenue-os/retained-source-dispositions"
+          ],
           "directTables": ["website_grades"]
         }
       ],
@@ -1929,6 +2006,21 @@
         }
       ],
       "boundary": "Form-builder service owns schema validation, compare-and-swap definitions, idempotent public submission and transactional review. The admin adapter carries the verified actor into the tenant-bound host writer. Accepted intake uses the existing action queue and canonical ingest service; failed intake remains visible and retryable. Public links resolve only while published and enabled. AI writes reuse these services after existing approval.",
+      "followUp": null,
+      "specialBoundary": null
+    },
+    {
+      "route": "/admin/get-started",
+      "page": "src/app/admin/get-started/page.tsx",
+      "primaryAction": "Follow saved inquiry-to-follow-up progress and inspect capability readiness",
+      "adapters": [
+        {
+          "path": "src/app/api/admin/get-started/route.ts",
+          "domainImports": ["@/lib/revenue-os/first-use"],
+          "directTables": []
+        }
+      ],
+      "boundary": "Read-only tenant-bound progress service, shared by hosted invited owners and self-hosted owners; never equates configuration with successful execution.",
       "followUp": null,
       "specialBoundary": null
     }

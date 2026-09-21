@@ -203,6 +203,8 @@ jobs:
           PATH="$(pg_config --bindir):$PATH" npm run test:runtime-postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:phase-b-proof:postgres
           PATH="$(pg_config --bindir):$PATH" npm run test:work-completion:postgres
+          PATH="$(pg_config --bindir):$PATH" npm run test:connected-learning
+          PATH="$(pg_config --bindir):$PATH" npm run test:ai-readiness
           PATH="$(pg_config --bindir):$PATH" npm run test:work-board-resume
           PATH="$(pg_config --bindir):$PATH" npm run test:today-workspace
           npm run test:form-builder
@@ -248,7 +250,8 @@ jobs:
   build:
     if: ${{ !inputs.admin_design_only }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Full browser coverage can take 30 minutes before evidence and cache uploads.
+    timeout-minutes: 45
     env:
       # Preserve explicit coverage for the original agency installation.
       NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
@@ -272,6 +275,9 @@ jobs:
       # next build includes TypeScript validation. Never ignore build errors.
       - name: Build and typecheck
         run: npm run build
+
+      - name: Verify compiled document extraction
+        run: NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-document-extraction.ts --compiled
 
       - name: Verify complete built documentation coverage
         run: npm run verify:public-prerender

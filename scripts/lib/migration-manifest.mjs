@@ -92,6 +92,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260918-campaign-duplicate-receipts.sql",
   "migrations/20260915-contact-tags.sql",
   "migrations/20260919-contact-bulk-transactions.sql",
+  "migrations/20260920-ai-readiness-assessment.sql",
   "migrations/20260920-delivery-handoff-convergence.sql",
   "migrations/20260921-architect-sessions.sql",
   "migrations/20260922-architect-understanding.sql",
@@ -114,6 +115,10 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260919204344_form_definition_commands.sql",
   "migrations/20260919210534_site_editor_delegation.sql",
   "migrations/20260919211809_form_review_commands.sql",
+  "migrations/20260920-connected-learning.sql",
+  "migrations/20260927-knowledge-documents.sql",
+  "migrations/20260928-learning-signals.sql",
+  "migrations/20260920201517_ai_readiness_atomic_reports.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

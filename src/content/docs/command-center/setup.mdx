@@ -1,0 +1,70 @@
+---
+title: "Setup, integrations, and health"
+description: "Read Setup Center and Integrations, tell missing configuration from a real receipt, and recover when health is degraded."
+updated: "2026-09-20"
+---
+
+**You need:** a connected workspace from [Install a connected workspace](/docs/self-hosting) and the founder account (`ADMIN_EMAIL`). Setup Center's API uses `requirePlatformAdmin` in `src/app/api/admin/setup/route.ts`. A tenant admin who is not that identity gets **Platform access forbidden**.
+
+<DocsFigure
+  src="/images/docs/workspace/setup.png"
+  alt="Setup Center in the fictional Northline Roofing workspace, showing production readiness at 100 percent with connected providers."
+  width={1440}
+  height={1000}
+  caption="Setup Center in the fictional Northline Roofing workspace: every required check connected and verified. Fictional demo data."
+/>
+
+## 1. Open Setup Center
+
+Sign in at `/admin`. Open **Setup Center** at `/admin/setup`. The heading is **Setup Center**. The subtitle is **Connect your services and check what is ready or still needs attention.**
+
+**Refresh checks** reloads `/api/admin/setup`. **Integration map** opens `/admin/integrations`. If the page shows **Setup check failed**, use **Try again**; the read failed, the deployment did not change.
+
+Groups on the page (from `src/app/admin/setup/page.tsx`):
+
+| Group heading       | What it covers                                        |
+| ------------------- | ----------------------------------------------------- |
+| Core system         | Identity, database, founder access, site URL          |
+| Email delivery      | Resend keys plus an outbound receipt                  |
+| Google Workspace    | Encrypted Gmail, Calendar, and approved Drive folders |
+| Revenue copilot     | Tenant OpenRouter and confirmation-gated tools        |
+| Campaign automation | Schema, cron secret, last campaign job                |
+| Proposal decisions  | Public view and accept/decline receipts               |
+| Revenue attribution | First-party analytics tables                          |
+| Booking mode        | Manual scheduling, or optional Calendly attribution   |
+| Operations health   | Protected jobs, terminal receipts, stalled claims     |
+
+## 2. Read the status, not the key
+
+Each check shows one of **Ready**, **Action needed**, **Degraded**, **Optional**, or **Not enabled**. Those labels come from `src/lib/revenue-os/setup-status.ts`.
+
+- **Ready** means a receipt exists, not that a secret is saved. Resend stays **Action needed** until an outbound message has status `sent` and a provider id. A webhook secret without a signed booking receipt does not make Calendly Ready.
+- **Action needed** means a required input is missing, or configuration exists without a receipt. Open **How to finish this** on that row.
+- **Degraded** means the latest run or send failed. Read `lastFailure` on the check, then the matching job on Operations health.
+- **Optional** and **Not enabled** are intentional. Leave Calendly and Plausible there until you need them.
+
+Schema Ready means runtime access and the latest `npm run db:verify-schema -- --record` receipt agree on the contract version. It does not mean Google or email are healthy.
+
+## 3. Cross-check Integrations
+
+Open **Integrations & Modules** at `/admin/integrations`. Native providers can be **Ready**, **Degraded**, **Needs verification**, or **Available**. **Planned** rows (Slack, HubSpot, and similar registry entries) are catalog only. Do not follow a planned row as a working setup guide.
+
+Google sync buttons on Setup Center are **Workspace**, **Gmail**, **Calendar**, and **Drive**. A successful sync toast is **Workspace sync completed.** (or the named source). The saved result is a `source_runs` / `job_runs` row plus Setup Center **Ready**, not the toast.
+
+## 4. Read health on Today and Setup Center
+
+Return to **Today**. The **Operational ledger** shows connection and job health. Failed, partial, degraded, revoked, stalled, and unprocessed webhook rows use the same `loadOperationalHealth` service as Setup Center (`src/lib/revenue-os/health.ts`).
+
+A job left `running` for more than 30 minutes is stalled. Health reports it instead of calling the system green. The next authenticated cron claim takes that job over through `claim_revenue_job_run`; there is no Recover button on this screen. Webhook failures stay visible for 48 hours.
+
+**Saved result:** required core checks Ready, no stalled job on Operations health, and Activity can load. If email or Google stay Action needed, that is honest until you add those providers.
+
+## If a check stays wrong
+
+- **Action needed** on schema: run the migrate and verify commands on [Recover a failing workspace](/docs/self-hosting/recovery). Refresh Setup Center.
+- Keys saved, still Action needed: send a founder test message or run the matching sync so a receipt exists.
+- **Degraded** after a send or job: open the failed message or job error, fix the provider, then retry. Do not treat a new API key as the fix until a new receipt lands.
+- Setup Center 403: you are not `ADMIN_EMAIL`. Use [Founder authority and tenant membership](/docs/self-hosting/permissions).
+- Today shows **The founder queue could not be assembled yet.**: retry the read. If it persists, Setup Center is the diagnosis page.
+
+Do not use [Revenue Recovery](/admin/recovery) for these failures. That screen is demand playbooks.

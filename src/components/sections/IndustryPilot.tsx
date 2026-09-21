@@ -1,4 +1,5 @@
 import type { Vertical } from "@/lib/types";
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll";
 import styles from "@/components/command-center/product.module.css";
 
 export function IndustryPilot({ pilot }: { pilot: Vertical["pilot"] }) {
@@ -6,7 +7,7 @@ export function IndustryPilot({ pilot }: { pilot: Vertical["pilot"] }) {
   return (
     <section className={styles.section} aria-labelledby="pilot-title">
       <div className="wrap">
-        <div className={styles.sectionIntro}>
+        <AnimateOnScroll className={styles.sectionIntro} stagger>
           <div>
             <p className="label">Make the first project measurable</p>
             <h2 id="pilot-title" className={styles.heading}>
@@ -17,20 +18,20 @@ export function IndustryPilot({ pilot }: { pilot: Vertical["pilot"] }) {
             Pick one workflow, one responsible person and a review date. Record how it works today,
             then try the agreed change on a small set of real work before expanding it.
           </p>
-        </div>
+        </AnimateOnScroll>
         <dl className={styles.outcomes}>
-          <div>
+          <AnimateOnScroll as="div" delay={0.08}>
             <dt>Measure the starting point</dt>
             <dd>{pilot.measure}</dd>
-          </div>
-          <div>
+          </AnimateOnScroll>
+          <AnimateOnScroll as="div" delay={0.16}>
             <dt>Check the handoff</dt>
             <dd>{pilot.readyWhen}</dd>
-          </div>
+          </AnimateOnScroll>
         </dl>
-        <p className={styles.note}>
+        <AnimateOnScroll className={styles.note} delay={0.24}>
           These are suggested evaluation criteria. Your baseline and pilot determine the result.
-        </p>
+        </AnimateOnScroll>
       </div>
     </section>
   );

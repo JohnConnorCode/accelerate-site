@@ -4,11 +4,12 @@ import { adminPageName } from "@/lib/admin/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
+import { CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminDialog } from "@/components/admin/AdminDialog";
+import { AdminRecordRow } from "@/components/admin/AdminRecordRow";
 import { ActionReviewDialog, type ActionRow } from "@/components/admin/ActionReviewDialog";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -264,19 +265,25 @@ export default function WorkPage() {
             />
           </div>
           <AdminSurface padding="none" elevation="flat">
-            <ul className="divide-y divide-[var(--admin-border)]">
+            <ul>
               {visible.map((row) => (
-                <li
-                  key={row.id}
-                  data-source-type="task"
-                  data-source-id={row.id}
-                  className="flex items-start gap-3 px-4 py-3"
-                >
-                  <button
-                    type="button"
-                    onClick={() => edit(row)}
-                    className="min-h-11 min-w-0 flex-1 text-left"
-                    aria-haspopup="dialog"
+                <li key={row.id} data-source-type="task" data-source-id={row.id}>
+                  <AdminRecordRow
+                    label={`Open task ${row.title}`}
+                    onOpen={() => edit(row)}
+                    actions={
+                      row.status !== "completed" ? (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void mutateTask(row, true)}
+                          aria-label={`Complete ${row.title}`}
+                          className="grid size-11 place-items-center rounded-lg text-[var(--admin-success)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
+                        >
+                          <CheckCircle2 className="size-4" />
+                        </button>
+                      ) : undefined
+                    }
                   >
                     <span className="block text-sm font-semibold text-[var(--admin-ink)]">
                       {row.title}
@@ -285,18 +292,7 @@ export default function WorkPage() {
                       {relativeTime(row.due_date)} · {row.status}
                       {row.related_name ? ` · ${row.related_name}` : ""}
                     </span>
-                  </button>
-                  {row.status !== "completed" && (
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void mutateTask(row, true)}
-                      aria-label={`Complete ${row.title}`}
-                      className="grid size-11 shrink-0 place-items-center rounded-lg text-[var(--admin-success)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
-                    >
-                      <CheckCircle2 className="size-4" />
-                    </button>
-                  )}
+                  </AdminRecordRow>
                 </li>
               ))}
             </ul>
@@ -313,34 +309,24 @@ export default function WorkPage() {
         </>
       ) : (
         <AdminSurface padding="none" elevation="flat">
-          <ul className="divide-y divide-[var(--admin-border)]">
+          <ul>
             {actions.map((row) => (
-              <li
-                key={row.id}
-                data-source-type="approval"
-                data-source-id={row.id}
-                className="px-4 py-3"
-              >
-                <button
-                  type="button"
-                  aria-haspopup="dialog"
-                  onClick={() => {
+              <li key={row.id} data-source-type="approval" data-source-id={row.id}>
+                <AdminRecordRow
+                  label={`Review ${row.title}`}
+                  onOpen={() => {
                     setReview(row);
                     setError("");
                     router.push(`/admin/work?tab=approvals&action=${row.id}`, "preserve");
                   }}
-                  className="flex min-h-11 w-full items-center justify-between gap-3 text-left"
                 >
-                  <span>
-                    <span className="block text-sm font-semibold text-[var(--admin-ink)]">
-                      {row.title}
-                    </span>
-                    <span className="mt-1 block text-xs text-[var(--admin-muted)]">
-                      {row.reasoning || row.description || "Review the exact proposed change."}
-                    </span>
+                  <span className="block text-sm font-semibold text-[var(--admin-ink)]">
+                    {row.title}
                   </span>
-                  <ArrowRight className="size-4 shrink-0" />
-                </button>
+                  <span className="mt-1 block text-xs text-[var(--admin-muted)]">
+                    {row.reasoning || row.description || "Review the exact proposed change."}
+                  </span>
+                </AdminRecordRow>
               </li>
             ))}
           </ul>

@@ -54,3 +54,23 @@ Ship the operator guide, public documentation link, worked example, cost and
 permission boundaries, recovery steps, extension references and task-based review
 evidence with the implementation. `verify:extensions` enforces bundled guide and
 link presence; factual review and end-to-end proof remain required.
+
+## Shared knowledge and learning declarations
+
+An optional `knowledge` object (version `1`) declares `sourceNames`,
+`guidanceTypes`, `signalTypes`, `prerequisites`, `success` and `evaluations`.
+Source names must be a subset of the plugin's existing report or workflow
+sources. The declaration cannot grant additional tables, fields, connectors or
+execution rights. Older manifests without it remain supported.
+
+`search_knowledge_base` accepts a plugin ID and bounded string source selectors.
+The host checks enablement before and after reading the declared sources and
+returns source revisions with scoped guidance. Retrieved text is evidence;
+action approval, live permissions and canonical record checks still control
+writes. `propose_correction` accepts declared correction signals and creates a
+reviewable Learning Inbox proposal, never approved authority.
+
+Meeting preparation and Client onboarding demonstrate this contract. Evaluation
+examples describe expected artifacts or refusal; run the shared regression
+checks and the plugin's existing report/workflow fixtures to prove those cases.
+A manifest example alone is not a measured model evaluation.

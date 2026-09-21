@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
 import { PIPELINE_STAGES } from "@/lib/admin/pipeline-stages";
 import { attachRevenueLinkageWithTelemetry } from "@/lib/revenue-os/legacy-adapter";
+import { retainedSourceDispositions } from "@/lib/revenue-os/retained-source-dispositions";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
 import { transitionOpportunity } from "@/lib/revenue-os/pipeline";
 import { loadPipelineStages } from "@/lib/revenue-os/pipeline-stage-resolver";
@@ -92,6 +93,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     leads: linked.records,
     canonicalSchemaReady: linked.schemaReady,
+    dispositions: retainedSourceDispositions("/admin/leads")[0]?.fields ?? [],
     total: count || 0,
     page,
     limit,

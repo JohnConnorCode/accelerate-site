@@ -162,6 +162,12 @@ export const docsManifest: DocsSection[] = [
           "Where your day starts: ranked work, the records behind it, and actions the system takes as it earns your trust.",
       },
       {
+        slug: ["command-center", "setup"],
+        title: "Setup, integrations, and health",
+        description:
+          "Read Setup Center and Integrations, tell missing configuration from a real receipt, and recover when health is degraded.",
+      },
+      {
         slug: ["command-center", "capabilities"],
         title: "Capability reference",
         description:
@@ -685,6 +691,18 @@ export const docsManifest: DocsSection[] = [
         title: "Self-hosting quickstart",
         description:
           "Explore the real interface with zero credentials, then connect a workspace you control.",
+      },
+      {
+        slug: ["self-hosting", "permissions"],
+        title: "Founder authority and tenant membership",
+        description:
+          "Platform administration is the ADMIN_EMAIL identity; tenant operators need an active membership in an active workspace.",
+      },
+      {
+        slug: ["self-hosting", "recovery"],
+        title: "Recover a failing workspace",
+        description:
+          "Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims.",
       },
       {
         slug: ["self-hosting", "installation"],

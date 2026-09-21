@@ -134,10 +134,31 @@ async function main() {
     ["Older note"],
   );
 
+  const inboundKey = { source: "solution_request", externalId: "route-parity-inquiry-01" };
+  const firstInbound = await recordActivity(store.client, {
+    activityType: "form_submission",
+    title: "Manual lead captured",
+    source: inboundKey.source,
+    externalId: inboundKey.externalId,
+    opportunityId: "opp-1",
+    occurredAt: "2026-08-25T12:00:00.000Z",
+  });
+  const replayedInbound = await recordActivity(store.client, {
+    activityType: "form_submission",
+    title: "Manual lead captured again",
+    source: inboundKey.source,
+    externalId: inboundKey.externalId,
+    opportunityId: "opp-1",
+    occurredAt: "2026-08-25T12:00:01.000Z",
+  });
+  assert.equal(firstInbound.duplicate, false);
+  assert.equal(replayedInbound.duplicate, true);
+  assert.equal(replayedInbound.activity.id, firstInbound.activity.id);
+
   const recent = await loadRecentActivities(store.client, { limit: 2 });
   assert.deepEqual(
     recent.map((row) => row.title),
-    ["Newer email", base.title],
+    ["Manual lead captured", "Newer email"],
     "the cross-record reader returns the newest ledger entries without a record filter",
   );
   const dispositions = activityDispositions();
@@ -218,6 +239,17 @@ async function main() {
     activityRoute,
     /loadActivityTimeline/,
     "the canonical activity API must use the bounded ordered reader",
+  );
+  const operatorActivityRoute = readFileSync("src/app/api/admin/activity/route.ts", "utf8");
+  assert.match(
+    operatorActivityRoute,
+    /loadRecentActivities/,
+    "the operator Activity screen must read the canonical ledger",
+  );
+  assert.match(
+    operatorActivityRoute,
+    /listAuditHistory/,
+    "the operator Activity screen must keep the retained audit reader",
   );
 
   console.log(

@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 114,
-  "mutationHandlerCount": 101,
+  "routeCount": 118,
+  "mutationHandlerCount": 104,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -37,9 +37,22 @@
         "@/lib/ai/content-brief",
         "@/lib/ai/openrouter",
         "@/lib/ai/openrouter-credentials",
+        "@/lib/revenue-os/shared-context",
         "next/server"
       ],
-      "sourceSha256": "52ed9da68c46dca31b037ff467820f2076821813192e86b344e5fc39a756ca66"
+      "sourceSha256": "535a1637c7d40123c02b8136e931e1610050c2e7caf3db0fc52fc73ad72b99f1"
+    },
+    {
+      "source": "src/app/api/admin/ai-readiness/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "next/server"
+      ],
+      "sourceSha256": "e801ca6553e655038b30b894111362b78e0c98ad8d1793afa92112dcb11c7067"
     },
     {
       "source": "src/app/api/admin/analytics/route.ts",
@@ -140,9 +153,10 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/legacy-adapter",
+        "@/lib/revenue-os/retained-source-dispositions",
         "next/server"
       ],
-      "sourceSha256": "8712c08abc9a1e130bdbf50d3a19cc19956246056bf9eeac186cd06a0a4eaa70"
+      "sourceSha256": "1252546fd8002454ebf50caceca306f1c31a31c08dfef3fbdb64ce6bdf2526a1"
     },
     {
       "source": "src/app/api/admin/clients/route.ts",
@@ -158,9 +172,10 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/legacy-adapter",
+        "@/lib/revenue-os/retained-source-dispositions",
         "next/server"
       ],
-      "sourceSha256": "e0b0db321d70eb56f11965e0f71b3235c5832a407f522123d536c8bfb3326e1c"
+      "sourceSha256": "fec7982f6a38a8b1ac40d9de0de6ff1d94138899ab4b4ad1f0097c7f9c6d7d4b"
     },
     {
       "source": "src/app/api/admin/collections/reminders/route.ts",
@@ -239,9 +254,10 @@
       "imports": [
         "@/lib/admin/auth",
         "@/lib/revenue-os/legacy-adapter",
+        "@/lib/revenue-os/retained-source-dispositions",
         "next/server"
       ],
-      "sourceSha256": "d4f0c45b7e4bc1641492f4864d46ad20fb1342c70d5f58f9760ebcaba73f1994"
+      "sourceSha256": "9b36abcbf2b01af819c7a7ba2ba254cba8c5ca129fb1fa3a80d4c8c579f9e258"
     },
     {
       "source": "src/app/api/admin/contacts/timeline/route.ts",
@@ -427,6 +443,19 @@
         "zod"
       ],
       "sourceSha256": "8168bca4de53ee289fc11bc8fabd2e15944efc6bec13991a6e12b0feab1bea03"
+    },
+    {
+      "source": "src/app/api/admin/get-started/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/first-use",
+        "next/server"
+      ],
+      "sourceSha256": "fe02a68b546dcb6e8101056ca5ef54b568ec15c9d1a98aca836e55ea64f2c287"
     },
     {
       "source": "src/app/api/admin/google/authorize/route.ts",
@@ -616,6 +645,26 @@
       "sourceSha256": "483702ce468be491b626c7cc06a7b2552d866f59100292f469590bff8d3edaeb"
     },
     {
+      "source": "src/app/api/admin/knowledge/documents/route.ts",
+      "handlers": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/document-extraction",
+        "@/lib/revenue-os/knowledge-documents",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "2bd5551ffa70098c449cbcfac12e60bc9684c10af0a895ef84df9a72a2c18f35"
+    },
+    {
       "source": "src/app/api/admin/leads/bulk/route.ts",
       "handlers": [
         "POST"
@@ -663,9 +712,10 @@
         "@/lib/revenue-os/legacy-adapter",
         "@/lib/revenue-os/pipeline",
         "@/lib/revenue-os/pipeline-stage-resolver",
+        "@/lib/revenue-os/retained-source-dispositions",
         "next/server"
       ],
-      "sourceSha256": "fa21cb9caaa32e8e670cc379ca07dd7712186af88706f1a9137cdf9d93212437"
+      "sourceSha256": "b7f1d99d549d1241decef4e98a223bd587f2691491c748342f15c960df9ac3d7"
     },
     {
       "source": "src/app/api/admin/learning/[id]/route.ts",
@@ -696,7 +746,23 @@
         "@/lib/revenue-os/learning-inbox",
         "next/server"
       ],
-      "sourceSha256": "c1b38435a93e2a75073d0a6cad999597e8e5ef50124b7289db339223db5f7b07"
+      "sourceSha256": "b4e52515cf9b941fbbdf48fab13dba201a36fa7d23209d2e50f171f354823e0e"
+    },
+    {
+      "source": "src/app/api/admin/learning/signals/route.ts",
+      "handlers": [
+        "GET",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/learning-signals",
+        "next/server"
+      ],
+      "sourceSha256": "290e50ce5c6e89be4df197ef8b12d9faa4fbedd0f62d953b15942f8af7e0b2a5"
     },
     {
       "source": "src/app/api/admin/login/route.ts",
@@ -769,9 +835,10 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/legacy-adapter",
+        "@/lib/revenue-os/retained-source-dispositions",
         "next/server"
       ],
-      "sourceSha256": "81e12fd33147bff54eb137ff67a25cad875937bb3dd042bc63a92d310e88d734"
+      "sourceSha256": "ae44503e05ecc4181c565dde831f3b5d29f7347cb49f3d28e2d06667122498a6"
     },
     {
       "source": "src/app/api/admin/password-reset/route.ts",
@@ -866,9 +933,10 @@
         "@/lib/ai/openrouter",
         "@/lib/ai/openrouter-credentials",
         "@/lib/rate-limit",
+        "@/lib/revenue-os/shared-context",
         "next/server"
       ],
-      "sourceSha256": "7b36969fd098b914dc1ed15e020b6857ddde89ea8d55b7f38cdc9e66be70444f"
+      "sourceSha256": "306ffb40838d461b8a7a2017f15d500e47e911935ce304c20c6646a1f6444063"
     },
     {
       "source": "src/app/api/admin/proposals/route.ts",
@@ -927,9 +995,10 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/legacy-adapter",
+        "@/lib/revenue-os/retained-source-dispositions",
         "next/server"
       ],
-      "sourceSha256": "d78eadde6bce745c27b8853065f36b42d8947b467fd52952c4c6a0e7277102aa"
+      "sourceSha256": "9e9b8c2d48eebfa36feedfd096b290438a56cd21b706fedb001583636f8c7831"
     },
     {
       "source": "src/app/api/admin/revenue-os/actions/route.ts",
@@ -1443,7 +1512,7 @@
         "@/lib/revenue-os/analytics",
         "next/server"
       ],
-      "sourceSha256": "55a1794a41c280b83b60a5875c2d21eebdc2629fe03f1225afe344a47aab78be"
+      "sourceSha256": "62cea43d4598d5996c29cc57ee8f7eb33eaec82ade8a8a9bfbcfc1f53e6c2e3d"
     },
     {
       "source": "src/app/api/admin/search/route.ts",
@@ -1741,9 +1810,10 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/legacy-adapter",
+        "@/lib/revenue-os/retained-source-dispositions",
         "next/server"
       ],
-      "sourceSha256": "dadb0fc001e5ecc9e1340a1d363e0c24771f492e7e88650aa8e78f2d5a6a18e0"
+      "sourceSha256": "3463b6ca89854e49bd045cf80ae1076332078bcfdd602c09ac482031a16573e9"
     },
     {
       "source": "src/app/api/admin/subscriptions/route.ts",
@@ -1904,9 +1974,10 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/legacy-adapter",
+        "@/lib/revenue-os/retained-source-dispositions",
         "next/server"
       ],
-      "sourceSha256": "7421016a0d3d5cb10d2b9998fdb7606650ecedb975c8fe38d78682b14b649659"
+      "sourceSha256": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98"
     }
   ]
 }

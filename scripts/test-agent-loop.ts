@@ -120,6 +120,7 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
       "not",
       "or",
       "filter",
+      "ilike",
       "order",
       "limit",
       "range",

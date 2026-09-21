@@ -98,7 +98,7 @@ export default async function ProposalPage({
       </header>
 
       {/* Sections */}
-      <main className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="space-y-10">
           {sections.map((section, idx) => (
             <section key={idx}>
@@ -185,7 +185,7 @@ export default async function ProposalPage({
             </Link>
           </p>
         </footer>
-      </main>
+      </div>
     </div>
   );
 }

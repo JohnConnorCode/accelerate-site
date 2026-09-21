@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
   experimental: {
     // Keep fresh-fork prerendering inside the repository's 3 GiB job budget,
     // including on hosts where Next would spawn a worker for every CPU.
-    cpus: 2,
+    cpus: 1,
     // Next 16 auto-enables the runtime deployment-id override inside Vercel's
     // builder. That replaces the documented custom prebuilt id with Vercel's
     // reserved dpl_ id at runtime and produces two bootstrap identities. Keep
@@ -45,12 +45,20 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/*": [
       "./plugins/receivables-collections/plan.js",
+      "./node_modules/pdfjs-dist/legacy/build/*.mjs",
+      "./node_modules/@napi-rs/canvas*/**/*",
+      "./node_modules/mammoth/**/*",
       "./node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm",
     ],
   },
 
   // Server external packages that should not be bundled
-  serverExternalPackages: ["@react-pdf/renderer", "@jitl/quickjs-wasmfile-release-sync"],
+  serverExternalPackages: [
+    "pdfjs-dist",
+    "mammoth",
+    "@react-pdf/renderer",
+    "@jitl/quickjs-wasmfile-release-sync",
+  ],
 
   // Plausible analytics proxy (bypasses ad blockers)
   async rewrites() {

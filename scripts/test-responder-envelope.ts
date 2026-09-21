@@ -28,6 +28,7 @@ import {
 } from "../src/lib/tenancy/context";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 
+process.env.OPENROUTER_RESPONDER_MODEL = "fixture/responder";
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 process.env.RESEND_API_KEY = "re_test_key_not_real";
 
@@ -111,9 +112,25 @@ function harness(
       { id: ACCELERATE_TENANT_ID, slug: "accelerate", status: "active" },
     ],
     integration_connections: [],
-    admin_settings: overrides.settings ?? [
-      { key: RESPONDER_ENABLED_KEY, value: "true" },
-      { key: RESPONDER_APPROVED_VERSION_KEY, value: RESPONDER_POLICY_VERSION },
+    admin_settings: [
+      ...(overrides.settings ?? [
+        { key: RESPONDER_ENABLED_KEY, value: "true" },
+        { key: RESPONDER_APPROVED_VERSION_KEY, value: RESPONDER_POLICY_VERSION },
+      ]),
+      {
+        tenant_id: ACCELERATE_TENANT_ID,
+        key: "ai-model:fixture/responder",
+        value: JSON.stringify({
+          label: "Controlled responder fixture",
+          costTier: "low",
+          supportsTools: false,
+          supportsJson: true,
+          contextWindow: 128000,
+          evalPassed: true,
+          evaluatedAt: "2026-09-20",
+          evaluatedBy: "fixture",
+        }),
+      },
     ],
     contacts: overrides.contacts ?? [
       { id: "contact-1", communication_status: "active", lifecycle_stage: "lead" },

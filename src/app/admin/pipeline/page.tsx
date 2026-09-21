@@ -3,7 +3,7 @@
 import { adminPageName } from "@/lib/admin/navigation";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "@/components/admin/AdminLink";
+import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import {
   ArrowUpRight,
   BookmarkPlus,
@@ -48,6 +48,7 @@ import {
   type SavedPipelineView,
 } from "@/lib/admin/pipelineViews";
 import { cn } from "@/lib/utils";
+import { isInteractiveTarget } from "@/lib/admin/interaction";
 
 interface Opportunity {
   id: string;
@@ -97,6 +98,7 @@ const has = (state: PipelineViewState, field: PipelineVisibleField) =>
   state.visibleFields.includes(field);
 
 export default function PipelinePage() {
+  const navigation = useAdminNavigation();
   const [state, setState] = useState<PipelineViewState>(DEFAULT_PIPELINE_VIEW);
   const [saved, setSaved] = useState<SavedPipelineView[]>([]);
   const [activeSaved, setActiveSaved] = useState<string | null>(null);
@@ -581,6 +583,7 @@ export default function PipelinePage() {
                     saving={saving}
                     updateStage={updateStage}
                     columns={pipelineColumns}
+                    onOpen={(id) => navigation.push(`/admin/pipeline/${id}`)}
                   />
                 )}
               </AdminSurface>
@@ -1204,12 +1207,14 @@ function ListView({
   columns,
   saving,
   updateStage,
+  onOpen,
 }: {
   items: Opportunity[];
   state: PipelineViewState;
   columns: KanbanColumnRecord[];
   saving: boolean;
   updateStage: (item: Opportunity, stage: string) => Promise<boolean>;
+  onOpen: (id: string) => void;
 }) {
   return (
     <div className="border-t border-[var(--admin-border)]">
@@ -1236,11 +1241,29 @@ function ListView({
           </thead>
           <tbody className="divide-y divide-[var(--admin-border)]">
             {items.map((item) => (
-              <tr key={item.id} data-opportunity-id={item.id}>
+              <tr
+                key={item.id}
+                data-opportunity-id={item.id}
+                tabIndex={0}
+                aria-label={`Open ${item.name || item.company?.name || "Untitled"}`}
+                onClick={(event) => {
+                  if (isInteractiveTarget(event.target)) return;
+                  onOpen(item.id);
+                }}
+                onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return;
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onOpen(item.id);
+                  }
+                }}
+                className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-action)]"
+              >
                 <td className="px-5 py-4">
                   <Link
                     href={`/admin/pipeline/${item.id}`}
-                    className="inline-flex min-h-10 items-center gap-1.5 font-semibold hover:opacity-70"
+                    className="flex min-h-11 w-full items-center gap-1.5 rounded-[var(--admin-control-radius)] font-semibold hover:opacity-70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                    aria-label={`Open ${item.name || item.company?.name || "Untitled"}`}
                   >
                     {item.name || item.company?.name || "Untitled"}
                     <ArrowUpRight className="size-3.5" />
@@ -1264,7 +1287,7 @@ function ListView({
                 )}
                 {has(state, "next_action") && (
                   <td className="max-w-[240px] px-4">
-                    <p className="truncate text-xs">{item.next_action || "Set next action"}</p>
+                    <p className="truncate text-xs">{item.next_action || "No next action"}</p>
                     <p className="admin-copy text-[10px]">{shortDate(item.next_action_at)}</p>
                   </td>
                 )}

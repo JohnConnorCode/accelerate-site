@@ -1,3 +1,4 @@
+import { loadContextPack, contextReceipt } from "@/lib/revenue-os/shared-context";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { openRouterJson } from "@/lib/ai/openrouter";
@@ -39,8 +40,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const guidance = await loadContextPack(auth.database, {
+      includeEvidence: false,
+      maxChars: 2000,
+    });
     const messages = [
       { role: "system" as const, content: buildContentBriefSystemPrompt() },
+      { role: "system" as const, content: guidance.text },
       {
         role: "user" as const,
         content: [
@@ -75,6 +81,7 @@ export async function POST(request: NextRequest) {
       requestId: response.requestId,
       context: {
         version: CONTENT_BRIEF_CONTEXT_VERSION,
+        guidance: contextReceipt(guidance),
         sources: CONTENT_BRIEF_SOURCE_ALLOWLIST,
         sourceBudgetChars: MAX_CONTENT_BRIEF_SOURCE_CHARS,
         contextBudgetChars: MAX_CONTENT_BRIEF_CONTEXT_CHARS,

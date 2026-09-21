@@ -60,9 +60,9 @@ export interface OpenSourceStat {
 /** Verifiable facts about the codebase, not illustrative figures. Recompute
     against the repo before changing a number here. */
 export const OPEN_SOURCE_STATS: OpenSourceStat[] = [
-  { value: "105", label: "Ordered migrations", detail: "Every schema change, in sequence" },
-  { value: "251", label: "Automated checks", detail: "Test and verification scripts" },
-  { value: "183K", label: "Lines of TypeScript", detail: "Across 961 source files" },
+  { value: "110", label: "Ordered migrations", detail: "Every schema change, in sequence" },
+  { value: "254", label: "Automated checks", detail: "Test and verification scripts" },
+  { value: "190K", label: "Lines of TypeScript", detail: "Across 994 source files" },
 
   { value: "MIT", label: "Fully open license", detail: "No seat limits, no usage tiers" },
 ];

@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "How does the workspace learn from a correction?",
+    answer:
+      "An edited reply or explicit correction can create a proposal in Learning Inbox. You review its scope and approve it, then relevant later work receives the saved rule with a source receipt. Independent rules remain active together. Add private reference documents when the missing piece is information, and inspect execution failures when a service needs repair. A successful action or saved rule alone does not prove that quality improved; compare later results with the original example.",
+  },
+  {
     question: "Can I edit my website from ChatGPT?",
     answer:
       "Yes, after your installer configures the owner-only Site Studio OAuth connection. It can read and edit website content, prepare an exact preview, save drafts, publish and restore revisions through the same editor services. Access lasts 30 days and can be revoked in Site Studio. ChatGPT manages write confirmations; the server records delegated authority and execution receipts. Ordinary workspace MCP keys remain proposal-only, and the website connection cannot operate other workspace tools.",

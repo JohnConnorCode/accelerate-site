@@ -4,10 +4,10 @@ export const leadMagnets: LeadMagnet[] = [
   {
     id: "ai-readiness-checklist",
     slug: "ai-readiness-checklist",
-    title: "AI Readiness Checklist",
-    subtitle: "Is your business ready for AI?",
+    title: "AI Readiness Assessment",
+    subtitle: "Find where to start",
     description:
-      "A 25-point checklist that scores your business on digital maturity, process readiness, and AI opportunity. Find out where you stand and what to prioritize first. Takes 5 minutes to complete.",
+      "Answer focused questions about your workflows, data, tools, team, and guardrails. Optionally add your public homepage for a useful surface audit, then get a transparent readiness score, practical first pilot, and 30-day action plan.",
     icon: "ClipboardCheck",
     fileUrl: "/resources/ai-readiness-checklist.pdf",
     category: "checklist",

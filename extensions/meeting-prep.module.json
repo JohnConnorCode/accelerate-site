@@ -18,5 +18,28 @@
       }
     ]
   },
-  "docsUrl": "/docs/plugins/meeting-prep"
+  "docsUrl": "/docs/plugins/meeting-prep",
+  "knowledge": {
+    "version": 1,
+    "sourceNames": ["records"],
+    "guidanceTypes": ["workflow_preference", "process_rule"],
+    "signalTypes": ["explicit_correction", "missing_source", "verified_outcome"],
+    "prerequisites": ["Readable stored calendar events"],
+    "success": {
+      "artifact": "report",
+      "description": "A cited report of stored meetings in the next 48 hours"
+    },
+    "evaluations": [
+      {
+        "name": "Available source",
+        "scenario": "Readable stored calendar events",
+        "expectedArtifact": "report"
+      },
+      {
+        "name": "Disabled plugin",
+        "scenario": "Plugin is disabled before the source read or effect",
+        "expectedArtifact": "refusal"
+      }
+    ]
+  }
 }

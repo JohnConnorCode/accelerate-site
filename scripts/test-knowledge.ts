@@ -66,7 +66,11 @@ function stubSupabase(tables: Record<string, { data?: Row[]; error?: { message: 
     return self;
   }
 
-  return { from: (table: string) => query(table), inserted } as unknown as SupabaseClient;
+  return {
+    from: (table: string) => query(table),
+    rpc: async () => ({ data: [], error: null }),
+    inserted,
+  } as unknown as SupabaseClient;
 }
 
 async function runTests() {
@@ -98,6 +102,70 @@ async function runTests() {
         'No canonical records, founder notes, or activities found for "Acme Corp".',
       ),
     );
+  }
+
+  // An unavailable source is not a successful search with no matches.
+  {
+    const db = stubSupabase({
+      companies: { error: { message: "private diagnostic" } },
+      activities: { error: { message: "private diagnostic" } },
+    });
+    const result = await retrieveKnowledge(db, { topic: "Acme" });
+    assert.equal(result.found, false);
+    assert.match(result.refusalReason!, /incomplete/);
+    assert.equal(result.missing?.length, 2);
+    assert(!JSON.stringify(result).includes("private diagnostic"));
+  }
+  // Missing secondary records remain explicit even when a canonical fact exists.
+  {
+    const db = stubSupabase({
+      companies: { data: [{ id: "company", name: "Acme" }] },
+      activities: { error: { message: "private diagnostic" } },
+    });
+    const result = await retrieveKnowledge(db, { topic: "Acme" });
+    assert.equal(result.found, true);
+    assert.equal(result.missing?.length, 2);
+  }
+  // Busy canonical records cannot starve documents; limits apply to every path.
+  {
+    const db = stubSupabase({
+      companies: { data: [{ id: "company", name: "Acme" }] },
+      contacts: { data: [{ id: "contact", full_name: "Acme Buyer" }] },
+      opportunities: { data: [{ id: "opportunity", name: "Acme Sale" }] },
+    });
+    db.rpc = (async () => ({
+      data: [
+        {
+          id: "reference",
+          kind: "upload",
+          title: "Acme policy",
+          content: "Read this policy",
+          revision: "hash",
+        },
+      ],
+      error: null,
+    })) as never;
+    const result = await retrieveKnowledge(db, { topic: "Acme", limit: 2 });
+    assert.deepEqual(
+      result.chunks.map((c) => c.source),
+      ["canonical_record", "document"],
+    );
+    assert.equal(
+      (await retrieveKnowledge(db, { topic: "Acme", limit: Number.NaN })).chunks.length,
+      4,
+    );
+    const notes = stubSupabase({
+      activities: {
+        data: [
+          { id: "a", summary: "Acme" },
+          { id: "b", summary: "Acme" },
+        ],
+      },
+    });
+    assert.equal((await retrieveKnowledge(notes, { topic: "Acme", limit: 1 })).chunks.length, 1);
+    db.rpc = (async () => ({ data: null, error: { message: "private failure" } })) as never;
+    const failed = await retrieveKnowledge(db, { topic: "Acme" });
+    assert(failed.missing?.some((m) => m.includes("Document knowledge search is unavailable")));
   }
 
   // 3. Grounded retrieval citing company, contact, opportunity, and founder notes with provenance
@@ -245,7 +313,9 @@ async function runTests() {
     assert.equal(searchResult.entitySummary?.name, "Gamma Inc");
   }
 
-  console.log("All 5 Second Brain Knowledge tests passed successfully!");
+  console.log(
+    "Knowledge retrieval: grounded facts, partial failures, source diversity, limits and tool integration passed.",
+  );
 }
 
 runTests().catch((err) => {

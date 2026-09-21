@@ -1,0 +1,834 @@
+{
+  "base": "59167a013d6085e8ff94abc30009a085e93a404a",
+  "branches": [
+    {
+      "branch": "agent/admin-ux-standard-20260920",
+      "head": "908e9d688f906a9553b3a74ab2850a4211a83441",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/brain-source-authority",
+      "head": "208638c790b47e843cf503b866040348a538e0d6",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/brain-source-authority-428d283b-b095-4ac0-b0d6-a8c3d76d8666",
+      "head": "db0fc859b3163ed56ade67256ed5c451e55c9a66",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/canonical-retained-tools-parity",
+      "head": "528320a299306ad0996fb2e863d7ac62130c0bec",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/canonical-revenue-activity-parity",
+      "head": "dfa1467dc10bbe82f1651cb7a1d6c4902d116fae",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/canonical-tools-route-inventory",
+      "head": "0b8fc23013108a2b9df75b66feb11ea1b42ce9a2",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/checkpoints/04363523-de4d-48c7-83a3-d12ef985be04/c318d124-57b8-4c81-895d-8d10c7ee4c55/36311c96-9fe8-4788-85dc-5adfc50added",
+      "head": "1b10a681f44768faf5f53fd8808ea8e20096c16c",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/04363523-de4d-48c7-83a3-d12ef985be04/c318d124-57b8-4c81-895d-8d10c7ee4c55/7f51992f-2dee-44be-816c-53a418527f11",
+      "head": "3f185e8b80b5c7b46773326ebb18ed52f9e9132f",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/04363523-de4d-48c7-83a3-d12ef985be04/c318d124-57b8-4c81-895d-8d10c7ee4c55/ca9e9974-c2d3-4d2c-88e6-27a38b8434e6",
+      "head": "8310374ce588a7b05aa7862079f88c17413908b3",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/04363523-de4d-48c7-83a3-d12ef985be04/c3a410dd-f49d-4f54-8ebe-8b92941d2be0/0585b609-7208-46ce-803f-02fdfaade059",
+      "head": "ce9c4df2205afeeef2afda880c4124c8211c51af",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/04363523-de4d-48c7-83a3-d12ef985be04/c3a410dd-f49d-4f54-8ebe-8b92941d2be0/0e9e373b-3aee-4641-8a85-416ac94002cb",
+      "head": "29ff91b1ee0c57e5884765c7f28a34b3a7acb49f",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/04363523-de4d-48c7-83a3-d12ef985be04/c3a410dd-f49d-4f54-8ebe-8b92941d2be0/6a46562e-462a-44b5-a2f1-fd5b840c408e",
+      "head": "321a5644e7c5eca94c69024d8f5581f822f3f897",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/04363523-de4d-48c7-83a3-d12ef985be04/c3a410dd-f49d-4f54-8ebe-8b92941d2be0/eceee7a8-6f98-4514-8daa-5a8d31700fa8",
+      "head": "654084b5f495d3c162dc38ebf215085caccf5c50",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/1734efe5-1077-46b0-accf-e06ae034e71b/a0c8264e-0ab9-4e53-93e7-3c87cfb27046/10884d23-49b0-44bd-a87d-1eb9ddbab5b6",
+      "head": "1dbe46921a050ee4314484a3a32eb98137c9d731",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/1734efe5-1077-46b0-accf-e06ae034e71b/a0c8264e-0ab9-4e53-93e7-3c87cfb27046/57c177df-90bf-45e1-9eec-9e157ee16c91",
+      "head": "d90ff1a17526c9f5b4577aa492c518cde773b942",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/1734efe5-1077-46b0-accf-e06ae034e71b/a0c8264e-0ab9-4e53-93e7-3c87cfb27046/d2bfc875-1332-4555-86fa-9dd71680ada3",
+      "head": "e8a5981c940d0b0343095f44cd2f5256247ed6cc",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/38a08974-f92b-4106-821b-b328d40090d7/a0d7bd69-8533-41f0-9130-fd31c1b41131/4c0cbd11-a137-44b8-bebd-49b20f48c105",
+      "head": "a4f383a02a6b03f77d645037f3703e57dd7b073b",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/38a08974-f92b-4106-821b-b328d40090d7/a0d7bd69-8533-41f0-9130-fd31c1b41131/90cea14a-1f30-4f28-b40d-012a8ee2389b",
+      "head": "f583b6b5726d38b6d62e269da765d1d46d17bac7",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/38a08974-f92b-4106-821b-b328d40090d7/a0d7bd69-8533-41f0-9130-fd31c1b41131/c36cf4dd-1fe3-4dc3-a049-129e8bb2d115",
+      "head": "90747f54959d4977d7375aaf30ebbbdb18306ba2",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/38a08974-f92b-4106-821b-b328d40090d7/a0d7bd69-8533-41f0-9130-fd31c1b41131/fbabe2e2-f05f-46e4-8266-a3996a7424c4",
+      "head": "3e337bfe2a1e68608bcfbc8338960dca7df30536",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/3a5699e5-c86a-47b9-bfe6-d6f91426d59b/882865ff-d8dd-4c51-b345-cc096eece55c/6757a3e9-21db-4824-9683-5beec6dec884",
+      "head": "ed65924555fb22f066ffaddf2fa5da753963473b",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/3a5699e5-c86a-47b9-bfe6-d6f91426d59b/882865ff-d8dd-4c51-b345-cc096eece55c/7811ac6a-995a-469e-9977-12c3ff319684",
+      "head": "dd5ac906a2a8f47e25cbec4b6f205ace2520f129",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/3a5699e5-c86a-47b9-bfe6-d6f91426d59b/882865ff-d8dd-4c51-b345-cc096eece55c/8ec6399b-9c80-43ed-839d-af2ec6f83ee3",
+      "head": "3470fb7ff52b02861e7515079022b374fe6cc12d",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/3a5699e5-c86a-47b9-bfe6-d6f91426d59b/882865ff-d8dd-4c51-b345-cc096eece55c/d9ae78f2-0848-4715-931c-c692fee0309e",
+      "head": "13682dfeb562b03556a19653e5942bb2759c8385",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/3a5699e5-c86a-47b9-bfe6-d6f91426d59b/882865ff-d8dd-4c51-b345-cc096eece55c/e42106e7-2fc8-4236-96f6-96f1f820ffbd",
+      "head": "4647215b75e26469106f99dff8ea86adc576ec3f",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/3ab2a08f-00ec-46d4-98f9-da14d47047c3/3fa10580-c3db-4a3c-b411-6697e41ec025/568f35df-abf3-4fdf-8f5a-59748c2a7cf0",
+      "head": "df9d89edfe142c583d222a8f0f7c9fb202f6b08e",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/3ab2a08f-00ec-46d4-98f9-da14d47047c3/3fa10580-c3db-4a3c-b411-6697e41ec025/77501761-2128-4cef-89d0-6b7266e7dba8",
+      "head": "1d6adae6b3a871091e793bc4b3600932d42912c9",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/3ab2a08f-00ec-46d4-98f9-da14d47047c3/3fa10580-c3db-4a3c-b411-6697e41ec025/ce1094c9-cb55-48b6-8599-762b880cc4a1",
+      "head": "39ea3ab58707d0034dd5f5160b81614088ca0af7",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/3ab2a08f-00ec-46d4-98f9-da14d47047c3/3fa10580-c3db-4a3c-b411-6697e41ec025/f5bd042e-b2f0-4040-b955-7ceabf9d2dc5",
+      "head": "e1934e3fffd9411e5d8ce6b1b299f24e6baa8f10",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/41a65d9c-a201-4bea-b4b7-f1f1013a9815/37f1e40c-166c-48cc-bc93-cc666fb125b6/08186f00-ff79-4e30-a687-f794f0e49980",
+      "head": "66ef7b33dd017afa42be2ceb47967966b281afee",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/41a65d9c-a201-4bea-b4b7-f1f1013a9815/37f1e40c-166c-48cc-bc93-cc666fb125b6/383c2d4b-d8a9-4e68-bf06-d3003af54a84",
+      "head": "c3e1270e2d91156188d43e08678b1e8d7b4062b9",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/41a65d9c-a201-4bea-b4b7-f1f1013a9815/37f1e40c-166c-48cc-bc93-cc666fb125b6/39f9b839-db8e-4029-af54-2adb33899376",
+      "head": "49d3cfc9b41695c1f41852f157989d6ee0622fdc",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/41a65d9c-a201-4bea-b4b7-f1f1013a9815/37f1e40c-166c-48cc-bc93-cc666fb125b6/56341ba4-6060-4aa5-8bbe-d36a3925277d",
+      "head": "20f2ba9ffa89c45fbc98bc1a979e583861e5dc78",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/41a65d9c-a201-4bea-b4b7-f1f1013a9815/37f1e40c-166c-48cc-bc93-cc666fb125b6/5c373a35-17d8-4c45-9524-45747e550dd2",
+      "head": "b4499fe00dbf394df82fae0b9831664cc342b3b9",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/41a65d9c-a201-4bea-b4b7-f1f1013a9815/37f1e40c-166c-48cc-bc93-cc666fb125b6/604b351c-51bc-4c4b-88f3-dfdbe74193a9",
+      "head": "d5a6befb4d9a0b12161e56658af9d1c84a26b479",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/41a65d9c-a201-4bea-b4b7-f1f1013a9815/e4211269-2ef0-462e-9e82-710ca3568995/25ecc711-6889-44b3-9846-2ad6c6ac3a2d",
+      "head": "eb2e38561a86f6c3b7bc6d0c3d0a113f3eef2451",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/41a65d9c-a201-4bea-b4b7-f1f1013a9815/e4211269-2ef0-462e-9e82-710ca3568995/623885ad-7311-473e-a8d6-4a9a89676fe9",
+      "head": "6f8d67942bbad97b2d6dc8fb63647edf44a4fc40",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/41a65d9c-a201-4bea-b4b7-f1f1013a9815/e4211269-2ef0-462e-9e82-710ca3568995/cd4e5564-f650-496d-bcac-9f960f9913ca",
+      "head": "3c4142f3b98e8107788423d4d944b272e6f79095",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/41a65d9c-a201-4bea-b4b7-f1f1013a9815/e4211269-2ef0-462e-9e82-710ca3568995/e848349a-8bc7-4605-acb0-860b2d0e5846",
+      "head": "eeceb9de85dacb4cdfc1c486d5c6a8c4fe95358b",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/6dde0289-a504-4aec-8836-fea6ac4a52af/c9eb0823-8015-4f46-beeb-2e2d9488a55d/18b1e9a4-1407-484a-884f-b638d8c2415a",
+      "head": "142f318758c86db9ecdb15e66feb2a179dbfafa2",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/ab14fde7-385a-4a82-9d72-f7ae2f8f89de/81b6babe-1544-4de5-aa39-ba611282e8a9/1852ecf8-7cbb-44df-b47e-f5a2cb78a1b3",
+      "head": "8b31bd2943e1b910c58f507e047eef700b168bd7",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/ab14fde7-385a-4a82-9d72-f7ae2f8f89de/81b6babe-1544-4de5-aa39-ba611282e8a9/1eb066d2-7f0e-44d2-b0bc-556be9598a2c",
+      "head": "a094f4f0caa4ecc5baaac3aaba4102c88136aa2b",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/ab14fde7-385a-4a82-9d72-f7ae2f8f89de/81b6babe-1544-4de5-aa39-ba611282e8a9/cebaf5e5-0cdd-4991-8d2c-c860c9e1ba15",
+      "head": "c5d7d74e5df6a20840a545e2f0b9b53c9e41f4b4",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/b3be09c1-f11b-48c7-b419-c03921a1f8bc/6c80be4f-93ac-419c-9a82-c2d59bdeedc6/24d507c8-8b1d-4a56-be83-4e4137b3e186",
+      "head": "c1ee70aa5c63a666512bca1ae86f1653062971b1",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/b3be09c1-f11b-48c7-b419-c03921a1f8bc/6c80be4f-93ac-419c-9a82-c2d59bdeedc6/7b50f1f9-6534-4c11-bf54-84d22f9b5f11",
+      "head": "34bc9cc73a095760961a636dfedb0734b4dbbfd9",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/b3be09c1-f11b-48c7-b419-c03921a1f8bc/6c80be4f-93ac-419c-9a82-c2d59bdeedc6/d6811396-88a8-4ee7-b029-2ce84e360a67",
+      "head": "df4adc1400f25496fc016cc50ea5dc061fa3db08",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/bc20fe63-2131-4bdc-a557-e241b7021a06/6094790b-6649-4a00-aec4-c8f9dc3bf494/51f5f4a1-f65d-4454-97f2-71515ce84062",
+      "head": "26f29c0c7aa3b70c06fb64c4118449d5c47385ef",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c20b8398-b6f5-4707-8c8e-db9981a0e517/0c6c9eda-fc67-4519-bcc8-eb4d46e0c16e/d1ec8efc-7e30-4af4-841d-0562eaffa7da",
+      "head": "7823394d331e6edabccbc9caa0e444d9eea07807",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c20b8398-b6f5-4707-8c8e-db9981a0e517/27789dab-5c13-48d8-984a-51a7c372dc96/86bc6a39-10c4-4117-8114-bad0d27f53af",
+      "head": "f3f443771da095660018c0bb4219e52760c8817d",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c20b8398-b6f5-4707-8c8e-db9981a0e517/27789dab-5c13-48d8-984a-51a7c372dc96/dfda980a-87b8-4427-9f0c-7d27bfdbb18c",
+      "head": "d5d5d5ae2c7054120e762832e555b08cbd1b96d8",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c20b8398-b6f5-4707-8c8e-db9981a0e517/adc4e109-0d2c-4b30-b71b-60e07b05f79d/726ba246-80b3-4c36-a414-58f27e441001",
+      "head": "d1342771076a00672d05dbfb8b263e60dbb7aa71",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/80719db2-f492-48f0-a859-cff5e95a4026/2d889474-7d0e-4151-b728-3970f5a66991",
+      "head": "59ccce859969c45aa232b9bbdc5cda9c2e81a7d6",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/80719db2-f492-48f0-a859-cff5e95a4026/2f21b880-6140-4d3c-a167-31eb830cdb6e",
+      "head": "62ef2ccecd9804ba157314e8d42b0e661f73da14",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/80719db2-f492-48f0-a859-cff5e95a4026/5a2e090f-00f6-4424-b0d1-8279801b1188",
+      "head": "aa8b20c31cdca93b34bc1ac602a8f06c5bad4b0f",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/80719db2-f492-48f0-a859-cff5e95a4026/99afc1b0-b81e-4aa2-8f94-95781702a793",
+      "head": "e3028e2b9189e9450cc7dabac6988e437b4fe644",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/80719db2-f492-48f0-a859-cff5e95a4026/b2c507e8-182e-494a-a527-fee3d3b26bfc",
+      "head": "9e012bb3bd9bada4e343a953a0c64fc08cc0af7d",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/80719db2-f492-48f0-a859-cff5e95a4026/c73964bc-9135-44b9-918d-dd763cbf78d4",
+      "head": "ddca10c3160c5d9b37db0882fb29bc40b4f93aca",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/80719db2-f492-48f0-a859-cff5e95a4026/d18d3651-3c3e-43ff-9232-7912badcafa9",
+      "head": "5c4ab037377014c7c0ad5756296ee919f7579f4f",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/80719db2-f492-48f0-a859-cff5e95a4026/d7d23270-09be-4872-a59d-cca696d0bfe1",
+      "head": "12282fed5a49ac8079f01407792b8c2e7c594127",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/80719db2-f492-48f0-a859-cff5e95a4026/d81863b6-f056-42e8-9dda-7f9e440a8b4b",
+      "head": "243b00a71cfaa942e29a3e7b344de7c37711c45d",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/80719db2-f492-48f0-a859-cff5e95a4026/d9ba2de1-e12f-441e-9efb-258bdfac8cff",
+      "head": "fe4ce861726c148ab50263d9346f35fe2b54d995",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/b8cc361b-2b1c-4700-b28d-7143f071be09/20826ed3-2e0e-4b44-84a7-4706db8c09e4",
+      "head": "a50dcfb285c03aa2a6fa7bb1ecd5081d1cffbcb6",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/b8cc361b-2b1c-4700-b28d-7143f071be09/4dda854c-70b1-4cfc-bd65-ac7c0a673cce",
+      "head": "65d91c093678e9084e3dfea5b59eac60d3341b1e",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/c70fac6b-c988-4fb8-8def-90a002abc462/b8cc361b-2b1c-4700-b28d-7143f071be09/9f3f3256-06a2-427d-bb62-2a404456e9e6",
+      "head": "2cfdffdabc69c6b7c2f938cd37ea4657466bd446",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/ce71caa8-bf49-4f0e-9f37-823f93a01344/11d51728-855d-425b-82d3-2ca493455229/39c290e1-febf-4d65-855e-2802b53dbec8",
+      "head": "8e9519c817e4882c35d7de582cb64ac6f5a8982d",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/ce71caa8-bf49-4f0e-9f37-823f93a01344/11d51728-855d-425b-82d3-2ca493455229/42ef219e-88f5-4ec3-9095-9736872a68af",
+      "head": "ed37db845de2c6fec2f4d2af61db54a60246dcec",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/ce71caa8-bf49-4f0e-9f37-823f93a01344/11d51728-855d-425b-82d3-2ca493455229/6bb543ea-5c1b-43f5-9e49-4483639dd0a9",
+      "head": "2f2331a6798e086dd2a01d4912b4ee968978b6e3",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/ce71caa8-bf49-4f0e-9f37-823f93a01344/11d51728-855d-425b-82d3-2ca493455229/97c1cc72-a7ed-4a6b-9e1d-59a9c16af0ff",
+      "head": "52a5f8beb94ef743d0d1cab98a69d9f86a42ef75",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/ce71caa8-bf49-4f0e-9f37-823f93a01344/11d51728-855d-425b-82d3-2ca493455229/f9e8b58f-e461-4461-bd86-96311c5feac5",
+      "head": "f503671894f362671658b6e6da170f7eff113f6f",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/e9389663-84e9-403e-881a-9c0c8cd0bc76/0fffac42-ba22-4a0a-912e-4346bc295d51/42233f8c-e2d8-4be9-a535-875f94793c72",
+      "head": "3190f43dd9572680131bcf70a970a0c577d27cf5",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/e9389663-84e9-403e-881a-9c0c8cd0bc76/0fffac42-ba22-4a0a-912e-4346bc295d51/657cbdfb-d6b2-47ee-b5f4-0879a0f8d0c0",
+      "head": "d94c04c2432e52f5b5dad0ba5feb4764cd9e24b0",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/e9389663-84e9-403e-881a-9c0c8cd0bc76/0fffac42-ba22-4a0a-912e-4346bc295d51/a7211472-33c8-4d1f-94f4-265f4da279f4",
+      "head": "d5f60a1eb55d7d45be97aac6987d70fc5df9e8e0",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/e9389663-84e9-403e-881a-9c0c8cd0bc76/0fffac42-ba22-4a0a-912e-4346bc295d51/d439f7b6-a02d-4bdf-ae66-5810f8973bb7",
+      "head": "6cc429ea9fe81deb37f45dac3be6124338c2e464",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/e9389663-84e9-403e-881a-9c0c8cd0bc76/62d0250e-34e4-4165-8451-7533a220896a/0e00f4b8-d86f-4046-896c-b09d7a7f6996",
+      "head": "ed33a9da02f569c44ea2efad1c2f35ad8cb8b2d9",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/e9389663-84e9-403e-881a-9c0c8cd0bc76/62d0250e-34e4-4165-8451-7533a220896a/16edf5bf-1f06-4fc0-aaf8-c4790a5418ca",
+      "head": "e5fc9145389406e5c61e79c95351be5ff8e4ead2",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/checkpoints/e9389663-84e9-403e-881a-9c0c8cd0bc76/62d0250e-34e4-4165-8451-7533a220896a/4dc015f3-a751-4b01-99ac-a5a5e7200424",
+      "head": "0e6137acbcc3d8ae57eb37772d46eae89316fd6e",
+      "checkpoint": true
+    },
+    {
+      "branch": "agent/chicago-industry-release-polish",
+      "head": "a52709d9e1716d10b80ba0560e1d4d9b95da7f81",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/chicago-industry-release-polish-3a8d29cd-b3e6-4be0-9eb6-8304405cc4f1",
+      "head": "624ad81dd7c6ee367168c58954b46c2b53eafbd1",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/chicago-small-business-industries",
+      "head": "a52709d9e1716d10b80ba0560e1d4d9b95da7f81",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/command-center-copy-rewrite",
+      "head": "8b39fd172297611a5f369018a754b690c3715053",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/command-center-product-redesign-v2",
+      "head": "0de46e3242983cb6b34e8cb45a5d5836ea1287da",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/connected-learning-knowledge-plugins",
+      "head": "2ca419e3031918564ea1ab7d240bba6faf6a8fef",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/docs-admin-recovery-guide",
+      "head": "c13a36e543ca87b799a3d492a6b9d61c159a9a46",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/docs-first-value-guide",
+      "head": "988af039f1aec48012b65936b0485e49ccbaba15",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/drive-provenance-retrieval",
+      "head": "cbe50f55a2a8041a6760d3adbfdcc8f8bfcfb483",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/fork-experience-polish-20260920",
+      "head": "afda2e3e0d15bdbe5a8b6ef57a02a938b03f0ea3",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/full-product-neutral-default-20260919",
+      "head": "0f91ff3eb4ba612ec9d7167ffc962e0923e996c0",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/full-product-neutral-default-20260919-9cbdd405-43e5-4020-a25b-27b0d61be6b4",
+      "head": "5f582b8e30121e3e36b44aaabac6148828a757a1",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/launch-readiness-chatgpt-site-studio-20260919",
+      "head": "0f91ff3eb4ba612ec9d7167ffc962e0923e996c0",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/northstar-phase-b-proof",
+      "head": "681f8abab5a44d494ee9c2c249df193713c47172",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/public-platform-value-recipes",
+      "head": "b4a3a3e1aa7585855110b93b4e8ca88e80c9f96a",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/retained-resources",
+      "head": "8baccd279ef2cd5f2bd21b2e401f6f9924642902",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/roles-and-permissions",
+      "head": "06079753773982fdc8ece4119ee99f0a54e79d78",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/sd-command-reuse-backlog",
+      "head": "0b2d14108501d3f7cc672c48446b53c2cbb13982",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/site-home-clarity",
+      "head": "59167a013d6085e8ff94abc30009a085e93a404a",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/site-studio-ai-parity",
+      "head": "32a79bacd0b9bb4c688074d9d4aa841610793455",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/site-studio-spec",
+      "head": "7c2e9caa93244ed4862949d11331e175492498d8",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/social-marketing-linkedin-pilot-8ee3c266-a206-447e-b27d-9a0521e60416",
+      "head": "1ec9137aab87e3d3dbffa59c175fb315398ef30b",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/staleness-gate",
+      "head": "6266ae9b30dcfc4038ded0f359bcf5b322b4b793",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/subscription-integration",
+      "head": "53e330b929a203dc9fd9c43c3688dc9b568c90cc",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/workspace-architect-generated-operations",
+      "head": "7163c79e0e51027b6316aeb287154c78859414c7",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/workspace-architect-review-simulation",
+      "head": "b5a73e477201461f0b2a781f80100ea659ac4455",
+      "checkpoint": false
+    },
+    {
+      "branch": "agent/workspace-architect-review-simulation-68a7e50b-5ca3-41d7-ac63-a089965ae9d2",
+      "head": "26f29c0c7aa3b70c06fb64c4118449d5c47385ef",
+      "checkpoint": false
+    },
+    {
+      "branch": "feat/ai-readiness-assessment",
+      "head": "d71df12596515c7cb3b906e0fb2a9b5dcee29b54",
+      "checkpoint": false
+    },
+    {
+      "branch": "integration/completed-agents-20260920",
+      "head": "4a588a2c934fa6f1f41df9be951041ea90c96607",
+      "checkpoint": false
+    },
+    {
+      "branch": "integration/grok-review-20260920",
+      "head": "38143a4c4dfcbdcb23efbd7833c3ffca8191ff5f",
+      "checkpoint": false
+    },
+    {
+      "branch": "integration/release-all-agents-20260920",
+      "head": "25f8035c2029db5d0ef67d9741e0d5aaaa2e444d",
+      "checkpoint": false
+    },
+    {
+      "branch": "main",
+      "head": "8baccd279ef2cd5f2bd21b2e401f6f9924642902",
+      "checkpoint": false
+    },
+    {
+      "branch": "preserve/learning-inbox-card-template",
+      "head": "4376177e2c8ce25d51cb05a97ed1c23a0ea121b1",
+      "checkpoint": false
+    }
+  ],
+  "worktrees": [
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/accelerate-site",
+      "head": "8b39fd172297611a5f369018a754b690c3715053",
+      "branch": "refs/heads/agent/command-center-copy-rewrite",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/admin-ux-standard-20260920",
+      "head": "908e9d688f906a9553b3a74ab2850a4211a83441",
+      "branch": "refs/heads/agent/admin-ux-standard-20260920",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/ai-readiness-assessment",
+      "head": "d71df12596515c7cb3b906e0fb2a9b5dcee29b54",
+      "branch": "refs/heads/feat/ai-readiness-assessment",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/brain-source-authority",
+      "head": "208638c790b47e843cf503b866040348a538e0d6",
+      "branch": "refs/heads/agent/brain-source-authority",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/brain-source-authority-428d283b-b095-4ac0-b0d6-a8c3d76d8666",
+      "head": "db0fc859b3163ed56ade67256ed5c451e55c9a66",
+      "branch": "refs/heads/agent/brain-source-authority-428d283b-b095-4ac0-b0d6-a8c3d76d8666",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/canonical-retained-tools-parity",
+      "head": "528320a299306ad0996fb2e863d7ac62130c0bec",
+      "branch": "refs/heads/agent/canonical-retained-tools-parity",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/canonical-revenue-activity-parity",
+      "head": "dfa1467dc10bbe82f1651cb7a1d6c4902d116fae",
+      "branch": "refs/heads/agent/canonical-revenue-activity-parity",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/chicago-industry-release-polish",
+      "head": "a52709d9e1716d10b80ba0560e1d4d9b95da7f81",
+      "branch": "refs/heads/agent/chicago-industry-release-polish",
+      "changes": [
+        "M scripts/qa-chicago-industries.mjs",
+        " M src/app/(marketing)/chicago/page.tsx",
+        " M src/app/sitemap.ts",
+        " M src/components/command-center/product.module.css",
+        " M src/components/sections/VerticalPage.tsx",
+        " M src/content/changelog.ts",
+        " M src/content/docs/recipes/catering-event-handoff.mdx",
+        " M src/content/docs/recipes/catering-inquiry.mdx",
+        " M src/content/docs/recipes/cleaning-quote.mdx",
+        " M src/content/docs/recipes/cleaning-service-kickoff.mdx",
+        " M src/content/docs/recipes/event-planning-handoff.mdx",
+        " M src/content/docs/recipes/fitness-member-onboarding.mdx",
+        " M src/content/docs/recipes/fitness-trial.mdx",
+        " M src/content/docs/recipes/pet-service-handoff.mdx",
+        " M src/content/docs/recipes/pet-service-inquiry.mdx",
+        " M src/content/docs/recipes/property-engagement-onboarding.mdx",
+        " M src/content/docs/recipes/property-owner-inquiry.mdx",
+        " M src/content/docs/recipes/repair-inquiry.mdx",
+        " M src/content/docs/recipes/repair-job-handoff.mdx",
+        " M src/content/docs/recipes/retail-order-handoff.mdx",
+        " M src/content/docs/recipes/salon-consultation.mdx",
+        " M src/content/docs/recipes/salon-follow-up.mdx",
+        " M src/content/docs/recipes/staffing-engagement.mdx",
+        " M src/content/docs/recipes/staffing-inquiry.mdx",
+        " M src/content/docs/recipes/venue-inquiry.mdx",
+        " M src/content/docs/recipes/wholesale-inquiry.mdx",
+        " M src/content/verticals.ts",
+        " M src/lib/types.ts",
+        "?? docs/verification/2026-09-19-industry-release-polish.md"
+      ]
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/chicago-industry-release-polish-3a8d29cd-b3e6-4be0-9eb6-8304405cc4f1",
+      "head": "624ad81dd7c6ee367168c58954b46c2b53eafbd1",
+      "branch": "refs/heads/agent/chicago-industry-release-polish-3a8d29cd-b3e6-4be0-9eb6-8304405cc4f1",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/chicago-small-business-industries",
+      "head": "a52709d9e1716d10b80ba0560e1d4d9b95da7f81",
+      "branch": "refs/heads/agent/chicago-small-business-industries",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/connected-learning-knowledge-plugins",
+      "head": "2ca419e3031918564ea1ab7d240bba6faf6a8fef",
+      "branch": "refs/heads/agent/connected-learning-knowledge-plugins",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/docs-admin-recovery-guide",
+      "head": "c13a36e543ca87b799a3d492a6b9d61c159a9a46",
+      "branch": "refs/heads/agent/docs-admin-recovery-guide",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/docs-first-value-guide",
+      "head": "988af039f1aec48012b65936b0485e49ccbaba15",
+      "branch": "refs/heads/agent/docs-first-value-guide",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/fork-experience-polish-20260920",
+      "head": "afda2e3e0d15bdbe5a8b6ef57a02a938b03f0ea3",
+      "branch": "refs/heads/agent/fork-experience-polish-20260920",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/full-product-neutral-default-20260919",
+      "head": "0f91ff3eb4ba612ec9d7167ffc962e0923e996c0",
+      "branch": "refs/heads/agent/full-product-neutral-default-20260919",
+      "changes": [
+        "M .env.example",
+        " M .github/workflows/ci.yml",
+        " M DEPLOY.md",
+        " M README.md",
+        " M distribution/inclusion-manifest.json",
+        " M docs/self-hosting/NEUTRAL-DISTRIBUTION.md",
+        " M docs/self-hosting/SELF-HOSTING.md",
+        " M docs/self-hosting/SITE-STUDIO-CHATGPT.md",
+        " M next.config.ts",
+        " M package.json",
+        " M public/docs-llms.txt",
+        "A  public/site-assets/icon.svg",
+        " M scripts/deployment-preflight.mjs",
+        " M scripts/qa-turnkey.mjs",
+        "AM scripts/test-full-product-fork.ts",
+        " M scripts/test-neutral-runtime-distribution.ts",
+        " M scripts/test-search.ts",
+        " M scripts/verify-module-contract.mjs",
+        " M src/app/(marketing)/layout.tsx",
+        " M src/app/(marketing)/page.tsx",
+        "A  src/app/(marketing)/site-pages/[...websitePath]/page.tsx",
+        " M src/app/api/search/route.ts",
+        " M src/app/apple-icon.tsx",
+        " M src/app/globals.css",
+        " M src/components/admin/site/WebsiteAssets.tsx",
+        " M src/components/admin/site/WebsiteContentEditor.tsx",
+        " M src/components/admin/site/WebsiteEditor.tsx",
+        " M src/components/admin/site/WebsiteFields.tsx",
+        "AM src/components/admin/site/WebsiteFormPicker.tsx",
+        "A  src/components/forms/PublishedWebsiteForm.tsx",
+        " M src/components/layout/Header.tsx",
+        " M src/components/layout/MarketingChrome.tsx",
+        " M src/components/layout/MobileNav.tsx",
+        " M src/components/layout/NotFoundBody.tsx",
+        " M src/components/ui/Logo.tsx",
+        " M src/config/tenant.ts",
+        " M src/content/changelog.ts",
+        " M src/content/command-center-faq.ts",
+        " M src/content/command-center.ts",
+        " M src/content/docs/plugins/site-studio.mdx",
+        " M src/content/docs/self-hosting/overview.mdx",
+        " M src/content/open-source.ts",
+        " M src/lib/distribution/profile.ts",
+        "A  src/lib/distribution/routes.ts",
+        " M src/lib/search/index.ts",
+        " M src/lib/site-studio/assets.ts",
+        " M src/lib/site-studio/components.tsx",
+        " M src/lib/site-studio/delegation.ts",
+        " M src/lib/site-studio/document.ts",
+        " M src/lib/site-studio/editor-contract.ts",
+        " M src/lib/site-studio/editor-service.ts",
+        " M src/lib/site-studio/generate.ts",
+        " M src/lib/site-studio/installation-routes.ts",
+        "A  src/lib/site-studio/neutral-website.ts",
+        " M src/lib/site-studio/renderer.tsx",
+        " M src/lib/site-studio/tokens.ts",
+        " M src/lib/site-studio/website-authoring.ts",
+        " M src/lib/site-studio/website-document.ts",
+        "A  src/lib/site-studio/website-forms.ts",
+        " M src/lib/site-studio/website-page.tsx",
+        " M src/lib/site-studio/website-renderer.tsx",
+        " M src/lib/site-studio/website-seed.ts",
+        " M src/lib/site-studio/website-store.ts",
+        " M src/lib/site-studio/website-theme.ts",
+        " M src/middleware.ts",
+        "?? scripts/qa-full-product-fork.mjs"
+      ]
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/full-product-neutral-default-20260919-9cbdd405-43e5-4020-a25b-27b0d61be6b4",
+      "head": "5f582b8e30121e3e36b44aaabac6148828a757a1",
+      "branch": "refs/heads/agent/full-product-neutral-default-20260919-9cbdd405-43e5-4020-a25b-27b0d61be6b4",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/launch-readiness-chatgpt-site-studio-20260919",
+      "head": "0f91ff3eb4ba612ec9d7167ffc962e0923e996c0",
+      "branch": "refs/heads/agent/launch-readiness-chatgpt-site-studio-20260919",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/public-platform-value-recipes",
+      "head": "b4a3a3e1aa7585855110b93b4e8ca88e80c9f96a",
+      "branch": "refs/heads/agent/public-platform-value-recipes",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/workspace-architect-generated-operations",
+      "head": "7163c79e0e51027b6316aeb287154c78859414c7",
+      "branch": "refs/heads/agent/workspace-architect-generated-operations",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/workspace-architect-review-simulation",
+      "head": "b5a73e477201461f0b2a781f80100ea659ac4455",
+      "branch": "refs/heads/agent/workspace-architect-review-simulation",
+      "changes": [
+        "M scripts/test-workspace-architect-review-simulation.ts",
+        " M src/app/api/admin/blueprints/[id]/patch/route.ts",
+        " M src/app/api/admin/blueprints/[id]/simulate/route.ts",
+        " M src/components/admin/AdminAIProvider.tsx",
+        " M src/components/admin/ArchitectBlueprintReview.tsx",
+        " M src/lib/admin/demo/runtime.ts",
+        " M src/lib/revenue-os/architect-review-simulation.ts",
+        " M src/lib/revenue-os/workspace-blueprint.ts"
+      ]
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/accelerate-site/workspace-architect-review-simulation-68a7e50b-5ca3-41d7-ac63-a089965ae9d2",
+      "head": "26f29c0c7aa3b70c06fb64c4118449d5c47385ef",
+      "branch": "refs/heads/agent/workspace-architect-review-simulation-68a7e50b-5ca3-41d7-ac63-a089965ae9d2",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/control-main",
+      "head": "59167a013d6085e8ff94abc30009a085e93a404a",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/integration-completed-agents-20260920",
+      "head": "4a588a2c934fa6f1f41df9be951041ea90c96607",
+      "branch": "refs/heads/integration/completed-agents-20260920",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/integration-grok-review-20260920",
+      "head": "38143a4c4dfcbdcb23efbd7833c3ffca8191ff5f",
+      "branch": "refs/heads/integration/grok-review-20260920",
+      "changes": []
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/release-all-agents-20260920",
+      "head": "25f8035c2029db5d0ef67d9741e0d5aaaa2e444d",
+      "branch": "refs/heads/integration/release-all-agents-20260920",
+      "changes": [
+        "M docs/generated/admin-ai-route-inventory.json",
+        " M docs/verification/admin-route-inventory.json",
+        " M public/docs-llms.txt",
+        " M src/app/admin/contacts/page.tsx",
+        " M src/content/changelog.ts",
+        " M src/content/docs/manifest.ts",
+        " M src/content/docs/self-hosting/permissions.mdx",
+        " M src/content/docs/self-hosting/recovery.mdx"
+      ]
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/retained-resources",
+      "head": "8baccd279ef2cd5f2bd21b2e401f6f9924642902",
+      "branch": "refs/heads/agent/retained-resources",
+      "changes": [
+        "M docs/verification/admin-route-inventory.json",
+        " M src/app/admin/resources/page.tsx"
+      ]
+    },
+    {
+      "path": "/Users/johnconnor/Documents/GitHub/Accelerate-agency/.agent-worktrees/site-home-clarity",
+      "head": "59167a013d6085e8ff94abc30009a085e93a404a",
+      "branch": "refs/heads/agent/site-home-clarity",
+      "changes": [
+        "M docs/verification/admin-route-inventory.json",
+        " M src/app/admin/site/page.tsx"
+      ]
+    }
+  ]
+}

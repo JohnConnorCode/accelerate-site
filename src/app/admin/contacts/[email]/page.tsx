@@ -17,6 +17,7 @@ import { CollectionCaseLinks } from "@/components/admin/CollectionsWorkspace";
 import { ContactTimeline } from "@/components/admin/ContactTimeline";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
+import { AdminReadBody } from "@/components/admin/AdminReadBody";
 
 interface TimelineItem {
   type: string;
@@ -66,15 +67,6 @@ export default function ContactTimelinePage() {
     fetchTimeline();
   }, [fetchTimeline]);
 
-  if (loading) {
-    return (
-      <div>
-        <PageHeader title="Contact relationship" />
-        <LoadingSkeleton variant="page" />
-      </div>
-    );
-  }
-
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div className="mb-4">
@@ -91,59 +83,66 @@ export default function ContactTimelinePage() {
         title="Contact relationship"
         subtitle="A unified record of the conversations, opportunities, and work connected to this person."
       />
+      <AdminReadBody
+        loading={loading}
+        hasData={!loading}
+        onRetry={() => void fetchTimeline()}
+        loadingFallback={<LoadingSkeleton variant="page" />}
+        label="Loading contact relationship"
+      >
+        <AdminSurface padding="md" className="mb-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
+                <User className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
+                  {canonical?.contact?.full_name || email}
+                </p>
+                {canonical?.contact && <p className="admin-copy truncate text-xs">{email}</p>}
+                <p className="admin-copy text-xs">
+                  {timeline.length} interaction{timeline.length !== 1 ? "s" : ""} found
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+              {canonical?.status === "connected" ? (
+                <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                  <CircleCheckBig className="h-3.5 w-3.5" /> Revenue OS connected
+                </span>
+              ) : (
+                <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-amber-500/10 px-3 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                  <CircleAlert className="h-3.5 w-3.5" />{" "}
+                  {canonical?.status === "ambiguous"
+                    ? "Identity review needed"
+                    : canonical?.status === "degraded"
+                      ? "Revenue OS unavailable"
+                      : "Not linked yet"}
+                </span>
+              )}
+              {canonical?.company && (
+                <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[var(--admin-surface-subtle)] px-3 text-xs font-medium text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
+                  <Building2 className="h-3.5 w-3.5" /> {canonical.company.name}
+                </span>
+              )}
+              {canonical?.opportunities?.length ? (
+                <Link
+                  href={`/admin/pipeline?search=${encodeURIComponent(email)}`}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] hover:opacity-85 active:scale-[0.97]"
+                >
+                  Open in Pipeline <ArrowUpRight className="h-3.5 w-3.5" />
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        </AdminSurface>
 
-      <AdminSurface padding="md" className="mb-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
-              <User className="size-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
-                {canonical?.contact?.full_name || email}
-              </p>
-              {canonical?.contact && <p className="admin-copy truncate text-xs">{email}</p>}
-              <p className="admin-copy text-xs">
-                {timeline.length} interaction{timeline.length !== 1 ? "s" : ""} found
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-            {canonical?.status === "connected" ? (
-              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                <CircleCheckBig className="h-3.5 w-3.5" /> Revenue OS connected
-              </span>
-            ) : (
-              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-amber-500/10 px-3 text-xs font-semibold text-amber-800 dark:text-amber-300">
-                <CircleAlert className="h-3.5 w-3.5" />{" "}
-                {canonical?.status === "ambiguous"
-                  ? "Identity review needed"
-                  : canonical?.status === "degraded"
-                    ? "Revenue OS unavailable"
-                    : "Not linked yet"}
-              </span>
-            )}
-            {canonical?.company && (
-              <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[var(--admin-surface-subtle)] px-3 text-xs font-medium text-[var(--admin-muted)] shadow-[var(--admin-shadow-border)]">
-                <Building2 className="h-3.5 w-3.5" /> {canonical.company.name}
-              </span>
-            )}
-            {canonical?.opportunities?.length ? (
-              <Link
-                href={`/admin/pipeline?search=${encodeURIComponent(email)}`}
-                className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] hover:opacity-85 active:scale-[0.97]"
-              >
-                Open in Pipeline <ArrowUpRight className="h-3.5 w-3.5" />
-              </Link>
-            ) : null}
-          </div>
+        <div className="space-y-5">
+          {canonical?.contact && <CollectionCaseLinks contactId={canonical.contact.id} />}
+          <ContactTimeline items={timeline} />
         </div>
-      </AdminSurface>
-
-      <div className="space-y-5">
-        {canonical?.contact && <CollectionCaseLinks contactId={canonical.contact.id} />}
-        <ContactTimeline items={timeline} />
-      </div>
+      </AdminReadBody>
     </motion.div>
   );
 }

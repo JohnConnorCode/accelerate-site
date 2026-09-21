@@ -79,9 +79,7 @@ try {
         .locator("[data-today-module=attention]")
         .locator(`[data-source-type=task][data-source-id="${task.id}"]`);
       await attentionTask.getByText(saved.title, { exact: true }).waitFor();
-      await attentionTask
-        .getByRole("button", { name: "Inspect " + saved.title, exact: true })
-        .click();
+      await attentionTask.getByRole("button", { name: "Open " + saved.title, exact: true }).click();
       const workContext = page.getByRole("dialog", { name: "Work context", exact: true });
       await workContext
         .getByLabel("Snooze until", { exact: true })
@@ -122,11 +120,25 @@ try {
         await new Promise((resolve) => setTimeout(resolve, 500));
         await route.continue();
       });
-      await approvalRow
-        .getByRole("button", { name: "Review " + approval.title, exact: true })
+      await approvalRow.getByRole("button").click();
+      await page
+        .getByRole("dialog", { name: "Work context", exact: true })
+        .getByRole("button", { name: "Review exact change", exact: true })
         .click();
       let review = page.getByRole("dialog", { name: approval.title, exact: true });
+      await page
+        .getByRole("dialog", { name: "Work context", exact: true })
+        .waitFor({ state: "hidden" });
       await review.waitFor();
+      await page.waitForFunction(() => {
+        const dialog = document.querySelector('[aria-labelledby="action-review-title"]');
+        return (
+          dialog &&
+          Number(getComputedStyle(dialog).opacity) >= 0.999 &&
+          document.activeElement?.closest('[role="dialog"]') === dialog &&
+          !document.querySelector('[role="dialog"][data-state="closed"]')
+        );
+      });
       await page.keyboard.press("Escape");
       await review.waitFor({ state: "hidden" });
       await page.waitForTimeout(750);
