@@ -49,7 +49,7 @@ import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 
 const ACTOR_USER_ID = randomUUID();
 
-// Each logical test case gets its own fake IP so the module-level rate
+// Each logical test case gets its own fake IP so the shared rate
 // limiter (10 decisions / 20 views per hour, keyed by ip) never bleeds one
 // test's request count into another's.
 let ipSequence = 0;
@@ -300,10 +300,16 @@ const FIXTURE_HOST = "proposal-public-decisions-fixture.supabase.co";
 const originalFetch = globalThis.fetch;
 const originalUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const originalKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const originalAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 process.env.NEXT_PUBLIC_SUPABASE_URL = `https://${FIXTURE_HOST}`;
 process.env.SUPABASE_SERVICE_ROLE_KEY = "proposal-public-decisions-fixture-key";
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_proposal_fixture";
 globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
   const url = new URL(input instanceof Request ? input.url : String(input));
+  if (url.hostname === FIXTURE_HOST && url.pathname === "/rest/v1/rpc/consume_rate_limit") {
+    // Limiter concurrency and refusals have separate database and HTTP tests.
+    return Response.json({ allowed: true, remaining: 0, retry_after: 0 });
+  }
   if (url.hostname !== FIXTURE_HOST || url.pathname !== "/rest/v1/rpc/apply_proposal_lifecycle")
     throw new Error(`Unexpected fetch in proposal-public-decisions test: ${url}`);
   if (!activeDb) throw new Error("No active test database for apply_proposal_lifecycle");
@@ -319,6 +325,8 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
 }) as typeof fetch;
 function restoreFetchAndEnv() {
   globalThis.fetch = originalFetch;
+  if (originalAnonKey === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  else process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = originalAnonKey;
   if (originalUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
   else process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl;
   if (originalKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;

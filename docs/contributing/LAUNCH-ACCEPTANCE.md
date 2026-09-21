@@ -4,7 +4,7 @@ Use the live launch card for status. This procedure records evidence for core CR
 
 ## Independent installer instructions
 
-Two technical testers unfamiliar with this repository should start from the release candidate's clean clone and README. Each tester uses separate fictional records in the isolated test installation and follows published instructions without coaching.
+For this launch, one technical installer should start from the release candidate's clean clone and README. Use fictional records in an isolated test installation and follow the published instructions, recording any help needed. John has nominated Marcin for this trial; a second tester is not a launch requirement.
 
 Record the commit, operating system, Node/PostgreSQL versions, hosting/database plan, start time and provider provisioning time. Never record credentials, real customer records or raw provider responses.
 
@@ -13,7 +13,7 @@ Record the commit, operating system, Node/PostgreSQL versions, hosting/database 
 3. Create a fictional contact and related task. Reload, complete the task, reload again, and find the activity record.
 4. Write down every unclear instruction, unexpected failure and point where help was required. Record elapsed active setup time separately from provider provisioning.
 
-Targets are five minutes to the demo and thirty minutes from available provider resources to a persisted result. A missed target needs a concrete cause and correction, not a fabricated pass. The maintainer prepares the kit; John recruits the two testers. Do not contact testers without authorization.
+Targets are five minutes to the demo and thirty minutes from available provider resources to a persisted result. A missed target needs a concrete cause and correction, not a fabricated pass. The maintainer prepares the kit; John coordinates the installation attempt. Do not contact testers without authorization.
 
 ## Connected AI, knowledge and learning
 
@@ -43,6 +43,6 @@ Execute [Backup and recovery](../self-hosting/BACKUP-RECOVERY.md), including upl
 
 ## Release decision
 
-A production-ready release requires all supported-scope acceptance receipts, independent review, required CI, no unresolved critical/high security findings and both human trials. Otherwise retain a release candidate and list the exact missing proof. Keep unsafe draft PRs and unrelated unfinished work out of the candidate.
+A production-ready release requires all supported-scope acceptance receipts, independent review, required CI, no unresolved critical/high security findings and the recorded installation trial. Otherwise retain a release candidate and list the exact missing proof. Keep unsafe draft PRs and unrelated unfinished work out of the candidate.
 
-The release receipt records the exact commit, included PRs, migration version, dependency/security results, artifact scan, hosted journeys, human trials and recovery outcome. Tag `v0.1.0` only after these gates pass. Canonical deployment remains separately authorized and requires a deployment ID, READY state, canonical alias and post-deployment smoke evidence.
+The release receipt records the exact commit, included PRs, migration version, dependency/security results, artifact scan, hosted journeys, the installation trial and recovery outcome. Tag `v0.1.0` only after these gates pass. Canonical deployment remains separately authorized and requires a deployment ID, READY state, canonical alias and post-deployment smoke evidence.
