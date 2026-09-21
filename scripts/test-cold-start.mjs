@@ -89,3 +89,24 @@ test("guarded release selects original schedules only for its exact verified ide
   for (const arg of ["-A", "-Aother.json", "--local-config", "--local-config=other.json"])
     assert.throws(() => deploymentConfigArgs(original, [arg]), /verified deployment target/);
 });
+
+test("reduced export also derives identity from the required inputs only", () => {
+  const template = parseEnv(
+    readFileSync("distribution/neutral-starter/environment.example.txt", "utf8"),
+  );
+  const config = setupConfiguration({
+    ...template,
+    NEXT_PUBLIC_SUPABASE_URL: url,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: key,
+    SUPABASE_SERVICE_ROLE_KEY: "sb_secret_fixture",
+    SUPABASE_PROJECT_REF: "exampleproject",
+    SUPABASE_DB_HOST: "db.exampleproject.supabase.co",
+    ADMIN_EMAIL: "owner@new-business.test",
+    BOOTSTRAP_BRAND_NAME: "New Business",
+    NEXT_PUBLIC_SITE_URL: "https://new-business.test",
+  });
+  assert.equal(config.ready, true);
+  assert.equal(config.bootstrap.BOOTSTRAP_BRAND_DOMAIN, "new-business.test");
+  assert.equal(config.bootstrap.BOOTSTRAP_FOUNDER_EMAIL, "owner@new-business.test");
+  assert.doesNotMatch(JSON.stringify(config.bootstrap), /harbor/i);
+});
