@@ -8,16 +8,47 @@
  * is a page that does not exist, and the failure is silent by construction,
  * because the page itself returns 200 the whole time.
  *
- * All three now derive from `verticals`. This asserts they still do.
+ * The canonical navigation manifest derives from `verticals`, and the public
+ * header, footer and sitemap consume that manifest or the same source. This
+ * checks the whole chain instead of trusting any single surface.
  */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { verticals } from "../src/content/verticals";
 
 const SURFACES = [
-  { file: "src/components/layout/Header.tsx", what: "the primary navigation" },
-  { file: "src/components/layout/Footer.tsx", what: "the footer" },
-  { file: "src/app/sitemap.ts", what: "the sitemap" },
+  {
+    file: "src/components/layout/Header.tsx",
+    what: "the primary navigation",
+    derives: (source: string) =>
+      /navItems as defaultNavLinks/.test(source) && /from "@\/content\/navigation"/.test(source),
+  },
+  {
+    file: "src/components/layout/Footer.tsx",
+    what: "the footer",
+    derives: (source: string) =>
+      /websiteFooterContent/.test(source) &&
+      /from "@\/content\/site-studio\/shared"/.test(source),
+  },
+  {
+    file: "src/content/site-studio/shared.ts",
+    what: "the published website chrome",
+    derives: (source: string) =>
+      /footerLinks/.test(source) && /from "\.\.\/navigation"/.test(source),
+  },
+  {
+    file: "src/content/navigation.ts",
+    what: "the canonical navigation manifest",
+    derives: (source: string) =>
+      /verticals\s*\.\s*(filter|map|find)/.test(source) &&
+      /from "@\/content\/verticals"/.test(source),
+  },
+  {
+    file: "src/app/sitemap.ts",
+    what: "the sitemap",
+    derives: (source: string) =>
+      /verticals\s*\.\s*map/.test(source) && /from "@\/content\/verticals"/.test(source),
+  },
 ];
 
 assert.ok(verticals.length > 0, "no verticals defined, so this guard checks nothing");
@@ -37,10 +68,7 @@ for (const surface of SURFACES) {
     );
   }
 
-  const derives =
-    /verticals\s*\.\s*map|\.\.\.\s*INDUSTRY_LINKS|INDUSTRY_LINKS/.test(source) &&
-    /from "@\/content\/verticals"/.test(source);
-  if (!derives) {
+  if (!surface.derives(source)) {
     failures.push(
       `${surface.file}: ${surface.what} does not derive its industry links from the vertical content.`,
     );
