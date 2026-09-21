@@ -19,7 +19,7 @@ export default async function InvoicePage({
 }) {
   const { tenantSlug, token } = await params;
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!rateLimit(`invoice-page:${tenantSlug}:${ip}`, 60, 60000).success) notFound();
+  if (!(await rateLimit(`invoice-page:${tenantSlug}:${ip}`, 60, 60000)).success) notFound();
   let document;
   try {
     const context = await resolveActiveTenantSystemContext(tenantSlug, "public-invoice-page");
