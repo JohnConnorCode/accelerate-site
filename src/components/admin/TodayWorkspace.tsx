@@ -922,6 +922,7 @@ export function TodayWorkspace() {
         {snapshot && (
           <div
             className={styles.moduleFlow}
+            data-today-content-stack
             onPointerEnter={() => setInteracting(true)}
             onPointerLeave={() => setInteracting(false)}
             onFocusCapture={() => setInteracting(true)}
@@ -945,7 +946,12 @@ export function TodayWorkspace() {
                   {Array.from(new Set(group.map((instance) => instance.width))).map((width) => {
                     const modules = group.filter((module) => module.width === width);
                     return modules.length ? (
-                      <div key={width} data-width={width} className={styles.moduleFlow}>
+                      <div
+                        key={width}
+                        data-width={width}
+                        className={styles.moduleFlow}
+                        data-today-content-stack
+                      >
                         {modules.map((module) => (
                           <div key={module.id}>{moduleContent(module)}</div>
                         ))}
