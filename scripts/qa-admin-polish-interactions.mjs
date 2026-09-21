@@ -443,7 +443,20 @@ try {
         .last()
         .evaluate((el) => el.focus({ preventScroll: true }));
       await page.keyboard.press("Enter");
-      await page.waitForTimeout(500);
+      // Native smooth scrolling depends on distance and device speed. Verify the
+      // destination before simulating a new manual scroll, rather than racing it.
+      await page.waitForFunction(
+        (element) => {
+          const requested = element.__scrollCalls.at(-1)?.left;
+          if (typeof requested !== "number") return false;
+          const target = Math.min(
+            element.scrollWidth - element.clientWidth,
+            Math.max(0, requested),
+          );
+          return Math.abs(element.scrollLeft - target) < 2;
+        },
+        await board.elementHandle(),
+      );
       assert.ok((await offset()) > 173, "Keyboard column selection moves the board");
       assert.deepEqual(
         await page.locator(".admin-main").evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop })),
