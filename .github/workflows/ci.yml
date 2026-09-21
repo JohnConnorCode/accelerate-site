@@ -250,7 +250,8 @@ jobs:
   build:
     if: ${{ !inputs.admin_design_only }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Full browser coverage can take 30 minutes before evidence and cache uploads.
+    timeout-minutes: 45
     env:
       # Preserve explicit coverage for the original agency installation.
       NEXT_PUBLIC_DISTRIBUTION_PROFILE: branded
