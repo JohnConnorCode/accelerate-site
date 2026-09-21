@@ -8,7 +8,7 @@ import { ACCELERATE_TENANT_ID, ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/cons
 import { distributionProfile } from "@/lib/distribution/profile";
 import { distributionPath, isAgencyAsset, isAgencyPage } from "@/lib/distribution/routes";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (distributionProfile() === "neutral") {
     const path = distributionPath(request.nextUrl.pathname);
     let assetPath = path;
@@ -64,7 +64,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Next 16 can re-enter middleware for the internal rewrite target. Preserve
+  // Next 16 can re-enter the proxy for the internal rewrite target. Preserve
   // the validated fictional runtime on that second pass so it never falls
   // through to live-admin authorization. The marker can only select one of
   // the checked-in demo packs; it does not grant access to live APIs or data.

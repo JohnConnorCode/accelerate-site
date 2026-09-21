@@ -4,8 +4,6 @@ import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { SocialCard } from "@/components/social/SocialCard";
 
-export const runtime = "edge";
-
 function clean(value: string | null, fallback: string, max: number) {
   return (value?.replace(/\s+/g, " ").trim() || fallback).slice(0, max);
 }
