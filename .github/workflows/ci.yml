@@ -3,6 +3,10 @@ name: CI
 on:
   workflow_dispatch:
     inputs:
+      cold_start_only:
+        description: Verify installation, fork deployment and first-use journeys
+        type: boolean
+        default: false
       public_pages_only:
         description: Verify public pages and docs without repeating unrelated workspace suites
         type: boolean
@@ -26,7 +30,7 @@ concurrency:
 
 jobs:
   checks:
-    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -223,6 +227,7 @@ jobs:
         run: |
           npm run verify:migrations
           PATH="$(pg_config --bindir):$PATH" npm run test:migration-ledger
+          PATH="$(pg_config --bindir):$PATH" npm run test:cold-start:postgres
           npm run test:public-roadmap
           PATH="$(pg_config --bindir):$PATH" COLLECTIONS_REMINDER_POSTGRES_PROOF=1 npm run test:collections-lifecycle
           npm run test:collections-reminders
@@ -412,6 +417,10 @@ jobs:
     if: ${{ !inputs.admin_design_only && !inputs.public_pages_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [missing, example]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -419,7 +428,22 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # No profile environment: prove the complete repository's actual default.
+      - name: Verify onboarding contracts and native installation
+        if: ${{ inputs.cold_start_only && matrix.configuration == 'missing' }}
+        run: |
+          npm run verify:agent-contract
+          npm run lint
+          npm run test:setup-status
+          npm run test:install-runbook
+          npm run verify:docs
+          npm run docs:llms:check
+          npm run test:search
+          npm run test:developer-handoff
+          PATH="$(pg_config --bindir):$PATH" npm run resources:run -- npm run test:cold-start:postgres
+      - name: Use an unchanged copied example
+        if: ${{ matrix.configuration == 'example' }}
+        run: cp .env.example .env.local
+      # Both absent configuration and the copied example must remain explorable.
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run resources:run -- node scripts/qa-full-product-fork.mjs
@@ -427,13 +451,15 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
-          name: full-product-fork-evidence
-          path: /tmp/accelerate-full-product-fork-qa/
+          name: full-product-fork-evidence-${{ matrix.configuration }}
+          path: |
+            /tmp/accelerate-full-product-fork-qa/
+            /tmp/accelerate-cold-install-postgres.json
           if-no-files-found: ignore
           retention-days: 7
 
   neutral-starter:
-    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only }}
+    if: ${{ !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -489,7 +515,7 @@ jobs:
 
   # Keep the existing required check name and fail if either job fails or skips.
   verify:
-    if: ${{ always() && !inputs.admin_design_only && !inputs.public_pages_only }}
+    if: ${{ always() && !inputs.admin_design_only && !inputs.public_pages_only && !inputs.cold_start_only }}
     needs: [checks, build, full-product-fork, neutral-starter]
     runs-on: ubuntu-latest
     timeout-minutes: 1

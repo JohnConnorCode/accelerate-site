@@ -1,3 +1,4 @@
+import { isSetupPlaceholder } from "@/lib/supabase/configuration.mjs";
 import "server-only";
 import { cache } from "react";
 import { connection } from "next/server";
@@ -54,8 +55,8 @@ export const readPublicWebsite = cache(async (): Promise<PublicWebsite> => {
   // an error, never permission to read someone else's hosted database.
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url && !key) return { mode: "bootstrap" };
-  if (!url || !key) return { mode: "unavailable" };
+  if (isSetupPlaceholder(url) && isSetupPlaceholder(key)) return { mode: "bootstrap" };
+  if (isSetupPlaceholder(url) || isSetupPlaceholder(key)) return { mode: "unavailable" };
   // Connected installations select publication at request time. This must stay
   // outside the error boundary: Next uses the call to stop prerendering.
   await connection();

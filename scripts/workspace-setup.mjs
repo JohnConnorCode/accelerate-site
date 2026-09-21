@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { setupConfiguration, runWorkspaceSetup, SetupError } from "./lib/workspace-setup.mjs";
@@ -12,6 +13,7 @@ ADMIN_EMAIL and NEXT_PUBLIC_SITE_URL. For a new owner, set SETUP_OWNER_PASSWORD
 in your private local environment (12–1024 characters); never pass it as an argument.
 Existing accounts retain their password. No invitation email or provider activation
 is sent. Auth creation and database migrations are separate resumable steps.
+Install PostgreSQL client tools first (psql --version).
 See docs/self-hosting/SELF-HOSTING.md for project and Auth redirect prerequisites.`;
 try {
   if (args.length === 1 && args[0] === "--help") {
@@ -26,6 +28,11 @@ try {
     let result;
     if (!config.ready) result = { status: "configuration_required", issues: config.issues };
     else {
+      const psql = spawnSync("psql", ["--version"], { encoding: "utf8", timeout: 5000 });
+      if (psql.error || psql.status !== 0)
+        throw new SetupError(
+          "Install PostgreSQL client tools and make psql available on PATH. Verify with psql --version, then rerun npm run setup. No installation changes were made.",
+        );
       const database = await import("./lib/accelerate-database.mjs");
       const { migrationCatalog } = await import("./lib/migration-ledger.mjs");
       const { createWorkspaceSetupHost } = await import("./lib/workspace-setup-host.mjs");

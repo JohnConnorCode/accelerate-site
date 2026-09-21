@@ -130,7 +130,7 @@ prove(
     assert.notEqual(example.projectId, original.projectId);
     const preflight = readFileSync("scripts/deployment-preflight.mjs", "utf8");
     assert.match(preflight, /assertForkHosting/);
-    assert.match(readFileSync("vercel.json", "utf8"), /"deploymentEnabled": false/);
+    assert.deepEqual(JSON.parse(readFileSync("vercel.json", "utf8")).crons, []);
   },
 );
 

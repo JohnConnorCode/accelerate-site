@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": false
+  },
+  "crons": [
+    {
+      "path": "/api/cron/revenue-campaigns",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/google-workspace-sync",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/work-engine",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/system-health-snapshot",
+      "schedule": "*/30 * * * *"
+    }
+  ]
+}

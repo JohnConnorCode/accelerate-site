@@ -83,3 +83,19 @@ Rollback should re-alias a previously verified deployment. Do not remove tenant-
 - Never commit `.env` files, provider payloads, access tokens, or deployment auth files.
 - Confirm the active Vercel account and project before every production action.
 - Production deployment requires explicit maintainer authority; a passing pull request is not release approval.
+
+## Fork defaults and scheduled jobs
+
+The default `vercel.json` enables Git deployment and has no cron jobs. The ignore
+step skips only the original project ID. Keep Vercel’s Automatically expose System Environment Variables enabled so that identity is available to the ignore step. A fork can deploy the demo on Hobby;
+connect its workspace and set `CRON_SECRET` before enabling scheduled work.
+Vercel Hobby allows daily cron jobs only. Work Engine's 15-minute and health's
+30-minute schedules need a compatible plan or an external scheduler.
+
+The guarded `deploy:build` and `deploy:upload` commands select
+`vercel.production.json` only after verifying the original hosting target. This
+retains its four schedules and manual release policy. Forks use `vercel.json`.
+Do not bypass these commands for original production releases.
+
+Provider references: [cron limits](https://vercel.com/docs/cron-jobs/usage-and-pricing),
+[local configuration](https://vercel.com/docs/cli/global-options#local-config).
