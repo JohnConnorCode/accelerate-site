@@ -88,6 +88,7 @@ test("missing/placeholder config is actionable and performs no host calls", asyn
   assert.equal(setupConfiguration({ ...env, ADMIN_EMAIL: "admin@example.com" }).ready, false);
   for (const values of [
     { NEXT_PUBLIC_SUPABASE_URL: "https://other.supabase.co" },
+    { NEXT_PUBLIC_SUPABASE_ANON_KEY: " sb_publishable_fixturepublic " },
     { NEXT_PUBLIC_SITE_URL: "http://remote.test" },
     { NEXT_PUBLIC_SUPABASE_URL: "https://secret:pass@fixtureproject.supabase.co" },
     { BOOTSTRAP_FOUNDER_EMAIL: "other@harbor.test" },

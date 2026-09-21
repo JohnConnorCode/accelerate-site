@@ -16,7 +16,7 @@ export function setupConfiguration(env) {
   };
   const apiUrl = required("NEXT_PUBLIC_SUPABASE_URL");
   const anonKey = required("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  if (!isSupabasePublicConfigured(apiUrl, anonKey))
+  if (!isSupabasePublicConfigured(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY))
     issues.push(
       "Set a valid Supabase API origin and publishable or legacy anon key. Never use a secret key in a NEXT_PUBLIC variable.",
     );

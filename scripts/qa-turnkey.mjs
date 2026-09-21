@@ -152,7 +152,10 @@ try {
         await empty.scrollIntoViewIfNeeded();
         await captureNeutral(page, `${label}-empty`);
         await page.goto(demo + "/work");
-        await page.getByRole("heading", { level: 1, name: "Work", exact: true }).waitFor();
+        await page
+          .getByRole("heading", { level: 1, name: "Tasks & approvals", exact: true })
+          .waitFor();
+        await page.waitForFunction(() => Boolean(window.__accelerateAdminDemoRuntime));
         await page.keyboard.press("Control+k");
         await page.getByText("Add task", { exact: true }).click();
         const firstTask = `Cold-start follow-up ${label}`;

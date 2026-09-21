@@ -1,3 +1,4 @@
+import { deploymentConfigArgs } from "./deployment-preflight.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
@@ -56,7 +57,7 @@ test("fork Git deployment proceeds while original project remains on manual rele
   assert.deepEqual(config.crons, []);
   const original = JSON.parse(readFileSync("distribution/original-hosting.json", "utf8"));
   for (const [project, status] of [
-    ["", 1],
+    ["", 0],
     ["prj_fork", 1],
     [original.projectId, 0],
   ]) {
@@ -78,4 +79,13 @@ test("fork Git deployment proceeds while original project remains on manual rele
       ["/api/cron/system-health-snapshot", "*/30 * * * *"],
     ],
   );
+});
+
+test("guarded release selects original schedules only for its exact verified identity", () => {
+  const original = JSON.parse(readFileSync("distribution/original-hosting.json", "utf8"));
+  assert.deepEqual(deploymentConfigArgs(original), ["--local-config", "vercel.production.json"]);
+  assert.deepEqual(deploymentConfigArgs({ ...original, projectId: "prj_fork" }), []);
+  assert.deepEqual(deploymentConfigArgs({ ...original, teamId: "team_other" }), []);
+  for (const arg of ["-A", "-Aother.json", "--local-config", "--local-config=other.json"])
+    assert.throws(() => deploymentConfigArgs(original, [arg]), /verified deployment target/);
 });

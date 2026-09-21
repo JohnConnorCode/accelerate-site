@@ -1,4 +1,4 @@
-import { deploymentPreflight } from "./deployment-preflight.mjs";
+import { deploymentPreflight, deploymentConfigArgs } from "./deployment-preflight.mjs";
 import { spawnSync } from "node:child_process";
 import { readFileSync, existsSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -29,11 +29,7 @@ const [mode, ...args] = process.argv.slice(2);
 let hostingArgs = [];
 if (mode === "vercel-build" || mode === "vercel-deploy") {
   const target = deploymentPreflight();
-  const original = JSON.parse(readFileSync("distribution/original-hosting.json", "utf8"));
-  if (args.some((arg) => arg.startsWith("-A") || arg.startsWith("--local-config")))
-    throw new Error("Hosting configuration is selected by the verified deployment target.");
-  if (target.projectId === original.projectId)
-    hostingArgs = ["--local-config", "vercel.production.json"];
+  hostingArgs = deploymentConfigArgs(target, args);
 }
 const deploymentId = releaseId();
 const env = { ...process.env, NEXT_DEPLOYMENT_ID: deploymentId };

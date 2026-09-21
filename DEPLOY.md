@@ -87,7 +87,7 @@ Rollback should re-alias a previously verified deployment. Do not remove tenant-
 ## Fork defaults and scheduled jobs
 
 The default `vercel.json` enables Git deployment and has no cron jobs. The ignore
-step skips only the original project ID. Keep Vercel’s Automatically expose System Environment Variables enabled so that identity is available to the ignore step. A fork can deploy the demo on Hobby;
+step skips only the original project ID. Keep Vercel’s Automatically expose System Environment Variables enabled so that identity is available to the ignore step. An unavailable project identity skips the build with an actionable message. A fork can deploy the demo on Hobby;
 connect its workspace and set `CRON_SECRET` before enabling scheduled work.
 Vercel Hobby allows daily cron jobs only. Work Engine's 15-minute and health's
 30-minute schedules need a compatible plan or an external scheduler.

@@ -179,7 +179,7 @@ export function findUnknownTables() {
 
 // -----------------------------------------------------------------------------
 // Check 3: every src/app/api/cron/<name>/route.ts is registered in
-// vercel.json's crons array.
+// Explicit production registry; credential-free forks intentionally have no schedules.
 // -----------------------------------------------------------------------------
 export function findUnregisteredCronRoutes() {
   const failures = [];

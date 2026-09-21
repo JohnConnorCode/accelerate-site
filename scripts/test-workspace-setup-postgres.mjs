@@ -107,7 +107,7 @@ GRANT USAGE ON SCHEMA auth TO anon,authenticated,service_role;`);
     readWorkspace: async () => workspace(),
     readMembership: async (tenant) =>
       json(
-        `SELECT row_to_json(t) FROM (SELECT tenant_id,user_id,role,status,invited_email FROM tenant_memberships WHERE tenant_id='${tenant}' AND user_id='${ownerId}') t;`,
+        `SELECT coalesce((SELECT row_to_json(t) FROM (SELECT tenant_id,user_id,role,status,invited_email FROM tenant_memberships WHERE tenant_id='${tenant}' AND user_id='${ownerId}') t),'null'::json);`,
       ) || null,
     activateMembership: async (tenant) =>
       sql(bootstrapOwnerMembershipSql(tenant, ownerId, config.ownerEmail)),
