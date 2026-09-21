@@ -38,7 +38,7 @@
     "src/app/admin/invoicing/page.tsx": "47c4ec0ddd509e7631abd0dac7d363a0129df8a67568ca2a74051b6293c1a903",
     "src/app/admin/leads/page.tsx": "6bc4b71a8835b96c5a98508fbcd50d6d27489447de9ec648378a91354935549d",
     "src/app/admin/learning/page.tsx": "5353ba86822567bd7756e262889bce288c87c6e8b3888eafa70b24dfa9fa22da",
-    "src/app/admin/login/page.tsx": "4ee0470ad1fd6f5a3fd16d3d23c60ef3e6fd73604bca5b9b9c80d39c446c3f34",
+    "src/app/admin/login/page.tsx": "8e5b320cb55009b0058e911a4f40465288a06d4d6c9346187c8ba201f9f05eef",
     "src/app/admin/meeting-commitments/page.tsx": "8321baededd9c74b3f742cfdefbe5dacb221c79f153ad78293d07690dfb12174",
     "src/app/admin/page.tsx": "98c79d9db2288115c77c549e3ab5c391cecae1f0db649d2c3a3b84764203bed3",
     "src/app/admin/partners/page.tsx": "f8f10cdafdf18f44f63b50e1b5e92af4002cad7d3ee79e2efc28ef10d784d8cc",
@@ -101,9 +101,9 @@
     "src/app/api/admin/learning/[id]/route.ts": "03e5ad746d03ce0c1c7208a4195b62f98d950989f4ddffda48f8229d6e8b63e9",
     "src/app/api/admin/learning/route.ts": "b4e52515cf9b941fbbdf48fab13dba201a36fa7d23209d2e50f171f354823e0e",
     "src/app/api/admin/learning/signals/route.ts": "290e50ce5c6e89be4df197ef8b12d9faa4fbedd0f62d953b15942f8af7e0b2a5",
-    "src/app/api/admin/login/route.ts": "5a52c3e65c60164b8af12a8b36a5eb6b3ca8eba6004247c56fe5891f4f6e0d2b",
+    "src/app/api/admin/login/route.ts": "3994373edaa69a582164a35d6b113a7f41745fa6b2a1b4e171a266bb69e9bd11",
     "src/app/api/admin/partners/route.ts": "ae44503e05ecc4181c565dde831f3b5d29f7347cb49f3d28e2d06667122498a6",
-    "src/app/api/admin/password-reset/route.ts": "4bc2cfed97fff1179b09fffc935ffc82b828393cea4514562472cd561adcf892",
+    "src/app/api/admin/password-reset/route.ts": "6bc830a05142d4c5cd2bcd9b2c73f68015e64a37c3218eb02c3df63d141c9ac5",
     "src/app/api/admin/plugins/run/route.ts": "63116ab1a496af78539b3801fb57da3ec9bebbb47efbf52a6de6fd34bf892084",
     "src/app/api/admin/plugins/tasks/route.ts": "b99c65e9d43524894b64968e3e06d86593324435699e106d2bc4fab81f1013b0",
     "src/app/api/admin/plugins/workflow/route.ts": "9b2c2929f67e0980c347aa00ae475dd79c9dc111d2ffedf617e24e7c7c702dd6",
@@ -1217,7 +1217,7 @@
           "directTables": ["tenant_memberships"]
         }
       ],
-      "boundary": "Authentication boundary; no business record reconciliation applies. Missing public database configuration shows setup on direct and redirected visits, with documentation and fictional demo links. These links grant no authentication or workspace access.",
+      "boundary": "Authentication boundary; no business record reconciliation applies. Missing, placeholder or malformed public database configuration shows setup on direct and redirected visits, with documentation and fictional demo links. Login and password-reset APIs return 503 before provider calls until public configuration is valid. Configured requests retain existing rate limits and membership checks. These links grant no authentication or workspace access.",
       "followUp": null,
       "specialBoundary": null
     },
