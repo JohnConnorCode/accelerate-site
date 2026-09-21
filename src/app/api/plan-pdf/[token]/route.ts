@@ -1,6 +1,6 @@
 import { generatePlanHTML } from "@/lib/plan-document";
 import { NextRequest, NextResponse } from "next/server";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import type { DigitalGrowthPlan } from "@/lib/types";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 
@@ -12,10 +12,9 @@ export async function GET(
   { params }: { params: Promise<{ token: string }> },
 ) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const { success } = rateLimit(ip, 20, 60 * 60 * 1000);
-  if (!success) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimitResult = await rateLimit(`plan-pdf/[token]:${ip}`, 20, 60 * 60 * 1000);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, { error: "Too many requests" });
 
   const { token } = await params;
 

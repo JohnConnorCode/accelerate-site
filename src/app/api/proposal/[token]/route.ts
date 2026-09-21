@@ -2,7 +2,7 @@ import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { createBootstrapServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/server";
 import type { TenantSystemContext } from "@/lib/tenancy/context";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { transitionStatusFromError } from "@/lib/revenue-os/pipeline";
 import {
   decideProposal,
@@ -16,14 +16,13 @@ export async function GET(
   tenantContext?: TenantSystemContext,
 ) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const { success } = rateLimit(
+  const rateLimitResult = await rateLimit(
     `proposal-view:${tenantContext?.tenantId || "accelerate"}:${ip}`,
     20,
     60 * 60 * 1000,
   );
-  if (!success) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, { error: "Too many requests" });
 
   const { token } = await params;
   const supabase = tenantContext
@@ -85,14 +84,13 @@ export async function POST(
   tenantContext?: TenantSystemContext,
 ) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (
-    !rateLimit(
-      `proposal-response:${tenantContext?.tenantId || "accelerate"}:${ip}`,
-      10,
-      60 * 60 * 1000,
-    ).success
-  )
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  const rateLimitResult = await rateLimit(
+    `proposal-response:${tenantContext?.tenantId || "accelerate"}:${ip}`,
+    10,
+    60 * 60 * 1000,
+  );
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, { error: "Too many requests" });
   const { token } = await params;
   const parsed = z
     .object({

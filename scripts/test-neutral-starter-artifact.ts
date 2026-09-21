@@ -96,7 +96,7 @@ for (const key of [
 assert.match(setupTemplate, /^SUPABASE_SERVICE_ROLE_KEY=$/m);
 assert.match(setupTemplate, /^OPENROUTER_API_KEY=$/m);
 const hosting = JSON.parse(readFileSync("vercel.json", "utf8"));
-assert.equal(hosting.git.deploymentEnabled, false);
+assert.notEqual(hosting.git?.deploymentEnabled, false);
 assert.deepEqual(hosting.crons, []);
 assert.equal(existsSync(".github/workflows/ci.yml"), false);
 assert.equal(tenant.capabilities.publicBooking, false);

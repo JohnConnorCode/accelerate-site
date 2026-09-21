@@ -55,6 +55,15 @@ try {
     ),
   );
   assert.match((await fetch(`${base}/apple-icon`)).headers.get("content-type"), /image\/png/);
+  for (const path of ["/api/admin/login", "/api/admin/password-reset"]) {
+    const response = await fetch(`${base}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "fictional@example.test", password: "fictional-password" }),
+    });
+    assert.equal(response.status, 503, `${path} rejects unconfigured authentication`);
+    assert.match((await response.json()).error, /Connect your Supabase project/);
+  }
   browser = await chromium.launch({ headless: true });
   for (const width of [1440, 390]) {
     const context = await browser.newContext({

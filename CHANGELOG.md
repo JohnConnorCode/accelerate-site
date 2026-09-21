@@ -8,6 +8,13 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Shared admin error recovery no longer claims a failed screen made no changes or displays raw exception text. The public error page uses a single accessible home link instead of nested interactive controls.
+
+- Shared request limits now use an atomic database window across server instances, preserve route-specific quotas and refuse protected actions when enforcement is unavailable. Installation and recovery documentation covers migration ordering, backups and independent launch acceptance.
+
+- Cold installations reject missing, placeholder and malformed public database configuration before login. Forks deploy on Git pushes without paid cron requirements; original releases retain explicit production schedules. Setup guidance puts required inputs and a saved first task before optional providers.
+- Cold-start verification now keeps route fingerprints, public check counts and workflow assertions synchronized. Production builds enable Next.js compiler memory optimizations while preserving TypeScript validation and existing resource limits.
+
 - Homepage marquee ("how we help" ticker) sat invisible for 8.3s before fading in; reduced to 0.3s.
 - Module enablement now actually gates routes, not only navigation. A disabled module's pages show a notice and its API routes refuse the request; before this, both still answered.
 - The MCP server negotiates protocol version against the client's request instead of a hardcoded constant, and now supports CORS and session IDs, fixing real compatibility with ChatGPT's native Connectors and other current MCP clients.

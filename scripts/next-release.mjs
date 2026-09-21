@@ -1,4 +1,4 @@
-import { deploymentPreflight } from "./deployment-preflight.mjs";
+import { deploymentPreflight, deploymentConfigArgs } from "./deployment-preflight.mjs";
 import { spawnSync } from "node:child_process";
 import { readFileSync, existsSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -26,7 +26,11 @@ function releaseId() {
 }
 
 const [mode, ...args] = process.argv.slice(2);
-if (mode === "vercel-build" || mode === "vercel-deploy") deploymentPreflight();
+let hostingArgs = [];
+if (mode === "vercel-build" || mode === "vercel-deploy") {
+  const target = deploymentPreflight();
+  hostingArgs = deploymentConfigArgs(target, args);
+}
 const deploymentId = releaseId();
 const env = { ...process.env, NEXT_DEPLOYMENT_ID: deploymentId };
 
@@ -145,14 +149,18 @@ if (mode === "build") {
   run("next", ["start", ...args], { env });
 } else if (mode === "vercel-build") {
   console.log(`Building production release ${deploymentId}`);
-  run("vercel", ["build", "--prod", ...args], { env: { ...env, ACCELERATE_PREBUILT_NATIVE: "1" } });
+  run("vercel", ["build", "--prod", ...args, ...hostingArgs], {
+    env: { ...env, ACCELERATE_PREBUILT_NATIVE: "1" },
+  });
 } else if (mode === "verify-prebuilt") {
   verifyPrebuiltIdentity();
   console.log(`Verified prebuilt release ${deploymentId}`);
 } else if (mode === "vercel-deploy") {
   console.log(`Deploying production release ${deploymentId}`);
   verifyPrebuiltIdentity();
-  run("vercel", ["deploy", "--prebuilt", "--prod", "--archive=tgz", ...args], { env });
+  run("vercel", ["deploy", "--prebuilt", "--prod", "--archive=tgz", ...args, ...hostingArgs], {
+    env,
+  });
 } else {
   throw new Error(`Unknown release command: ${mode || "(missing)"}`);
 }

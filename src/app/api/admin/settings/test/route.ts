@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getSetting } from "@/lib/admin/settings";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { openRouterChat } from "@/lib/ai/openrouter";
 
 const TEST_LIMIT = 10;
@@ -17,13 +17,16 @@ export async function POST(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   const adminKey = auth.user.email ?? auth.user.id;
-  const { success } = rateLimit(`admin-settings-test:${adminKey}`, TEST_LIMIT, TEST_WINDOW_MS);
-  if (!success) {
-    return NextResponse.json(
-      { success: false, error: "Rate limit reached. Try again later." },
-      { status: 429 },
-    );
-  }
+  const rateLimitResult = await rateLimit(
+    `admin-settings-test:${adminKey}`,
+    TEST_LIMIT,
+    TEST_WINDOW_MS,
+  );
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, {
+      success: false,
+      error: "Rate limit reached. Try again later.",
+    });
 
   const { key } = await request.json();
 

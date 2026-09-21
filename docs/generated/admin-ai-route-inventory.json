@@ -575,7 +575,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "61dc263ccce886dafba788a7576e91981a72259bb39b5a1fb7ae669ed4323683"
+      "sourceSha256": "f94e4ac92458b7e68c88a6b610fc82c81ba5fc52605d7251f9bc16a9c4fb8233"
     },
     {
       "source": "src/app/api/admin/invoicing/route.ts",
@@ -775,10 +775,11 @@
       "imports": [
         "@/lib/admin/access",
         "@/lib/rate-limit",
+        "@/lib/supabase/configuration.mjs",
         "@supabase/ssr",
         "next/server"
       ],
-      "sourceSha256": "5a52c3e65c60164b8af12a8b36a5eb6b3ca8eba6004247c56fe5891f4f6e0d2b"
+      "sourceSha256": "2898b14a78a3fb1b3b6444b8f37c86d1a3f8542ce1b9665f960985f39115a962"
     },
     {
       "source": "src/app/api/admin/media-assets/route.ts",
@@ -854,10 +855,11 @@
         "@/lib/email/resend",
         "@/lib/email/templates",
         "@/lib/rate-limit",
+        "@/lib/supabase/configuration.mjs",
         "@/lib/supabase/server",
         "next/server"
       ],
-      "sourceSha256": "4bc2cfed97fff1179b09fffc935ffc82b828393cea4514562472cd561adcf892"
+      "sourceSha256": "60c98d03a3f4aadef15c1fb6e1505fd20f374404e46f0a89e4f64abf0d2c2b75"
     },
     {
       "source": "src/app/api/admin/plausible/route.ts",
@@ -936,7 +938,7 @@
         "@/lib/revenue-os/shared-context",
         "next/server"
       ],
-      "sourceSha256": "306ffb40838d461b8a7a2017f15d500e47e911935ce304c20c6646a1f6444063"
+      "sourceSha256": "772e202865d9a78f10ecf0e1a25f6c1b4884de5c621a1d2d4c8a64a7295aedca"
     },
     {
       "source": "src/app/api/admin/proposals/route.ts",
@@ -1183,7 +1185,7 @@
         "@/lib/revenue-os/ai-stream-contract",
         "next/server"
       ],
-      "sourceSha256": "a1121e01781822ae6837fdc7ee6ed58292e632c42b40fdd9012bdffdee34b376"
+      "sourceSha256": "e0d340d5430a1f57c2bf9ef55d91c350aef37958f4c8c9b1941d94fccb49da29"
     },
     {
       "source": "src/app/api/admin/revenue-os/analytics/route.ts",
@@ -1264,7 +1266,7 @@
         "@/lib/revenue-os/contact-imports",
         "next/server"
       ],
-      "sourceSha256": "b9b099c4ac780caba3cfaf0d0360210760ae00dedcd5488af8775ad6f072c5d3"
+      "sourceSha256": "3ae63b7ec4397ba8442fb90da92880e8f18d2c780a871a56306df60be6a67737"
     },
     {
       "source": "src/app/api/admin/revenue-os/conversations/action/route.ts",
@@ -1540,7 +1542,7 @@
         "@/lib/revenue-os/communications",
         "next/server"
       ],
-      "sourceSha256": "26c0e3bdeb629bd5b6f15b1b03d6a4c7560251482665364191c91a39ef86c8b6"
+      "sourceSha256": "da73b8a072d2f77970c0c2ed8f5ab0ff0ada96dceae0231cadd13595172e3988"
     },
     {
       "source": "src/app/api/admin/settings/route.ts",
@@ -1574,7 +1576,7 @@
         "@/lib/rate-limit",
         "next/server"
       ],
-      "sourceSha256": "f6b83ed5979d5187b406f402308d12b982370adb735a2664717cf5770ea013bc"
+      "sourceSha256": "f8418e1833464d34dbcb16316986faa252b85d331627d1417f4e66ec64d352f4"
     },
     {
       "source": "src/app/api/admin/setup/route.ts",
@@ -1663,7 +1665,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "623fd46a4685d04e3eaa587a575fefec46a5a80882b5f890404ea042d015a992"
+      "sourceSha256": "8bcadef5e0a52c3a3760c7619368451b9af9b5c133e2a22c2fe72a6d55cb8a6e"
     },
     {
       "source": "src/app/api/admin/site/drafts/route.ts",
@@ -1686,7 +1688,7 @@
         "next/server",
         "zod"
       ],
-      "sourceSha256": "61bda1e22d51f4c939ccf8d19c949bfde0604440aa95a289a8bdc7cdfb8dc7d0"
+      "sourceSha256": "38ece6df30f16a0f108d76702b6bf75b340fd8616d2477b561c0c3cc78cd1579"
     },
     {
       "source": "src/app/api/admin/site/models/route.ts",
@@ -1738,7 +1740,7 @@
         "@/lib/site-studio/website-store",
         "next/server"
       ],
-      "sourceSha256": "c2028972d6028241280776dd4c22cef38ec15fdda2391e08e0640d785da0f47c"
+      "sourceSha256": "f45ad05f4f39f1d62fe55f328fe7a354d29c2e4af8eb15bd3e34f6b0ff8e46f4"
     },
     {
       "source": "src/app/api/admin/social-history/route.ts",

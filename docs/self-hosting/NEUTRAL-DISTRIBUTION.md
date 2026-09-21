@@ -25,7 +25,7 @@ Copy `deployment-target.example.json` to `deployment-target.json` and fill IDs f
 node scripts/generate-fork-hosting.mjs --project prj_your_id --team team_your_id --name my-revenue-os --url https://your-business.example
 ```
 
-The generator refuses the original Accelerate project, team and canonical URL. `vercel.json` keeps automatic Git deployments off until you enable them in your project. Cron routes require `CRON_SECRET` and a scheduler you own; remove or configure scheduled triggers explicitly for your hosting account. `npm run deploy:check` refuses original IDs by default in either profile. The original maintainer follows the separate hosting acknowledgement and authenticated target verification in [Deployment](../../DEPLOY.md); turning agency presentation on never grants hosting access.
+The generator refuses the original Accelerate project, team and canonical URL. `vercel.json` lets forks deploy on Git pushes and includes no scheduled jobs. Cron routes require `CRON_SECRET` and a scheduler you own; configure triggers only after workspace setup and check your plan’s frequency limits. Original production releases select `vercel.production.json` through the guarded release commands. `npm run deploy:check` refuses original IDs by default in either profile. The original maintainer follows the separate hosting acknowledgement and authenticated target verification in [Deployment](../../DEPLOY.md); turning agency presentation on never grants hosting access.
 
 This does not deploy the original production account.
 

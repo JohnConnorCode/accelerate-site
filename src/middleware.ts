@@ -1,3 +1,4 @@
+import { isSupabasePublicConfigured } from "@/lib/supabase/configuration.mjs";
 import { tenant as bootstrapTenant } from "@/config/tenant";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -96,14 +97,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // A freshly deployed instance with no Supabase project connected yet must
-  // not crash here: createServerClient throws on a missing/invalid URL, which
-  // previously surfaced as a raw 500 on every /admin request. Send it to the
-  // login page's own "not configured" state instead, which needs no Supabase
-  // client to render. This never fires once NEXT_PUBLIC_SUPABASE_URL and
-  // NEXT_PUBLIC_SUPABASE_ANON_KEY are set, so a configured deployment is
-  // unaffected.
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  // Missing or example configuration must never initiate authentication.
+  if (
+    !isSupabasePublicConfigured(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    )
+  ) {
     const notConfiguredUrl = new URL("/admin/login", request.url);
     notConfiguredUrl.searchParams.set("error", "not_configured");
     return NextResponse.redirect(notConfiguredUrl);

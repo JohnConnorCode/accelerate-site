@@ -7,7 +7,7 @@ const ownerId = "11111111-1111-4111-8111-111111111111",
   tenantId = "22222222-2222-4222-8222-222222222222";
 const env = {
   NEXT_PUBLIC_SUPABASE_URL: "https://fixtureproject.supabase.co",
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-public",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "sb_publishable_fixturepublic",
   SUPABASE_SERVICE_ROLE_KEY: "fixture-private",
   SUPABASE_PROJECT_REF: "fixtureproject",
   SUPABASE_DB_HOST: "db.fixtureproject.supabase.co",
@@ -88,6 +88,7 @@ test("missing/placeholder config is actionable and performs no host calls", asyn
   assert.equal(setupConfiguration({ ...env, ADMIN_EMAIL: "admin@example.com" }).ready, false);
   for (const values of [
     { NEXT_PUBLIC_SUPABASE_URL: "https://other.supabase.co" },
+    { NEXT_PUBLIC_SUPABASE_ANON_KEY: " sb_publishable_fixturepublic " },
     { NEXT_PUBLIC_SITE_URL: "http://remote.test" },
     { NEXT_PUBLIC_SUPABASE_URL: "https://secret:pass@fixtureproject.supabase.co" },
     { BOOTSTRAP_FOUNDER_EMAIL: "other@harbor.test" },

@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
-import { assertForkHosting } from "./lib/neutral-distribution.mjs";
+import { assertForkHosting, loadOriginalHosting } from "./lib/neutral-distribution.mjs";
 
 export function verifyDeploymentTarget({ target, linked, env = process.env, request }) {
   if (!target.projectId || !target.teamId || !target.projectName) {
@@ -36,6 +36,15 @@ export function verifyHostingSelection(target, env = process.env) {
   // Hosting ownership and public presentation are independent choices.
   // This acknowledgement never replaces the exact authenticated target checks.
   if (env.ACCELERATE_ORIGINAL_HOSTING !== "1") assertForkHosting(target);
+}
+
+/** Called only after deploymentPreflight verifies the linked target. */
+export function deploymentConfigArgs(target, args = [], original = loadOriginalHosting()) {
+  if (args.some((arg) => arg.startsWith("-A") || arg.startsWith("--local-config")))
+    throw new Error("Hosting configuration is selected by the verified deployment target.");
+  return target.projectId === original.projectId && target.teamId === original.teamId
+    ? ["--local-config", "vercel.production.json"]
+    : [];
 }
 
 export function deploymentPreflight() {

@@ -44,7 +44,16 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof WebsiteGenerationLimitError)
-      return NextResponse.json({ error: error.message }, { status: 429 });
+      return NextResponse.json(
+        { error: error.message },
+        {
+          status: error.status,
+          headers: {
+            "Cache-Control": "no-store",
+            "Retry-After": error.status === 503 ? "30" : "3600",
+          },
+        },
+      );
     if (error instanceof SiteModelSelectionError)
       return NextResponse.json({ error: error.message }, { status: 409 });
     console.warn("[site-studio] Website AI provider suggestion failed; no content written");

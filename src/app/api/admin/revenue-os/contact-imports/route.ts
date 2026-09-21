@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import {
   analyzeContactImport,
   approveContactImport,
@@ -68,12 +68,15 @@ export async function POST(request: NextRequest) {
   const supabase = auth.database;
   try {
     if (action === "analyze") {
-      const limited = rateLimit(`contact-import-analyze:${actorEmail}`, 12, 60 * 60 * 1000);
-      if (!limited.success)
-        return NextResponse.json(
-          { error: "AI import analysis limit reached. Try again later." },
-          { status: 429 },
-        );
+      const rateLimitResult = await rateLimit(
+        `contact-import-analyze:${actorEmail}`,
+        12,
+        60 * 60 * 1000,
+      );
+      if (!rateLimitResult.success)
+        return rateLimitResponse(rateLimitResult, {
+          error: "AI import analysis limit reached. Try again later.",
+        });
       const sourceText = typeof body.sourceText === "string" ? body.sourceText : "";
       const batch = await analyzeContactImport(supabase, {
         sourceText,
@@ -118,12 +121,15 @@ export async function POST(request: NextRequest) {
       });
     }
     if (action === "execute") {
-      const limited = rateLimit(`contact-import-execute:${actorEmail}`, 30, 60 * 60 * 1000);
-      if (!limited.success)
-        return NextResponse.json(
-          { error: "Import execution limit reached. Try again later." },
-          { status: 429 },
-        );
+      const rateLimitResult = await rateLimit(
+        `contact-import-execute:${actorEmail}`,
+        30,
+        60 * 60 * 1000,
+      );
+      if (!rateLimitResult.success)
+        return rateLimitResponse(rateLimitResult, {
+          error: "Import execution limit reached. Try again later.",
+        });
       if (typeof body.batchId !== "string")
         return NextResponse.json({ error: "batchId is required" }, { status: 400 });
       return NextResponse.json({

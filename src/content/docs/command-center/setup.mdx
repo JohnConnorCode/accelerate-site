@@ -1,7 +1,7 @@
 ---
 title: "Setup, integrations, and health"
 description: "Read Setup Center and Integrations, tell missing configuration from a real receipt, and recover when health is degraded."
-updated: "2026-09-20"
+updated: "2026-09-21"
 ---
 
 **You need:** a connected workspace from [Install a connected workspace](/docs/self-hosting) and the founder account (`ADMIN_EMAIL`). Setup Center's API uses `requirePlatformAdmin` in `src/app/api/admin/setup/route.ts`. A tenant admin who is not that identity gets **Platform access forbidden**.
@@ -68,3 +68,11 @@ A job left `running` for more than 30 minutes is stalled. Health reports it inst
 - Today shows **The founder queue could not be assembled yet.**: retry the read. If it persists, Setup Center is the diagnosis page.
 
 Do not use [Revenue Recovery](/admin/recovery) for these failures. That screen is demand playbooks.
+
+## Start with a saved task
+
+A fresh clone opens a fictional demo without credentials. Connect your own
+workspace using the [installation guide](/docs/self-hosting/installation), then
+create a fictional contact and a task, reload, and confirm both remain saved.
+Complete the task and check its activity. Email, AI and scheduled work can be
+connected afterward; they are not prerequisites for this first manual result.

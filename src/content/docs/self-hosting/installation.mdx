@@ -1,12 +1,14 @@
 ---
 title: "Connect your installation"
 description: "Create the owner account, apply the ordered schema, and sign in to a workspace you control."
-updated: "2026-09-19"
+updated: "2026-09-21"
 ---
 
 This walkthrough turns a local demo into a connected installation you control: database, authentication, and a real owner account. You need a working checkout, a new empty Supabase project, access to its authentication settings, and a chosen owner email; complete [the local quickstart](/docs/self-hosting) first if you haven't already.
 
 Use the installation instructions shipped with your checkout when upgrading an older version. This guide follows the repository's `docs/self-hosting/SELF-HOSTING.md` sequence. The setup command below changes the project you configure.
+
+For connected setup, install PostgreSQL client tools and confirm `psql --version` works. The demo only needs Node.js 22.16+, npm 10+ and Git.
 
 ## 1. Configure your local environment
 
@@ -26,9 +28,9 @@ Edit `.env.local` in your editor. Keep it private and out of commits. Fill in th
 | `SUPABASE_PROJECT_REF`                                                             | The project you intend to migrate                                 |
 | `SUPABASE_DB_HOST`, `SUPABASE_DB_PORT`, `SUPABASE_DB_USER`, `SUPABASE_DB_PASSWORD` | That project's database connection                                |
 | `ADMIN_EMAIL`                                                                      | The platform owner email                                          |
-| `BOOTSTRAP_FOUNDER_EMAIL`                                                          | The same email as `ADMIN_EMAIL`                                   |
+| `BOOTSTRAP_BRAND_NAME`                                                             | Your business name                                                |
 
-Uncomment and set the relevant `BOOTSTRAP_*` identity fields in `.env.example` before the first migration. These include your business name, domain, site URL, founder identity, and email settings. Otherwise, seed defaults may retain the reference deployment's identity. Leave optional providers disabled until their workflow is needed.
+Set `BOOTSTRAP_BRAND_NAME` to your business name. The guided installer derives the remaining neutral identity from that name, `ADMIN_EMAIL` and `NEXT_PUBLIC_SITE_URL`. Optional `BOOTSTRAP_FOUNDER_EMAIL`, if set, must match the owner email. Leave optional providers commented out.
 
 Check the project reference and database host against the project you created. Do not use a database holding real customer records for this installation exercise.
 
@@ -72,13 +74,17 @@ If authentication succeeds but workspace access fails, inspect the owner email m
 
 Changing `BOOTSTRAP_*` later does not rewrite an existing workspace. Use Branding and the supported tenant configuration path for subsequent identity changes.
 
-## 5. Connect one workflow
+## 5. Save your first useful result
+
+Before connecting providers, create a fictional contact and a task for its next action in your workspace. Reload the page, reopen the task and confirm the saved details and activity. Complete the task and verify its completed state after another reload. This proves a recorded business workflow without email or AI credentials. The fictional demo uses browser storage; it does not prove your database installation.
+
+## 6. Connect one workflow
 
 Add the provider required for your first workflow through the documented connection path. Email sending needs a verified sending setup; AI workloads need the configured AI connection. See [Integrations](/docs/workspace/integrations).
 
 Check Setup Center, then run a controlled workflow with fictional records and a destination you control. Inspect the resulting activity and provider outcome. Saved credentials alone are not a successful connection test.
 
-## 6. Establish readiness before real use
+## 7. Establish readiness before real use
 
 Follow the verification sequence in your checkout's `docs/self-hosting/SELF-HOSTING.md`, including tenant isolation checks with fictional workspaces. Run heavy checks sequentially through the repository's resource gate or in CI.
 
@@ -86,24 +92,15 @@ Before importing real data, establish backup and restore ownership, update proce
 
 **Next:** [Run a business pilot](/docs/start/business-owners), or [onboard agency clients](/docs/start/agencies). For failures, see [Troubleshooting](/docs/start/troubleshooting).
 
-### Continue a manually prepared agent checkout
-
-Normal backlog pickup records the worker checkout automatically. If an older claim
-was deliberately created with `--no-worktree`, review the retained source and attach
-it with `npm run agent:checkpoint -- --card <key> --worktree /path/to/worker --checkpoint-file /path/to/checkpoint.json`.
-The command checks the repository and current ownership before saving a checkpoint.
-It does not reset the checkout or grant the worker review authority. Use `agent:show`
-to read a task without changing its claim; `agent:resume` takes over eligible expired work.
-
-### Resume an interrupted local provider
-
-The optional machine supervisor can continue a registered original Codex, Claude Code or OpenCode thread with `node scripts/supervisor/cli.mjs recover --provider codex --thread <original-id>`. Its retained repository must be enrolled and machine pressure must have cleared. The foreground provider keeps the registered process identity; only one continuation starts at a time. Existing provider permissions and saved history remain authoritative. Missing history, credentials or credit are reported by the provider, not replaced with a new conversation.
-
-Run heavy tool commands through `node scripts/resource-run.mjs <command> [args...]`. Other launch paths remain unmanaged; `coverage` reports that boundary. `uninstall` resumes owned paused producers safely before disabling management, or explains why management must remain enabled. No repository, transcript or unrelated process is removed.
-
 ## Deploy the complete app package
 
 For the app with the bundled Social Marketing runtime, set `APP_HOST` in `.env`
 and set `SOCIAL_MARKETING_ENABLED=true` before running `npm run stack:up`. The root Docker Compose package builds both services
 and routes them through one HTTPS proxy. Postiz requires no second installation.
 See the repository `deployment/README.md` for DNS, updates and retained data.
+
+## Protect your saved work
+
+Before importing customer records, keep recovery copies of the database, uploaded files and encryption configuration, then test restoring them into an isolated installation. Follow the repository's [backup and recovery guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/BACKUP-RECOVERY.md) and record the result so the next maintainer can repeat it.
+
+Protected actions share request limits across server instances. A 429 response means the limit was reached; wait for the indicated retry time. A 503 means the action is temporarily unavailable, so check Setup Center, the migration catalog and server configuration before retrying. The request stops before sending messages or starting the protected action.

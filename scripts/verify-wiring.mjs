@@ -179,24 +179,28 @@ export function findUnknownTables() {
 
 // -----------------------------------------------------------------------------
 // Check 3: every src/app/api/cron/<name>/route.ts is registered in
-// vercel.json's crons array.
+// Explicit production registry; credential-free forks intentionally have no schedules.
 // -----------------------------------------------------------------------------
 export function findUnregisteredCronRoutes() {
   const failures = [];
   const cronDir = "src/app/api/cron";
-  if (!existsSync(cronDir) || !existsSync("vercel.json")) return failures;
+  if (!existsSync(cronDir)) return failures;
+  const scheduleFile = "vercel.production.json";
+  if (!existsSync(scheduleFile)) return ["Missing explicit production schedule registry."];
   const routeDirs = readdirSync(cronDir, { withFileTypes: true })
     .filter((e) => e.isDirectory())
     .map((e) => e.name)
     .filter((name) => existsSync(join(cronDir, name, "route.ts")));
-  const vercelConfig = JSON.parse(readFileSync("vercel.json", "utf8"));
+  const vercelConfig = JSON.parse(readFileSync(scheduleFile, "utf8"));
   const registered = new Set((vercelConfig.crons ?? []).map((c) => c.path));
   for (const name of routeDirs) {
     const routePath = `/api/cron/${name}`;
     const id = `unregistered-cron:${routePath}`;
     if (allowed(id) || baselineSets.unregisteredCronRoutes.has(routePath)) continue;
     if (!registered.has(routePath)) {
-      failures.push(`${id} :: ${routePath} exists but is absent from vercel.json's crons array`);
+      failures.push(
+        `${id} :: ${routePath} exists but is absent from ${scheduleFile}'s crons array`,
+      );
     }
   }
   return failures;

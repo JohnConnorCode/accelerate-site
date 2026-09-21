@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { isValidEmail } from "@/lib/validation";
 import { scheduleEmailSequence } from "@/lib/email/sequences";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
@@ -8,10 +8,9 @@ import { leadMagnets } from "@/content/lead-magnets";
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const { success } = rateLimit(ip, 10, 60 * 60 * 1000);
-  if (!success) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimitResult = await rateLimit(`resource-download:${ip}`, 10, 60 * 60 * 1000);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, { error: "Too many requests" });
 
   try {
     const { resourceId, name, email, utm } = await request.json();

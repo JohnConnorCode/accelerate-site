@@ -1,5 +1,6 @@
 "use client";
 
+import { isSupabasePublicConfigured } from "@/lib/supabase/configuration.mjs";
 import { tenant } from "@/config/tenant";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -23,9 +24,10 @@ function LoginForm() {
     rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/admin";
   const resetFailed = searchParams.get("error") === "reset_failed";
   const notConfigured =
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    searchParams.get("error") === "not_configured";
+    !isSupabasePublicConfigured(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    ) || searchParams.get("error") === "not_configured";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

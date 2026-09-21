@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { isValidEmail } from "@/lib/validation";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const { success } = rateLimit(`subscribe:${ip}`, 3, 60 * 60 * 1000);
-  if (!success) {
-    return NextResponse.json(
-      { error: "Too many requests. Please try again later." },
-      { status: 429 },
-    );
-  }
+  const rateLimitResult = await rateLimit(`subscribe:${ip}`, 3, 60 * 60 * 1000);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, {
+      error: "Too many requests. Please try again later.",
+    });
 
   try {
     const { email, utm } = await request.json();

@@ -26,8 +26,8 @@ export default function Error({
           <Button variant="primary" onClick={reset}>
             Try Again
           </Button>
-          <Link href="/">
-            <Button variant="secondary">Go Home</Button>
+          <Link href="/" className="btn inline-flex min-h-11 items-center justify-center">
+            Go Home
           </Link>
         </div>
       </div>

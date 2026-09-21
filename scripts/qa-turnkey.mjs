@@ -2,6 +2,51 @@ import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 import AxeBuilder from "@axe-core/playwright";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { require as requireTypeScript } from "tsx/cjs/api";
+// Render the real fallback component in the loaded application's styles. This
+// fixture checks presentation and semantics, not a live mutation's outcome.
+globalThis.React = React;
+const { AdminErrorBoundary } = requireTypeScript(
+  "../src/components/admin/AdminErrorBoundary.tsx",
+  import.meta.url,
+);
+async function captureErrorRecovery(page, label) {
+  const boundary = new AdminErrorBoundary({ children: null });
+  boundary.state = AdminErrorBoundary.getDerivedStateFromError(new Error("private-fixture-detail"));
+  const html = renderToStaticMarkup(boundary.render());
+  assert(!html.includes("private-fixture-detail"));
+  assert(!html.includes("No work was changed"));
+  // Keep the live React tree intact: inspect a script-free snapshot in a
+  // separate page, with the same loaded CSS, theme and viewport.
+  const markup = (await page.content())
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace("<head>", `<head><base href="${base}">`);
+  const fixture = await page.context().newPage();
+  try {
+    await fixture.setContent(markup);
+    page = fixture;
+    await page.locator(".admin-main").evaluate((main, content) => {
+      main.innerHTML = content;
+    }, html);
+    const alert = page.getByRole("alert");
+    await alert.getByRole("heading", { name: "Something went wrong in this section" }).waitFor();
+    assert((await alert.innerText()).includes("check its status before repeating it"));
+    const retry = alert.getByRole("button", { name: "Try again", exact: true });
+    await retry.focus();
+    assert(await retry.evaluate((element) => element === document.activeElement));
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
+    const accessibility = await new AxeBuilder({ page }).include('[role="alert"]').analyze();
+    assert.deepEqual(accessibility.violations, []);
+    await page.screenshot({
+      path: `${output}/${label}-error-recovery-fixture.png`,
+      fullPage: true,
+    });
+  } finally {
+    await fixture.close();
+  }
+}
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3018";
 const neutral = process.argv.includes("--neutral");
 const siteName = process.env.QA_SITE_NAME || "Harbor Operations";
@@ -151,6 +196,29 @@ try {
         assert.equal(await page.locator(".kanban-scroller [data-opportunity-id]").count(), 0);
         await empty.scrollIntoViewIfNeeded();
         await captureNeutral(page, `${label}-empty`);
+        await page.goto(demo + "/work");
+        await page
+          .getByRole("heading", { level: 1, name: "Tasks & approvals", exact: true })
+          .waitFor();
+        await page.waitForFunction(() => Boolean(window.__accelerateAdminDemoRuntime));
+        await page.keyboard.press("Control+k");
+        await page.getByText("Add task", { exact: true }).click();
+        const firstTask = `Cold-start follow-up ${label}`;
+        await page.getByLabel("What needs to happen?").fill(firstTask);
+        await page.getByRole("button", { name: "Add task", exact: true }).click();
+        await page
+          .getByRole("heading", { name: "Add a follow-up", exact: true })
+          .waitFor({ state: "hidden" });
+        await page.reload();
+        await page.getByText(firstTask, { exact: true }).waitFor();
+        await captureNeutral(page, `${label}-first-saved-task`);
+        await page.getByRole("button", { name: `Complete ${firstTask}`, exact: true }).click();
+        await page.getByText(firstTask, { exact: true }).waitFor({ state: "hidden" });
+        await page.reload();
+        await page.getByLabel("Task status", { exact: true }).selectOption("completed");
+        await page.getByText(firstTask, { exact: true }).waitFor();
+        await page.getByText(firstTask, { exact: true }).scrollIntoViewIfNeeded();
+        await captureNeutral(page, `${label}-first-completed-task`);
         await page.goto(demo + "/branding");
         await page.getByLabel("Display name", { exact: true }).fill("Harbor Demo Team");
         await page.getByRole("button", { name: "Save branding", exact: true }).focus();
@@ -250,6 +318,7 @@ try {
       .first()
       .waitFor();
     assert.equal(errors.length, 0, errors.join("\n"));
+    await captureErrorRecovery(page, label);
     assert.equal((await page.goto(base + "/docs/self-hosting/overview")).status(), 200);
     await page.goto(base + "/admin");
     await page.getByRole("heading", { name: "Connect your Supabase project" }).waitFor();

@@ -2,6 +2,10 @@
 
 The admin Setup Center at `/admin/setup` is the live source of truth. It checks the running deployment and never displays or stores secret values.
 
+## Shared request protection
+
+Apply `20260929-shared-rate-limits.sql` through the migration catalog before deploying this release. Protected requests share a database-backed sliding window across server instances. Quota refusals return 429; unavailable enforcement returns 503 with `Retry-After`, without performing the action. The table contains hashed request scopes and timestamps in the private schema, and the RPC is service-role-only. A missing migration or server key leaves protected actions unavailable rather than falling back to process memory. Configure the hosting proxy to replace untrusted forwarded-IP headers; never forward arbitrary client-supplied values unchanged.
+
 ## Required migration order
 
 Use `npm run db:migrate:all`. The ordered catalog and explicit historical exclusions live in [`scripts/lib/migration-manifest.mjs`](../../scripts/lib/migration-manifest.mjs). Run `npm run verify:migrations` to reject missing or unclassified SQL files. There is no separate manually maintained list.

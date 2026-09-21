@@ -2,7 +2,7 @@
 # Empty provider values keep the credential-free demo available.
 NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-ADMIN_EMAIL=owner@harbor.example
+ADMIN_EMAIL=admin@example.com
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
@@ -12,26 +12,27 @@ SUPABASE_DB_PORT=5432
 SUPABASE_DB_USER=
 SUPABASE_DB_PASSWORD=
 
-# Replace the fictional business and owner before connecting a real installation.
-BOOTSTRAP_BRAND_NAME=Harbor Operations
-BOOTSTRAP_BRAND_DOMAIN=harbor.example
-BOOTSTRAP_BRAND_SITE_URL=https://harbor.example
-BOOTSTRAP_BRAND_SITE_URL_BARE=https://harbor.example
-BOOTSTRAP_BRAND_ACCENT_COLOR=#2563eb
-BOOTSTRAP_BRAND_TAGLINE=Our business workspace
-BOOTSTRAP_BRAND_EMAIL_FOOTER=Harbor Operations
-BOOTSTRAP_FOUNDER_NAME=Owner
-BOOTSTRAP_FOUNDER_FULL_NAME=Workspace Owner
-BOOTSTRAP_FOUNDER_EMAIL=owner@harbor.example
-BOOTSTRAP_SYSTEM_ACTOR_EMAIL=system@harbor.example
-BOOTSTRAP_AI_DESCRIPTOR=Harbor Operations, a fictional sample business
-BOOTSTRAP_AI_VOICE=Be clear and factual.
-BOOTSTRAP_AI_POSITIONING=Help our team organize and complete its work.
-BOOTSTRAP_BOOKING_URL=https://harbor.example
-BOOTSTRAP_BOOKING_PATH=/
-BOOTSTRAP_SCHEDULER_URL=
-BOOTSTRAP_SETTINGS_FROM_EMAIL=owner@harbor.example
-BOOTSTRAP_SETTINGS_ADMIN_EMAIL=owner@harbor.example
+# Set your business name and actual owner email, then run npm run setup.
+# The installer derives neutral identity. All additional overrides are optional.
+BOOTSTRAP_BRAND_NAME=your-business-name
+# BOOTSTRAP_BRAND_DOMAIN=harbor.example
+# BOOTSTRAP_BRAND_SITE_URL=https://harbor.example
+# BOOTSTRAP_BRAND_SITE_URL_BARE=https://harbor.example
+# BOOTSTRAP_BRAND_ACCENT_COLOR=#2563eb
+# BOOTSTRAP_BRAND_TAGLINE=Our business workspace
+# BOOTSTRAP_BRAND_EMAIL_FOOTER=Harbor Operations
+# BOOTSTRAP_FOUNDER_NAME=Owner
+# BOOTSTRAP_FOUNDER_FULL_NAME=Workspace Owner
+# BOOTSTRAP_FOUNDER_EMAIL=owner@harbor.example
+# BOOTSTRAP_SYSTEM_ACTOR_EMAIL=system@harbor.example
+# BOOTSTRAP_AI_DESCRIPTOR=Harbor Operations, a fictional sample business
+# BOOTSTRAP_AI_VOICE=Be clear and factual.
+# BOOTSTRAP_AI_POSITIONING=Help our team organize and complete its work.
+# BOOTSTRAP_BOOKING_URL=https://harbor.example
+# BOOTSTRAP_BOOKING_PATH=/
+# BOOTSTRAP_SCHEDULER_URL=
+# BOOTSTRAP_SETTINGS_FROM_EMAIL=owner@harbor.example
+# BOOTSTRAP_SETTINGS_ADMIN_EMAIL=admin@example.com
 SETUP_OWNER_PASSWORD=
 
 # Enable connections only after reviewing their permissions and costs.

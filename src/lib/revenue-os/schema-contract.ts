@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Keep this declarative: the CLI validates database metadata; the application
  * validates that the API-visible contract is usable at runtime.
  */
-export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-28.2";
+export const REVENUE_SCHEMA_CONTRACT_VERSION = "revenue-os.2026-09-29.1";
 
 export const TENANT_SCOPED_TABLES = [
   "ai_readiness_assessments",
@@ -863,6 +863,10 @@ export const REVENUE_SCHEMA_INDEXES = [
 ] as const;
 
 export const REVENUE_SCHEMA_SERVICE_FUNCTIONS = [
+  {
+    name: "public.consume_rate_limit(text,integer,integer)",
+    migration: "migrations/20260929-shared-rate-limits.sql",
+  },
   {
     name: "public.complete_ai_readiness_report(uuid,text,text,jsonb,jsonb)",
     migration: "migrations/20260920201517_ai_readiness_atomic_reports.sql",

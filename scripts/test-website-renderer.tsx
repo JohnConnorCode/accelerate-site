@@ -140,6 +140,7 @@ const originalFetch = globalThis.fetch;
 const originalDocument = globalThis.document;
 const originalStorage = globalThis.sessionStorage;
 const originalAnalyticsUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const originalAnalyticsKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 let previewTrackingCalls = 0;
 try {
   globalThis.fetch = async () => {
@@ -147,6 +148,7 @@ try {
     throw new Error("Preview attempted tracking");
   };
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://workspace.example";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_fixturepublic";
   for (const pathname of [
     "/site-preview",
     "/site-preview/nested",
@@ -172,6 +174,7 @@ try {
     "Private preview interactions never count as public analytics or conversions",
   );
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://workspace.example";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_fixturepublic";
   Reflect.set(globalThis, "document", { referrer: "" });
   Reflect.set(globalThis, "sessionStorage", {
     getItem: () => "11111111-1111-4111-8111-111111111111",
@@ -193,4 +196,6 @@ try {
   Reflect.set(globalThis, "sessionStorage", originalStorage);
   if (originalAnalyticsUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
   else process.env.NEXT_PUBLIC_SUPABASE_URL = originalAnalyticsUrl;
+  if (originalAnalyticsKey === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  else process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = originalAnalyticsKey;
 }

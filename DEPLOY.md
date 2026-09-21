@@ -8,7 +8,7 @@ The repository supports a prebuilt Vercel release path, but every fork must link
 
 ## Fork preview
 
-A fork must create its own Vercel project. Do not link, deploy to, or copy the original Accelerate project IDs in the table below. Those identify the reference installation only. Use `deployment-target.example.json` and `node scripts/generate-fork-hosting.mjs`, or the Deploy with Vercel button in README.md, then `npm run deploy:check` on a project you control. Set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` so entry identity follows the configured business. Automatic Git deployments stay off until you enable them in the new project's Settings → Git. Production deployment of the original installation remains a separate maintainer action.
+A fork must create its own Vercel project. Do not link, deploy to, or copy the original Accelerate project IDs in the table below. Those identify the reference installation only. Use `deployment-target.example.json` and `node scripts/generate-fork-hosting.mjs`, or the Deploy with Vercel button in README.md, then `npm run deploy:check` on a project you control. Set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` so entry identity follows the configured business. Forks deploy automatically on Git pushes with the default configuration; keep Vercel’s Automatically expose System Environment Variables setting enabled. Production deployment of the original installation remains a separate maintainer action.
 
 ## Account and project preflight
 
@@ -83,3 +83,19 @@ Rollback should re-alias a previously verified deployment. Do not remove tenant-
 - Never commit `.env` files, provider payloads, access tokens, or deployment auth files.
 - Confirm the active Vercel account and project before every production action.
 - Production deployment requires explicit maintainer authority; a passing pull request is not release approval.
+
+## Fork defaults and scheduled jobs
+
+The default `vercel.json` enables Git deployment and has no cron jobs. The ignore
+step skips only the original project ID. Keep Vercel’s Automatically expose System Environment Variables enabled so that identity is available to the ignore step. An unavailable project identity skips the build with an actionable message. A fork can deploy the demo on Hobby;
+connect its workspace and set `CRON_SECRET` before enabling scheduled work.
+Vercel Hobby allows daily cron jobs only. Work Engine's 15-minute and health's
+30-minute schedules need a compatible plan or an external scheduler.
+
+The guarded `deploy:build` and `deploy:upload` commands select
+`vercel.production.json` only after verifying the original hosting target. This
+retains its four schedules and manual release policy. Forks use `vercel.json`.
+Do not bypass these commands for original production releases.
+
+Provider references: [cron limits](https://vercel.com/docs/cron-jobs/usage-and-pricing),
+[local configuration](https://vercel.com/docs/cli/global-options#local-config).

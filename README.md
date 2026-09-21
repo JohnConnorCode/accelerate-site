@@ -17,6 +17,35 @@ You control the deployment, your Supabase database and your provider accounts. T
 
 > **Project status:** Active and production-derived. The fictional demo works with zero setup and no provider credentials. A connected workspace needs your own Supabase project and, optionally, your own provider accounts. Read the security and tenancy contracts before you put real customer data anywhere near it.
 
+## Quick start
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJohnConnorCode%2Faccelerate-site&project-name=my-revenue-os&repository-name=my-revenue-os&demo-title=Accelerate%20Revenue%20OS&demo-description=Self-hosted%20revenue%20operations%2C%20CRM%2C%20and%20AI%20workspace&demo-url=https%3A%2F%2Fwww.acceleratewith.us%2Fdemo%2Fcommand-center)
+
+The full repository starts with a neutral Command Center homepage and the fictional demo, with no environment variables required. Accelerate agency pages and assets are off by default. Admin routes show a clearly labeled setup screen until you connect your own Supabase project. Follow [Self-hosting](docs/self-hosting/SELF-HOSTING.md) to create your workspace.
+
+In Site Studio, edit the starter's identity, theme, navigation and pages, connect published forms, then preview and publish. The same website document and approval flow support UI editing, AI and owner-authorized ChatGPT MCP. See [Website setup and profiles](docs/self-hosting/NEUTRAL-DISTRIBUTION.md) and [ChatGPT setup](docs/self-hosting/SITE-STUDIO-CHATGPT.md). The optional reduced export is not required to fork the complete product.
+
+This is one codebase and one complete product, including our own installation. `NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` turns the bundled agency presentation off; `branded` turns it on. Unset defaults to off. Choose the same value at build and runtime, then rebuild and deploy; this is not a live admin toggle. Both profiles retain the full workspace, editor, AI/MCP, plugins and governed business services. Changing profiles does not delete saved website revisions. Hosting ownership is verified separately in [Deployment](DEPLOY.md).
+
+Forks deploy on Git pushes and include no scheduled jobs, so exploring the demo does not require a Pro cron schedule. Enable scheduling only after connecting a workspace and checking your hosting plan. The original installation retains its guarded prebuilt release and schedules through `vercel.production.json`.
+
+Or run it locally instead:
+
+Requirements: Node.js 22.16+, npm 10+, and Git.
+
+```bash
+git clone https://github.com/JohnConnorCode/accelerate-site.git
+cd accelerate-site
+npm ci
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). The public site and fictional demo are the fastest way to explore the project; neither one touches an external service.
+
+To connect a workspace, use your own hosted Supabase project and PostgreSQL client tools (`psql`). Follow [Self-hosting](docs/self-hosting/SELF-HOSTING.md) to configure credentials, create the first owner, and apply the verified migration catalog. External providers can be connected afterward in Setup Center.
+
+Never copy production credentials into a fork.
+
 ## What it does
 
 **Today** is the operator's front door: one ranked queue, per tenant, of replies, approvals, follow-ups, and anything else that needs a decision right now.
@@ -75,35 +104,6 @@ A registered module inherits the approval queue, the audit ledger, module gating
 - Model Context Protocol for external assistants
 - Resend for email
 - Playwright for browser and accessibility coverage
-
-## Quick start
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FJohnConnorCode%2Faccelerate-site&project-name=my-revenue-os&repository-name=my-revenue-os&demo-title=Accelerate%20Revenue%20OS&demo-description=Self-hosted%20revenue%20operations%2C%20CRM%2C%20and%20AI%20workspace&demo-url=https%3A%2F%2Fwww.acceleratewith.us%2Fdemo%2Fcommand-center)
-
-The full repository starts with a neutral Command Center homepage and the fictional demo, with no environment variables required. Accelerate agency pages and assets are off by default. Admin routes show a clearly labeled setup screen until you connect your own Supabase project. Follow [Self-hosting](docs/self-hosting/SELF-HOSTING.md) to create your workspace.
-
-In Site Studio, edit the starter's identity, theme, navigation and pages, connect published forms, then preview and publish. The same website document and approval flow support UI editing, AI and owner-authorized ChatGPT MCP. See [Website setup and profiles](docs/self-hosting/NEUTRAL-DISTRIBUTION.md) and [ChatGPT setup](docs/self-hosting/SITE-STUDIO-CHATGPT.md). The optional reduced export is not required to fork the complete product.
-
-This is one codebase and one complete product, including our own installation. `NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` turns the bundled agency presentation off; `branded` turns it on. Unset defaults to off. Choose the same value at build and runtime, then rebuild and deploy; this is not a live admin toggle. Both profiles retain the full workspace, editor, AI/MCP, plugins and governed business services. Changing profiles does not delete saved website revisions. Hosting ownership is verified separately in [Deployment](DEPLOY.md).
-
-This repository ships with automatic Git deployments off (`git.deploymentEnabled: false` in `vercel.json`), which exists to keep the maintainer's own production project on a separate prebuilt release path. It carries over to your fork's Vercel project too, so a `git push` after the first deploy won't redeploy until you turn Git deployments back on in your new project's **Settings → Git**.
-
-Or run it locally instead:
-
-Requirements: Node.js 22.16+, npm 10+, and Git.
-
-```bash
-git clone https://github.com/JohnConnorCode/accelerate-site.git
-cd accelerate-site
-npm ci
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000). The public site and fictional demo are the fastest way to explore the project; neither one touches an external service.
-
-To connect a workspace, use your own hosted Supabase project and PostgreSQL client tools (`psql`). Follow [Self-hosting](docs/self-hosting/SELF-HOSTING.md) to configure credentials, create the first owner, and apply the verified migration catalog. External providers can be connected afterward in Setup Center.
-
-Never copy production credentials into a fork.
 
 ## Useful commands
 

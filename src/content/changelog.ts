@@ -2,6 +2,24 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "shared-request-protection",
+    slug: "shared-request-protection",
+    title: "Consistent request protection across server instances",
+    description:
+      "Protected actions share database-backed request limits, so adding server instances preserves the same limits. Temporary enforcement failures return a retryable response before work starts. Error screens explain how to check a submitted change before retrying, and home navigation uses one accessible control. Self-hosting guidance now explains the required migration and recovery copies for records, files and configuration.",
+    category: "improvement",
+    publishedAt: "2026-09-21",
+  },
+  {
+    id: "cold-start-onboarding",
+    slug: "cold-start-onboarding",
+    title: "A clearer path from demo to your own workspace",
+    description:
+      "Example credentials now show setup guidance instead of a broken login form. Installation instructions separate required settings from optional providers and walk through a saved first task. Fork deployments start without scheduled jobs and retain Git updates; existing production schedules remain explicit.",
+    category: "improvement",
+    publishedAt: "2026-09-21",
+  },
+  {
     id: "connected-admin-release-review",
     slug: "connected-admin-release-review",
     title: "Consistent record controls and clearer recovery",

@@ -6,6 +6,8 @@ A full repository fork defaults to the [neutral distribution](NEUTRAL-DISTRIBUTI
 
 The fastest path to seeing this running is the Deploy with Vercel button in [README.md](../../README.md#quick-start): it needs no environment variables and boots straight to the neutral product homepage and fictional demo. This guide covers the rest, connecting a real workspace, whether you got there through that button or `npm ci && npm run dev` below.
 
+For connected setup, install PostgreSQL client tools and confirm `psql --version` works. The demo only needs Node.js 22.16+, npm 10+ and Git.
+
 ## 1. Explore locally
 
 ```bash
@@ -17,7 +19,7 @@ The public site and fictional Command Center demo can be explored without provid
 
 ## 2. Connect your own hosted Supabase project
 
-For a hosted installation, use a **new empty project** you control. Copy `.env.example` to `.env.local` and configure its Supabase URL, public anonymous key, server-only service-role key, database connection, `ADMIN_EMAIL`, and your `BOOTSTRAP_*` identity. Set `BOOTSTRAP_FOUNDER_EMAIL` to the same email as `ADMIN_EMAIL`. Set `BOOTSTRAP_SCHEDULER_URL` only when you intend to activate an external scheduler; it defaults to disabled.
+For a hosted installation, use a **new empty project** you control. Copy `.env.example` to `.env.local` and configure its Supabase URL, publishable (or legacy anon) key, server-only secret (or legacy service-role) key, database connection, `ADMIN_EMAIL`, and `BOOTSTRAP_BRAND_NAME`. The installer derives the remaining neutral identity from your business name, owner email and site URL. Set `BOOTSTRAP_SCHEDULER_URL` only when you intend to activate an external scheduler; it defaults to disabled.
 
 Enable Supabase email/password authentication and configure the application origin
 and `/auth/callback` redirect URL in Auth settings. These are project settings;
@@ -114,8 +116,26 @@ npm run build
 
 Then prove tenant isolation using controlled fictional tenants. Do not invite real users or import real contacts until URL, record-ID, membership, suspension, replay, and provider-failure tests pass.
 
+## Back up before importing real data
+
+Follow [Backup and recovery](BACKUP-RECOVERY.md) to retain database records, uploaded files and encryption configuration, then restore them into an isolated target. Free-tier database access does not establish a backup or availability guarantee.
+
 ## 6. Deploy
 
 The application can run on Vercel or another platform that supports Next.js server routes. Vercel users can link their own project and use the commands in `DEPLOY.md`. Set production variables in the hosting provider's secret manager, never in the repository.
 
 After deployment, verify the canonical domain, exact release identity, authentication boundary, Setup Center, and a complete fictional demo journey.
+
+## Installation acceptance boundaries
+
+`npm run resources:run -- npm run test:cold-start:postgres` creates a disposable
+local PostgreSQL cluster, runs the guided setup against real business migrations,
+and verifies owner identity, membership, neutral branding and a persisted contact
+and completed task. It requires `initdb`, `pg_ctl` and `psql`. Auth and Storage
+interfaces are simulated; the Supabase scheduler extension migration is excluded.
+It does not verify hosted authentication or browser writes to a hosted project.
+
+For your own installation, sign in, create a fictional contact and task, reload,
+complete the task, and check it again. Record the project, release, result and any
+failure before importing real data. Browser demo checks prove browser-local edits
+only. A human first-time installation trial remains a separate acceptance step.
