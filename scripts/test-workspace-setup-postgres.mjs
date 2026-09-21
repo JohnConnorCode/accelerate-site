@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { spawnSync } from "node:child_process";
+import { spawnSync, execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { createServer } from "node:net";
 import { setupConfiguration, runWorkspaceSetup } from "./lib/workspace-setup.mjs";
 import { migrationCatalog, migrationProgram } from "./lib/migration-ledger.mjs";
@@ -148,10 +149,96 @@ GRANT USAGE ON SCHEMA auth TO anon,authenticated,service_role;`);
     "workspace_configured",
   );
   assert.equal(sql(`SELECT count(*) FROM tasks WHERE id='${task}' AND status='completed';`), "1");
+  const rateKey = "a".repeat(64);
+  const connection = [
+    "-X",
+    "-qAt",
+    "-h",
+    "127.0.0.1",
+    "-p",
+    String(port),
+    "-U",
+    "postgres",
+    "-d",
+    "postgres",
+    "-v",
+    "ON_ERROR_STOP=1",
+  ];
+  const concurrent = await Promise.all(
+    Array.from({ length: 24 }, async () => {
+      const { stdout } = await promisify(execFile)("psql", [
+        ...connection,
+        "-c",
+        `SET ROLE service_role; SELECT consume_rate_limit('${rateKey}',7,60000);`,
+      ]);
+      return JSON.parse(stdout.trim());
+    }),
+  );
+  assert.equal(concurrent.filter((value) => value.allowed).length, 7);
+  assert(
+    concurrent
+      .filter((value) => !value.allowed)
+      .every((value) => value.remaining === 0 && value.retry_after > 0),
+  );
+  assert.equal(json(`SELECT consume_rate_limit('${"b".repeat(64)}',7,60000);`).allowed, true);
+  sql(
+    `UPDATE private.rate_limit_buckets SET hits=ARRAY[clock_timestamp()-interval '2 minutes'],expires_at=clock_timestamp()+interval '1 minute' WHERE key='${rateKey}';`,
+  );
+  assert.equal(json(`SELECT consume_rate_limit('${rateKey}',7,60000);`).remaining, 6);
+  for (const role of ["anon", "authenticated"]) {
+    const denied = spawnSync(
+      "psql",
+      [...connection, "-c", `SET ROLE ${role}; SELECT consume_rate_limit('${rateKey}',7,60000);`],
+      { encoding: "utf8" },
+    );
+    assert.notEqual(denied.status, 0);
+    assert.match(denied.stderr, /permission denied/);
+  }
+  assert.equal(
+    sql("SELECT has_table_privilege('authenticated','private.rate_limit_buckets','SELECT');"),
+    "f",
+  );
+  // Restore into another disposable database; never touch the installed target.
+  const recoveryStarted = Date.now();
+  const backup = join(root, "database.dump");
+  run("pg_dump", [
+    "-h",
+    "127.0.0.1",
+    "-p",
+    String(port),
+    "-U",
+    "postgres",
+    "-d",
+    "postgres",
+    "--no-owner", "--format=custom", "--file", backup,
+  ]);
+  sql("CREATE DATABASE restored;");
+  const restoredConnection = [...connection];
+  restoredConnection[restoredConnection.indexOf("-d") + 1] = "restored";
+  run("pg_restore", ["-h", "127.0.0.1", "-p", String(port), "-U", "postgres", "-d", "restored", "--no-owner", "--exit-on-error", "--clean", "--if-exists", backup]);
+  assert.equal(
+    run("psql", [
+      ...restoredConnection,
+      "-c",
+      `SELECT count(*) FROM tasks WHERE id='${task}' AND status='completed';`,
+    ]),
+    "1",
+  );
+  assert.equal(
+    run("psql", [
+      ...restoredConnection,
+      "-c",
+      `SELECT count(*) FROM tenant_memberships WHERE tenant_id='${tenant}' AND user_id='${ownerId}' AND status='active';`,
+    ]),
+    "1",
+  );
+  run("psql", restoredConnection, migrationProgram(catalog));
+  const recoveryMs = Date.now() - recoveryStarted;
   const receipt = {
     status: "passed",
     boundary: "native-postgresql-with-simulated-auth-and-storage",
     migrations: catalog.length,
+    recoveryMs,
     excluded: [omitted],
     verified: [
       "owner/database identity",
@@ -160,9 +247,12 @@ GRANT USAGE ON SCHEMA auth TO anon,authenticated,service_role;`);
       "neutral identity",
       "contact and completed task persisted across connections",
       "idempotent setup preserves saved result",
+      "atomic rate limit across 24 concurrent connections; expiry and role denial",
+      "native database dump/restore preserves completed task, membership and migration replay",
     ],
     notVerified: [
       "hosted Supabase Auth",
+      "hosted restore and uploaded Storage object recovery",
       "browser-to-database workflow",
       "Supabase scheduler extensions",
       "human installation trial",

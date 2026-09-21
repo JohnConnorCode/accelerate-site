@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { sendRecordedEmail } from "@/lib/revenue-os/communications";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const SEND_LIMIT = 60;
 const SEND_WINDOW_MS = 60 * 60 * 1000;
@@ -25,13 +25,15 @@ export async function POST(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   const adminKey = auth.user.email ?? auth.user.id;
-  const { success } = rateLimit(`admin-send-email:${adminKey}`, SEND_LIMIT, SEND_WINDOW_MS);
-  if (!success) {
-    return NextResponse.json(
-      { error: "Rate limit reached (60/hour). Wait a moment and try again." },
-      { status: 429 },
-    );
-  }
+  const rateLimitResult = await rateLimit(
+    `admin-send-email:${adminKey}`,
+    SEND_LIMIT,
+    SEND_WINDOW_MS,
+  );
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, {
+      error: "Rate limit reached (60/hour). Wait a moment and try again.",
+    });
 
   const { to, subject, body, leadId, template } = await request.json();
 

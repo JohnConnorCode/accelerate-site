@@ -6,7 +6,7 @@ import { suppressContactFromCampaignEmail } from "@/lib/revenue-os/campaign-stop
 import { recordActivity } from "@/lib/revenue-os/activities";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import type { Resend } from "resend";
 import type { TenantSystemContext } from "@/lib/tenancy/context";
 
@@ -59,15 +59,13 @@ export async function handleResendWebhook(
   // delayed rather than dropped. Placed after the configured check so an
   // unconfigured deployment keeps answering 503 without consuming budget.
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (
-    !rateLimit(
-      `resend-webhook:${ip}`,
-      RESEND_WEBHOOK_RATE_LIMIT_PER_MIN,
-      RESEND_WEBHOOK_RATE_WINDOW_MS,
-    ).success
-  ) {
-    return NextResponse.json({ error: "Webhook rate limit exceeded" }, { status: 429 });
-  }
+  const rateLimitResult = await rateLimit(
+    `resend-webhook:${ip}`,
+    RESEND_WEBHOOK_RATE_LIMIT_PER_MIN,
+    RESEND_WEBHOOK_RATE_WINDOW_MS,
+  );
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, { error: "Webhook rate limit exceeded" });
 
   const declaredLength = Number(request.headers.get("content-length"));
   if (Number.isFinite(declaredLength) && declaredLength > MAX_RESEND_WEBHOOK_PAYLOAD_BYTES) {

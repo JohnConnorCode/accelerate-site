@@ -3,7 +3,7 @@ import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
 import { isConfiguredAdmin } from "@/lib/admin/access";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { getResend, FROM_EMAIL } from "@/lib/email/resend";
 import { adminPasswordResetEmail } from "@/lib/email/templates";
 
@@ -31,13 +31,11 @@ export async function POST(request: NextRequest) {
       { error: "Connect your Supabase project before resetting a password." },
       { status: 503, headers: { "Cache-Control": "no-store" } },
     );
-  const { success } = rateLimit(requestKey(request), RESET_LIMIT, RESET_WINDOW_MS);
-  if (!success) {
-    return NextResponse.json(
-      { error: "Too many reset requests. Please wait a few minutes." },
-      { status: 429 },
-    );
-  }
+  const rateLimitResult = await rateLimit(requestKey(request), RESET_LIMIT, RESET_WINDOW_MS);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, {
+      error: "Too many reset requests. Please wait a few minutes.",
+    });
 
   let email: unknown;
   try {

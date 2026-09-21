@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { loadReport, previewAssessment, unlockAssessment } from "@/lib/ai-readiness-service";
 
 const requestSchema = z.discriminatedUnion("action", [
@@ -53,8 +53,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const limited = rateLimit(`ai-readiness:${ip}`, 30, 60 * 60 * 1000);
-  if (!limited.success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  const rateLimitResult = await rateLimit(`ai-readiness:${ip}`, 30, 60 * 60 * 1000);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, { error: "Too many requests" });
   let requestBody: unknown = null;
   try {
     requestBody = await request.json();

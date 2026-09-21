@@ -1,7 +1,7 @@
 import { isSupabasePublicConfigured } from "@/lib/supabase/configuration.mjs";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { isConfiguredAdmin } from "@/lib/admin/access";
 
 function requestKey(request: NextRequest) {
@@ -24,13 +24,11 @@ export async function POST(request: NextRequest) {
       { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
-  const { success } = rateLimit(requestKey(request), 10, 15 * 60 * 1000);
-  if (!success) {
-    return NextResponse.json(
-      { error: "Too many sign-in attempts. Wait a few minutes and try again." },
-      { status: 429, headers: { "Cache-Control": "no-store" } },
-    );
-  }
+  const rateLimitResult = await rateLimit(requestKey(request), 10, 15 * 60 * 1000);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, {
+      error: "Too many sign-in attempts. Wait a few minutes and try again.",
+    });
 
   let email: unknown;
   let password: unknown;

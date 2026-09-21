@@ -6,7 +6,7 @@ import {
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { siteSlugSchema } from "@/lib/site-studio/document";
 import { siteDrafts } from "@/lib/site-studio/database-store";
 import { createSiteDraft, MAX_ATTACHED_ASSETS, SlugInUseError } from "@/lib/site-studio/drafts";
@@ -76,12 +76,11 @@ export async function POST(request: NextRequest) {
   };
   if (input.mode === "ai") {
     const adminKey = auth.user.email ?? auth.user.id;
-    const { success } = rateLimit(`site-studio-generate:${adminKey}`, 20, 60 * 60 * 1000);
-    if (!success)
-      return NextResponse.json(
-        { error: "Generation limit reached. Try again in an hour." },
-        { status: 429 },
-      );
+    const rateLimitResult = await rateLimit(`site-studio-generate:${adminKey}`, 20, 60 * 60 * 1000);
+    if (!rateLimitResult.success)
+      return rateLimitResponse(rateLimitResult, {
+        error: "Generation limit reached. Try again in an hour.",
+      });
   }
   try {
     const draft = await createSiteDraft(

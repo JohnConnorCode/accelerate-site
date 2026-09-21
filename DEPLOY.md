@@ -8,7 +8,7 @@ The repository supports a prebuilt Vercel release path, but every fork must link
 
 ## Fork preview
 
-A fork must create its own Vercel project. Do not link, deploy to, or copy the original Accelerate project IDs in the table below. Those identify the reference installation only. Use `deployment-target.example.json` and `node scripts/generate-fork-hosting.mjs`, or the Deploy with Vercel button in README.md, then `npm run deploy:check` on a project you control. Set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` so entry identity follows the configured business. Automatic Git deployments stay off until you enable them in the new project's Settings → Git. Production deployment of the original installation remains a separate maintainer action.
+A fork must create its own Vercel project. Do not link, deploy to, or copy the original Accelerate project IDs in the table below. Those identify the reference installation only. Use `deployment-target.example.json` and `node scripts/generate-fork-hosting.mjs`, or the Deploy with Vercel button in README.md, then `npm run deploy:check` on a project you control. Set `NEXT_PUBLIC_DISTRIBUTION_PROFILE=neutral` so entry identity follows the configured business. Forks deploy automatically on Git pushes with the default configuration; keep Vercel’s Automatically expose System Environment Variables setting enabled. Production deployment of the original installation remains a separate maintainer action.
 
 ## Account and project preflight
 
