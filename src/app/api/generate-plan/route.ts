@@ -4,7 +4,7 @@ import { getOpenRouterModel, openRouterJson } from "@/lib/ai/openrouter";
 import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { PLAN_SYSTEM_PROMPT, buildUserPrompt } from "@/lib/ai/prompts";
 import { assertApprovedPriceComponent, assertApprovedPricingRows } from "@/lib/ai/approved-pricing";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import type { IntakeFormData, DigitalGrowthPlan } from "@/lib/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendPlanEmail as sendPlanEmailNotification } from "@/lib/email/send";
@@ -203,10 +203,9 @@ async function getSupabaseClient(): Promise<SupabaseClient | null> {
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const { success } = rateLimit(ip, 5, 60 * 60 * 1000);
-  if (!success) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimitResult = await rateLimit(`generate-plan:${ip}`, 5, 60 * 60 * 1000);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, { error: "Too many requests" });
 
   try {
     const body = await request.json();

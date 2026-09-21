@@ -2,7 +2,7 @@ import { readBoundedJson } from "@/lib/http/bounded-json";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import {
   generateInvoiceDesign,
   previewInvoicePage,
@@ -56,11 +56,11 @@ export async function POST(request: Request) {
     const input = schema.parse(await readBoundedJson(request));
     const actor = auth.user.email || "workspace-member";
     if (input.mode === "generate") {
-      if (!rateLimit(`invoice-design:${auth.tenant.id}`, 20, 3600000).success)
-        return NextResponse.json(
-          { error: "Invoice design limit reached. Try again later." },
-          { status: 429 },
-        );
+      const rateLimitResult = await rateLimit(`invoice-design:${auth.tenant.id}`, 20, 3600000);
+      if (!rateLimitResult.success)
+        return rateLimitResponse(rateLimitResult, {
+          error: "Invoice design limit reached. Try again later.",
+        });
       return NextResponse.json(
         await generateInvoiceDesign(auth.database, input.creationActionId, input.brief, actor),
       );

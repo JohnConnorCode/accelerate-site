@@ -98,3 +98,9 @@ For the app with the bundled Social Marketing runtime, set `APP_HOST` in `.env`
 and set `SOCIAL_MARKETING_ENABLED=true` before running `npm run stack:up`. The root Docker Compose package builds both services
 and routes them through one HTTPS proxy. Postiz requires no second installation.
 See the repository `deployment/README.md` for DNS, updates and retained data.
+
+## Protect your saved work
+
+Before importing customer records, keep recovery copies of the database, uploaded files and encryption configuration, then test restoring them into an isolated installation. Follow the repository's [backup and recovery guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/BACKUP-RECOVERY.md) and record the result so the next maintainer can repeat it.
+
+Protected actions share request limits across server instances. A 429 response means the limit was reached; wait for the indicated retry time. A 503 means the action is temporarily unavailable, so check Setup Center, the migration catalog and server configuration before retrying. The request stops before sending messages or starting the protected action.

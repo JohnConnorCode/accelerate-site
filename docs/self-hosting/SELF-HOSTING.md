@@ -116,6 +116,10 @@ npm run build
 
 Then prove tenant isolation using controlled fictional tenants. Do not invite real users or import real contacts until URL, record-ID, membership, suspension, replay, and provider-failure tests pass.
 
+## Back up before importing real data
+
+Follow [Backup and recovery](BACKUP-RECOVERY.md) to retain database records, uploaded files and encryption configuration, then restore them into an isolated target. Free-tier database access does not establish a backup or availability guarantee.
+
 ## 6. Deploy
 
 The application can run on Vercel or another platform that supports Next.js server routes. Vercel users can link their own project and use the commands in `DEPLOY.md`. Set production variables in the hosting provider's secret manager, never in the repository.

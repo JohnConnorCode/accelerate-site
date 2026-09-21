@@ -5,7 +5,7 @@ import { runWithTenantRequestContext } from "@/lib/tenancy/context";
 import { tenant } from "@/config/tenant";
 import { authenticateSiteEditor, siteEditorOAuthConfig } from "@/lib/site-studio/delegation";
 import { SITE_EDITOR_TOOL_NAMES } from "@/lib/site-studio/editor-contract";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 180;
@@ -55,8 +55,9 @@ export async function POST(request: Request) {
       },
     );
   }
-  if (!rateLimit(`site-editor-mcp:${delegation.grant.id}`, 120, 60_000).success)
-    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429, headers });
+  const rateLimitResult = await rateLimit(`site-editor-mcp:${delegation.grant.id}`, 120, 60_000);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, { error: "Rate limit exceeded" }, headers);
   let body: McpJsonRpcRequest;
   try {
     body = (await readBoundedJson(request, 8_010_000)) as McpJsonRpcRequest;

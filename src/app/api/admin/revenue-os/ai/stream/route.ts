@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { runRevenueCommandAgent, type CommandPageContext } from "@/lib/revenue-os/ai-agent";
 import {
   AiConversationSchemaUnavailableError,
@@ -39,12 +39,11 @@ export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   const actorEmail = auth.user.email || "founder";
-  if (!rateLimit(`revenue-os-ai-stream:${actorEmail}`, 30, 60 * 60 * 1000).success) {
-    return NextResponse.json(
-      { error: "AI command limit reached. Try again later." },
-      { status: 429 },
-    );
-  }
+  const rateLimitResult = await rateLimit(`revenue-os-ai-stream:${actorEmail}`, 30, 60 * 60 * 1000);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, {
+      error: "AI command limit reached. Try again later.",
+    });
 
   const body = (await request.json().catch(() => null)) as {
     conversationId?: unknown;

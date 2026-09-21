@@ -178,7 +178,7 @@
     "test:google-readiness": "node scripts/test-google-oauth-readiness.mjs",
     "verify:google-readiness": "node scripts/verify-google-oauth-readiness.mjs",
     "test:cold-start:postgres": "node scripts/test-workspace-setup-postgres.mjs",
-    "test:setup-status": "npx tsx scripts/test-setup-status.ts && node --test scripts/test-workspace-setup.mjs scripts/test-cold-start.mjs",
+    "test:setup-status": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-shared-rate-limit.ts && npx tsx scripts/test-setup-status.ts && node --test scripts/test-workspace-setup.mjs scripts/test-cold-start.mjs",
     "test:install-runbook": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-install-runbook.ts",
     "test:neutral-runtime-distribution": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-neutral-runtime-distribution.ts",
     "distribution:fork-hosting": "node scripts/generate-fork-hosting.mjs",

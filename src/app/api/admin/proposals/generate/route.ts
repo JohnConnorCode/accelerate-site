@@ -2,7 +2,7 @@ import { loadContextPack } from "@/lib/revenue-os/shared-context";
 import { tenant } from "@/config/tenant";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { openRouterJson } from "@/lib/ai/openrouter";
 import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { approvedPricingPromptContext, assertApprovedPricingRows } from "@/lib/ai/approved-pricing";
@@ -102,17 +102,15 @@ export async function POST(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   const adminKey = auth.user.email ?? auth.user.id;
-  const { success } = rateLimit(
+  const rateLimitResult = await rateLimit(
     `admin-proposal-gen:${adminKey}`,
     GENERATE_LIMIT,
     GENERATE_WINDOW_MS,
   );
-  if (!success) {
-    return NextResponse.json(
-      { error: "Rate limit reached (30 proposals/hour). Wait a moment and try again." },
-      { status: 429 },
-    );
-  }
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, {
+      error: "Rate limit reached (30 proposals/hour). Wait a moment and try again.",
+    });
 
   const { lead_id } = await request.json();
 

@@ -6,7 +6,7 @@ import type { TenantSystemContext } from "@/lib/tenancy/context";
 import { cancelScheduledSequences } from "@/lib/email/sequences";
 import { scheduleAuditPrepEmail } from "@/lib/email/booking";
 import { getResend, getTenantResend } from "@/lib/email/resend";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { recordActivity } from "@/lib/revenue-os/activities";
 import { recordAudit } from "@/lib/revenue-os/audit";
 import { stopCampaignMemberships } from "@/lib/revenue-os/campaign-stops";
@@ -68,15 +68,13 @@ export async function handleCalendlyWebhook(
 
   const raw = await request.text();
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (
-    !rateLimit(
-      `calendly-webhook:${ip}`,
-      CALENDLY_WEBHOOK_RATE_LIMIT_PER_MIN,
-      CALENDLY_WEBHOOK_RATE_WINDOW_MS,
-    ).success
-  ) {
-    return NextResponse.json({ error: "Webhook rate limit exceeded" }, { status: 429 });
-  }
+  const rateLimitResult = await rateLimit(
+    `calendly-webhook:${ip}`,
+    CALENDLY_WEBHOOK_RATE_LIMIT_PER_MIN,
+    CALENDLY_WEBHOOK_RATE_WINDOW_MS,
+  );
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, { error: "Webhook rate limit exceeded" });
 
   const payloadBytes = Buffer.byteLength(raw, "utf8");
   if (payloadBytes > MAX_CALENDLY_WEBHOOK_PAYLOAD_BYTES) {

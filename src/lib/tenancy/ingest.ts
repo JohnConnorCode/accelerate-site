@@ -57,8 +57,14 @@ export async function authorizeTenantIngest(
   ) {
     throw new TenantIngestError("Origin not allowed", 403);
   }
-  const limit = rateLimit(`tenant-ingest:${key.id}`, key.rate_limit_per_minute || 60, 60_000);
-  if (!limit.success) throw new TenantIngestError("Rate limit exceeded", 429);
+  const limit = await rateLimit(`tenant-ingest:${key.id}`, key.rate_limit_per_minute || 60, 60_000);
+  if (!limit.success)
+    throw new TenantIngestError(
+      limit.status === 503
+        ? "Intake is temporarily unavailable. Please retry shortly."
+        : "Rate limit exceeded",
+      limit.status,
+    );
   await platform
     .from("tenant_ingest_keys")
     .update({ last_used_at: new Date().toISOString() })

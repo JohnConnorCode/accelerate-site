@@ -11,7 +11,7 @@ import {
   startAgentRun,
   traceTextStream,
 } from "@/lib/revenue-os/agent-trace";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { createBootstrapServiceRoleClient } from "@/lib/supabase/server";
 import { ingestInboundLead } from "@/lib/revenue-os/inbound";
 import { recordAudit } from "@/lib/revenue-os/audit";
@@ -54,10 +54,12 @@ function plainText(body: string, status = 200): Response {
 
 export async function POST(request: NextRequest) {
   const key = clientKey(request);
-  const { success } = rateLimit(`chat-post:${key}`, 30, 60 * 60 * 1000);
-  if (!success) {
-    return plainText("You're sending messages too fast. Give it a few seconds and try again.", 429);
-  }
+  const rateLimitResult = await rateLimit(`chat-post:${key}`, 30, 60 * 60 * 1000);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(
+      rateLimitResult,
+      "You're sending messages too fast. Give it a few seconds and try again.",
+    );
 
   try {
     const { messages } = await request.json();
@@ -182,13 +184,11 @@ export async function POST(request: NextRequest) {
 // admin email, welcome email).
 export async function PUT(request: NextRequest) {
   const key = clientKey(request);
-  const { success } = rateLimit(`chat-put:${key}`, 10, 60 * 60 * 1000);
-  if (!success) {
-    return NextResponse.json(
-      { error: "Too many requests. Please try again later." },
-      { status: 429 },
-    );
-  }
+  const rateLimitResult = await rateLimit(`chat-put:${key}`, 10, 60 * 60 * 1000);
+  if (!rateLimitResult.success)
+    return rateLimitResponse(rateLimitResult, {
+      error: "Too many requests. Please try again later.",
+    });
 
   try {
     const { name, email, conversation, utm } = await request.json();

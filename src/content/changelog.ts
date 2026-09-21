@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "shared-request-protection",
+    slug: "shared-request-protection",
+    title: "Consistent request protection across server instances",
+    description:
+      "Protected actions share database-backed request limits, so adding server instances preserves the same limits. Temporary enforcement failures return a retryable response before work starts. Self-hosting guidance now explains the required migration and recovery copies for records, files and configuration.",
+    category: "improvement",
+    publishedAt: "2026-09-21",
+  },
+  {
     id: "cold-start-onboarding",
     slug: "cold-start-onboarding",
     title: "A clearer path from demo to your own workspace",

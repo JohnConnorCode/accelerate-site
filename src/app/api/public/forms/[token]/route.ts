@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { readBoundedJson } from "@/lib/http/bounded-json";
 import {
   formResponseValidator,
@@ -37,8 +37,8 @@ export async function POST(
   if (!/^[a-f0-9]{64}$/.test(token)) {
     return NextResponse.json({ error: "Form not found" }, { status: 404 });
   }
-  const limit = rateLimit(`public-form:${token.slice(0, 16)}`, 30, 60_000);
-  if (!limit.success) return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+  const rateLimitResult = await rateLimit(`public-form:${token.slice(0, 16)}`, 30, 60_000);
+  if (!rateLimitResult.success) return rateLimitResponse(rateLimitResult, { error: "Rate limit exceeded" });
   let body: unknown;
   try {
     body = await readBoundedJson(request);
