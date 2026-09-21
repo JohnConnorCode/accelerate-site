@@ -775,10 +775,11 @@
       "imports": [
         "@/lib/admin/access",
         "@/lib/rate-limit",
+        "@/lib/supabase/configuration.mjs",
         "@supabase/ssr",
         "next/server"
       ],
-      "sourceSha256": "5a52c3e65c60164b8af12a8b36a5eb6b3ca8eba6004247c56fe5891f4f6e0d2b"
+      "sourceSha256": "3994373edaa69a582164a35d6b113a7f41745fa6b2a1b4e171a266bb69e9bd11"
     },
     {
       "source": "src/app/api/admin/media-assets/route.ts",
@@ -854,10 +855,11 @@
         "@/lib/email/resend",
         "@/lib/email/templates",
         "@/lib/rate-limit",
+        "@/lib/supabase/configuration.mjs",
         "@/lib/supabase/server",
         "next/server"
       ],
-      "sourceSha256": "4bc2cfed97fff1179b09fffc935ffc82b828393cea4514562472cd561adcf892"
+      "sourceSha256": "6bc830a05142d4c5cd2bcd9b2c73f68015e64a37c3218eb02c3df63d141c9ac5"
     },
     {
       "source": "src/app/api/admin/plausible/route.ts",

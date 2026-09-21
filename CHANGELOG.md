@@ -9,6 +9,7 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 ### Fixed
 
 - Cold installations reject missing, placeholder and malformed public database configuration before login. Forks deploy on Git pushes without paid cron requirements; original releases retain explicit production schedules. Setup guidance puts required inputs and a saved first task before optional providers.
+- Cold-start verification now keeps route fingerprints, public check counts and workflow assertions synchronized. Production builds enable Next.js compiler memory optimizations while preserving TypeScript validation and existing resource limits.
 
 - Homepage marquee ("how we help" ticker) sat invisible for 8.3s before fading in; reduced to 0.3s.
 - Module enablement now actually gates routes, not only navigation. A disabled module's pages show a notice and its API routes refuse the request; before this, both still answered.

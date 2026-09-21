@@ -172,6 +172,7 @@ try {
         await page.reload();
         await page.getByLabel("Task status", { exact: true }).selectOption("completed");
         await page.getByText(firstTask, { exact: true }).waitFor();
+        await page.getByText(firstTask, { exact: true }).scrollIntoViewIfNeeded();
         await captureNeutral(page, `${label}-first-completed-task`);
         await page.goto(demo + "/branding");
         await page.getByLabel("Display name", { exact: true }).fill("Harbor Demo Team");
