@@ -2,6 +2,36 @@ import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 import AxeBuilder from "@axe-core/playwright";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { require as requireTypeScript } from "tsx/cjs/api";
+// Render the real fallback component in the loaded application's styles. This
+// fixture checks presentation and semantics, not a live mutation's outcome.
+globalThis.React = React;
+const { AdminErrorBoundary } = requireTypeScript(
+  "../src/components/admin/AdminErrorBoundary.tsx",
+  import.meta.url,
+);
+async function captureErrorRecovery(page, label) {
+  const boundary = new AdminErrorBoundary({ children: null });
+  boundary.state = AdminErrorBoundary.getDerivedStateFromError(new Error("private-fixture-detail"));
+  const html = renderToStaticMarkup(boundary.render());
+  assert(!html.includes("private-fixture-detail"));
+  assert(!html.includes("No work was changed"));
+  await page.locator(".admin-main").evaluate((main, content) => {
+    main.innerHTML = content;
+  }, html);
+  const alert = page.getByRole("alert");
+  await alert.getByRole("heading", { name: "Something went wrong in this section" }).waitFor();
+  assert((await alert.innerText()).includes("check its status before repeating it"));
+  const retry = alert.getByRole("button", { name: "Try again", exact: true });
+  await retry.focus();
+  assert(await retry.evaluate((element) => element === document.activeElement));
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
+  const accessibility = await new AxeBuilder({ page }).include('[role="alert"]').analyze();
+  assert.deepEqual(accessibility.violations, []);
+  await page.screenshot({ path: `${output}/${label}-error-recovery-fixture.png`, fullPage: true });
+}
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3018";
 const neutral = process.argv.includes("--neutral");
 const siteName = process.env.QA_SITE_NAME || "Harbor Operations";
@@ -273,6 +303,7 @@ try {
       .first()
       .waitFor();
     assert.equal(errors.length, 0, errors.join("\n"));
+    await captureErrorRecovery(page, label);
     assert.equal((await page.goto(base + "/docs/self-hosting/overview")).status(), 200);
     await page.goto(base + "/admin");
     await page.getByRole("heading", { name: "Connect your Supabase project" }).waitFor();

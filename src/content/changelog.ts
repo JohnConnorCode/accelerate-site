@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "shared-request-protection",
     title: "Consistent request protection across server instances",
     description:
-      "Protected actions share database-backed request limits, so adding server instances preserves the same limits. Temporary enforcement failures return a retryable response before work starts. Self-hosting guidance now explains the required migration and recovery copies for records, files and configuration.",
+      "Protected actions share database-backed request limits, so adding server instances preserves the same limits. Temporary enforcement failures return a retryable response before work starts. Error screens explain how to check a submitted change before retrying, and home navigation uses one accessible control. Self-hosting guidance now explains the required migration and recovery copies for records, files and configuration.",
     category: "improvement",
     publishedAt: "2026-09-21",
   },
