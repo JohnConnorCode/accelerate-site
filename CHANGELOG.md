@@ -8,6 +8,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Sign-in and password-reset labels now identify and focus their fields for screen-reader and keyboard users.
+
 - Shared admin error recovery no longer claims a failed screen made no changes or displays raw exception text. The public error page uses a single accessible home link instead of nested interactive controls.
 
 - Shared request limits now use an atomic database window across server instances, preserve route-specific quotas and refuse protected actions when enforcement is unavailable. Installation and recovery documentation covers migration ordering, backups and independent launch acceptance.

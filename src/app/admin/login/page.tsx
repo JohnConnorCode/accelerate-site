@@ -163,10 +163,14 @@ function LoginForm() {
                 {resetMode ? (
                   <form onSubmit={handleResetPassword} className="space-y-4">
                     <div>
-                      <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
+                      <label
+                        htmlFor="reset-email"
+                        className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5"
+                      >
                         Email
                       </label>
                       <input
+                        id="reset-email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -217,10 +221,14 @@ function LoginForm() {
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
+                      <label
+                        htmlFor="login-email"
+                        className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5"
+                      >
                         Email
                       </label>
                       <input
+                        id="login-email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -231,10 +239,14 @@ function LoginForm() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
+                      <label
+                        htmlFor="login-password"
+                        className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5"
+                      >
                         Password
                       </label>
                       <input
+                        id="login-password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
