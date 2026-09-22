@@ -37,6 +37,7 @@ const widths = {
 };
 
 let openDialogCount = 0;
+const dialogOpeners = new WeakMap<HTMLElement, HTMLElement[]>();
 
 /**
  * The single admin overlay primitive. Portalling to document.body keeps every
@@ -58,7 +59,7 @@ export function AdminDialog({
   // command palette opt into their own deliberate layouts below; ordinary
   // confirmations do not pretend to be draggable bottom sheets on phones.
   const mobileDialog = align === "center";
-  const returnFocus = useRef<HTMLElement | null>(null);
+  const returnFocus = useRef<HTMLElement[]>([]);
   useEffect(() => {
     if (!open) return;
     openDialogCount += 1;
@@ -104,8 +105,16 @@ export function AdminDialog({
                 forceMount
                 aria-describedby={undefined}
                 onOpenAutoFocus={(event) => {
-                  returnFocus.current =
+                  const opener =
                     document.activeElement instanceof HTMLElement ? document.activeElement : null;
+                  const parentDialog = opener?.closest<HTMLElement>(
+                    '[data-admin-overlay="dialog"]',
+                  );
+                  returnFocus.current = opener
+                    ? [opener, ...(parentDialog ? (dialogOpeners.get(parentDialog) ?? []) : [])]
+                    : [];
+                  if (event.target instanceof HTMLElement)
+                    dialogOpeners.set(event.target, returnFocus.current);
                   const initial =
                     event.target instanceof HTMLElement
                       ? event.target.querySelector<HTMLElement>('[data-admin-autofocus="true"]')
@@ -118,9 +127,10 @@ export function AdminDialog({
                 onCloseAutoFocus={(event) => {
                   // This shared controlled dialog has no Radix Trigger. Restore the
                   // actual opener, including the previous dialog in a review stack.
-                  if (returnFocus.current?.isConnected) {
+                  const opener = returnFocus.current.find((element) => element.isConnected);
+                  if (opener) {
                     event.preventDefault();
-                    returnFocus.current.focus({ preventScroll: true });
+                    opener.focus({ preventScroll: true });
                   }
                 }}
               >

@@ -119,19 +119,18 @@ async function openToday(page, label) {
   );
   await dialog.waitFor({ state: "detached" });
   await page.waitForFunction(() => !new URL(location.href).searchParams.has("action"));
+  await contextDialog.waitFor({ state: "detached" });
   await page.waitForFunction(() =>
-    document.activeElement?.textContent?.includes("Review exact change"),
+    Boolean(document.activeElement?.closest('[data-attention-kind="decision"]')),
   );
   check(
     !new URL(page.url()).searchParams.has("action"),
     "today: closing approval left a stale action URL",
   );
   check(
-    await page.evaluate(() => document.activeElement?.textContent?.includes("Review exact change")),
-    "today: approval close did not return focus to its trigger",
+    await row.evaluate((node) => node === document.activeElement),
+    "today: approval close did not return focus to the original decision row",
   );
-  await page.keyboard.press("Escape");
-  await contextDialog.waitFor({ state: "detached" });
 }
 
 await assertSecurityHeaders();
