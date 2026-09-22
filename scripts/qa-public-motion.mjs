@@ -581,8 +581,8 @@ for (const config of [
     }));
     if (
       !restoredHero.loaded ||
-      !restoredHero.profitTransitionDelay.includes("3.1s") ||
-      !restoredHero.ctaTransitionDelay.includes("3.4s") ||
+      !restoredHero.profitTransitionDelay.includes("4.7s") ||
+      !restoredHero.ctaTransitionDelay.includes("6.1s") ||
       restoredHero.profitOpacity > 0.1 ||
       restoredHero.ctaOpacity > 0.1
     )
