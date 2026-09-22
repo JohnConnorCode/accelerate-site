@@ -217,6 +217,8 @@ const updateDocs = process.argv.includes("--update-docs");
       await timelineLink.focus();
       assert(await timelineLink.evaluate((el) => el === document.activeElement));
       await timeline.first().scrollIntoViewIfNeeded();
+      // Allow the shared, bounded route entrance to settle before recording pixels.
+      await page.waitForTimeout(500);
       await page.screenshot({
         style: "nextjs-portal { visibility: hidden; }",
         path: `${out}/timeline-${width}.png`,
