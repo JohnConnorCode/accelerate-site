@@ -41,6 +41,7 @@ export function Toaster() {
               <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--admin-muted)]" />
               <p className="flex-1 text-sm text-[var(--admin-ink)]">{t.message}</p>
               <button
+                type="button"
                 onClick={() => dismiss(t.id)}
                 className="cursor-pointer text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
                 aria-label="Dismiss"

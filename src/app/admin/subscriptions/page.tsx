@@ -229,6 +229,7 @@ export default function SubscriptionsPage() {
           </label>
           <div>
             <button
+              type="submit"
               className={`${button} bg-[var(--admin-ink)] text-[var(--admin-surface)]`}
               disabled={busy !== ""}
             >

@@ -29,12 +29,12 @@ export function TeamCard({ member, index = 0 }: { member: TeamMember; index?: nu
         >
           {String(index + 1).padStart(2, "0")}
         </span>
-        <span className="relative mt-4 block h-44 w-44 overflow-hidden rounded-full bg-[var(--bg-subtle)] ring-1 ring-[color-mix(in_srgb,var(--fg)_16%,transparent)] transition-all duration-500 ease-out group-hover:ring-2 group-hover:ring-[color-mix(in_srgb,var(--fg)_45%,transparent)] group-focus-visible:ring-2 group-focus-visible:ring-[color-mix(in_srgb,var(--fg)_45%,transparent)] sm:h-52 sm:w-52 motion-reduce:transition-none">
+        <span className="relative mt-4 block h-44 w-44 overflow-hidden rounded-full bg-[var(--bg-subtle)] ring-1 ring-[color-mix(in_srgb,var(--fg)_16%,transparent)] transition-shadow duration-500 ease-out group-hover:ring-2 group-hover:ring-[color-mix(in_srgb,var(--fg)_45%,transparent)] group-focus-visible:ring-2 group-focus-visible:ring-[color-mix(in_srgb,var(--fg)_45%,transparent)] sm:h-52 sm:w-52 motion-reduce:transition-none">
           <FadeImage
             src={member.image}
             alt={member.imageAlt}
             sizes="208px"
-            className="saturate-[0.88] transition-all duration-700 ease-out group-hover:scale-[1.06] group-hover:saturate-100 group-focus-visible:scale-[1.06] group-focus-visible:saturate-100 motion-reduce:transition-none [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
+            className="saturate-[0.88] transition-[transform,filter] duration-700 ease-out group-hover:scale-[1.06] group-hover:saturate-100 group-focus-visible:scale-[1.06] group-focus-visible:saturate-100 motion-reduce:transition-none [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
           />
         </span>
         <h3 className="mt-5 font-display text-[1.7rem] font-bold tracking-[-0.01em] text-heading">
@@ -101,7 +101,7 @@ export function TeamPreviewStrip({ members }: { members: TeamMember[] }) {
                 src={member.image}
                 alt=""
                 sizes="(max-width: 640px) 50vw, 25vw"
-                className="saturate-[0.82] transition-all duration-700 ease-out group-hover:scale-[1.05] group-hover:saturate-100 motion-reduce:transition-none [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
+                className="saturate-[0.82] transition-[transform,filter] duration-700 ease-out group-hover:scale-[1.05] group-hover:saturate-100 motion-reduce:transition-none [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
               />
             </div>
             <p className="mt-3 font-display text-base font-bold text-heading">{member.name}</p>

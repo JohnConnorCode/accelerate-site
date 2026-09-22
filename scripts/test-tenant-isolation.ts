@@ -54,18 +54,14 @@ for (const invariant of [
 ])
   assert.ok(auth.includes(invariant), `tenant authorization is missing ${invariant}`);
 
-const middleware = readFileSync("src/middleware.ts", "utf8");
-assert.match(
-  middleware,
-  /\/t\\\/\(\[a-z0-9\]/,
-  "middleware must recognize canonical workspace URLs",
+const proxy = readFileSync("src/proxy.ts", "utf8");
+assert.match(proxy, /\/t\\\/\(\[a-z0-9\]/, "proxy must recognize canonical workspace URLs");
+assert.ok(
+  proxy.includes('requestHeaders.set("x-tenant-id", tenantId)'),
+  "proxy must forward resolved tenant identity",
 );
 assert.ok(
-  middleware.includes('requestHeaders.set("x-tenant-id", tenantId)'),
-  "middleware must forward resolved tenant identity",
-);
-assert.ok(
-  middleware.includes("isConfiguredAdmin(user.email)"),
+  proxy.includes("isConfiguredAdmin(user.email)"),
   "platform routes must remain founder-only",
 );
 

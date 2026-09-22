@@ -87,6 +87,7 @@ export function SiteEditorConnections({ authorizationId }: { authorizationId?: s
           </p>
           <div className="flex flex-wrap gap-3">
             <button
+              type="button"
               className="admin-button admin-button--primary"
               disabled={pending}
               onClick={() => change({ operation: "consent", authorizationId, decision: "approve" })}
@@ -94,6 +95,7 @@ export function SiteEditorConnections({ authorizationId }: { authorizationId?: s
               Allow Site Studio control for 30 days
             </button>
             <button
+              type="button"
               className="admin-button admin-button--secondary"
               disabled={pending}
               onClick={() => change({ operation: "consent", authorizationId, decision: "deny" })}
@@ -105,6 +107,7 @@ export function SiteEditorConnections({ authorizationId }: { authorizationId?: s
       )}
       {authorization && "redirect_url" in authorization && (
         <button
+          type="button"
           className="admin-button admin-button--primary"
           onClick={() => window.location.assign(authorization.redirect_url)}
         >
@@ -132,6 +135,7 @@ export function SiteEditorConnections({ authorizationId }: { authorizationId?: s
           </p>
           {!grant.revoked_at && (
             <button
+              type="button"
               className="admin-button admin-button--secondary"
               disabled={pending}
               onClick={() => change({ operation: "revoke", grantId: grant.id })}
@@ -140,6 +144,7 @@ export function SiteEditorConnections({ authorizationId }: { authorizationId?: s
             </button>
           )}
           <button
+            type="button"
             className="admin-button admin-button--secondary"
             disabled={pending}
             onClick={() => change({ operation: "renew", clientId: grant.client_id })}

@@ -63,13 +63,13 @@ export function RadarOpportunityDetail({
             </div>
             {canWrite && (
               <div className="mt-4 flex flex-wrap gap-2">
-                <button className={button} onClick={() => openEditor("opportunity")}>
+                <button type="button" className={button} onClick={() => openEditor("opportunity")}>
                   Edit opportunity
                 </button>
-                <button className={button} onClick={() => openEditor("assessment")}>
+                <button type="button" className={button} onClick={() => openEditor("assessment")}>
                   Review estimates
                 </button>
-                <button className={button} onClick={() => openEditor("draft")}>
+                <button type="button" className={button} onClick={() => openEditor("draft")}>
                   <FilePlus2 size={15} aria-hidden />
                   Prepare a draft
                 </button>
@@ -80,7 +80,7 @@ export function RadarOpportunityDetail({
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-base font-semibold">Source evidence</h2>
               {canWrite && (
-                <button className={button} onClick={() => openEditor("citations")}>
+                <button type="button" className={button} onClick={() => openEditor("citations")}>
                   Correct citations
                 </button>
               )}
@@ -91,6 +91,7 @@ export function RadarOpportunityDetail({
             <h2 className="mb-4 text-base font-semibold">Drafts &amp; reported outcomes</h2>
             {packet.assets.map((asset) => (
               <button
+                type="button"
                 key={asset.id}
                 className="flex min-h-12 w-full items-center justify-between gap-3 py-2 text-left"
                 onClick={() => onReadAsset(asset.id)}
@@ -188,6 +189,7 @@ export function RadarOpportunityDetail({
               <div className="flex flex-col gap-2">
                 {transitions.map((state) => (
                   <button
+                    type="button"
                     key={state}
                     className={button}
                     disabled={busy}

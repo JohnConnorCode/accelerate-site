@@ -169,6 +169,7 @@ export function WebsiteEditor() {
       />
       <div className="flex flex-wrap items-center gap-2">
         <button
+          type="button"
           className={button}
           disabled={busy || !!pending || !past.length}
           onClick={() => {
@@ -181,6 +182,7 @@ export function WebsiteEditor() {
           Undo
         </button>
         <button
+          type="button"
           className={button}
           disabled={busy || !!pending || !future.length}
           onClick={() => {
@@ -194,6 +196,7 @@ export function WebsiteEditor() {
         </button>
         <span className="hidden xl:contents">
           <button
+            type="button"
             className={button}
             aria-expanded={previewOpen}
             onClick={() => setPreviewOpen((value) => !value)}
@@ -202,13 +205,19 @@ export function WebsiteEditor() {
           </button>
         </span>
         <button
+          type="button"
           className="admin-button admin-button--primary"
           disabled={busy || !document}
           onClick={() => void save()}
         >
           {busy ? "Working…" : pending ? `Retry same ${pending.operation}` : "Save draft"}
         </button>
-        <button className={button} aria-haspopup="dialog" onClick={() => setToolsOpen(true)}>
+        <button
+          type="button"
+          className={button}
+          aria-haspopup="dialog"
+          onClick={() => setToolsOpen(true)}
+        >
           Website tools
         </button>
       </div>
@@ -242,6 +251,7 @@ export function WebsiteEditor() {
           </div>
           <div className="flex flex-wrap gap-2">
             <button
+              type="button"
               className={button}
               disabled={busy}
               onClick={() => {
@@ -252,10 +262,11 @@ export function WebsiteEditor() {
             >
               Reload saved draft
             </button>
-            <button className={button} disabled={!document} onClick={exportDraft}>
+            <button type="button" className={button} disabled={!document} onClick={exportDraft}>
               Export draft
             </button>
             <button
+              type="button"
               className={button}
               disabled={locked || !document}
               onClick={() => importInput.current?.click()}
@@ -280,7 +291,7 @@ export function WebsiteEditor() {
               </Link>
             )}
           </div>
-          <button className={button} onClick={() => setToolsOpen(false)}>
+          <button type="button" className={button} onClick={() => setToolsOpen(false)}>
             Back to editor
           </button>
         </div>
@@ -339,10 +350,10 @@ export function WebsiteEditor() {
             keep a copy.
           </p>
           <div className="mt-3 flex gap-2">
-            <button className={button} onClick={() => void load()}>
+            <button type="button" className={button} onClick={() => void load()}>
               Replace local edits
             </button>
-            <button className={button} onClick={() => setConfirmReload(false)}>
+            <button type="button" className={button} onClick={() => setConfirmReload(false)}>
               Keep editing
             </button>
           </div>
@@ -352,6 +363,7 @@ export function WebsiteEditor() {
         <div className="space-y-4">
           <div className="flex gap-2 xl:hidden" aria-label="Editor view">
             <button
+              type="button"
               className={button}
               aria-pressed={!mobilePreview}
               onClick={() => setMobilePreview(false)}
@@ -359,6 +371,7 @@ export function WebsiteEditor() {
               Edit content
             </button>
             <button
+              type="button"
               className={button}
               aria-pressed={mobilePreview}
               onClick={() => {
@@ -411,6 +424,7 @@ export function WebsiteEditor() {
               ] as Selection[]
             ).map((item) => (
               <button
+                type="button"
                 key={item}
                 className={button}
                 aria-pressed={selection === item}

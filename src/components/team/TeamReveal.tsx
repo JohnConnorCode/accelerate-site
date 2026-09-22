@@ -48,14 +48,14 @@ export function FadeImage({
 }) {
   const ref = useRevealLifecycle<HTMLDivElement>({ initialViewport: "immediate" });
   return (
-    <div ref={ref} className={cn("rv h-full w-full", className)}>
+    <div ref={ref} className={cn("relative rv h-full w-full", className)}>
       <Image
         src={src}
         alt={alt}
         fill
         sizes={sizes}
         priority={priority}
-        onLoadingComplete={(img) => img.classList.add("is-loaded")}
+        onLoad={(event) => event.currentTarget.classList.add("is-loaded")}
         className="team-photo-fade object-cover"
       />
     </div>

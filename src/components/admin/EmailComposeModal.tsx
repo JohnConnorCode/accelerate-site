@@ -164,7 +164,12 @@ export function EmailComposeModal({
                 Compose email
               </h3>
             </div>
-            <button onClick={onClose} aria-label="Close dialog" className="admin-icon-button">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close dialog"
+              className="admin-icon-button"
+            >
               <X className="h-5 w-5" />
             </button>
           </div>

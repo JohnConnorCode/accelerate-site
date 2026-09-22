@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const middleware = readFileSync("src/middleware.ts", "utf8");
+const proxy = readFileSync("src/proxy.ts", "utf8");
 for (const invariant of [
   "workspaceMatch",
   'requestHeaders.set("x-tenant-id", tenantId)',
@@ -9,12 +9,17 @@ for (const invariant of [
   'supabaseResponse.cookies.set("accelerate-tenant-slug"',
   "/^(features|tenants|setup)",
 ])
-  assert.ok(middleware.includes(invariant), `workspace middleware is missing ${invariant}`);
+  assert.ok(proxy.includes(invariant), `workspace proxy is missing ${invariant}`);
 
 const link = readFileSync("src/components/admin/AdminLink.tsx", "utf8");
 assert.ok(
-  link.includes('`/t/${workspaceSlug}/admin/${suffix || "today"}`'),
+  link.includes("resolveAdminHref") && link.includes("workspaceSlug"),
   "admin links must retain canonical workspace URLs",
+);
+const navigationPaths = readFileSync("src/lib/admin/navigation-paths.ts", "utf8");
+assert.ok(
+  navigationPaths.includes('return `/t/${workspaceSlug}/admin/${suffix || "today"}`'),
+  "admin links must resolve canonical workspace URLs in one shared adapter",
 );
 
 const contract = readFileSync("docs/contracts/MULTI-TENANCY-CONTRACT.md", "utf8");
@@ -79,13 +84,13 @@ for (const invariant of [
     directory.includes(invariant),
     `tenant directory is missing the robust lifecycle behavior ${invariant}`,
   );
-const styles = readFileSync("src/app/globals.css", "utf8");
+const styles = readFileSync("src/app/admin-components.css", "utf8");
 const secondaryControl = styles.slice(
   styles.indexOf(".admin-secondary-control {"),
   styles.indexOf(".admin-action-mark"),
 );
 assert.ok(
-  secondaryControl.includes("min-height: 40px"),
+  secondaryControl.includes("min-height: var(--admin-control-height)"),
   "secondary tenant controls must preserve a usable hit area",
 );
 assert.ok(

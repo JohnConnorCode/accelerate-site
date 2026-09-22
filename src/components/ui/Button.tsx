@@ -28,10 +28,22 @@ const sizeClasses: Record<ButtonSize, string> = {
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = "primary", size = "md", pulse = false, className, children, ...props }, ref) => {
+  (
+    {
+      variant = "primary",
+      size = "md",
+      pulse = false,
+      className,
+      children,
+      type = "button",
+      ...props
+    },
+    ref,
+  ) => {
     return (
       <button
         ref={ref}
+        type={type}
         data-ui-button={variant}
         className={cn(
           "inline-flex items-center justify-center font-medium cursor-pointer",

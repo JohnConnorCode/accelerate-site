@@ -29,6 +29,7 @@ export function LeadsChart({ data, days = 30, onDaysChange }: LeadsChartProps) {
             <div className="flex gap-1">
               {rangeOptions.map((opt) => (
                 <button
+                  type="button"
                   key={opt.value}
                   onClick={() => onDaysChange(opt.value)}
                   className={cn(

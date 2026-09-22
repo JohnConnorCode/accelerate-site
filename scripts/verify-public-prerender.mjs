@@ -70,7 +70,8 @@ const learnRoutes = [...prerendered].filter(
   (route) => route === "/learn" || route.startsWith("/learn/"),
 );
 const workRoutes = [...prerendered].filter(
-  (route) => route === "/work" || route.startsWith("/work/"),
+  (route) =>
+    (route === "/work" || route.startsWith("/work/")) && !route.includes("/opengraph-image"),
 );
 if (learnRoutes.length < 195) {
   console.error(

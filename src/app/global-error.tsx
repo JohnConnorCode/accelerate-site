@@ -43,6 +43,7 @@ export default function GlobalError({
             style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}
           >
             <button
+              type="button"
               onClick={reset}
               style={{
                 padding: "0.75rem 1.5rem",

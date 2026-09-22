@@ -7,7 +7,7 @@ import { createBundledWebsite } from "../src/lib/site-studio/website-seed";
 import { parseWebsiteDocument } from "../src/lib/site-studio/website-document";
 import { assertWebsiteForms, websiteFormTokens } from "../src/lib/site-studio/website-forms";
 import { websiteTextFields } from "../src/lib/site-studio/website-authoring";
-import { middleware } from "../src/middleware";
+import { proxy } from "../src/proxy";
 import { POST as recordAnalytics } from "../src/app/api/analytics/events/route";
 import { tenant } from "../src/config/tenant";
 import { buildSearchIndex } from "../src/lib/search";
@@ -131,16 +131,16 @@ async function main() {
     assert.equal(isAgencyAsset(path), true, path);
   assert.equal(isAgencyAsset("/site-assets/photo.jpg"), false);
   const root = "http://localhost:3000";
-  const about = await middleware(new NextRequest(`${root}/about`));
+  const about = await proxy(new NextRequest(`${root}/about`));
   assert.equal(new URL(about.headers.get("x-middleware-rewrite")!).pathname, "/site-pages/about");
-  assert.equal((await middleware(new NextRequest(`${root}/images/john.jpg`))).status, 404);
+  assert.equal((await proxy(new NextRequest(`${root}/images/john.jpg`))).status, 404);
   assert.equal(
-    (await middleware(new NextRequest(`${root}/_next/image?url=%2Fimages%2Fjohn.jpg&w=640&q=75`)))
+    (await proxy(new NextRequest(`${root}/_next/image?url=%2Fimages%2Fjohn.jpg&w=640&q=75`)))
       .status,
     404,
   );
   assert.equal(
-    (await middleware(new NextRequest(`${root}/docs`))).headers.get("x-middleware-rewrite"),
+    (await proxy(new NextRequest(`${root}/docs`))).headers.get("x-middleware-rewrite"),
     null,
   );
   assert.throws(() =>

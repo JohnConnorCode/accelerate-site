@@ -5492,7 +5492,7 @@ a.team-card-float:focus-visible {
     display: block;
   }
   .hero-band .hero {
-    --hero-mobile-top: calc(var(--site-header-h) + var(--safe-top) + 14px);
+    --hero-mobile-top: calc(var(--site-header-h) + var(--safe-top) + 20px);
     --hero-mobile-bottom: clamp(22px, 3.8svh, 32px);
     display: block;
     min-height: 100svh;
@@ -5831,8 +5831,8 @@ a.team-card-float:focus-visible {
   opacity: 1;
   filter: blur(0px);
   transition:
-    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 4.7s,
-    filter 0.9s cubic-bezier(0.16, 1, 0.3, 1) 4.7s;
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) 3.1s,
+    filter 0.7s cubic-bezier(0.16, 1, 0.3, 1) 3.1s;
 }
 .rev-ul {
   position: relative;
@@ -5851,7 +5851,7 @@ a.team-card-float:focus-visible {
 }
 .loaded .rev-ul::after {
   transform: scaleX(1);
-  transition: transform 0.9s var(--ease) 5.1s;
+  transition: transform 0.7s var(--ease) 3.3s;
 }
 .hero-inline-cta {
   opacity: 1;
@@ -5865,8 +5865,8 @@ a.team-card-float:focus-visible {
   opacity: 1;
   filter: blur(0px);
   transition:
-    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s),
-    filter 0.8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s);
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s),
+    filter 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s);
 }
 @media (prefers-reduced-motion: reduce) {
   .strike::after,

@@ -24,6 +24,7 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
         <div className="flex items-center justify-between border-b border-border-glass px-4 py-2">
           <span className="text-xs text-white-muted font-mono">{title || language}</span>
           <button
+            type="button"
             onClick={handleCopy}
             className="flex items-center gap-1 text-xs text-white-muted hover:text-white-primary transition-colors"
           >

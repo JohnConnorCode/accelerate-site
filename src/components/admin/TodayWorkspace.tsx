@@ -438,6 +438,7 @@ export function TodayWorkspace() {
                     data-source-id={item.sourceId}
                   >
                     <button
+                      type="button"
                       className={styles.rowMain}
                       onClick={() => inspect(item)}
                       aria-label={"Open " + item.title}
@@ -542,6 +543,7 @@ export function TodayWorkspace() {
               <p className={styles.muted}>{entry.explanation}</p>
               {entry.sourceIds.map((id) => (
                 <button
+                  type="button"
                   key={id}
                   className={styles.textLink}
                   onClick={() => {
@@ -724,6 +726,7 @@ export function TodayWorkspace() {
             {["What should I focus on?", "Prepare a follow-up", "What changed recently?"].map(
               (prompt) => (
                 <button
+                  type="button"
                   key={prompt}
                   className={"admin-button admin-button--secondary"}
                   onClick={() => ask(prompt)}
@@ -743,6 +746,7 @@ export function TodayWorkspace() {
         <div className={styles.notice}>
           <span>Classic Today is enabled for this workspace.</span>
           <button
+            type="button"
             className={"admin-button admin-button--secondary"}
             onClick={() =>
               void mutate(
@@ -769,6 +773,7 @@ export function TodayWorkspace() {
         compact
         utilityActions={
           <button
+            type="button"
             className={"admin-icon-button"}
             aria-label="Refresh Today"
             disabled={query.isFetching}
@@ -800,6 +805,7 @@ export function TodayWorkspace() {
               )}
             </select>
             <button
+              type="button"
               className={"admin-button admin-button--secondary"}
               disabled={!viewsQuery.data}
               onClick={() => customize()}
@@ -861,6 +867,7 @@ export function TodayWorkspace() {
         <div className={styles.error} role="alert">
           {error || query.error?.message || viewsQuery.error?.message}{" "}
           <button
+            type="button"
             className={styles.textLink}
             onClick={() => {
               setError("");
@@ -876,6 +883,7 @@ export function TodayWorkspace() {
         <div className={styles.notice} role="status">
           <span>{notice}</span>
           <button
+            type="button"
             className={"admin-icon-button"}
             aria-label="Dismiss notice"
             onClick={() => setNotice("")}
@@ -888,6 +896,7 @@ export function TodayWorkspace() {
         <div className={styles.notice}>
           <span>New context is available. Your current work is held in place.</span>
           <button
+            type="button"
             className={"admin-button admin-button--secondary"}
             disabled={editing}
             onClick={() => setSnapshot(query.data!)}
@@ -904,6 +913,7 @@ export function TodayWorkspace() {
               : "Showing the requested focus."}
           </span>
           <button
+            type="button"
             className={styles.textLink}
             onClick={() => {
               setAllAttention(false);
@@ -923,6 +933,7 @@ export function TodayWorkspace() {
         {snapshot && (
           <div
             className={styles.moduleFlow}
+            data-today-content-stack
             onPointerEnter={() => setInteracting(true)}
             onPointerLeave={() => setInteracting(false)}
             onFocusCapture={() => setInteracting(true)}
@@ -946,7 +957,12 @@ export function TodayWorkspace() {
                   {Array.from(new Set(group.map((instance) => instance.width))).map((width) => {
                     const modules = group.filter((module) => module.width === width);
                     return modules.length ? (
-                      <div key={width} data-width={width} className={styles.moduleFlow}>
+                      <div
+                        key={width}
+                        data-width={width}
+                        className={styles.moduleFlow}
+                        data-today-content-stack
+                      >
                         {modules.map((module) => (
                           <div key={module.id}>{moduleContent(module)}</div>
                         ))}
@@ -964,6 +980,7 @@ export function TodayWorkspace() {
           <div className={styles.toolbarGroup}>
             {preferences.muted.length > 0 && (
               <button
+                type="button"
                 className={styles.textLink}
                 onClick={() =>
                   void mutate(
@@ -1004,6 +1021,7 @@ export function TodayWorkspace() {
               <div className={styles.toolbarGroup}>
                 <span className={"admin-eyebrow"}>{selected.sourceType.replaceAll("_", " ")}</span>
                 <button
+                  type="button"
                   className={cn("admin-icon-button", "ml-auto")}
                   aria-label="Close work context"
                   onClick={() => setInspectorOpen(false)}
@@ -1037,6 +1055,7 @@ export function TodayWorkspace() {
                     )
                     .map((item) => (
                       <button
+                        type="button"
                         key={item.id}
                         className={styles.textLink}
                         onClick={() => setSelected(item)}
@@ -1054,6 +1073,7 @@ export function TodayWorkspace() {
               <div className={styles.inspectorActions}>
                 {selected.attentionKind === "decision" && (
                   <button
+                    type="button"
                     className={"admin-button admin-button--primary"}
                     onClick={() => review(selected)}
                   >
@@ -1062,6 +1082,7 @@ export function TodayWorkspace() {
                 )}
                 {selected.sourceType === "task" && (
                   <button
+                    type="button"
                     className={"admin-button admin-button--primary"}
                     disabled={busy}
                     onClick={() =>
@@ -1079,6 +1100,7 @@ export function TodayWorkspace() {
                   </button>
                 )}
                 <button
+                  type="button"
                   className={"admin-button admin-button--secondary"}
                   onClick={() =>
                     ask(
@@ -1089,6 +1111,7 @@ export function TodayWorkspace() {
                   <Sparkles size={14} /> Prepare next step
                 </button>
                 <button
+                  type="button"
                   className={"admin-button admin-button--secondary"}
                   disabled={busy || !viewsQuery.data}
                   onClick={() =>
@@ -1109,6 +1132,7 @@ export function TodayWorkspace() {
                 </button>
                 {selected.attentionKind === "watch" && (
                   <button
+                    type="button"
                     className={"admin-button admin-button--secondary"}
                     disabled={busy || !viewsQuery.data}
                     onClick={() =>
@@ -1143,6 +1167,7 @@ export function TodayWorkspace() {
                     />
                   </label>
                   <button
+                    type="button"
                     className={styles.textLink}
                     disabled={busy || !snoozeDate}
                     onClick={() =>
@@ -1179,6 +1204,7 @@ export function TodayWorkspace() {
           {fact && (
             <>
               <button
+                type="button"
                 className={"admin-icon-button"}
                 aria-label="Close business context"
                 onClick={() => setFactOpen(false)}
@@ -1198,6 +1224,7 @@ export function TodayWorkspace() {
                 </Link>
               </div>
               <button
+                type="button"
                 className={"admin-button admin-button--primary"}
                 onClick={() =>
                   ask(
@@ -1249,12 +1276,14 @@ export function TodayWorkspace() {
           </p>
           <div className={cn(styles.toolbarGroup, "mt-5")}>
             <button
+              type="button"
               className={"admin-button admin-button--secondary"}
               onClick={() => setConfirmDelete(false)}
             >
               Cancel
             </button>
             <button
+              type="button"
               className={"admin-button admin-button--primary"}
               disabled={busy}
               onClick={() =>
