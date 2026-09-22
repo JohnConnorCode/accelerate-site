@@ -192,7 +192,7 @@ Run the Command Center yourself: what you need, how to start, and when to bring 
 
 - [Self-hosting quickstart](https://www.acceleratewith.us/docs/self-hosting/overview) (updated 2026-09-19): Explore the real interface with zero credentials, then connect a workspace you control.
 - [Founder authority and tenant membership](https://www.acceleratewith.us/docs/self-hosting/permissions) (updated 2026-09-20): Platform administration is the ADMIN_EMAIL identity; tenant operators need an active membership in an active workspace.
-- [Recover a failing workspace](https://www.acceleratewith.us/docs/self-hosting/recovery) (updated 2026-09-20): Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims.
+- [Recover a failing workspace](https://www.acceleratewith.us/docs/self-hosting/recovery) (updated 2026-09-21): Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims.
 - [Connect your installation](https://www.acceleratewith.us/docs/self-hosting/installation) (updated 2026-09-21): Create the owner account, apply the ordered schema, and sign in to a workspace you control.
 
 - [Documentation landing](https://www.acceleratewith.us/docs): all guides.

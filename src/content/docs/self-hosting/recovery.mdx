@@ -1,7 +1,7 @@
 ---
 title: "Recover a failing workspace"
 description: "Bounded local commands and the matching operator screens for schema, health, stalled jobs, scheduler, and expired board claims."
-updated: "2026-09-20"
+updated: "2026-09-21"
 ---
 
 **You need:** the checkout, a `.env.local` that points at a Supabase project **you control**, and PostgreSQL client tools for migration commands. Inspect the project ref and database host each command prints before continuing. Do not run mutating verify scripts against a customer production database.
@@ -15,6 +15,10 @@ updated: "2026-09-20"
   height={1000}
   caption="Setup Center in the fictional Northline Roofing workspace: every required check connected and verified. Fictional demo data."
 />
+
+## Recover sign-in access
+
+On the sign-in screen, choose **Forgot password?**, enter the configured admin email, and choose **Send reset link**. Open the recovery message to continue. If the link has expired, request a new one from the same screen. **Back to sign in** returns you to the email and password fields.
 
 ## Diagnose on the operator screens
 
