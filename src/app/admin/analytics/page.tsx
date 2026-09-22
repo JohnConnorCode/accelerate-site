@@ -161,7 +161,7 @@ function FilterSelect({
         aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="admin-field min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold text-[var(--admin-ink)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10 sm:w-auto"
+        className="admin-field sm:w-auto"
       >
         <option value="all">{label}: All</option>
         {options.map((option) => (

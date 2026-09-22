@@ -1,10 +1,23 @@
 /** One resource-gated job owns its dev server and browser, and closes both. */
 import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
+const production = process.env.QA_PRODUCTION === "1";
 const port = process.env.ADMIN_POLISH_PORT || "3045";
 const server = spawn(
   process.execPath,
-  ["node_modules/next/dist/bin/next", "dev", "--webpack", "-p", port],
-  { stdio: ["ignore", "pipe", "pipe"], env: process.env },
+  production
+    ? ["node_modules/next/dist/bin/next", "start", "-p", port]
+    : ["node_modules/next/dist/bin/next", "dev", "--webpack", "-p", port],
+  {
+    stdio: ["ignore", "pipe", "pipe"],
+    env: production
+      ? {
+          ...process.env,
+          NEXT_DEPLOYMENT_ID: JSON.parse(readFileSync(".next/required-server-files.json", "utf8"))
+            .config.deploymentId,
+        }
+      : process.env,
+  },
 );
 let ready;
 const started = new Promise((resolve, reject) => {
@@ -23,6 +36,7 @@ try {
   const focus = process.env.QA_FOCUS;
   for (const [name, file] of [
     ["themes", "./qa-admin-polish.mjs"],
+    ["controls", "./qa-shared-workspace-controls.mjs"],
     ["interactions", "./qa-admin-polish-interactions.mjs"],
     ["touch", "./qa-admin-polish-touch.mjs"],
     ["editor", "./qa-admin-polish-theme-editor.mjs"],

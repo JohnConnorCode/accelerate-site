@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "shared-workspace-controls",
+    slug: "shared-workspace-controls",
+    title: "Consistent workspace fields and clearer recovery",
+    description:
+      "Clients, Analytics, Campaigns, Integrations and Proposals share themed field styling. Setup readiness stays readable across appearances, compact custom themes keep usable controls, and contact relationship errors offer a retry instead of showing an empty record.",
+    category: "improvement",
+    publishedAt: "2026-09-21",
+  },
+  {
     id: "shared-request-protection",
     slug: "shared-request-protection",
     title: "Consistent request protection across server instances",

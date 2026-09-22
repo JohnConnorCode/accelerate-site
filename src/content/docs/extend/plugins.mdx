@@ -44,3 +44,16 @@ checks cannot establish that the guide is accurate. See the
 for a business workspace and the
 [Radar guide](/docs/intelligence/opportunity-radar)
 for its daily review workspace, source-backed relationship context, model budgets and current release limits.
+
+## Consistent workspace interfaces
+
+Plugin screens should inherit the workspace appearance through the shared admin
+components and field styles. Use `AdminButton`, `AdminSurface`, `AdminTable`,
+`AdminDialog`, `AdminStatusMessage` and `admin-field` instead of copying control
+colors, corners or focus treatments. Keep labels, error recovery and keyboard
+behavior consistent with the core workspace. Read-only views use `useAdminQuery`
+and `AdminReadBody` so loading, retry and cached data follow the same lifecycle.
+
+Theme choices change presentation without changing permissions or business
+behavior. Verify plugin screens in light and dark themes, at mobile and desktop
+widths, and with keyboard and reduced-motion preferences before release.

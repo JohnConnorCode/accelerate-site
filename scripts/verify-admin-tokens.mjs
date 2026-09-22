@@ -222,6 +222,28 @@ for (const file of adminFiles) {
     }
   }
 }
+// Migrated consumers must keep control appearance in the shared owner.
+const sharedFieldConsumers = new Set([
+  "src/app/admin/clients/page.tsx",
+  "src/app/admin/analytics/page.tsx",
+  "src/app/admin/campaigns/page.tsx",
+  "src/app/admin/integrations/page.tsx",
+  "src/app/admin/proposals/page.tsx",
+]);
+for (const file of adminFiles) {
+  const relPath = "src/" + relative(root, file).replace(/\\/g, "/");
+  if (!sharedFieldConsumers.has(relPath)) continue;
+  for (const match of readFileSync(file, "utf8").matchAll(/className="(admin-field[^"\n]*)"/g)) {
+    if (
+      /(?:^|\s)(?:rounded-|bg-|border|shadow-|focus:|focus-visible:|min-h-|outline-|text-)/.test(
+        match[1],
+      )
+    )
+      recipeFailures.push(
+        `${relPath} overrides shared field appearance. Add a variant in admin-components.css instead.`,
+      );
+  }
+}
 if (recipeFailures.length) throw new Error(recipeFailures.join("\n"));
 
 console.log("Admin control recipe ban passed: no duplicated button or field recipes.");

@@ -597,11 +597,7 @@ export default function CampaignsPage() {
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <label className="text-xs font-semibold text-[var(--admin-ink)]">
                 Campaign name
-                <input
-                  name="name"
-                  required
-                  className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
-                />
+                <input name="name" required className="admin-field mt-1.5" />
               </label>
               <label className="text-xs font-semibold text-[var(--admin-ink)]">
                 Sender email
@@ -610,7 +606,7 @@ export default function CampaignsPage() {
                   type="email"
                   defaultValue={tenant.founder.email}
                   required
-                  className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-1.5"
                 />
               </label>
               <label className="text-xs font-semibold text-[var(--admin-ink)]">
@@ -622,7 +618,7 @@ export default function CampaignsPage() {
                   max="200"
                   defaultValue="25"
                   required
-                  className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-1.5"
                 />
               </label>
               <label className="text-xs font-semibold text-[var(--admin-ink)]">
@@ -633,7 +629,7 @@ export default function CampaignsPage() {
                   min="1"
                   max="60"
                   defaultValue="3"
-                  className="admin-field mt-1.5 min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 text-sm font-normal outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-1.5"
                 />
               </label>
             </div>
@@ -643,7 +639,7 @@ export default function CampaignsPage() {
                 name="recipients"
                 rows={4}
                 placeholder="one@example.com&#10;two@example.com"
-                className="admin-field mt-1.5 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] px-3.5 py-3 font-mono text-xs font-normal outline-none focus:border-[var(--admin-ink)]"
+                className="admin-field mt-1.5 font-mono"
               />
             </label>
             <div className="mt-5 rounded-2xl bg-black/[0.025] p-2 dark:bg-white/[0.025]">
@@ -653,14 +649,14 @@ export default function CampaignsPage() {
                   name="subject1"
                   required
                   placeholder="Subject (supports {{first_name}} and {{company}})"
-                  className="admin-field mt-2 min-h-11 w-full rounded-xl border border-[var(--admin-border)] px-3.5 text-sm outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-2"
                 />
                 <textarea
                   name="body1"
                   required
                   rows={5}
                   placeholder="Personalized message"
-                  className="admin-field mt-2 w-full rounded-xl border border-[var(--admin-border)] px-3.5 py-3 text-sm leading-6 outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-2"
                 />
               </div>
             </div>
@@ -670,16 +666,12 @@ export default function CampaignsPage() {
                 <ChevronDown className="size-4 transition-transform duration-150 group-open:rotate-180" />
               </summary>
               <div className="border-t border-[var(--admin-border)] p-4">
-                <input
-                  name="subject2"
-                  placeholder="Follow-up subject"
-                  className="admin-field min-h-11 w-full rounded-xl border border-[var(--admin-border)] px-3.5 text-sm outline-none focus:border-[var(--admin-ink)]"
-                />
+                <input name="subject2" placeholder="Follow-up subject" className="admin-field" />
                 <textarea
                   name="body2"
                   rows={4}
                   placeholder="Follow-up body"
-                  className="admin-field mt-2 w-full rounded-xl border border-[var(--admin-border)] px-3.5 py-3 text-sm leading-6 outline-none focus:border-[var(--admin-ink)]"
+                  className="admin-field mt-2"
                 />
               </div>
             </details>

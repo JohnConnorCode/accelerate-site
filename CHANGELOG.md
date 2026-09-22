@@ -6,6 +6,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ## [Unreleased]
 
+- Shared themed fields now govern Clients, Analytics, Campaigns, Integrations and Proposals; compact custom themes retain usable targets. Setup readiness inherits readable theme colors, and contact relationship failures offer retry instead of appearing empty.
+
 ### Fixed
 
 - Sign-in and password-reset labels now identify and focus their fields for screen-reader and keyboard users.
