@@ -68,6 +68,7 @@ export default function WorkPage() {
       (!source || t.source === source) &&
       `${t.title} ${t.related_name ?? ""}`.toLowerCase().includes(search.toLowerCase()),
   );
+  const filtersChanged = owner !== "team" || status !== "pending" || Boolean(source || search);
   const requestedTask = params.get("task");
   const loadedTaskRef = useRef<string | null>(null);
   const selectedTaskQuery = useAdminQuery<{ tasks: TaskRow[] }>(
@@ -207,64 +208,107 @@ export default function WorkPage() {
       )}
       {tab === "tasks" ? (
         <>
-          <div className="flex flex-wrap gap-2" aria-label="Task filters">
-            <label className="sr-only" htmlFor="work-owner">
-              Ownership
-            </label>
-            <select
-              id="work-owner"
-              value={owner}
-              onChange={(e) => setOwner(e.target.value)}
-              className={control}
-            >
-              <option value="team">Team work</option>
-              <option value="me">My work</option>
-              <option value="unassigned">Unassigned</option>
-            </select>
-            <label className="sr-only" htmlFor="work-status">
-              Task status
-            </label>
-            <select
-              id="work-status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className={control}
-            >
-              <option value="pending">Open</option>
-              <option value="snoozed">Snoozed</option>
-              <option value="completed">Completed</option>
-              <option value="all">All statuses</option>
-            </select>
-            <label className="sr-only" htmlFor="work-source">
-              App or source
-            </label>
-            <select
-              id="work-source"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              className={control}
-            >
-              <option value="">All sources</option>
-              {Array.from(
-                new Set(tasks.map((t) => t.source).filter((s): s is string => Boolean(s))),
-              ).map((value) => (
-                <option key={value} value={value}>
-                  {value.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-            <label className="sr-only" htmlFor="work-search">
-              Find a task or related record
-            </label>
-            <input
-              id="work-search"
-              placeholder="Find a task or related record"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className={cn(control, "min-w-0 flex-1")}
-            />
+          <div
+            className="admin-toolbar admin-toolbar--filters"
+            role="search"
+            aria-label="Task filters"
+          >
+            <div className="admin-toolbar-field">
+              <label className="admin-field-label" htmlFor="work-owner">
+                Ownership
+              </label>
+              <select
+                id="work-owner"
+                value={owner}
+                onChange={(e) => setOwner(e.target.value)}
+                className={control}
+              >
+                <option value="team">Team work</option>
+                <option value="me">My work</option>
+                <option value="unassigned">Unassigned</option>
+              </select>
+            </div>
+            <div className="admin-toolbar-field">
+              <label className="admin-field-label" htmlFor="work-status">
+                Task status
+              </label>
+              <select
+                id="work-status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className={control}
+              >
+                <option value="pending">Open</option>
+                <option value="snoozed">Snoozed</option>
+                <option value="completed">Completed</option>
+                <option value="all">All statuses</option>
+              </select>
+            </div>
+            <div className="admin-toolbar-field">
+              <label className="admin-field-label" htmlFor="work-source">
+                App or source
+              </label>
+              <select
+                id="work-source"
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                className={control}
+              >
+                <option value="">All sources</option>
+                {Array.from(
+                  new Set(tasks.map((t) => t.source).filter((s): s is string => Boolean(s))),
+                ).map((value) => (
+                  <option key={value} value={value}>
+                    {value.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="admin-toolbar-field admin-toolbar-search">
+              <label className="admin-field-label" htmlFor="work-search">
+                Search tasks
+              </label>
+              <input
+                id="work-search"
+                placeholder="Find a task or related record"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className={control}
+              />
+            </div>
+          </div>
+          <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 text-sm">
+            <p role="status" className="text-[var(--admin-muted)]">
+              {tasksQuery.isPending
+                ? "Loading tasks…"
+                : `${visible.length} ${visible.length === 1 ? "task" : "tasks"} shown`}
+              {tasksQuery.isFetching && !tasksQuery.isPending ? " · Updating…" : ""}
+            </p>
+            {filtersChanged && (
+              <button
+                type="button"
+                className="admin-button admin-button-secondary"
+                onClick={() => {
+                  setOwner("team");
+                  setStatus("pending");
+                  setSource("");
+                  setSearch("");
+                }}
+              >
+                Reset filters
+              </button>
+            )}
           </div>
           <AdminSurface padding="none" elevation="flat">
+            <div className="admin-work-heading" aria-hidden="true">
+              <div className="admin-work-columns">
+                <span>Task</span>
+                <span>Related record</span>
+                <span>Due</span>
+                <span>Priority</span>
+              </div>
+              <span>Action</span>
+            </div>
             <ul>
               {visible.map((row) => (
                 <li key={row.id} data-source-type="task" data-source-id={row.id}>
@@ -278,19 +322,46 @@ export default function WorkPage() {
                           disabled={busy}
                           onClick={() => void mutateTask(row, true)}
                           aria-label={`Complete ${row.title}`}
-                          className="grid size-11 place-items-center rounded-lg text-[var(--admin-success)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
+                          className="admin-work-complete inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-[var(--admin-ink)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
                         >
-                          <CheckCircle2 className="size-4" />
+                          <CheckCircle2 className="size-4" aria-hidden="true" />
+                          <span className="admin-work-action-label">Complete</span>
                         </button>
-                      ) : undefined
+                      ) : (
+                        <span className="admin-work-complete text-xs text-[var(--admin-muted)]">
+                          Completed
+                        </span>
+                      )
                     }
                   >
-                    <span className="block text-sm font-semibold text-[var(--admin-ink)]">
-                      {row.title}
-                    </span>
-                    <span className="mt-1 block text-xs text-[var(--admin-muted)]">
-                      {relativeTime(row.due_date)} · {row.status}
-                      {row.related_name ? ` · ${row.related_name}` : ""}
+                    <span className="admin-work-columns">
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-[var(--admin-ink)]">
+                          {row.title}
+                        </span>
+                        <span className="mt-1 block text-xs capitalize text-[var(--admin-muted)]">
+                          {row.status === "pending" ? "Open" : row.status}
+                          {row.source ? ` · ${row.source.replaceAll("_", " ")}` : ""}
+                        </span>
+                      </span>
+                      <span className="admin-work-related text-sm text-[var(--admin-muted)]">
+                        {row.related_name || "No related record"}
+                      </span>
+                      <span
+                        className={cn(
+                          "text-sm tabular-nums",
+                          row.status !== "completed" &&
+                            relativeTime(row.due_date).includes("overdue")
+                            ? "font-medium text-[var(--admin-danger)]"
+                            : "text-[var(--admin-muted)]",
+                        )}
+                      >
+                        {relativeTime(row.due_date)}
+                      </span>
+                      <span className="text-xs font-medium capitalize text-[var(--admin-ink)]">
+                        <span className="admin-work-mobile-label">Priority: </span>
+                        {row.priority === "normal" ? "medium" : row.priority}
+                      </span>
                     </span>
                   </AdminRecordRow>
                 </li>

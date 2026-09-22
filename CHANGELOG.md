@@ -8,6 +8,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Tasks & approvals now uses a compact desktop filter toolbar, aligned task metadata, visible completion labels, and filter reset with a result count. Small screens retain readable stacked controls. Pipeline groups standard/saved views, preserves active-filter summaries and moves view management into a labeled disclosure.
+
 - Sign-in and password-reset labels now identify and focus their fields for screen-reader and keyboard users.
 
 - Shared admin error recovery no longer claims a failed screen made no changes or displays raw exception text. The public error page uses a single accessible home link instead of nested interactive controls.

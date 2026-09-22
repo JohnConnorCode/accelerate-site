@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "work-desktop-layout",
+    slug: "work-desktop-layout",
+    title: "Clearer task and pipeline workspaces",
+    description:
+      "Tasks & approvals uses a compact filter toolbar on wide screens, with aligned related records, due dates and priorities. Overdue dates stand out, completion actions have visible labels, and a result count and Reset filters make filtered views easier to navigate. Smaller screens retain the same details in a stacked layout. Pipeline keeps standard and saved views in one selector, stage and owner filters in an expandable panel, and customization tools under View options. Active filters stay visible in the result summary.",
+    category: "improvement",
+    publishedAt: "2026-09-21",
+  },
+  {
     id: "shared-request-protection",
     slug: "shared-request-protection",
     title: "Consistent request protection across server instances",

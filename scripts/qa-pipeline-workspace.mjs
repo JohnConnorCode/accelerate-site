@@ -191,21 +191,24 @@ await desktop.page.getByLabel("Canonical opportunity stage board").waitFor();
 await desktop.page.getByRole("heading", { name: "New", exact: true }).waitFor();
 await desktop.page.getByRole("heading", { name: "Negotiation", exact: true }).waitFor();
 await desktop.page.getByText("Acme Industrial automation program", { exact: true }).waitFor();
-await desktop.page.getByRole("button", { name: /At risk/ }).click();
+await desktop.page.getByLabel("View", { exact: true }).selectOption("at-risk");
 if ((await desktop.page.locator("[data-opportunity-id]").count()) < 1)
   throw new Error("At-risk operator view did not surface quiet opportunities");
-await desktop.page.getByRole("button", { name: /^All\s/ }).click();
+await desktop.page.getByLabel("View", { exact: true }).selectOption("all");
+await desktop.page.getByRole("button", { name: /^Filters/ }).click();
 await desktop.page.getByLabel("Filter by owner").selectOption("founder@acceleratewith.us");
 if ((await desktop.page.locator("[data-opportunity-id]").count()) !== 13)
   throw new Error("Owner view did not narrow to founder-owned opportunities");
 await desktop.page.getByLabel("Filter by owner").selectOption("all");
+await desktop.page.getByText("View options", { exact: true }).click();
 await desktop.page.getByRole("button", { name: "Customize" }).click();
 await desktop.page.getByRole("button", { name: "Owner" }).click();
 await desktop.page.getByRole("button", { name: "Done" }).click();
 await desktop.page.getByRole("button", { name: "Save view" }).click();
 await desktop.page.getByLabel("View name").fill("Founder review");
 await desktop.page.getByRole("button", { name: "Save view", exact: true }).last().click();
-await desktop.page.getByRole("button", { name: "Founder review", exact: true }).waitFor();
+if (!(await desktop.page.getByLabel("View", { exact: true }).inputValue()).startsWith("saved:"))
+  throw new Error("Saved view was not selected");
 await desktop.page.screenshot({ path: `${outDir}/pipeline-stage-board-desktop.png` });
 
 await desktop.page.getByPlaceholder("Search company, person, or email").fill("Acme Industrial");
@@ -240,7 +243,8 @@ await desktop.page.getByRole("button", { name: "List view" }).click();
 await desktop.page.getByRole("columnheader", { name: "Opportunity" }).waitFor();
 await desktop.page.reload({ waitUntil: "domcontentloaded" });
 await desktop.page.getByRole("columnheader", { name: "Opportunity" }).waitFor();
-await desktop.page.getByRole("button", { name: "Founder review", exact: true }).waitFor();
+if (!(await desktop.page.getByLabel("View", { exact: true }).inputValue()).startsWith("saved:"))
+  throw new Error("Saved view was not selected");
 await desktop.page.getByRole("button", { name: "Board view" }).click();
 
 await desktop.page.goto(`${base}/admin/pipeline?opportunity=opp-5`, {
