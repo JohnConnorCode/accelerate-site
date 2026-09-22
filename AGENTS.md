@@ -105,8 +105,10 @@ Use `agent:status`, `agent:heartbeat -- --card <key>`, and
 for review. It preserves the worktree. Completion, review, merge, cleanup and
 production deployment are separate facts/actions. Keep claim session files
 private and use the emitted `--attempt` when running lifecycle commands outside
-its worker checkout. Progress records a source checkpoint; add newly created source
-paths explicitly with `agent:checkpoint -- --checkpoint-file <path.json>`.
+its worker checkout. Progress records tracked changes plus safe unfinished source
+under the checkpoint policy; add a newly created source path explicitly with
+`agent:checkpoint -- --checkpoint-file <path.json>` only when it falls outside the
+automatic code/documentation roots.
 Renew within the 30-minute lease. For a bounded verification command, use the
 emitted `agent:run` wrapper, which renews every five minutes while that job runs.
 With compatible schema and the project's recovery policy enabled, `agent:go`

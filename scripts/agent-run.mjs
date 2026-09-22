@@ -104,8 +104,9 @@ const lifecycle = (operation, extra = []) =>
     });
   });
 const heartbeat = async () => Boolean(await lifecycle("heartbeat"));
-// Progress checkpoints current tracked source through the same canonical dispatcher.
-// Explicit new files should be added in the checkpoint command emitted by pickup.
+// Progress checkpoints tracked source and safe unfinished source through the same
+// canonical dispatcher. Explicit paths remain available for source outside the
+// automatic roots emitted by the checkpoint contract.
 const saved = await lifecycle("progress", [
   "--message",
   "Source preserved before bounded verification; acceptance remains unverified.",

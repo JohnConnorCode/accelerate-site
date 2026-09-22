@@ -298,6 +298,7 @@
     "verify:agent-entrypoints": "node scripts/verify-agent-entrypoints.mjs",
     "test:agent-go": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-go.ts",
     "test:agent-task-context": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-task-context.ts",
+    "test:agent-workflow-friction": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-workflow-friction.ts && npm run test:agent-task-context && npm run test:agent-checkpoint",
     "test:local-work-board": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-local-work-board.ts",
     "test:drive-content-indexing": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-drive-content-indexing.ts",
     "test:site-studio": "NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-studio-v1.ts && NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-site-studio-database-store.ts && tsx scripts/test-website-document.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-website-store.ts && NEXT_PUBLIC_DISTRIBUTION_PROFILE=branded tsx scripts/test-website-renderer.tsx && tsx scripts/test-website-demo.ts && tsx scripts/test-website-authoring.ts && NODE_OPTIONS=--conditions=react-server tsx scripts/test-site-model-catalog.ts",

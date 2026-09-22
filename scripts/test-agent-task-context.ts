@@ -26,6 +26,7 @@ const card = {
     acceptance: [{ id: "AC1", criterion: "Required outcome" }],
     references: [{ path: "owner.ts", reason: "Shared owner" }],
   },
+  work_attempt_id: "11111111-1111-4111-8111-111111111111",
   notes: "x".repeat(100000),
   work_delivery: { checks: "x".repeat(100000) },
 };
@@ -33,6 +34,10 @@ assert(JSON.stringify(receipt(card)).length < 300);
 assert(!JSON.stringify(receipt(card)).includes("acceptance"));
 assert.deepEqual(taskPacket(card).contract, card.work_spec);
 assert.equal(taskPacket(card).notes, card.notes, "Focused packets must retain authoritative notes");
+assert.equal(
+  taskPacket(card).leaseSafeRun,
+  "npm run agent:run -- --card chosen --attempt 11111111-1111-4111-8111-111111111111 -- <command> [args]",
+);
 assert.equal(
   taskPacket({ ...card, work_spec: {}, acceptance_criteria: "Legacy requirement" })
     .legacyAcceptance,

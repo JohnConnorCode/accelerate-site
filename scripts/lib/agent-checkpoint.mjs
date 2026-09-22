@@ -92,6 +92,32 @@ function safePath(root, file) {
   }
   return file;
 }
+function autoCheckpointPath(file) {
+  const parts = file.split("/");
+  const name = parts.at(-1) ?? "";
+  const rootFile = parts.length === 1;
+  const allowedRoots = new Set([
+    "app",
+    "components",
+    "docs",
+    "lib",
+    "migrations",
+    "pages",
+    "public",
+    "scripts",
+    "src",
+    "supabase",
+    "test",
+    "tests",
+  ]);
+  const allowedRootFiles =
+    /^(?:middleware|next\.config|package|pnpm-lock|yarn\.lock|npm-shrinkwrap|tsconfig|eslint|prettier|README)(?:\.|$)/i;
+  if (/^(?:NORTHSTAR-BUILD-PLAN|.*(?:^|[-_.])generated(?:[-_.]|$)).*$/i.test(name)) return false;
+  return (
+    (rootFile ? allowedRootFiles.test(parts[0]) : allowedRoots.has(parts[0])) &&
+    !parts.some((part) => part.startsWith("."))
+  );
+}
 function list(root, args) {
   return execFileSync("git", args, {
     cwd: root,
@@ -103,7 +129,13 @@ function list(root, args) {
 }
 
 /** Snapshot unfinished source without changing HEAD, the user's index, or working files. */
-export function createCheckpoint(cwd, card, attemptId, input = {}, { publish = true } = {}) {
+export function createCheckpoint(
+  cwd,
+  card,
+  attemptId,
+  input = {},
+  { publish = true, includeSafeUntracked = false } = {},
+) {
   const { root } = repositoryContext(cwd);
   uuid(card.id);
   uuid(attemptId);
@@ -115,8 +147,18 @@ export function createCheckpoint(cwd, card, attemptId, input = {}, { publish = t
   const explicit = (input.files ?? []).map((file) => safePath(root, file));
   const dirty = list(root, ["diff", "--name-only", "-z", "HEAD"]);
   dirty.forEach((file) => safePath(root, file));
-  const omittedUntracked = list(root, ["ls-files", "--others", "--exclude-standard", "-z"]).filter(
-    (file) => !explicit.includes(file),
+  const untracked = list(root, ["ls-files", "--others", "--exclude-standard", "-z"]);
+  const auto = includeSafeUntracked
+    ? untracked.filter((file) => {
+        try {
+          return autoCheckpointPath(file) && Boolean(safePath(root, file));
+        } catch {
+          return false;
+        }
+      })
+    : [];
+  const omittedUntracked = untracked.filter(
+    (file) => !explicit.includes(file) && !auto.includes(file),
   );
   const temporary = mkdtempSync(resolve(tmpdir(), "agent-checkpoint-"));
   // Checkpoints are automated, unverified snapshots, not the worker's final commits.
@@ -146,7 +188,7 @@ export function createCheckpoint(cwd, card, attemptId, input = {}, { publish = t
   const branch = `agent/checkpoints/${card.id}/${attemptId}/${randomUUID()}`;
   try {
     run(["read-tree", "HEAD"]);
-    const files = [...new Set([...dirty, ...explicit])];
+    const files = [...new Set([...dirty, ...explicit, ...auto])];
     if (files.length) run(["--literal-pathspecs", "add", "-A", "--", ...files]);
     const commitSha = run([
       "commit-tree",

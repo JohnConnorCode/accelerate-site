@@ -386,13 +386,14 @@ async function main() {
           card,
           card.work_attempt_id ?? retainedSession?.attemptId ?? randomUUID(),
           input,
+          { includeSafeUntracked: true },
         );
         if (saved.omittedUntracked.length)
           console.error(
             JSON.stringify({
               retainedUntracked: saved.omittedUntracked,
               message:
-                "New files remain in the predecessor. Include required source explicitly with --checkpoint-file.",
+                "Some untracked files were excluded by checkpoint policy; inspect them before handoff and include a safe source path explicitly when needed.",
             }),
           );
         explicitPlan = prepareSuccessor(
@@ -690,6 +691,7 @@ async function main() {
         card,
         session.attemptId ?? session.requestKey,
         input,
+        { includeSafeUntracked: true },
       );
       payload.checkpoint = result.checkpoint;
       if (result.omittedUntracked.length)
