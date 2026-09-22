@@ -5831,8 +5831,8 @@ a.team-card-float:focus-visible {
   opacity: 1;
   filter: blur(0px);
   transition:
-    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) 3.1s,
-    filter 0.7s cubic-bezier(0.16, 1, 0.3, 1) 3.1s;
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 4.7s,
+    filter 0.9s cubic-bezier(0.16, 1, 0.3, 1) 4.7s;
 }
 .rev-ul {
   position: relative;
@@ -5851,7 +5851,7 @@ a.team-card-float:focus-visible {
 }
 .loaded .rev-ul::after {
   transform: scaleX(1);
-  transition: transform 0.7s var(--ease) 3.3s;
+  transition: transform 0.9s var(--ease) 5.1s;
 }
 .hero-inline-cta {
   opacity: 1;

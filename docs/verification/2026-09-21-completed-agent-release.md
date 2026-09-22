@@ -19,6 +19,8 @@ The proxy rename retains the current neutral-distribution, demo, authentication 
 
 The broad Content Security Policy stays in the published reporting mode: the proposed enforced allowlist did not cover custom Supabase or connector origins. Existing frame restrictions remain enforced. Global enforcement is excluded from this release until origin compatibility is verified.
 
+The established hero sequence is retained: the interaction branch accelerated its final beats without updating the shared choreography contract. Production Webpack caching is disabled to avoid retaining compiler cache within the bounded release job; the build worker and all type checks remain enabled.
+
 The public Workspace guide, Command Center capabilities/FAQ, product changelog and repository changelog describe the current behavior. Installation remains conditional on a configured dedicated app origin. Live activation must be reported separately from code availability. No new schema or provider effects are introduced.
 
 ## Verification and delivery

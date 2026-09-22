@@ -25,11 +25,18 @@ const nextConfig: NextConfig = {
     cpus: 1,
     // Reduce retained compiler memory before Next's required TypeScript pass.
     webpackMemoryOptimizations: true,
+    webpackBuildWorker: true,
     // Next 16 auto-enables the runtime deployment-id override inside Vercel's
     // builder. That replaces the documented custom prebuilt id with Vercel's
     // reserved dpl_ id at runtime and produces two bootstrap identities. Keep
     // the build-time custom id serialized into the server output instead.
     runtimeServerDeploymentId: false,
+  },
+
+  // Production cache retention exceeds the bounded release builder’s memory budget.
+  webpack(config, { dev }) {
+    if (!dev) config.cache = false;
+    return config;
   },
 
   // Ensure clean URLs without trailing slashes
