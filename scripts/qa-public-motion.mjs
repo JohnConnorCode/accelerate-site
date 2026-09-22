@@ -229,6 +229,10 @@ async function togglePublicTheme(page, target) {
   let toggle = page.locator(`button[aria-label="${accessibleName}"]:visible`).first();
   if (!(await toggle.count())) {
     await page.getByRole("button", { name: "Open navigation menu" }).click();
+    // Wait for the menu's scheduled initial focus before moving it with the keyboard.
+    await page.waitForFunction(
+      () => document.activeElement?.getAttribute("aria-label") === "Close navigation menu",
+    );
     toggle = page.locator(`button[aria-label="${accessibleName}"]:visible`).first();
     await toggle.waitFor();
     await toggle.focus();
