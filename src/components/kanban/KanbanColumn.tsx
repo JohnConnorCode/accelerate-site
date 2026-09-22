@@ -566,7 +566,7 @@ export function KanbanColumn<T>({
               className={cn(
                 "grid place-items-center rounded-xl",
                 onQuickAdd ? "min-h-24" : "min-h-40",
-                "transition-all duration-200",
+                "transition-[transform,background-color] duration-200",
                 isOver && !dragDisabled && "scale-105 bg-amber-500/[0.08]",
               )}
             >

@@ -237,6 +237,8 @@ jobs:
         run: |
           npm run test:developer-handoff
           npm run test:agent-checkpoint
+          npm run test:agent-workflow-friction
+          npm run test:command-center-pwa
           NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-demo-work-continuity.ts
 
       - name: Verify resource gate behavior
@@ -338,6 +340,7 @@ jobs:
             node scripts/qa-website-authoring.mjs
             node scripts/qa-analytics-workspace.mjs --demo
             node scripts/qa-radar-workspace.mjs
+            node scripts/qa-command-center-offline-store.mjs
             node scripts/qa-operator-workspace.mjs
             node scripts/qa-today-workspace.mjs
             node scripts/qa-booking-mode.mjs

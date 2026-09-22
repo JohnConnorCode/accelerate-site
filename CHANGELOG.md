@@ -10,6 +10,11 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Bundle licensed fonts locally so production and cold-install builds no longer depend on Google Fonts availability. Existing font families and theme variables are preserved.
+
+- Shared record openers, keyboard actions and public motion behavior are reconciled across the admin workspace. Production builds retain native document-runtime verification while using the stable Webpack path and Next.js proxy convention.
+- Offline drafts report success only after a committed browser transaction. Snapshot identity and cancellation protect workspace switches and sign-out; incomplete reads cannot replace a saved summary. Storage failures retain draft text, and saved drafts are readable and reusable.
+
 - Contact intake now labels the From/To date range, keeps both dates together and aligns search using the shared filter toolbar.
 
 - Contact and client timeline cards now share consistent spacing, quieter surfaces, visible link indicators and keyboard focus, without cascading entrance delays.
@@ -31,6 +36,9 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 - The integration adapter registry is now the actual resolution point for WhatsApp and HubSpot writes, replacing a duplicated if/else chain its own documentation had already claimed it replaced.
 
 ### Added
+
+- Optional Command Center installation on a configured app origin, with network-only private requests, connection/update status and tenant/user-scoped local drafts.
+- Agent handoffs normalize capability requirements, renew verification claims and checkpoint safe unfinished source without credentials.
 
 - A public **How Accelerate works** guide covering the five runtime layers, shared records and evidence, approvals and receipts, interfaces, plugins and Apps, coding-agent execution, failure recovery, and the path from source data to a recorded result.
 - Natural-language backlog execution for coding agents. A plain-language request selects one eligible task, creates its approved worktree, and carries the worker through verification, commit, and evidence submission without requiring a ticket key or internal command name.

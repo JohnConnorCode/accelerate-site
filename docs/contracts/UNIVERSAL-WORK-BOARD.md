@@ -114,13 +114,16 @@ Use the emitted attempt-scoped commands: `agent:heartbeat`, `agent:release`, and
 --evidence-file <local.json>`. Complete submits for review. Session secrets live
 under the Git common directory with private permissions, outside tracked files.
 A new claim publishes an initial checkpoint; `agent:progress` checkpoints current
-tracked source and its handoff summary. Explicit `agent:checkpoint` input includes
-new source paths. Publication uses a temporary private Git index and an immutable
+tracked source, safe unfinished source under approved code/documentation roots, and
+its handoff summary. Secrets, hidden files, generated output and unrelated root
+scratch files remain excluded. Explicit `agent:checkpoint` input can add a new source
+path when it falls outside those automatic roots. Publication uses a temporary private Git index and an immutable
 `agent/checkpoints/<card>/<attempt>/<checkpoint>` branch, preserving HEAD, the
 original index and working files. Secrets and generated output are excluded.
 The successor uses isolated source; the original checkout and session stay intact.
 
-For a long check, `agent:run -- --card <key> --attempt <uuid> -- <command>` renews
+Pickup emits one ready-to-copy `leaseSafeRun` command. For a long check, run
+`agent:run -- --card <key> --attempt <uuid> -- <command>`; it renews
 every five minutes while that explicit job is alive. The default deadline is 30
 minutes, configurable up to one hour. It stops renewal when the job exits or the
 claim is lost; no detached heartbeat daemon keeps abandoned work reserved.

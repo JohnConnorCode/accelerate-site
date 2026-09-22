@@ -243,6 +243,7 @@ export function ClientDetail({ client, onUpdate }: ClientDetailProps) {
           <div className="space-y-2">
             {checklist.map((item, idx) => (
               <button
+                type="button"
                 key={idx}
                 onClick={() => toggleChecklistItem(idx)}
                 className="flex min-h-10 w-full cursor-pointer items-center gap-3 rounded-xl px-2 text-left transition-colors hover:bg-[var(--admin-surface-subtle)] active:scale-[0.96]"

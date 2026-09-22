@@ -48,6 +48,7 @@ export function ThemeToggle({ variant = "default", collapsed = false }: ThemeTog
 
   return (
     <button
+      type="button"
       onClick={() => setTheme(isLight ? "dark" : "light")}
       className={`relative inline-flex items-center ${sizeClass} ${appearanceClass} active:scale-[0.96] transition-[transform,background-color,border-color,color] duration-200 focus-visible:outline-none focus-visible:ring-2`}
       aria-label={nextLabel}

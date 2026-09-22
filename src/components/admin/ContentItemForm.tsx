@@ -233,6 +233,7 @@ export function ContentItemForm({
           <div className="flex items-center gap-2">
             {item?.id && onDelete && (
               <button
+                type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 className="grid min-h-10 min-w-10 place-items-center rounded-lg text-white-muted transition-colors hover:text-[var(--error)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--error)] focus-visible:ring-offset-2"
                 title="Delete"
@@ -242,6 +243,7 @@ export function ContentItemForm({
               </button>
             )}
             <button
+              type="button"
               onClick={() => void requestClose()}
               aria-label="Close content editor"
               className="grid min-h-10 min-w-10 place-items-center rounded-lg text-white-muted transition-colors hover:text-white-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)] focus-visible:ring-offset-2"

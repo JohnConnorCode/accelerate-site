@@ -8,8 +8,9 @@ import { isDemoScenarioId } from "@/lib/admin/demo/scenarios";
 import { ACCELERATE_TENANT_ID, ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
 import { distributionProfile } from "@/lib/distribution/profile";
 import { distributionPath, isAgencyAsset, isAgencyPage } from "@/lib/distribution/routes";
+import { commandCenterOrigin } from "@/lib/command-center/runtime";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (distributionProfile() === "neutral") {
     const path = distributionPath(request.nextUrl.pathname);
     let assetPath = path;
@@ -43,6 +44,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/demo/command-center", request.url), 308);
   }
 
+  const workspacePath =
+    request.nextUrl.pathname === "/workspace" ||
+    request.nextUrl.pathname.startsWith("/admin") ||
+    /^\/t\/[a-z0-9]+(?:-[a-z0-9]+)*\/admin(?:\/|$)/.test(request.nextUrl.pathname);
+  if (workspacePath && commandCenterOrigin) {
+    const appOrigin = new URL(commandCenterOrigin);
+    if (request.nextUrl.host !== appOrigin.host) {
+      const destination = new URL(request.nextUrl.pathname + request.nextUrl.search, appOrigin);
+      return NextResponse.redirect(destination, 307);
+    }
+  }
+
   const demoMatch = request.nextUrl.pathname.match(
     /^\/demo\/command-center\/([a-z0-9-]+)(?:\/(.*))?$/,
   );
@@ -65,7 +78,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Next 16 can re-enter middleware for the internal rewrite target. Preserve
+  // Next 16 can re-enter the proxy for the internal rewrite target. Preserve
   // the validated fictional runtime on that second pass so it never falls
   // through to live-admin authorization. The marker can only select one of
   // the checked-in demo packs; it does not grant access to live APIs or data.

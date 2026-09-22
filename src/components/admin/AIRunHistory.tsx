@@ -456,6 +456,7 @@ export function AIRunHistory() {
           <p className="mt-3 text-sm font-semibold">Run history could not be loaded</p>
           <p className="admin-copy mt-1 text-xs">{error}</p>
           <button
+            type="button"
             onClick={() => void load()}
             className="mt-3 min-h-10 rounded-xl px-3 text-xs font-semibold shadow-[var(--admin-shadow-border)]"
           >

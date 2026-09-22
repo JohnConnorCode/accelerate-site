@@ -237,6 +237,7 @@ function main() {
       ],
       ...(rawPacket.attemptId || rawPacket.work_attempt_id
         ? {
+            leaseSafeRun: `npm run agent:run -- --card ${rawPacket.seed_key ?? rawPacket.id} --attempt ${rawPacket.attemptId ?? rawPacket.work_attempt_id} -- <command> [args]`,
             run: [
               "npm",
               "run",
@@ -290,7 +291,7 @@ function main() {
         "<absolute evidence file path>",
       ],
       instruction:
-        "Run board lifecycle commands from this control checkout, including for worker bases that predate profile support. Edit source only in the worker checkout. agent:run resolves that workspace automatically and checkpoints tracked changes before starting verification there; use checkpoint to include explicit new source files.",
+        "Run board lifecycle commands from this control checkout, including for worker bases that predate profile support. Edit source only in the worker checkout. agent:run resolves that workspace automatically and checkpoints tracked plus safe unfinished source before starting verification there; use checkpoint to include explicit new source files outside the automatic roots.",
     },
     instruction:
       "Continue in the printed worktree. Implement every acceptance item, run the packet checks, repair failures, commit the exact result, create evidence, and submit it using the printed control-checkout lifecycle commands. Stop only after HANDOFF_SUBMITTED or an explicit operator-required block. Review, merge, and deployment are separate.",

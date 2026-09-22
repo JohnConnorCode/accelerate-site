@@ -72,6 +72,8 @@ import type { LayoutDoc } from "@/lib/admin/layout-overrides";
 import { getAdminBreadcrumbs } from "@/lib/admin/breadcrumbs";
 import { AdminDemoControls } from "@/components/admin/AdminDemoBoundary";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
+import { clearOfflineWorkspace } from "@/lib/admin/offline-store";
+import { CommandCenterPwa } from "@/components/admin/CommandCenterPwa";
 import {
   DEMO_SCENARIOS,
   DEMO_SCENARIO_SHELL_NAMES,
@@ -113,6 +115,7 @@ export default function AdminShell({
   demoScenarioId,
   demoRoute,
   workspaceSlug,
+  userId,
   workspaceName,
   isPlatformAdmin,
   workspaceTheme = null,
@@ -123,6 +126,7 @@ export default function AdminShell({
   demoScenarioId: DemoScenarioId | null;
   demoRoute: string | null;
   workspaceSlug: string;
+  userId: string;
   workspaceName: string;
   isPlatformAdmin: boolean;
   workspaceTheme?: AdminThemeDefinition | null;
@@ -462,9 +466,12 @@ export default function AdminShell({
   }
 
   const handleSignOut = async () => {
+    // Stop pending snapshot/draft writes before waiting for the storage transaction.
+    window.dispatchEvent(new Event("pwa:clear-local-state"));
+    const cleared = await clearOfflineWorkspace(workspaceSlug, userId).catch(() => false);
     const supabase = createClient();
     await supabase.auth.signOut();
-    window.location.replace("/admin/login");
+    window.location.replace(cleared ? "/admin/login" : "/admin/login?notice=local-data-retained");
   };
 
   const isActive = (href: string) => resolveAdminNavLink(identityHref)?.href === href;
@@ -544,6 +551,13 @@ export default function AdminShell({
       keywords: "setup configure health integrations status connections",
       icon: Settings,
       run: () => router.push("/admin/setup"),
+    },
+    {
+      label: "Install Command Center",
+      description: "Add your workspace to this device",
+      keywords: "pwa app download install dock home screen offline",
+      icon: Download,
+      run: () => window.dispatchEvent(new Event("admin:open-pwa-install")),
     },
     {
       label: "Open recovery",
@@ -886,6 +900,12 @@ export default function AdminShell({
                 <AdminAIPanel />
                 <Toaster />
                 <AdminShortcuts />
+                <CommandCenterPwa
+                  key={`${workspaceSlug}:${userId}`}
+                  tenantSlug={workspaceSlug}
+                  userId={userId}
+                  enabled={!scenarioId && !isAuthRoute}
+                />
               </div>
             </AdminConfirmationProvider>
           </MotionConfig>

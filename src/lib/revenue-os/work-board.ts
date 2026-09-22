@@ -319,12 +319,29 @@ export function workPayloadSchema(operation: WorkOperation) {
   }
   return schema;
 }
+
+/** Keep ordinary cards executable without making capability requirements implicit. */
+export function normalizeWorkBoardPayload(
+  operation: WorkOperation,
+  payload: Record<string, unknown>,
+) {
+  if (operation !== "create") return payload;
+  const workSpec = payload.work_spec;
+  if (workSpec === undefined) return { ...payload, work_spec: { requiredCapabilities: [] } };
+  if (workSpec && typeof workSpec === "object" && !Array.isArray(workSpec)) {
+    const normalized = { ...(workSpec as Record<string, unknown>) };
+    if (!("requiredCapabilities" in normalized)) normalized.requiredCapabilities = [];
+    return { ...payload, work_spec: normalized };
+  }
+  return payload;
+}
 export async function mutateWorkBoard(db: SupabaseClient, actor: WorkActor, raw: unknown) {
   const input = validateWorkMutation(raw);
   if (!actor.scopes.includes(input.operation) && !actor.scopes.includes("*"))
     throw new WorkBoardError("Operation not allowed by this credential", 403);
   if (input.operation === "recovery-policy" && !actor.reviewer)
     throw new WorkBoardError("Recovery policy requires operator authority", 403);
+  input.payload = normalizeWorkBoardPayload(input.operation, input.payload);
   const payload = { ...input.payload };
   if (["claim", "resume"].includes(input.operation))
     payload.worker_capabilities = actor.reviewer ? ["*"] : (actor.capabilities ?? []);

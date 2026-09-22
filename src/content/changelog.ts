@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-center-installable-workspace",
+    slug: "command-center-installable-workspace",
+    title: "Command Center can be installed as a workspace app",
+    description:
+      "Authenticated Command Center workspaces can be installed from the dedicated app origin on supported desktop and mobile browsers. The standalone shell keeps the tenant in its workspace, shows connection and update status, stores an approved low-risk snapshot for offline reference, and lets operators save non-sensitive local drafts without silently sending or mutating anything. Marketing pages and the public AI Readiness assessment remain browser experiences. Saved drafts can be read and reused; storage failures preserve the text. Sign-out cancels pending writes and waits for local cleanup, with recovery guidance when cleanup cannot be confirmed.",
+    category: "feature",
+    publishedAt: "2026-09-21",
+  },
+  {
     id: "shared-workspace-controls",
     slug: "shared-workspace-controls",
     title: "Consistent workspace fields and clearer recovery",

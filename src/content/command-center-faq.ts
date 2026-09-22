@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can I install Command Center on my computer or phone?",
+    answer:
+      "Yes. On the dedicated Command Center app origin, an authenticated workspace can be added to a supported browser's desktop, dock or home screen and opened as a focused app. The installed shell keeps your tenant context, works responsively on mobile, and reports when it is offline or has an update ready. Offline mode is deliberately limited: it can show an approved low-risk summary and save non-sensitive drafts on that device, but it never queues a live action or sends data silently. Saved drafts can be read and reused. Sign-out waits for local cleanup and offers recovery guidance if the browser cannot confirm it. The public marketing site and AI Readiness assessment stay normal browser pages.",
+  },
+  {
     question: "How does the workspace learn from a correction?",
     answer:
       "An edited reply or explicit correction can create a proposal in Learning Inbox. You review its scope and approve it, then relevant later work receives the saved rule with a source receipt. Independent rules remain active together. Add private reference documents when the missing piece is information, and inspect execution failures when a service needs repair. A successful action or saved rule alone does not prove that quality improved; compare later results with the original example.",

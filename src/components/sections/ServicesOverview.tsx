@@ -99,7 +99,7 @@ export function ServicesOverview() {
               <div
                 key={service.name}
                 data-service-card
-                className={`${bentoSpan[idx] ?? "lg:col-span-2"} group relative flex flex-col overflow-hidden rounded-2xl border border-border-glass bg-[var(--glass-default-bg)] p-7 sm:p-8 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-gold-hover)] hover:bg-[var(--glass-gold-bg)]`}
+                className={`${bentoSpan[idx] ?? "lg:col-span-2"} group relative flex flex-col overflow-hidden rounded-2xl border border-border-glass bg-[var(--glass-default-bg)] p-7 sm:p-8 backdrop-blur-md transition-[transform,border-color,background-color] duration-300 hover:-translate-y-1 hover:border-[var(--border-gold-hover)] hover:bg-[var(--glass-gold-bg)]`}
               >
                 {/* top hairline that lights up on hover */}
                 <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--gold-base)] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
@@ -124,7 +124,7 @@ export function ServicesOverview() {
                   {service.description}
                 </p>
 
-                <ArrowUpRight className="mt-auto ml-auto h-5 w-5 translate-y-1 text-gold opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100" />
+                <ArrowUpRight className="mt-auto ml-auto h-5 w-5 translate-y-1 text-gold opacity-0 transition-[transform,opacity] duration-300 group-hover:translate-y-0 group-hover:opacity-100" />
               </div>
             );
           })}

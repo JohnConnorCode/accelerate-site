@@ -425,7 +425,7 @@ export const capabilities: Capability[] = [
     promise:
       "Today, inbox, pipeline, records, and setup all work from a phone browser, including the pipeline board.",
     detail:
-      "The board scrolls freely, keeps its column controls at every screen size, and supports dragging, touch, and a stage control for moving a card without dragging.",
+      "The board scrolls freely, keeps its column controls at every screen size, and supports dragging, touch, and a stage control for moving a card without dragging. Deployments with a dedicated app address also support installation, connection status and local drafts that you can read and reuse after reconnecting.",
   },
   {
     id: "api",
@@ -479,7 +479,7 @@ export const capabilities: Capability[] = [
     promise:
       "A plain-language request is enough for a coding agent to pick up a task, prepare an isolated workspace, and carry it through verification and commit.",
     detail:
-      "The agent does not need a ticket key or a provider-specific command, and it never asks you to paste credentials. With recovery enabled, a replacement agent can resume an interrupted task from its saved state.",
+      "The agent does not need a ticket key or a provider-specific command, and it never asks you to paste credentials. With recovery enabled, a replacement agent can resume an interrupted task from its saved state. Verification renews the active claim, and checkpoints include safe unfinished source while excluding credentials and generated output.",
   },
   {
     id: "audit",

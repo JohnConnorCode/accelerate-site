@@ -132,7 +132,7 @@
   text-wrap: pretty;
 }
 .count {
-  color: var(--admin-muted);
+  color: var(--admin-ink);
   font-size: var(--admin-text-caption);
   font-variant-numeric: tabular-nums;
   background: var(--admin-surface-subtle);

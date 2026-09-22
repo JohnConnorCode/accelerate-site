@@ -196,6 +196,7 @@ export function WebsitePageTools({
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Edit with AI</h2>
             <button
+              type="button"
               className={button}
               disabled={busy}
               aria-label="Close AI editor"
@@ -252,6 +253,7 @@ export function WebsitePageTools({
             </p>
           )}
           <button
+            type="button"
             className={button}
             disabled={disabled || busy || instruction.trim().length < 3}
             onClick={async () => {
@@ -307,6 +309,7 @@ export function WebsitePageTools({
                 published.
               </p>
               <button
+                type="button"
                 className={button}
                 disabled={disabled}
                 onClick={() => {

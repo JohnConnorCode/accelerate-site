@@ -25,11 +25,18 @@ const nextConfig: NextConfig = {
     cpus: 1,
     // Reduce retained compiler memory before Next's required TypeScript pass.
     webpackMemoryOptimizations: true,
+    webpackBuildWorker: true,
     // Next 16 auto-enables the runtime deployment-id override inside Vercel's
     // builder. That replaces the documented custom prebuilt id with Vercel's
     // reserved dpl_ id at runtime and produces two bootstrap identities. Keep
     // the build-time custom id serialized into the server output instead.
     runtimeServerDeploymentId: false,
+  },
+
+  // Production cache retention exceeds the bounded release builder’s memory budget.
+  webpack(config, { dev }) {
+    if (!dev) config.cache = false;
+    return config;
   },
 
   // Ensure clean URLs without trailing slashes
@@ -95,9 +102,10 @@ const nextConfig: NextConfig = {
             value: "camera=(), microphone=(), geolocation=()",
           },
           {
+            // Keep the broad policy in reporting mode until custom connector origins are covered.
             key: "Content-Security-Policy-Report-Only",
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://assets.calendly.com; style-src 'self' 'unsafe-inline' https://assets.calendly.com; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.supabase.co https://calendly.com https://*.calendly.com; frame-src 'self' https://calendly.com https://*.calendly.com https://www.youtube-nocookie.com",
+              "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://assets.calendly.com; style-src 'self' 'unsafe-inline' https://assets.calendly.com; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.supabase.co https://calendly.com https://*.calendly.com; frame-src 'self' https://calendly.com https://*.calendly.com https://www.youtube-nocookie.com",
           },
         ],
       },

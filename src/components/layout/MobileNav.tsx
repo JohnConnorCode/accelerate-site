@@ -101,6 +101,7 @@ export function MobileNav({
             <Logo size="sm" name={brandName} logoSrc={logoSrc} />
           </div>
           <button
+            type="button"
             ref={closeButtonRef}
             onClick={onClose}
             className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--rule)] transition-transform duration-150 active:scale-[0.96] cursor-pointer ${focusRing}`}
@@ -122,6 +123,7 @@ export function MobileNav({
                   style={{ "--mobile-nav-index": currentIndex } as CSSProperties}
                 >
                   <button
+                    type="button"
                     onClick={() => setExpandedItem(expandedItem === link.label ? null : link.label)}
                     aria-controls={`mobile-${link.label.toLowerCase().replaceAll(" ", "-")}`}
                     aria-expanded={expandedItem === link.label}

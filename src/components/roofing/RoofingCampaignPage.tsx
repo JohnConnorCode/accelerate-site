@@ -86,6 +86,7 @@ export function RoofingCampaignPage() {
               className="roofing-hero-reveal mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center"
             >
               <button
+                type="button"
                 onClick={() => goToAudit("hero")}
                 className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#151611] pl-5 pr-[18px] font-mono text-[11px] uppercase tracking-[0.13em] text-white shadow-[0_10px_28px_rgba(0,0,0,0.2)] transition-[scale,background-color] duration-150 hover:bg-black active:scale-[0.96]"
               >
@@ -137,6 +138,7 @@ export function RoofingCampaignPage() {
           </motion.div>
         </div>
         <button
+          type="button"
           aria-label="Continue to the audit"
           onClick={() => goToAudit("hero_scroll")}
           className="absolute bottom-5 left-1/2 grid size-11 -translate-x-1/2 place-items-center rounded-full text-[#151611]/68 transition-[color,scale] duration-150 hover:text-[#151611] active:scale-[0.96]"
@@ -249,6 +251,7 @@ export function RoofingCampaignPage() {
             </h2>
           </div>
           <button
+            type="button"
             onClick={() => goToAudit("closing")}
             className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-xl bg-[#151611] pl-5 pr-[18px] font-mono text-[11px] uppercase tracking-[0.13em] text-white transition-[scale,background-color] duration-150 hover:bg-black active:scale-[0.96]"
           >

@@ -139,6 +139,7 @@ export function TaskWidget() {
                 className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-white/5 transition-colors group"
               >
                 <button
+                  type="button"
                   onClick={() => handleComplete(task.id)}
                   className="shrink-0 cursor-pointer text-white-muted hover:text-emerald-400 transition-colors"
                   title="Mark complete"

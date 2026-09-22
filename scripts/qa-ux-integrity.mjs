@@ -23,60 +23,61 @@ async function assertNoSeriousAxe(page, label) {
     );
 }
 
+async function assertSecurityHeaders() {
+  const response = await fetch(`${base}/demo/command-center/northline-roofing/today`);
+  const csp = response.headers.get("content-security-policy-report-only") || "";
+  check(response.ok, `security headers: demo route returned ${response.status}`);
+  check(
+    response.headers.has("content-security-policy-report-only"),
+    "security headers: CSP reporting must remain available for custom-origin compatibility",
+  );
+  for (const directive of ["base-uri 'self'", "object-src 'none'", "form-action 'self'"]) {
+    check(csp.includes(directive), `security headers: CSP is missing ${directive}`);
+  }
+}
+
 async function openToday(page, label) {
   await page.goto(`${base}/demo/command-center/northline-roofing/today`, {
     waitUntil: "domcontentloaded",
   });
   await page.locator(".admin-shell").waitFor();
-  const priorityTabs = page.locator("[data-priority-tabs]");
-  await priorityTabs.waitFor();
-  const contentGaps = await page.locator("[data-today-content-stack]").evaluate((stack) => {
-    const visibleChildren = [...stack.children].filter((child) => {
-      const style = getComputedStyle(child);
-      const rect = child.getBoundingClientRect();
-      return style.display !== "none" && rect.height > 0;
-    });
-    return visibleChildren.slice(1).map((child, index) => {
-      const previous = visibleChildren[index].getBoundingClientRect();
-      const current = child.getBoundingClientRect();
-      return current.top - previous.bottom;
-    });
-  });
+  const contentStack = page.locator("[data-today-content-stack]");
+  await contentStack.first().waitFor();
+  const contentGaps = await contentStack.evaluateAll((stacks) =>
+    stacks.flatMap((stack) => {
+      const visibleChildren = [...stack.children].filter((child) => {
+        const style = getComputedStyle(child);
+        const rect = child.getBoundingClientRect();
+        return style.display !== "none" && rect.height > 0;
+      });
+      return visibleChildren.slice(1).map((child, index) => {
+        const previous = visibleChildren[index].getBoundingClientRect();
+        const current = child.getBoundingClientRect();
+        return current.top - previous.bottom;
+      });
+    }),
+  );
   check(
     contentGaps.length > 0 && contentGaps.every((gap) => gap >= 19.5),
     `${label}: Today cards are touching or cramped (${contentGaps.map((gap) => `${gap.toFixed(1)}px`).join(", ")})`,
   );
-  const aiCard = page.locator("[data-revenue-ai-card]");
-  const aiHeaderInset = await aiCard.evaluate((card) => {
-    const cardRect = card.getBoundingClientRect();
-    const textRect = card
-      .querySelector("[data-ai-card-header] .admin-eyebrow")
-      .getBoundingClientRect();
-    return textRect.left - cardRect.left;
+  await page.screenshot({ path: `${output}/today-load-${label}.png`, fullPage: false });
+  const row = page
+    .locator('[data-today-module="attention"] article[data-attention-kind="decision"] button')
+    .first();
+  await row.waitFor();
+  await row.click();
+  const contextDialog = page.getByRole("dialog").filter({ hasText: "Work context" });
+  await contextDialog.waitFor();
+  const reviewTrigger = contextDialog.getByRole("button", {
+    name: "Review exact change",
+    exact: true,
   });
-  check(
-    aiHeaderInset >= 16 && aiHeaderInset <= 24,
-    `${label}: AI card header is arbitrarily indented (${aiHeaderInset.toFixed(1)}px)`,
-  );
-  const scrollbar = await priorityTabs.evaluate((node) => ({
-    standard: getComputedStyle(node).scrollbarWidth,
-    webkit: getComputedStyle(node, "::-webkit-scrollbar").display,
-  }));
-  check(
-    scrollbar.standard === "none",
-    `${label}: priority tabs expose the standard scrollbar (${JSON.stringify(scrollbar)})`,
-  );
-  check(
-    scrollbar.webkit === "none",
-    `${label}: priority tabs expose the WebKit scrollbar (${JSON.stringify(scrollbar)})`,
-  );
-  await page.screenshot({ path: `${output}/priority-tabs-load-${label}.png`, fullPage: false });
-  await aiCard.scrollIntoViewIfNeeded();
-  await page.screenshot({ path: `${output}/today-ai-card-${label}.png`, fullPage: false });
-  await page.getByRole("button", { name: "Approvals", exact: true }).click();
-  const row = page.locator('[data-today-workspace] button[aria-haspopup="dialog"]').first();
-  await row.click({ noWaitAfter: true });
-  const animatedSurface = page.locator('[data-admin-overlay="dialog"]');
+  await reviewTrigger.waitFor();
+  await reviewTrigger.click({ noWaitAfter: true });
+  const animatedSurface = page
+    .locator('[data-admin-overlay="dialog"]')
+    .filter({ hasText: "Approval queue" });
   await animatedSurface.waitFor({ state: "attached" });
   const entranceFrames = [];
   for (const delay of [0, 72, 180]) {
@@ -118,16 +119,21 @@ async function openToday(page, label) {
   );
   await dialog.waitFor({ state: "detached" });
   await page.waitForFunction(() => !new URL(location.href).searchParams.has("action"));
-  await page.waitForFunction(() => document.activeElement?.hasAttribute("data-approval-review"));
+  await contextDialog.waitFor({ state: "detached" });
+  await page.waitForFunction(() =>
+    Boolean(document.activeElement?.closest('[data-attention-kind="decision"]')),
+  );
   check(
     !new URL(page.url()).searchParams.has("action"),
     "today: closing approval left a stale action URL",
   );
   check(
-    await page.evaluate(() => document.activeElement?.hasAttribute("data-approval-review")),
-    "today: approval close did not return focus to its trigger",
+    await row.evaluate((node) => node === document.activeElement),
+    "today: approval close did not return focus to the original decision row",
   );
 }
+
+await assertSecurityHeaders();
 
 for (const [label, viewport] of [
   ["desktop", { width: 1440, height: 1000 }],

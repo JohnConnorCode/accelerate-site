@@ -57,8 +57,11 @@ is advisory and cannot require the founder to clear a slot. For a named expired
 attempt, inspect its retained checkout and use `agent:go -- --card <key> --json`;
 the service atomically fences the old token and records the continuation. Preserve
 uncommitted work in the predecessor and use the printed isolated successor.
-Include new source files explicitly with `--checkpoint-file`; unknown untracked
-files remain in the predecessor and are reported. Automatic pickup still requires
+Routine progress checkpoints include safe unfinished source under the approved
+code and documentation roots. Credentials, hidden files, generated output and
+unrelated root scratch files remain in the predecessor and are reported. Add a
+safe source path explicitly with `--checkpoint-file` when it falls outside those
+automatic roots. Automatic pickup still requires
 a recorded checkpoint and enabled project recovery policy. Live ownership, project scope,
 dependencies, verification and release requirements still apply.
 
@@ -109,8 +112,9 @@ commands include an attempt ID so two agents sharing a profile cannot overwrite
 each other's session. Keep the printed control checkout and command arguments.
 
 Initial pickup publishes a checkpoint of the approved source. `agent:progress`
-saves tracked changes with the handoff message. Before a long check or handoff,
-explicitly include new source files using a local JSON file:
+saves tracked changes plus safe unfinished source with the handoff message. Before
+a long check or handoff, explicitly include a source file outside the automatic
+roots using a local JSON file:
 
 ```json
 {
@@ -136,9 +140,9 @@ recorded checkout normally. A different already-recorded checkout is never repla
 
 The checkpoint creates a separate commit using a temporary private index and
 publishes an immutable repository branch. HEAD, the original index and working
-files are preserved. Newly created files omitted from `files` are reported;
-inspect that list before handing off. Credentials, environment files, dependencies
-and generated output do not belong in a source checkpoint. A failed publication
+files are preserved. Files excluded by the safe-path policy are reported; inspect
+that list before handing off. Credentials, environment files, dependencies and
+generated output do not belong in a source checkpoint. A failed publication
 retains local source and reports the recovery gap.
 
 The job wrapper checks ownership before launch and renews every five minutes

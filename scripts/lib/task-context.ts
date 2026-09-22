@@ -66,6 +66,8 @@ export function receipt(card: Card, operation?: string) {
   };
 }
 export function taskPacket(card: Card) {
+  const key = card.seed_key ?? card.id;
+  const attemptId = card.work_attempt_id ?? null;
   return {
     ...receipt(card),
     objective: card.description,
@@ -75,13 +77,17 @@ export function taskPacket(card: Card) {
       ? card.acceptance_criteria
       : undefined,
     owner: card.lease_owner,
-    attemptId: card.work_attempt_id ?? null,
+    attemptId,
     checkpoint: card.work_checkpoint ?? null,
     dependencies: card.dependencies ?? [],
     contract: card.work_spec ?? {},
+    leaseSafeRun:
+      card.status === "in_progress" && attemptId
+        ? `npm run agent:run -- --card ${key} --attempt ${attemptId} -- <command> [args]`
+        : null,
     next:
       card.status === "in_progress"
-        ? "Implement remaining acceptance; heartbeat before lease expiry; submit named evidence."
+        ? "Implement remaining acceptance; use leaseSafeRun for long checks; submit named evidence."
         : card.status === "in_review"
           ? "Await review; implementation is not merged or deployed."
           : "Read readiness before claiming.",

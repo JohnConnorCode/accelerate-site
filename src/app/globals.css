@@ -3625,7 +3625,8 @@ summary:focus-visible {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    /* Tiny transitions still delay inherited visibility and can reject dialog focus. */
+    transition: none !important;
   }
 }
 
@@ -5492,7 +5493,7 @@ a.team-card-float:focus-visible {
     display: block;
   }
   .hero-band .hero {
-    --hero-mobile-top: calc(var(--site-header-h) + var(--safe-top) + 14px);
+    --hero-mobile-top: calc(var(--site-header-h) + var(--safe-top) + 20px);
     --hero-mobile-bottom: clamp(22px, 3.8svh, 32px);
     display: block;
     min-height: 100svh;
@@ -5865,8 +5866,8 @@ a.team-card-float:focus-visible {
   opacity: 1;
   filter: blur(0px);
   transition:
-    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s),
-    filter 0.8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s);
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s),
+    filter 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s);
 }
 @media (prefers-reduced-motion: reduce) {
   .strike::after,

@@ -143,7 +143,15 @@ if (mode === "build") {
       rmSync(temporary, { recursive: true, force: true });
     }
   }
-  run("next", ["build", ...args], { env });
+  run(
+    "next",
+    [
+      "build",
+      ...(args.includes("--webpack") || args.includes("--turbopack") ? [] : ["--webpack"]),
+      ...args,
+    ],
+    { env },
+  );
 } else if (mode === "start") {
   console.log(`Starting production release ${deploymentId}`);
   run("next", ["start", ...args], { env });

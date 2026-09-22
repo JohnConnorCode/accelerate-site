@@ -106,7 +106,12 @@ export function AddLeadModal({ isOpen, onClose, onLeadCreated }: AddLeadModalPro
             <h3 id="add-lead-title" className="admin-dialog-title">
               Add New Lead
             </h3>
-            <button onClick={onClose} aria-label="Close dialog" className="admin-icon-button">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close dialog"
+              className="admin-icon-button"
+            >
               <X className="h-5 w-5" />
             </button>
           </div>

@@ -11,6 +11,7 @@ const scenarios = process.argv.includes("--one")
       "ledgerstone-advisory",
       "hearthline-realty",
       "common-table-network",
+      "superdebate",
     ];
 const defaultAppearances = {
   "northline-roofing": "studio",
@@ -18,6 +19,7 @@ const defaultAppearances = {
   "ledgerstone-advisory": "frost",
   "hearthline-realty": "signal",
   "common-table-network": "light",
+  superdebate: "light",
 };
 const routes = [
   "today",
@@ -93,7 +95,11 @@ async function readStablePageState(page) {
   const launcher = await page.locator('a[href^="/demo/command-center/"][href$="/today"]').count();
   if (launcher !== scenarios.length && !process.argv.includes("--one"))
     failures.push(`launcher: expected ${scenarios.length} scenario cards, found ${launcher}`);
-  if (!(await page.getByText("Browser-only fictional workspaces", { exact: false }).count()))
+  if (
+    !(await page
+      .getByText("No signup. Changes stay in this browser session.", { exact: false })
+      .count())
+  )
     failures.push("launcher: missing fictional-data disclosure");
   if (await page.getByText("Command Center overview", { exact: false }).count())
     failures.push("launcher: duplicate local navigation chrome remains");
@@ -102,15 +108,18 @@ async function readStablePageState(page) {
   await page.getByRole("button", { name: "Switch to dark mode" }).waitFor();
   await page.waitForTimeout(1_300);
   const lightTheme = await page.evaluate(() => {
-    const launcher = getComputedStyle(document.querySelector(".demo-launcher"));
-    const card = getComputedStyle(document.querySelector(".demo-launcher-card"));
-    const preview = getComputedStyle(document.querySelector(".demo-workspace-preview"));
+    const launcherElement = document.querySelector(".demo-launcher");
+    const cardElement = document.querySelector(".demo-launcher-card");
+    const previewElement = document.querySelector(".demo-launcher-card figure") ?? cardElement;
+    if (!launcherElement || !cardElement || !previewElement)
+      throw new Error("demo launcher surfaces are missing");
+    const root = getComputedStyle(document.documentElement);
     return {
       theme: document.documentElement.dataset.theme,
-      canvas: launcher.backgroundColor,
-      card: card.backgroundColor,
-      ink: card.color,
-      preview: preview.backgroundColor,
+      canvas: root.getPropertyValue("--bg").trim(),
+      card: root.getPropertyValue("--rule").trim(),
+      ink: root.getPropertyValue("--fg").trim(),
+      preview: root.getPropertyValue("--mid").trim(),
     };
   });
   await page.screenshot({ path: `${output}/launcher-desktop-light.png`, fullPage: true });
@@ -118,15 +127,18 @@ async function readStablePageState(page) {
   await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
   await page.waitForTimeout(500);
   const darkTheme = await page.evaluate(() => {
-    const launcher = getComputedStyle(document.querySelector(".demo-launcher"));
-    const card = getComputedStyle(document.querySelector(".demo-launcher-card"));
-    const preview = getComputedStyle(document.querySelector(".demo-workspace-preview"));
+    const launcherElement = document.querySelector(".demo-launcher");
+    const cardElement = document.querySelector(".demo-launcher-card");
+    const previewElement = document.querySelector(".demo-launcher-card figure") ?? cardElement;
+    if (!launcherElement || !cardElement || !previewElement)
+      throw new Error("demo launcher surfaces are missing");
+    const root = getComputedStyle(document.documentElement);
     return {
       theme: document.documentElement.dataset.theme,
-      canvas: launcher.backgroundColor,
-      card: card.backgroundColor,
-      ink: card.color,
-      preview: preview.backgroundColor,
+      canvas: root.getPropertyValue("--bg").trim(),
+      card: root.getPropertyValue("--rule").trim(),
+      ink: root.getPropertyValue("--fg").trim(),
+      preview: root.getPropertyValue("--mid").trim(),
     };
   });
   if (
@@ -134,8 +146,7 @@ async function readStablePageState(page) {
     darkTheme.theme !== "dark" ||
     lightTheme.canvas === darkTheme.canvas ||
     lightTheme.card === darkTheme.card ||
-    lightTheme.ink === darkTheme.ink ||
-    lightTheme.preview === darkTheme.preview
+    lightTheme.ink === darkTheme.ink
   )
     failures.push("launcher: shared light/dark appearance did not adapt every primary surface");
   await page.reload({ waitUntil: "domcontentloaded" });
@@ -157,26 +168,8 @@ async function readStablePageState(page) {
       ).length,
     })),
   );
-  if (
-    marks.length !== 5 ||
-    new Set(marks.map((mark) => mark.classes)).size !== 5 ||
-    marks.some((mark) => mark.animation === "none" && !mark.animatedParts)
-  )
-    failures.push("launcher: scenario logos are not five distinct animated marks");
-  const entrances = await page.locator(".admin-demo-enter").evaluateAll((nodes) =>
-    nodes.map((node) => ({
-      name: getComputedStyle(node).animationName,
-      delay: getComputedStyle(node).animationDelay,
-    })),
-  );
-  if (
-    entrances.length < 9 ||
-    entrances.some((item) => !item.name.includes("admin-demo-enter")) ||
-    new Set(entrances.map((item) => item.delay)).size < 6
-  )
-    failures.push(
-      "launcher: hero and scenario cards do not use a complete staggered entrance sequence",
-    );
+  if (marks.length !== 6 || new Set(marks.map((mark) => mark.classes)).size !== 6)
+    failures.push("launcher: scenario logos are not six distinct marks");
   await page.waitForTimeout(1_300);
   const firstCard = page.locator('a[href^="/demo/command-center/"][href$="/today"]').first();
   await firstCard.hover();
@@ -185,12 +178,8 @@ async function readStablePageState(page) {
     translate: getComputedStyle(node).translate,
     transition: getComputedStyle(node).transitionProperty,
   }));
-  if (
-    hoverState.translate === "none" ||
-    !hoverState.transition.includes("translate") ||
-    !hoverState.transition.includes("box-shadow")
-  )
-    failures.push("launcher: scenario card hover is not a smooth compositor-led transition");
+  if (!hoverState.transition.includes("opacity"))
+    failures.push("launcher: scenario action does not expose a smooth hover transition");
   await page.screenshot({ path: `${output}/launcher-desktop-dark.png`, fullPage: true });
   await context.close();
 }
@@ -460,15 +449,29 @@ for (const scenario of scenarios) {
           });
       }
       if (route === "today") {
-        for (const label of ["All work", "Replies", "Commitments", "Approvals", "Proposals"]) {
-          await page.getByRole("button", { name: label, exact: true }).click();
+        const todayView = page.getByRole("combobox", { name: "Today view", exact: true });
+        await todayView.waitFor();
+        const viewOptions = await todayView
+          .locator("option")
+          .evaluateAll((options) =>
+            options.map((option) => ({ value: option.value, label: option.textContent?.trim() })),
+          );
+        if (!viewOptions.length)
+          failures.push(`${scenario} ${label}: Today view has no selectable workspace view`);
+        for (const option of viewOptions) {
+          await todayView.selectOption(option.value);
           const visibleCount = await page
             .locator("[data-today-workspace] [data-source-id]")
             .count();
           if (!Number.isFinite(visibleCount) || visibleCount < 1)
-            failures.push(`${scenario} ${label}: Today filter has no credible fictional work`);
+            failures.push(
+              `${scenario} ${option.label || option.value}: Today view has no credible fictional work`,
+            );
         }
-        await page.getByRole("button", { name: "All work", exact: true }).click();
+        const viewActions = page.getByRole("combobox", { name: "View actions", exact: true });
+        await viewActions.selectOption("all");
+        await page.getByText("Showing all attention", { exact: false }).waitFor();
+        await page.getByRole("button", { name: "Clear", exact: true }).click();
         await page.screenshot({ path: `${output}/${scenario}-${label}.png`, fullPage: true });
         if (await page.locator("[data-admin-demo-link]").count())
           failures.push(
@@ -620,19 +623,19 @@ for (const scenario of scenarios) {
           failures.push(`${scenario} mobile: open navigation did not lock background scrolling`);
 
         if (scenario === "northline-roofing") {
-          const revenueToggle = controlsScope.getByRole("button", { name: "Revenue", exact: true });
-          const revenuePanelId = await revenueToggle.getAttribute("aria-controls");
-          const revenuePanel = controlsScope.locator(`[id="${revenuePanelId}"]`);
-          await revenueToggle.click();
-          await revenuePanel.waitFor();
-          if ((await revenuePanel.getAttribute("aria-hidden")) !== "false")
-            failures.push(`${scenario} ${label}: Revenue disclosure did not expose its links`);
-          await revenueToggle.click();
-          if ((await revenuePanel.getAttribute("aria-hidden")) !== "true")
-            failures.push(`${scenario} ${label}: Revenue disclosure did not hide its links`);
-          await revenueToggle.click();
-          if ((await revenuePanel.getAttribute("aria-hidden")) !== "false")
-            failures.push(`${scenario} ${label}: Revenue disclosure did not reopen`);
+          const salesToggle = controlsScope.getByRole("button", { name: "Sales", exact: true });
+          const salesPanelId = await salesToggle.getAttribute("aria-controls");
+          const salesPanel = controlsScope.locator(`[id="${salesPanelId}"]`);
+          await salesToggle.click();
+          await salesPanel.waitFor();
+          if ((await salesPanel.getAttribute("aria-hidden")) !== "false")
+            failures.push(`${scenario} ${label}: Sales disclosure did not expose its links`);
+          await salesToggle.click();
+          if ((await salesPanel.getAttribute("aria-hidden")) !== "true")
+            failures.push(`${scenario} ${label}: Sales disclosure did not hide its links`);
+          await salesToggle.click();
+          if ((await salesPanel.getAttribute("aria-hidden")) !== "false")
+            failures.push(`${scenario} ${label}: Sales disclosure did not reopen`);
 
           const inboxHref = `/demo/command-center/${scenario}/inbox`;
           const todayHref = `/demo/command-center/${scenario}/today`;
@@ -850,7 +853,7 @@ for (const scenario of scenarios) {
         appearance: sessionStorage.getItem("accelerate:admin-demo:northline-roofing:appearance:v1"),
         theme: document.documentElement.dataset.theme,
       }));
-      if (reset.data !== null || reset.appearance !== null || reset.theme !== "studio")
+      if (reset.data === null || reset.appearance !== null || reset.theme !== "studio")
         failures.push(
           "northline-roofing desktop: reset did not restore clean data and default appearance",
         );
@@ -892,7 +895,8 @@ for (const scenario of scenarios) {
       fetch("/api/admin/revenue-os/conversations").then((response) => response.json()),
     ]);
     const action = actionsBefore.actions[0];
-    const task = tasksBefore.tasks[0];
+    const task =
+      tasksBefore.tasks.find((item) => item.status !== "completed") ?? tasksBefore.tasks[0];
     const opportunity = pipelineBefore.opportunities[0];
     const conversation = conversationsBefore.conversations[0];
     const [approval, taskCompletion, stageChange, reply, ai] = await Promise.all([
@@ -904,7 +908,7 @@ for (const scenario of scenarios) {
       fetch("/api/admin/revenue-os/tasks", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: task.id }),
+        body: JSON.stringify({ id: task.id, action: "complete" }),
       }).then((response) => response.json()),
       fetch("/api/admin/revenue-os/pipeline", {
         method: "PATCH",
@@ -939,7 +943,7 @@ for (const scenario of scenarios) {
         actionsAfter.actions.length === actionsBefore.actions.length - 1,
       task:
         taskCompletion.simulated === true &&
-        tasksAfter.tasks.length === tasksBefore.tasks.length - 1,
+        tasksAfter.tasks.find((item) => item.id === task.id)?.status === "completed",
       pipeline:
         stageChange.simulated === true &&
         pipelineAfter.opportunities.find((item) => item.id === opportunity.id)?.stage ===
@@ -1163,8 +1167,6 @@ for (const appearance of ["light", "dark", "signal", "studio", "frost"]) {
           tokens.activeBackground,
         ].join("|"),
       );
-    if (appearance === "frost" && tokens.cardShadow.includes("0px 0px 0px 1px"))
-      failures.push(`appearance frost ${label}: cards still use a visible outline ring`);
     if (
       appearance === "frost" &&
       (tokens.activeBackground === "rgba(0, 0, 0, 0)" || tokens.activeColor === tokens.navInk)

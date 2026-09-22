@@ -216,6 +216,7 @@ export function RadarOutreachPanel({
               Use the configured model budget for wording
             </label>
             <button
+              type="button"
               className={button}
               disabled={busy || !contribution.trim() || !ask.trim()}
               onClick={() => void perform(prepare)}
@@ -382,6 +383,7 @@ export function RadarOutreachPanel({
             />
           </label>
           <button
+            type="button"
             className={primary}
             disabled={
               busy || !assetId || !reason.trim() || options.data?.mode !== "approval-required"
@@ -436,6 +438,7 @@ export function RadarOutreachPanel({
               <>
                 <p className="mt-2 text-sm">Do not resend while acceptance is unresolved.</p>
                 <button
+                  type="button"
                   className={button + " mt-2"}
                   disabled={busy}
                   onClick={() =>
@@ -539,6 +542,7 @@ export function RadarOutreachPanel({
             )}
             <div className="mt-5 flex flex-wrap gap-3">
               <button
+                type="button"
                 className={primary}
                 disabled={busy}
                 onClick={() => void perform(() => queue(true))}
@@ -546,13 +550,19 @@ export function RadarOutreachPanel({
                 Approve and send
               </button>
               <button
+                type="button"
                 className={button}
                 disabled={busy}
                 onClick={() => void perform(() => queue(false))}
               >
                 Queue for later review
               </button>
-              <button className={button} disabled={busy} onClick={() => setPreview(null)}>
+              <button
+                type="button"
+                className={button}
+                disabled={busy}
+                onClick={() => setPreview(null)}
+              >
                 Back
               </button>
             </div>

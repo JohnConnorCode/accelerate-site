@@ -62,6 +62,7 @@ export function Toast({
             />
             <p className="text-sm text-white-primary flex-1">{message}</p>
             <button
+              type="button"
               onClick={onClose}
               className="shrink-0 text-white-muted hover:text-white-primary transition-colors cursor-pointer"
               aria-label="Close notification"
