@@ -1782,3 +1782,36 @@ textarea.admin-field {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+.admin-grid--metrics-compact {
+  --admin-grid-min: 150px;
+}
+.admin-work-filter-toggle {
+  display: none;
+}
+@container admin-page (max-width: 519px) {
+  .admin-work-filter-toggle {
+    display: inline-flex;
+  }
+  .admin-work-toolbar[data-expanded="false"] .admin-work-filter-option {
+    display: none;
+  }
+}
+
+.admin-timeline-link:focus-visible {
+  outline: none;
+}
+.admin-timeline-link:focus-visible .admin-timeline-card {
+  box-shadow: var(--admin-focus-ring);
+}
+
+.admin-toolbar-date-range {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex: 1 1 320px;
+  gap: var(--admin-space-3);
+  min-width: 0;
+}
+.admin-toolbar-date-range .admin-field {
+  min-width: 0;
+}

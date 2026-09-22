@@ -8,6 +8,10 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Contact intake now labels the From/To date range, keeps both dates together and aligns search using the shared filter toolbar.
+
+- Contact and client timeline cards now share consistent spacing, quieter surfaces, visible link indicators and keyboard focus, without cascading entrance delays.
+
 - Tasks & approvals now uses a compact desktop filter toolbar, aligned task metadata, visible completion labels, and filter reset with a result count. Small screens retain readable stacked controls. Pipeline groups standard/saved views, preserves active-filter summaries and moves view management into a labeled disclosure.
 
 - Sign-in and password-reset labels now identify and focus their fields for screen-reader and keyboard users.

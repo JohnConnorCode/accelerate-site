@@ -243,8 +243,13 @@ await desktop.page.getByRole("button", { name: "List view" }).click();
 await desktop.page.getByRole("columnheader", { name: "Opportunity" }).waitFor();
 await desktop.page.reload({ waitUntil: "domcontentloaded" });
 await desktop.page.getByRole("columnheader", { name: "Opportunity" }).waitFor();
-if (!(await desktop.page.getByLabel("View", { exact: true }).inputValue()).startsWith("saved:"))
-  throw new Error("Saved view was not selected");
+if (
+  (await desktop.page
+    .locator("#pipeline-view option")
+    .filter({ hasText: "Founder review" })
+    .count()) !== 1
+)
+  throw new Error("Saved view was not retained after reload");
 await desktop.page.getByRole("button", { name: "Board view" }).click();
 
 await desktop.page.goto(`${base}/admin/pipeline?opportunity=opp-5`, {

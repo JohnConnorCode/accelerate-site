@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
 import {
   Users,
@@ -74,53 +73,57 @@ export function ContactTimeline({ items }: ContactTimelineProps) {
       {/* Vertical line */}
       <div className="absolute bottom-5 left-5 top-5 w-px bg-[var(--admin-rule)]" />
 
-      <div className="space-y-1">
-        {items.map((item, i) => {
+      <ol className="grid gap-[var(--admin-space-3)]">
+        {items.map((item) => {
           const config = typeConfig[item.type] || typeConfig.lead!;
           const Icon = config.icon;
 
           return (
-            <motion.div
-              key={`${item.type}-${item.sourceId}`}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.04 }}
-              data-contact-timeline-item
-            >
-              <Link href={item.link} className="relative block">
+            <li key={`${item.type}-${item.sourceId}`} data-contact-timeline-item>
+              <Link
+                href={item.link}
+                className="admin-timeline-link group relative block rounded-[var(--admin-surface-radius)]"
+              >
                 <div
-                  className={`absolute left-2.5 top-4 z-10 grid size-5 place-items-center rounded-full shadow-[0_0_0_3px_var(--admin-canvas)] ${config.emphasis ? "bg-amber-500/14 text-amber-700 dark:text-amber-300" : "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]"}`}
+                  className={`absolute left-2 top-4 z-10 grid size-6 place-items-center rounded-full shadow-[0_0_0_3px_var(--admin-canvas)] ${config.emphasis ? "bg-amber-500/14 text-amber-700 dark:text-amber-300" : "bg-[var(--admin-surface-subtle)] text-[var(--admin-muted)]"}`}
                 >
-                  <Icon className="h-3 w-3" />
+                  <Icon className="size-3.5" aria-hidden="true" />
                 </div>
                 <AdminSurface
                   padding="sm"
-                  className="group ml-10 transition-[box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-[var(--admin-shadow-hover)]"
+                  elevation="flat"
+                  className="admin-timeline-card ml-10 transition-shadow duration-150 group-hover:shadow-[var(--admin-shadow-hover)]"
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                        <span className="admin-eyebrow text-[9px]">{typeLabel(item.type)}</span>
-                        <span className="text-[10px] tabular-nums text-[var(--admin-muted)]">
+                        <span className="admin-eyebrow">{typeLabel(item.type)}</span>
+                        <time
+                          dateTime={item.timestamp}
+                          className="text-xs tabular-nums text-[var(--admin-muted)]"
+                        >
                           {timelineDate(item.timestamp)}
-                        </span>
+                        </time>
                       </div>
-                      <p className="mt-1 text-sm font-semibold leading-snug text-[var(--admin-ink)]">
+                      <p className="mt-1 break-words text-sm font-semibold leading-snug text-[var(--admin-ink)]">
                         {item.title}
                       </p>
-                      <p className="admin-copy mt-1 line-clamp-2 text-xs leading-relaxed">
+                      <p className="admin-copy mt-1 line-clamp-2 break-words text-xs leading-relaxed">
                         {item.description}
                       </p>
                     </div>
 
-                    <ArrowRight className="mt-1 size-3.5 shrink-0 text-[var(--admin-muted)] opacity-0 transition-[opacity,transform] duration-150 group-hover:translate-x-0.5 group-hover:opacity-100" />
+                    <ArrowRight
+                      aria-hidden="true"
+                      className="mt-1 size-4 shrink-0 text-[var(--admin-muted)] opacity-60 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+                    />
                   </div>
                 </AdminSurface>
               </Link>
-            </motion.div>
+            </li>
           );
         })}
-      </div>
+      </ol>
     </div>
   );
 }

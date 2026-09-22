@@ -4,9 +4,9 @@ export const changelogEntries: ChangelogEntry[] = [
   {
     id: "work-desktop-layout",
     slug: "work-desktop-layout",
-    title: "Clearer task and pipeline workspaces",
+    title: "Clearer tasks, pipeline and contact workspaces",
     description:
-      "Tasks & approvals uses a compact filter toolbar on wide screens, with aligned related records, due dates and priorities. Overdue dates stand out, completion actions have visible labels, and a result count and Reset filters make filtered views easier to navigate. Smaller screens retain the same details in a stacked layout. Pipeline keeps standard and saved views in one selector, stage and owner filters in an expandable panel, and customization tools under View options. Active filters stay visible in the result summary.",
+      "Tasks & approvals uses a compact filter toolbar on wide screens, with aligned related records, due dates and priorities. Overdue dates stand out, completion actions have visible labels, and a result count and Reset filters make filtered views easier to navigate. Smaller screens retain the same details in a stacked layout. Pipeline keeps standard and saved views in one selector, stage and owner filters in an expandable panel, and customization tools under View options. Active filters stay visible in the result summary. Contact intake groups visibly labeled From and To dates beside search, with a reset action. Contact and client timelines share consistent card spacing, clear keyboard focus and immediate rendering without staggered entrance delays.",
     category: "improvement",
     publishedAt: "2026-09-21",
   },

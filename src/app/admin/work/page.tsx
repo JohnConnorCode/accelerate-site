@@ -40,6 +40,7 @@ export default function WorkPage() {
   const [status, setStatus] = useState("pending");
   const [search, setSearch] = useState("");
   const [source, setSource] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [task, setTask] = useState<TaskRow | null>(null);
@@ -209,11 +210,13 @@ export default function WorkPage() {
       {tab === "tasks" ? (
         <>
           <div
-            className="admin-toolbar admin-toolbar--filters"
+            id="work-filters"
+            data-expanded={filtersOpen}
+            className="admin-toolbar admin-toolbar--filters admin-work-toolbar"
             role="search"
             aria-label="Task filters"
           >
-            <div className="admin-toolbar-field">
+            <div className="admin-toolbar-field admin-work-filter-option">
               <label className="admin-field-label" htmlFor="work-owner">
                 Ownership
               </label>
@@ -228,7 +231,7 @@ export default function WorkPage() {
                 <option value="unassigned">Unassigned</option>
               </select>
             </div>
-            <div className="admin-toolbar-field">
+            <div className="admin-toolbar-field admin-work-filter-option">
               <label className="admin-field-label" htmlFor="work-status">
                 Task status
               </label>
@@ -244,7 +247,7 @@ export default function WorkPage() {
                 <option value="all">All statuses</option>
               </select>
             </div>
-            <div className="admin-toolbar-field">
+            <div className="admin-toolbar-field admin-work-filter-option">
               <label className="admin-field-label" htmlFor="work-source">
                 App or source
               </label>
@@ -278,6 +281,18 @@ export default function WorkPage() {
             </div>
           </div>
           <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 text-sm">
+            <button
+              type="button"
+              className="admin-button admin-button-secondary admin-work-filter-toggle"
+              aria-controls="work-filters"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen(!filtersOpen)}
+            >
+              {filtersOpen ? "Hide filters" : "Filters"}
+              {owner !== "team" || status !== "pending" || source
+                ? ` (${Number(owner !== "team") + Number(status !== "pending") + Number(Boolean(source))})`
+                : ""}
+            </button>
             <p role="status" className="text-[var(--admin-muted)]">
               {tasksQuery.isPending
                 ? "Loading tasks…"

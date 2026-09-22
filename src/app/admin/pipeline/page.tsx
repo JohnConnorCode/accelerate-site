@@ -342,7 +342,7 @@ export default function PipelinePage() {
         ) : (
           data && (
             <>
-              <section className="admin-grid admin-grid--metrics">
+              <section className="admin-grid admin-grid--metrics admin-grid--metrics-compact">
                 {[
                   ["Open", metrics.open, "Active opportunities"],
                   ["Pipeline value", money(metrics.value), "Unweighted"],
@@ -498,7 +498,10 @@ export default function PipelinePage() {
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm text-[var(--admin-muted)]" role="status">
+                    <p
+                      className="min-w-0 flex-1 break-words text-sm text-[var(--admin-muted)]"
+                      role="status"
+                    >
                       <span className="font-medium tabular-nums text-[var(--admin-ink)]">
                         {shown.length} shown
                       </span>
