@@ -221,10 +221,6 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
     }
     trackWorkspaceEvent("pwa_update_accepted");
     const reload = () => window.location.reload();
-    if (!navigator.serviceWorker.controller) {
-      reload();
-      return;
-    }
     navigator.serviceWorker.addEventListener("controllerchange", reload, { once: true });
     waiting.postMessage({ type: "SKIP_WAITING" });
   };

@@ -38,6 +38,9 @@ async function main() {
   assert.match(pwa, /data-command-center-dialog/);
   assert.match(pwa, /aria-describedby/);
   assert.match(pwa, /event\.key === "Escape"/);
+  const activation = pwa.slice(pwa.indexOf("const activateUpdate"), pwa.indexOf("const saveDraft"));
+  assert.doesNotMatch(activation, /if \(!navigator\.serviceWorker\.controller\)[\s\S]*reload\(\);/);
+  assert.match(activation, /controllerchange[\s\S]*waiting\.postMessage/);
   assert.match(docs, /Install Command Center/);
   assert.match(faq, /Can I install Command Center/);
 
