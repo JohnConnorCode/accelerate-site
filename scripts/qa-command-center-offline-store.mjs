@@ -87,6 +87,24 @@ try {
   }, source);
   assert.equal(results.length, 6);
   console.log("PASS: Command Center offline storage", results.join(", "));
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.register("/command-center-sw.js", { scope: "/" });
+    await navigator.serviceWorker.ready;
+  });
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  await page.evaluate(async () => {
+    const cache = await caches.open("accelerate-command-center-v1");
+    await cache.put("/cleanup-test.js", new Response("fictional"));
+    navigator.serviceWorker.controller.postMessage({ type: "CLEAR_WORKSPACE_CACHE" });
+  });
+  await page.waitForFunction(async () => !(await caches.match("/cleanup-test.js")));
+  assert.ok(
+    await page.evaluate(async () => Boolean(await caches.match("/command-center-offline.html"))),
+  );
+  await page.context().setOffline(true);
+  await page.goto(`${process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3045"}/workspace`);
+  await page.getByRole("heading", { name: "You are offline." }).waitFor();
+  console.log("PASS: Service worker cleanup preserves the working offline fallback");
 } finally {
   await browser.close();
 }
