@@ -19,6 +19,7 @@
   "scripts": {
     "dev": "next dev",
     "test:today-workspace": "NODE_OPTIONS=--conditions=react-server tsx scripts/test-today-workspace.ts && node scripts/test-today-views-postgres.mjs",
+    "test:command-center-pwa": "node --import tsx scripts/test-command-center-pwa.ts",
     "qa:today-workspace": "node scripts/qa-today-workspace.mjs",
     "build": "node scripts/resource-run.mjs node scripts/next-release.mjs build --webpack",
     "build:qa": "NEXT_DIST_DIR=.next-qa node scripts/resource-run.mjs node scripts/next-release.mjs build --webpack",

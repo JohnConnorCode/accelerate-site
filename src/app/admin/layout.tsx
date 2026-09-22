@@ -31,6 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const workspaceSlug = requestHeaders.get("x-tenant-slug") || ACCELERATE_TENANT_SLUG;
   let workspaceName = requestHeaders.get("x-tenant-name") || tenant.brand.name;
   const isPlatformAdmin = requestHeaders.get("x-platform-admin") === "true";
+  let userId = "demo-user";
 
   // Best-effort: the nav layout override is a presentation nicety, never a
   // reason to fail the shell. Demo scenarios never read or write real tenant
@@ -45,6 +46,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     try {
       const auth = await requireAdmin();
       if (!(auth instanceof NextResponse)) {
+        userId = auth.user.id;
         const brand = resolveWorkspaceBrand(auth.tenant.config, auth.tenant.name);
         workspaceName = brand.name;
         workspaceTheme = brand.adminTheme ?? null;
@@ -80,6 +82,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         demoScenarioId={demoScenarioId}
         demoRoute={demoRoute}
         workspaceSlug={workspaceSlug}
+        userId={userId}
         workspaceTheme={workspaceTheme}
         workspaceName={workspaceName}
         isPlatformAdmin={isPlatformAdmin}
