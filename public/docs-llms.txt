@@ -69,7 +69,7 @@ One shared operating layer for the businesses that need it, and how to run the d
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-19): Find supported capabilities, their business purpose and the setup or review each needs.
 - [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-19): Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-19): Every new lead, message, and staged action that hasn't found an owner yet, in one queue.
-- [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-19): The editing view over the same tasks and approvals Today shows you, with filters and full editing.
+- [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-21): The editing view over the same tasks and approvals Today shows you, with filters and full editing.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-19): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-19): Trace a change back to who made it, what happened, and when.
 - [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-19): Ask a specific question, see the records it used to answer, and review anything it proposes.
@@ -91,7 +91,7 @@ Opportunities, stages, value, and closed revenue in one operating view.
 
 - [Pipeline](https://www.acceleratewith.us/docs/pipeline/overview) (updated 2026-09-19): Every open deal on one board, ranked by what moves revenue next.
 - [Understand revenue figures](https://www.acceleratewith.us/docs/pipeline/revenue) (updated 2026-09-19): Where each number on the revenue screen comes from, and how to chase a discrepancy.
-- [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-19): Drag a card when the evidence changed, and leave the next action clear behind it.
+- [Use the pipeline board](https://www.acceleratewith.us/docs/pipeline/board) (updated 2026-09-21): Drag a card when the evidence changed, and leave the next action clear behind it.
 
 ## Proposals
 Drafts, pricing validation, decisions, and follow-up.

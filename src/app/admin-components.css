@@ -1222,24 +1222,6 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 .kanban-slot[data-insertion="after"]::after {
   bottom: -7px;
 }
-.pipeline-toolbar {
-  display: grid;
-  gap: 12px;
-  border-top: 1px solid var(--admin-border);
-}
-.pipeline-search-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.pipeline-search-row > label {
-  flex: 1;
-  max-width: 440px;
-}
-.pipeline-search-row > [role="group"] {
-  flex-shrink: 0;
-}
 @media (min-width: 768px) {
   .kanban-column {
     width: clamp(300px, calc((100cqw - 32px) / 3), 340px);
@@ -1725,4 +1707,78 @@ textarea.admin-field {
   display: block;
   width: 28px;
   height: 10px;
+}
+
+/* Labeled filter controls share one responsive toolbar across admin screens. */
+.admin-toolbar--filters {
+  align-items: end;
+}
+.admin-toolbar > .admin-toolbar-field {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.admin-toolbar > .admin-toolbar-search {
+  flex: 2 1 260px;
+}
+.admin-toolbar-field > .admin-field-label {
+  margin-bottom: 6px;
+}
+@container admin-page (max-width: 519px) {
+  .admin-toolbar--filters > .admin-toolbar-field {
+    flex-basis: 100%;
+  }
+}
+.admin-work-columns {
+  display: grid;
+  gap: 6px 12px;
+  min-width: 0;
+}
+.admin-work-heading {
+  display: none;
+}
+.admin-work-action-label {
+  display: none;
+}
+.admin-work-related {
+  overflow-wrap: anywhere;
+}
+@container admin-page (min-width: 900px) {
+  .admin-work-columns {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 120px 72px;
+    align-items: center;
+    gap: 16px;
+  }
+  .admin-work-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--admin-border);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--admin-muted);
+  }
+  .admin-work-heading > .admin-work-columns {
+    flex: 1;
+  }
+  .admin-work-heading > span,
+  .admin-work-complete {
+    width: 112px;
+    text-align: center;
+  }
+  .admin-work-action-label {
+    display: inline;
+  }
+  .admin-work-mobile-label {
+    display: none;
+  }
+}
+
+.admin-view-options > summary:focus-visible {
+  outline: 2px solid var(--admin-action);
+  outline-offset: 2px;
+}
+.admin-work-columns > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }

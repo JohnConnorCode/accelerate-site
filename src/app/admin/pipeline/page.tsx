@@ -14,7 +14,6 @@ import {
   Loader2,
   Plus,
   RefreshCw,
-  Search,
   Settings2,
   Target,
   Trash2,
@@ -103,6 +102,7 @@ export default function PipelinePage() {
   const [saved, setSaved] = useState<SavedPipelineView[]>([]);
   const [activeSaved, setActiveSaved] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState("");
   const [dialog, setDialog] = useState<"create" | "customize" | "save" | "add-stage" | null>(null);
@@ -365,92 +365,75 @@ export default function PipelinePage() {
                 padding="none"
                 className="w-full min-w-0 max-w-full overflow-hidden [contain:inline-size]"
               >
-                <div className="border-b border-[var(--admin-border)] p-4 sm:p-5">
-                  <div className="flex items-end justify-between gap-4">
-                    <div>
-                      <p className="admin-eyebrow">Operator views</p>
-                      <h2 className="mt-1 text-balance text-lg font-semibold tracking-[-0.025em]">
-                        {currentView.label}
-                      </h2>
-                      <p className="admin-copy mt-1 max-w-2xl text-pretty text-xs">
-                        {currentView.description}
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded-full bg-black/[0.045] px-2.5 py-1 font-mono text-[10px] tabular-nums text-[var(--admin-muted)] dark:bg-white/[0.06]">
-                      {shown.length} shown
-                    </span>
-                  </div>
+                <div className="space-y-3 p-4 sm:p-5">
                   <div
-                    className="mt-4 flex flex-wrap gap-1.5 pb-1"
-                    aria-label="Pipeline operator views"
+                    className="admin-toolbar admin-toolbar--filters"
+                    aria-label="Pipeline controls"
                   >
-                    {SYSTEM_PIPELINE_VIEWS.map((view) => (
-                      <button
-                        key={view.id}
-                        type="button"
-                        aria-pressed={state.systemView === view.id && !activeSaved}
-                        onClick={() => patchState({ systemView: view.id })}
-                        className={cn(
-                          "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.96]",
-                          state.systemView === view.id && !activeSaved
-                            ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]"
-                            : "text-[var(--admin-muted)] hover:bg-[var(--admin-surface-subtle)] hover:text-[var(--admin-ink)]",
-                        )}
-                      >
-                        <span>{view.label}</span>
-                        <span className="font-mono text-[9px] tabular-nums">{counts[view.id]}</span>
-                      </button>
-                    ))}
-                  </div>
-                  {saved.length > 0 && (
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="admin-eyebrow mr-1">Saved</span>
-                      {saved.map((view) => (
-                        <div
-                          key={view.id}
-                          className={cn(
-                            "flex min-h-11 items-center rounded-xl shadow-[var(--admin-shadow-border)]",
-                            activeSaved === view.id && "bg-black/[0.045] dark:bg-white/[0.06]",
-                          )}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
+                    <div className="admin-toolbar-field">
+                      <label className="admin-field-label" htmlFor="pipeline-view">
+                        View
+                      </label>
+                      <select
+                        id="pipeline-view"
+                        className="admin-field"
+                        value={activeSaved ? `saved:${activeSaved}` : state.systemView}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          if (value.startsWith("saved:")) {
+                            const view = saved.find((item) => item.id === value.slice(6));
+                            if (view) {
                               setState(view.state);
                               setActiveSaved(view.id);
-                            }}
-                            className="min-h-11 rounded-l-xl pl-3.5 pr-2 text-xs font-semibold active:scale-[0.96]"
-                          >
-                            {view.name}
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`Delete saved view ${view.name}`}
-                            onClick={() => {
-                              setSaved(removePipelineView(view.id));
-                              if (activeSaved === view.id) setActiveSaved(null);
-                            }}
-                            className="grid size-11 place-items-center rounded-r-xl text-[var(--admin-muted)] hover:text-rose-600 active:scale-[0.96]"
-                          >
-                            <Trash2 className="size-3.5" />
-                          </button>
-                        </div>
-                      ))}
+                            }
+                          } else {
+                            patchState({ systemView: value as PipelineViewState["systemView"] });
+                          }
+                        }}
+                      >
+                        <optgroup label="Standard views">
+                          {SYSTEM_PIPELINE_VIEWS.map((view) => (
+                            <option key={view.id} value={view.id}>
+                              {view.label} ({counts[view.id]})
+                            </option>
+                          ))}
+                        </optgroup>
+                        {saved.length > 0 && (
+                          <optgroup label="Saved views">
+                            {saved.map((view) => (
+                              <option key={view.id} value={`saved:${view.id}`}>
+                                {view.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                      </select>
                     </div>
-                  )}
-                </div>
-                <div className="pipeline-toolbar p-4 sm:p-5">
-                  <div className="pipeline-search-row">
-                    <label className="relative min-w-0">
-                      <span className="sr-only">Search pipeline</span>
-                      <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" />
+                    <div className="admin-toolbar-field admin-toolbar-search">
+                      <label className="admin-field-label" htmlFor="pipeline-search">
+                        Search pipeline
+                      </label>
                       <input
+                        id="pipeline-search"
                         value={state.search}
                         onChange={(event) => patchState({ search: event.target.value })}
                         placeholder="Search company, person, or email"
-                        className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] pl-10 pr-3.5 text-sm outline-none focus:border-[var(--admin-ink)] focus:ring-2 focus:ring-[var(--admin-ink)]/10"
+                        className="admin-field"
                       />
-                    </label>{" "}
+                    </div>
+                    <button
+                      type="button"
+                      className="admin-button admin-button-secondary"
+                      aria-expanded={filtersOpen}
+                      aria-controls="pipeline-filters"
+                      onClick={() => setFiltersOpen(!filtersOpen)}
+                    >
+                      <Settings2 className="size-4" aria-hidden="true" />
+                      Filters
+                      {state.stage !== "all" || state.owner !== "all"
+                        ? ` (${Number(state.stage !== "all") + Number(state.owner !== "all")})`
+                        : ""}
+                    </button>
                     <div
                       className="flex rounded-xl p-1 shadow-[var(--admin-shadow-border)]"
                       role="group"
@@ -470,54 +453,116 @@ export default function PipelinePage() {
                       />
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Select
-                      value={state.stage}
-                      label="Filter by stage"
-                      onChange={(value) =>
-                        patchState({ stage: value as PipelineViewState["stage"] })
-                      }
-                    >
-                      <option value="all">All stages</option>
-                      {pipelineColumns.map((column) => (
-                        <option key={column.column_key} value={column.column_key}>
-                          {column.label}
-                        </option>
-                      ))}
-                    </Select>
-                    <Select
-                      value={state.owner}
-                      label="Filter by owner"
-                      onChange={(owner) => patchState({ owner })}
-                    >
-                      <option value="all">All owners</option>
-                      {owners.map((owner) => (
-                        <option key={owner} value={owner}>
-                          {owner === "unassigned" ? "Unassigned" : owner}
-                        </option>
-                      ))}
-                    </Select>
-                    <ToolButton
-                      label="Customize"
-                      icon={Settings2}
-                      onClick={() => setDialog("customize")}
-                    />
-                    <ToolButton
-                      label="Save view"
-                      icon={BookmarkPlus}
-                      onClick={() => setDialog("save")}
-                    />
-                    <ToolButton
-                      label="Add stage"
-                      icon={Plus}
-                      onClick={() => {
-                        setStageLabel("");
-                        setStageRole("open");
-                        setStageProbability(20);
-                        setDialog("add-stage");
-                      }}
-                    />
+                  <div id="pipeline-filters" hidden={!filtersOpen}>
+                    <div className="admin-toolbar admin-toolbar--filters rounded-xl bg-[var(--admin-surface-subtle)] p-3">
+                      <div className="admin-toolbar-field">
+                        <label className="admin-field-label" htmlFor="pipeline-stage-filter">
+                          Stage
+                        </label>
+                        <select
+                          id="pipeline-stage-filter"
+                          aria-label="Filter by stage"
+                          className="admin-field"
+                          value={state.stage}
+                          onChange={(event) =>
+                            patchState({ stage: event.target.value as PipelineViewState["stage"] })
+                          }
+                        >
+                          <option value="all">All stages</option>
+                          {pipelineColumns.map((column) => (
+                            <option key={column.column_key} value={column.column_key}>
+                              {column.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="admin-toolbar-field">
+                        <label className="admin-field-label" htmlFor="pipeline-owner-filter">
+                          Owner
+                        </label>
+                        <select
+                          id="pipeline-owner-filter"
+                          aria-label="Filter by owner"
+                          className="admin-field"
+                          value={state.owner}
+                          onChange={(event) => patchState({ owner: event.target.value })}
+                        >
+                          <option value="all">All owners</option>
+                          {owners.map((owner) => (
+                            <option key={owner} value={owner}>
+                              {owner === "unassigned" ? "Unassigned" : owner}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
                   </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm text-[var(--admin-muted)]" role="status">
+                      <span className="font-medium tabular-nums text-[var(--admin-ink)]">
+                        {shown.length} shown
+                      </span>
+                      {" · "}
+                      {currentView.description}
+                      {state.stage !== "all"
+                        ? ` · ${pipelineColumns.find((column) => column.column_key === state.stage)?.label ?? state.stage}`
+                        : ""}
+                      {state.owner !== "all"
+                        ? ` · ${state.owner === "unassigned" ? "Unassigned" : state.owner}`
+                        : ""}
+                    </p>
+                    {(state.stage !== "all" ||
+                      state.owner !== "all" ||
+                      state.search ||
+                      state.systemView !== "all") && (
+                      <button
+                        type="button"
+                        className="admin-button admin-button-secondary"
+                        onClick={() =>
+                          patchState({ stage: "all", owner: "all", search: "", systemView: "all" })
+                        }
+                      >
+                        Reset filters
+                      </button>
+                    )}
+                  </div>
+                  <details className="admin-view-options">
+                    <summary className="min-h-10 cursor-pointer rounded-lg py-2 text-sm font-medium text-[var(--admin-muted)]">
+                      View options
+                    </summary>
+                    <div className="admin-toolbar pt-2">
+                      <ToolButton
+                        label="Customize"
+                        icon={Settings2}
+                        onClick={() => setDialog("customize")}
+                      />
+                      <ToolButton
+                        label="Save view"
+                        icon={BookmarkPlus}
+                        onClick={() => setDialog("save")}
+                      />
+                      <ToolButton
+                        label="Add stage"
+                        icon={Plus}
+                        onClick={() => {
+                          setStageLabel("");
+                          setStageRole("open");
+                          setStageProbability(20);
+                          setDialog("add-stage");
+                        }}
+                      />
+                      {activeSaved && (
+                        <ToolButton
+                          label={`Delete saved view ${saved.find((view) => view.id === activeSaved)?.name ?? ""}`}
+                          icon={Trash2}
+                          onClick={() => {
+                            setSaved(removePipelineView(activeSaved));
+                            setActiveSaved(null);
+                          }}
+                        />
+                      )}
+                    </div>
+                  </details>
                 </div>
                 {state.layout === "board" ? (
                   shownColumns.length > 0 ? (
@@ -924,28 +969,6 @@ export default function PipelinePage() {
   );
 }
 
-function Select({
-  value,
-  label,
-  onChange,
-  children,
-}: {
-  value: string;
-  label: string;
-  onChange: (value: string) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <select
-      value={value}
-      aria-label={label}
-      onChange={(event) => onChange(event.target.value)}
-      className="admin-field admin-field--inline min-h-11 min-w-[130px] flex-1 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 text-xs font-semibold outline-none sm:flex-none"
-    >
-      {children}
-    </select>
-  );
-}
 function SelectBlock({
   label,
   value,
