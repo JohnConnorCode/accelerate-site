@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, FilePenLine, RefreshCw, WifiOff, X } from "lucide-react";
 import { trackWorkspaceEvent } from "@/lib/analytics";
 import {
@@ -59,6 +59,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
   const [draftOpen, setDraftOpen] = useState(false);
   const [draftBody, setDraftBody] = useState("");
   const [draftKind, setDraftKind] = useState<OfflineDraft["kind"]>("note");
+  const dialogReturnFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!enabled || !isCommandCenterHost()) return;
@@ -78,7 +79,10 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
       setInstallPrompt(null);
       trackWorkspaceEvent("pwa_installed");
     };
-    const onOpenInstall = () => setInstallHelpOpen(true);
+    const onOpenInstall = () => {
+      dialogReturnFocusRef.current = document.activeElement as HTMLElement | null;
+      setInstallHelpOpen(true);
+    };
     const onClear = async () => {
       try {
         await clearOfflineWorkspace(tenantSlug, userId);
@@ -98,12 +102,14 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
     window.addEventListener("pwa:clear-local-state", onClear);
 
     const loadSnapshot = async () => {
+      let freshSnapshot: OfflineSnapshot | null = null;
       if (navigator.onLine) {
         try {
           const response = await fetch("/api/admin/offline-snapshot", { cache: "no-store" });
           if (response.ok) {
             const next = (await response.json()) as OfflineSnapshot;
             await saveOfflineSnapshot(next);
+            freshSnapshot = next;
             setSnapshot(next);
             trackWorkspaceEvent("pwa_snapshot_loaded");
           }
@@ -112,7 +118,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
         }
       }
       const stored = await readOfflineSnapshot(tenantSlug, userId);
-      if (stored) setSnapshot(stored);
+      if (!freshSnapshot && stored) setSnapshot(stored);
       setDrafts(await listOfflineDrafts(tenantSlug, userId));
     };
     void loadSnapshot();
@@ -151,6 +157,47 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
     };
   }, [enabled, tenantSlug, userId]);
 
+  useEffect(() => {
+    if (!installHelpOpen && !draftOpen) return;
+    const opener = dialogReturnFocusRef.current;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const dialog = document.querySelector<HTMLElement>("[data-command-center-dialog]");
+      if (!dialog) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setInstallHelpOpen(false);
+        setDraftOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => !element.hasAttribute("disabled"));
+      if (!focusable.length) return;
+      const first = focusable.at(0);
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document
+      .querySelector<HTMLElement>("[data-command-center-dialog] [data-dialog-initial-focus]")
+      ?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      opener?.focus();
+      dialogReturnFocusRef.current = null;
+    };
+  }, [draftOpen, installHelpOpen]);
+
   if (!enabled || !hostEligible) return null;
 
   const canOfferInstall = !installed && (Boolean(installPrompt) || isIosSafari());
@@ -167,9 +214,19 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
   };
 
   const activateUpdate = () => {
-    updateReady?.waiting?.postMessage({ type: "SKIP_WAITING" });
+    const waiting = updateReady?.waiting;
+    if (!waiting) {
+      window.location.reload();
+      return;
+    }
     trackWorkspaceEvent("pwa_update_accepted");
-    window.setTimeout(() => window.location.reload(), 120);
+    const reload = () => window.location.reload();
+    if (!navigator.serviceWorker.controller) {
+      reload();
+      return;
+    }
+    navigator.serviceWorker.addEventListener("controllerchange", reload, { once: true });
+    waiting.postMessage({ type: "SKIP_WAITING" });
   };
 
   const saveDraft = async () => {
@@ -194,7 +251,10 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
       {canOfferInstall && (
         <button
           type="button"
-          onClick={() => void install()}
+          onClick={() => {
+            dialogReturnFocusRef.current = document.activeElement as HTMLElement | null;
+            void install();
+          }}
           className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[120] inline-flex min-h-11 items-center gap-2 rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] shadow-[var(--admin-shadow-hover)] transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--admin-focus)]"
         >
           <Download className="size-3.5" aria-hidden="true" />
@@ -225,7 +285,10 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
             {!online && (
               <button
                 type="button"
-                onClick={() => setDraftOpen(true)}
+                onClick={() => {
+                  dialogReturnFocusRef.current = document.activeElement as HTMLElement | null;
+                  setDraftOpen(true);
+                }}
                 className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-[var(--admin-control-radius)] bg-[var(--admin-surface-subtle)] px-2.5 font-semibold text-[var(--admin-ink)]"
               >
                 <FilePenLine className="size-3.5" aria-hidden="true" /> Draft
@@ -250,6 +313,8 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="pwa-install-title"
+          aria-describedby="pwa-install-description"
+          data-command-center-dialog
         >
           <div className="w-full max-w-md rounded-[var(--admin-container-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-[var(--admin-shadow-hover)]">
             <div className="flex items-start justify-between gap-4">
@@ -269,11 +334,15 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
                 onClick={() => setInstallHelpOpen(false)}
                 className="grid size-10 place-items-center rounded-[var(--admin-control-radius)] text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
                 aria-label="Close install instructions"
+                data-dialog-initial-focus
               >
                 <X className="size-4" />
               </button>
             </div>
-            <p className="mt-4 text-sm leading-6 text-[var(--admin-muted)]">
+            <p
+              id="pwa-install-description"
+              className="mt-4 text-sm leading-6 text-[var(--admin-muted)]"
+            >
               {isIosSafari()
                 ? "In Safari, tap Share, choose Add to Home Screen, then turn on Open as Web App."
                 : "Use your browser’s install icon or choose Add to Dock / Install app from the browser menu."}
@@ -295,6 +364,8 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="pwa-draft-title"
+          aria-describedby="pwa-draft-description"
+          data-command-center-dialog
         >
           <form
             className="w-full max-w-md rounded-[var(--admin-container-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-[var(--admin-shadow-hover)]"
@@ -320,6 +391,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
                 onClick={() => setDraftOpen(false)}
                 className="grid size-10 place-items-center rounded-[var(--admin-control-radius)] text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
                 aria-label="Close draft"
+                data-dialog-initial-focus
               >
                 <X className="size-4" />
               </button>
@@ -348,7 +420,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
                 placeholder="Keep this non-sensitive. It will not send automatically."
               />
             </label>
-            <p className="mt-2 text-xs text-[var(--admin-muted)]">
+            <p id="pwa-draft-description" className="mt-2 text-xs text-[var(--admin-muted)]">
               {drafts.length} local draft{drafts.length === 1 ? "" : "s"} for this workspace.
             </p>
             <button

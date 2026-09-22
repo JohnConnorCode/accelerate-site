@@ -33,6 +33,11 @@ async function main() {
   assert.match(pwa, /CLEAR_WORKSPACE_CACHE/);
   assert.match(pwa, /pwa_draft_saved/);
   assert.match(pwa, /isCommandCenterHost/);
+  assert.match(pwa, /freshSnapshot/);
+  assert.match(pwa, /controllerchange/);
+  assert.match(pwa, /data-command-center-dialog/);
+  assert.match(pwa, /aria-describedby/);
+  assert.match(pwa, /event\.key === "Escape"/);
   assert.match(docs, /Install Command Center/);
   assert.match(faq, /Can I install Command Center/);
 
