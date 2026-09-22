@@ -39,7 +39,12 @@ try {
   git(["add", "source.txt"]);
   writeFileSync(resolve(root, "source.txt"), "dirty\n");
   writeFileSync(resolve(root, "explicit.txt"), "recover me\n");
-  writeFileSync(resolve(root, "unknown.txt"), "omit me\n");
+  mkdirSync(resolve(root, "src"));
+  mkdirSync(resolve(root, "docs"));
+  writeFileSync(resolve(root, "src/new.ts"), "recover source\n");
+  writeFileSync(resolve(root, "docs/NORTHSTAR-BUILD-PLAN.md"), "generated\n");
+  writeFileSync(resolve(root, "scratch.txt"), "omit me\n");
+  writeFileSync(resolve(root, ".env.local"), "SECRET=omit\n");
   const index = readFileSync(resolve(root, ".git/index"));
   const result = createCheckpoint(root, card, randomUUID(), {
     files: ["explicit.txt"],
@@ -50,8 +55,27 @@ try {
   assert.equal(readFileSync(resolve(root, "source.txt"), "utf8"), "dirty\n");
   assert.equal(git(["show", `${result.checkpoint.commitSha}:source.txt`]), "dirty");
   assert.equal(git(["show", `${result.checkpoint.commitSha}:explicit.txt`]), "recover me");
-  assert.deepEqual(result.omittedUntracked, ["unknown.txt"]);
-  assert.throws(() => git(["show", `${result.checkpoint.commitSha}:unknown.txt`]));
+  assert.deepEqual(result.omittedUntracked, [
+    ".env.local",
+    "docs/NORTHSTAR-BUILD-PLAN.md",
+    "scratch.txt",
+    "src/new.ts",
+  ]);
+  assert.throws(() => git(["show", `${result.checkpoint.commitSha}:src/new.ts`]));
+  const safe = createCheckpoint(
+    root,
+    card,
+    randomUUID(),
+    { remaining: ["verification"] },
+    { publish: false, includeSafeUntracked: true },
+  );
+  assert.equal(git(["show", `${safe.checkpoint.commitSha}:src/new.ts`]), "recover source");
+  assert.deepEqual(safe.omittedUntracked, [
+    ".env.local",
+    "docs/NORTHSTAR-BUILD-PLAN.md",
+    "explicit.txt",
+    "scratch.txt",
+  ]);
   for (const file of [
     ".env.local",
     "secrets.json",
