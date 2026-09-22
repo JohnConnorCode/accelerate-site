@@ -156,7 +156,7 @@ export const capabilities: Capability[] = [
     title: "Tasks and commitments",
     promise: "Give work a title, date and source context so the team can follow it through.",
     detail:
-      "Use Tasks & approvals to inspect shared tasks. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
+      "Use Tasks & approvals to filter shared tasks and scan their related records, due dates and priorities. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
   },
   {
     id: "notes",

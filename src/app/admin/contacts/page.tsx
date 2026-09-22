@@ -16,7 +16,6 @@ import {
   Loader2,
   Mail,
   Phone,
-  Search,
   Trash2,
   UserRound,
   X,
@@ -192,7 +191,7 @@ export default function ContactsPage() {
         label="Loading contact submissions"
       >
         <AdminSurface padding="none" className="overflow-hidden">
-          <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-4 px-4 py-4 sm:px-5">
             <div>
               <p className="admin-eyebrow">Website submissions</p>
               <h2 className="mt-1 text-balance font-display text-xl font-semibold tracking-[-0.025em] text-[var(--admin-ink)]">
@@ -202,35 +201,62 @@ export default function ContactsPage() {
                 <span className="tabular-nums">{total}</span> captured through the website form
               </p>
             </div>
-            <div className="admin-toolbar">
-              <label className="relative">
-                <span className="sr-only">Search submissions</span>
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--admin-muted)]" />
+            <div
+              className="admin-toolbar admin-toolbar--filters"
+              role="search"
+              aria-label="Submission filters"
+            >
+              <div className="admin-toolbar-field admin-toolbar-search">
+                <label className="admin-field-label" htmlFor="submission-search">
+                  Search submissions
+                </label>
                 <input
+                  id="submission-search"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Search name, email, or company"
-                  className="admin-field pl-10"
+                  className="admin-field"
                 />
-              </label>
-              <label>
-                <span className="sr-only">From date</span>
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(event) => setDateFrom(event.target.value)}
-                  className="admin-field min-w-[148px] [color-scheme:light] dark:[color-scheme:dark]"
-                />
-              </label>
-              <label>
-                <span className="sr-only">To date</span>
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(event) => setDateTo(event.target.value)}
-                  className="admin-field min-w-[148px] [color-scheme:light] dark:[color-scheme:dark]"
-                />
-              </label>
+              </div>
+              <div
+                className="admin-toolbar-date-range"
+                role="group"
+                aria-label="Submission date range"
+              >
+                <label className="admin-field-label">
+                  <span>From</span>
+                  <input
+                    aria-label="From date"
+                    type="date"
+                    value={dateFrom}
+                    onChange={(event) => setDateFrom(event.target.value)}
+                    className="admin-field [color-scheme:light] dark:[color-scheme:dark]"
+                  />
+                </label>
+                <label className="admin-field-label">
+                  <span>To</span>
+                  <input
+                    aria-label="To date"
+                    type="date"
+                    value={dateTo}
+                    onChange={(event) => setDateTo(event.target.value)}
+                    className="admin-field [color-scheme:light] dark:[color-scheme:dark]"
+                  />
+                </label>
+              </div>
+              {(searchQuery || dateFrom || dateTo) && (
+                <button
+                  type="button"
+                  className="admin-button admin-button-secondary"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                >
+                  Reset filters
+                </button>
+              )}
             </div>
           </div>
 

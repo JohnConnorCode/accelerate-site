@@ -91,7 +91,10 @@ try {
       assert.equal(saved.status, "snoozed");
       assert.equal(saved.completed_at, null);
       await go("work");
-      await page.getByLabel("Task status", { exact: true }).selectOption("snoozed");
+      const taskStatus = page.getByLabel("Task status", { exact: true });
+      if (!(await taskStatus.isVisible()))
+        await page.getByRole("button", { name: "Filters", exact: true }).click();
+      await taskStatus.selectOption("snoozed");
       const snoozed = page.locator(`[data-source-type=task][data-source-id="${task.id}"]`);
       await snoozed.getByRole("button", { name: /Complete/ }).click();
       await snoozed.waitFor({ state: "hidden" });

@@ -16,6 +16,10 @@ import {
 for (const preset of themes) {
   const theme = validateAdminTheme(themeFromPreset(preset.id));
   const tokens = compileAdminTheme(theme);
+  assert.ok(
+    parseInt(tokens["--admin-control-height"]!) >= 40,
+    `${preset.id}: control target floor`,
+  );
   const required = Object.keys(themes[0]!.tokens).filter(
     (key) => key !== "--admin-mobile-dock-index",
   );

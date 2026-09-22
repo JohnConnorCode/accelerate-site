@@ -215,7 +215,10 @@ try {
         await page.getByRole("button", { name: `Complete ${firstTask}`, exact: true }).click();
         await page.getByText(firstTask, { exact: true }).waitFor({ state: "hidden" });
         await page.reload();
-        await page.getByLabel("Task status", { exact: true }).selectOption("completed");
+        const taskStatus = page.getByLabel("Task status", { exact: true });
+        if (!(await taskStatus.isVisible()))
+          await page.getByRole("button", { name: "Filters", exact: true }).click();
+        await taskStatus.selectOption("completed");
         await page.getByText(firstTask, { exact: true }).waitFor();
         await page.getByText(firstTask, { exact: true }).scrollIntoViewIfNeeded();
         await captureNeutral(page, `${label}-first-completed-task`);
