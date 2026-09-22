@@ -23,6 +23,19 @@ async function assertNoSeriousAxe(page, label) {
     );
 }
 
+async function assertSecurityHeaders() {
+  const response = await fetch(`${base}/demo/command-center/northline-roofing/today`);
+  const csp = response.headers.get("content-security-policy") || "";
+  check(response.ok, `security headers: demo route returned ${response.status}`);
+  check(
+    !response.headers.has("content-security-policy-report-only"),
+    "security headers: CSP must be enforced, not report-only",
+  );
+  for (const directive of ["base-uri 'self'", "object-src 'none'", "form-action 'self'"]) {
+    check(csp.includes(directive), `security headers: CSP is missing ${directive}`);
+  }
+}
+
 async function openToday(page, label) {
   await page.goto(`${base}/demo/command-center/northline-roofing/today`, {
     waitUntil: "domcontentloaded",
@@ -120,6 +133,8 @@ async function openToday(page, label) {
   await page.keyboard.press("Escape");
   await contextDialog.waitFor({ state: "detached" });
 }
+
+await assertSecurityHeaders();
 
 for (const [label, viewport] of [
   ["desktop", { width: 1440, height: 1000 }],

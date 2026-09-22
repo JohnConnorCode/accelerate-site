@@ -77,7 +77,10 @@ function verifyPrebuiltIdentity() {
 
 if (mode === "build") {
   console.log(`Building production release ${deploymentId}`);
-  run("next", ["build", ...args], { env });
+  // Next 16's Turbopack build can fail on a clean install while resolving
+  // next/font/google's internal font loader. Webpack is the stable production
+  // path until that upstream resolver issue is fixed.
+  run("next", ["build", "--webpack", ...args], { env });
 } else if (mode === "start") {
   console.log(`Starting production release ${deploymentId}`);
   run("next", ["start", ...args], { env });
