@@ -2,7 +2,7 @@ import { chicagoHeadquarters } from "@/content/chicago";
 import { adminDensityScript } from "@/lib/admin/density-script";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Jost, Inter, Newsreader, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { NavigationRuntime } from "@/components/navigation/NavigationRuntime";
 import { MotionRuntime } from "@/components/motion/MotionRuntime";
@@ -12,34 +12,34 @@ import { distributionProfile } from "@/lib/distribution/profile";
 import { neutralPublicIdentity } from "@/lib/distribution/public-identity";
 import "./globals.css";
 
-// High-contrast editorial type system: Inter Tight (display), Inter (body),
+// High-contrast editorial type system: Jost (display), Inter (body),
 // JetBrains Mono (labels/utility), Newsreader italic (serif accent).
-const sans = Inter({
+const sans = localFont({
+  src: "../../public/fonts/inter.woff2",
   variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: "100 900",
   display: "swap",
 });
 
-const display = Jost({
+const display = localFont({
+  src: "../../public/fonts/jost.woff2",
   variable: "--font-jost", // keep var name — @theme inline maps --font-display to it
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: "100 900",
   display: "swap",
 });
 
-const editorial = Newsreader({
+const editorial = localFont({
+  src: "../../public/fonts/newsreader.woff2",
   variable: "--font-editorial",
-  subsets: ["latin"],
-  weight: ["200", "300", "500"],
-  style: ["italic"],
+  weight: "200 800",
+  style: "italic",
   display: "swap",
 });
 
-const mono = JetBrains_Mono({
+const mono = localFont({
+  src: "../../public/fonts/jetbrainsmono.woff2",
   variable: "--font-mono-face",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: "100 800",
   display: "swap",
 });
 

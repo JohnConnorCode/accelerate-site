@@ -10,6 +10,8 @@ Product-facing updates (features, fixes, and improvements to the live applicatio
 
 ### Fixed
 
+- Bundle licensed fonts locally so production and cold-install builds no longer depend on Google Fonts availability. Existing font families and theme variables are preserved.
+
 - Shared record openers, keyboard actions and public motion behavior are reconciled across the admin workspace. Production builds retain native document-runtime verification while using the stable Webpack path and Next.js proxy convention.
 - Offline drafts report success only after a committed browser transaction. Snapshot identity and cancellation protect workspace switches and sign-out; incomplete reads cannot replace a saved summary. Storage failures retain draft text, and saved drafts are readable and reusable.
 
