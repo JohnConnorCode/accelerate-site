@@ -476,7 +476,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                         required
                       />
                     </label>
-                    <button className={primary} disabled={busy || !key}>
+                    <button type="submit" className={primary} disabled={busy || !key}>
                       Verify and connect
                     </button>
                     {data.connection ? (
@@ -727,7 +727,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
             <p className="text-xs text-[var(--admin-muted)]">
               Saving invalidates any earlier publication approval.
             </p>
-            <button className={primary} disabled={busy}>
+            <button type="submit" className={primary} disabled={busy}>
               Save draft
             </button>
           </form>
@@ -834,7 +834,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
               required
             />
           </label>
-          <button className={primary} disabled={busy}>
+          <button type="submit" className={primary} disabled={busy}>
             Prepare and save drafts
           </button>
         </form>

@@ -204,7 +204,7 @@ export function CollectionsWorkspace() {
               ))}
             </select>
           </label>
-          <button disabled={busy || !invoice} className={button}>
+          <button type="submit" disabled={busy || !invoice} className={button}>
             Refresh and track invoice
           </button>
           <AdminLink href="/admin/invoicing" className={button}>
@@ -373,7 +373,9 @@ export function CollectionsWorkspace() {
                       <input name="paused" type="checkbox" defaultChecked={current.paused} />
                       Pause indefinitely
                     </label>
-                    <button className={button}>Save case policy</button>
+                    <button type="submit" className={button}>
+                      Save case policy
+                    </button>
                   </fieldset>
                 </form>
               </AdminSurface>
