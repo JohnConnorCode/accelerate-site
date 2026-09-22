@@ -7,15 +7,18 @@ export async function GET() {
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const items = await loadOperatorQueue(auth.database, { onSourceError: () => undefined });
-    return NextResponse.json({
-      version: 1,
-      tenantSlug: auth.tenant.slug,
-      userId: auth.user.id,
-      tenantName: auth.tenant.name,
-      generatedAt: new Date().toISOString(),
-      summary: summarizeOperatorQueue(items),
-    });
+    const items = await loadOperatorQueue(auth.database);
+    return NextResponse.json(
+      {
+        version: 1,
+        tenantSlug: auth.tenant.slug,
+        userId: auth.user.id,
+        tenantName: auth.tenant.name,
+        generatedAt: new Date().toISOString(),
+        summary: summarizeOperatorQueue(items),
+      },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
   } catch (error) {
     console.error("[admin/offline-snapshot]", error);
     return NextResponse.json(

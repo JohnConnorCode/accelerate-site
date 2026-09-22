@@ -1,0 +1,447 @@
+{
+  "base": "346e41caac767d4edae8b89da9fb82f7571a5e89",
+  "pinned": {
+    "admin-ux-standard-20260920": "4cecdd2b96fd5eb87d28aa5238ae95f92e71f344",
+    "agent-workflow-friction-20260922": "8da5f4a40766fdd9c1ef8dfd3923fec3d8aafd5c",
+    "command-center-pwa-controller-activation-20260922": "bac91aafe0be92038d25a34fbce5fcf834de5a25",
+    "command-center-pwa-polish-20260922": "8086637148ffdc7e7002cd064f64eb462946407c",
+    "command-center-pwa-installation-20260922-5a7ff77d-d131-4147-b963-e9496c5630a4": "1f9d44630c199b8aad868bc66cbf510bcd53cc23"
+  },
+  "worktrees": [
+    {
+      "worktree": "accelerate-site",
+      "head": "8b39fd172297611a5f369018a754b690c3715053",
+      "branch": "refs/heads/agent/command-center-copy-rewrite",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "admin-ux-standard-20260920",
+      "head": "4cecdd2b96fd5eb87d28aa5238ae95f92e71f344",
+      "branch": "refs/heads/agent/admin-ux-standard-20260920",
+      "changes": [],
+      "disposition": "Included pinned committed handoff"
+    },
+    {
+      "worktree": "agent-workflow-friction-20260922",
+      "head": "8da5f4a40766fdd9c1ef8dfd3923fec3d8aafd5c",
+      "branch": "refs/heads/agent/agent-workflow-friction-20260922",
+      "changes": [],
+      "disposition": "Included pinned committed handoff"
+    },
+    {
+      "worktree": "ai-readiness-assessment",
+      "head": "fa84d60140cbd3540e24fd58def2e8c423af204f",
+      "branch": "refs/heads/feat/ai-readiness-assessment",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "brain-source-authority",
+      "head": "208638c790b47e843cf503b866040348a538e0d6",
+      "branch": "refs/heads/agent/brain-source-authority",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "brain-source-authority-428d283b-b095-4ac0-b0d6-a8c3d76d8666",
+      "head": "db0fc859b3163ed56ade67256ed5c451e55c9a66",
+      "branch": "refs/heads/agent/brain-source-authority-428d283b-b095-4ac0-b0d6-a8c3d76d8666",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "canonical-retained-tools-parity",
+      "head": "528320a299306ad0996fb2e863d7ac62130c0bec",
+      "branch": "refs/heads/agent/canonical-retained-tools-parity",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "canonical-revenue-activity-parity",
+      "head": "dfa1467dc10bbe82f1651cb7a1d6c4902d116fae",
+      "branch": "refs/heads/agent/canonical-revenue-activity-parity",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "chicago-industry-release-polish",
+      "head": "a52709d9e1716d10b80ba0560e1d4d9b95da7f81",
+      "branch": "refs/heads/agent/chicago-industry-release-polish",
+      "changes": [
+        "M scripts/qa-chicago-industries.mjs",
+        " M src/app/(marketing)/chicago/page.tsx",
+        " M src/app/sitemap.ts",
+        " M src/components/command-center/product.module.css",
+        " M src/components/sections/VerticalPage.tsx",
+        " M src/content/changelog.ts",
+        " M src/content/docs/recipes/catering-event-handoff.mdx",
+        " M src/content/docs/recipes/catering-inquiry.mdx",
+        " M src/content/docs/recipes/cleaning-quote.mdx",
+        " M src/content/docs/recipes/cleaning-service-kickoff.mdx",
+        " M src/content/docs/recipes/event-planning-handoff.mdx",
+        " M src/content/docs/recipes/fitness-member-onboarding.mdx",
+        " M src/content/docs/recipes/fitness-trial.mdx",
+        " M src/content/docs/recipes/pet-service-handoff.mdx",
+        " M src/content/docs/recipes/pet-service-inquiry.mdx",
+        " M src/content/docs/recipes/property-engagement-onboarding.mdx",
+        " M src/content/docs/recipes/property-owner-inquiry.mdx",
+        " M src/content/docs/recipes/repair-inquiry.mdx",
+        " M src/content/docs/recipes/repair-job-handoff.mdx",
+        " M src/content/docs/recipes/retail-order-handoff.mdx",
+        " M src/content/docs/recipes/salon-consultation.mdx",
+        " M src/content/docs/recipes/salon-follow-up.mdx",
+        " M src/content/docs/recipes/staffing-engagement.mdx",
+        " M src/content/docs/recipes/staffing-inquiry.mdx",
+        " M src/content/docs/recipes/venue-inquiry.mdx",
+        " M src/content/docs/recipes/wholesale-inquiry.mdx",
+        " M src/content/verticals.ts",
+        " M src/lib/types.ts",
+        "?? docs/verification/2026-09-19-industry-release-polish.md"
+      ],
+      "disposition": "Preserved retained source; no new edits imported"
+    },
+    {
+      "worktree": "chicago-industry-release-polish-3a8d29cd-b3e6-4be0-9eb6-8304405cc4f1",
+      "head": "624ad81dd7c6ee367168c58954b46c2b53eafbd1",
+      "branch": "refs/heads/agent/chicago-industry-release-polish-3a8d29cd-b3e6-4be0-9eb6-8304405cc4f1",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "chicago-small-business-industries",
+      "head": "a52709d9e1716d10b80ba0560e1d4d9b95da7f81",
+      "branch": "refs/heads/agent/chicago-small-business-industries",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "cold-start-onboarding-fixes-20260921",
+      "head": "bb6961fa8015bb040aab855ef2706253654fe5df",
+      "branch": "refs/heads/agent/cold-start-onboarding-fixes-20260921",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "command-center-pwa-controller-activation-20260922",
+      "head": "bac91aafe0be92038d25a34fbce5fcf834de5a25",
+      "branch": "refs/heads/agent/command-center-pwa-controller-activation-20260922",
+      "changes": [],
+      "disposition": "Included pinned committed handoff"
+    },
+    {
+      "worktree": "command-center-pwa-installation-20260922",
+      "head": "d90cc80408c366bb7dc19de6b2d884df763b1fc4",
+      "branch": "refs/heads/agent/command-center-pwa-installation-20260922",
+      "changes": [
+        "M .env.example",
+        " M package.json",
+        " M src/app/admin/layout.tsx",
+        " M src/app/manifest.ts",
+        " M src/components/admin/AdminShell.tsx",
+        " M src/content/changelog.ts",
+        " M src/content/command-center-faq.ts",
+        " M src/content/docs/workspace/overview.mdx",
+        " M src/lib/analytics.ts",
+        " M src/middleware.ts",
+        "?? public/command-center-icon-192.png",
+        "?? public/command-center-icon-512.png",
+        "?? public/command-center-icon.svg",
+        "?? public/command-center-offline.html",
+        "?? public/command-center-sw.js",
+        "?? scripts/test-command-center-pwa.ts",
+        "?? src/app/api/admin/offline-snapshot/",
+        "?? src/app/workspace/",
+        "?? src/components/admin/CommandCenterPwa.tsx",
+        "?? src/lib/admin/offline-store.ts",
+        "?? src/lib/command-center/"
+      ],
+      "disposition": "Preserved retained source; no new edits imported"
+    },
+    {
+      "worktree": "command-center-pwa-installation-20260922-5a7ff77d-d131-4147-b963-e9496c5630a4",
+      "head": "1f9d44630c199b8aad868bc66cbf510bcd53cc23",
+      "branch": "refs/heads/agent/command-center-pwa-installation-20260922-5a7ff77d-d131-4147-b963-e9496c5630a4",
+      "changes": [],
+      "disposition": "Included pinned committed handoff"
+    },
+    {
+      "worktree": "command-center-pwa-polish-20260922",
+      "head": "8086637148ffdc7e7002cd064f64eb462946407c",
+      "branch": "refs/heads/agent/command-center-pwa-polish-20260922",
+      "changes": [],
+      "disposition": "Included pinned committed handoff"
+    },
+    {
+      "worktree": "connected-learning-knowledge-plugins",
+      "head": "2ca419e3031918564ea1ab7d240bba6faf6a8fef",
+      "branch": "refs/heads/agent/connected-learning-knowledge-plugins",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "docs-admin-recovery-guide",
+      "head": "c13a36e543ca87b799a3d492a6b9d61c159a9a46",
+      "branch": "refs/heads/agent/docs-admin-recovery-guide",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "docs-first-value-guide",
+      "head": "988af039f1aec48012b65936b0485e49ccbaba15",
+      "branch": "refs/heads/agent/docs-first-value-guide",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "fork-experience-polish-20260920",
+      "head": "afda2e3e0d15bdbe5a8b6ef57a02a938b03f0ea3",
+      "branch": "refs/heads/agent/fork-experience-polish-20260920",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "full-product-neutral-default-20260919",
+      "head": "0f91ff3eb4ba612ec9d7167ffc962e0923e996c0",
+      "branch": "refs/heads/agent/full-product-neutral-default-20260919",
+      "changes": [
+        "M .env.example",
+        " M .github/workflows/ci.yml",
+        " M DEPLOY.md",
+        " M README.md",
+        " M distribution/inclusion-manifest.json",
+        " M docs/self-hosting/NEUTRAL-DISTRIBUTION.md",
+        " M docs/self-hosting/SELF-HOSTING.md",
+        " M docs/self-hosting/SITE-STUDIO-CHATGPT.md",
+        " M next.config.ts",
+        " M package.json",
+        " M public/docs-llms.txt",
+        "A  public/site-assets/icon.svg",
+        " M scripts/deployment-preflight.mjs",
+        " M scripts/qa-turnkey.mjs",
+        "AM scripts/test-full-product-fork.ts",
+        " M scripts/test-neutral-runtime-distribution.ts",
+        " M scripts/test-search.ts",
+        " M scripts/verify-module-contract.mjs",
+        " M src/app/(marketing)/layout.tsx",
+        " M src/app/(marketing)/page.tsx",
+        "A  src/app/(marketing)/site-pages/[...websitePath]/page.tsx",
+        " M src/app/api/search/route.ts",
+        " M src/app/apple-icon.tsx",
+        " M src/app/globals.css",
+        " M src/components/admin/site/WebsiteAssets.tsx",
+        " M src/components/admin/site/WebsiteContentEditor.tsx",
+        " M src/components/admin/site/WebsiteEditor.tsx",
+        " M src/components/admin/site/WebsiteFields.tsx",
+        "AM src/components/admin/site/WebsiteFormPicker.tsx",
+        "A  src/components/forms/PublishedWebsiteForm.tsx",
+        " M src/components/layout/Header.tsx",
+        " M src/components/layout/MarketingChrome.tsx",
+        " M src/components/layout/MobileNav.tsx",
+        " M src/components/layout/NotFoundBody.tsx",
+        " M src/components/ui/Logo.tsx",
+        " M src/config/tenant.ts",
+        " M src/content/changelog.ts",
+        " M src/content/command-center-faq.ts",
+        " M src/content/command-center.ts",
+        " M src/content/docs/plugins/site-studio.mdx",
+        " M src/content/docs/self-hosting/overview.mdx",
+        " M src/content/open-source.ts",
+        " M src/lib/distribution/profile.ts",
+        "A  src/lib/distribution/routes.ts",
+        " M src/lib/search/index.ts",
+        " M src/lib/site-studio/assets.ts",
+        " M src/lib/site-studio/components.tsx",
+        " M src/lib/site-studio/delegation.ts",
+        " M src/lib/site-studio/document.ts",
+        " M src/lib/site-studio/editor-contract.ts",
+        " M src/lib/site-studio/editor-service.ts",
+        " M src/lib/site-studio/generate.ts",
+        " M src/lib/site-studio/installation-routes.ts",
+        "A  src/lib/site-studio/neutral-website.ts",
+        " M src/lib/site-studio/renderer.tsx",
+        " M src/lib/site-studio/tokens.ts",
+        " M src/lib/site-studio/website-authoring.ts",
+        " M src/lib/site-studio/website-document.ts",
+        "A  src/lib/site-studio/website-forms.ts",
+        " M src/lib/site-studio/website-page.tsx",
+        " M src/lib/site-studio/website-renderer.tsx",
+        " M src/lib/site-studio/website-seed.ts",
+        " M src/lib/site-studio/website-store.ts",
+        " M src/lib/site-studio/website-theme.ts",
+        " M src/middleware.ts",
+        "?? scripts/qa-full-product-fork.mjs"
+      ],
+      "disposition": "Preserved retained source; no new edits imported"
+    },
+    {
+      "worktree": "full-product-neutral-default-20260919-9cbdd405-43e5-4020-a25b-27b0d61be6b4",
+      "head": "5f582b8e30121e3e36b44aaabac6148828a757a1",
+      "branch": "refs/heads/agent/full-product-neutral-default-20260919-9cbdd405-43e5-4020-a25b-27b0d61be6b4",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "launch-readiness-chatgpt-site-studio-20260919",
+      "head": "0f91ff3eb4ba612ec9d7167ffc962e0923e996c0",
+      "branch": "refs/heads/agent/launch-readiness-chatgpt-site-studio-20260919",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "login-field-labels-20260921",
+      "head": "324a5a090e2f09e5bccdb80614a95d328ed5537e",
+      "branch": "refs/heads/agent/login-field-labels-20260921",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "login-field-labels-20260921-3e8649b0-626b-424b-8bff-497430eeba4c",
+      "head": "809c2a65b21d1c527b1d170844051e9972fb62db",
+      "branch": "refs/heads/agent/login-field-labels-20260921-3e8649b0-626b-424b-8bff-497430eeba4c",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "production-launch-readiness-20260921",
+      "head": "19283e4ba74dd08d522ca4b52d5efcb088489509",
+      "branch": "refs/heads/agent/production-launch-readiness-20260921",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "production-launch-readiness-20260921-8d07d530-0434-442b-af3b-3528ceadb239",
+      "head": "e08c7d53ddb9c5692b20771954671c987df62038",
+      "branch": "refs/heads/agent/production-launch-readiness-20260921-8d07d530-0434-442b-af3b-3528ceadb239",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "public-platform-value-recipes",
+      "head": "b4a3a3e1aa7585855110b93b4e8ca88e80c9f96a",
+      "branch": "refs/heads/agent/public-platform-value-recipes",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "setup-readiness-theme-contrast-20260921",
+      "head": "5bda3a9e777a98c8149012f87bb4cf671c882716",
+      "branch": "refs/heads/agent/setup-readiness-theme-contrast-20260921",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "setup-readiness-theme-contrast-20260921-f7f72d54-9d42-47ac-96a5-f38103efe59f",
+      "head": "6c8458fa4d06c83325ae72209bd51d40d26cff92",
+      "branch": "refs/heads/agent/setup-readiness-theme-contrast-20260921-f7f72d54-9d42-47ac-96a5-f38103efe59f",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "ui-polish-integration-20260922",
+      "head": "0c1ec925d90aba78bede47033abd4330d7c7a16f",
+      "branch": "refs/heads/agent/ui-polish-integration-20260922",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "work-desktop-layout-20260921",
+      "head": "a3c84086a7feb374a89529b0934bf811deab7d43",
+      "branch": "refs/heads/agent/work-desktop-layout-20260921",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "worker-worktree-create-fail-closed-20260922",
+      "head": "d90cc80408c366bb7dc19de6b2d884df763b1fc4",
+      "branch": "refs/heads/agent/worker-worktree-create-fail-closed-20260922",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "workspace-architect-generated-operations",
+      "head": "7163c79e0e51027b6316aeb287154c78859414c7",
+      "branch": "refs/heads/agent/workspace-architect-generated-operations",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "workspace-architect-review-simulation",
+      "head": "b5a73e477201461f0b2a781f80100ea659ac4455",
+      "branch": "refs/heads/agent/workspace-architect-review-simulation",
+      "changes": [
+        "M scripts/test-workspace-architect-review-simulation.ts",
+        " M src/app/api/admin/blueprints/[id]/patch/route.ts",
+        " M src/app/api/admin/blueprints/[id]/simulate/route.ts",
+        " M src/components/admin/AdminAIProvider.tsx",
+        " M src/components/admin/ArchitectBlueprintReview.tsx",
+        " M src/lib/admin/demo/runtime.ts",
+        " M src/lib/revenue-os/architect-review-simulation.ts",
+        " M src/lib/revenue-os/workspace-blueprint.ts"
+      ],
+      "disposition": "Preserved retained source; no new edits imported"
+    },
+    {
+      "worktree": "workspace-architect-review-simulation-68a7e50b-5ca3-41d7-ac63-a089965ae9d2",
+      "head": "26f29c0c7aa3b70c06fb64c4118449d5c47385ef",
+      "branch": "refs/heads/agent/workspace-architect-review-simulation-68a7e50b-5ca3-41d7-ac63-a089965ae9d2",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "control-main",
+      "head": "d90cc80408c366bb7dc19de6b2d884df763b1fc4",
+      "branch": null,
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "integration-completed-agents-20260920",
+      "head": "4a588a2c934fa6f1f41df9be951041ea90c96607",
+      "branch": "refs/heads/integration/completed-agents-20260920",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "integration-grok-review-20260920",
+      "head": "38143a4c4dfcbdcb23efbd7833c3ffca8191ff5f",
+      "branch": "refs/heads/integration/grok-review-20260920",
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "release-all-agents-20260920",
+      "head": "4d1d2d30cb5fd4501683b5b9d9a0bae4cb4d3d8a",
+      "branch": null,
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "release-open-source-20260921",
+      "head": "d90cc80408c366bb7dc19de6b2d884df763b1fc4",
+      "branch": null,
+      "changes": [],
+      "disposition": "Published baseline or historical retained branch; preserved"
+    },
+    {
+      "worktree": "retained-resources",
+      "head": "8baccd279ef2cd5f2bd21b2e401f6f9924642902",
+      "branch": "refs/heads/agent/retained-resources",
+      "changes": [
+        "M docs/verification/admin-route-inventory.json",
+        " M src/app/admin/resources/page.tsx"
+      ],
+      "disposition": "Preserved retained source; no new edits imported"
+    },
+    {
+      "worktree": "site-home-clarity",
+      "head": "59167a013d6085e8ff94abc30009a085e93a404a",
+      "branch": "refs/heads/agent/site-home-clarity",
+      "changes": [
+        "M docs/verification/admin-route-inventory.json",
+        " M src/app/admin/site/page.tsx"
+      ],
+      "disposition": "Preserved retained source; no new edits imported"
+    }
+  ]
+}

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Download, FilePenLine, RefreshCw, WifiOff, X } from "lucide-react";
 import { trackWorkspaceEvent } from "@/lib/analytics";
 import {
-  clearOfflineWorkspace,
   listOfflineDrafts,
   readOfflineSnapshot,
   saveOfflineDraft,
@@ -59,10 +58,15 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
   const [draftOpen, setDraftOpen] = useState(false);
   const [draftBody, setDraftBody] = useState("");
   const [draftKind, setDraftKind] = useState<OfflineDraft["kind"]>("note");
+  const [draftError, setDraftError] = useState("");
+  const [savingDraft, setSavingDraft] = useState(false);
+  const requestRef = useRef<AbortController | null>(null);
   const dialogReturnFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!enabled || !isCommandCenterHost()) return;
+    const controller = new AbortController();
+    requestRef.current = controller;
     const initialStateTimer = window.setTimeout(() => {
       setHostEligible(true);
       setOnline(navigator.onLine);
@@ -83,15 +87,13 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
       dialogReturnFocusRef.current = document.activeElement as HTMLElement | null;
       setInstallHelpOpen(true);
     };
-    const onClear = async () => {
-      try {
-        await clearOfflineWorkspace(tenantSlug, userId);
-        navigator.serviceWorker?.controller?.postMessage({ type: "CLEAR_WORKSPACE_CACHE" });
-        setSnapshot(null);
-        setDrafts([]);
-      } finally {
-        window.dispatchEvent(new Event("pwa:local-state-cleared"));
-      }
+    const onClear = () => {
+      controller.abort();
+      setSnapshot(null);
+      setDrafts([]);
+      setDraftBody("");
+      setDraftOpen(false);
+      navigator.serviceWorker?.controller?.postMessage({ type: "CLEAR_WORKSPACE_CACHE" });
     };
 
     window.addEventListener("online", syncOnline);
@@ -105,10 +107,21 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
       let freshSnapshot: OfflineSnapshot | null = null;
       if (navigator.onLine) {
         try {
-          const response = await fetch("/api/admin/offline-snapshot", { cache: "no-store" });
+          const response = await fetch("/api/admin/offline-snapshot", {
+            cache: "no-store",
+            signal: controller.signal,
+            headers: { "x-tenant-slug": tenantSlug },
+          });
           if (response.ok) {
             const next = (await response.json()) as OfflineSnapshot;
-            await saveOfflineSnapshot(next);
+            if (
+              controller.signal.aborted ||
+              next.tenantSlug !== tenantSlug ||
+              next.userId !== userId
+            )
+              return;
+            await saveOfflineSnapshot(next, controller.signal);
+            if (controller.signal.aborted) return;
             freshSnapshot = next;
             setSnapshot(next);
             trackWorkspaceEvent("pwa_snapshot_loaded");
@@ -118,10 +131,14 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
         }
       }
       const stored = await readOfflineSnapshot(tenantSlug, userId);
+      const savedDrafts = await listOfflineDrafts(tenantSlug, userId);
+      if (controller.signal.aborted) return;
       if (!freshSnapshot && stored) setSnapshot(stored);
-      setDrafts(await listOfflineDrafts(tenantSlug, userId));
+      setDrafts(savedDrafts);
     };
-    void loadSnapshot();
+    void loadSnapshot().catch(() => {
+      /* Offline storage is optional; keep the live workspace usable. */
+    });
 
     let registration: ServiceWorkerRegistration | null = null;
     const register = async () => {
@@ -147,6 +164,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
     void register();
 
     return () => {
+      controller.abort();
       window.clearTimeout(initialStateTimer);
       window.removeEventListener("online", syncOnline);
       window.removeEventListener("offline", syncOnline);
@@ -226,6 +244,10 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
   };
 
   const saveDraft = async () => {
+    if (savingDraft) return;
+    setSavingDraft(true);
+    setDraftError("");
+    const signal = requestRef.current?.signal;
     const draft: OfflineDraft = {
       id: `${tenantSlug}:${crypto.randomUUID()}`,
       tenantSlug,
@@ -235,11 +257,21 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
       updatedAt: new Date().toISOString(),
       status: "local",
     };
-    if (!(await saveOfflineDraft(draft))) return;
-    setDrafts((current) => [draft, ...current]);
-    setDraftBody("");
-    setDraftOpen(false);
-    trackWorkspaceEvent("pwa_draft_saved", { kind: draftKind });
+    try {
+      if (!(await saveOfflineDraft(draft, signal))) throw new Error("Storage unavailable");
+      if (signal?.aborted) return;
+      setDrafts((current) => [draft, ...current]);
+      setDraftBody("");
+      setDraftOpen(false);
+      trackWorkspaceEvent("pwa_draft_saved", { kind: draftKind });
+    } catch {
+      if (!signal?.aborted)
+        setDraftError(
+          "This browser could not save your draft. Your text is still here. Copy it before closing.",
+        );
+    } finally {
+      setSavingDraft(false);
+    }
   };
 
   return (
@@ -251,14 +283,14 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
             dialogReturnFocusRef.current = document.activeElement as HTMLElement | null;
             void install();
           }}
-          className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[120] inline-flex min-h-11 items-center gap-2 rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] shadow-[var(--admin-shadow-hover)] transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--admin-focus)]"
+          className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[120] inline-flex min-h-11 items-center gap-2 rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-3.5 text-xs font-semibold text-[var(--admin-surface)] shadow-[var(--admin-shadow-hover)] transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--admin-action)]"
         >
           <Download className="size-3.5" aria-hidden="true" />
           Install app
         </button>
       )}
 
-      {(!online || updateReady) && (
+      {(!online || updateReady || drafts.length > 0) && (
         <div className="pointer-events-none fixed inset-x-4 bottom-[max(5.9rem,calc(5.9rem+env(safe-area-inset-bottom)))] z-[110] flex justify-center lg:bottom-5">
           <div className="pointer-events-auto flex w-full max-w-xl items-center gap-3 rounded-[var(--admin-surface-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 py-3 text-xs shadow-[var(--admin-shadow-hover)]">
             {!online ? (
@@ -268,17 +300,19 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
             )}
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-[var(--admin-ink)]">
-                {online ? "Update ready" : "You are offline"}
+                {online ? (updateReady ? "Update ready" : "Local drafts saved") : "You are offline"}
               </p>
               <p className="mt-0.5 truncate text-[var(--admin-muted)]">
                 {online
-                  ? "Refresh when your workspace is ready. Unsaved work stays in place."
+                  ? updateReady
+                    ? "Save unsaved work before refreshing."
+                    : "These drafts stay on this device until you reuse or clear them."
                   : snapshot
-                    ? `Safe summary from ${new Date(snapshot.generatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Actions wait for connection.`
-                    : "Safe drafts stay on this device. Actions wait for connection."}
+                    ? `${snapshot.summary.total} items, ${snapshot.summary.urgent} urgent. Saved at ${new Date(snapshot.generatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`
+                    : "Drafts stay on this device. Reconnect to make live changes."}
               </p>
             </div>
-            {!online && (
+            {(!online || drafts.length > 0) && (
               <button
                 type="button"
                 onClick={() => {
@@ -312,7 +346,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
           aria-describedby="pwa-install-description"
           data-command-center-dialog
         >
-          <div className="w-full max-w-md rounded-[var(--admin-container-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-[var(--admin-shadow-hover)]">
+          <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-[var(--admin-surface-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-[var(--admin-shadow-hover)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--admin-muted)]">
@@ -364,7 +398,7 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
           data-command-center-dialog
         >
           <form
-            className="w-full max-w-md rounded-[var(--admin-container-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-[var(--admin-shadow-hover)]"
+            className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-[var(--admin-surface-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] p-5 shadow-[var(--admin-shadow-hover)]"
             onSubmit={(event) => {
               event.preventDefault();
               void saveDraft();
@@ -407,7 +441,6 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
             <label className="mt-4 block text-xs font-semibold text-[var(--admin-ink)]">
               Draft text
               <textarea
-                autoFocus
                 value={draftBody}
                 onChange={(event) => setDraftBody(event.target.value)}
                 maxLength={5000}
@@ -419,13 +452,51 @@ export function CommandCenterPwa({ tenantSlug, userId, enabled }: Props) {
             <p id="pwa-draft-description" className="mt-2 text-xs text-[var(--admin-muted)]">
               {drafts.length} local draft{drafts.length === 1 ? "" : "s"} for this workspace.
             </p>
+            {draftError && (
+              <p role="alert" className="mt-3 text-sm text-[var(--admin-danger)]">
+                {draftError}
+              </p>
+            )}
             <button
               type="submit"
-              disabled={!draftBody.trim()}
+              disabled={!draftBody.trim() || savingDraft}
               className="mt-5 min-h-11 w-full rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-4 text-sm font-semibold text-[var(--admin-surface)] disabled:cursor-not-allowed disabled:opacity-45"
             >
-              Save draft
+              {savingDraft ? "Saving…" : "Save draft"}
             </button>
+            {drafts.length > 0 && (
+              <section
+                className="mt-5 border-t border-[var(--admin-border)] pt-4"
+                aria-label="Saved local drafts"
+              >
+                <h3 className="text-sm font-semibold text-[var(--admin-ink)]">Saved drafts</h3>
+                <ul className="mt-3 max-h-48 space-y-3 overflow-y-auto">
+                  {drafts.map((draft) => (
+                    <li
+                      key={draft.id}
+                      className="rounded-[var(--admin-control-radius)] bg-[var(--admin-surface-subtle)] p-3"
+                    >
+                      <p className="text-xs capitalize text-[var(--admin-muted)]">
+                        {draft.kind} · {new Date(draft.updatedAt).toLocaleString()}
+                      </p>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-sm text-[var(--admin-ink)]">
+                        {draft.body}
+                      </p>
+                      <button
+                        type="button"
+                        className="admin-button admin-button--secondary mt-2"
+                        onClick={() => {
+                          setDraftBody(draft.body);
+                          setDraftKind(draft.kind);
+                        }}
+                      >
+                        Reuse text
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </form>
         </div>
       )}

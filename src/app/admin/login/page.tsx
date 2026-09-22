@@ -153,6 +153,13 @@ function LoginForm() {
                 </p>
 
                 <div aria-live="polite">
+                  {searchParams.get("notice") === "local-data-retained" && (
+                    <p className="mb-4 text-sm text-[var(--admin-muted)]" role="status">
+                      You are signed out. This browser could not confirm that local drafts were
+                      cleared. Before sharing this device, clear this website’s data in your browser
+                      settings.
+                    </p>
+                  )}
                   {resetFailed && !error && !success && (
                     <p className="text-sm text-error mb-4" role="alert">
                       Password reset link expired or was invalid. Please try again.

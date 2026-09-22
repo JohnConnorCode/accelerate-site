@@ -72,6 +72,7 @@ import type { LayoutDoc } from "@/lib/admin/layout-overrides";
 import { getAdminBreadcrumbs } from "@/lib/admin/breadcrumbs";
 import { AdminDemoControls } from "@/components/admin/AdminDemoBoundary";
 import { DemoScenarioMark } from "@/components/admin/DemoScenarioMark";
+import { clearOfflineWorkspace } from "@/lib/admin/offline-store";
 import { CommandCenterPwa } from "@/components/admin/CommandCenterPwa";
 import {
   DEMO_SCENARIOS,
@@ -465,21 +466,12 @@ export default function AdminShell({
   }
 
   const handleSignOut = async () => {
-    await new Promise<void>((resolve) => {
-      const timeout = window.setTimeout(() => {
-        window.removeEventListener("pwa:local-state-cleared", onCleared);
-        resolve();
-      }, 400);
-      const onCleared = () => {
-        window.clearTimeout(timeout);
-        resolve();
-      };
-      window.addEventListener("pwa:local-state-cleared", onCleared, { once: true });
-      window.dispatchEvent(new Event("pwa:clear-local-state"));
-    });
+    // Stop pending snapshot/draft writes before waiting for the storage transaction.
+    window.dispatchEvent(new Event("pwa:clear-local-state"));
+    const cleared = await clearOfflineWorkspace(workspaceSlug, userId).catch(() => false);
     const supabase = createClient();
     await supabase.auth.signOut();
-    window.location.replace("/admin/login");
+    window.location.replace(cleared ? "/admin/login" : "/admin/login?notice=local-data-retained");
   };
 
   const isActive = (href: string) => resolveAdminNavLink(identityHref)?.href === href;
@@ -909,6 +901,7 @@ export default function AdminShell({
                 <Toaster />
                 <AdminShortcuts />
                 <CommandCenterPwa
+                  key={`${workspaceSlug}:${userId}`}
                   tenantSlug={workspaceSlug}
                   userId={userId}
                   enabled={!scenarioId && !isAuthRoute}

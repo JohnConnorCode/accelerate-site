@@ -50,20 +50,26 @@ function transaction<T>(
   store: string,
   mode: IDBTransactionMode,
   operation: (objectStore: IDBObjectStore) => IDBRequest<T>,
+  signal?: AbortSignal,
 ) {
   return openDatabase().then((database) =>
     new Promise<T | null>((resolve, reject) => {
-      if (!database) return resolve(null);
-      const request = operation(database.transaction(store, mode).objectStore(store));
-      request.onsuccess = () => resolve(request.result ?? null);
-      request.onerror = () => reject(request.error);
+      if (!database || signal?.aborted) return resolve(null);
+      const tx = database.transaction(store, mode);
+      const request = operation(tx.objectStore(store));
+      tx.oncomplete = () => resolve(request.result ?? null);
+      tx.onerror = () => reject(tx.error ?? request.error);
+      tx.onabort = () => reject(tx.error ?? new Error("Browser storage transaction aborted."));
     }).finally(() => database?.close()),
   );
 }
 
-export async function saveOfflineSnapshot(snapshot: OfflineSnapshot) {
-  return transaction(SNAPSHOTS, "readwrite", (store) =>
-    store.put(snapshot, workspaceKey(snapshot.tenantSlug, snapshot.userId)),
+export async function saveOfflineSnapshot(snapshot: OfflineSnapshot, signal?: AbortSignal) {
+  return transaction(
+    SNAPSHOTS,
+    "readwrite",
+    (store) => store.put(snapshot, workspaceKey(snapshot.tenantSlug, snapshot.userId)),
+    signal,
   );
 }
 
@@ -73,10 +79,9 @@ export async function readOfflineSnapshot(tenantSlug: string, userId: string) {
   );
 }
 
-export async function saveOfflineDraft(draft: OfflineDraft) {
+export async function saveOfflineDraft(draft: OfflineDraft, signal?: AbortSignal) {
   if (!draft.body.trim() || draft.body.length > 5000) return false;
-  await transaction(DRAFTS, "readwrite", (store) => store.put(draft));
-  return true;
+  return (await transaction(DRAFTS, "readwrite", (store) => store.put(draft), signal)) !== null;
 }
 
 export async function listOfflineDrafts(tenantSlug: string, userId: string) {
@@ -101,18 +106,23 @@ export async function listOfflineDrafts(tenantSlug: string, userId: string) {
 
 export async function clearOfflineWorkspace(tenantSlug: string, userId: string) {
   const database = await openDatabase();
-  if (!database) return;
-  await new Promise<void>((resolve) => {
-    const store = database.transaction([SNAPSHOTS, DRAFTS], "readwrite");
-    store.objectStore(SNAPSHOTS).delete(workspaceKey(tenantSlug, userId));
-    const drafts = store.objectStore(DRAFTS).getAll();
-    drafts.onsuccess = () => {
-      for (const draft of drafts.result as OfflineDraft[])
-        if (draft.tenantSlug === tenantSlug && draft.userId === userId)
-          store.objectStore(DRAFTS).delete(draft.id);
-    };
-    store.oncomplete = () => resolve();
-    store.onerror = () => resolve();
-  });
-  database.close();
+  if (!database) return false;
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const store = database.transaction([SNAPSHOTS, DRAFTS], "readwrite");
+      store.objectStore(SNAPSHOTS).delete(workspaceKey(tenantSlug, userId));
+      const drafts = store.objectStore(DRAFTS).getAll();
+      drafts.onsuccess = () => {
+        for (const draft of drafts.result as OfflineDraft[])
+          if (draft.tenantSlug === tenantSlug && draft.userId === userId)
+            store.objectStore(DRAFTS).delete(draft.id);
+      };
+      store.oncomplete = () => resolve();
+      store.onerror = () => reject(store.error);
+      store.onabort = () => reject(store.error ?? new Error("Browser storage cleanup aborted."));
+    });
+    return true;
+  } finally {
+    database.close();
+  }
 }

@@ -4,7 +4,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "Can I install Command Center on my computer or phone?",
     answer:
-      "Yes. On the dedicated Command Center app origin, an authenticated workspace can be added to a supported browser's desktop, dock or home screen and opened as a focused app. The installed shell keeps your tenant context, works responsively on mobile, and reports when it is offline or has an update ready. Offline mode is deliberately limited: it can show an approved low-risk summary and save non-sensitive drafts on that device, but it never queues a live action or sends data silently. Sign out clears the local workspace snapshot and drafts. The public marketing site and AI Readiness assessment stay normal browser pages.",
+      "Yes. On the dedicated Command Center app origin, an authenticated workspace can be added to a supported browser's desktop, dock or home screen and opened as a focused app. The installed shell keeps your tenant context, works responsively on mobile, and reports when it is offline or has an update ready. Offline mode is deliberately limited: it can show an approved low-risk summary and save non-sensitive drafts on that device, but it never queues a live action or sends data silently. Saved drafts can be read and reused. Sign-out waits for local cleanup and offers recovery guidance if the browser cannot confirm it. The public marketing site and AI Readiness assessment stay normal browser pages.",
   },
   {
     question: "How does the workspace learn from a correction?",

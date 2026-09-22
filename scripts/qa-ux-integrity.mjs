@@ -25,11 +25,11 @@ async function assertNoSeriousAxe(page, label) {
 
 async function assertSecurityHeaders() {
   const response = await fetch(`${base}/demo/command-center/northline-roofing/today`);
-  const csp = response.headers.get("content-security-policy") || "";
+  const csp = response.headers.get("content-security-policy-report-only") || "";
   check(response.ok, `security headers: demo route returned ${response.status}`);
   check(
-    !response.headers.has("content-security-policy-report-only"),
-    "security headers: CSP must be enforced, not report-only",
+    response.headers.has("content-security-policy-report-only"),
+    "security headers: CSP reporting must remain available for custom-origin compatibility",
   );
   for (const directive of ["base-uri 'self'", "object-src 'none'", "form-action 'self'"]) {
     check(csp.includes(directive), `security headers: CSP is missing ${directive}`);

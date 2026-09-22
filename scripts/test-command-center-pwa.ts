@@ -8,7 +8,7 @@ const read = (file: string) => readFile(path.join(root, file), "utf8");
 async function main() {
   const [manifest, middleware, serviceWorker, offlineStore, pwa, docs, faq] = await Promise.all([
     read("src/app/manifest.ts"),
-    read("src/middleware.ts"),
+    read("src/proxy.ts"),
     read("public/command-center-sw.js"),
     read("src/lib/admin/offline-store.ts"),
     read("src/components/admin/CommandCenterPwa.tsx"),
