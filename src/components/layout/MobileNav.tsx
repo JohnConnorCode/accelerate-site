@@ -46,8 +46,8 @@ export function MobileNav({
 
   useEffect(() => {
     if (isOpen) {
-      closeButtonRef.current?.focus({ preventScroll: true });
-      return;
+      const frame = requestAnimationFrame(() => closeButtonRef.current?.focus());
+      return () => cancelAnimationFrame(frame);
     }
     setExpandedItem(null);
   }, [isOpen]);
