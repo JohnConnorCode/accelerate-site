@@ -37,7 +37,14 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
   if (event.data?.type === "CLEAR_WORKSPACE_CACHE") {
-    event.waitUntil(caches.delete(CACHE_NAME));
+    // The fallback contains no account data and must survive sign-out offline.
+    event.waitUntil(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        for (const request of await cache.keys()) {
+          if (new URL(request.url).pathname !== OFFLINE_URL) await cache.delete(request);
+        }
+      }),
+    );
   }
 });
 
