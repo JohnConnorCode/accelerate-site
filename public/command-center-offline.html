@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0B0B0B" />
+    <title>Command Center is offline</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; background: #0b0b0b; color: #fbfbfa; }
+      body { min-height: 100svh; margin: 0; display: grid; place-items: center; padding: 24px; box-sizing: border-box; }
+      main { box-sizing: border-box; width: min(100%, 520px); border: 1px solid #303030; border-radius: 24px; padding: clamp(24px, 7vw, 48px); background: #141414; box-shadow: 0 24px 80px #0008; }
+      .mark { display: flex; gap: 4px; margin-bottom: 36px; }
+      .mark i { display: block; width: 16px; height: 28px; background: #fbfbfa; clip-path: polygon(0 0, 64% 0, 100% 50%, 64% 100%, 0 100%, 36% 50%); }
+      .mark i:nth-child(1) { opacity: .3; } .mark i:nth-child(2) { opacity: .6; }
+      h1 { font-size: clamp(28px, 7vw, 48px); line-height: 1; letter-spacing: -.04em; margin: 0 0 16px; }
+      p { color: #b7b7b7; line-height: 1.6; margin: 0 0 24px; }
+      button { min-height: 44px; border: 0; border-radius: 12px; padding: 0 18px; background: #fbfbfa; color: #0b0b0b; font: inherit; font-weight: 700; cursor: pointer; }
+      button:focus-visible { outline: 3px solid #8bb8ff; outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h1>You are offline.</h1>
+      <p>Command Center will reconnect when your network returns. Safe drafts stay on this device.</p>
+      <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

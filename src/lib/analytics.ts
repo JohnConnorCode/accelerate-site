@@ -93,6 +93,11 @@ export function trackEvent(name: string, props?: Record<string, string | number>
   sendFirstPartyEvent(name, props);
 }
 
+/** First-party telemetry for authenticated workspace UX. Never include records or draft contents. */
+export function trackWorkspaceEvent(name: string, props?: Record<string, string | number>) {
+  sendFirstPartyEvent(name, props, true);
+}
+
 function visitorId(): string {
   const key = "accelerate_analytics_visitor";
   try {
@@ -117,13 +122,17 @@ function safeEventName(name: string) {
   );
 }
 
-function sendFirstPartyEvent(name: string, props?: Record<string, string | number>) {
+function sendFirstPartyEvent(
+  name: string,
+  props?: Record<string, string | number>,
+  allowWorkspace = false,
+) {
   if (
     !isSupabasePublicConfigured(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     ) ||
-    !isPublicAnalyticsPage()
+    (!allowWorkspace && !isPublicAnalyticsPage())
   )
     return;
   const attribution = getUTMParams() || undefined;

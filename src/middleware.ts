@@ -8,6 +8,7 @@ import { isDemoScenarioId } from "@/lib/admin/demo/scenarios";
 import { ACCELERATE_TENANT_ID, ACCELERATE_TENANT_SLUG } from "@/lib/tenancy/constants";
 import { distributionProfile } from "@/lib/distribution/profile";
 import { distributionPath, isAgencyAsset, isAgencyPage } from "@/lib/distribution/routes";
+import { commandCenterOrigin } from "@/lib/command-center/runtime";
 
 export async function middleware(request: NextRequest) {
   if (distributionProfile() === "neutral") {
@@ -41,6 +42,18 @@ export async function middleware(request: NextRequest) {
   // requests while the route-level redirect remains the canonical fallback.
   if (request.nextUrl.pathname === "/command-center/demo") {
     return NextResponse.redirect(new URL("/demo/command-center", request.url), 308);
+  }
+
+  const workspacePath =
+    request.nextUrl.pathname === "/workspace" ||
+    request.nextUrl.pathname.startsWith("/admin") ||
+    /^\/t\/[a-z0-9]+(?:-[a-z0-9]+)*\/admin(?:\/|$)/.test(request.nextUrl.pathname);
+  if (workspacePath && commandCenterOrigin) {
+    const appOrigin = new URL(commandCenterOrigin);
+    if (request.nextUrl.host !== appOrigin.host) {
+      const destination = new URL(request.nextUrl.pathname + request.nextUrl.search, appOrigin);
+      return NextResponse.redirect(destination, 307);
+    }
   }
 
   const demoMatch = request.nextUrl.pathname.match(
