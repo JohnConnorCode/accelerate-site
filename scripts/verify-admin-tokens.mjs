@@ -86,7 +86,7 @@ const COLOR_BUDGET = {
   "src/app/admin/leads/page.tsx": 1,
   "src/app/admin/partners/page.tsx": 2,
   "src/app/admin/pipeline/[id]/page.tsx": 3,
-  "src/app/admin/pipeline/page.tsx": 7,
+  "src/app/admin/pipeline/page.tsx": 6,
   "src/app/admin/proposals/page.tsx": 1,
   "src/app/admin/recovery/page.tsx": 12,
   "src/app/admin/revenue/page.tsx": 4,
@@ -220,6 +220,28 @@ for (const file of adminFiles) {
         `${relPath} defines "${match[1]}" as a local control recipe. Use the shared .admin-button / .admin-button--primary / .admin-icon-button or .admin-field classes instead of a copy.`,
       );
     }
+  }
+}
+// Migrated consumers must keep control appearance in the shared owner.
+const sharedFieldConsumers = new Set([
+  "src/app/admin/clients/page.tsx",
+  "src/app/admin/analytics/page.tsx",
+  "src/app/admin/campaigns/page.tsx",
+  "src/app/admin/integrations/page.tsx",
+  "src/app/admin/proposals/page.tsx",
+]);
+for (const file of adminFiles) {
+  const relPath = "src/" + relative(root, file).replace(/\\/g, "/");
+  if (!sharedFieldConsumers.has(relPath)) continue;
+  for (const match of readFileSync(file, "utf8").matchAll(/className="(admin-field[^"\n]*)"/g)) {
+    if (
+      /(?:^|\s)(?:rounded-|bg-|border|shadow-|focus:|focus-visible:|min-h-|outline-|text-)/.test(
+        match[1],
+      )
+    )
+      recipeFailures.push(
+        `${relPath} overrides shared field appearance. Add a variant in admin-components.css instead.`,
+      );
   }
 }
 if (recipeFailures.length) throw new Error(recipeFailures.join("\n"));

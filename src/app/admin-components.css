@@ -436,6 +436,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   background: var(--admin-surface-subtle);
 }
 .admin-surface-ink {
+  --heading-color: var(--admin-nav-ink);
   background: var(--admin-sidebar);
   color: var(--admin-nav-ink);
 }
@@ -864,6 +865,21 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   outline: none;
   transition-property: border-color, box-shadow, background-color;
   transition-duration: var(--admin-motion-fast);
+}
+.admin-field::placeholder {
+  color: var(--admin-muted);
+  opacity: 1;
+}
+.admin-field:disabled {
+  cursor: not-allowed;
+  background: var(--admin-surface-subtle);
+  color: var(--admin-muted);
+}
+@media (pointer: coarse) {
+  .admin-field,
+  .admin-button {
+    min-height: max(44px, var(--admin-control-height));
+  }
 }
 .admin-field:focus {
   border-color: var(--admin-action);

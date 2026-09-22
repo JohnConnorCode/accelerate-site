@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -46,26 +46,17 @@ interface CanonicalProfile {
 export default function ContactTimelinePage() {
   const params = useParams();
   const email = decodeURIComponent(params.email as string);
-  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
-  const [canonical, setCanonical] = useState<CanonicalProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchTimeline = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/admin/contacts/timeline?email=${encodeURIComponent(email)}`);
-      const data = await res.json();
-      setTimeline(data.timeline || []);
-      setCanonical(data.canonical || null);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  }, [email]);
-
-  useEffect(() => {
-    fetchTimeline();
-  }, [fetchTimeline]);
+  const relationship = useAdminQuery<{
+    timeline?: TimelineItem[];
+    canonical?: CanonicalProfile | null;
+  }>(
+    ["admin", "contact-relationship", email],
+    `/api/admin/contacts/timeline?email=${encodeURIComponent(email)}`,
+    // Never show the previous person's relationship while a different record loads.
+    { placeholderData: undefined },
+  );
+  const timeline = relationship.data?.timeline ?? [];
+  const canonical = relationship.data?.canonical ?? null;
 
   return (
     <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
@@ -84,9 +75,11 @@ export default function ContactTimelinePage() {
         subtitle="A unified record of the conversations, opportunities, and work connected to this person."
       />
       <AdminReadBody
-        loading={loading}
-        hasData={!loading}
-        onRetry={() => void fetchTimeline()}
+        loading={relationship.isPending}
+        hasData={relationship.data !== undefined}
+        error={relationship.error?.message}
+        refreshing={relationship.isFetching && !relationship.isPending}
+        onRetry={() => void relationship.refetch()}
         loadingFallback={<LoadingSkeleton variant="page" />}
         label="Loading contact relationship"
       >

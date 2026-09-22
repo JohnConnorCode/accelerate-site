@@ -52,7 +52,7 @@ export type AdminThemeDefinition = z.infer<typeof adminThemeDefinitionSchema>;
 
 const DENSITY_TOKENS = {
   comfortable: { control: "44px", row: "16px", panel: "24px", gap: "24px" },
-  compact: { control: "38px", row: "12px", panel: "20px", gap: "18px" },
+  compact: { control: "40px", row: "12px", panel: "20px", gap: "18px" },
 } as const;
 const BORDER_ALPHA = { none: 0, hairline: 9, solid: 18 } as const;
 const MOTION_TOKENS = {

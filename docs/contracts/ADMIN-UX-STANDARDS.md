@@ -60,8 +60,8 @@ Core pages, extensions and fictional demos must inherit them.
   scroll lock and focus restoration stay consistent.
 - Static text must not look actionable. If a message says “Set next action,” it
   must be an actual control; otherwise say “No next action.”
-- Rows and controls expose visible focus, keyboard activation and at least the
-  shared 44px control floor. Coarse-pointer layouts preserve the same target
+- Rows and controls expose visible focus, keyboard activation and at least a
+  40px compact control floor. Coarse-pointer layouts preserve a 44px target
   floor and never rely on hover to reveal the only opener.
 
 ## Verification
@@ -72,3 +72,34 @@ selection, responsive gutters, reduced motion, and page names. Open the captured
 screenshots before handoff. Extend the relevant journey whenever a new board or
 navigation consumer is added. Never substitute source-string assertions for
 measured browser geometry and interaction evidence.
+
+## Material interaction system and theme ownership
+
+Core pages, bundled plugins and generated workspace screens use the same
+Material-based interaction hierarchy. Appearance presets change token values;
+they do not create separate implementations of controls, focus, errors or layout.
+The current implementation uses Accelerate primitives and CSS variables, not the
+MUI React package. A preset named Material does not establish universal adoption.
+
+- Use `AdminButton`, `AdminSurface`, `AdminTable`, `AdminDialog`,
+  `AdminStatusMessage` and the existing `admin-field` recipes. Extend the owning
+  primitive when a supported variant is missing. Do not copy its radius, fill,
+  border, typography, focus or transition utilities into a page.
+- Field classes may add layout, a leading/trailing icon variant, or meaningful
+  monospace content. Labels remain visible where context does not identify the
+  field. Date ranges identify both endpoints.
+- Use themed foreground/background pairs. An ink surface inherits navigation
+  ink on its sidebar surface; it must not assume white text or a neon accent.
+- Compact controls retain a 40px pointer target; coarse-pointer fields and buttons
+  retain a 44px minimum. Density reduces whitespace without shrinking readability.
+- Use `useAdminQuery` and `AdminReadBody` for reads, including plugins. Distinguish
+  an empty result from a failed request. Include record identity in query keys;
+  disable previous-data placeholders when changing records could show the wrong
+  person's information. Retry must use the same read path.
+- Use flat surfaces for repeated records and elevation for meaningful hierarchy.
+  The shared route stage owns route entrance motion. Avoid adding per-record
+  stagger that delays scanning; reduced motion applies to all consumers.
+
+Component and page verification covers light/dark appearances, custom compact
+geometry, disabled/invalid/focused fields, coarse pointers, mobile/desktop layout,
+keyboard operation, reduced motion, and failed reads followed by successful retry.

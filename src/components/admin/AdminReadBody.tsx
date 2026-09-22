@@ -29,7 +29,12 @@ export function AdminReadBody({
 }: AdminReadBodyProps) {
   if (!hasData && error && !loading) {
     return (
-      <AdminSurface tone="attention" className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start">
+      <AdminSurface
+        role="alert"
+        aria-busy={refreshing}
+        tone="attention"
+        className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start"
+      >
         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300">
           <TriangleAlert className="size-5" />
         </span>
@@ -49,6 +54,7 @@ export function AdminReadBody({
             <button
               type="button"
               onClick={() => void onRetry()}
+              disabled={refreshing}
               className="admin-button admin-button--primary mt-4"
             >
               <RefreshCw className="size-3.5" /> Retry
@@ -63,6 +69,7 @@ export function AdminReadBody({
     <div className="admin-read-body">
       {error && hasData && (
         <AdminSurface
+          role="alert"
           tone="attention"
           className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"
         >

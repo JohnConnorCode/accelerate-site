@@ -96,7 +96,7 @@ export default function ClientsPage() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             aria-label="Filter by status"
-            className="admin-field admin-field--inline min-h-11 rounded-xl bg-[var(--admin-surface)] px-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+            className="admin-field admin-field--inline"
           >
             {statusOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -112,7 +112,7 @@ export default function ClientsPage() {
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Search clients"
               placeholder="Search clients..."
-              className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-[var(--admin-surface)] pl-9 pr-3 text-sm text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] outline-none placeholder:text-[var(--admin-muted)] focus-visible:ring-2 focus-visible:ring-[var(--admin-ink)]/25"
+              className="admin-field admin-field--leading-icon"
             />
           </div>
         </div>

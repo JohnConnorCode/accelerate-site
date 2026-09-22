@@ -8,30 +8,37 @@ const require = createRequire(import.meta.url);
 // Run through npm run resources:run. All edits use fictional demo session data.
 const themes = JSON.parse(fs.readFileSync(resolve("src/lib/admin/themes.json"), "utf8"));
 const updateDocs = process.argv.includes("--update-docs");
-(async () => {
+const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3082";
+await (async () => {
   const out = "/tmp/work-desktop-browser";
   fs.mkdirSync(out, { recursive: true });
   const log = fs.openSync(out + "/server.log", "w");
-  const server = spawn(
-    process.execPath,
-    [require.resolve(resolve("node_modules/next/dist/bin/next")), "dev", "--webpack", "-p", "3082"],
-    { stdio: ["ignore", log, log], env: { ...process.env, NODE_ENV: "development" } },
-  );
+  const server = process.env.PLAYWRIGHT_BASE_URL
+    ? null
+    : spawn(
+        process.execPath,
+        [
+          require.resolve(resolve("node_modules/next/dist/bin/next")),
+          "dev",
+          "--webpack",
+          "-p",
+          "3082",
+        ],
+        { stdio: ["ignore", log, log], env: { ...process.env, NODE_ENV: "development" } },
+      );
   let browser;
   try {
-    for (let i = 0; i < 120; i++) {
-      if (server.exitCode !== null) throw Error("Server exited");
-      try {
-        if (
-          (await fetch("http://localhost:3082/demo/command-center/northline-roofing/work"))
-            .status === 200
-        )
-          break;
-      } catch {
-        /* Wait for the local development server. */
+    if (server)
+      for (let i = 0; i < 120; i++) {
+        if (server.exitCode !== null) throw Error("Server exited");
+        try {
+          if ((await fetch(`${base}/demo/command-center/northline-roofing/work`)).status === 200)
+            break;
+        } catch {
+          /* Wait for the local development server. */
+        }
+        await new Promise((r) => setTimeout(r, 1000));
       }
-      await new Promise((r) => setTimeout(r, 1000));
-    }
     browser = await chromium.launch({ headless: true });
     for (const width of [1440, 1280, 1024, 390]) {
       const context = await browser.newContext({
@@ -44,7 +51,7 @@ const updateDocs = process.argv.includes("--update-docs");
       page.on("console", (message) => {
         if (message.type() === "error") errors.push(message.text());
       });
-      await page.goto("http://localhost:3082/demo/command-center/northline-roofing/work", {
+      await page.goto(`${base}/demo/command-center/northline-roofing/work`, {
         waitUntil: "networkidle",
       });
       await page.locator("[data-source-type=task]").first().waitFor();
@@ -123,7 +130,7 @@ const updateDocs = process.argv.includes("--update-docs");
         .waitFor();
       await page.getByRole("link", { name: "Approvals", exact: true }).click();
       await page.waitForURL("**/*tab=approvals*");
-      await page.goto("http://localhost:3082/demo/command-center/northline-roofing/pipeline", {
+      await page.goto(`${base}/demo/command-center/northline-roofing/pipeline`, {
         waitUntil: "networkidle",
       });
       await page.getByLabel("View", { exact: true }).waitFor();
@@ -166,7 +173,7 @@ const updateDocs = process.argv.includes("--update-docs");
           style: "nextjs-portal { visibility: hidden; }",
           path: resolve("public/images/docs/pipeline/overview.png"),
         });
-      await page.goto("http://localhost:3082/demo/command-center/northline-roofing/contacts", {
+      await page.goto(`${base}/demo/command-center/northline-roofing/contacts`, {
         waitUntil: "networkidle",
       });
       const from = page.getByLabel("From date", { exact: true });
@@ -193,7 +200,7 @@ const updateDocs = process.argv.includes("--update-docs");
           path: resolve("public/images/docs/contacts/overview.png"),
         });
       await page.goto(
-        "http://localhost:3082/demo/command-center/northline-roofing/contacts/lena.walsh%40northlineroofing.example",
+        `${base}/demo/command-center/northline-roofing/contacts/lena.walsh%40northlineroofing.example`,
         { waitUntil: "networkidle" },
       );
       if (width === 1440) {
@@ -255,7 +262,7 @@ const updateDocs = process.argv.includes("--update-docs");
     );
   } finally {
     await browser?.close();
-    if (server.exitCode === null) {
+    if (server && server.exitCode === null) {
       await new Promise((r) => {
         server.once("exit", r);
         server.kill("SIGTERM");

@@ -5,7 +5,6 @@ import { adminPageName } from "@/lib/admin/navigation";
 import { supabaseDashboard, tenant } from "@/config/tenant";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "@/components/admin/AdminLink";
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   BarChart3,
@@ -727,56 +726,53 @@ export default function AdminSetupPage() {
         </AdminSurface>
       ) : (
         data && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.24 }}
-            className="space-y-7"
-          >
+          <div className="space-y-7">
             <section className="admin-split">
               <AdminSurface tone="ink" padding="lg" className="relative overflow-hidden">
-                <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-[#d7ff5f]/10 blur-3xl" />
                 <div className="relative">
                   <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.17em] text-[#d7ff5f]">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.17em]">
                         Production readiness
                       </p>
-                      <h2 className="mt-3 text-balance text-2xl font-semibold tracking-[-0.035em] text-white sm:text-3xl">
+                      <h2 className="mt-3 text-balance text-2xl font-semibold tracking-[-0.035em] sm:text-3xl">
                         {data.summary.launchReady
                           ? "Ready to generate opportunities."
                           : "A few launch items need attention."}
                       </h2>
-                      <p className="mt-3 max-w-xl text-pretty text-sm leading-6 text-white/58">
+                      <p className="mt-3 max-w-xl text-pretty text-sm leading-6">
                         {data.summary.launchReady
                           ? "The required capture, email, database, and measurement systems are connected."
                           : `${data.summary.requiredReady} of ${data.summary.requiredTotal} required systems are ready. Open the checks below for exact instructions.`}
                       </p>
                     </div>
                     <div className="shrink-0 sm:text-right">
-                      <p className="font-mono text-4xl font-semibold tabular-nums tracking-[-0.05em] text-white">
+                      <p className="font-mono text-4xl font-semibold tabular-nums tracking-[-0.05em]">
                         {data.summary.percent}%
                       </p>
-                      <p className="mt-1 text-xs text-white/42">required complete</p>
+                      <p className="mt-1 text-xs">required complete</p>
                     </div>
                   </div>
-                  <div className="mt-7 h-2 overflow-hidden rounded-full bg-white/10">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${data.summary.percent}%` }}
-                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                      className="h-full rounded-full bg-[#d7ff5f]"
+                  <div className="mt-7 h-2 overflow-hidden rounded-full bg-current/15">
+                    <div
+                      role="progressbar"
+                      aria-label="Required setup complete"
+                      aria-valuenow={data.summary.percent}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      style={{ width: `${data.summary.percent}%` }}
+                      className="h-full rounded-full bg-current"
                     />
                   </div>
-                  <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/52">
+                  <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs">
                     <span className="flex items-center gap-2">
-                      <ShieldCheck className="size-4 text-[#d7ff5f]" /> Secrets hidden
+                      <ShieldCheck className="size-4" /> Secrets hidden
                     </span>
                     <span className="flex items-center gap-2">
-                      <Check className="size-4 text-[#d7ff5f]" /> Live environment checks
+                      <Check className="size-4" /> Live environment checks
                     </span>
                     <span className="flex items-center gap-2">
-                      <Settings2 className="size-4 text-[#d7ff5f]" /> Exact setup instructions
+                      <Settings2 className="size-4" /> Exact setup instructions
                     </span>
                   </div>
                 </div>
@@ -1046,7 +1042,7 @@ export default function AdminSetupPage() {
               Settings. Deployment integrations and credentials live in Vercel and are verified here
               after redeploying.
             </p>
-          </motion.div>
+          </div>
         )
       )}
     </div>

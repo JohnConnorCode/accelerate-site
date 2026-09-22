@@ -882,7 +882,7 @@ export default function IntegrationsPage() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search tools or capabilities"
-                  className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-black/[0.035] pl-9 pr-3 text-sm text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] transition-[box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:shadow-[var(--admin-shadow-border-hover)] dark:bg-white/[0.045]"
+                  className="admin-field admin-field--leading-icon"
                 />
               </label>
             </AdminSurface>
@@ -988,7 +988,7 @@ export default function IntegrationsPage() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search modules or routes"
-                  className="admin-field admin-field--leading-icon min-h-11 w-full rounded-xl bg-black/[0.035] pl-9 pr-3 text-sm text-[var(--admin-ink)] outline-none shadow-[var(--admin-shadow-border)] transition-[box-shadow] duration-150 placeholder:text-[var(--admin-muted)] focus:shadow-[var(--admin-shadow-border-hover)] dark:bg-white/[0.045]"
+                  className="admin-field admin-field--leading-icon"
                 />
               </label>
             </AdminSurface>
