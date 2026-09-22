@@ -25,9 +25,7 @@ export default async function OpenGraphImage({ params }: { params: Promise<{ slu
   // out of the renderer so a work preview never logs an asset decode error or
   // drops the whole social card at request time.
   const imageUrl =
-    imageSource && /\.(?:png|jpe?g)$/i.test(imageSource)
-      ? `${siteUrl()}${imageSource}`
-      : undefined;
+    imageSource && /\.(?:png|jpe?g)$/i.test(imageSource) ? `${siteUrl()}${imageSource}` : undefined;
   return new ImageResponse(
     <SocialCard
       eyebrow="Selected Work"

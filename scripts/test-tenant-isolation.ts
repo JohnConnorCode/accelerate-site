@@ -55,11 +55,7 @@ for (const invariant of [
   assert.ok(auth.includes(invariant), `tenant authorization is missing ${invariant}`);
 
 const proxy = readFileSync("src/proxy.ts", "utf8");
-assert.match(
-  proxy,
-  /\/t\\\/\(\[a-z0-9\]/,
-  "proxy must recognize canonical workspace URLs",
-);
+assert.match(proxy, /\/t\\\/\(\[a-z0-9\]/, "proxy must recognize canonical workspace URLs");
 assert.ok(
   proxy.includes('requestHeaders.set("x-tenant-id", tenantId)'),
   "proxy must forward resolved tenant identity",

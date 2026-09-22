@@ -210,15 +210,21 @@ export default function ProposalsPage() {
                 <table className="admin-table w-full text-sm">
                   <thead>
                     <tr className="border-b border-border-glass">
-                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">Title</th>
-                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">Client</th>
+                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
+                        Title
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
+                        Client
+                      </th>
                       <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
                         Monthly
                       </th>
                       <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
                         One-Time
                       </th>
-                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">Status</th>
+                      <th className="px-3 py-2 text-left text-xs uppercase text-white-muted">
+                        Status
+                      </th>
                       <th className="hidden px-3 py-2 text-left text-xs uppercase text-white-muted 2xl:table-cell">
                         Created
                       </th>
@@ -247,7 +253,9 @@ export default function ProposalsPage() {
                           }
                         }}
                       >
-                        <td className="px-3 py-2.5 font-medium text-white-primary">{proposal.title}</td>
+                        <td className="px-3 py-2.5 font-medium text-white-primary">
+                          {proposal.title}
+                        </td>
                         <td className="px-3 py-2.5 text-white-secondary">{proposal.client_name}</td>
                         <td className="hidden px-3 py-2.5 text-emerald-400 2xl:table-cell">
                           ${proposal.total_monthly?.toLocaleString() || "0"}/mo
@@ -294,7 +302,10 @@ export default function ProposalsPage() {
                 <ProposalEditor proposal={selectedProposal} onSave={handleSave} />
               </div>
             ) : (
-              <GlassCard hover="none" className="hidden min-h-56 place-items-center text-center lg:grid">
+              <GlassCard
+                hover="none"
+                className="hidden min-h-56 place-items-center text-center lg:grid"
+              >
                 <div>
                   <p className="text-sm font-semibold text-white-primary">Select a proposal</p>
                   <p className="mt-1 text-xs text-white-muted">

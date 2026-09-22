@@ -18,7 +18,7 @@ assert.ok(
 );
 const navigationPaths = readFileSync("src/lib/admin/navigation-paths.ts", "utf8");
 assert.ok(
-  navigationPaths.includes("return `/t/${workspaceSlug}/admin/${suffix || \"today\"}`"),
+  navigationPaths.includes('return `/t/${workspaceSlug}/admin/${suffix || "today"}`'),
   "admin links must resolve canonical workspace URLs in one shared adapter",
 );
 

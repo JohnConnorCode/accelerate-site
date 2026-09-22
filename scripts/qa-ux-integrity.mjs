@@ -106,7 +106,9 @@ async function openToday(page, label) {
   );
   await dialog.waitFor({ state: "detached" });
   await page.waitForFunction(() => !new URL(location.href).searchParams.has("action"));
-  await page.waitForFunction(() => document.activeElement?.textContent?.includes("Review exact change"));
+  await page.waitForFunction(() =>
+    document.activeElement?.textContent?.includes("Review exact change"),
+  );
   check(
     !new URL(page.url()).searchParams.has("action"),
     "today: closing approval left a stale action URL",

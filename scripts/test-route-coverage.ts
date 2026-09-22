@@ -27,8 +27,7 @@ const SURFACES = [
     file: "src/components/layout/Footer.tsx",
     what: "the footer",
     derives: (source: string) =>
-      /websiteFooterContent/.test(source) &&
-      /from "@\/content\/site-studio\/shared"/.test(source),
+      /websiteFooterContent/.test(source) && /from "@\/content\/site-studio\/shared"/.test(source),
   },
   {
     file: "src/content/site-studio/shared.ts",

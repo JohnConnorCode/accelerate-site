@@ -229,15 +229,23 @@ export default function ChatLeadsPage() {
                             className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-elevated"
                           >
                             <span className="min-w-0">
-                              <span className="block font-medium text-white-primary">{lead.name}</span>
+                              <span className="block font-medium text-white-primary">
+                                {lead.name}
+                              </span>
                               <span className="mt-0.5 block break-all text-xs text-white-muted">
                                 {lead.email}
                               </span>
                             </span>
                             {expanded ? (
-                              <ChevronUp className="h-4 w-4 shrink-0 text-white-muted" aria-hidden="true" />
+                              <ChevronUp
+                                className="h-4 w-4 shrink-0 text-white-muted"
+                                aria-hidden="true"
+                              />
                             ) : (
-                              <ChevronDown className="h-4 w-4 shrink-0 text-white-muted" aria-hidden="true" />
+                              <ChevronDown
+                                className="h-4 w-4 shrink-0 text-white-muted"
+                                aria-hidden="true"
+                              />
                             )}
                           </button>
                         </td>

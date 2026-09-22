@@ -267,11 +267,7 @@ export default function WorkPage() {
           <AdminSurface padding="none" elevation="flat">
             <ul>
               {visible.map((row) => (
-                <li
-                  key={row.id}
-                  data-source-type="task"
-                  data-source-id={row.id}
-                >
+                <li key={row.id} data-source-type="task" data-source-id={row.id}>
                   <AdminRecordRow
                     label={`Open task ${row.title}`}
                     onOpen={() => edit(row)}
@@ -315,11 +311,7 @@ export default function WorkPage() {
         <AdminSurface padding="none" elevation="flat">
           <ul>
             {actions.map((row) => (
-              <li
-                key={row.id}
-                data-source-type="approval"
-                data-source-id={row.id}
-              >
+              <li key={row.id} data-source-type="approval" data-source-id={row.id}>
                 <AdminRecordRow
                   label={`Review ${row.title}`}
                   onOpen={() => {
