@@ -303,7 +303,7 @@ export default function BrandingPage() {
       {query.error ? (
         <AdminSurface padding="lg">
           <p role="alert">{query.error.message}</p>
-          <button className={`${button} mt-4`} onClick={() => void query.refetch()}>
+          <button type="button" className={`${button} mt-4`} onClick={() => void query.refetch()}>
             Reload branding
           </button>
         </AdminSurface>

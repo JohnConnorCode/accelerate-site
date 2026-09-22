@@ -87,6 +87,7 @@ export function TodayViewEditor({
             <p>Choose what belongs in your day.</p>
           </div>
           <button
+            type="button"
             className={styles.iconButton}
             aria-label="Close customization"
             onClick={onClose}
@@ -195,6 +196,7 @@ export function TodayViewEditor({
                   </span>
                   <strong>{TODAY_MODULES.find((m) => m.id === module.type)?.name}</strong>
                   <button
+                    type="button"
                     className={styles.iconButton}
                     aria-label={`Move ${module.type} up`}
                     disabled={index === 0}
@@ -203,6 +205,7 @@ export function TodayViewEditor({
                     <ArrowUp size={16} />
                   </button>
                   <button
+                    type="button"
                     className={styles.iconButton}
                     aria-label={`Move ${module.type} down`}
                     disabled={index === draft.modules.length - 1}
@@ -211,6 +214,7 @@ export function TodayViewEditor({
                     <ArrowDown size={16} />
                   </button>
                   <button
+                    type="button"
                     className={styles.iconButton}
                     aria-label={`Remove ${module.type}`}
                     disabled={draft.modules.length === 1}
@@ -335,6 +339,7 @@ export function TodayViewEditor({
           <div className={styles.catalog}>
             {TODAY_MODULES.map((module) => (
               <button
+                type="button"
                 key={module.id}
                 disabled={draft.modules.length >= 16}
                 onClick={() =>
@@ -352,10 +357,15 @@ export function TodayViewEditor({
           </div>
         </div>
         <footer className={styles.editorFooter}>
-          <button className={styles.button} onClick={onClose} disabled={saving}>
+          <button type="button" className={styles.button} onClick={onClose} disabled={saving}>
             Cancel
           </button>
-          <button className={styles.primaryButton} onClick={() => void save()} disabled={saving}>
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={() => void save()}
+            disabled={saving}
+          >
             <Check size={16} /> {saving ? "Saving…" : "Save view"}
           </button>
         </footer>

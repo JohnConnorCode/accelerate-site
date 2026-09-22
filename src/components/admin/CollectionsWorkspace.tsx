@@ -231,6 +231,7 @@ export function CollectionsWorkspace() {
               {cases.map((c) => (
                 <li key={c.id}>
                   <button
+                    type="button"
                     className={`w-full rounded-xl p-3 text-left ${c.id === current?.id ? "bg-[var(--admin-surface-subtle)] shadow-[var(--admin-shadow-border)]" : "hover:bg-[var(--admin-surface-subtle)]"}`}
                     aria-pressed={c.id === current?.id}
                     onClick={() => {
@@ -296,6 +297,7 @@ export function CollectionsWorkspace() {
                   ))}
                 </ul>
                 <button
+                  type="button"
                   className={`${button} mt-3`}
                   disabled={busy || current.invoices.length > 25}
                   onClick={() =>
@@ -386,6 +388,7 @@ export function CollectionsWorkspace() {
                   sending.
                 </p>
                 <button
+                  type="button"
                   className={button}
                   disabled={busy || current.status === "settled"}
                   onClick={() =>
@@ -415,6 +418,7 @@ export function CollectionsWorkspace() {
                       className="h-[560px] w-full rounded-xl border border-[var(--admin-border)] bg-white"
                     />
                     <button
+                      type="button"
                       className={button}
                       disabled={busy}
                       onClick={() =>
@@ -465,6 +469,7 @@ export function CollectionsWorkspace() {
                         {a.status === "pending" && (
                           <>
                             <button
+                              type="button"
                               className={button}
                               disabled={busy}
                               onClick={() => void perform(() => decide(a.id, "approve"))}
@@ -472,6 +477,7 @@ export function CollectionsWorkspace() {
                               Approve and send
                             </button>
                             <button
+                              type="button"
                               className={button}
                               disabled={busy}
                               onClick={() => void perform(() => decide(a.id, "reject"))}
@@ -482,6 +488,7 @@ export function CollectionsWorkspace() {
                         )}
                         {a.status === "failed" && a.result?.status !== "skipped" && (
                           <button
+                            type="button"
                             className={button}
                             disabled={busy}
                             onClick={() =>
@@ -506,6 +513,7 @@ export function CollectionsWorkspace() {
                 </ul>
                 {query.data?.simulated && (
                   <button
+                    type="button"
                     className={`${button} mt-4`}
                     disabled={busy || current.status === "settled"}
                     onClick={() =>

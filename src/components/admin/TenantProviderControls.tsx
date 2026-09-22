@@ -586,7 +586,11 @@ function ProviderActions({
 }) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row">
-      <button disabled={disabled} className="admin-action-control min-h-11 flex-1 px-3.5">
+      <button
+        type="submit"
+        disabled={disabled}
+        className="admin-action-control min-h-11 flex-1 px-3.5"
+      >
         {busy ? (
           <RefreshCw className="size-3.5 animate-spin motion-reduce:animate-none" />
         ) : (

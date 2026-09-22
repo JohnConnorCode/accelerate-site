@@ -98,9 +98,9 @@ export function Integrations() {
               <div
                 key={tool.name}
                 data-tool-card
-                className="card-outline rounded-xl p-3 sm:p-4 flex flex-col items-center gap-3 cursor-default group hover:border-border-gold transition-all duration-300"
+                className="card-outline rounded-xl p-3 sm:p-4 flex flex-col items-center gap-3 cursor-default group hover:border-border-gold transition-colors duration-300"
               >
-                <div className="w-10 h-10 rounded-xl bg-transparent border border-border-glass flex items-center justify-center group-hover:border-border-gold group-hover:bg-[var(--glow-soft)] transition-all">
+                <div className="w-10 h-10 rounded-xl bg-transparent border border-border-glass flex items-center justify-center group-hover:border-border-gold group-hover:bg-[var(--glow-soft)] transition-colors">
                   {tool.logo ? (
                     <Image
                       src={tool.logo}

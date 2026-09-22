@@ -134,14 +134,14 @@ export function RadarReviewDialog({
           </p>
         )}
         <div className="mt-6 flex flex-wrap gap-3">
-          <button className={primary} disabled={busy} onClick={() => onQueue(true)}>
+          <button type="button" className={primary} disabled={busy} onClick={() => onQueue(true)}>
             <Check size={15} aria-hidden />
             Approve this change
           </button>
-          <button className={button} disabled={busy} onClick={() => onQueue(false)}>
+          <button type="button" className={button} disabled={busy} onClick={() => onQueue(false)}>
             Queue for later review
           </button>
-          <button className={button} disabled={busy} onClick={onClose}>
+          <button type="button" className={button} disabled={busy} onClick={onClose}>
             Back
           </button>
         </div>

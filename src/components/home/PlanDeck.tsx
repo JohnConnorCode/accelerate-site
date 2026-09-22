@@ -1,15 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from "framer-motion";
+import { homePlanDeckContent } from "@/content/site-studio/plan-deck";
+import type { HomePlanDeckContent } from "@/lib/site-studio/native-templates";
+
+const subscribeHydration = () => () => {};
+const getClientHydration = () => true;
+const getServerHydration = () => false;
 
 function pad(n: number) {
   return n < 10 ? `0${n}` : `${n}`;
 }
-
-import { homePlanDeckContent } from "@/content/site-studio/plan-deck";
-import type { HomePlanDeckContent } from "@/lib/site-studio/native-templates";
 
 export function PlanDeck({ content = homePlanDeckContent }: { content?: HomePlanDeckContent }) {
   const [idx, setIdx] = useState(0);
@@ -18,6 +21,7 @@ export function PlanDeck({ content = homePlanDeckContent }: { content?: HomePlan
   const dragStart = useRef({ x: 0 });
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
+  const hydrated = useSyncExternalStore(subscribeHydration, getClientHydration, getServerHydration);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -68,8 +72,8 @@ export function PlanDeck({ content = homePlanDeckContent }: { content?: HomePlan
   return (
     <motion.div
       ref={ref}
-      className="deck transition-all duration-300"
-      style={reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className="deck"
+      style={hydrated && reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
       onPointerLeave={onPointerLeave}
     >
       <div className="deck-hd">

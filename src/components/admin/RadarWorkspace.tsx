@@ -297,6 +297,7 @@ export function RadarWorkspace({
           ))}
         <div className="mt-3 flex flex-wrap gap-2">
           <button
+            type="button"
             className={button}
             onClick={() => void perform(() => readRecord(source.id, "sourceVersionId"))}
           >
@@ -304,12 +305,13 @@ export function RadarWorkspace({
             Read source
           </button>
           {canWrite && !opp && (
-            <button className={button} onClick={() => openEditor("create", source)}>
+            <button type="button" className={button} onClick={() => openEditor("create", source)}>
               Develop opportunity
             </button>
           )}
           {canWrite && (
             <button
+              type="button"
               className={button}
               onClick={() =>
                 void perform(async () => {
@@ -364,6 +366,7 @@ export function RadarWorkspace({
               </AdminLink>
             )}
             <button
+              type="button"
               className={button}
               disabled={busy}
               onClick={() => void perform(refresh)}
@@ -372,7 +375,7 @@ export function RadarWorkspace({
               <RefreshCw size={15} aria-hidden />
             </button>
             {canWrite && !opp && (
-              <button className={primary} onClick={() => openEditor("source")}>
+              <button type="button" className={primary} onClick={() => openEditor("source")}>
                 <Plus size={15} aria-hidden />
                 Add source
               </button>
@@ -386,7 +389,7 @@ export function RadarWorkspace({
           <p role="alert" className="break-words text-sm">
             {error}
           </p>
-          <button className={button + " mt-3"} onClick={() => void perform(refresh)}>
+          <button type="button" className={button + " mt-3"} onClick={() => void perform(refresh)}>
             Refresh current records
           </button>
         </AdminSurface>
@@ -414,7 +417,7 @@ export function RadarWorkspace({
           <AdminSurface tone="attention">
             <h2 className="font-semibold">Radar could not be loaded</h2>
             <p className="mt-2 text-sm">Check the installation and workspace access, then retry.</p>
-            <button className={button + " mt-4"} onClick={() => void query.refetch()}>
+            <button type="button" className={button + " mt-4"} onClick={() => void query.refetch()}>
               Try again
             </button>
           </AdminSurface>
@@ -520,7 +523,12 @@ export function RadarWorkspace({
         <div className="max-h-[85dvh] overflow-y-auto rounded-2xl bg-[var(--admin-surface)] p-5 sm:p-6">
           <div className="flex items-start justify-between gap-4">
             <h2 className="text-base font-semibold">{reader?.title}</h2>
-            <button className={button} aria-label="Close source" onClick={() => setReader(null)}>
+            <button
+              type="button"
+              className={button}
+              aria-label="Close source"
+              onClick={() => setReader(null)}
+            >
               <X size={16} />
             </button>
           </div>
@@ -543,6 +551,7 @@ export function RadarWorkspace({
           <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-7">{reader?.text}</p>
           {reader?.nextOffset !== null && reader && (
             <button
+              type="button"
               className={button + " mt-5"}
               disabled={busy}
               onClick={() =>

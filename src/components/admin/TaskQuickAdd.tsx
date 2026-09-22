@@ -63,6 +63,7 @@ export function TaskQuickAdd({
   if (!isOpen) {
     return (
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
         className={`inline-flex min-h-11 items-center gap-1.5 text-xs text-[var(--admin-muted)] hover:text-[var(--admin-ink)] transition-colors cursor-pointer ${compact ? "" : "mt-2"}`}
       >

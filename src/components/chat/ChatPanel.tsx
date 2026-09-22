@@ -406,6 +406,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           </p>
         </div>
         <button
+          type="button"
           onClick={onClose}
           data-chat-close
           className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white-muted transition-[background-color,color,transform] hover:bg-white/5 hover:text-white-primary active:scale-[0.96] cursor-pointer"

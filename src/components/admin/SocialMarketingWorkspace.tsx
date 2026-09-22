@@ -151,6 +151,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
             const LabelIcon = Icon as typeof FileText;
             return (
               <button
+                type="button"
                 key={String(name)}
                 className={tab === name ? primary : button}
                 aria-pressed={tab === name}
@@ -163,6 +164,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
           })}
         </div>
         <button
+          type="button"
           className={button}
           disabled={busy}
           onClick={() =>
@@ -204,7 +206,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
           {data.setupError && tab !== "Setup" ? (
             <AdminSurface tone="attention">
               <p>{data.setupError}</p>
-              <button className={`${button} mt-3`} onClick={() => setTab("Setup")}>
+              <button type="button" className={`${button} mt-3`} onClick={() => setTab("Setup")}>
                 Open setup
               </button>
             </AdminSurface>
@@ -214,14 +216,19 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
               <div className="flex flex-wrap gap-2">
                 {writable ? (
                   <>
-                    <button className={primary} onClick={() => setDraft(emptyDraft())}>
+                    <button
+                      type="button"
+                      className={primary}
+                      onClick={() => setDraft(emptyDraft())}
+                    >
                       <Plus className="mr-2 inline size-4" aria-hidden />
                       New draft
                     </button>
-                    <button className={button} onClick={() => setWeekly(true)}>
+                    <button type="button" className={button} onClick={() => setWeekly(true)}>
                       Prepare three-post week
                     </button>
                     <button
+                      type="button"
                       className={button}
                       disabled={busy || !selected.length}
                       onClick={() =>
@@ -297,6 +304,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                             Select
                           </label>
                           <button
+                            type="button"
                             className={button}
                             disabled={busy}
                             onClick={() =>
@@ -307,6 +315,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                           </button>
                           {post.state === "scheduled" ? (
                             <button
+                              type="button"
                               className={button}
                               disabled={busy}
                               onClick={() => void run(() => preview("cancel", [post]))}
@@ -315,6 +324,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                             </button>
                           ) : (
                             <button
+                              type="button"
                               className={button}
                               disabled={busy}
                               onClick={() => void run(() => preview("schedule", [post]))}
@@ -381,6 +391,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
                           />
                         </label>
                         <button
+                          type="button"
                           className={button}
                           disabled={busy || !receiptIds[a.id]}
                           onClick={() =>
@@ -914,6 +925,7 @@ export function SocialMarketingWorkspace({ historyOnly = false }: { historyOnly?
               </AdminSurface>
             ))}
             <button
+              type="button"
               className={primary}
               disabled={busy}
               onClick={() =>

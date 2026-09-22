@@ -128,7 +128,7 @@ export function RadarEditorDialog({
       <div className="admin-dialog-surface max-h-[85dvh] overflow-y-auto bg-[var(--admin-surface)] p-5 sm:p-6">
         <div className="mb-5 flex items-center justify-between gap-4">
           <h2 className="text-base font-semibold">{heading}</h2>
-          <button className={button} aria-label="Close editor" onClick={onClose}>
+          <button type="button" className={button} aria-label="Close editor" onClick={onClose}>
             <X size={16} aria-hidden />
           </button>
         </div>

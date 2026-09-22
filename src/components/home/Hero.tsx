@@ -406,7 +406,7 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
                   {content.finalWord}
                 </span>
               </span>
-              <span className="hero-inline-cta" style={{ "--d": "6.10s" } as CSSProperties}>
+              <span className="hero-inline-cta" style={{ "--d": "3.40s" } as CSSProperties}>
                 <Link
                   href={content.ctaHref}
                   onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })}

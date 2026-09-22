@@ -38,6 +38,7 @@ export function WebsitePublishing({
           {state.publishedRevisionId ? "Published website" : "No published revision"}
         </span>
         <button
+          type="button"
           className={button}
           disabled={disabled || !state.draft}
           onClick={() => setReview("publish")}
@@ -45,6 +46,7 @@ export function WebsitePublishing({
           Review publication
         </button>
         <button
+          type="button"
           className={button}
           disabled={!state.draft || loading}
           onClick={async () => {
@@ -103,6 +105,7 @@ export function WebsitePublishing({
                 ))}
               </ul>
               <button
+                type="button"
                 className={button}
                 disabled={disabled}
                 onClick={() => command("publish", state.draft!.id)}
@@ -117,7 +120,12 @@ export function WebsitePublishing({
                 Published website content will be unavailable. Private drafts and history remain
                 saved for recovery.
               </p>
-              <button className={button} disabled={disabled} onClick={() => command("unpublish")}>
+              <button
+                type="button"
+                className={button}
+                disabled={disabled}
+                onClick={() => command("unpublish")}
+              >
                 Confirm unpublish
               </button>
             </>
@@ -130,6 +138,7 @@ export function WebsitePublishing({
               </p>
               {state.publishedRevisionId && (
                 <button
+                  type="button"
                   className={button}
                   disabled={disabled}
                   onClick={() => setReview("unpublish")}
@@ -157,6 +166,7 @@ export function WebsitePublishing({
                     </p>
                     {revision.previouslyPublished && revision.id !== state.publishedRevisionId && (
                       <button
+                        type="button"
                         className={button}
                         disabled={disabled}
                         onClick={() => setRollback(revision.id)}
@@ -173,6 +183,7 @@ export function WebsitePublishing({
                     Replace the public website with this previously published revision?
                   </p>
                   <button
+                    type="button"
                     className={button}
                     disabled={disabled}
                     onClick={() => command("rollback", rollback)}
@@ -184,6 +195,7 @@ export function WebsitePublishing({
             </>
           )}
           <button
+            type="button"
             className={button}
             onClick={() => {
               setReview(null);

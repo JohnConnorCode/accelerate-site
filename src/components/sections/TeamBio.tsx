@@ -156,7 +156,7 @@ export function TeamBioContent({ slug }: { slug: string }) {
                       src={prev.image}
                       alt=""
                       sizes="64px"
-                      className="saturate-[0.85] transition-all duration-500 group-hover:scale-[1.08] group-hover:saturate-100 motion-reduce:transition-none [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
+                      className="saturate-[0.85] transition-[transform,filter] duration-500 group-hover:scale-[1.08] group-hover:saturate-100 motion-reduce:transition-none [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
                     />
                   </span>
                   <ArrowLeft
@@ -200,7 +200,7 @@ export function TeamBioContent({ slug }: { slug: string }) {
                       src={next.image}
                       alt=""
                       sizes="64px"
-                      className="saturate-[0.85] transition-all duration-500 group-hover:scale-[1.08] group-hover:saturate-100 motion-reduce:transition-none [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
+                      className="saturate-[0.85] transition-[transform,filter] duration-500 group-hover:scale-[1.08] group-hover:saturate-100 motion-reduce:transition-none [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
                     />
                   </span>
                 </Link>

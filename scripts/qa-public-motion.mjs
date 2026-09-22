@@ -201,32 +201,23 @@ async function captureRevealEntry(page, selector) {
   });
 }
 
-async function captureFramerRevealEntry(page, selector) {
-  const candidates = page.locator(selector);
-  const index = await candidates.evaluateAll((nodes) =>
-    nodes.findIndex((node) => node.getBoundingClientRect().top > innerHeight + 40),
+async function capturePublicHeroEntry(page) {
+  await page.waitForFunction(() =>
+    document.querySelector('.public-hero-entrance.in[data-reveal-state="visible"]'),
   );
-  const element = index >= 0 ? await candidates.nth(index).elementHandle() : null;
-  if (!element) return null;
-  const maxSteps = await page.evaluate(
-    () => Math.ceil(document.documentElement.scrollHeight / 12) + 100,
-  );
-  for (let step = 0; step < maxSteps; step += 1) {
-    const visible = await element.evaluate(
-      (node) => Number.parseFloat(getComputedStyle(node).opacity) >= 0.9,
-    );
-    if (visible) break;
-    await page.evaluate(() => window.scrollBy(0, 12));
-    await page.waitForTimeout(16);
-  }
-  const visible = await element.evaluate(
-    (node) => Number.parseFloat(getComputedStyle(node).opacity) >= 0.9,
-  );
-  if (!visible) return null;
-  return element.evaluate((node) => {
-    const rect = node.getBoundingClientRect();
-    return { top: rect.top, ratio: rect.top / innerHeight, height: innerHeight };
-  });
+  // The shared sequence finishes at 810ms (250ms delay + 560ms animation).
+  await page.waitForTimeout(900);
+  return page
+    .locator(".public-hero-entrance")
+    .first()
+    .evaluate((node) => ({
+      state: node.getAttribute("data-reveal-state"),
+      steps: [...node.querySelectorAll("[data-hero-step]")].map((step) => ({
+        opacity: Number.parseFloat(getComputedStyle(step).opacity),
+        animation: getComputedStyle(step).animationName,
+        delay: getComputedStyle(step).animationDelay,
+      })),
+    }));
 }
 
 async function togglePublicTheme(page, target) {
@@ -266,14 +257,15 @@ for (const config of [
   const observeRuntime = (target) => {
     target.on("pageerror", (error) => errors.push(error.message));
     target.on("response", (response) => {
-      if (response.status() < 400) return;
+      // Next reports client-cancelled requests as 499 during route replacement.
+      if (response.status() < 400 || response.status() === 499) return;
       const url = new URL(response.url());
       if (["/api/event", "/js/script.js"].includes(url.pathname)) return;
       errors.push(`${response.status()} ${url.pathname}`);
     });
   };
   page.on("response", (response) => {
-    if (response.status() < 400) return;
+    if (response.status() < 400 || response.status() === 499) return;
     const url = new URL(response.url());
     if (["/api/event", "/js/script.js"].includes(url.pathname)) return;
     errors.push(`${response.status()} ${url.pathname}`);
@@ -405,23 +397,21 @@ for (const config of [
 
   await page.goto(`${baseUrl}/industries/law-firms`, { waitUntil: "domcontentloaded" });
   if (config.reducedMotion === "no-preference") {
-    const industryHeading = await captureRevealEntry(page, ".word-mask-heading");
-    if (!industryHeading || industryHeading.ratio > 0.8)
-      failures.push(
-        `${config.label}: below-fold industry heading did not reveal at viewport entry`,
-      );
-    await page.goto(`${baseUrl}/industries/law-firms`, { waitUntil: "domcontentloaded" });
-    const industryReveal = await captureFramerRevealEntry(
-      page,
-      ".reveal-self:not(.word-mask-heading)",
-    );
-    if (!industryReveal || industryReveal.ratio > 0.8)
-      failures.push(`${config.label}: industry content did not use the shared viewport reveal`);
+    const industryHero = await capturePublicHeroEntry(page);
+    if (
+      industryHero.state !== "visible" ||
+      industryHero.steps.length < 3 ||
+      industryHero.steps.some((step) => step.opacity < 0.9) ||
+      industryHero.steps.some((step) => !step.animation.includes("section-item-in")) ||
+      new Set(industryHero.steps.map((step) => step.delay)).size !== industryHero.steps.length
+    )
+      failures.push(`${config.label}: industry hero did not use the shared ordered entrance`);
   }
   await page.goto(`${baseUrl}/work`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.motionHydrated === "true");
   const firstCard = page.locator('[data-work-card="work-shelter"] a').first();
-  await firstCard.click({ noWaitAfter: true });
+  await firstCard.focus();
+  await page.keyboard.press("Enter");
   await page.waitForURL("**/work/work-shelter");
   const linkedRoute = page.locator("[data-route-entry]");
   const linkedRouteFrames = [];
@@ -591,13 +581,13 @@ for (const config of [
     }));
     if (
       !restoredHero.loaded ||
-      !restoredHero.profitTransitionDelay.includes("4.7s") ||
-      !restoredHero.ctaTransitionDelay.includes("6.1s") ||
+      !restoredHero.profitTransitionDelay.includes("3.1s") ||
+      !restoredHero.ctaTransitionDelay.includes("3.4s") ||
       restoredHero.profitOpacity > 0.1 ||
       restoredHero.ctaOpacity > 0.1
     )
       failures.push(
-        "mobile back navigation: hero did not restart the shared desktop-timed outcome and CTA sequence",
+        "mobile back navigation: hero did not restart the shared timed outcome and CTA sequence",
       );
     await page.waitForTimeout(7_400);
     const restoredVisibility = await page.evaluate(() => ({
