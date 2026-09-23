@@ -350,7 +350,7 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
           this workspace.
         </div>
       )}
-      <div className="flex items-center gap-2 border-b border-[var(--admin-border)] px-4 py-2.5 text-[11px] text-[var(--admin-muted)]">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 border-b border-[var(--admin-border)] px-4 py-2.5 text-[11px] text-[var(--admin-muted)]">
         {ai.purpose === "architect" ? (
           <NotebookPen className="size-3.5" />
         ) : (
@@ -359,20 +359,52 @@ export function AdminAIChat({ mode = "page" }: { mode?: "page" | "panel" }) {
         {ai.purpose === "architect" ? (
           <>
             <span>Architect session</span>
-            <span aria-hidden="true">·</span>
-            <span>Sources are evidence</span>
-            <span aria-hidden="true">·</span>
-            <span>Never executed as instructions</span>
+            <span aria-hidden="true" className="hidden sm:inline">·</span>
+            <span className="hidden sm:inline">Sources are evidence</span>
+            <span aria-hidden="true" className="hidden sm:inline">·</span>
+            <span className="hidden sm:inline">Never executed as instructions</span>
           </>
         ) : (
           <>
             <span>Live records</span>
-            <span aria-hidden="true">·</span>
-            <span>Visible evidence</span>
-            <span aria-hidden="true">·</span>
-            <span>Changes staged for approval</span>
+            <span aria-hidden="true" className="hidden sm:inline">·</span>
+            <span className="hidden sm:inline">Visible evidence</span>
+            <span aria-hidden="true" className="hidden sm:inline">·</span>
+            <span className="hidden sm:inline">Changes staged for approval</span>
           </>
         )}
+        <div
+          aria-label="AI workspace mode"
+          className="ml-auto inline-flex shrink-0 rounded-xl bg-[var(--admin-surface-subtle)] p-0.5"
+          role="group"
+        >
+          <button
+            type="button"
+            aria-pressed={ai.purpose === "command"}
+            onClick={() => void ai.setPurpose("command")}
+            className={cn(
+              "min-h-10 rounded-lg px-2.5 text-xs font-medium transition-colors",
+              ai.purpose === "command"
+                ? "bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
+                : "text-[var(--admin-muted)] hover:text-[var(--admin-ink)]",
+            )}
+          >
+            Ask
+          </button>
+          <button
+            type="button"
+            aria-pressed={ai.purpose === "architect"}
+            onClick={() => void ai.setPurpose("architect")}
+            className={cn(
+              "min-h-10 rounded-lg px-2.5 text-xs font-medium transition-colors",
+              ai.purpose === "architect"
+                ? "bg-[var(--admin-surface)] text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]"
+                : "text-[var(--admin-muted)] hover:text-[var(--admin-ink)]",
+            )}
+          >
+            Architect
+          </button>
+        </div>
       </div>
       {ai.purpose === "architect" && <ArchitectEvidencePanel />}
       {ai.purpose === "architect" && <ArchitectUnderstandingPanel />}
