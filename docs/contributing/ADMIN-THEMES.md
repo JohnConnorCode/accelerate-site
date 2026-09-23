@@ -1,10 +1,16 @@
 # Admin themes
 
 Admin appearances share geometry, motion and semantic colors while keeping their
-own character. Paper, Night, Signal, Studio, Frost, Material 2026 and macOS live in
-`src/lib/admin/themes.json`. The picker and browser matrix derive from this
+own character. Paper, Night, Signal, Studio, Frost, Material 2026, macOS,
+Accelerate and Capy live in `src/lib/admin/themes.json`. The picker and browser matrix derive from this
 registry. `npm run themes:generate` produces `src/app/admin-themes.css`, including
 the dark utility selector from each definition's `mode`.
+
+Capy is a reference-led appearance based on the bright, high-contrast product
+presentation at capy.ai: white surfaces, warm orange emphasis, soft green and
+peach canvas light, rounded controls and concise sans-serif typography. Its
+palette and layout tokens are original to this project; it uses no Capy artwork,
+logo or product copy.
 
 ## Add a built-in appearance
 
