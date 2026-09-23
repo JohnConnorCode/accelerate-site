@@ -27,7 +27,7 @@ function LoginForm() {
       ? rawRedirect
       : "/admin";
   const resetFailed = searchParams.get("error") === "reset_failed";
-  const googleFailed = searchParams.get("error") === "google_failed";
+  const authFailed = searchParams.get("error") === "auth_failed";
   const notConfigured =
     !isSupabasePublicConfigured(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -56,8 +56,6 @@ function LoginForm() {
     setLoading(true);
     setError("");
     const callback = new URL("/auth/callback", window.location.origin);
-    callback.searchParams.set("next", redirect === "/admin" ? "/workspace" : redirect);
-    callback.searchParams.set("flow", "google");
     try {
       const { error } = await createClient().auth.signInWithOAuth({
         provider: "google",
@@ -192,9 +190,9 @@ function LoginForm() {
                     Password reset link expired or was invalid. Please try again.
                   </p>
                 )}
-                {!resetMode && googleFailed && !error && (
+                {!resetMode && authFailed && !error && (
                   <p className="text-sm text-error mb-4" role="alert">
-                    Google sign-in could not finish. Try again or use email and password.
+                    Sign-in could not finish. Try again or use email and password.
                   </p>
                 )}
               </div>

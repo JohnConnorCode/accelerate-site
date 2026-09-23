@@ -37,7 +37,10 @@ export async function GET(request: NextRequest) {
   const workspace = searchParams.get("workspace");
   const rawNext = searchParams.get("next");
 
-  const safeNext = safeRedirect(rawNext, type === "recovery" ? "/admin/update-password" : "/admin");
+  const safeNext = safeRedirect(
+    rawNext,
+    type === "recovery" ? "/admin/update-password" : "/workspace",
+  );
 
   // `type=recovery` is not consistently retained when Supabase exchanges a
   // PKCE code. Preserve the intended destination in the allowed callback URL
@@ -138,7 +141,8 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Keep OAuth failures distinct from expired password-recovery links.
-  const error = searchParams.get("flow") === "google" ? "google_failed" : "reset_failed";
+  // Recovery links and sign-in callbacks need different failure guidance.
+  const error =
+    type === "recovery" || safeNext === "/admin/update-password" ? "reset_failed" : "auth_failed";
   return NextResponse.redirect(new URL(`/admin/login?error=${error}`, origin));
 }
