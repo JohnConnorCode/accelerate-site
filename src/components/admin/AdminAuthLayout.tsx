@@ -11,7 +11,9 @@ export function AdminAuthLayout({ children }: { children: React.ReactNode }) {
           <p className="font-display text-lg font-semibold tracking-[-0.03em]">
             {tenant.brand.name}
           </p>
-          <p className="text-[11px] font-medium text-[var(--admin-muted)]">Command Center</p>
+          {tenant.brand.name !== "Command Center" && (
+            <p className="text-[11px] font-medium text-[var(--admin-muted)]">Command Center</p>
+          )}
         </div>
         <div>
           <AdminAppearancePicker placement="canvas" />

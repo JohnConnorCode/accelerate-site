@@ -6,7 +6,6 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
 import { AdminAuthLayout } from "@/components/admin/AdminAuthLayout";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 
@@ -267,7 +266,6 @@ function LoginForm() {
                         disabled={loading}
                         className="admin-secondary-control min-h-11 w-full cursor-pointer px-4"
                       >
-                        <Image src="/images/logos/google.svg" alt="" width={18} height={18} />
                         Continue with Google
                       </button>
                       <p className="my-5 text-center text-xs text-[var(--admin-muted)]">
