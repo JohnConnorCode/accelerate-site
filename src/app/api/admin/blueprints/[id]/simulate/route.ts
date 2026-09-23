@@ -9,12 +9,19 @@ import {
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function POST(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   const { id } = await context.params;
   if (!UUID_PATTERN.test((id ?? "").trim())) {
     return NextResponse.json({ error: "A valid blueprint id is required" }, { status: 400 });
+  }
+  let body: { event?: unknown } = {};
+  try {
+    body = (await request.json()) as { event?: unknown };
+  } catch (error) {
+    console.warn("Blueprint simulation received invalid JSON", error);
+    return NextResponse.json({ error: "Request body must be JSON" }, { status: 400 });
   }
   try {
     const version = await getLatestBlueprintVersion(auth.database, {
@@ -22,7 +29,9 @@ export async function POST(_request: NextRequest, context: { params: Promise<{ i
       blueprintId: id.trim(),
     });
     const live = await collectBlueprintLiveContext(auth.database, auth.tenant.id);
-    const simulation = simulateBlueprint(parseBlueprint(version.document), live);
+    const simulation = simulateBlueprint(parseBlueprint(version.document), live, {
+      event: typeof body.event === "string" ? body.event : null,
+    });
     return NextResponse.json(simulation);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not simulate Blueprint";
