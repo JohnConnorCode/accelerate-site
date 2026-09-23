@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { exchangeGoogleCode, saveGoogleConnection } from "@/lib/revenue-os/google";
 import { recordAudit } from "@/lib/revenue-os/audit";
+import { commandCenterOrigin } from "@/lib/command-center/runtime";
 import {
   googleOperatorError,
   googleServerErrorSummary,
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
   const providerError = params.get("error");
   const cookieStore = await cookies();
   const encodedState = cookieStore.get("google_oauth_state")?.value;
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
+  const origin = commandCenterOrigin || process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
   const redirect = (query: string) => {
     const response = NextResponse.redirect(
       new URL(`/t/${auth.tenant.slug}/admin/integrations?${query}`, origin),

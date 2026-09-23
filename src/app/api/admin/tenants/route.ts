@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { commandCenterOrigin } from "@/lib/command-center/runtime";
 import { z } from "zod";
 import { requireAdmin, requirePlatformAdmin } from "@/lib/admin/auth";
 import { createPlatformServiceRoleClient } from "@/lib/supabase/server";
@@ -82,7 +83,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Platform actor email is required" }, { status: 400 });
 
   try {
-    const publicOrigin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || request.nextUrl.origin;
+    const publicOrigin =
+      commandCenterOrigin || process.env.NEXT_PUBLIC_SITE_URL?.trim() || request.nextUrl.origin;
     if (input.action === "create") {
       const result = await createTenantWorkspace({
         name: input.name,

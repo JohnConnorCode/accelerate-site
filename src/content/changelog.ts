@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-center-app-auth-routing",
+    slug: "command-center-app-auth-routing",
+    title: "Account links return to the Command Center app address",
+    description:
+      "When an installation uses a dedicated Command Center address, workspace invitations and password recovery open there so the resulting session stays with the app. A configured Google Workspace connection also uses that address for its authorization callback. Installers can keep the public website on its existing address.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
     id: "command-center-installable-workspace",
     slug: "command-center-installable-workspace",
     title: "Command Center can be installed as a workspace app",

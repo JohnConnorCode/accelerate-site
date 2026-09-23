@@ -6,6 +6,7 @@ import { isConfiguredAdmin } from "@/lib/admin/access";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { getResend, FROM_EMAIL } from "@/lib/email/resend";
 import { adminPasswordResetEmail } from "@/lib/email/templates";
+import { commandCenterOrigin } from "@/lib/command-center/runtime";
 
 const RESET_LIMIT = 3;
 const RESET_WINDOW_MS = 15 * 60 * 1000;
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
     const tokenHash = data.properties?.hashed_token;
     if (error || !tokenHash) throw error || new Error("Recovery token generation failed.");
 
-    const resetUrl = new URL("/auth/callback", request.url);
+    const resetUrl = new URL("/auth/callback", commandCenterOrigin || request.url);
     resetUrl.searchParams.set("token_hash", tokenHash);
     resetUrl.searchParams.set("type", "recovery");
     resetUrl.searchParams.set("next", "/admin/update-password");

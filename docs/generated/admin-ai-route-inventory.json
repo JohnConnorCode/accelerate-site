@@ -465,12 +465,13 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/command-center/runtime",
         "@/lib/revenue-os/google",
         "@/lib/revenue-os/google-oauth",
         "next/server",
         "node:crypto"
       ],
-      "sourceSha256": "6f9b5703da82e90257968defe2b7b693cbabbc5018fd01ec54e7684e296b1b00"
+      "sourceSha256": "c30ba391d6589c38a5493120fec40db242a2b6f728f412711eb3cf268a323326"
     },
     {
       "source": "src/app/api/admin/google/callback/route.ts",
@@ -480,13 +481,14 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/command-center/runtime",
         "@/lib/revenue-os/audit",
         "@/lib/revenue-os/google",
         "@/lib/revenue-os/google-oauth",
         "next/headers",
         "next/server"
       ],
-      "sourceSha256": "3ced10dac77a784c55dece2c8e98e3e4425fbcd9e5a90260cdd13ff5514a0ba8"
+      "sourceSha256": "25c692a6eb55a6fb2af444fe8d57e0a307ffda28fa4fcd593c0c80e4cb1ff652"
     },
     {
       "source": "src/app/api/admin/google/status/route.ts",
@@ -865,6 +867,7 @@
       "imports": [
         "@/config/tenant",
         "@/lib/admin/access",
+        "@/lib/command-center/runtime",
         "@/lib/email/resend",
         "@/lib/email/templates",
         "@/lib/rate-limit",
@@ -872,7 +875,7 @@
         "@/lib/supabase/server",
         "next/server"
       ],
-      "sourceSha256": "60c98d03a3f4aadef15c1fb6e1505fd20f374404e46f0a89e4f64abf0d2c2b75"
+      "sourceSha256": "8b2055ce06abdf62aba62137bbfa1aa5421e95df78c2ebff2d7f3b5d3f50421d"
     },
     {
       "source": "src/app/api/admin/plausible/route.ts",
@@ -1960,12 +1963,13 @@
       ],
       "imports": [
         "@/lib/admin/auth",
+        "@/lib/command-center/runtime",
         "@/lib/supabase/server",
         "@/lib/tenancy/lifecycle",
         "next/server",
         "zod"
       ],
-      "sourceSha256": "6012e4113dce8b981fc72d7f59fe96c86c3380924dffebd75d9e9987821c0b4c"
+      "sourceSha256": "803a84e5a2aba7ce93591c13bfc27e2e746bbfd0e615b315fea7328e0f4bea6a"
     },
     {
       "source": "src/app/api/admin/website-grades/export/route.ts",

@@ -1,7 +1,7 @@
 ---
 title: "Connect your installation"
 description: "Create the owner account, apply the ordered schema, and sign in to a workspace you control."
-updated: "2026-09-21"
+updated: "2026-09-23"
 ---
 
 This walkthrough turns a local demo into a connected installation you control: database, authentication, and a real owner account. You need a working checkout, a new empty Supabase project, access to its authentication settings, and a chosen owner email; complete [the local quickstart](/docs/self-hosting) first if you haven't already.
@@ -37,6 +37,8 @@ Check the project reference and database host against the project you created. D
 ## 2. Enable authentication redirects
 
 In your Supabase project's Authentication settings, enable email authentication. Configure the application origin and its `/auth/callback` redirect URL. For a local origin of `http://localhost:3000`, the callback is `http://localhost:3000/auth/callback`. If the server uses a different port, update both the app origin and authentication configuration. These are project settings; a database key cannot configure them.
+
+If you use a separate Command Center address, point that hostname at the same hosting project and set `NEXT_PUBLIC_COMMAND_CENTER_ORIGIN` to its HTTPS origin when you build and run the app. Keep `NEXT_PUBLIC_SITE_URL` set to the public website. Add the exact app `/auth/callback` URL to your Supabase Auth redirect list. Workspace invitations and password recovery then return to the app address, where the sign-in session is stored. If you enable Google Workspace, add the app `/api/admin/google/callback` URL to its OAuth client's authorized redirect URIs before connecting it. Check sign-in, recovery, invitations and sign-out on the app address before offering installation to your team.
 
 Do not create the owner account in the dashboard first. The setup command below creates or reuses the configured owner, applies the ordered schema, and establishes admin membership.
 

@@ -6,7 +6,20 @@ const root = process.cwd();
 const read = (file: string) => readFile(path.join(root, file), "utf8");
 
 async function main() {
-  const [manifest, middleware, serviceWorker, offlineStore, pwa, docs, faq] = await Promise.all([
+  const [
+    manifest,
+    middleware,
+    serviceWorker,
+    offlineStore,
+    pwa,
+    docs,
+    faq,
+    tenants,
+    recovery,
+    google,
+    googleAuthorize,
+    googleCallback,
+  ] = await Promise.all([
     read("src/app/manifest.ts"),
     read("src/proxy.ts"),
     read("public/command-center-sw.js"),
@@ -14,6 +27,11 @@ async function main() {
     read("src/components/admin/CommandCenterPwa.tsx"),
     read("src/content/docs/workspace/overview.mdx"),
     read("src/content/command-center-faq.ts"),
+    read("src/app/api/admin/tenants/route.ts"),
+    read("src/app/api/admin/password-reset/route.ts"),
+    read("src/lib/revenue-os/google.ts"),
+    read("src/app/api/admin/google/authorize/route.ts"),
+    read("src/app/api/admin/google/callback/route.ts"),
   ]);
 
   assert.match(manifest, /display: "standalone"/);
@@ -43,6 +61,8 @@ async function main() {
   assert.match(activation, /controllerchange[\s\S]*waiting\.postMessage/);
   assert.match(docs, /Install Command Center/);
   assert.match(faq, /Can I install Command Center/);
+  for (const route of [tenants, recovery, google, googleAuthorize, googleCallback])
+    assert.match(route, /commandCenterOrigin/, "Account links must stay on the app origin");
 
   console.log("Command Center PWA contract checks passed.");
 }
