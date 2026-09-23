@@ -31,15 +31,24 @@ function validView(value: string | null): WorkspaceView {
 export function AdminAIWorkspace() {
   const searchParams = useSearchParams();
   const router = useAdminNavigation();
-  const { activeConversationId, selectConversation, setPurpose, refreshConversations } =
+  const {
+    purpose: activePurpose,
+    activeConversationId,
+    selectConversation,
+    setPurpose,
+    refreshConversations,
+  } =
     useAdminAI();
   const view = validView(searchParams.get("view"));
   const conversationId = searchParams.get("conversation");
   const purpose = searchParams.get("purpose") === "architect" ? "architect" : "command";
   useEffect(() => {
-    setPurpose(purpose);
-    void refreshConversations().catch(() => undefined);
-  }, [purpose, refreshConversations, setPurpose]);
+    if (purpose === activePurpose) {
+      void refreshConversations().catch(() => undefined);
+      return;
+    }
+    void setPurpose(purpose);
+  }, [activePurpose, purpose, refreshConversations, setPurpose]);
   useEffect(() => {
     if (view === "ask" && conversationId && conversationId !== activeConversationId)
       void selectConversation(conversationId);
