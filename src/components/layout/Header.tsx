@@ -62,6 +62,7 @@ export function Header({
   const headerRef = useRef<HTMLElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
+  const isAIReadiness = pathname === "/ai-readiness" || pathname.startsWith("/ai-readiness/");
   // active when on the exact route or any child route (e.g. /work/[slug])
   const isActive = (href: string) =>
     href !== "#" && (pathname === href || pathname.startsWith(href + "/"));
@@ -138,7 +139,11 @@ export function Header({
         <div className="page-shell flex items-center justify-between">
           {/* Logo */}
           <motion.div variants={headerLogoReveal} className="min-w-0 mr-3">
-            <Logo name={brandName} logoSrc={logoSrc} />
+            <Logo
+              name={brandName}
+              logoSrc={logoSrc}
+              className={isAIReadiness ? "ai-readiness-site-logo" : undefined}
+            />
           </motion.div>
 
           {/* Desktop Nav */}

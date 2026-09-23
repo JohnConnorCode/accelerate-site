@@ -265,6 +265,35 @@ try {
       documentWidth: document.documentElement.scrollWidth,
     }));
     assert.equal(dimensions.documentWidth, dimensions.width, `${width}px page has no overflow`);
+    if (width === 390) {
+      const mobileWordmark = await page.evaluate(() => {
+        const link = document.querySelector(".ai-readiness-site-logo");
+        const word = link?.querySelector(".logo-word");
+        return {
+          visible: !!word && getComputedStyle(word).display !== "none",
+          fits: !!word && word.scrollWidth <= word.clientWidth,
+          accessibleName: link?.getAttribute("aria-label") || "",
+        };
+      });
+      assert.ok(
+        mobileWordmark.visible && mobileWordmark.fits,
+        "390px brand wordmark stays legible",
+      );
+      assert.ok(mobileWordmark.accessibleName, "mobile brand keeps its accessible name");
+      await page.setViewportSize({ width: 320, height: 900 });
+      const narrowScreen = await page.evaluate(() => ({
+        width: window.innerWidth,
+        documentWidth: document.documentElement.scrollWidth,
+        wordDisplay: getComputedStyle(document.querySelector(".ai-readiness-site-logo .logo-word"))
+          .display,
+        accessibleName: document
+          .querySelector(".ai-readiness-site-logo")
+          ?.getAttribute("aria-label"),
+      }));
+      assert.equal(narrowScreen.wordDisplay, "none", "320px brand mark stays clear of controls");
+      assert.ok(narrowScreen.accessibleName, "icon-only brand remains accessible");
+      assert.equal(narrowScreen.documentWidth, narrowScreen.width, "320px report has no overflow");
+    }
     assert.deepEqual(errors, [], `${width}px flow has no browser errors`);
     results.push({
       width,
