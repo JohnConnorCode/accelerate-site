@@ -48,10 +48,26 @@ try {
 
     const response = await page.goto(`${base}/ai-readiness`, { waitUntil: "networkidle" });
     assert.equal(response?.status(), 200, `${width}px assessment route loads`);
+    if (process.env.AI_READINESS_QA_SCREENSHOTS === "1") {
+      await page.screenshot({ path: `/tmp/ai-readiness-${width}-intro.png` });
+    }
     const intro = await new AxeBuilder({ page }).analyze();
     assert.deepEqual(intro.violations, [], `${width}px intro has no axe violations`);
 
-    await page.getByRole("button", { name: /Start assessment/ }).click();
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    const motion = await page.evaluate(() => {
+      const pageRoot = document.querySelector('[data-testid="ai-readiness-page"]');
+      const orbit = document.querySelector('[data-readiness-visual] [class*="orbitRing"]');
+      return {
+        atmosphere: pageRoot ? getComputedStyle(pageRoot, "::after").animationName : "missing",
+        orbit: orbit ? getComputedStyle(orbit).animationName : "missing",
+      };
+    });
+    assert.match(motion.atmosphere, /readiness-atmosphere/, `${width}px background animates`);
+    assert.match(motion.orbit, /readiness-orbit/, `${width}px signal map animates`);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+
+    await page.getByRole("button", { name: /Start your assessment/ }).click();
     await page.waitForFunction(() =>
       document.activeElement?.textContent?.includes("Start with your context"),
     );
@@ -80,6 +96,20 @@ try {
         document.activeElement.textContent?.trim() === prompt,
       readinessQuestions[1]?.prompt,
     );
+    const transitionLayout = await page.evaluate(() => {
+      const journey = document.querySelector(
+        '[role="progressbar"][aria-label="Assessment journey progress"]',
+      );
+      const phase = document.querySelector('[data-testid="ai-readiness-phase"]');
+      return {
+        journeyBottom: journey?.getBoundingClientRect().bottom ?? 0,
+        phaseTop: phase?.getBoundingClientRect().top ?? 0,
+      };
+    });
+    assert.ok(
+      transitionLayout.phaseTop >= transitionLayout.journeyBottom,
+      `${width}px incoming question clears sticky journey progress`,
+    );
     assert.equal(
       (await page.evaluate(() => document.activeElement?.textContent ?? "")).trim(),
       readinessQuestions[1]?.prompt,
@@ -100,7 +130,9 @@ try {
       "back navigation focuses the prior question heading",
     );
 
-    const progress = page.getByRole("progressbar");
+    const progress = page.getByRole("progressbar", {
+      name: /Assessment progress: question 1 of/i,
+    });
     assert.match(await progress.getAttribute("aria-label"), /question 1 of/i);
     assert.ok(Number(await progress.getAttribute("aria-valuenow")) > 0);
     const progressAxe = await new AxeBuilder({ page })
@@ -136,6 +168,9 @@ try {
     }
 
     await page.getByText(preview.summary).waitFor();
+    if (process.env.AI_READINESS_QA_SCREENSHOTS === "1") {
+      await page.screenshot({ path: `/tmp/ai-readiness-${width}-preview.png` });
+    }
     const previewAxe = await new AxeBuilder({ page }).analyze();
     assert.deepEqual(previewAxe.violations, [], `${width}px preview has no axe violations`);
 
@@ -152,6 +187,9 @@ try {
     );
     const reportAxe = await new AxeBuilder({ page }).analyze();
     assert.deepEqual(reportAxe.violations, [], `${width}px report has no axe violations`);
+    if (process.env.AI_READINESS_QA_SCREENSHOTS === "1") {
+      await page.screenshot({ path: `/tmp/ai-readiness-${width}-report.png` });
+    }
 
     const dimensions = await page.evaluate(() => ({
       width: window.innerWidth,
