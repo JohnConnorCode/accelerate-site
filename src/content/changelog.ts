@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "paper-admin-appearance",
+    slug: "paper-admin-appearance",
+    title: "A calmer Paper appearance for Command Center",
+    description:
+      "Paper now pairs its warm workspace canvas with a light sidebar and a quiet cobalt selection state. Primary actions keep the stronger cobalt fill, so navigation and actions have clearer visual priority.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
     id: "command-center-installable-workspace",
     slug: "command-center-installable-workspace",
     title: "Command Center can be installed as a workspace app",
