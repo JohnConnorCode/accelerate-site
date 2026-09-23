@@ -633,9 +633,9 @@
 }
 
 :is([data-theme="capy"] .admin-shell, [data-theme="capy"] .admin-overlay-token-scope, [data-theme="capy"] body.admin-dialog-open, [data-theme="capy"] body.admin-notifications-open) {
-  --admin-canvas: #f7f8f5;
+  --admin-canvas: #f7f7f3;
   --admin-surface: #ffffff;
-  --admin-surface-subtle: #f2f3ed;
+  --admin-surface-subtle: #f7f3ed;
   --admin-soft: var(--admin-surface-subtle);
   --admin-line: var(--admin-border);
   --admin-mobile-dock-index: 0;
@@ -654,18 +654,18 @@
   --admin-nav-brand-color: #282d30;
   --admin-nav-accent: #a84220;
   --admin-nav-badge-ring: #ffffff;
-  --admin-canvas-art: radial-gradient(ellipse at 100% 0%, #fbe6d9 0, transparent 36rem), radial-gradient(ellipse at 0% 100%, #e8f0df 0, transparent 38rem);
+  --admin-canvas-art: radial-gradient(ellipse at 100% 0%, color-mix(in srgb, #f3cdb7 48%, transparent) 0, transparent 38rem), radial-gradient(ellipse at 0% 100%, color-mix(in srgb, #dae8d3 58%, transparent) 0, transparent 40rem), linear-gradient(145deg, color-mix(in srgb, #ffffff 42%, transparent), transparent 46rem);
   --admin-action: #a84220;
   --admin-action-ink: #ffffff;
   --admin-surface-radius: 20px;
   --admin-control-radius: 12px;
   --admin-rule: color-mix(in srgb, var(--admin-ink) 8%, transparent);
-  --admin-border: color-mix(in srgb, var(--admin-ink) 12%, transparent);
-  --admin-shadow-border: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 1px 2px color-mix(in srgb, var(--admin-ink) 4%, transparent);
-  --admin-shadow-border-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 18%, transparent), 0 2px 4px color-mix(in srgb, var(--admin-ink) 5%, transparent);
-  --admin-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 2px 4px -2px color-mix(in srgb, var(--admin-ink) 8%, transparent), 0 16px 32px -24px color-mix(in srgb, var(--admin-ink) 22%, transparent);
-  --admin-shadow-hover: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent), 0 10px 26px -18px color-mix(in srgb, var(--admin-ink) 28%, transparent);
-  --admin-card-flat-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 9%, transparent);
+  --admin-border: color-mix(in srgb, var(--admin-ink) 10%, transparent);
+  --admin-shadow-border: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 8%, transparent), 0 1px 2px color-mix(in srgb, var(--admin-ink) 4%, transparent);
+  --admin-shadow-border-hover: 0 0 0 1px color-mix(in srgb, var(--admin-accent) 22%, transparent), 0 3px 8px -4px color-mix(in srgb, var(--admin-accent) 18%, transparent);
+  --admin-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 8%, transparent), 0 2px 4px -2px color-mix(in srgb, var(--admin-ink) 8%, transparent), 0 18px 36px -28px color-mix(in srgb, var(--admin-ink) 26%, transparent);
+  --admin-shadow-hover: 0 0 0 1px color-mix(in srgb, var(--admin-accent) 18%, transparent), 0 12px 28px -20px color-mix(in srgb, var(--admin-accent) 26%, transparent);
+  --admin-card-flat-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 8%, transparent);
   --admin-card-raised-shadow: var(--admin-shadow);
   --admin-card-outline-shadow: 0 0 0 1px color-mix(in srgb, var(--admin-ink) 16%, transparent);
   --admin-danger: #be123c;
@@ -679,7 +679,7 @@
   --admin-title-weight: 650;
   --admin-title-tracking: -0.035em;
   --admin-label-font: var(--admin-font);
-  --admin-surface-fill: var(--admin-surface);
+  --admin-surface-fill: linear-gradient(180deg, #ffffff 0%, #fffdfa 100%);
   --admin-surface-filter: none;
   --admin-nav-filter: none;
   --admin-nav-shadow: inset -1px 0 0 var(--admin-nav-rule);
@@ -704,7 +704,7 @@
   --admin-row-padding: 16px;
   --admin-panel-padding: 24px;
   --admin-section-gap: 24px;
-  --admin-hover-lift: none;
+  --admin-hover-lift: translateY(-1px);
   --admin-hover-tint: color-mix(in srgb, var(--admin-accent) 7%, transparent);
   --admin-hover-glow: 0 0 0 0 transparent;
   --admin-radius-button: 999px;
