@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import ts from "typescript";
 import { approveAndExecuteAction, APPROVABLE_ACTIONS } from "../src/lib/revenue-os/action-executor";
 import {
   ACTION_REVERSIBILITY,
@@ -40,6 +42,37 @@ async function main() {
       `${name} keeps impact as a separate declared axis`,
     );
   }
+  const executorSource = ts.createSourceFile(
+    "action-executor.ts",
+    readFileSync(new URL("../src/lib/revenue-os/action-executor.ts", import.meta.url), "utf8"),
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  const handlerTypes = new Set<string>();
+  const findActionDispatch = (node: ts.Node) => {
+    if (
+      ts.isSwitchStatement(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      node.expression.expression.getText(executorSource) === "action" &&
+      node.expression.name.text === "action_type"
+    ) {
+      for (const clause of node.caseBlock.clauses) {
+        if (
+          ts.isCaseClause(clause) &&
+          (ts.isStringLiteral(clause.expression) ||
+            ts.isNoSubstitutionTemplateLiteral(clause.expression))
+        )
+          handlerTypes.add(clause.expression.text);
+      }
+    }
+    ts.forEachChild(node, findActionDispatch);
+  };
+  findActionDispatch(executorSource);
+  assert.deepEqual(
+    [...handlerTypes].sort(),
+    [...APPROVABLE_ACTIONS].sort(),
+    "the canonical action catalog and executor dispatch must cover the same action types",
+  );
   assert.throws(() => reversibilityOf("wire_money_somewhere"), /no reversibility class/);
 
   const mem = new MemorySupabase({

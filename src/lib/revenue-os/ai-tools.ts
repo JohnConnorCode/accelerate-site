@@ -96,6 +96,7 @@ import {
 import { readModuleConfiguration } from "./module-configuration-read";
 import { previewModuleConfiguration, proposeModuleConfiguration } from "./module-actions";
 import { readWorkspaceBrand } from "./branding";
+import { generateContentBrief, parseContentBriefInput } from "./content-brief";
 import { previewWorkspaceBrandUpdate, proposeWorkspaceBrandUpdate } from "./branding-actions";
 import {
   BRANDING_TOOLS,
@@ -107,6 +108,7 @@ import type { AiToolConnectionRequirement } from "./ai-tool-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction, withProposalWorkContext } from "./actions";
+import { reversibilityOf } from "./action-reversibility-contract";
 import { assertWorkDraftTarget, findWorkDraft, workDraftKey } from "./work-drafts";
 import { loadOperatorQueue } from "./queue";
 import { loadActivityTimeline } from "./activities";
@@ -479,6 +481,14 @@ export function assertImpactHonoured(
       `${tool.name} is registered as ${tool.impact} but did not stage an action for approval. Mutating tools must propose; they never act directly.`,
     );
   }
+  if (staged && (tool.impact === "internal_write" || tool.impact === "external_action")) {
+    const actionType = (output as { action_type?: unknown }).action_type;
+    if (typeof actionType !== "string")
+      throw new Error(`${tool.name} staged an action without a registered action type`);
+    const action = reversibilityOf(actionType);
+    if (action.impact === "read")
+      throw new Error(`${tool.name} staged read-only action type ${actionType}`);
+  }
 }
 
 const discoveryInput = z
@@ -488,6 +498,13 @@ const discoveryInput = z
   })
   .strict();
 const activationInput = z.object({ bundleId: z.string().min(1).max(160) }).strict();
+const contentBriefInputSchema = z
+  .object({
+    title: z.string().min(1).max(240),
+    keywords: z.string().max(900).nullable().optional(),
+    category: z.string().max(120).nullable().optional(),
+  })
+  .strict();
 // Every registered operation has exactly one reviewed adapter. Type checking
 // rejects missing/extra handlers; declarations choose operations, never imports.
 const PLUGIN_TOOL_EXECUTORS = {
@@ -526,6 +543,19 @@ const PLUGIN_TOOL_EXECUTORS = {
 >;
 
 const registry: AiToolRegistration[] = [
+  {
+    name: "generate_content_brief",
+    description:
+      "Generate a grounded editorial brief from a title, optional keywords, and optional category. Uses the same bounded context and validation service as the Content Operations page. Returns a draft only; it does not create or publish content.",
+    inputSchema: z.toJSONSchema(contentBriefInputSchema),
+    parseInput: (input) => parseContentBriefInput(contentBriefInputSchema.parse(input)),
+    outputSchema: { type: "object", required: ["brief", "context"] },
+    serviceTarget: "revenue-os.content-brief",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: (context, input) => generateContentBrief(context.supabase, input),
+  },
   {
     name: "read_site_editor",
     description:
@@ -2969,6 +2999,7 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "generate_content_brief",
     "get_social_workspace",
     "prepare_social_week",
     "preview_social_change",

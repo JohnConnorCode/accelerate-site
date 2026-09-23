@@ -503,7 +503,7 @@ async function main() {
     "src/lib/revenue-os/ai-agent.ts",
     "src/app/api/chat/route.ts",
     "src/app/api/generate-plan/route.ts",
-    "src/app/api/admin/ai-content-brief/route.ts",
+    "src/lib/revenue-os/content-brief.ts",
     "src/app/api/admin/proposals/generate/route.ts",
   ];
   for (const file of sources) {

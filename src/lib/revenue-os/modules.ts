@@ -369,6 +369,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["content"],
     routes: ["/admin/content"],
+    aiToolNames: ["generate_content_brief"],
   },
   {
     id: "resources",

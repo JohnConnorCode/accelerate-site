@@ -34,13 +34,11 @@
       ],
       "imports": [
         "@/lib/admin/auth",
-        "@/lib/ai/content-brief",
-        "@/lib/ai/openrouter",
-        "@/lib/ai/openrouter-credentials",
-        "@/lib/revenue-os/shared-context",
+        "@/lib/revenue-os/content-brief",
+        "@/lib/revenue-os/modules",
         "next/server"
       ],
-      "sourceSha256": "535a1637c7d40123c02b8136e931e1610050c2e7caf3db0fc52fc73ad72b99f1"
+      "sourceSha256": "4b2d36759197df435229f19bed264b397e52f9053e231b8a7d33197db9818cf8"
     },
     {
       "source": "src/app/api/admin/ai-readiness/route.ts",
@@ -1201,7 +1199,7 @@
         "@/lib/revenue-os/ai-stream-contract",
         "next/server"
       ],
-      "sourceSha256": "e0d340d5430a1f57c2bf9ef55d91c350aef37958f4c8c9b1941d94fccb49da29"
+      "sourceSha256": "07da63ae37c4fa75bfb6c769c151401beaacb7ca1bf80a2156011d3382fadaf5"
     },
     {
       "source": "src/app/api/admin/revenue-os/analytics/route.ts",

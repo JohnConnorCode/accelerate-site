@@ -131,6 +131,32 @@ async function rejects(run: () => Promise<unknown>, includes: string, because: s
 
 async function main() {
   const runtime = getRevenueAiTools();
+  const contentBriefTool = runtime.find((tool) => tool.name === "generate_content_brief");
+  assert.ok(contentBriefTool, "the shared content brief service must be an AI capability");
+  assert.equal(contentBriefTool.serviceTarget, "revenue-os.content-brief");
+  assert.doesNotThrow(() =>
+    validateToolInput(contentBriefTool.name, contentBriefTool.inputSchema, {
+      title: "A grounded topic",
+      keywords: "research",
+    }),
+  );
+  assert.throws(
+    () =>
+      validateToolInput(contentBriefTool.name, contentBriefTool.inputSchema, {
+        title: "A grounded topic",
+        unsupported: true,
+      }),
+    /does not accept "unsupported"/i,
+  );
+  await rejects(
+    () =>
+      executeRegisteredRevenueTool(context(stubSupabase()), "generate_content_brief", {
+        title: "A grounded topic",
+        unsupported: true,
+      }),
+    "unrecognized key",
+    "content brief tool rejects fields outside its shared input contract",
+  );
   let pluginTools = 0;
   for (const moduleDef of REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow)) {
     const registeredModule = { ...moduleDef, workflow: moduleDef.workflow! };
@@ -469,6 +495,17 @@ async function main() {
     "did not stage an action",
     "a mutating tool that returns rows instead of a proposal must fail closed; mutating tools propose, they never act",
   );
+  await rejects(
+    async () =>
+      assertImpactHonoured(writeTool, { id: "queued-action-id", action_type: "unregistered" }),
+    "no reversibility class",
+    "a proposal must use an action type in the canonical action catalog",
+  );
+  await rejects(
+    async () => assertImpactHonoured(writeTool, { id: "queued-action-id" }),
+    "without a registered action type",
+    "a mutating tool must identify the canonical action it stages",
+  );
 
   const source = readFileSync("src/lib/revenue-os/ai-tools.ts", "utf8");
 
@@ -606,7 +643,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v21");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v22");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.

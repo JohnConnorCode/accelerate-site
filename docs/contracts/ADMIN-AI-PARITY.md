@@ -176,6 +176,22 @@ initiatives remain open. The demo continues to use its session-local branding
 transport and shared capability metadata; its assistant is a simulation, not a
 live provider-backed agent.
 
+## Implemented shared content brief service
+
+The Content Operations API and the global assistant now call the same
+`revenue-os.content-brief` service. It owns tenant provider readiness, bounded
+shared context, the content brief schema, grounding validation and the provider
+receipt. The route is an authentication and HTTP error adapter. The assistant
+exposes `generate_content_brief` through the Content module, shared capability
+catalogue, and core tool pack, so page context does not restrict its availability.
+Both the route and assistant recheck current Content module enablement.
+The tool returns a draft and cannot create or publish content. The demo remains
+fictional and does not call this live service.
+
+This is one parity slice, not universal content-operation coverage. Content
+calendar create/update/delete and the other domain write paths still need their
+own shared operation services, reviewed previews and approval-backed execution.
+
 ## Implemented plugin and module configuration path
 
 `get_module_configuration` returns current enablement, declared public settings,

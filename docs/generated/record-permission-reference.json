@@ -477,6 +477,10 @@
       "module": "campaigns"
     },
     {
+      "tool": "generate_content_brief",
+      "module": "content"
+    },
+    {
       "tool": "run_business_pulse",
       "module": "business-pulse"
     },
