@@ -3,6 +3,11 @@ import {
   applyPipelineView,
   countPipelineSystemViews,
   DEFAULT_PIPELINE_VIEW,
+  loadLastPipelineView,
+  loadSavedPipelineViews,
+  removePipelineView,
+  saveLastPipelineView,
+  savePipelineView,
   type PipelineViewOpportunity,
 } from "../src/lib/admin/pipelineViews";
 
@@ -100,6 +105,26 @@ assert.deepEqual(
   ).map((item) => item.id),
   [...fixtures].sort((a, b) => a.id.localeCompare(b.id)).map((item) => item.id),
 );
+
+const stored = new Map<string, string>();
+Object.defineProperty(globalThis, "window", {
+  configurable: true,
+  value: {
+    localStorage: {
+      getItem: (key: string) => stored.get(key) ?? null,
+      setItem: (key: string, value: string) => stored.set(key, value),
+    },
+  },
+});
+const ownerScope = "tenant-a:user-a";
+const calendarView = { ...DEFAULT_PIPELINE_VIEW, layout: "calendar" as const };
+saveLastPipelineView(calendarView, ownerScope);
+assert.equal(loadLastPipelineView(ownerScope).layout, "calendar");
+assert.equal(loadLastPipelineView("tenant-b:user-a").layout, "board");
+const saved = savePipelineView("Calendar follow-ups", calendarView, ownerScope);
+assert.equal(loadSavedPipelineViews(ownerScope)[0]?.state.layout, "calendar");
+assert.equal(loadSavedPipelineViews("tenant-b:user-a").length, 0);
+assert.equal(removePipelineView(saved[0]!.id, ownerScope).length, 0);
 console.log(
-  "Pipeline operator view matching, counts, search, owner filtering, and deterministic sorting passed.",
+  "Pipeline views pass matching, saved layout/field scoping, counts, search, owner filtering, and deterministic sorting.",
 );
