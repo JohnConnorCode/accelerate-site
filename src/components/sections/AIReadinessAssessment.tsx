@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ButtonHTMLAttributes, CSSProperties } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import { ArrowLeft, ArrowRight, Loader2, LockKeyhole, RotateCcw, Sparkles } from "lucide-react";
 import { trackConversion, trackEvent } from "@/lib/analytics";
 import { getUTMParams } from "@/lib/utm";
 import { AIReadinessReport } from "@/components/sections/AIReadinessReport";
 import { HeroEntranceItem, PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
+import { EASE } from "@/lib/animations";
 import styles from "./AIReadiness.module.css";
 import {
   publicPreview,
@@ -33,18 +34,18 @@ const phaseNames: Record<Phase, string> = {
 
 const stageOrder: Phase[] = ["intro", "profile", "questions", "preview", "unlock"];
 
-const phaseVariants = {
+const phaseVariants: Variants = {
   enter: (direction: Direction) => ({ opacity: 0, x: direction > 0 ? 22 : -22, y: 9 }),
-  center: { opacity: 1, x: 0, y: 0, transition: { duration: 0.44, ease: [0.22, 1, 0.36, 1] } },
+  center: { opacity: 1, x: 0, y: 0, transition: { duration: 0.44, ease: EASE } },
   exit: (direction: Direction) => ({
     opacity: 0,
     x: direction > 0 ? -14 : 14,
     y: -5,
-    transition: { duration: 0.2, ease: [0.4, 0, 1, 1] },
+    transition: { duration: 0.2, ease: "easeIn" },
   }),
 };
 
-const reducedPhaseVariants = {
+const reducedPhaseVariants: Variants = {
   enter: { opacity: 1, x: 0, y: 0 },
   center: { opacity: 1, x: 0, y: 0, transition: { duration: 0 } },
   exit: { opacity: 0, x: 0, y: 0, transition: { duration: 0.08 } },
