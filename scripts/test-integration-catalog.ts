@@ -64,6 +64,14 @@ assert.equal(
   "available",
   "an unconfigured native connector is available, not healthy or broken",
 );
+const googleDraftCapability = integrationRegistry
+  .find((item) => item.id === "google")
+  ?.capabilities.find((item) => item.id === "gmail-drafts");
+assert.ok(googleDraftCapability, "Gmail drafts must be a separate optional capability");
+assert.equal(googleDraftCapability.impact, "internal_write");
+assert.deepEqual(googleDraftCapability.requiredScopes, [
+  "https://www.googleapis.com/auth/gmail.compose",
+]);
 assert.equal(
   provider(baseline, "microsoft").status,
   "planned",

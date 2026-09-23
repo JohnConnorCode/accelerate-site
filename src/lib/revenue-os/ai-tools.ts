@@ -2981,9 +2981,12 @@ const registry: AiToolRegistration[] = [
             .eq("tenant_id", workItem.tenant_id)
             .eq("id", existing.id)
             .single();
-          if (error || !proposal) throw new Error(error?.message ?? "Follow-up proposal disappeared");
+          if (error || !proposal)
+            throw new Error(error?.message ?? "Follow-up proposal disappeared");
           if (proposal.action_type !== "create_gmail_draft")
-            throw new Error("An older follow-up is still staged to send. Reject it before saving a Gmail draft.");
+            throw new Error(
+              "An older follow-up is still staged to send. Reject it before saving a Gmail draft.",
+            );
           return proposal;
         }
       }

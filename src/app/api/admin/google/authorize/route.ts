@@ -13,11 +13,8 @@ export async function GET(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
   try {
     const state = randomBytes(24).toString("base64url");
-    const includeGmailDrafts =
-      request.nextUrl.searchParams.get("capability") === "gmail-drafts";
-    const response = NextResponse.redirect(
-      buildGoogleAuthUrl(state, { includeGmailDrafts }),
-    );
+    const includeGmailDrafts = request.nextUrl.searchParams.get("capability") === "gmail-drafts";
+    const response = NextResponse.redirect(buildGoogleAuthUrl(state, { includeGmailDrafts }));
     const boundState = createGoogleOAuthStateBinding({
       state,
       tenantId: auth.tenant.id,
