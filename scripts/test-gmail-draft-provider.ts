@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { encryptSecret } from "../src/lib/revenue-os/encryption";
-import { createGmailDraft, GOOGLE_GMAIL_DRAFT_SCOPE } from "../src/lib/revenue-os/google";
+import {
+  createGmailDraft,
+  GOOGLE_GMAIL_DRAFT_SCOPE,
+  syncGmail,
+} from "../src/lib/revenue-os/google";
 import { MemorySupabase } from "./lib/memory-supabase";
 
 const tenantId = "tenant-gmail-draft-fixture";
@@ -30,6 +34,7 @@ function fixture(scopes: string[] = [GOOGLE_GMAIL_DRAFT_SCOPE]) {
         encrypted_access_token: encryptSecret("fixture-access-token"),
         encrypted_refresh_token: encryptSecret("fixture-refresh-token"),
         token_expires_at: new Date(Date.now() + 60 * 60_000).toISOString(),
+        settings: { gmail_history_id: "history-0" },
       },
     ],
     opportunities: [
@@ -45,6 +50,8 @@ function fixture(scopes: string[] = [GOOGLE_GMAIL_DRAFT_SCOPE]) {
         id: "contact-1",
         tenant_id: tenantId,
         email: "customer@example.test",
+        primary_email: "customer@example.test",
+        full_name: "Customer Example",
         unsubscribed: false,
       },
     ],
@@ -71,6 +78,8 @@ function fixture(scopes: string[] = [GOOGLE_GMAIL_DRAFT_SCOPE]) {
         metadata: { rfc_message_id: "<latest@example.test>" },
       },
     ],
+    action_queue: [],
+    work_items: [],
   });
   return {
     memory,
@@ -137,6 +146,119 @@ async function main() {
       assert.equal(replay.draftId, "gmail-draft-1");
       assert.equal(requests.length, 1, "an executed idempotency key cannot create a duplicate");
       assert.equal(memory.rows("messages").length, 2);
+
+      memory.rows("action_queue").push({
+        id: draftInput.actionId,
+        tenant_id: tenantId,
+        action_type: "create_gmail_draft",
+        status: "executed",
+        payload: {
+          workItemId: "work-followup-1",
+          conversationId: draftInput.conversationId,
+          opportunityId: draftInput.opportunityId,
+          contactId: draftInput.contactId,
+          to: draftInput.to,
+        },
+        result: saved,
+      });
+      memory.rows("work_items").push({
+        id: "work-followup-1",
+        tenant_id: tenantId,
+        kind: "draft_followup",
+        entity_id: draftInput.opportunityId,
+        status: "waiting",
+        outcome: "Gmail draft saved. Not sent.",
+        lease_owner: null,
+      });
+      memory.rpc("record_evidence", () => ({
+        claim_id: "claim-1",
+        evidence_id: "evidence-1",
+        claim_status: "confirmed",
+        best_evidence: "verified_external",
+        is_new_claim: false,
+      }));
+      memory.rpc("stop_campaign_memberships", () => []);
+
+      let threadMessages = [
+        {
+          id: "gmail-message-1",
+          threadId: "gmail-thread-1",
+          labelIds: ["SENT"],
+          internalDate: String(Date.parse("2026-09-21T12:00:00Z")),
+          payload: {
+            mimeType: "text/plain",
+            body: { data: Buffer.from(draftInput.body).toString("base64url") },
+            headers: [
+              { name: "From", value: "Operator <operator@example.test>" },
+              { name: "To", value: draftInput.to },
+              { name: "Subject", value: draftInput.subject },
+              { name: "Message-ID", value: saved.rfcMessageId },
+            ],
+          },
+        },
+      ];
+      let profileReads = 0;
+      globalThis.fetch = async (input) => {
+        const url = new URL(String(input));
+        if (url.pathname.endsWith("/profile")) {
+          profileReads += 1;
+          return jsonResponse({
+            emailAddress: "operator@example.test",
+            historyId: `history-${profileReads}`,
+          });
+        }
+        if (url.pathname.endsWith("/history"))
+          return jsonResponse({
+            history: [{ messagesAdded: [{ message: { threadId: "gmail-thread-1" } }] }],
+          });
+        if (url.pathname.endsWith("/settings/sendAs")) return jsonResponse({ sendAs: [] });
+        if (url.pathname.endsWith("/threads/gmail-thread-1"))
+          return jsonResponse({
+            id: "gmail-thread-1",
+            historyId: `history-${profileReads}`,
+            messages: threadMessages,
+          });
+        throw new Error(`Unexpected sync request: ${url}`);
+      };
+
+      const sentSync = await syncGmail(database);
+      assert.equal(sentSync.failed, 0);
+      assert.equal(
+        memory.rows("work_items")[0]?.outcome,
+        "Follow-up sent from Gmail. Waiting for a reply.",
+        "manual send must update the same open follow-up item",
+      );
+      assert.ok(memory.rows("work_items")[0]?.next_check_at);
+      const sentReceipt = memory
+        .rows("messages")
+        .find((row) => row.external_id === "gmail-message-1");
+      assert.equal(sentReceipt?.status, "sent");
+
+      threadMessages = [
+        ...threadMessages,
+        {
+          id: "gmail-reply-1",
+          threadId: "gmail-thread-1",
+          labelIds: ["INBOX", "UNREAD"],
+          internalDate: String(Date.parse("2026-09-22T12:00:00Z")),
+          payload: {
+            mimeType: "text/plain",
+            body: { data: Buffer.from("Thanks, the schedule looks good.").toString("base64url") },
+            headers: [
+              { name: "From", value: "Customer Example <customer@example.test>" },
+              { name: "To", value: "operator@example.test" },
+              { name: "Subject", value: draftInput.subject },
+              { name: "Message-ID", value: "<reply@example.test>" },
+              { name: "In-Reply-To", value: saved.rfcMessageId },
+              { name: "References", value: `<latest@example.test> ${saved.rfcMessageId}` },
+            ],
+          },
+        },
+      ];
+      const replySync = await syncGmail(database);
+      assert.equal(replySync.failed, 0);
+      assert.equal(memory.rows("work_items")[0]?.status, "completed");
+      assert.match(memory.rows("work_items")[0]?.outcome as string, /canonical contact replied/);
     }
 
     // A lost create response is reconciled by exact RFC Message-ID, thread,
@@ -227,6 +349,8 @@ async function main() {
           "threaded-unsent-receipt",
           "exact-content-and-domain-derived-message-id",
           "idempotent-replay",
+          "gmail-manual-send-keeps-the-same-work-item-open-with-a-next-check",
+          "canonical-thread-reply-closes-that-work-item",
           "uncertain-exact-reconciliation-without-retry-post",
           "compose-scope-required-before-provider-call",
         ],

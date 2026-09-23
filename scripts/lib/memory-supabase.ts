@@ -127,6 +127,7 @@ export class MemorySupabase {
     let conflictColumns: string[] = [];
     let ignoreDuplicates = false;
     let payload: Row = {};
+    let batchPayload: Row[] | null = null;
     let one = false;
     const sorts: Array<{ column: string; ascending: boolean }> = [];
     let cap: number | null = null;
@@ -259,9 +260,13 @@ export class MemorySupabase {
      * returns no row on a conflict, which the caller then re-reads, so that
      * branch has to be reproduced faithfully or the retry path goes untested.
      */
-    self.upsert = (next: Row, options?: { onConflict?: string; ignoreDuplicates?: boolean }) => {
+    self.upsert = (
+      next: Row | Row[],
+      options?: { onConflict?: string; ignoreDuplicates?: boolean },
+    ) => {
       op = "upsert";
-      payload = next;
+      batchPayload = Array.isArray(next) ? next : null;
+      payload = Array.isArray(next) ? {} : next;
       conflictColumns = (options?.onConflict ?? "")
         .split(",")
         .map((column) => column.trim())
@@ -277,21 +282,26 @@ export class MemorySupabase {
       if (failure) return resolve({ data: null, error: failure });
 
       if (op === "upsert") {
-        const existing = conflictColumns.length
-          ? this.tables[table]!.find((row) =>
-              conflictColumns.every((column) => row[column] === payload[column]),
-            )
-          : undefined;
-        if (existing) {
-          // Postgres returns nothing for an ignored duplicate, and the caller
-          // re-reads. Reproducing that is the point.
-          if (ignoreDuplicates) return resolve({ data: one ? null : [], error: null });
-          Object.assign(existing, payload);
-          return resolve({ data: one ? existing : [existing], error: null });
+        const affected: Row[] = [];
+        for (const next of batchPayload ?? [payload]) {
+          const existing = conflictColumns.length
+            ? this.tables[table]!.find((row) =>
+                conflictColumns.every((column) => row[column] === next[column]),
+              )
+            : undefined;
+          if (existing) {
+            // Postgres returns nothing for an ignored duplicate, and the caller
+            // re-reads. Reproducing that branch keeps retries observable.
+            if (ignoreDuplicates) continue;
+            Object.assign(existing, next);
+            affected.push(existing);
+          } else {
+            const created: Row = { id: this.idFactory(++this.sequence), ...next };
+            this.tables[table]!.push(created);
+            affected.push(created);
+          }
         }
-        const created: Row = { id: this.idFactory(++this.sequence), ...payload };
-        this.tables[table]!.push(created);
-        return resolve({ data: one ? created : [created], error: null });
+        return resolve({ data: one ? (affected[0] ?? null) : affected, error: null });
       }
 
       if (op === "insert") {
