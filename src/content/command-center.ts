@@ -146,9 +146,9 @@ export const capabilities: Capability[] = [
     id: "pipeline",
     category: "organize",
     title: "Opportunities and pipeline",
-    promise: "See current stages, values and next actions, with recorded stage history.",
+    promise: "See current stages, values and next actions in board, list or calendar form.",
     detail:
-      "Open the opportunity to inspect its customer, activity and next step. Use the evidence you have before moving it, and confirm the saved position afterward.",
+      "Open the opportunity to inspect its customer, activity and next step. Calendar shows dated next actions on the viewer's local day and keeps unscheduled opportunities visible. Use the evidence you have before changing the record, then confirm the saved result.",
   },
   {
     id: "projects",
@@ -156,7 +156,7 @@ export const capabilities: Capability[] = [
     title: "Tasks and commitments",
     promise: "Give work a title, date and source context so the team can follow it through.",
     detail:
-      "Use Tasks & approvals to filter shared tasks and scan their related records, due dates and priorities. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
+      "Use Tasks & approvals to view the same tasks as a list, status board or date calendar. Filter ownership, status and source; scan due dates and related records; then edit or complete work through its existing task service. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
   },
   {
     id: "notes",

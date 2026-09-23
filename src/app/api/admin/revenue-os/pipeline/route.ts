@@ -102,6 +102,8 @@ export async function GET(request: NextRequest) {
   const stages = await loadPipelineStages(supabase, auth.tenant.id);
   return NextResponse.json({
     schemaReady: true,
+    tenantId: auth.tenant.id,
+    viewerId: auth.user.id,
     signalsReady: { calendar: !meetings.error, stageHistory: !stageEvents.error },
     opportunities: (result.data ?? []).map((item) => {
       const history = stageEvents.error
