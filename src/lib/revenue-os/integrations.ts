@@ -182,8 +182,10 @@ function capabilityView(
     if (!capability.requiredScopes.every((scope) => granted.has(scope))) {
       return {
         ...capability,
-        status: "degraded",
-        statusReason: "Required permission is missing",
+        status: capability.optional ? "available" : "degraded",
+        statusReason: capability.optional
+          ? "Optional permission not granted"
+          : "Required permission is missing",
         lastEvidenceAt: connection.last_success_at,
       };
     }
