@@ -118,7 +118,24 @@ assert.equal(
   incompleteReport.dimensionScores.find((dimension) => dimension.key === "process")?.score,
   null,
 );
-assert.ok(incompleteReport.coverage < 100);
+assert.equal(incompleteReport.coverage, 100, "unknown choices count as answered questions");
+assert.equal(
+  incompleteReport.dimensionScores.find((dimension) => dimension.key === "process")?.answered,
+  3,
+);
+assert.equal(
+  incompleteReport.dimensionScores.find((dimension) => dimension.key === "process")?.coverage,
+  0,
+  "unknown choices add answer coverage but no scoreable evidence",
+);
+const allUnknown = Object.fromEntries(
+  readinessQuestions.map((question) => [question.id, "unknown"]),
+);
+const unknownReport = calculateReadiness(allUnknown, profile);
+assert.equal(unknownReport.coverage, 100);
+assert.equal(unknownReport.score, null);
+assert.equal(unknownReport.scoreLabel, "More evidence needed");
+assert.match(unknownReport.summary, /You answered 100%/);
 
 const pdf = createAIReadinessPdf(strongReport);
 assert.equal(pdf.subarray(0, 8).toString(), "%PDF-1.4");

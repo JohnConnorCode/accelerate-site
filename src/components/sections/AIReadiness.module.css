@@ -1091,28 +1091,54 @@
   box-shadow: 0 24px 80px -36px rgb(0 0 0 / 50%);
 }
 
-.sequenceItem {
+.reportSection:global(.in):not(:global(.reveal-immediate)) > * {
+  animation: readiness-step-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reportSection:global(.in):not(:global(.reveal-immediate)) > :nth-child(2) {
+  animation-delay: 65ms;
+}
+
+.reportSection:global(.in):not(:global(.reveal-immediate)) > :nth-child(3) {
+  animation-delay: 130ms;
+}
+
+.reportSection:global(.in):not(:global(.reveal-immediate)) > :nth-child(4) {
+  animation-delay: 195ms;
+}
+
+.reportSection:global(.in):not(:global(.reveal-immediate)) > :nth-child(5) {
+  animation-delay: 260ms;
+}
+
+.reportSection:global(.in):not(:global(.reveal-immediate)) .sequenceItem {
   animation: readiness-step-in 470ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.sequenceItem:nth-child(1) {
-  animation-delay: 50ms;
+.reportSection:global(.in):not(:global(.reveal-immediate)) .sequenceItem:nth-child(1) {
+  animation-delay: 70ms;
 }
 
-.sequenceItem:nth-child(2) {
-  animation-delay: 115ms;
+.reportSection:global(.in):not(:global(.reveal-immediate)) .sequenceItem:nth-child(2) {
+  animation-delay: 135ms;
 }
 
-.sequenceItem:nth-child(3) {
-  animation-delay: 180ms;
+.reportSection:global(.in):not(:global(.reveal-immediate)) .sequenceItem:nth-child(3) {
+  animation-delay: 200ms;
 }
 
-.sequenceItem:nth-child(4) {
-  animation-delay: 245ms;
+.reportSection:global(.in):not(:global(.reveal-immediate)) .sequenceItem:nth-child(4) {
+  animation-delay: 265ms;
 }
 
-.sequenceItem:nth-child(5) {
-  animation-delay: 310ms;
+.reportSection:global(.in):not(:global(.reveal-immediate)) .sequenceItem:nth-child(5) {
+  animation-delay: 330ms;
+}
+
+.reportSection:global(.in):not(:global(.reveal-immediate)) .scoreBar {
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: readiness-bar-in 780ms cubic-bezier(0.22, 1, 0.36, 1) 250ms both;
 }
 
 @keyframes readiness-atmosphere {
@@ -1181,6 +1207,12 @@
   to {
     opacity: 1;
     transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes readiness-bar-in {
+  to {
+    transform: scaleX(1);
   }
 }
 
@@ -1359,6 +1391,13 @@
   .sequenceItem,
   .previewSurface::after {
     animation: none !important;
+  }
+
+  .reportSection:global(.in) > *,
+  .reportSection:global(.in) .sequenceItem,
+  .reportSection:global(.in) .scoreBar {
+    animation: none !important;
+    transform: none !important;
   }
 
   .formSurface > *,

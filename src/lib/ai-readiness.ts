@@ -408,7 +408,7 @@ export type ReadinessReport = {
 };
 
 export function scoreLabel(score: number | null, coverage: number) {
-  if (score === null) return coverage < 70 ? "More answers needed" : "Ready for a guided review";
+  if (score === null) return coverage < 70 ? "More evidence needed" : "Ready for a guided review";
   if (score < 40) return "Build the foundation";
   if (score < 65) return "Ready for a focused pilot";
   if (score < 85) return "Ready to connect the pieces";
@@ -421,10 +421,13 @@ export function calculateReadiness(
 ): ReadinessReport {
   const dimensionScores: DimensionScore[] = readinessDimensions.map((dimension) => {
     const questions = readinessQuestions.filter((question) => question.dimension === dimension.key);
-    const answered = questions.filter(
+    const scored = questions.filter(
       (question) =>
         answers[question.id] &&
         question.options.find((option) => option.value === answers[question.id])?.score !== null,
+    ).length;
+    const answered = questions.filter((question) =>
+      question.options.some((option) => option.value === answers[question.id]),
     ).length;
     const points = questions.reduce(
       (sum, question) =>
@@ -432,8 +435,8 @@ export function calculateReadiness(
         (question.options.find((option) => option.value === answers[question.id])?.score ?? 0),
       0,
     );
-    const complete = answered >= 2;
-    const score = complete ? Math.round((points / (answered * 3)) * 100) : null;
+    const complete = scored >= 2;
+    const score = complete ? Math.round((points / (scored * 3)) * 100) : null;
     return {
       key: dimension.key,
       label: dimension.label,
@@ -441,7 +444,7 @@ export function calculateReadiness(
       score,
       answered,
       total: questions.length,
-      coverage: Math.round((answered / questions.length) * 100),
+      coverage: Math.round((scored / questions.length) * 100),
     };
   });
   const validScores = dimensionScores.filter(
@@ -458,6 +461,10 @@ export function calculateReadiness(
           validScores.reduce((sum, dimension) => sum + dimension.score, 0) / dimensionScores.length,
         )
       : null;
+  const scoredCoverage = Math.round(
+    dimensionScores.reduce((sum, dimension) => sum + dimension.coverage, 0) /
+      dimensionScores.length,
+  );
   const strongest = validScores.slice().sort((a, b) => b.score - a.score)[0] ?? null;
   const focus = validScores.slice().sort((a, b) => a.score - b.score)[0] ?? null;
   const evidenceDimension =
@@ -496,10 +503,10 @@ export function calculateReadiness(
   const recommendations = [primary, fallback].filter(
     (value, index, list) => list.findIndex((item) => item.key === value.key) === index,
   );
-  const label = scoreLabel(score, coverage);
+  const label = scoreLabel(score, scoredCoverage);
   const summary =
     score === null
-      ? `You have answered ${coverage}% of the assessment. Finish the remaining areas to get a complete readiness score; your current answers already point to ${primary.title.toLowerCase()} as a useful place to start.`
+      ? `You answered ${coverage}% of the assessment, but there is not enough scored evidence for a complete readiness score yet. Your responses still point to ${primary.title.toLowerCase()} as a useful place to start.`
       : `Your current readiness is ${score}/100. ${primary.title} is the clearest first opportunity because it fits the work and constraints you described.`;
   const pilot = {
     title: primary.title,

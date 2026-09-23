@@ -4,8 +4,14 @@ import AxeBuilder from "@axe-core/playwright";
 import { calculateReadiness, publicPreview, readinessQuestions } from "../src/lib/ai-readiness.ts";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000";
+const allStrong = process.env.AI_READINESS_QA_ALL_STRONG === "1";
 const answers = Object.fromEntries(
-  readinessQuestions.map((question) => [question.id, question.options[0]?.value ?? "unknown"]),
+  readinessQuestions.map((question) => [
+    question.id,
+    (allStrong
+      ? question.options[question.options.length - 1]?.value
+      : question.options[0]?.value) ?? "unknown",
+  ]),
 );
 const report = calculateReadiness(answers, {
   businessType: "professional services",
@@ -37,10 +43,7 @@ try {
     );
     await noJsContext.close();
 
-    const context = await browser.newContext({
-      viewport: { width, height: 900 },
-      reducedMotion: "reduce",
-    });
+    const context = await browser.newContext({ viewport: { width, height: 900 } });
     const page = await context.newPage();
     const errors = [];
     const analyticsEvents = [];
@@ -194,6 +197,7 @@ try {
     const previewAxe = await new AxeBuilder({ page }).analyze();
     assert.deepEqual(previewAxe.violations, [], `${width}px preview has no axe violations`);
 
+    await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.getByRole("button", { name: /Unlock full action plan/ }).click();
     await page.getByLabel("Your name").fill("Controlled QA contact");
     await page.getByLabel("Work email").fill("qa@example.test");
@@ -208,7 +212,30 @@ try {
     const reportAxe = await new AxeBuilder({ page }).analyze();
     assert.deepEqual(reportAxe.violations, [], `${width}px report has no axe violations`);
     await page.getByText("90-day action plan", { exact: false }).waitFor();
+    await page
+      .getByText(
+        allStrong ? /Your current readiness is 100\/100/ : /You answered 100% of the assessment/,
+      )
+      .waitFor();
     await page.waitForLoadState("networkidle");
+    const firstReportSection = page.locator('section[data-motion-role="section"]').first();
+    await firstReportSection.scrollIntoViewIfNeeded();
+    await firstReportSection.waitFor({ state: "visible" });
+    await page.waitForFunction(() => {
+      const section = document.querySelector('section[data-motion-role="section"]');
+      return section?.classList.contains("in");
+    });
+    const reportMotion = await firstReportSection.evaluate((section) => ({
+      section: getComputedStyle(section.firstElementChild).animationName,
+      scoreBar: getComputedStyle(section.querySelector('[class*="scoreBar"]')).animationName,
+    }));
+    assert.match(reportMotion.section, /readiness-step-in/, "report cards reveal sequentially");
+    assert.match(reportMotion.scoreBar, /readiness-bar-in/, "dimension evidence bars animate in");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const reducedReportMotion = await firstReportSection.evaluate(
+      (section) => getComputedStyle(section.firstElementChild).animationName,
+    );
+    assert.equal(reducedReportMotion, "none", "report reveals respect reduced motion");
     if (analyticsEvents.length) {
       assert.equal(
         analyticsEvents.filter((event) => event.name === "ai_readiness_began").length,

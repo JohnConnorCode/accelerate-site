@@ -104,7 +104,7 @@ export function AIReadinessReport({
             </div>
             <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
               <span
-                className="block h-full rounded-full bg-[var(--ink)] dark:bg-white"
+                className={`${styles.scoreBar} block h-full rounded-full bg-[var(--ink)] dark:bg-white`}
                 style={{ width: `${dimension.score ?? dimension.coverage}%` }}
               />
             </div>
@@ -144,7 +144,7 @@ export function AIReadinessReport({
               {report.evidence.map((item) => (
                 <li
                   key={`${item.question}-${item.answer}`}
-                  className="rounded-xl border border-black/10 bg-white/60 p-4 dark:border-white/10 dark:bg-white/[0.03]"
+                  className={`${styles.sequenceItem} rounded-xl border border-black/10 bg-white/60 p-4 dark:border-white/10 dark:bg-white/[0.03]`}
                 >
                   <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--soft)]">
                     {item.dimension}
@@ -177,7 +177,7 @@ export function AIReadinessReport({
           {report.recommendations.map((recommendation, index) => (
             <article
               key={recommendation.key}
-              className="rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-7"
+              className={`${styles.sequenceItem} rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-7`}
             >
               <div className="flex gap-4">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--ink)] text-sm font-semibold text-[var(--paper)] dark:bg-white dark:text-black">
@@ -283,7 +283,7 @@ export function AIReadinessReport({
         </p>
         <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {report.actionPlan.map((step) => (
-            <div key={step.week}>
+            <div key={step.week} className={styles.sequenceItem}>
               <p className="font-mono text-xs text-[var(--soft)]">{step.week}</p>
               <h3 className="mt-2 font-semibold">{step.title}</h3>
               <p className="mt-2 text-sm leading-6 text-[var(--soft)]">{step.detail}</p>
