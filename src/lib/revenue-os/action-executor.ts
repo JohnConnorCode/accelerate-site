@@ -41,6 +41,7 @@ import {
 } from "./tasks";
 import { applyLayoutChange } from "./admin-layout";
 import { captureFounderNote } from "./notes";
+import { executeContentCalendarUpdate } from "./content-calendar";
 
 function stringValue(
   payload: Record<string, unknown>,
@@ -182,6 +183,11 @@ export async function approveAndExecuteAction(
       case "update_workspace_brand": {
         if (mode !== "approved") throw new Error("Branding changes require human approval");
         result = await executeWorkspaceBrandUpdate(supabase, payload, actorEmail);
+        break;
+      }
+      case "update_content_calendar_item": {
+        if (mode !== "approved") throw new Error("Content calendar edits require human approval");
+        result = await executeContentCalendarUpdate(supabase, payload, actorEmail);
         break;
       }
       case "today_view_change": {

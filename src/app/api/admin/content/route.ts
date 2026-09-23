@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
-import { listContentCalendarItems } from "@/lib/revenue-os/content-calendar";
+import {
+  listContentCalendarItems,
+  updateContentCalendarItem,
+} from "@/lib/revenue-os/content-calendar";
+import { ZodError } from "zod";
 
 export async function GET() {
   const auth = await requireAdminForModule("content");
@@ -87,20 +91,29 @@ export async function PATCH(request: NextRequest) {
   if (!id) {
     return NextResponse.json({ error: "Missing item id" }, { status: 400 });
   }
-
-  const { data, error } = await supabase
-    .from("content_calendar")
-    .update(updateData)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Database error:", error.message);
-    return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
+  if (!auth.user.email) {
+    return NextResponse.json(
+      { error: "Authenticated administrator email is required" },
+      { status: 403 },
+    );
   }
 
-  return NextResponse.json({ item: data });
+  try {
+    const item = await updateContentCalendarItem(supabase, id, updateData, auth.user.email);
+    return NextResponse.json({ item });
+  } catch (error) {
+    if (error instanceof ZodError)
+      return NextResponse.json({ error: "Invalid content calendar update" }, { status: 400 });
+    const message = error instanceof Error ? error.message : "Content update failed";
+    if (message.includes("not found"))
+      return NextResponse.json({ error: message }, { status: 404 });
+    if (message.includes("changed in another session"))
+      return NextResponse.json({ error: message }, { status: 409 });
+    if (message.includes("module is unavailable"))
+      return NextResponse.json({ error: message }, { status: 403 });
+    console.error("Content calendar update failed:", error);
+    return NextResponse.json({ error: "Content calendar update failed" }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: NextRequest) {

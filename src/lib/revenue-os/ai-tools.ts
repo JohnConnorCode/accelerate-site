@@ -96,7 +96,13 @@ import {
 import { readModuleConfiguration } from "./module-configuration-read";
 import { previewModuleConfiguration, proposeModuleConfiguration } from "./module-actions";
 import { readWorkspaceBrand } from "./branding";
-import { listContentCalendarItems } from "./content-calendar";
+import {
+  listContentCalendarItems,
+  previewContentCalendarUpdate,
+  proposeContentCalendarUpdate,
+  contentCalendarPreviewSchema,
+  contentCalendarProposalSchema,
+} from "./content-calendar";
 import { generateContentBrief, parseContentBriefInput } from "./content-brief";
 import { previewWorkspaceBrandUpdate, proposeWorkspaceBrandUpdate } from "./branding-actions";
 import {
@@ -618,6 +624,71 @@ const registry: AiToolRegistration[] = [
         })),
       };
     },
+  },
+  {
+    name: "preview_content_calendar_update",
+    description:
+      "Preview changes to an existing content calendar item. Supply its id and up to five fields to change. Returns bounded before/after values, the changed fields and a digest. Long values may be shortened in the preview; the approval queue shows the exact proposed values. This never saves the item or publishes content.",
+    inputSchema: z.toJSONSchema(contentCalendarPreviewSchema),
+    parseInput: (input) => contentCalendarPreviewSchema.parse(input),
+    outputSchema: {
+      type: "object",
+      required: ["id", "changes", "digest", "requiresHumanApproval"],
+      properties: {
+        id: { type: "string" },
+        changes: {
+          type: "array",
+          items: {
+            type: "object",
+            required: ["field", "before", "after", "truncated"],
+            properties: {
+              field: { type: "string" },
+              before: { type: "string" },
+              after: { type: "string" },
+              truncated: { type: "boolean" },
+            },
+          },
+        },
+        digest: { type: "string", pattern: "^[a-f0-9]{64}$" },
+        requiresHumanApproval: { type: "boolean" },
+      },
+    },
+    serviceTarget: "revenue-os.content-calendar",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const preview = await previewContentCalendarUpdate(supabase, input);
+      return {
+        id: preview.id,
+        changes: preview.changes.map((change) => {
+          const before = JSON.stringify(change.before);
+          const after = JSON.stringify(change.after);
+          return {
+            field: change.field,
+            before: before.length > 160 ? `${before.slice(0, 157)}...` : before,
+            after: after.length > 160 ? `${after.slice(0, 157)}...` : after,
+            truncated: before.length > 160 || after.length > 160,
+          };
+        }),
+        digest: preview.digest,
+        requiresHumanApproval: preview.requiresHumanApproval,
+      };
+    },
+  },
+  {
+    name: "propose_content_calendar_update",
+    description:
+      "Queue the exact content calendar preview for human approval. Provide the same id, changes and digest returned by preview_content_calendar_update. Nothing changes until an administrator approves it; approval does not publish content.",
+    inputSchema: z.toJSONSchema(contentCalendarProposalSchema),
+    parseInput: (input) => contentCalendarProposalSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.content-calendar",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeContentCalendarUpdate(supabase, input, actorEmail),
   },
   {
     name: "generate_content_brief",

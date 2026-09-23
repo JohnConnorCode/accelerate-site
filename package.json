@@ -262,6 +262,7 @@
     "test:ai-branding": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-branding.ts",
     "test:ai-module-controls": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-module-controls.ts",
     "test:ai-tool-discovery": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-tool-discovery.ts",
+    "test:content-calendar-actions": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-content-calendar-actions.ts",
     "setup": "node scripts/workspace-setup.mjs",
     "test:plugin-workflow-contract": "npx tsx scripts/test-plugin-workflow-contract.ts",
     "test:extsvc-adapter-conformance": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-extsvc-adapter-conformance.ts",

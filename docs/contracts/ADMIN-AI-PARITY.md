@@ -192,13 +192,17 @@ This is one parity slice, not universal content-operation coverage. Content
 calendar reads now use the same bounded `revenue-os.content-calendar` service in
 the admin GET route and the global `list_content_calendar` tool. Filters are
 validated, results are capped at five concise records to fit the shared model
-context budget, and additional matches are disclosed. This keeps the read
-contract aligned without granting the assistant write access.
+context budget, and additional matches are disclosed. Existing-item updates use
+the same validated `revenue-os.content-calendar` writer from the admin route
+and approved-action executor. AI must preview the exact edit, submit that
+digest for review, and wait for an administrator decision. Execution rechecks
+the active tenant admin, current module enablement and item revision before a
+tenant-scoped compare-and-set write. Approval does not publish content.
 
-Content calendar create/update/delete and the other domain write paths still
-need their own shared operation services, reviewed previews and approval-backed
-execution. The admin route's mutation handlers have not yet migrated to those
-services, so the content domain is not complete parity.
+Content calendar creation, deletion and column reordering are not yet part of
+this AI parity path. Creation/deletion and other domain write paths still need
+their own shared operation services and governance where appropriate, so the
+content domain is not complete parity.
 
 ## Implemented plugin and module configuration path
 

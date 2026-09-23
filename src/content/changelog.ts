@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "approval-backed-content-calendar-edits",
+    slug: "approval-backed-content-calendar-edits",
+    title: "Review AI content calendar edits before they are saved",
+    description:
+      "Ask AI can preview and propose up to five field changes to an existing Content Calendar item. The review queue shows the exact proposed values, and saving rechecks workspace access and the item revision. The admin editor and approved AI action share the same validated update path. Approval does not publish content; creation, deletion and column reordering remain manual operations.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
     id: "shared-content-calendar-ai-read",
     slug: "shared-content-calendar-ai-read",
     title: "Ask AI can check the content calendar",
