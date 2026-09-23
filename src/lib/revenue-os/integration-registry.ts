@@ -13,6 +13,8 @@ export interface IntegrationCapabilityDefinition {
   direction: "read" | "write" | "bidirectional";
   impact: "read" | "internal_write" | "external_action";
   configurationKey?: string;
+  /** Missing permission leaves the provider usable; this capability is an opt-in add-on. */
+  optional?: boolean;
   evidenceKey?: `runtime:${string}` | `source:${string}` | `job:${string}` | `webhook:${string}`;
   requiredScopes?: string[];
   freshnessHours?: number;
@@ -169,6 +171,7 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
       {
         id: "gmail-drafts",
         label: "Save Gmail drafts",
+        optional: true,
         description:
           "Save an explicitly approved, editable reply in Gmail Drafts. This app path never sends.",
         direction: "write",

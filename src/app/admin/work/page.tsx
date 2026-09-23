@@ -231,7 +231,10 @@ export default function WorkPage() {
                   Keep the draft, sent message, and next check together until the contact replies.
                 </p>
               </div>
-              <Link href="/admin/work?tab=approvals" className="admin-button admin-button-secondary">
+              <Link
+                href="/admin/work?tab=approvals"
+                className="admin-button admin-button-secondary"
+              >
                 Review approvals {actions.length ? `(${actions.length})` : ""}
               </Link>
             </div>
@@ -242,14 +245,20 @@ export default function WorkPage() {
             ) : followups.length ? (
               <ul>
                 {followups.map((item) => {
-                          const draftSaved = item.outcome?.includes("Gmail draft saved") ?? false;
-                          const draftUncertain = item.error?.includes("Gmail") ?? false;
+                  const draftSaved = item.outcome?.includes("Gmail draft saved") ?? false;
+                  const draftUncertain = item.error?.includes("Gmail") ?? false;
+                  const followupSent = item.outcome?.includes("Follow-up sent from Gmail") ?? false;
                   return (
-                    <li key={item.id} className="border-b border-[var(--admin-border)] px-5 py-4 last:border-b-0">
+                    <li
+                      key={item.id}
+                      className="border-b border-[var(--admin-border)] px-5 py-4 last:border-b-0"
+                    >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-sm font-semibold text-[var(--admin-ink)]">{item.title}</h3>
+                            <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
+                              {item.title}
+                            </h3>
                             <span className="rounded-full bg-[var(--admin-surface-subtle)] px-2 py-0.5 text-[10px] font-medium capitalize text-[var(--admin-muted)]">
                               {draftUncertain
                                 ? "reconciliation needed"
@@ -282,8 +291,15 @@ export default function WorkPage() {
                                 ? "Check Gmail Drafts before retrying"
                                 : "Open Gmail Drafts"}
                             </a>
+                          ) : followupSent ? (
+                            <Link href={item.href} className="admin-button admin-button--primary">
+                              Open opportunity
+                            </Link>
                           ) : item.status === "waiting" ? (
-                            <Link href="/admin/work?tab=approvals" className="admin-button admin-button--primary">
+                            <Link
+                              href="/admin/work?tab=approvals"
+                              className="admin-button admin-button--primary"
+                            >
                               Review approval
                             </Link>
                           ) : (
@@ -299,7 +315,8 @@ export default function WorkPage() {
               </ul>
             ) : (
               <p className="px-5 py-4 text-sm text-[var(--admin-muted)]">
-                No open follow-ups. New follow-up work appears here when a customer or opportunity needs a response.
+                No open follow-ups. New follow-up work appears here when a customer or opportunity
+                needs a response.
               </p>
             )}
           </AdminSurface>
