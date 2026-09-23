@@ -3073,6 +3073,20 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         sends: [],
         moduleEnablement: [],
         plan: { canApply: true, customAppBriefs: [], approvals: [], blocked: [] },
+        scenario: { event: "opportunity.stage -> won" },
+        traces: [
+          {
+            event: "opportunity.stage -> won",
+            workflowKey: "won_welcome",
+            steps: [
+              {
+                key: "draft_welcome",
+                capabilityKey: "email.draft",
+                outcome: "Would draft internally. No live write.",
+              },
+            ],
+          },
+        ],
         simulated: true,
       });
     }
@@ -3081,9 +3095,33 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       if (blueprintPatch[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
         return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
       }
-      const input = body as { patch?: unknown; changeSummary?: unknown };
-      if (!input.patch || typeof input.patch !== "object" || typeof input.changeSummary !== "string") {
-        return jsonResponse({ error: "patch and changeSummary are required" }, 400);
+      const input = body as {
+        patch?: unknown;
+        proposal?: unknown;
+        changeSummary?: unknown;
+        expectedVersion?: unknown;
+        preview?: unknown;
+      };
+      if (
+        (!input.patch || typeof input.patch !== "object") &&
+        typeof input.proposal !== "string"
+      ) {
+        return jsonResponse({ error: "proposal or patch is required" }, 400);
+      }
+      if (typeof input.changeSummary !== "string") {
+        return jsonResponse({ error: "changeSummary is required" }, 400);
+      }
+      if (input.preview === true) {
+        return jsonResponse({
+          preview: true,
+          version: DEMO_BLUEPRINT_DETAIL.version,
+          diff: { added: [], removed: [], changed: ["businessSummary"] },
+          applied: false,
+          simulated: true,
+        });
+      }
+      if (input.expectedVersion !== DEMO_BLUEPRINT_DETAIL.version) {
+        return jsonResponse({ error: "Blueprint version conflict" }, 409);
       }
       return jsonResponse({ version: DEMO_BLUEPRINT_DETAIL.version + 1, diff: { added: [], removed: [], changed: ["businessSummary"] }, applied: false, simulated: true });
     }
