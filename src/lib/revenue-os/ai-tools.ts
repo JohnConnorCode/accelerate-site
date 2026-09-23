@@ -96,6 +96,7 @@ import {
 import { readModuleConfiguration } from "./module-configuration-read";
 import { previewModuleConfiguration, proposeModuleConfiguration } from "./module-actions";
 import { readWorkspaceBrand } from "./branding";
+import { listContentCalendarItems } from "./content-calendar";
 import { generateContentBrief, parseContentBriefInput } from "./content-brief";
 import { previewWorkspaceBrandUpdate, proposeWorkspaceBrandUpdate } from "./branding-actions";
 import {
@@ -508,6 +509,13 @@ const contentBriefInputSchema = z
     category: z.string().max(120).nullable().optional(),
   })
   .strict();
+const contentCalendarReadSchema = z
+  .object({
+    status: z.string().min(1).max(120).optional(),
+    category: z.string().min(1).max(120).optional(),
+    limit: z.number().int().min(1).max(50).optional(),
+  })
+  .strict();
 // Every registered operation has exactly one reviewed adapter. Type checking
 // rejects missing/extra handlers; declarations choose operations, never imports.
 const PLUGIN_TOOL_EXECUTORS = {
@@ -546,6 +554,43 @@ const PLUGIN_TOOL_EXECUTORS = {
 >;
 
 const registry: AiToolRegistration[] = [
+  {
+    name: "list_content_calendar",
+    description:
+      "List content calendar items by creation date. Filter by exact status or category. Returns up to 50 items and indicates when more exist; notes and keywords are bounded for context size.",
+    inputSchema: z.toJSONSchema(contentCalendarReadSchema),
+    parseInput: (input) => contentCalendarReadSchema.parse(input),
+    outputSchema: {
+      type: "object",
+      required: ["items", "count", "truncated"],
+      properties: {
+        items: { type: "array" },
+        count: { type: "number" },
+        truncated: { type: "boolean" },
+      },
+    },
+    serviceTarget: "revenue-os.content-calendar",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const result = await listContentCalendarItems(supabase, {
+        status: input.status as string | undefined,
+        category: input.category as string | undefined,
+        limit: (input.limit as number | undefined) ?? 50,
+      });
+      return {
+        ...result,
+        items: result.items.map((item) => ({
+          ...item,
+          target_keywords: Array.isArray(item.target_keywords)
+            ? item.target_keywords.slice(0, 20)
+            : [],
+          notes: typeof item.notes === "string" ? item.notes.slice(0, 500) : null,
+        })),
+      };
+    },
+  },
   {
     name: "generate_content_brief",
     description:

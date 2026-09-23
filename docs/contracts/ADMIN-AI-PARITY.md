@@ -189,8 +189,16 @@ The tool returns a draft and cannot create or publish content. The demo remains
 fictional and does not call this live service.
 
 This is one parity slice, not universal content-operation coverage. Content
-calendar create/update/delete and the other domain write paths still need their
-own shared operation services, reviewed previews and approval-backed execution.
+calendar reads now use the same bounded `revenue-os.content-calendar` service in
+the admin GET route and the global `list_content_calendar` tool. Filters are
+validated, results are capped at 50 with truncation disclosed, and model context
+omits unbounded notes and keyword lists. This keeps the read contract aligned
+without granting the assistant write access.
+
+Content calendar create/update/delete and the other domain write paths still
+need their own shared operation services, reviewed previews and approval-backed
+execution. The admin route's mutation handlers have not yet migrated to those
+services, so the content domain is not complete parity.
 
 ## Implemented plugin and module configuration path
 
@@ -215,8 +223,9 @@ are separate operations; no atomic rollback across them is claimed.
 No secret values or arbitrary tenant settings are exposed. Provider credentials,
 OAuth, sync controls and the other domain cards remain outstanding. The module
 configuration tool does not run a newly enabled business workflow or grant standing
-autonomy. Registry `revenue-os-tools.v8` includes 56 tools; the shared demo catalogue
-uses the same module-control metadata with simulated outcomes.
+autonomy. The shared demo catalogue uses the same module-control metadata with
+simulated outcomes. Registry versions and tool counts are maintained by the
+runtime contract and tests, not repeated here.
 
 ## Cross-domain tool discovery (implemented, run scoped)
 

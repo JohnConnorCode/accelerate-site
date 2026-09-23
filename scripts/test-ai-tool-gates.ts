@@ -138,6 +138,13 @@ async function main() {
     getRevenueAiTools("core").some((tool) => tool.name === contentBriefTool.name),
     "module-declared core pack membership must drive the runtime projection",
   );
+  const calendarTool = runtime.find((tool) => tool.name === "list_content_calendar");
+  assert.ok(calendarTool, "content calendar reads must use the registered AI capability");
+  assert.equal(calendarTool.serviceTarget, "revenue-os.content-calendar");
+  assert.ok(
+    getRevenueAiTools("core").some((tool) => tool.name === calendarTool.name),
+    "the Content module must expose calendar reads through the core pack",
+  );
   for (const moduleDef of REVENUE_OS_MODULES) {
     for (const pack of moduleDef.aiToolPacks ?? []) {
       for (const toolName of moduleDef.aiToolNames ?? []) {
@@ -162,6 +169,37 @@ async function main() {
       }),
     /does not accept "unsupported"/i,
   );
+  assert.throws(
+    () => calendarTool.parseInput!({ limit: 51 }),
+    /limit|too big|maximum/i,
+    "calendar reads must enforce a bounded result count",
+  );
+  const calendarRead = await executeRegisteredRevenueTool(
+    context(
+      stubSupabase({
+        content_calendar: {
+          data: [
+            { id: "draft-1", title: "A draft", target_keywords: ["one"], notes: "Editorial note" },
+            { id: "draft-2", title: "A second draft" },
+          ],
+        },
+      }),
+    ),
+    "list_content_calendar",
+    { limit: 1 },
+  );
+  assert.deepEqual(calendarRead.output, {
+    items: [
+      {
+        id: "draft-1",
+        title: "A draft",
+        target_keywords: ["one"],
+        notes: "Editorial note",
+      },
+    ],
+    count: 1,
+    truncated: true,
+  });
   await rejects(
     () =>
       executeRegisteredRevenueTool(context(stubSupabase()), "generate_content_brief", {
@@ -657,7 +695,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v22");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v23");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.
@@ -730,6 +768,8 @@ async function main() {
           "founder-note-executor-wiring",
           "snapshot-bounds",
           "snapshot-read-errors",
+          "content-calendar-service-parity",
+          "content-calendar-result-bound",
         ],
         result: "passed",
       },

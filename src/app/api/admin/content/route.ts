@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForModule } from "@/lib/admin/module-guard";
+import { listContentCalendarItems } from "@/lib/revenue-os/content-calendar";
 
 export async function GET() {
   const auth = await requireAdminForModule("content");
   if (auth instanceof NextResponse) return auth;
 
-  const supabase = auth.database;
-
-  const { data, error } = await supabase
-    .from("content_calendar")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Database error:", error.message);
+  try {
+    const result = await listContentCalendarItems(auth.database);
+    return NextResponse.json({ items: result.items });
+  } catch (error) {
+    console.error("Content calendar read failed:", error);
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
-
-  return NextResponse.json({ items: data });
 }
 
 export async function POST(request: NextRequest) {

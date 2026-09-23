@@ -284,9 +284,10 @@
       ],
       "imports": [
         "@/lib/admin/module-guard",
+        "@/lib/revenue-os/content-calendar",
         "next/server"
       ],
-      "sourceSha256": "b06d515300ab33b481fece9744c0c30fbe598aab42167ce04035778ead5dc7d4"
+      "sourceSha256": "ed21eda53d88a880ab0fdb06b97c98071d663d5a58cda0f8c31a41fe58b93e85"
     },
     {
       "source": "src/app/api/admin/corrections/detect/route.ts",
