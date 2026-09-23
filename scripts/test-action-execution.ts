@@ -192,7 +192,11 @@ async function main() {
     "explicit human approval",
     "Gmail draft creation must not run from autonomous execution",
   );
-  assert.equal(autonomousDraft.rows("messages").length, 0, "autonomous refusal must not call Gmail");
+  assert.equal(
+    autonomousDraft.rows("messages").length,
+    0,
+    "autonomous refusal must not call Gmail",
+  );
   assert.equal(autonomousDraft.rows("action_queue")[0]!.status, "failed");
 
   // ---- An invalid stage is rejected before the pipeline moves -----------

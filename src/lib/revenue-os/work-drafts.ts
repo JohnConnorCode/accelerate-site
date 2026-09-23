@@ -36,7 +36,9 @@ export async function assertGmailDraftTarget(
   const tenantId = workItem?.tenant_id ?? tenantIdForDatabase(supabase);
   if (!tenantId) throw new Error("Gmail draft requires an explicit workspace");
   if (!conversationId || !opportunityId || !contactId || !to || !subject || !body)
-    throw new Error("A linked Gmail thread, contact, opportunity, recipient, subject, and body are required");
+    throw new Error(
+      "A linked Gmail thread, contact, opportunity, recipient, subject, and body are required",
+    );
   if (body.length > 20_000 || subject.length > 500)
     throw new Error("Gmail draft content exceeds the supported limit");
   if (workItem && (workItem.kind !== "draft_followup" || workItem.entity_id !== opportunityId))
@@ -65,7 +67,8 @@ export async function assertGmailDraftTarget(
   if (contactError) throw new Error(contactError.message);
   if (!contact?.email || normalizeEmail(contact.email) !== to)
     throw new Error("Gmail draft recipient does not match the canonical contact");
-  if (contact.unsubscribed) throw new Error("Cannot prepare a Gmail draft for an unsubscribed contact");
+  if (contact.unsubscribed)
+    throw new Error("Cannot prepare a Gmail draft for an unsubscribed contact");
 
   const { data: conversation, error: conversationError } = await supabase
     .from("conversations")
@@ -174,7 +177,7 @@ export async function findWorkDraftProposal(
         .from("messages")
         .select("id")
         .eq("tenant_id", item.tenant_id)
-        .eq("status", "uncertain")
+        .in("status", ["processing", "uncertain"])
         .contains("metadata", { action_id: proposal.id })
         .limit(1);
       if (uncertainError) throw new Error(uncertainError.message);
@@ -228,13 +231,16 @@ export function workDraftResult(proposal: WorkDraftProposal): WorkResult {
   if (["pending", "approved"].includes(proposal.status))
     return {
       status: "awaiting_approval",
-      outcome: "Review the exact recipient and message, then approve to save it as an unsent Gmail draft.",
+      outcome:
+        "Review the exact recipient and message, then approve to save it as an unsent Gmail draft.",
       nextCheckAt: new Date(Date.now() + 5 * 60_000).toISOString(),
       artifacts: [artifact],
     };
   if (proposal.status === "executing")
     return {
-      ...deferWork("Gmail is saving the approved draft; verify the provider receipt before retrying."),
+      ...deferWork(
+        "Gmail is saving the approved draft; verify the provider receipt before retrying.",
+      ),
       artifacts: [artifact],
     };
   if (proposal.status === "failed")
