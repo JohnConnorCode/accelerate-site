@@ -299,6 +299,51 @@ for (const scenario of scenarios) {
         failures.push(
           `${scenario} ${label} ${route}: contextual title does not match its page heading (${state.title})`,
         );
+      if (scenario === "northline-roofing" && route === "ai") {
+        const architectMode = page.getByRole("button", { name: "Architect", exact: true });
+        await architectMode.focus();
+        await page.keyboard.press("Enter");
+        const review = page.getByRole("heading", { name: "Blueprint review", exact: true });
+        await review.waitFor();
+        await page.getByText("Version 1:", { exact: false }).waitFor();
+        const proposal = page.getByRole("textbox", { name: "Conversational proposal" });
+        await proposal.fill("Set the business summary to Use site visits and written scope approvals.");
+        await page.getByRole("button", { name: "Preview patch", exact: true }).click();
+        await page.getByRole("heading", { name: "Patch preview", exact: true }).waitFor();
+        await page.getByText("Use site visits and written scope approvals.", { exact: true }).waitFor();
+      await page.screenshot({
+        path: `${output}/architect-blueprint-${label}.png`,
+        fullPage: true,
+      });
+      const reviewFacts = await page.evaluate(() => ({
+        overflow: document.documentElement.scrollWidth > innerWidth + 2,
+        smallControls: (() => {
+          const panel = [...document.querySelectorAll("section")].find(
+            (section) => section.querySelector("h3")?.textContent?.trim() === "Blueprint review",
+          );
+          const controls = [
+            ...(panel?.querySelectorAll("button, input, textarea") ?? []),
+            ...document.querySelectorAll('[aria-label="AI workspace mode"] button'),
+          ];
+          return controls.filter((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0 && (rect.width < 40 || rect.height < 40);
+          }).length;
+        })(),
+      }));
+        if (reviewFacts.overflow)
+          failures.push(`${scenario} ${label}: Architect Blueprint review has horizontal overflow`);
+        if (reviewFacts.smallControls)
+          failures.push(
+            `${scenario} ${label}: Architect review has ${reviewFacts.smallControls} controls below 40px`,
+          );
+        await page.getByRole("button", { name: "Save patch", exact: true }).click();
+        await page.getByRole("heading", { name: "Blueprint draft saved", exact: true }).waitFor();
+        await page.getByText("Version 2:", { exact: false }).waitFor();
+        await page.getByRole("button", { name: "Simulate", exact: true }).click();
+        await page.getByRole("heading", { name: "Simulation result", exact: true }).waitFor();
+        await page.getByText("No live changes were made.", { exact: false }).waitFor();
+      }
       if (route === "integrations" && label === "desktop") {
         if (await page.getByRole("navigation", { name: "Breadcrumb" }).count())
           failures.push(
