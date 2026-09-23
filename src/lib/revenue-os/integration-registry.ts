@@ -1,4 +1,4 @@
-export const INTEGRATION_REGISTRY_VERSION = "revenue-os-integrations.v3";
+export const INTEGRATION_REGISTRY_VERSION = "revenue-os-integrations.v4";
 
 export type IntegrationMaturity = "native" | "next" | "planned" | "edge";
 export type IntegrationCostTier = "free" | "usage_included" | "usage_based" | "paid";
@@ -50,6 +50,7 @@ export interface IntegrationDefinition {
 const googleScopes = {
   gmailRead: "https://www.googleapis.com/auth/gmail.readonly",
   gmailSend: "https://www.googleapis.com/auth/gmail.send",
+  gmailCompose: "https://www.googleapis.com/auth/gmail.compose",
   calendar: "https://www.googleapis.com/auth/calendar.events",
   drive: "https://www.googleapis.com/auth/drive.readonly",
 };
@@ -164,6 +165,16 @@ export const integrationRegistry: readonly IntegrationDefinition[] = [
         impact: "external_action",
         configurationKey: "google",
         requiredScopes: [googleScopes.gmailSend],
+      },
+      {
+        id: "gmail-drafts",
+        label: "Save Gmail drafts",
+        description:
+          "Save an explicitly approved, editable reply in Gmail Drafts. This app path never sends.",
+        direction: "write",
+        impact: "internal_write",
+        configurationKey: "google",
+        requiredScopes: [googleScopes.gmailCompose],
       },
       {
         id: "calendar",

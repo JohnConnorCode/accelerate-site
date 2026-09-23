@@ -107,7 +107,13 @@ import type { AiToolConnectionRequirement } from "./ai-tool-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction, withProposalWorkContext } from "./actions";
-import { assertWorkDraftTarget, findWorkDraft, workDraftKey } from "./work-drafts";
+import {
+  assertGmailDraftTarget,
+  assertWorkDraftTarget,
+  findWorkDraft,
+  workDraftKey,
+} from "./work-drafts";
+import { buildGmailReplySubject } from "./gmail-reply-mime";
 import { loadOperatorQueue } from "./queue";
 import { loadActivityTimeline } from "./activities";
 import { proposeLayoutChange } from "./admin-layout";
@@ -2896,6 +2902,107 @@ const registry: AiToolRegistration[] = [
         limit_value: l.limit_value,
         period: l.period,
       }));
+    },
+  },
+  {
+    name: "propose_gmail_draft",
+    description:
+      "Prepare an exact reply to a linked Gmail thread for founder approval. Approval saves it in Gmail Drafts; it never sends.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        conversationId: { type: "string" },
+        body: { type: "string" },
+        reasoning: { type: "string" },
+      },
+      required: ["conversationId", "body", "reasoning"],
+      additionalProperties: false,
+    },
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.action-queue",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: async ({ supabase, actorEmail, workItem }, input) => {
+      const conversationId = value(input, "conversationId")!;
+      const body = value(input, "body")!;
+      const reasoning = value(input, "reasoning")!;
+      const tenantId = workItem?.tenant_id ?? tenantIdForDatabase(supabase);
+      if (!tenantId) throw new Error("Gmail draft proposal requires an explicit workspace");
+      const { data: conversation, error: conversationError } = await supabase
+        .from("conversations")
+        .select("id,external_id,subject,contact_id,opportunity_id,channel")
+        .eq("tenant_id", tenantId)
+        .eq("id", conversationId)
+        .maybeSingle();
+      if (conversationError) throw new Error(conversationError.message);
+      if (
+        !conversation ||
+        conversation.channel !== "gmail" ||
+        !conversation.contact_id ||
+        !conversation.opportunity_id ||
+        !conversation.external_id
+      )
+        throw new Error("Choose a Gmail thread linked to one known contact and opportunity first");
+      const { data: latest, error: latestError } = await supabase
+        .from("messages")
+        .select("external_id,subject")
+        .eq("tenant_id", tenantId)
+        .eq("conversation_id", conversation.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (latestError) throw new Error(latestError.message);
+      if (!latest?.external_id) throw new Error("This Gmail thread has no message to reply to");
+      const { data: contact, error: contactError } = await supabase
+        .from("contacts")
+        .select("email")
+        .eq("tenant_id", tenantId)
+        .eq("id", conversation.contact_id)
+        .maybeSingle();
+      if (contactError) throw new Error(contactError.message);
+      const payload = {
+        conversationId,
+        opportunityId: conversation.opportunity_id,
+        contactId: conversation.contact_id,
+        to: contact?.email ?? "",
+        subject: buildGmailReplySubject(conversation.subject, latest.subject),
+        body,
+        reasoning,
+        ...(workItem ? { workItemId: workItem.id } : {}),
+      };
+      await assertGmailDraftTarget(supabase, payload, workItem);
+      if (workItem) {
+        const existing = await findWorkDraft(supabase, workItem);
+        if (existing) {
+          const { data: proposal, error } = await supabase
+            .from("action_queue")
+            .select("*")
+            .eq("tenant_id", workItem.tenant_id)
+            .eq("id", existing.id)
+            .single();
+          if (error || !proposal) throw new Error(error?.message ?? "Follow-up proposal disappeared");
+          if (proposal.action_type !== "create_gmail_draft")
+            throw new Error("An older follow-up is still staged to send. Reject it before saving a Gmail draft.");
+          return proposal;
+        }
+      }
+      return proposeAction(supabase, {
+        actionType: "create_gmail_draft",
+        title: `Save Gmail draft: ${payload.subject}`,
+        description: previewOf(body),
+        urgency: "normal",
+        payload,
+        reasoning,
+        sourceContext: workItem ? `coworker:${workItem.coworker_id}` : "admin_ai",
+        entityType: "conversation",
+        entityId: conversationId,
+        dedupeKey: workItem
+          ? workDraftKey(workItem)
+          : `gmail-draft:${conversationId}:${createHash("sha256").update(body).digest("hex")}`,
+        proposedBy: actorEmail,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
     },
   },
   {

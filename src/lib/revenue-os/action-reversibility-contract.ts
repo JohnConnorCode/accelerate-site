@@ -130,6 +130,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "Immutable website revisions support a separately authorized rollback or unpublish. Prior public exposure cannot be undone.",
   },
   {
+    actionType: "create_gmail_draft",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Saves a private, editable Gmail draft. A person may edit or delete it in Gmail; this workflow never sends and has no automatic inverse.",
+  },
+  {
     actionType: "send_email",
     impact: "external_action",
     reversibility: "irreversible",

@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { buildGoogleAuthUrl } from "@/lib/revenue-os/google";
 import {
@@ -8,12 +8,16 @@ import {
   GOOGLE_OAUTH_STATE_TTL_SECONDS,
 } from "@/lib/revenue-os/google-oauth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   try {
     const state = randomBytes(24).toString("base64url");
-    const response = NextResponse.redirect(buildGoogleAuthUrl(state));
+    const includeGmailDrafts =
+      request.nextUrl.searchParams.get("capability") === "gmail-drafts";
+    const response = NextResponse.redirect(
+      buildGoogleAuthUrl(state, { includeGmailDrafts }),
+    );
     const boundState = createGoogleOAuthStateBinding({
       state,
       tenantId: auth.tenant.id,

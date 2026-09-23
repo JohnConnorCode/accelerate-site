@@ -7,7 +7,7 @@ import {
   createPlatformServiceRoleClient,
 } from "@/lib/supabase/server";
 import type { SetupCapability } from "@/lib/revenue-os/types";
-import { GOOGLE_SCOPES } from "@/lib/revenue-os/google";
+import { GOOGLE_GMAIL_DRAFT_SCOPE, GOOGLE_SCOPES } from "@/lib/revenue-os/google";
 import {
   isEncryptedSecret,
   isTenantEncryptedSecret,
@@ -219,6 +219,7 @@ export async function GET() {
     (scope) => !["openid", "email"].includes(scope),
   );
   const googleScopesReady = requiredGoogleScopes.every((scope) => scopes.includes(scope));
+  const gmailDraftsScopeGranted = scopes.includes(GOOGLE_GMAIL_DRAFT_SCOPE);
   const googleTokenHealth = {
     accessEnvelopeValid:
       typeof google?.encrypted_access_token === "string" &&
@@ -499,6 +500,31 @@ export async function GET() {
       action: {
         label: googleConnected ? "Manage connection" : "Connect Google Workspace",
         href: googleConnected ? "/admin/setup#google" : "/api/admin/google/authorize",
+      },
+    },
+    {
+      id: "gmail_drafts",
+      group: "google",
+      label: "Gmail draft access",
+      description: gmailDraftsScopeGranted
+        ? "Draft access is granted for this workspace. Follow-up approvals save to Gmail and never send."
+        : "Grant this optional Google permission only if you want approved follow-ups saved as editable Gmail drafts.",
+      accomplishes:
+        "Lets an approved coworker save a reply in Gmail Drafts. Google’s permission also technically permits sending, but this product path calls draft creation only.",
+      status: !googleConfigured
+        ? "disabled"
+        : !googleConnected
+          ? "action"
+          : gmailDraftsScopeGranted
+            ? "ready"
+            : "action",
+      required: false,
+      keys: [GOOGLE_GMAIL_DRAFT_SCOPE],
+      action: {
+        label: gmailDraftsScopeGranted ? "Review Google connection" : "Grant Gmail draft access",
+        href: gmailDraftsScopeGranted
+          ? "/admin/setup#google"
+          : "/api/admin/google/authorize?capability=gmail-drafts",
       },
     },
     {
@@ -838,6 +864,7 @@ export async function GET() {
       ? {
           accountEmail: google.account_email,
           connected: googleConnected,
+          gmailDraftsScopeGranted,
           settings: google.settings ?? {},
           scopes,
           tokenHealth: googleTokenHealth,

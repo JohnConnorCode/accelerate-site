@@ -4,6 +4,7 @@ import {
   type DriveDocumentRow,
 } from "./drive-content-indexing";
 import "server-only";
+import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tenant } from "@/config/tenant";
 import { decryptSecret, encryptSecret, isEncryptedSecret } from "./encryption";
@@ -20,10 +21,13 @@ import { isWithinAllowlist, normalizeDriveFolderIds, staleAllowlistIds } from ".
 import { recordActivity } from "./activities";
 import { recordAudit } from "./audit";
 import { associateConversationParticipants } from "./conversations";
-import { prepareGmailReply } from "./gmail-reply-mime";
+import { buildGmailReplySubject, prepareGmailReply } from "./gmail-reply-mime";
 import { parseAddressList, parseRfcMessageId, resolveGmailDirection } from "./gmail-threading";
+import { assertGmailDraftTarget } from "./work-drafts";
 import { createPreCallBriefWork, createPostMeetingProcessWork } from "./meeting-intel-coworker";
 import { assertActiveTenantExecution } from "@/lib/tenancy/system";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
+import type { WorkItem } from "./work-items";
 
 export const GOOGLE_SCOPES = [
   "openid",
@@ -33,6 +37,7 @@ export const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/drive.readonly",
 ];
+export const GOOGLE_GMAIL_DRAFT_SCOPE = "https://www.googleapis.com/auth/gmail.compose";
 
 function googleConfig() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -46,8 +51,14 @@ function googleConfig() {
   };
 }
 
-export function buildGoogleAuthUrl(state: string): string {
+export function buildGoogleAuthUrl(
+  state: string,
+  options: { includeGmailDrafts?: boolean } = {},
+): string {
   const config = googleConfig();
+  const scopes = options.includeGmailDrafts
+    ? [...GOOGLE_SCOPES, GOOGLE_GMAIL_DRAFT_SCOPE]
+    : GOOGLE_SCOPES;
   const params = new URLSearchParams({
     client_id: config.clientId,
     redirect_uri: config.redirectUri,
@@ -55,23 +66,33 @@ export function buildGoogleAuthUrl(state: string): string {
     access_type: "offline",
     prompt: "consent",
     include_granted_scopes: "true",
-    scope: GOOGLE_SCOPES.join(" "),
+    scope: scopes.join(" "),
     state,
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+class GoogleApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
 }
 
 async function googleFetch<T>(url: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(url, init);
   const payload = await response.json().catch(() => ({}));
   if (!response.ok)
-    throw new Error(
+    throw new GoogleApiError(
       (payload as { error_description?: string; error?: { message?: string } | string })
         .error_description ||
         (typeof (payload as { error?: unknown }).error === "string"
           ? (payload as { error: string }).error
           : (payload as { error?: { message?: string } }).error?.message) ||
         `Google request failed (${response.status})`,
+      response.status,
     );
   return payload as T;
 }
@@ -108,11 +129,18 @@ export async function saveGoogleConnection(
   );
   const { data: existing } = await supabase
     .from("integration_connections")
-    .select("encrypted_refresh_token,connected_at")
+    .select("encrypted_refresh_token,connected_at,scopes")
     .eq("provider", "google")
     .maybeSingle();
   if (!tokens.refresh_token && !existing?.encrypted_refresh_token)
     throw new Error("Google did not return a refresh token. Reconnect and grant offline access.");
+  const previouslyGranted = (existing?.scopes ?? []) as string[];
+  if (
+    tokens.scope.split(/\s+/).includes(GOOGLE_GMAIL_DRAFT_SCOPE) &&
+    !tokens.refresh_token &&
+    !previouslyGranted.includes(GOOGLE_GMAIL_DRAFT_SCOPE)
+  )
+    throw new Error("Google did not return refreshed authorization for Gmail drafts. Reconnect and grant access again.");
   const { error } = await supabase.from("integration_connections").upsert(
     {
       provider: "google",
@@ -1052,6 +1080,302 @@ export async function sendGmailReply(
     }),
   ]);
   return { providerId: sent.id, messageId: message.id, conversationId: conversation.id };
+}
+
+const GMAIL_DRAFTS_URL = "https://mail.google.com/mail/u/0/#drafts";
+
+function gmailDraftIdempotencyKey(input: {
+  workItem?: WorkItem;
+  conversationId: string;
+  to: string;
+  subject: string;
+  body: string;
+}) {
+  const logicalKey = input.workItem
+    ? `work:${input.workItem.id}`
+    : [input.conversationId, normalizeEmail(input.to), input.subject.trim(), input.body.trim()].join("\n");
+  return `gmail-draft:${createHash("sha256").update(logicalKey).digest("hex")}`;
+}
+
+/** Save an approved reply in Gmail Drafts. This function never calls a send endpoint. */
+export async function createGmailDraft(
+  supabase: SupabaseClient,
+  input: {
+    actionId: string;
+    actorEmail: string;
+    conversationId: string;
+    opportunityId: string;
+    contactId: string;
+    to: string;
+    subject: string;
+    body: string;
+    workItem?: WorkItem;
+  },
+) {
+  const target = await assertGmailDraftTarget(supabase, input, input.workItem);
+  const tenantId = input.workItem?.tenant_id ?? tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Gmail draft requires an explicit workspace");
+  const { token, connection } = await getGoogleAccessToken(supabase);
+  if (!((connection.scopes as string[] | undefined) ?? []).includes(GOOGLE_GMAIL_DRAFT_SCOPE))
+    throw new Error(
+      "Gmail draft access is missing. Open Setup → Gmail draft access and grant the optional Google permission.",
+    );
+
+  const { data: latest, error: latestError } = await supabase
+    .from("messages")
+    .select("external_id,subject,references_header,metadata")
+    .eq("tenant_id", tenantId)
+    .eq("conversation_id", input.conversationId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (latestError) throw new Error(latestError.message);
+  if (!latest?.external_id) throw new Error("This Gmail thread has no message to reply to");
+  const latestMetadata = (latest.metadata ?? {}) as { rfc_message_id?: string };
+  const logicalIdempotencyKey = gmailDraftIdempotencyKey({
+    workItem: input.workItem,
+    conversationId: input.conversationId,
+    to: target.to,
+    subject: input.subject,
+    body: input.body,
+  });
+  const rfcMessageId = `<${createHash("sha256").update(logicalIdempotencyKey).digest("hex")}@acceleratewith.us>`;
+  const ownerEmail = normalizeEmail(connection.account_email as string);
+  if (!ownerEmail) throw new Error("Google account email is unavailable; reconnect Workspace");
+  const prepared = prepareGmailReply({
+    ownerEmail,
+    recipient: target.to,
+    conversationSubject: target.conversation.subject,
+    latest: { ...latest, rfc_message_id: latestMetadata.rfc_message_id ?? null },
+    body: target.body,
+    messageId: rfcMessageId,
+  });
+  if (prepared.subject !== target.subject)
+    throw new Error("The Gmail thread subject changed. Refresh the conversation and review a new draft.");
+
+  let claim: { id: string; status: string; external_id: string | null; provider_id: string | null; metadata: Record<string, unknown> } | null = null;
+  const { data: prior, error: priorError } = await supabase
+    .from("messages")
+    .select("id,status,external_id,provider_id,metadata")
+    .eq("tenant_id", tenantId)
+    .eq("idempotency_key", logicalIdempotencyKey)
+    .maybeSingle();
+  if (priorError) throw new Error(priorError.message);
+  claim = prior as typeof claim;
+  const receipt = (row: typeof claim, recovered = false) => ({
+    status: "drafted" as const,
+    draftId: typeof row?.metadata?.gmail_draft_id === "string" ? row.metadata.gmail_draft_id : null,
+    messageId: row?.external_id ?? row?.provider_id ?? null,
+    rfcMessageId,
+    threadId: target.conversation.external_id,
+    to: target.to,
+    subject: prepared.subject,
+    gmailUrl: GMAIL_DRAFTS_URL,
+    sent: false as const,
+    recovered,
+  });
+
+  const adoptFoundDraft = async () => {
+    const q = new URLSearchParams({
+      q: `in:drafts rfc822msgid:${rfcMessageId.slice(1, -1)}`,
+      maxResults: "5",
+    });
+    const found = await googleFetch<{ messages?: Array<{ id: string; threadId?: string }> }>(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages?${q}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    for (const candidate of found.messages ?? []) {
+      const detail = await googleFetch<GmailMessage>(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${encodeURIComponent(candidate.id)}?format=metadata&metadataHeaders=Message-ID`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (
+        detail.labelIds?.includes("DRAFT") &&
+        parseRfcMessageId(header(detail, "Message-ID")) === rfcMessageId &&
+        detail.threadId === target.conversation.external_id
+      ) {
+        const metadata = {
+          ...(claim?.metadata ?? {}),
+          source: "gmail_draft",
+          gmail_draft_id: null,
+          gmail_thread_id: detail.threadId,
+          rfc_message_id: rfcMessageId,
+          work_item_id: input.workItem?.id ?? null,
+          action_id: input.actionId,
+        };
+        const { error } = await supabase
+          .from("messages")
+          .update({
+            external_id: detail.id,
+            provider_id: detail.id,
+            status: "drafted",
+            metadata,
+          })
+          .eq("tenant_id", tenantId)
+          .eq("id", claim!.id);
+        if (error) throw new Error(error.message);
+        claim = { ...claim!, external_id: detail.id, provider_id: detail.id, status: "drafted", metadata };
+        return receipt(claim, true);
+      }
+    }
+    return null;
+  };
+
+  if (claim?.status === "drafted") return receipt(claim, true);
+  if (claim && ["processing", "uncertain"].includes(claim.status)) {
+    try {
+      const reconciled = await adoptFoundDraft();
+      if (reconciled) return reconciled;
+    } catch {
+      // A failed reconciliation read is still uncertain; it never authorizes another create.
+    }
+    throw new Error(
+      "Gmail may already have saved this draft. No second draft was created. Check Gmail Drafts for the exact recipient and subject before asking for another attempt.",
+    );
+  }
+
+  const messageRow = {
+    tenant_id: tenantId,
+    conversation_id: input.conversationId,
+    external_id: null,
+    provider_id: null,
+    idempotency_key: logicalIdempotencyKey,
+    direction: "outbound",
+    sender_email: ownerEmail,
+    recipient_emails: [prepared.recipient],
+    subject: prepared.subject,
+    body_text: target.body,
+    status: "processing",
+    in_reply_to: prepared.inReplyTo,
+    references_header: prepared.references,
+    metadata: {
+      source: "gmail_draft",
+      gmail_thread_id: target.conversation.external_id,
+      rfc_message_id: rfcMessageId,
+      work_item_id: input.workItem?.id ?? null,
+      action_id: input.actionId,
+    },
+  };
+  if (claim?.status === "failed") {
+    const { error } = await supabase
+      .from("messages")
+      .update(messageRow)
+      .eq("tenant_id", tenantId)
+      .eq("id", claim.id)
+      .eq("status", "failed");
+    if (error) throw new Error(error.message);
+    claim = { ...claim, status: "processing", metadata: messageRow.metadata };
+  } else if (!claim) {
+    const { data, error } = await supabase.from("messages").insert(messageRow).select("id,status,external_id,provider_id,metadata").single();
+    if (error) {
+      if (error.code === "23505")
+        throw new Error("A matching Gmail draft attempt is already being reconciled. Check Gmail Drafts before retrying.");
+      throw new Error(error.message);
+    }
+    claim = data as typeof claim;
+  }
+
+  let created: { id: string; message?: { id?: string; threadId?: string } };
+  try {
+    await assertActiveTenantExecution(supabase, "gmail-draft");
+    created = await googleFetch(
+      "https://gmail.googleapis.com/gmail/v1/users/me/drafts",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: {
+            raw: Buffer.from(prepared.raw).toString("base64url"),
+            threadId: target.conversation.external_id,
+          },
+        }),
+      },
+    );
+  } catch (error) {
+    const status = error instanceof GoogleApiError ? error.status : null;
+    const uncertain = status === null || status >= 500;
+    await supabase
+      .from("messages")
+      .update({
+        status: uncertain ? "uncertain" : "failed",
+        metadata: {
+          ...messageRow.metadata,
+          error: safeErrorMessage(error),
+          outcome_uncertain: uncertain,
+        },
+      })
+      .eq("tenant_id", tenantId)
+      .eq("id", claim!.id);
+    if (uncertain)
+      throw new Error(
+        "Gmail did not confirm whether the draft was saved. No automatic retry was made; check Gmail Drafts before another attempt.",
+      );
+    throw error;
+  }
+
+  const providerMessageId = created.message?.id;
+  const providerThreadId = created.message?.threadId ?? target.conversation.external_id;
+  if (!created.id || !providerMessageId || providerThreadId !== target.conversation.external_id) {
+    await supabase
+      .from("messages")
+      .update({ status: "uncertain", metadata: { ...messageRow.metadata, outcome_uncertain: true } })
+      .eq("tenant_id", tenantId)
+      .eq("id", claim!.id);
+    throw new Error("Gmail accepted an incomplete draft receipt. Check Gmail Drafts before another attempt.");
+  }
+  const metadata = {
+    ...messageRow.metadata,
+    gmail_draft_id: created.id,
+    gmail_message_id: providerMessageId,
+    gmail_thread_id: providerThreadId,
+    rfc_message_id: rfcMessageId,
+    saved_at: new Date().toISOString(),
+    sent: false,
+  };
+  const { data: savedRow, error: saveError } = await supabase
+    .from("messages")
+    .update({
+      external_id: providerMessageId,
+      provider_id: providerMessageId,
+      status: "drafted",
+      metadata,
+    })
+    .eq("tenant_id", tenantId)
+    .eq("id", claim!.id)
+    .eq("status", "processing")
+    .select("id")
+    .maybeSingle();
+  if (saveError || !savedRow) {
+    throw new Error(
+      "Gmail saved the draft, but its local receipt could not be confirmed. Check Gmail Drafts before another attempt.",
+    );
+  }
+  await recordAudit(supabase, {
+    actorEmail: input.actorEmail,
+    action: "gmail.draft_saved",
+    entityType: "conversation",
+    entityId: input.conversationId,
+    source: "admin",
+    metadata: {
+      provider_draft_id: created.id,
+      provider_message_id: providerMessageId,
+      provider_thread_id: providerThreadId,
+      recipient: prepared.recipient,
+      subject: prepared.subject,
+      work_item_id: input.workItem?.id ?? null,
+      action_id: input.actionId,
+      sent: false,
+    },
+  });
+  return receipt(
+    {
+      id: savedRow.id,
+      status: "drafted",
+      external_id: providerMessageId,
+      provider_id: providerMessageId,
+      metadata,
+    },
+  );
 }
 
 /**

@@ -32,14 +32,17 @@ export function buildGmailReplyRaw(input: {
   from: string;
   to: string;
   subject: string;
+  messageId?: string;
   inReplyTo: string | null;
   references: string | null;
   body: string;
 }): string {
+  const header = (value: string) => value.replace(/[\r\n]+/g, " ").trim();
   return [
-    `From: ${input.from}`,
-    `To: ${input.to}`,
-    `Subject: ${input.subject}`,
+    `From: ${header(input.from)}`,
+    `To: ${header(input.to)}`,
+    `Subject: ${header(input.subject)}`,
+    input.messageId ? `Message-ID: ${header(input.messageId)}` : null,
     input.inReplyTo ? `In-Reply-To: ${input.inReplyTo}` : null,
     input.references ? `References: ${input.references}` : null,
     "MIME-Version: 1.0",
@@ -65,6 +68,7 @@ export function prepareGmailReply(input: {
     rfc_message_id?: string | null;
   };
   body: string;
+  messageId?: string;
 }) {
   const body = input.body.trim();
   if (!body) throw new Error("Reply body is required");
@@ -91,6 +95,7 @@ export function prepareGmailReply(input: {
       from: input.ownerEmail,
       to: input.recipient,
       subject,
+      messageId: input.messageId,
       inReplyTo,
       references,
       body,

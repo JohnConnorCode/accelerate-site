@@ -30,7 +30,8 @@ import { reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
 import { transitionOpportunity } from "./pipeline";
 import { activateCampaign, duplicateCampaign } from "./campaigns";
-import { sendGmailReply } from "./google";
+import { createGmailDraft, sendGmailReply } from "./google";
+import { tenantIdForDatabase } from "@/lib/supabase/server";
 import {
   createRevenueTask,
   completeOperatorTask,
@@ -76,6 +77,7 @@ export const APPROVABLE_ACTIONS = [
   "accept_form_submission",
   "site_website_change",
   "send_email",
+  "create_gmail_draft",
   "send_gmail_reply",
   "transition_opportunity",
   "create_task",
@@ -109,6 +111,10 @@ export async function approveAndExecuteAction(
       `Action type ${action.action_type} is not registered for execution`,
     );
     throw new Error(`Action type ${action.action_type} is not registered for execution`);
+  }
+  if (action.action_type === "create_gmail_draft" && mode !== "approved") {
+    await failAction(supabase, id, "Saving a Gmail draft requires explicit human approval");
+    throw new Error("Saving a Gmail draft requires explicit human approval; it cannot run autonomously");
   }
   const reversibility = reversibilityOf(String(action.action_type)).reversibility;
   // Irreversible effects leave the system, so they are permanently
@@ -333,6 +339,62 @@ export async function approveAndExecuteAction(
           actorEmail,
           idempotencyKey: `action:${id}`,
         });
+        break;
+      }
+      case "create_gmail_draft": {
+        if (mode !== "approved") throw new Error("Saving a Gmail draft requires human approval");
+        const workItemId = stringValue(payload, "workItemId", false);
+        let workItem;
+        const tenantId = tenantIdForDatabase(supabase);
+        if (!tenantId) throw new Error("Gmail draft requires an explicit workspace");
+        if (workItemId) {
+          const { data, error } = await supabase
+            .from("work_items")
+            .select("*")
+            .eq("tenant_id", tenantId)
+            .eq("id", workItemId)
+            .maybeSingle();
+          if (error) throw new Error(error.message);
+          if (!data) throw new Error("The follow-up WorkItem no longer exists in this workspace");
+          workItem = data;
+        }
+        const draft = await createGmailDraft(supabase, {
+          actionId: id,
+          actorEmail,
+          conversationId: stringValue(payload, "conversationId")!,
+          opportunityId: stringValue(payload, "opportunityId")!,
+          contactId: stringValue(payload, "contactId")!,
+          to: stringValue(payload, "to")!,
+          subject: stringValue(payload, "subject")!,
+          body: stringValue(payload, "body")!,
+          ...(workItem ? { workItem } : {}),
+        });
+        if (workItem) {
+          const nextCheckAt = new Date(Date.now() + 3 * 24 * 60 * 60_000).toISOString();
+          const { error } = await supabase
+            .from("work_items")
+            .update({
+              status: "waiting",
+              outcome: "Gmail draft saved. Not sent.",
+              next_check_at: nextCheckAt,
+              next_check_reason:
+                "Review, edit, or send the saved draft in Gmail. Gmail sync will record the send and start the reply check.",
+              finished_at: null,
+              error: null,
+            })
+            .eq("tenant_id", tenantId)
+            .eq("id", workItem.id)
+            .eq("kind", "draft_followup")
+            .eq("status", "waiting")
+            .is("lease_owner", null);
+          if (error) {
+            console.error("[gmail/draft-work-item] follow-up receipt update failed");
+            (draft as Record<string, unknown>).workItemUpdated = false;
+          } else {
+            (draft as Record<string, unknown>).workItemUpdated = true;
+          }
+        }
+        result = draft;
         break;
       }
       case "transition_opportunity": {
