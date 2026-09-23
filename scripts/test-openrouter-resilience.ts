@@ -347,6 +347,40 @@ async function main() {
       assert.equal(calls.length, 1);
     },
   );
+  await scenario(
+    "standard chat bounds provider responses and does not retry malformed or oversized bodies",
+    async () => {
+      stubFetch([
+        { status: 200, body: { ...okBody, extra: "x".repeat(1024 * 1024 + 1) } },
+        { status: 200, body: okBody },
+      ]);
+      await assert.rejects(
+        () => openRouterChat(ask),
+        (error: unknown) => error instanceof OpenRouterError && error.status === 502,
+      );
+      assert.equal(calls.length, 1, "an oversized response must not be downloaded repeatedly");
+    },
+  );
+  await scenario("both streaming paths cancel oversized provider output", async () => {
+    const oversizedSse = `data: ${JSON.stringify({
+      choices: [{ delta: { content: "x".repeat(1024 * 1024) } }],
+    })}\n\n`;
+    stubFetch([{ status: 200, sse: oversizedSse }]);
+    await assert.rejects(
+      () => openRouterChatStream(ask, () => {}),
+      (error: unknown) => error instanceof OpenRouterError && /1 MiB/.test(error.message),
+    );
+    assert.equal(calls.length, 1);
+
+    calls = [];
+    stubFetch([{ status: 200, sse: oversizedSse }]);
+    const stream = await openRouterTextStream(ask);
+    await assert.rejects(
+      () => stream.getReader().read(),
+      (error: unknown) => error instanceof OpenRouterError && /1 MiB/.test(error.message),
+    );
+    assert.equal(calls.length, 1);
+  });
 
   await scenario("text streaming retains the provider receipt and resolved model", async () => {
     process.env.OPENROUTER_FALLBACK_MODEL = "anthropic/claude-haiku-4.5";

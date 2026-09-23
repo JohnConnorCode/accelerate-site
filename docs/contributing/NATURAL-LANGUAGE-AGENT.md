@@ -5,17 +5,26 @@ A user does not need to know the board CLI or provide a ticket key.
 
 ## Trigger
 
-When a user asks an agent to pick up backlog work, take the next task, continue
-the board, finish the work, commit it, or follow the repository protocol, treat
-the request as the same intent. Examples include:
+Use this workflow only when a user explicitly asks for backlog work: to pick up
+backlog work, take the next backlog task, or continue the board. Examples
+include:
 
 - “Pick up work from the backlog and go until it is completed and committed.”
 - “Take the next ready task and finish it.”
 - “Continue the board work and follow protocol.”
 
-The agent must begin execution after reading this entrypoint. Do not stop after
+The agent must begin backlog execution after reading this entrypoint. Do not stop after
 `git status`, `git log`, a broad documentation scan, or a status-only response.
 Do not ask for a card key when the live board can select ready work.
+
+The user's latest direct request always controls scope and priority. Never let
+`agent:go`, remembered work, an active or expired attempt, a system suggestion,
+or an earlier assistant plan replace, interrupt, or reorder explicitly requested
+work. When the runner surfaces unrelated work, preserve its checkout and audit
+history, report the conflict briefly, and continue the user's request. Do not ask
+the user to choose between their request and unrelated recovered work. Ask only
+when a real dependency or ambiguity in the requested scope blocks progress, and
+state that blocker plainly.
 
 Never ask the user to paste `WORK_BOARD_URL`, `WORK_BOARD_TOKEN`, a database
 credential, or a secret into chat, a prompt, a ticket, or a terminal argument.
@@ -30,7 +39,7 @@ edit shared work.
 
 ## Execution contract
 
-1. Run the repository's internal `agent:go` entrypoint immediately. The user
+1. For an explicit backlog request, run the repository's internal `agent:go` entrypoint immediately. The user
    should not need to type or understand that command.
 2. Keep board lifecycle commands in the printed control checkout, even when a
    worker’s approved base predates the current runner. The emitted lifecycle
@@ -52,7 +61,11 @@ strict-write gate or provider receipt to make the request appear complete.
 
 ## Work continuity
 
-An explicit work request authorizes its scoped claim and implementation. Work volume
+This section applies only after the user explicitly requests backlog work. An
+unrelated continuation candidate does not become the task merely because it is
+active, expired, or resumable.
+
+An explicit backlog request authorizes its scoped claim and implementation. Work volume
 is advisory and cannot require the founder to clear a slot. For a named expired
 attempt, inspect its retained checkout and use `agent:go -- --card <key> --json`;
 the service atomically fences the old token and records the continuation. Preserve

@@ -106,6 +106,7 @@ export class OpenRouterError extends Error {
     public readonly requestId: string | null = null,
     public readonly inferenceRejected = false,
     public readonly retryAfterSeconds: number | null = null,
+    public readonly retryable = true,
   ) {
     super(message);
     this.name = "OpenRouterError";
@@ -113,6 +114,8 @@ export class OpenRouterError extends Error {
 }
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MAX_CHAT_RESPONSE_BYTES = 1024 * 1024;
+const MAX_STREAM_RESPONSE_BYTES = 1024 * 1024;
 
 /**
  * The 45s timeout must apply even when a caller supplies its own signal.
@@ -239,8 +242,9 @@ async function attemptChat(
       signal: combineSignals(controller.signal, input.signal),
     });
     const requestId = response.headers.get("x-request-id");
-    const payload = (await (
-      input.strictPricing ? readBoundedJson(response, 128 * 1024) : response.json()
+    const payload = (await readBoundedJson(
+      response,
+      input.strictPricing ? 128 * 1024 : MAX_CHAT_RESPONSE_BYTES,
     ).catch((error: unknown) => {
       // A streamed non-streaming response may send headers long before its JSON.
       // Preserve body aborts so timeout/cancellation cannot masquerade as HTTP 200.
@@ -270,6 +274,7 @@ async function attemptChat(
         requestId,
         rejected,
         retryAfter,
+        !response.ok,
       );
     }
     if (!Array.isArray(payload.choices) || !payload.choices[0]?.message) {
@@ -279,6 +284,9 @@ async function attemptChat(
         (input.strictPricing && typeof payload.id === "string" ? payload.id : requestId) ||
           payload.id ||
           null,
+        false,
+        null,
+        false,
       );
     }
     return payload;
@@ -388,7 +396,10 @@ export async function openRouterChat(input: OpenRouterRequest): Promise<OpenRout
       }
       lastError = error;
       const recoverable =
-        isRetryableStatus(error.status) && attempt < attempts && !input.signal?.aborted;
+        error.retryable &&
+        isRetryableStatus(error.status) &&
+        attempt < attempts &&
+        !input.signal?.aborted;
       if (!recoverable) {
         await recordJobReceipt(
           input,
@@ -465,13 +476,14 @@ export async function openRouterChatStream(
     });
     const requestId = response.headers.get("x-request-id");
     if (!response.ok || !response.body) {
-      const payload = await response.json().catch(() => null);
+      const payload = await readBoundedJson(response, 128 * 1024).catch(() => null);
       throw new OpenRouterError(boundedProviderMessage(payload), response.status || 502, requestId);
     }
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let receivedBytes = 0;
     let id = requestId || "streamed-openrouter-response";
     let resolvedModel = model;
     let content = "";
@@ -517,6 +529,18 @@ export async function openRouterChatStream(
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
+      receivedBytes += value.byteLength;
+      if (receivedBytes > MAX_STREAM_RESPONSE_BYTES) {
+        await reader.cancel();
+        throw new OpenRouterError(
+          "OpenRouter stream exceeded the 1 MiB response limit",
+          502,
+          requestId,
+          false,
+          null,
+          false,
+        );
+      }
       buffer += decoder.decode(value, { stream: true });
       const blocks = buffer.split(/\r?\n\r?\n/);
       buffer = blocks.pop() ?? "";
@@ -683,7 +707,7 @@ export async function openRouterTextStream(
   if (!response.ok || !response.body) {
     clearTimeout(timeout);
     await recordJobReceipt(input, tenantId, requested, model, streamStartedAt, callId, "failed");
-    const payload = await response.json().catch(() => null);
+    const payload = await readBoundedJson(response, 128 * 1024).catch(() => null);
     throw new OpenRouterError(
       boundedProviderMessage(payload),
       response.status || 502,
@@ -694,6 +718,7 @@ export async function openRouterTextStream(
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   let buffer = "";
+  let receivedBytes = 0;
   const metadata: OpenRouterStreamMetadata = {
     requestId: response.headers.get("x-request-id") || "streamed-openrouter-response",
     model,
@@ -725,6 +750,18 @@ export async function openRouterTextStream(
             clearTimeout(timeout);
             streamController.close();
             return;
+          }
+          receivedBytes += value.byteLength;
+          if (receivedBytes > MAX_STREAM_RESPONSE_BYTES) {
+            await reader.cancel();
+            throw new OpenRouterError(
+              "OpenRouter stream exceeded the 1 MiB response limit",
+              502,
+              metadata.requestId,
+              false,
+              null,
+              false,
+            );
           }
           buffer += decoder.decode(value, { stream: true });
           const blocks = buffer.split(/\r?\n\r?\n/);

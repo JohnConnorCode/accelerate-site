@@ -39,6 +39,15 @@ if (!/agent-execution-trigger:/i.test(agents))
   failures.push("AGENTS.md is missing the machine-readable trigger block");
 if (!/terminal_states: \[HANDOFF_SUBMITTED, BLOCKED_REQUIRES_OPERATOR\]/i.test(agents))
   failures.push("AGENTS.md is missing terminal states for unattended execution");
+if (!/intent: explicit-backlog-pickup/i.test(agents) || !/take the next backlog task/i.test(agents))
+  failures.push("AGENTS.md must limit automatic pickup to explicit backlog requests");
+if (/phrases:.*finish and commit|phrases:.*follow protocol/i.test(agents))
+  failures.push("AGENTS.md must not treat generic completion requests as backlog pickup");
+for (const file of ["AGENTS.md", "docs/contributing/NATURAL-LANGUAGE-AGENT.md"]) {
+  const source = readFileSync(file, "utf8");
+  if (!/user's latest direct request always controls scope and priority/i.test(source))
+    failures.push(`${file} does not preserve explicit user scope over recovered work`);
+}
 for (const file of ["AGENTS.md", "CLAUDE.md", "docs/contributing/NATURAL-LANGUAGE-AGENT.md"]) {
   const source = readFileSync(file, "utf8");
   if (!/Never ask the user to paste/i.test(source))

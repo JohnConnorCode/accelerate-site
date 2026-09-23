@@ -34,6 +34,13 @@ business control. Installation, enable/disable and upgrade must update discovery
 disabled execution is rechecked at dispatch, including already queued changes.
 Historical records and receipts remain accessible through authorized core reads.
 
+All provider calls use the shared AI gateway. It bounds ordinary non-streaming
+responses to 1 MiB, budgeted responses to 128 KiB, streaming responses to 1 MiB,
+and provider error bodies to 128 KiB before retaining or parsing them. A malformed
+or oversized success response fails once; transient provider status codes keep
+the bounded retry policy. Feature adapters must not add a second unbounded
+provider request path.
+
 ## The conversation is the work interface
 
 For example, “Change Acme's owner to Maya, move the opportunity to Qualified,
