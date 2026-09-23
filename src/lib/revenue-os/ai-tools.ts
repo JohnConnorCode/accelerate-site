@@ -180,9 +180,12 @@ import {
 import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
 
 export { AI_TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
-import { AI_TOOL_REGISTRY_VERSION as TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
-export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
-export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
+import {
+  AI_TOOL_PACKS as REVENUE_TOOL_PACKS,
+  AI_TOOL_REGISTRY_VERSION as TOOL_REGISTRY_VERSION,
+} from "./ai-tool-contract";
+export { REVENUE_TOOL_PACKS };
+import type { AiToolPackId as RevenueToolPackId } from "./ai-tool-contract";
 export type { TaskToolProfile } from "./tool-profiles";
 import { parseTaskToolProfile, type TaskToolProfile } from "./tool-profiles";
 
@@ -3031,6 +3034,9 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     ...COLLECTION_AGENT_TOOL_NAMES,
     ...FORM_BUILDER_TOOL_NAMES,
     ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
+      (moduleDef) => moduleDef.aiToolNames || [],
+    ),
+    ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.aiToolPacks?.includes("core")).flatMap(
       (moduleDef) => moduleDef.aiToolNames || [],
     ),
     ...REVENUE_OS_MODULES.filter((module) => module.report).map(

@@ -134,6 +134,20 @@ async function main() {
   const contentBriefTool = runtime.find((tool) => tool.name === "generate_content_brief");
   assert.ok(contentBriefTool, "the shared content brief service must be an AI capability");
   assert.equal(contentBriefTool.serviceTarget, "revenue-os.content-brief");
+  assert.ok(
+    getRevenueAiTools("core").some((tool) => tool.name === contentBriefTool.name),
+    "module-declared core pack membership must drive the runtime projection",
+  );
+  for (const moduleDef of REVENUE_OS_MODULES) {
+    for (const pack of moduleDef.aiToolPacks ?? []) {
+      for (const toolName of moduleDef.aiToolNames ?? []) {
+        assert.ok(
+          getRevenueAiTools(pack).some((tool) => tool.name === toolName),
+          `${moduleDef.id}.${toolName} declares ${pack} membership but is absent from that pack`,
+        );
+      }
+    }
+  }
   assert.doesNotThrow(() =>
     validateToolInput(contentBriefTool.name, contentBriefTool.inputSchema, {
       title: "A grounded topic",
