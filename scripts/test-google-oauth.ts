@@ -24,12 +24,12 @@ process.env.NEXT_PUBLIC_SITE_URL = "https://example.test";
 
 try {
   const now = Date.parse("2026-08-31T12:00:00.000Z");
-  const baseScopes = new URL(buildGoogleAuthUrl("state")).searchParams
-    .get("scope")!
-    .split(" ");
+  const baseScopes = new URL(buildGoogleAuthUrl("state")).searchParams.get("scope")!.split(" ");
   const draftScopes = new URL(
     buildGoogleAuthUrl("state", { includeGmailDrafts: true }),
-  ).searchParams.get("scope")!.split(" ");
+  ).searchParams
+    .get("scope")!
+    .split(" ");
   assert.deepEqual(baseScopes, GOOGLE_SCOPES, "ordinary Google consent must not add draft access");
   assert.ok(!baseScopes.includes(GOOGLE_GMAIL_DRAFT_SCOPE));
   assert.deepEqual(draftScopes, [...GOOGLE_SCOPES, GOOGLE_GMAIL_DRAFT_SCOPE]);
