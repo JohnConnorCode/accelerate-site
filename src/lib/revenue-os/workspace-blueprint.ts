@@ -714,6 +714,7 @@ export interface SaveBlueprintInput {
   createdBy?: string | null;
   sourceAgentRunId?: string | null;
   actorEmail?: string | null;
+  expectedVersion?: number;
 }
 
 function requireUuid(value: string, field: string): string {
@@ -762,7 +763,12 @@ export async function saveBlueprintVersion(
   if (blueprintError || !blueprint) {
     throw new Error("Blueprint not found in this workspace");
   }
-  const nextVersion = ((blueprint as { latest_version: number }).latest_version ?? 0) + 1;
+  const currentLatest = (blueprint as { latest_version: number }).latest_version ?? 0;
+  if (input.expectedVersion != null && input.expectedVersion !== currentLatest) {
+    throw new Error("Blueprint version conflict");
+  }
+  const expectedLatest = input.expectedVersion ?? currentLatest;
+  const nextVersion = currentLatest + 1;
   const parentVersion = nextVersion > 1 ? nextVersion - 1 : null;
 
   const { data: inserted, error: versionError } = await supabase
@@ -785,13 +791,23 @@ export async function saveBlueprintVersion(
     throw new Error(`Blueprint version save failed: ${versionError?.message ?? "no row"}`);
   }
 
-  const { error: bumpError } = await supabase
+  const { data: bumped, error: bumpError } = await supabase
     .from("workspace_blueprints")
     .update({ latest_version: nextVersion, updated_at: new Date().toISOString() })
     .eq("tenant_id", tenantId)
     .eq("id", blueprintId)
-    .eq("latest_version", nextVersion - 1);
+    .eq("latest_version", expectedLatest)
+    .select("id");
   if (bumpError) throw new Error(`Blueprint version bump failed: ${bumpError.message}`);
+  if (!bumped?.length) {
+    await supabase
+      .from("workspace_blueprint_versions")
+      .delete()
+      .eq("tenant_id", tenantId)
+      .eq("blueprint_id", blueprintId)
+      .eq("version", nextVersion);
+    throw new Error("Blueprint version conflict");
+  }
 
   await recordAudit(supabase, {
     actorEmail: input.actorEmail ?? input.createdBy ?? null,
