@@ -458,7 +458,7 @@ export const capabilities: Capability[] = [
     category: "connect",
     title: "Make the workspace your own",
     promise:
-      "Choose one of seven appearances or preview a custom palette, typography, and corner style, then save it for the workspace.",
+      "Choose one of nine appearances or preview a custom palette, typography, and corner style, then save it for the workspace.",
     detail:
       "Text contrast is checked before a theme saves, density is adjustable independently, and a theme follows the same permissions and revision checks as other branding. Demo choices stay separate from the live workspace.",
   },
