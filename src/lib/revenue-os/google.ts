@@ -1243,6 +1243,7 @@ export async function createGmailDraft(
     .select("external_id,subject,references_header,metadata")
     .eq("tenant_id", tenantId)
     .eq("conversation_id", input.conversationId)
+    .not("external_id", "is", null)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
