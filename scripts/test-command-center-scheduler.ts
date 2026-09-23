@@ -108,6 +108,24 @@ assert.doesNotMatch(
   "the proof job is read-only and cannot widen an automation envelope",
 );
 
+const workScheduler = readFileSync("src/lib/revenue-os/work-scheduler.ts", "utf8");
+const bootstrapIndex = workScheduler.indexOf("await ensureWorkCoworkers(supabase)");
+const scheduleIndex = workScheduler.indexOf("const daily = await scheduleDailyWork(supabase)");
+assert.ok(
+  bootstrapIndex >= 0 && scheduleIndex > bootstrapIndex,
+  "scheduled work must bootstrap missing tenant coworkers before creating work items",
+);
+assert.match(workScheduler, /if \(error\) throw new Error\(`Coworker readiness check failed:/);
+for (const [id, bootstrap] of [
+  ["SALES_COWORKER_ID", "bootstrapSalesCoworker"],
+  ["BUSINESS_PULSE_COWORKER_ID", "bootstrapBusinessPulseCoworker"],
+  ["MEETING_INTEL_COWORKER_ID", "bootstrapMeetingIntelCoworker"],
+  ["FINANCE_COWORKER_ID", "bootstrapFinanceCoworker"],
+  ["OPERATIONS_COWORKER_ID", "bootstrapOperationsCoworker"],
+]) {
+  assert.ok(workScheduler.includes(`[${id}, ${bootstrap}]`));
+}
+
 const configureScript = readFileSync("scripts/configure-command-center-scheduler.mjs", "utf8");
 assert.match(configureScript, /CRON_SECRET/);
 assert.match(
@@ -135,6 +153,7 @@ console.log(
         "authenticated wake",
         "revoked configuration function",
         "read-only workload",
+        "tenant-scoped coworker bootstrap before scheduling",
       ],
     },
     null,

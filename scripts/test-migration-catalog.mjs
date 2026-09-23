@@ -3,14 +3,25 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { migrationCatalog } from "./lib/migration-ledger.mjs";
+import { migrationCatalog, migrationProgram } from "./lib/migration-ledger.mjs";
 import { MIGRATION_MANIFEST, EXCLUDED_MIGRATIONS } from "./lib/migration-manifest.mjs";
 const root = mkdtempSync(join(tmpdir(), "accelerate-catalog-proof-"));
 try {
   for (const dir of ["migrations", "supabase"]) mkdirSync(join(root, dir));
   for (const file of [...MIGRATION_MANIFEST, ...Object.keys(EXCLUDED_MIGRATIONS)])
     writeFileSync(join(root, file), readFileSync(file));
-  assert.equal(migrationCatalog(root).length, MIGRATION_MANIFEST.length);
+  const catalog = migrationCatalog(root);
+  assert.equal(catalog.length, MIGRATION_MANIFEST.length);
+  const program = migrationProgram(catalog);
+  assert.match(
+    program,
+    /ALTER TABLE public\.accelerate_schema_migrations ENABLE ROW LEVEL SECURITY;/,
+    "the migration runner must harden its ledger on every invocation",
+  );
+  assert.match(
+    readFileSync("migrations/20260923-schema-migration-ledger-rls.sql", "utf8"),
+    /REVOKE ALL ON public\.accelerate_schema_migrations FROM PUBLIC, anon, authenticated, service_role;/,
+  );
   const unknown = join(root, "migrations/unclassified.sql");
   writeFileSync(unknown, "SELECT 1;");
   assert.throws(() => migrationCatalog(root), /unclassified=migrations\/unclassified.sql/);

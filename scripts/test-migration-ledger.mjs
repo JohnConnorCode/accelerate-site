@@ -49,6 +49,16 @@ try {
   const db = scratch();
   success(execute(db, migrationProgram([baseline, upgrade], { through: baseline.file })));
   assert.equal(success(execute(db, "SELECT count(*) FROM accelerate_schema_migrations;")), "1");
+  assert.equal(
+    success(
+      execute(
+        db,
+        "SELECT relrowsecurity FROM pg_class WHERE oid='public.accelerate_schema_migrations'::regclass;",
+      ),
+    ),
+    "t",
+    "the internal migration ledger must always enable RLS",
+  );
   success(execute(db, migrationProgram([baseline, upgrade])));
   success(execute(db, migrationProgram([baseline, upgrade])));
   assert.equal(
@@ -80,6 +90,18 @@ try {
     ),
     "f",
   );
+  for (const role of ["anon", "authenticated", "service_role"]) {
+    assert.equal(
+      success(
+        execute(
+          db,
+          `SELECT has_table_privilege('${role}','accelerate_schema_migrations','SELECT') OR has_table_privilege('${role}','accelerate_schema_migrations','INSERT') OR has_table_privilege('${role}','accelerate_schema_migrations','UPDATE') OR has_table_privilege('${role}','accelerate_schema_migrations','DELETE');`,
+        ),
+      ),
+      "f",
+      `${role} must have no migration-ledger privileges`,
+    );
+  }
   const legacy = scratch();
   success(
     execute(

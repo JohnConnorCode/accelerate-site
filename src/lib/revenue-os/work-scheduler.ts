@@ -2,22 +2,33 @@ import { scheduleSocialReconciliation, scheduleSocialWeeklyDrafts } from "./soci
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  bootstrapBusinessPulseCoworker,
+  BUSINESS_PULSE_COWORKER_ID,
   createDailyDigestWork,
   createDetectStaleDealsWork,
   createDetectStageBottleneckWork,
   createDetectVelocityChangeWork,
 } from "./business-pulse-coworker";
 import {
+  bootstrapOperationsCoworker,
+  OPERATIONS_COWORKER_ID,
   createDailyHealthCheckWork,
   createIntegrationStatusAuditWork,
   createDataQualityScanWork,
 } from "./operations-coworker";
 import {
+  bootstrapFinanceCoworker,
+  FINANCE_COWORKER_ID,
   createWeeklyReconciliationWork,
   createDetectOverduePaymentsWork,
   createRevenueStageAuditWork,
 } from "./finance-coworker";
-import { createPreCallBriefWork } from "./meeting-intel-coworker";
+import {
+  bootstrapMeetingIntelCoworker,
+  MEETING_INTEL_COWORKER_ID,
+  createPreCallBriefWork,
+} from "./meeting-intel-coworker";
+import { bootstrapSalesCoworker, SALES_COWORKER_ID } from "./sales-coworker";
 import { runTrustGraduationScan } from "./trust-graduation";
 import { createProactiveIntelBriefWork } from "./proactive-intel";
 import { createRevenueTask } from "./tasks";
@@ -36,6 +47,24 @@ export interface WorkSchedulerSummary {
   created: number;
   skipped: number;
   errors: string[];
+}
+
+const REQUIRED_WORK_COWORKERS = [
+  [SALES_COWORKER_ID, bootstrapSalesCoworker],
+  [BUSINESS_PULSE_COWORKER_ID, bootstrapBusinessPulseCoworker],
+  [MEETING_INTEL_COWORKER_ID, bootstrapMeetingIntelCoworker],
+  [FINANCE_COWORKER_ID, bootstrapFinanceCoworker],
+  [OPERATIONS_COWORKER_ID, bootstrapOperationsCoworker],
+] as const;
+
+async function ensureWorkCoworkers(supabase: SupabaseClient): Promise<void> {
+  const { data, error } = await supabase.from("coworkers").select("id");
+  if (error) throw new Error(`Coworker readiness check failed: ${error.message}`);
+
+  const registered = new Set((data ?? []).map((coworker) => coworker.id));
+  for (const [id, bootstrap] of REQUIRED_WORK_COWORKERS) {
+    if (!registered.has(id)) await bootstrap(supabase, "system");
+  }
 }
 
 /**
@@ -212,6 +241,10 @@ export async function scheduleMeetingBriefs(
 export async function scheduleRecurringWork(
   supabase: SupabaseClient,
 ): Promise<WorkSchedulerSummary> {
+  // Do not enqueue recurring work until each handler has a tenant-scoped identity.
+  // A bootstrap failure rejects the cron run before it can schedule or execute work.
+  await ensureWorkCoworkers(supabase);
+
   const daily = await scheduleDailyWork(supabase);
   try {
     await scheduleSocialWeeklyDrafts(supabase);
