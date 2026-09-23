@@ -314,6 +314,7 @@
     "test:supervisor": "node --test scripts/test-supervisor.mjs",
     "themes:generate": "node scripts/generate-admin-themes.mjs",
     "test:admin-themes": "node --import tsx scripts/test-admin-themes.ts",
+    "test:workflow-views": "node --import tsx scripts/test-workflow-views.ts",
     "test:kanban-position": "node --import tsx scripts/test-kanban-position.ts",
     "qa:admin-polish": "node scripts/resource-run.mjs node scripts/qa-admin-polish-local.mjs",
     "test:social-postiz": "NODE_OPTIONS=--conditions=react-server node --import tsx scripts/test-social-postiz.ts",
