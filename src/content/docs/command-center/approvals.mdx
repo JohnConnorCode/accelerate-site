@@ -26,12 +26,12 @@ A manual action you take yourself is different and does not route through this q
 2. Read the proposed action and the context behind it. For a message, that means the actual recipient and the actual wording, not just the fact that a message exists.
 3. Choose the decision that matches what you want.
 
-| Decision | What happens                                                                                                                           |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Approve  | The action runs as shown. Approving an email proposal can put a message in front of a real customer, not just mark a draft as read.    |
+| Decision            | What happens                                                                                                                                               |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Approve             | The action runs as shown. Approving an email proposal can put a message in front of a real customer, not just mark a draft as read.                        |
 | Save draft to Gmail | For a `create_gmail_draft` proposal, saves the exact reviewed reply as an editable Gmail draft. It is not sent; review, edit, and send it in Gmail Drafts. |
-| Revise   | The proposal goes back to whatever produced it, AI or workflow, so you can change it and review the new version before deciding again. |
-| Reject   | The action does not run. Give a reason when the screen offers one; it is what the system learns from.                                  |
+| Revise              | The proposal goes back to whatever produced it, AI or workflow, so you can change it and review the new version before deciding again.                     |
+| Reject              | The action does not run. Give a reason when the screen offers one; it is what the system learns from.                                                      |
 
 Gmail follow-ups stay in **Work → Follow-ups** after the draft is saved. Open the draft there, then send it manually from Gmail when it is ready. Gmail sync records the sent message and keeps the follow-up open while waiting for a reply. A matching reply closes that loop; the reply itself remains available in Conversations for any new work. If sync is stale or the provider result is uncertain, the item remains open for reconciliation rather than being silently closed or retried.
 
