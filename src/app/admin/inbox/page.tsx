@@ -184,7 +184,10 @@ export default function AdminInboxPage() {
 
   const handleActionDecision = async (item: AdminInboxItem, decision: "approve" | "reject") => {
     if (decision === "approve") {
-      navigation.push(`/admin/work?tab=approvals&action=${encodeURIComponent(item.id)}`, "preserve");
+      navigation.push(
+        `/admin/work?tab=approvals&action=${encodeURIComponent(item.id)}`,
+        "preserve",
+      );
       toast.info("Review the exact action in Work before approving it");
       return;
     }
