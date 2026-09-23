@@ -33,12 +33,11 @@
         "POST"
       ],
       "imports": [
-        "@/lib/admin/auth",
+        "@/lib/admin/module-guard",
         "@/lib/revenue-os/content-brief",
-        "@/lib/revenue-os/modules",
         "next/server"
       ],
-      "sourceSha256": "4b2d36759197df435229f19bed264b397e52f9053e231b8a7d33197db9818cf8"
+      "sourceSha256": "8605e5d894ea920306aba4385453778200e745ecd1d646a76b80a8baf06b7dce"
     },
     {
       "source": "src/app/api/admin/ai-readiness/route.ts",
