@@ -1,8 +1,10 @@
 "use client";
 
 import Link, { type LinkProps } from "next/link";
-import { resolveAdminHref } from "@/lib/admin/navigation-paths";
+import { resolveAdminHref, resolvePublicWorkspaceHref } from "@/lib/admin/navigation-paths";
 export { resolveAdminHref } from "@/lib/admin/navigation-paths";
+import { siteUrl } from "@/config/tenant";
+import { commandCenterOrigin } from "@/lib/command-center/runtime";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo, type AnchorHTMLAttributes } from "react";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
@@ -21,7 +23,11 @@ export default function AdminLink({ href, ...props }: AdminLinkProps) {
     typeof href === "string"
       ? resolveAdminHref(href, demo?.scenarioId || null, workspaceSlug)
       : href;
-  return <Link href={resolvedHref} {...props} />;
+  const destination =
+    typeof resolvedHref === "string"
+      ? resolvePublicWorkspaceHref(resolvedHref, commandCenterOrigin ? siteUrl() : null)
+      : resolvedHref;
+  return <Link href={destination} {...props} />;
 }
 
 export function useAdminNavigation() {

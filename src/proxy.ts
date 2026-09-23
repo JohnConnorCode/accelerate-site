@@ -1,5 +1,5 @@
 import { isSupabasePublicConfigured } from "@/lib/supabase/configuration.mjs";
-import { tenant as bootstrapTenant } from "@/config/tenant";
+import { tenant as bootstrapTenant, siteUrl } from "@/config/tenant";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
@@ -11,6 +11,30 @@ import { distributionPath, isAgencyAsset, isAgencyPage } from "@/lib/distributio
 import { commandCenterOrigin } from "@/lib/command-center/runtime";
 
 export async function proxy(request: NextRequest) {
+  const requestHost = request.headers.get("host") || request.nextUrl.host;
+  if (commandCenterOrigin && requestHost === new URL(commandCenterOrigin).host) {
+    const path = request.nextUrl.pathname;
+    if (path === "/" && ["GET", "HEAD"].includes(request.method)) {
+      return NextResponse.redirect(new URL("/workspace", commandCenterOrigin), 307);
+    }
+    const isAppPage =
+      path === "/workspace" ||
+      path === "/admin" ||
+      path.startsWith("/admin/") ||
+      /^\/t\/[a-z0-9]+(?:-[a-z0-9]+)*\/admin(?:\/|$)/.test(path) ||
+      path === "/auth/callback" ||
+      path === "/command-center-offline.html";
+    const isPageRequest =
+      ["GET", "HEAD"].includes(request.method) &&
+      (request.headers.get("accept")?.includes("text/html") || request.headers.has("rsc"));
+    if (isPageRequest && !isAppPage && !path.startsWith("/api/")) {
+      const publicOrigin = new URL(siteUrl());
+      if (publicOrigin.host !== requestHost) {
+        return NextResponse.redirect(new URL(path + request.nextUrl.search, publicOrigin), 307);
+      }
+    }
+  }
+
   if (distributionProfile() === "neutral") {
     const path = distributionPath(request.nextUrl.pathname);
     let assetPath = path;
@@ -50,7 +74,7 @@ export async function proxy(request: NextRequest) {
     /^\/t\/[a-z0-9]+(?:-[a-z0-9]+)*\/admin(?:\/|$)/.test(request.nextUrl.pathname);
   if (workspacePath && commandCenterOrigin) {
     const appOrigin = new URL(commandCenterOrigin);
-    if (request.nextUrl.host !== appOrigin.host) {
+    if (requestHost !== appOrigin.host) {
       const destination = new URL(request.nextUrl.pathname + request.nextUrl.search, appOrigin);
       return NextResponse.redirect(destination, 307);
     }

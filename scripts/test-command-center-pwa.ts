@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { NextRequest } from "next/server";
+import { resolvePublicWorkspaceHref } from "../src/lib/admin/navigation-paths";
 
 const root = process.cwd();
 const read = (file: string) => readFile(path.join(root, file), "utf8");
@@ -63,6 +65,66 @@ async function main() {
   assert.match(faq, /Can I install Command Center/);
   for (const route of [tenants, recovery, google, googleAuthorize, googleCallback])
     assert.match(route, /commandCenterOrigin/, "Account links must stay on the app origin");
+
+  process.env.NEXT_PUBLIC_COMMAND_CENTER_ORIGIN = "https://app.example.test";
+  process.env.NEXT_PUBLIC_SITE_URL = "https://www.example.test";
+  process.env.NEXT_PUBLIC_DISTRIBUTION_PROFILE = "branded";
+  const { proxy } = await import("../src/proxy");
+  const visit = (host: string, route: string, headers: Record<string, string> = {}) =>
+    proxy(
+      new NextRequest(`https://${host}${route}`, { headers: { accept: "text/html", ...headers } }),
+    );
+  assert.equal(
+    (await visit("app.example.test", "/")).headers.get("location"),
+    "https://app.example.test/workspace",
+  );
+  assert.equal((await visit("app.example.test", "/workspace")).headers.get("location"), null);
+  assert.equal(
+    (await visit("internal.example.test", "/", { host: "app.example.test" })).headers.get(
+      "location",
+    ),
+    "https://app.example.test/workspace",
+  );
+  assert.equal((await visit("app.example.test", "/admin/login")).headers.get("location"), null);
+  assert.equal(
+    (await visit("app.example.test", "/auth/callback?code=test")).headers.get("location"),
+    null,
+  );
+  assert.equal(
+    (await visit("app.example.test", "/command-center-offline.html")).headers.get("location"),
+    null,
+  );
+  assert.equal(
+    (await visit("app.example.test", "/docs/workspace/overview?from=app")).headers.get("location"),
+    "https://www.example.test/docs/workspace/overview?from=app",
+  );
+  assert.equal(
+    (await visit("app.example.test", "/demo/command-center")).headers.get("location"),
+    "https://www.example.test/demo/command-center",
+  );
+  assert.equal(
+    (await visit("app.example.test", "/docs", { accept: "*/*", rsc: "1" })).headers.get("location"),
+    "https://www.example.test/docs",
+  );
+  assert.equal((await visit("app.example.test", "/api/admin/login")).headers.get("location"), null);
+  assert.equal((await visit("www.example.test", "/")).headers.get("location"), null);
+  assert.equal(
+    (await visit("www.example.test", "/admin/login")).headers.get("location"),
+    "https://app.example.test/admin/login",
+  );
+  assert.equal(
+    resolvePublicWorkspaceHref("/docs/workspace/overview", "https://www.example.test/"),
+    "https://www.example.test/docs/workspace/overview",
+  );
+  assert.equal(
+    resolvePublicWorkspaceHref("/demo/command-center", "https://www.example.test"),
+    "https://www.example.test/demo/command-center",
+  );
+  assert.equal(
+    resolvePublicWorkspaceHref("/admin/today", "https://www.example.test"),
+    "/admin/today",
+  );
+  assert.equal(resolvePublicWorkspaceHref("/docs", null), "/docs");
 
   console.log("Command Center PWA contract checks passed.");
 }

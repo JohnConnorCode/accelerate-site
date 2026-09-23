@@ -37,7 +37,7 @@ export function AdminAuthLayout({
         </div>
         <div className="admin-auth-brand-faint relative z-10 flex items-center gap-2 text-[11px]">
           <ShieldCheck className="h-4 w-4" />
-          Restricted to the configured admin account
+          Restricted to authorized workspace members
         </div>
         <div className="admin-auth-brand-ring pointer-events-none absolute -bottom-28 -right-20 h-80 w-80 rounded-full border" />
         <div className="admin-auth-brand-ring pointer-events-none absolute -bottom-10 -right-4 h-48 w-48 rounded-full border" />
