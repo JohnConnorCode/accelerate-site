@@ -28,3 +28,10 @@ export function resolveAdminHref(
   if (workspaceSlug) return `/t/${workspaceSlug}/admin/${suffix || "today"}`;
   return href;
 }
+
+/** Public guides and demos must leave the private app origin during client navigation. */
+export function resolvePublicWorkspaceHref(href: string, publicOrigin: string | null) {
+  return publicOrigin && /^\/(?:docs|demo\/command-center)(?:\/|\?|#|$)/.test(href)
+    ? `${publicOrigin.replace(/\/$/, "")}${href}`
+    : href;
+}

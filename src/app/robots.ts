@@ -1,8 +1,15 @@
 import { tenant } from "@/config/tenant";
 import { distributionProfile } from "@/lib/distribution/profile";
+import { commandCenterOrigin, isCommandCenterHost } from "@/lib/command-center/runtime";
+import { headers } from "next/headers";
 import type { MetadataRoute } from "next";
 
-export default function robots(): MetadataRoute.Robots {
+export const dynamic = "force-dynamic";
+
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  if (commandCenterOrigin && isCommandCenterHost((await headers()).get("host") || "")) {
+    return { rules: { userAgent: "*", disallow: "/" } };
+  }
   if (distributionProfile() === "neutral")
     return {
       rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/admin/", "/demo/"] },

@@ -148,8 +148,8 @@ function LoginForm() {
                 </h1>
                 <p className="admin-copy mb-7 mt-2 text-sm">
                   {resetMode
-                    ? "We'll send a secure recovery link to the admin email."
-                    : "Use the configured admin account to continue."}
+                    ? "We'll send a secure recovery link to your account email."
+                    : "Use your workspace account to continue."}
                 </p>
 
                 <div aria-live="polite">
