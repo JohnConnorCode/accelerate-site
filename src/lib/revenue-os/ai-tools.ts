@@ -3185,6 +3185,17 @@ export async function executeRegisteredRevenueTool(
   return { output, tool };
 }
 
+/** True only when a complete model tool-call batch can run without ordered state changes. */
+const STATEFUL_AI_NAVIGATION_TOOLS = new Set(["discover_tool_bundles", "activate_tool_bundle"]);
+
+export function canRunRevenueAiToolCallsConcurrently(names: readonly string[]): boolean {
+  if (names.length < 2) return false;
+  return names.every((name) => {
+    const tool = registry.find((candidate) => candidate.name === name);
+    return tool?.impact === "read" && !STATEFUL_AI_NAVIGATION_TOOLS.has(name);
+  });
+}
+
 /** Refresh live module state without broadening an explicit caller restriction. */
 export async function refreshRevenueToolContext(context: AiToolContext): Promise<AiToolContext> {
   const tenantId = tenantIdForDatabase(context.supabase);

@@ -16,6 +16,7 @@ import { retrieveAgentMemory } from "./memory";
 import { loadContextPack, contextReceipt } from "./shared-context";
 import {
   AI_TOOL_REGISTRY_VERSION,
+  canRunRevenueAiToolCallsConcurrently,
   executeRegisteredRevenueTool,
   selectRevenueToolPack,
   toActivatedOpenRouterTools,
@@ -317,10 +318,9 @@ export async function runRevenueCommandAgent(
           activeToolBundleId: activeBundleId,
         };
       }
-      for (const use of uses) {
+      const processToolUse = async (use: (typeof uses)[number], toolIndex: number) => {
         const name = use.function.name;
-        const toolIndex = toolNames.length;
-        toolNames.push(name);
+        toolNames[toolIndex] = name;
         options.onToolStarted?.({ name, index: toolIndex });
         let toolInput: Record<string, unknown> = {};
         try {
@@ -360,11 +360,11 @@ export async function runRevenueCommandAgent(
               registry_version: AI_TOOL_REGISTRY_VERSION,
             },
           });
-          transcript.push({
+          const reply: OpenRouterMessage = {
             role: "tool",
             tool_call_id: use.id,
             content: boundToolResult(name, output),
-          });
+          };
           options.onToolCompleted?.({
             name,
             index: toolIndex,
@@ -376,6 +376,7 @@ export async function runRevenueCommandAgent(
             stagedToolNames.add(name);
             options.onProposalStaged?.(proposal);
           }
+          return reply;
         } catch (error) {
           const message = error instanceof Error ? error.message : "Tool failed";
           await recordAgentRunEvent(supabase, run, {
@@ -384,19 +385,29 @@ export async function runRevenueCommandAgent(
             input: traceValue(toolInput),
             output: { error: message.slice(0, 500), registry_version: AI_TOOL_REGISTRY_VERSION },
           });
-          transcript.push({
+          const reply: OpenRouterMessage = {
             role: "tool",
             tool_call_id: use.id,
             content: JSON.stringify({ error: message }),
-          });
+          };
           options.onToolCompleted?.({
             name,
             index: toolIndex,
             summary: message.slice(0, 180),
             failed: true,
           });
+          return reply;
         }
-      }
+      };
+      const firstToolIndex = toolNames.length;
+      const toolResults = canRunRevenueAiToolCallsConcurrently(uses.map((use) => use.function.name))
+        ? await Promise.all(uses.map((use, index) => processToolUse(use, firstToolIndex + index)))
+        : await (async () => {
+            const results: OpenRouterMessage[] = [];
+            for (const use of uses) results.push(await processToolUse(use, toolNames.length));
+            return results;
+          })();
+      transcript.push(...toolResults);
     }
     // Turn exhaustion used to throw: the founder lost the whole answer, the run
     // was marked failed, and any propose_* actions staged on earlier turns

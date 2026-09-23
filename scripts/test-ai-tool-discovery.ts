@@ -7,6 +7,7 @@ import {
 import { REVENUE_OS_MODULES } from "../src/lib/revenue-os/modules";
 import {
   availableRevenueToolBundles,
+  canRunRevenueAiToolCallsConcurrently,
   getRevenueAiTools,
   toActivatedOpenRouterTools,
   executeRegisteredRevenueTool,
@@ -15,6 +16,19 @@ import { createAdminConfigurationFixture } from "./lib/admin-configuration-fixtu
 import { handleMcpRequest } from "../src/lib/revenue-os/mcp-server";
 
 async function main() {
+  assert.equal(
+    canRunRevenueAiToolCallsConcurrently(["get_today_snapshot", "search_contacts"]),
+    true,
+  );
+  assert.equal(
+    canRunRevenueAiToolCallsConcurrently(["get_today_snapshot", "propose_founder_note"]),
+    false,
+  );
+  assert.equal(
+    canRunRevenueAiToolCallsConcurrently(["discover_tool_bundles", "search_contacts"]),
+    false,
+  );
+  assert.equal(canRunRevenueAiToolCallsConcurrently(["unknown_tool", "search_contacts"]), false);
   const actual = buildToolBundles(REVENUE_OS_MODULES, getRevenueAiTools());
   const reached = new Set(actual.flatMap((bundle) => bundle.toolNames));
   assert.equal(reached.size, getRevenueAiTools().length);

@@ -27,11 +27,14 @@ process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 type Row = Record<string, unknown>;
 type Sent = {
   tools: Array<{ function: { name: string } }>;
-  messages: Array<{ role: string; content?: string }>;
+  messages: Array<{ role: string; content?: string; tool_call_id?: string }>;
 };
 
 const realFetch = globalThis.fetch;
 let sent: Sent[] = [];
+let measureToolQueries = false;
+let concurrentToolQueries = 0;
+let peakConcurrentToolQueries = 0;
 
 /** Reply the stub gives on each turn: a tool call, or a final answer. */
 function toolCallTurn(index: number) {
@@ -62,6 +65,9 @@ function stubOpenRouter(reply: (turn: number) => unknown) {
   globalThis.fetch = (async (_url: string, init: RequestInit) => {
     sent.push(JSON.parse(String(init.body)) as Sent);
     const body = reply(turn);
+    const toolCalls = (body as { choices?: Array<{ message?: { tool_calls?: unknown[] } }> })
+      .choices?.[0]?.message?.tool_calls;
+    measureToolQueries = Boolean(toolCalls?.length);
     turn += 1;
     return {
       ok: true,
@@ -143,7 +149,14 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
         return self;
       };
     }
-    self.then = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
+    self.then = async (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
+      const isRead = !pending;
+      if (measureToolQueries && isRead) {
+        concurrentToolQueries += 1;
+        peakConcurrentToolQueries = Math.max(peakConcurrentToolQueries, concurrentToolQueries);
+        await new Promise((done) => setTimeout(done, 5));
+        concurrentToolQueries -= 1;
+      }
       const rows = seededTables[table] ?? [];
       return resolve(
         pending
@@ -173,6 +186,63 @@ function systemPrompt(request: Sent): string {
 }
 
 async function main() {
+  // Independent read-only tool calls share a model turn and should not pay
+  // their database latency one at a time. Results still return in call order.
+  sent = [];
+  peakConcurrentToolQueries = 0;
+  stubOpenRouter((turn) =>
+    turn === 0
+      ? {
+          id: "parallel-reads",
+          model: "stub/model",
+          choices: [
+            {
+              message: {
+                role: "assistant",
+                tool_calls: [
+                  {
+                    id: "read-one",
+                    type: "function",
+                    function: { name: "get_today_snapshot", arguments: "{}" },
+                  },
+                  {
+                    id: "read-two",
+                    type: "function",
+                    function: {
+                      name: "search_contacts",
+                      arguments: JSON.stringify({ query: "sample" }),
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }
+      : {
+          id: "parallel-reads-final",
+          model: "stub/model",
+          choices: [
+            {
+              message: {
+                role: "assistant",
+                content:
+                  "Facts\nNo verified facts are available.\nInferences\nNone.\nMissing information\nNo current record matched.\nRecommended next steps\nAsk with a specific record name.",
+              },
+            },
+          ],
+        },
+  );
+  await runAgent(stubSupabase().client);
+  assert.ok(
+    peakConcurrentToolQueries > 1,
+    "independent read tools should overlap database latency",
+  );
+  const readReplies = sent[1]!.messages.filter((message) => message.role === "tool");
+  assert.deepEqual(
+    readReplies.map((message) => message.tool_call_id),
+    ["read-one", "read-two"],
+  );
+
   // ---- The agent must be told the current date ---------------------------
 
   sent = [];
