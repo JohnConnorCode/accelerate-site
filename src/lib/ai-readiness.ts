@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const AI_READINESS_VERSION = "2026-09-v2";
+export const AI_READINESS_VERSION = "2026-09-v3";
 
 export const readinessDimensions = [
   {
@@ -264,6 +264,7 @@ export type WebsiteAuditFinding = {
   title: string;
   detail: string;
   action: string;
+  page?: string;
 };
 
 export type WebsiteAuditCategory = {
@@ -283,6 +284,13 @@ export type WebsiteAudit = {
   summary: string;
   categories: WebsiteAuditCategory[];
   findings: WebsiteAuditFinding[];
+  pages?: Array<{
+    url: string;
+    status: "completed" | "unreachable" | "blocked" | "too_large";
+    statusCode?: number;
+    title?: string;
+    score: number | null;
+  }>;
   note: string;
 };
 
@@ -375,12 +383,19 @@ export type DimensionScore = {
   description: string;
 };
 
+export type ReadinessEvidence = {
+  dimension: string;
+  question: string;
+  answer: string;
+};
+
 export type ReadinessReport = {
   version: string;
   score: number | null;
   scoreLabel: string;
   coverage: number;
   dimensionScores: DimensionScore[];
+  evidence: ReadinessEvidence[];
   recommendations: Array<(typeof recommendationCatalog)[RecommendationKey]>;
   strongestDimension: string | null;
   focusDimension: string | null;
@@ -445,6 +460,27 @@ export function calculateReadiness(
       : null;
   const strongest = validScores.slice().sort((a, b) => b.score - a.score)[0] ?? null;
   const focus = validScores.slice().sort((a, b) => a.score - b.score)[0] ?? null;
+  const evidenceDimension =
+    (focus && dimensionScores.find((dimension) => dimension.key === focus.key)) ??
+    dimensionScores.find((dimension) => dimension.score === null) ??
+    dimensionScores[0];
+  const evidence = evidenceDimension
+    ? readinessQuestions
+        .filter((question) => question.dimension === evidenceDimension.key)
+        .flatMap((question) => {
+          const answer = question.options.find((option) => option.value === answers[question.id]);
+          return answer
+            ? [
+                {
+                  dimension: evidenceDimension.label,
+                  question: question.prompt,
+                  answer: answer.label,
+                },
+              ]
+            : [];
+        })
+        .slice(0, 3)
+    : [];
   const recKey: RecommendationKey =
     profile.bottleneck === "unknown"
       ? focus?.key === "process"
@@ -474,26 +510,27 @@ export function calculateReadiness(
   };
   const actionPlan = [
     {
-      week: "Week 1",
-      title: "Choose one workflow",
-      detail: `Map the current steps for ${primary.title.toLowerCase()}, including where information is lost and where a person must decide.`,
+      week: "Days 1–30",
+      title: "Choose a workflow and baseline",
+      detail: `Map the current steps for ${primary.title.toLowerCase()}. Name an owner, confirm the source data, and record the current state for ${primary.metric.toLowerCase()} before setting a target.`,
     },
     {
-      week: "Week 2",
-      title: "Set the baseline",
-      detail: `Record the current state for ${primary.metric.toLowerCase()} and confirm the owner, source data, and review boundary.`,
-    },
-    {
-      week: "Week 3",
-      title: "Run a small pilot",
+      week: "Days 31–60",
+      title: "Run a limited pilot",
       detail:
-        "Use a limited set of real cases, review every exception, and record what the workflow got wrong or missed.",
+        "Test the mapped workflow on a small set of real cases. Keep a person in the review loop, log exceptions, and compare results with the baseline.",
     },
     {
-      week: "Week 4",
-      title: "Decide what to improve",
+      week: "Days 61–90",
+      title: "Review evidence and improve",
       detail:
-        "Compare the baseline, team feedback, and exception log. Expand only what is useful and safe.",
+        "Compare the pilot with the baseline. Review misses, team feedback, and operating impact before changing the workflow or expanding access.",
+    },
+    {
+      week: "Ongoing",
+      title: "Expand only what works",
+      detail:
+        "Keep an owner, review boundary, and measure. Expand only when results are useful, repeatable, and safe; pause when evidence is unclear.",
     },
   ];
   return {
@@ -502,6 +539,7 @@ export function calculateReadiness(
     scoreLabel: label,
     coverage,
     dimensionScores,
+    evidence,
     recommendations,
     strongestDimension: strongest?.label ?? null,
     focusDimension: focus?.label ?? null,
@@ -520,6 +558,7 @@ export function publicPreview(report: ReadinessReport) {
     scoreLabel: report.scoreLabel,
     coverage: report.coverage,
     dimensionScores: report.dimensionScores,
+    evidence: report.evidence,
     strongestDimension: report.strongestDimension,
     focusDimension: report.focusDimension,
     summary: report.summary,

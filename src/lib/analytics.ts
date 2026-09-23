@@ -122,6 +122,10 @@ function safeEventName(name: string) {
   );
 }
 
+export function normalizeAnalyticsPath(path: string) {
+  return path.startsWith("/ai-readiness/report/") ? "/ai-readiness/report/[token]" : path;
+}
+
 function sendFirstPartyEvent(
   name: string,
   props?: Record<string, string | number>,
@@ -152,7 +156,7 @@ function sendFirstPartyEvent(
     eventId: crypto.randomUUID(),
     visitorId: visitorId(),
     name: safeEventName(name),
-    path: window.location.pathname,
+    path: normalizeAnalyticsPath(window.location.pathname),
     referrerHost,
     attribution,
     properties,

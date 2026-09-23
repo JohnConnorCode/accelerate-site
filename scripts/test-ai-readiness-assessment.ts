@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
-import { calculateReadiness, readinessQuestions } from "../src/lib/ai-readiness";
+import { calculateReadiness, publicPreview, readinessQuestions } from "../src/lib/ai-readiness";
 import { createAIReadinessPdf } from "../src/lib/ai-readiness-pdf";
-import { auditWebsite, privateAddress } from "../src/lib/ai-readiness-website";
+import { summarizeAIReadinessEvents } from "../src/lib/ai-readiness-analytics";
+import type { WebsiteAudit } from "../src/lib/ai-readiness";
+import { normalizeAnalyticsPath } from "../src/lib/analytics";
+import {
+  auditWebsite,
+  combinePageAudits,
+  discoverInternalPages,
+  privateAddress,
+} from "../src/lib/ai-readiness-website";
 
 const profile = {
   businessType: "professional services",
@@ -20,6 +28,83 @@ const strongReport = calculateReadiness(allStrong, profile);
 assert.equal(strongReport.score, 100);
 assert.equal(strongReport.coverage, 100);
 assert.equal(strongReport.recommendations[0]?.key, "admin");
+assert.equal(strongReport.evidence.length, 3);
+assert.equal(publicPreview(strongReport).evidence.length, 3);
+assert.deepEqual(
+  strongReport.actionPlan.map((step) => step.week),
+  ["Days 1–30", "Days 31–60", "Days 61–90", "Ongoing"],
+);
+const eventSummary = summarizeAIReadinessEvents([
+  { visitor_id: "visitor-a", event_name: "ai_readiness_began", properties: null },
+  { visitor_id: "visitor-a", event_name: "ai_readiness_began", properties: null },
+  {
+    visitor_id: "visitor-a",
+    event_name: "ai_readiness_step_viewed",
+    properties: { step: "profile" },
+  },
+  {
+    visitor_id: "visitor-a",
+    event_name: "ai_readiness_step_viewed",
+    properties: { step: "assessment", question_number: 1, answer: "ignored" },
+  },
+  {
+    visitor_id: "visitor-b",
+    event_name: "ai_readiness_step_viewed",
+    properties: { step: "assessment", question_number: 1 },
+  },
+  { visitor_id: "visitor-b", event_name: "ai_readiness_pdf_downloaded", properties: null },
+]);
+assert.equal(eventSummary.starts, 1);
+assert.deepEqual(eventSummary.stepViews, [
+  { label: "profile", value: 1 },
+  { label: "assessment", value: 2 },
+]);
+assert.deepEqual(eventSummary.questionViews, [{ label: "Question 1", value: 2 }]);
+assert.equal(eventSummary.pdfDownloads, 1);
+assert.equal(
+  normalizeAnalyticsPath("/ai-readiness/report/long-private-report-token"),
+  "/ai-readiness/report/[token]",
+);
+const pageAudit = (
+  url: string,
+  status: WebsiteAudit["status"],
+  score: number | null,
+  categoryScore: number,
+): WebsiteAudit => ({
+  url,
+  finalUrl: url,
+  checkedAt: "2026-09-23T00:00:00.000Z",
+  status,
+  score,
+  summary: "Visible HTML surface signals.",
+  categories: [
+    { key: "seo", label: "Search foundations", score: categoryScore, summary: "Title signal." },
+  ],
+  findings: [
+    {
+      severity: "priority",
+      category: "SEO",
+      title: "Add a description",
+      detail: "No description was found.",
+      action: "Add a specific description.",
+    },
+  ],
+  pages: [{ url, status, score }],
+  note: "Bounded HTML review.",
+});
+const combinedSiteAudit = combinePageAudits(
+  pageAudit("https://example.com/", "completed", 80, 80),
+  [
+    pageAudit("https://example.com/services", "completed", 40, 40),
+    pageAudit("https://example.com/contact", "unreachable", null, 0),
+  ],
+);
+assert.equal(combinedSiteAudit.score, 60);
+assert.equal(combinedSiteAudit.categories[0]?.score, 60);
+assert.equal(combinedSiteAudit.pages?.length, 3);
+assert.match(combinedSiteAudit.findings[0]?.page || "", /\/.*, \/services/);
+assert.match(combinedSiteAudit.findings[0]?.detail || "", /services/);
+assert.match(combinedSiteAudit.note, /unavailable or blocked/);
 
 const incomplete = {
   ...allStrong,
@@ -47,11 +132,30 @@ const websitePdf = createAIReadinessPdf({
     score: 80,
     summary: "The homepage scored 80/100 on visible foundations.",
     categories: [{ key: "seo", label: "Search foundations", score: 80, summary: "Title found." }],
+    pages: [
+      {
+        url: "https://example.com/about",
+        title: "About Example",
+        status: "completed",
+        statusCode: 200,
+        score: 80,
+      },
+    ],
     findings: [],
     note: "Surface audit only.",
   },
 });
 assert.ok(websitePdf.includes(Buffer.from("Website snapshot")));
+assert.ok(websitePdf.includes(Buffer.from("Evidence from your answers")));
+assert.ok(websitePdf.includes(Buffer.from("Days 1-30")));
+
+assert.deepEqual(
+  discoverInternalPages(
+    '<a href="/random">Random</a><a href="/about">About</a><a href="/services">Services</a><a href="/contact?utm_source=test">Contact</a><a href="https://other.example/page">External</a><a href="/brochure.pdf">PDF</a>',
+    new URL("https://example.com/"),
+  ).map((value) => new URL(value).pathname),
+  ["/about", "/services", "/contact"],
+);
 
 console.log(
   "AI readiness scoring, unknown-answer handling, recommendation selection and PDF output passed.",

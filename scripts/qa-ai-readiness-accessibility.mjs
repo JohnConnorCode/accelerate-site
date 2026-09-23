@@ -43,13 +43,15 @@ try {
     });
     const page = await context.newPage();
     const errors = [];
+    const analyticsEvents = [];
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => {
       if (message.type() === "error") errors.push(message.text());
     });
-    await page.route("**/api/analytics/events", (route) =>
-      route.fulfill({ status: 204, body: "" }),
-    );
+    await page.route("**/api/analytics/events", async (route) => {
+      analyticsEvents.push(route.request().postDataJSON());
+      await route.fulfill({ status: 204, body: "" });
+    });
     await page.route("**/api/ai-readiness", async (route) => {
       const request = route.request().postDataJSON();
       await route.fulfill({
@@ -205,6 +207,28 @@ try {
     );
     const reportAxe = await new AxeBuilder({ page }).analyze();
     assert.deepEqual(reportAxe.violations, [], `${width}px report has no axe violations`);
+    await page.getByText("90-day action plan", { exact: false }).waitFor();
+    await page.waitForLoadState("networkidle");
+    if (analyticsEvents.length) {
+      assert.equal(
+        analyticsEvents.filter((event) => event.name === "ai_readiness_began").length,
+        1,
+        "start analytics fires only after the visitor starts the assessment",
+      );
+      assert.ok(
+        analyticsEvents.some((event) => event.name === "ai_readiness_step_viewed"),
+        "step views are recorded",
+      );
+      assert.ok(
+        analyticsEvents
+          .filter((event) => event.name === "ai_readiness_question_answered")
+          .every(
+            (event) =>
+              !Object.keys(event.properties || {}).some((key) => /answer|value/i.test(key)),
+          ),
+        "analytics records question IDs without selected answer values",
+      );
+    }
     if (process.env.AI_READINESS_QA_SCREENSHOTS === "1") {
       await page.screenshot({ path: `/tmp/ai-readiness-${width}-report.png` });
     }
@@ -215,7 +239,12 @@ try {
     }));
     assert.equal(dimensions.documentWidth, dimensions.width, `${width}px page has no overflow`);
     assert.deepEqual(errors, [], `${width}px flow has no browser errors`);
-    results.push({ width, questionCount: readinessQuestions.length, dimensions });
+    results.push({
+      width,
+      questionCount: readinessQuestions.length,
+      analyticsEventCount: analyticsEvents.length,
+      dimensions,
+    });
     await context.close();
   }
 } finally {
