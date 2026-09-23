@@ -38,7 +38,7 @@
     "src/app/admin/invoicing/page.tsx": "47c4ec0ddd509e7631abd0dac7d363a0129df8a67568ca2a74051b6293c1a903",
     "src/app/admin/leads/page.tsx": "6bc4b71a8835b96c5a98508fbcd50d6d27489447de9ec648378a91354935549d",
     "src/app/admin/learning/page.tsx": "5353ba86822567bd7756e262889bce288c87c6e8b3888eafa70b24dfa9fa22da",
-    "src/app/admin/login/page.tsx": "fa7e5de0d7377c6d493bb68e6e2f8236b796aacaecc1c22d86ef2eb3c8089237",
+    "src/app/admin/login/page.tsx": "75fd67cfe7939927a8434b79225ae5c1c92937d5b559941813ff378cdaaafb22",
     "src/app/admin/meeting-commitments/page.tsx": "8321baededd9c74b3f742cfdefbe5dacb221c79f153ad78293d07690dfb12174",
     "src/app/admin/page.tsx": "98c79d9db2288115c77c549e3ab5c391cecae1f0db649d2c3a3b84764203bed3",
     "src/app/admin/partners/page.tsx": "f8f10cdafdf18f44f63b50e1b5e92af4002cad7d3ee79e2efc28ef10d784d8cc",
@@ -66,7 +66,7 @@
     "src/app/admin/subscriptions/page.tsx": "2481e5305a579d5b133dcbece39836a69d5d73c04692d79aeb4e9e9ad081ec99",
     "src/app/admin/tenants/page.tsx": "b80ccf7b64c9b909ec879ef90e6d440aa2ec53690a25fcbb8a777327412e0f77",
     "src/app/admin/today/page.tsx": "cbbba1645450b9ecc3bce1771bd06029306e62c33025bff07d5b7b1a30d13a4c",
-    "src/app/admin/update-password/page.tsx": "a3c4ec821033acc0efe1dbb6929843e49bcd6720c6534def104e5e10072b7109",
+    "src/app/admin/update-password/page.tsx": "e62f24ee8b4843f033eb5b4d28f6ed4141765990678e88fde91799f7b35a8274",
     "src/app/admin/website-grades/page.tsx": "81e08a663b69ba64ae3f123857d3558dc7e71b8c562161f3df6df2f1c1765639",
     "src/app/admin/work/page.tsx": "4ca619107e1bbbc0e3347a0d750730dba65ee854e8aa1cb2850b744d3ba71cfc",
     "src/app/api/admin/activity/route.ts": "e60e1e665e017301187159476c84b36def2506c69a49db031e1653c4be79c68f",
@@ -171,7 +171,7 @@
     "src/components/admin/AdminAIWorkspace.tsx": "cb613eda4a0de12c4247dd2389123be574fdb7f162da6cdd336ee4c38d5e2f06",
     "src/components/admin/AdminAppearancePicker.tsx": "2f999424ec4d1262c3a7fc555f12be18664fdebdfe47eae51a21fddcb90a09c6",
     "src/components/admin/AdminAsyncRegion.tsx": "99be3bc487e69c11e5159e61b525e3500e81399a8344eb3f6cc1cea812fd0e4b",
-    "src/components/admin/AdminAuthLayout.tsx": "1d46d5120e37e5389e4041a8a1f8d65eedb04ea1d9f4d83498a8dd3301d0b88c",
+    "src/components/admin/AdminAuthLayout.tsx": "4960eebdfb274d279e61f9bf86eb9990bfb98e00f5daa42c4f852fc3694f4fdd",
     "src/components/admin/AdminButton.tsx": "d31ec6fd7aa2d9778b08d5c5ebf14afee9ce0a3abf72edc1dbe858aa162d320d",
     "src/components/admin/AdminConfirmationProvider.tsx": "c194e2b52066576006d44b7a7401c0e81f0ba34ac7fd1023a0a35bab2e59cb35",
     "src/components/admin/AdminCreateTaskModal.tsx": "f8c573364f9088abaaf88c782fb4f5217632fdf1950ed07a887597a30015e13f",
@@ -1205,7 +1205,7 @@
     {
       "route": "/admin/login",
       "page": "src/app/admin/login/page.tsx",
-      "primaryAction": "Sign in or request a password reset",
+      "primaryAction": "Sign in with email or configured Google OAuth, or request a password reset",
       "adapters": [
         {
           "path": "src/app/api/admin/login/route.ts",
@@ -1218,7 +1218,7 @@
           "directTables": ["tenant_memberships"]
         }
       ],
-      "boundary": "Authentication boundary for authorized workspace members; no business record reconciliation applies. Missing, placeholder or malformed public database configuration shows setup on direct and redirected visits, with public-site documentation and fictional demo links. Login and password-reset APIs return 503 before provider calls until public configuration is valid. Configured requests retain existing rate limits and membership checks. These links grant no authentication or workspace access.",
+      "boundary": "Authentication boundary for authorized workspace members; no business record reconciliation applies. Missing, placeholder or malformed public database configuration shows setup on direct and redirected visits, with public-site documentation and fictional demo links. Login and password-reset APIs return 503 before provider calls until public configuration is valid. Google OAuth appears only when Supabase reports that provider enabled; its PKCE callback sets the session, while existing workspace membership checks still determine access. Configured email requests retain existing rate limits and membership checks. Public links grant no authentication or workspace access.",
       "followUp": null,
       "specialBoundary": null
     },

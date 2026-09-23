@@ -138,6 +138,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // If code exchange failed, redirect to login with error
-  return NextResponse.redirect(new URL("/admin/login?error=reset_failed", origin));
+  // Keep OAuth failures distinct from expired password-recovery links.
+  const error = searchParams.get("flow") === "google" ? "google_failed" : "reset_failed";
+  return NextResponse.redirect(new URL(`/admin/login?error=${error}`, origin));
 }

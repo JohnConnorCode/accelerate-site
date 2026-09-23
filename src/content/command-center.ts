@@ -512,7 +512,7 @@ export const capabilities: Capability[] = [
     title: "Workspace and record access",
     promise: "Keep business data behind active membership, roles and record permissions.",
     detail:
-      "The runtime rechecks access for supported operations. Review your workspace’s configured permissions instead of assuming a job title automatically grants or hides particular screens.",
+      "The runtime rechecks access for supported operations. An installation can offer Google sign-in alongside email, while active membership still controls workspace access. Review your workspace’s configured permissions instead of assuming a job title automatically grants or hides particular screens.",
   },
   {
     id: "health",

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-center-sign-in-clarity",
+    slug: "command-center-sign-in-clarity",
+    title: "A clearer Command Center sign-in",
+    description:
+      "The sign-in and password-recovery screens now use one focused layout. Installations that enable Google in Supabase Auth can offer Google sign-in beside email and password; workspace membership still controls access. The Google option stays hidden while the provider is disabled.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
     id: "command-center-app-auth-routing",
     slug: "command-center-app-auth-routing",
     title: "Account links return to the Command Center app address",

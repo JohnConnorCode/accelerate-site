@@ -1,6 +1,5 @@
 "use client";
 
-import { tenant } from "@/config/tenant";
 import { useState } from "react";
 import { LockKeyhole } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -45,25 +44,13 @@ export default function UpdatePasswordPage() {
   };
 
   return (
-    <AdminAuthLayout
-      eyebrow="Account recovery"
-      title="Set a new password."
-      copy="Choose a new password for the configured admin account, then continue into operations."
-    >
+    <AdminAuthLayout>
       <div className="w-full max-w-md">
-        <div className="mb-7 lg:hidden">
-          <p className="font-display text-lg font-semibold tracking-[-0.03em]">
-            {tenant.brand.name}
-          </p>
-          <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--admin-muted)]">
-            Private operations
-          </p>
-        </div>
-        <AdminSurface padding="lg" className="admin-dialog-surface">
+        <AdminSurface padding="lg">
           <div className="admin-action-mark mb-7">
             <LockKeyhole className="h-4.5 w-4.5" />
           </div>
-          <p className="admin-eyebrow">Secure access</p>
+          <p className="admin-eyebrow">Account recovery</p>
           <h1 className="admin-page-title text-[2rem]">Set a new password</h1>
           <p className="admin-copy mb-7 mt-2 text-sm">
             Use at least eight characters, then confirm it to continue.
@@ -71,10 +58,14 @@ export default function UpdatePasswordPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
+              <label
+                htmlFor="new-password"
+                className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5"
+              >
                 New password
               </label>
               <input
+                id="new-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -86,10 +77,14 @@ export default function UpdatePasswordPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5">
+              <label
+                htmlFor="confirm-password"
+                className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5"
+              >
                 Confirm password
               </label>
               <input
+                id="confirm-password"
                 type="password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}

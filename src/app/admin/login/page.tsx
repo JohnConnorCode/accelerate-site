@@ -1,13 +1,12 @@
 "use client";
 
 import { isSupabasePublicConfigured } from "@/lib/supabase/configuration.mjs";
-import { tenant } from "@/config/tenant";
-import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
-import { Suspense } from "react";
-import { MotionConfig, motion } from "framer-motion";
-import { ArrowRight, LockKeyhole } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 import { AdminAuthLayout } from "@/components/admin/AdminAuthLayout";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 
@@ -18,16 +17,60 @@ function LoginForm() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
   const searchParams = useSearchParams();
   const rawRedirect = searchParams.get("redirect") || "/admin";
   const redirect =
-    rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/admin";
+    rawRedirect.startsWith("/") &&
+    !rawRedirect.startsWith("//") &&
+    !rawRedirect.includes("\\") &&
+    !/[\r\n]/.test(rawRedirect)
+      ? rawRedirect
+      : "/admin";
   const resetFailed = searchParams.get("error") === "reset_failed";
+  const googleFailed = searchParams.get("error") === "google_failed";
   const notConfigured =
     !isSupabasePublicConfigured(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     ) || searchParams.get("error") === "not_configured";
+
+  useEffect(() => {
+    if (notConfigured) return;
+    const controller = new AbortController();
+    fetch(new URL("/auth/v1/settings", process.env.NEXT_PUBLIC_SUPABASE_URL), {
+      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
+      signal: controller.signal,
+      cache: "no-store",
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((settings: { external?: { google?: boolean } } | null) => {
+        if (!controller.signal.aborted) setGoogleEnabled(settings?.external?.google === true);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setGoogleEnabled(false);
+      });
+    return () => controller.abort();
+  }, [notConfigured]);
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError("");
+    const callback = new URL("/auth/callback", window.location.origin);
+    callback.searchParams.set("next", redirect === "/admin" ? "/workspace" : redirect);
+    callback.searchParams.set("flow", "google");
+    try {
+      const { error } = await createClient().auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: callback.toString() },
+      });
+      if (!error) return;
+    } catch {
+      // Keep provider details out of the browser error message.
+    }
+    setError("Google sign-in is unavailable. Try again or use email and password.");
+    setLoading(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,141 +134,147 @@ function LoginForm() {
   };
 
   return (
-    <MotionConfig reducedMotion="user">
-      <AdminAuthLayout>
-        <motion.div
-          className="w-full max-w-md"
-          initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="mb-7 lg:hidden">
-            <p className="font-display text-lg font-semibold tracking-[-0.03em]">
-              {tenant.brand.name}
-            </p>
-            <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--admin-muted)]">
-              Private operations
-            </p>
-          </div>
-          <AdminSurface padding="lg" className="admin-dialog-surface">
-            <div className="admin-action-mark mb-7">
-              <LockKeyhole className="h-4.5 w-4.5" />
-            </div>
-            {notConfigured ? (
-              <>
-                <p className="admin-eyebrow">Setup needed</p>
-                <h1 className="admin-page-title text-[2rem]">Connect your Supabase project</h1>
-                <p className="admin-copy mb-2 mt-2 text-sm">
-                  This deployment isn&apos;t connected to a Supabase project yet, so there is no
-                  admin account to sign in with.
-                </p>
-                <p className="admin-copy mb-7 text-sm">
-                  The installation guide walks you through connecting your own database and creating
-                  the first owner account. You can explore the fictional demo while you set up; its
-                  changes stay in your browser and do not contact real customers.
-                </p>
-                <div className="grid gap-3">
-                  <Link
-                    href="/docs/self-hosting/installation"
-                    className="admin-action-control min-h-11 w-full px-4"
-                  >
-                    Open the installation guide{" "}
-                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Link>
-                  <Link
-                    href="/demo/command-center"
-                    className="admin-secondary-control min-h-11 w-full px-4"
-                  >
-                    Explore the fictional demo
-                  </Link>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="admin-eyebrow">Secure access</p>
-                <h1 className="admin-page-title text-[2rem]">
-                  {resetMode ? "Reset your password" : "Sign in to operations"}
-                </h1>
-                <p className="admin-copy mb-7 mt-2 text-sm">
-                  {resetMode
-                    ? "We'll send a secure recovery link to your account email."
-                    : "Use your workspace account to continue."}
-                </p>
+    <AdminAuthLayout>
+      <div className="w-full max-w-md">
+        <AdminSurface padding="lg">
+          {notConfigured ? (
+            <>
+              <p className="admin-eyebrow">Setup needed</p>
+              <h1 className="admin-page-title text-[2rem]">Connect your Supabase project</h1>
+              <p className="admin-copy mb-2 mt-2 text-sm">
+                This deployment isn&apos;t connected to a Supabase project yet, so there is no admin
+                account to sign in with.
+              </p>
+              <p className="admin-copy mb-7 text-sm">
+                The installation guide walks you through connecting your own database and creating
+                the first owner account. You can explore the fictional demo while you set up; its
+                changes stay in your browser and do not contact real customers.
+              </p>
+              <div className="grid gap-3">
+                <Link
+                  href="/docs/self-hosting/installation"
+                  className="admin-action-control min-h-11 w-full px-4"
+                >
+                  Open the installation guide{" "}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+                <Link
+                  href="/demo/command-center"
+                  className="admin-secondary-control min-h-11 w-full px-4"
+                >
+                  Explore the fictional demo
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="admin-eyebrow">Your workspace</p>
+              <h1 className="admin-page-title text-[2rem] text-balance">
+                {resetMode ? "Reset your password" : "Sign in to Command Center"}
+              </h1>
+              <p className="admin-copy mb-7 mt-2 text-sm">
+                {resetMode
+                  ? "We'll send a secure recovery link to your account email."
+                  : googleEnabled
+                    ? "Continue with Google or your workspace email."
+                    : "Use your workspace email to continue."}
+              </p>
 
-                <div aria-live="polite">
-                  {searchParams.get("notice") === "local-data-retained" && (
-                    <p className="mb-4 text-sm text-[var(--admin-muted)]" role="status">
-                      You are signed out. This browser could not confirm that local drafts were
-                      cleared. Before sharing this device, clear this website’s data in your browser
-                      settings.
+              <div aria-live="polite">
+                {searchParams.get("notice") === "local-data-retained" && (
+                  <p className="mb-4 text-sm text-[var(--admin-muted)]" role="status">
+                    You are signed out. This browser could not confirm that local drafts were
+                    cleared. Before sharing this device, clear this website’s data in your browser
+                    settings.
+                  </p>
+                )}
+                {resetMode && resetFailed && !error && !success && (
+                  <p className="text-sm text-error mb-4" role="alert">
+                    Password reset link expired or was invalid. Please try again.
+                  </p>
+                )}
+                {!resetMode && googleFailed && !error && (
+                  <p className="text-sm text-error mb-4" role="alert">
+                    Google sign-in could not finish. Try again or use email and password.
+                  </p>
+                )}
+              </div>
+
+              {resetMode ? (
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="reset-email"
+                      className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5"
+                    >
+                      Email
+                    </label>
+                    <input
+                      id="reset-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                      className="admin-field min-h-11"
+                    />
+                  </div>
+
+                  {error && (
+                    <p className="text-sm text-error" role="alert">
+                      {error}
                     </p>
                   )}
-                  {resetFailed && !error && !success && (
-                    <p className="text-sm text-error mb-4" role="alert">
-                      Password reset link expired or was invalid. Please try again.
+                  {success && (
+                    <p className="text-sm text-[var(--admin-ink)]" role="status">
+                      {success}
                     </p>
                   )}
-                </div>
 
-                {resetMode ? (
-                  <form onSubmit={handleResetPassword} className="space-y-4">
-                    <div>
-                      <label
-                        htmlFor="reset-email"
-                        className="block text-xs font-medium text-[var(--admin-muted)] mb-1.5"
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="admin-action-control w-full cursor-pointer px-4"
+                  >
+                    {loading ? (
+                      "Sending…"
+                    ) : (
+                      <>
+                        Send reset link <ArrowRight className="h-3.5 w-3.5" />
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetMode(false);
+                      setError("");
+                      setSuccess("");
+                    }}
+                    className="min-h-10 w-full cursor-pointer text-sm text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
+                  >
+                    Back to sign in
+                  </button>
+                </form>
+              ) : (
+                <div>
+                  {googleEnabled && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleGoogleSignIn}
+                        disabled={loading}
+                        className="admin-secondary-control min-h-11 w-full cursor-pointer px-4"
                       >
-                        Email
-                      </label>
-                      <input
-                        id="reset-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        autoComplete="email"
-                        className="admin-field min-h-11"
-                        placeholder={tenant.founder.email}
-                      />
-                    </div>
-
-                    {error && (
-                      <p className="text-sm text-error" role="alert">
-                        {error}
+                        <Image src="/images/logos/google.svg" alt="" width={18} height={18} />
+                        Continue with Google
+                      </button>
+                      <p className="my-5 text-center text-xs text-[var(--admin-muted)]">
+                        or use your email
                       </p>
-                    )}
-                    {success && (
-                      <p className="text-sm text-[var(--admin-ink)]" role="status">
-                        {success}
-                      </p>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="admin-action-control w-full cursor-pointer px-4"
-                    >
-                      {loading ? (
-                        "Sending…"
-                      ) : (
-                        <>
-                          Send reset link <ArrowRight className="h-3.5 w-3.5" />
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setResetMode(false);
-                        setError("");
-                        setSuccess("");
-                      }}
-                      className="min-h-10 w-full cursor-pointer text-sm text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
-                    >
-                      Back to sign in
-                    </button>
-                  </form>
-                ) : (
+                    </>
+                  )}
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label
@@ -242,7 +291,6 @@ function LoginForm() {
                         required
                         autoComplete="email"
                         className="admin-field min-h-11"
-                        placeholder={tenant.founder.email}
                       />
                     </div>
                     <div>
@@ -271,40 +319,30 @@ function LoginForm() {
                     )}
 
                     <button
-                      type="submit"
-                      disabled={loading}
-                      className="admin-action-control w-full cursor-pointer px-4"
-                    >
-                      {loading ? (
-                        "Signing in…"
-                      ) : (
-                        <>
-                          Enter Command Center <ArrowRight className="h-3.5 w-3.5" />
-                        </>
-                      )}
-                    </button>
-
-                    <button
                       type="button"
                       onClick={() => {
                         setResetMode(true);
                         setError("");
                       }}
-                      className="min-h-10 w-full cursor-pointer text-sm text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
+                      className="ml-auto block min-h-10 cursor-pointer text-sm text-[var(--admin-muted)] transition-colors hover:text-[var(--admin-ink)]"
                     >
                       Forgot password?
                     </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="admin-action-control w-full cursor-pointer px-4"
+                    >
+                      {loading ? "Signing in…" : "Sign in"}
+                    </button>
                   </form>
-                )}
-              </>
-            )}
-          </AdminSurface>
-          <p className="mt-5 text-center text-[11px] text-[var(--admin-muted)]">
-            Session access is encrypted and restricted.
-          </p>
-        </motion.div>
-      </AdminAuthLayout>
-    </MotionConfig>
+                </div>
+              )}
+            </>
+          )}
+        </AdminSurface>
+      </div>
+    </AdminAuthLayout>
   );
 }
 
