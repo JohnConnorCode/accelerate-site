@@ -513,7 +513,7 @@ const contentCalendarReadSchema = z
   .object({
     status: z.string().min(1).max(120).optional(),
     category: z.string().min(1).max(120).optional(),
-    limit: z.number().int().min(1).max(50).optional(),
+    limit: z.number().int().min(1).max(5).optional(),
   })
   .strict();
 // Every registered operation has exactly one reviewed adapter. Type checking
@@ -557,14 +557,35 @@ const registry: AiToolRegistration[] = [
   {
     name: "list_content_calendar",
     description:
-      "List content calendar items by creation date. Filter by exact status or category. Returns up to 50 items and indicates when more exist; notes and keywords are bounded for context size.",
+      "List the five most recently added content calendar items. Filter by exact status or category. Returns only bounded identity and publishing-stage fields and indicates when more match.",
     inputSchema: z.toJSONSchema(contentCalendarReadSchema),
     parseInput: (input) => contentCalendarReadSchema.parse(input),
     outputSchema: {
       type: "object",
       required: ["items", "count", "truncated"],
       properties: {
-        items: { type: "array" },
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            required: [
+              "id",
+              "title",
+              "status",
+              "category",
+              "target_publish_date",
+              "actual_publish_date",
+            ],
+            properties: {
+              id: { type: "string" },
+              title: { type: "string" },
+              status: { type: "string" },
+              category: { type: ["string", "null"] },
+              target_publish_date: { type: ["string", "null"] },
+              actual_publish_date: { type: ["string", "null"] },
+            },
+          },
+        },
         count: { type: "number" },
         truncated: { type: "boolean" },
       },
@@ -577,16 +598,23 @@ const registry: AiToolRegistration[] = [
       const result = await listContentCalendarItems(supabase, {
         status: input.status as string | undefined,
         category: input.category as string | undefined,
-        limit: (input.limit as number | undefined) ?? 50,
+        limit: (input.limit as number | undefined) ?? 5,
       });
       return {
         ...result,
         items: result.items.map((item) => ({
-          ...item,
-          target_keywords: Array.isArray(item.target_keywords)
-            ? item.target_keywords.slice(0, 20)
-            : [],
-          notes: typeof item.notes === "string" ? item.notes.slice(0, 500) : null,
+          id: typeof item.id === "string" ? item.id.slice(0, 36) : "",
+          title: typeof item.title === "string" ? item.title.slice(0, 100) : "",
+          status: typeof item.status === "string" ? item.status.slice(0, 40) : "",
+          category: typeof item.category === "string" ? item.category.slice(0, 40) : null,
+          target_publish_date:
+            typeof item.target_publish_date === "string"
+              ? item.target_publish_date.slice(0, 10)
+              : null,
+          actual_publish_date:
+            typeof item.actual_publish_date === "string"
+              ? item.actual_publish_date.slice(0, 10)
+              : null,
         })),
       };
     },

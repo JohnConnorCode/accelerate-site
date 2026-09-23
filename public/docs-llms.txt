@@ -119,7 +119,7 @@ Clients, bookings, content, and resources after the sale.
 - [Delivery](https://www.acceleratewith.us/docs/delivery/overview) (updated 2026-09-19): Coordinate client accounts, bookings, editorial work and resource-download follow-up.
 - [Review client accounts](https://www.acceleratewith.us/docs/delivery/clients) (updated 2026-09-19): Find an account, check what it's worth, and open its delivery record.
 - [Review bookings](https://www.acceleratewith.us/docs/delivery/bookings) (updated 2026-09-19): Prep for the call, then record what happened once it's over.
-- [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-19): Track a brief from idea to published, and verify a review caught what mattered.
+- [Manage editorial work](https://www.acceleratewith.us/docs/delivery/content) (updated 2026-09-23): Track a brief from idea to published, and verify a review caught what mattered.
 - [Review resource downloads](https://www.acceleratewith.us/docs/delivery/resources) (updated 2026-09-19): Find who requested a resource, when, and whether that's worth a real follow-up.
 
 ## Sources

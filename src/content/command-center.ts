@@ -407,7 +407,7 @@ export const capabilities: Capability[] = [
     promise:
       "Ask what you agreed with a client in March and get the answer with the record it came from.",
     detail:
-      "The assistant cites the record it read, and it tells you when a source was unavailable instead of guessing.",
+      "With Content enabled, the assistant can list calendar items by status or category and prepare a grounded editorial brief when an AI provider is configured. It cites records it reads and reports unavailable sources instead of guessing.",
   },
   {
     id: "mcp",

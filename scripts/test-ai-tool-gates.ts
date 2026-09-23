@@ -16,6 +16,7 @@
  * on the bug it targets is worse than no guard.
  */
 import assert from "node:assert/strict";
+import { boundToolResult } from "../src/lib/revenue-os/ai-context";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { readFileSync } from "node:fs";
 import {
@@ -170,7 +171,7 @@ async function main() {
     /does not accept "unsupported"/i,
   );
   assert.throws(
-    () => calendarTool.parseInput!({ limit: 51 }),
+    () => calendarTool.parseInput!({ limit: 6 }),
     /limit|too big|maximum/i,
     "calendar reads must enforce a bounded result count",
   );
@@ -178,28 +179,52 @@ async function main() {
     context(
       stubSupabase({
         content_calendar: {
-          data: [
-            { id: "draft-1", title: "A draft", target_keywords: ["one"], notes: "Editorial note" },
-            { id: "draft-2", title: "A second draft" },
-          ],
+          data: Array.from({ length: 6 }, (_, index) => ({
+            id: `draft-${index + 1}`,
+            title: `A draft ${'"'.repeat(200)}`,
+            status: "draft".repeat(20),
+            category: "automation".repeat(10),
+            target_publish_date: "2026-10-01T12:00:00.000Z",
+            actual_publish_date: null,
+            notes: "Must not reach model context",
+          })),
         },
       }),
     ),
     "list_content_calendar",
-    { limit: 1 },
+    { limit: 5 },
   );
   assert.deepEqual(calendarRead.output, {
     items: [
       {
         id: "draft-1",
-        title: "A draft",
-        target_keywords: ["one"],
-        notes: "Editorial note",
+        title: `A draft ${'"'.repeat(92)}`,
+        status: "draft".repeat(20).slice(0, 40),
+        category: "automation".repeat(10).slice(0, 40),
+        target_publish_date: "2026-10-01",
+        actual_publish_date: null,
       },
+      ...Array.from({ length: 4 }, (_, index) => ({
+        id: `draft-${index + 2}`,
+        title: `A draft ${'"'.repeat(92)}`,
+        status: "draft".repeat(20).slice(0, 40),
+        category: "automation".repeat(10).slice(0, 40),
+        target_publish_date: "2026-10-01",
+        actual_publish_date: null,
+      })),
     ],
-    count: 1,
+    count: 5,
     truncated: true,
   });
+  const boundedCalendar = JSON.parse(boundToolResult(calendarTool.name, calendarRead.output)) as {
+    truncated: boolean;
+    result?: unknown;
+  };
+  assert.equal(
+    boundedCalendar.truncated,
+    false,
+    "bounded calendar output must fit the shared AI tool-result context budget",
+  );
   await rejects(
     () =>
       executeRegisteredRevenueTool(context(stubSupabase()), "generate_content_brief", {
@@ -695,7 +720,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v23");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v24");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.

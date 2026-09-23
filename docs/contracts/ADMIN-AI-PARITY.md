@@ -191,9 +191,9 @@ fictional and does not call this live service.
 This is one parity slice, not universal content-operation coverage. Content
 calendar reads now use the same bounded `revenue-os.content-calendar` service in
 the admin GET route and the global `list_content_calendar` tool. Filters are
-validated, results are capped at 50 with truncation disclosed, and model context
-omits unbounded notes and keyword lists. This keeps the read contract aligned
-without granting the assistant write access.
+validated, results are capped at five concise records to fit the shared model
+context budget, and additional matches are disclosed. This keeps the read
+contract aligned without granting the assistant write access.
 
 Content calendar create/update/delete and the other domain write paths still
 need their own shared operation services, reviewed previews and approval-backed

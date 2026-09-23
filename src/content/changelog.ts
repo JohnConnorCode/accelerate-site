@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "shared-content-calendar-ai-read",
+    slug: "shared-content-calendar-ai-read",
+    title: "Ask AI can check the content calendar",
+    description:
+      "With the Content module enabled, Ask AI can list the five most recently added calendar items by status or category and tell you when more match. It can also prepare a grounded editorial brief when an AI provider is configured. The Content screen and assistant use the same calendar records, and generated briefs remain working copy until you review and add them.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
     id: "command-center-sign-in-clarity",
     slug: "command-center-sign-in-clarity",
     title: "A clearer Command Center sign-in",
