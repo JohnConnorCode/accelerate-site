@@ -371,7 +371,7 @@ export async function approveAndExecuteAction(
         });
         if (workItem) {
           const nextCheckAt = new Date(Date.now() + 3 * 24 * 60 * 60_000).toISOString();
-          const { error } = await supabase
+          const { data: updated, error } = await supabase
             .from("work_items")
             .update({
               status: "waiting",
@@ -386,15 +386,18 @@ export async function approveAndExecuteAction(
             .eq("id", workItem.id)
             .eq("kind", "draft_followup")
             .eq("status", "waiting")
-            .is("lease_owner", null);
+            .is("lease_owner", null)
+            .select("id")
+            .maybeSingle();
           if (error) {
             console.error("[gmail/draft-work-item] follow-up receipt update failed");
-            (draft as Record<string, unknown>).workItemUpdated = false;
+            result = { ...draft, workItemUpdated: false };
           } else {
-            (draft as Record<string, unknown>).workItemUpdated = true;
+            result = { ...draft, workItemUpdated: Boolean(updated) };
           }
+        } else {
+          result = draft;
         }
-        result = draft;
         break;
       }
       case "transition_opportunity": {

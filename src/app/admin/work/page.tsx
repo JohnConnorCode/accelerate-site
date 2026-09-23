@@ -3,7 +3,7 @@
 import { adminPageName } from "@/lib/admin/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -15,6 +15,8 @@ import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { relativeTime } from "@/lib/admin/work-presentation";
 import { cn } from "@/lib/utils";
+import type { TodaySnapshot } from "@/lib/admin/today-data";
+import { toast } from "@/lib/admin/useToast";
 
 interface TaskRow {
   id: string;
@@ -33,6 +35,8 @@ interface TaskRow {
 const control = "admin-field";
 
 export default function WorkPage() {
+  const pathname = usePathname();
+  const scopeKey = pathname.replace(/\/work$/, "");
   const params = useSearchParams();
   const router = useAdminNavigation();
   const tab = params.get("tab") === "approvals" ? "approvals" : "tasks";
@@ -56,6 +60,11 @@ export default function WorkPage() {
     ["today", "actions"],
     "/api/admin/revenue-os/actions",
   );
+  const todayQuery = useAdminQuery<TodaySnapshot>(
+    ["today-workspace", scopeKey],
+    "/api/admin/revenue-os/today",
+    { refetchOnWindowFocus: true },
+  );
   const tasks = tasksQuery.data?.tasks ?? [];
   const actions = useMemo(
     () =>
@@ -63,6 +72,9 @@ export default function WorkPage() {
         (a) => a.status === "pending" && (!a.expires_at || Date.parse(a.expires_at) > Date.now()),
       ),
     [actionsQuery.data],
+  );
+  const followups = (todayQuery.data?.handling.data ?? []).filter(
+    (item) => item.kind === "draft_followup" && item.status !== "completed",
   );
   const visible = tasks.filter(
     (t) =>
@@ -104,7 +116,7 @@ export default function WorkPage() {
     }
   }, [actionId, actions]);
   const refresh = async () => {
-    await Promise.all([tasksQuery.refetch(), actionsQuery.refetch()]);
+    await Promise.all([tasksQuery.refetch(), actionsQuery.refetch(), todayQuery.refetch()]);
   };
   const changed = async () => {
     await refresh();
@@ -124,6 +136,8 @@ export default function WorkPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: review.id, decision }),
       });
+      if (review.action_type === "create_gmail_draft")
+        toast.success("Gmail draft saved. Not sent. Open Work → Follow-ups to review it in Gmail.");
       closeReview();
       await changed();
     } catch (e) {
@@ -209,6 +223,86 @@ export default function WorkPage() {
       )}
       {tab === "tasks" ? (
         <>
+          <AdminSurface padding="none" elevation="flat">
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--admin-border)] px-5 py-4">
+              <div>
+                <h2 className="text-base font-semibold text-[var(--admin-ink)]">Follow-ups</h2>
+                <p className="mt-1 text-xs text-[var(--admin-muted)]">
+                  Keep the draft, sent message, and next check together until the contact replies.
+                </p>
+              </div>
+              <Link href="/admin/work?tab=approvals" className="admin-button admin-button-secondary">
+                Review approvals {actions.length ? `(${actions.length})` : ""}
+              </Link>
+            </div>
+            {todayQuery.error ? (
+              <p role="status" className="px-5 py-4 text-sm text-[var(--admin-muted)]">
+                Follow-up status is unavailable. Refresh to try again.
+              </p>
+            ) : followups.length ? (
+              <ul>
+                {followups.map((item) => {
+                          const draftSaved = item.outcome?.includes("Gmail draft saved") ?? false;
+                          const draftUncertain = item.error?.includes("Gmail") ?? false;
+                  return (
+                    <li key={item.id} className="border-b border-[var(--admin-border)] px-5 py-4 last:border-b-0">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-sm font-semibold text-[var(--admin-ink)]">{item.title}</h3>
+                            <span className="rounded-full bg-[var(--admin-surface-subtle)] px-2 py-0.5 text-[10px] font-medium capitalize text-[var(--admin-muted)]">
+                              {draftUncertain
+                                ? "reconciliation needed"
+                                : item.status.replaceAll("_", " ")}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs text-[var(--admin-muted)]">
+                            {item.error || item.outcome || "Review the linked follow-up."}
+                          </p>
+                          {item.nextCheckReason && item.nextCheckReason !== item.outcome && (
+                            <p className="mt-1 text-xs text-[var(--admin-muted)]">
+                              {item.nextCheckReason}
+                            </p>
+                          )}
+                          {item.nextCheckAt && (
+                            <p className="mt-1 text-[11px] text-[var(--admin-muted)]">
+                              Next check {new Date(item.nextCheckAt).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {draftSaved || draftUncertain ? (
+                            <a
+                              href="https://mail.google.com/mail/u/0/#drafts"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="admin-button admin-button--primary"
+                            >
+                              {draftUncertain
+                                ? "Check Gmail Drafts before retrying"
+                                : "Open Gmail Drafts"}
+                            </a>
+                          ) : item.status === "waiting" ? (
+                            <Link href="/admin/work?tab=approvals" className="admin-button admin-button--primary">
+                              Review approval
+                            </Link>
+                          ) : (
+                            <Link href={item.href} className="admin-button admin-button--primary">
+                              Open follow-up
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="px-5 py-4 text-sm text-[var(--admin-muted)]">
+                No open follow-ups. New follow-up work appears here when a customer or opportunity needs a response.
+              </p>
+            )}
+          </AdminSurface>
           <div
             id="work-filters"
             data-expanded={filtersOpen}

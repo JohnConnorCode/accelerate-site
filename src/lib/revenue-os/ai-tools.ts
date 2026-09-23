@@ -3212,6 +3212,7 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     "propose_task_update",
     "propose_send_email",
     "propose_conversation_reply",
+    "propose_gmail_draft",
     "propose_campaign_activation",
     "propose_campaign_duplicate",
     "propose_bulk_tag_contacts",
@@ -3382,6 +3383,7 @@ const OPS_PROFILE_TOOL_NAMES = [
   "propose_stage_change",
   "propose_send_email",
   "propose_conversation_reply",
+  "propose_gmail_draft",
   "propose_founder_note",
 ] as const;
 

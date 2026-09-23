@@ -30,7 +30,7 @@ import {
 import { linkWorkItemRun, transitionOwnedWorkItem, type WorkItem } from "./work-items";
 
 import { deferWork, type WorkResult, type WorkArtifact } from "./work-result";
-import { findWorkDraft } from "./work-drafts";
+import { findWorkDraftProposal, workDraftResult } from "./work-drafts";
 
 // ---------------------------------------------------------------------------
 // Coworker agent: headless AI execution for coworker work items.
@@ -54,6 +54,7 @@ function coworkerSystemPrompt(coworkerRole: string, coworkerId: string, workspac
     `Your job is to execute the assigned work item using the tools available to you.`,
     `Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts.`,
     `Read tools may run directly. Every write or outbound action must use a propose_* tool.`,
+    `For draft_followup work, only propose an unsent Gmail draft with propose_gmail_draft. Never propose or send an email.`,
     `After completing your analysis or action, provide a concise outcome summary.`,
     `If you cannot complete the work with available tools, explain what is missing.`,
     "Use clear, concise business language.",
@@ -161,7 +162,7 @@ export async function runCoworkerAgentTask(
     if (!tool) return false;
     if (tool.impact === "read") return true;
     if (workItem.kind === "draft_followup")
-      return ["propose_send_email", "propose_conversation_reply"].includes(name);
+      return ["propose_gmail_draft"].includes(name);
     return permittedWrites.has(name);
   };
 
@@ -226,9 +227,7 @@ export async function runCoworkerAgentTask(
                 [
                   ...(workItem.kind === "draft_followup"
                     ? toOpenRouterTools(toolPack).filter((t) =>
-                        ["propose_send_email", "propose_conversation_reply"].includes(
-                          t.function.name,
-                        ),
+                        ["propose_gmail_draft"].includes(t.function.name),
                       )
                     : []),
                   ...toActivatedOpenRouterTools(activeBundleId, liveToolContext),
@@ -299,14 +298,10 @@ export async function runCoworkerAgentTask(
           artifacts,
         };
         if (result.status === "completed" && workItem.kind === "draft_followup") {
-          const draft = await findWorkDraft(supabase, workItem);
-          result = draft
-            ? {
-                status: "completed",
-                outcome: "Follow-up draft prepared for approval",
-                artifacts: [draft],
-              }
-            : { status: "partial", outcome: "No valid follow-up proposal was created", artifacts };
+          const proposal = await findWorkDraftProposal(supabase, workItem);
+          result = proposal
+            ? workDraftResult(proposal)
+            : { status: "partial", outcome: "No valid Gmail draft proposal was created", artifacts };
         } else if (result.status === "completed" && actionIds.length) {
           result = {
             status: "awaiting_approval",
@@ -346,9 +341,9 @@ export async function runCoworkerAgentTask(
           if (
             workItem.kind === "draft_followup" &&
             name.startsWith("propose_") &&
-            !["propose_send_email", "propose_conversation_reply"].includes(name)
+            !["propose_gmail_draft"].includes(name)
           )
-            throw new Error("Draft work may only propose its email or conversation reply");
+            throw new Error("Follow-up work may only propose an unsent Gmail draft");
           options.signal?.throwIfAborted();
           if (!advertisedNames.has(name) || !toolAllowed(name))
             throw new Error(

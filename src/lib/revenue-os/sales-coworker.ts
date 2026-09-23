@@ -1,6 +1,6 @@
 import "server-only";
 import { deferWork } from "./work-result";
-import { findWorkDraft } from "./work-drafts";
+import { findWorkDraftProposal, workDraftResult } from "./work-drafts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { registerCoworker, getCoworkerManifest, type Coworker } from "./coworkers";
 import { createWorkItem } from "./work-items";
@@ -369,24 +369,19 @@ const draftFollowupHandler: WorkKindHandler = async (supabase, wi, signal) => {
       outcome: "Opportunity missing or closed; follow-up is no longer needed",
     };
   }
-  const existing = await findWorkDraft(supabase, wi);
-  if (existing)
-    return {
-      status: "completed",
-      outcome: "Follow-up proposal already prepared",
-      artifacts: [existing],
-    };
+  const existing = await findWorkDraftProposal(supabase, wi);
+  if (existing) return workDraftResult(existing);
   const result = await tryAiExecution(supabase, wi, signal);
   if (!result) return deferWork("AI model is unavailable; follow-up draft still needs preparation");
-  if (result.status !== "completed") return result;
-  const draft = await findWorkDraft(supabase, wi);
-  return draft
-    ? { status: "completed", outcome: "Follow-up draft prepared for approval", artifacts: [draft] }
-    : {
+  const proposal = await findWorkDraftProposal(supabase, wi);
+  if (proposal) return workDraftResult(proposal);
+  return result.status === "completed"
+    ? {
         status: "partial",
-        outcome: "Draft preparation returned without a valid proposal",
+        outcome: "Draft preparation returned without a valid Gmail proposal",
         artifacts: result.artifacts,
-      };
+      }
+    : result;
 };
 
 const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {

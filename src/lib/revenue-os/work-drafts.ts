@@ -2,8 +2,20 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { WorkItem } from "./work-items";
 import type { WorkArtifact } from "./work-result";
+import { deferWork, reconcileWork, type WorkResult } from "./work-result";
 import { normalizeEmail } from "./db";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
+
+export interface WorkDraftProposal {
+  id: string;
+  action_type: string;
+  status: string;
+  payload: Record<string, unknown>;
+  expires_at: string | null;
+  entity_type: string | null;
+  entity_id: string | null;
+  result: unknown;
+}
 
 export function workDraftKey(item: WorkItem): string {
   return `work:${item.id}:draft`;
@@ -57,7 +69,7 @@ export async function assertGmailDraftTarget(
 
   const { data: conversation, error: conversationError } = await supabase
     .from("conversations")
-    .select("id,external_id,contact_id,opportunity_id,channel")
+    .select("id,external_id,subject,contact_id,opportunity_id,channel")
     .eq("tenant_id", tenantId)
     .eq("id", conversationId)
     .maybeSingle();
@@ -139,17 +151,17 @@ export async function assertWorkDraftTarget(
   } else throw new Error("Unsupported draft proposal type");
 }
 
-export async function findWorkDraft(
+export async function findWorkDraftProposal(
   supabase: SupabaseClient,
   item: WorkItem,
   proposalId?: string,
-): Promise<WorkArtifact | null> {
+): Promise<WorkDraftProposal | null> {
   let query = supabase
     .from("action_queue")
     .select("*")
     .eq("tenant_id", item.tenant_id)
     .eq("dedupe_key", workDraftKey(item))
-    .in("status", ["pending", "approved", "executing", "executed"]);
+    .in("status", ["pending", "approved", "executing", "executed", "failed"]);
   if (proposalId) query = query.eq("id", proposalId);
   const { data: proposals, error } = await query
     .order("created_at", { ascending: false })
@@ -157,6 +169,17 @@ export async function findWorkDraft(
   if (error) throw new Error(error.message);
   for (const proposal of proposals ?? []) {
     if (proposal.payload?.workItemId !== item.id) continue;
+    if (proposal.status === "failed") {
+      const { data: uncertain, error: uncertainError } = await supabase
+        .from("messages")
+        .select("id")
+        .eq("tenant_id", item.tenant_id)
+        .eq("status", "uncertain")
+        .contains("metadata", { action_id: proposal.id })
+        .limit(1);
+      if (uncertainError) throw new Error(uncertainError.message);
+      if (!uncertain?.length) continue;
+    }
     // Executed/approved receipts remain valid after the draft's approval deadline.
     if (
       proposal.status === "pending" &&
@@ -182,7 +205,55 @@ export async function findWorkDraft(
         proposal.entity_id !== proposal.payload.conversationId)
     )
       continue;
-    return { type: "action", id: proposal.id };
+    return proposal as WorkDraftProposal;
   }
   return null;
+}
+
+export async function findWorkDraft(
+  supabase: SupabaseClient,
+  item: WorkItem,
+  proposalId?: string,
+): Promise<WorkArtifact | null> {
+  const proposal = await findWorkDraftProposal(supabase, item, proposalId);
+  return proposal ? { type: "action", id: proposal.id } : null;
+}
+
+export function workDraftResult(proposal: WorkDraftProposal): WorkResult {
+  const artifact = { type: "action" as const, id: proposal.id };
+  if (proposal.action_type !== "create_gmail_draft")
+    return reconcileWork(
+      "An older follow-up is staged as a send action. Reject it, then prepare a reviewed Gmail draft before continuing.",
+    );
+  if (["pending", "approved"].includes(proposal.status))
+    return {
+      status: "awaiting_approval",
+      outcome: "Review the exact recipient and message, then approve to save it as an unsent Gmail draft.",
+      nextCheckAt: new Date(Date.now() + 5 * 60_000).toISOString(),
+      artifacts: [artifact],
+    };
+  if (proposal.status === "executing")
+    return {
+      ...deferWork("Gmail is saving the approved draft; verify the provider receipt before retrying."),
+      artifacts: [artifact],
+    };
+  if (proposal.status === "failed")
+    return reconcileWork(
+      "The Gmail draft result is uncertain. Check Gmail Drafts and reconcile the action receipt before retrying.",
+    );
+  if (proposal.status === "executed") {
+    const receipt = proposal.result as { status?: unknown; sent?: unknown } | null;
+    if (receipt?.status !== "drafted" || receipt.sent !== false)
+      return reconcileWork(
+        "The action receipt does not confirm an unsent Gmail draft. Reconcile it before continuing.",
+      );
+    return {
+      ...deferWork(
+        "Gmail draft saved. Not sent. Review, edit, or send it in Gmail; sync will track the send and reply.",
+        new Date(Date.now() + 3 * 24 * 60 * 60_000).toISOString(),
+      ),
+      artifacts: [artifact],
+    };
+  }
+  return reconcileWork("The follow-up action has an unsupported status; inspect its receipt.");
 }

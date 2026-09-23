@@ -586,9 +586,21 @@ export function TodayWorkspace() {
                 </p>
               )}
               {item.nextCheckReason && <p>{item.nextCheckReason}</p>}
+              {item.error && <p role="status">{item.error}</p>}
               {item.outcome &&
                 !item.outcome.startsWith("{") &&
                 !item.nextCheckReason?.includes(item.outcome) && <p>{item.outcome}</p>}
+              {item.kind === "draft_followup" &&
+                (item.outcome?.includes("Gmail draft saved") || item.error?.includes("Gmail")) && (
+                <a
+                  href="https://mail.google.com/mail/u/0/#drafts"
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.textLink}
+                >
+                  Open Gmail Drafts <ArrowRight size={13} />
+                </a>
+                )}
               {!item.nextCheckReason && !item.outcome && (
                 <p>No additional result has been recorded.</p>
               )}
@@ -1254,7 +1266,11 @@ export function TodayWorkspace() {
               });
               closeReview();
               setInspectorOpen(false);
-            }, "Approval processed. Check the recorded result.");
+            },
+            reviewing.action_type === "create_gmail_draft"
+              ? "Gmail draft saved. Not sent. Open Work → Follow-ups to review it in Gmail."
+              : "Approval processed. Check the recorded result.",
+          );
         }}
         onReject={() => {
           if (reviewing)

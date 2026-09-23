@@ -294,6 +294,8 @@ async function listGmailOwnerEmails(token: string, accountEmail: string): Promis
 }
 
 export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) throw new Error("Gmail sync requires an explicit workspace");
   const { token, connection } = await getGoogleAccessToken(supabase);
   const profile = await googleFetch<GmailProfile>(
     "https://gmail.googleapis.com/gmail/v1/users/me/profile",
@@ -367,6 +369,7 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       const { data: existingConversation, error: existingError } = await supabase
         .from("conversations")
         .select("id,contact_id,company_id,opportunity_id")
+        .eq("tenant_id", tenantId)
         .eq("channel", "gmail")
         .eq("external_id", thread.id)
         .maybeSingle();
@@ -383,6 +386,7 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
         .from("conversations")
         .upsert(
           {
+            tenant_id: tenantId,
             channel: "gmail",
             external_id: thread.id,
             subject,
@@ -394,7 +398,7 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
             last_message_at: lastAt,
             metadata: { history_id: thread.historyId ?? null, contact_email: contactEmail },
           },
-          { onConflict: "channel,external_id" },
+          { onConflict: "tenant_id,channel,external_id" },
         )
         .select("id")
         .single();
@@ -420,6 +424,7 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
         const to = parseAddress(header(message, "To"));
         const outbound = isOutbound(from);
         return {
+          tenant_id: tenantId,
           conversation_id: conversation.id,
           external_id: message.id,
           direction: outbound ? "outbound" : "inbound",
@@ -427,7 +432,13 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
           recipient_emails: to ? [to] : [],
           subject: header(message, "Subject"),
           body_text: decodeBody(message.payload) || message.snippet || "",
-          status: message.labelIds?.includes("UNREAD") ? "unread" : "received",
+          status: message.labelIds?.includes("DRAFT")
+            ? "drafted"
+            : outbound
+              ? "sent"
+              : message.labelIds?.includes("UNREAD")
+                ? "unread"
+                : "received",
           in_reply_to: header(message, "In-Reply-To"),
           references_header: header(message, "References"),
           sent_at: message.internalDate
@@ -458,9 +469,10 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
       const batchIds = rows.map((row) => row.external_id);
       const { data: priorRows, error: priorError } = batchIds.length
         ? await supabase
-            .from("messages")
-            .select("external_id,status")
-            .eq("conversation_id", conversation.id)
+          .from("messages")
+          .select("external_id,status,metadata")
+          .eq("tenant_id", tenantId)
+          .eq("conversation_id", conversation.id)
             .in("external_id", batchIds)
         : { data: [], error: null };
       if (priorError) throw new Error(priorError.message);
@@ -473,13 +485,63 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
           .filter((message) => message.status === "sent" || message.status === "failed")
           .map((message) => message.external_id),
       );
-      const upsertRows = rows.filter((row) => !terminalIds.has(row.external_id));
+      const priorById = new Map((priorRows ?? []).map((message) => [message.external_id, message]));
+      const upsertRows = rows
+        .filter((row) => !terminalIds.has(row.external_id))
+        .map((row) => ({
+          ...row,
+          metadata: { ...(priorById.get(row.external_id)?.metadata ?? {}), ...row.metadata },
+        }));
       if (upsertRows.length) {
         const { error: messageError } = await supabase.from("messages").upsert(upsertRows, {
-          onConflict: "conversation_id,external_id",
+          onConflict: "tenant_id,conversation_id,external_id",
           ignoreDuplicates: false,
         });
         if (messageError) throw new Error(messageError.message);
+      }
+      // Manual send in Gmail turns the saved draft into a sent message. Match
+      // the exact RFC Message-ID + Gmail thread receipt, then move the same
+      // waiting WorkItem from "review draft" to "waiting for reply" once.
+      for (const sent of rows.filter((row) => row.direction === "outbound" && row.status === "sent")) {
+        const rfcMessageId = (sent.metadata as { rfc_message_id?: string | null }).rfc_message_id;
+        if (!rfcMessageId) continue;
+        const { data: actions, error: actionError } = await supabase
+          .from("action_queue")
+          .select("id,payload,result")
+          .eq("tenant_id", tenantId)
+          .eq("action_type", "create_gmail_draft")
+          .eq("status", "executed")
+          .contains("result", { rfcMessageId, threadId: thread.id })
+          .limit(2);
+        if (actionError) throw new Error(actionError.message);
+        if (actions?.length !== 1) continue;
+        const action = actions[0]!;
+        const payload = action.payload as Record<string, unknown>;
+        const receipt = action.result as Record<string, unknown> | null;
+        const workItemId = typeof payload.workItemId === "string" ? payload.workItemId : null;
+        if (
+          !workItemId ||
+          payload.conversationId !== conversation.id ||
+          receipt?.sent !== false ||
+          receipt?.messageId !== sent.external_id
+        )
+          continue;
+        const { error: followupError } = await supabase
+          .from("work_items")
+          .update({
+            outcome: "Follow-up sent from Gmail. Waiting for a reply.",
+            next_check_at: new Date(Date.now() + 3 * 24 * 60 * 60_000).toISOString(),
+            next_check_reason:
+              "The message was sent from Gmail. Check this thread for a reply; sync closes the loop when the canonical contact responds.",
+          })
+          .eq("tenant_id", tenantId)
+          .eq("id", workItemId)
+          .eq("kind", "draft_followup")
+          .eq("entity_id", payload.opportunityId)
+          .eq("status", "waiting")
+          .eq("outcome", "Gmail draft saved. Not sent.")
+          .is("lease_owner", null);
+        if (followupError) throw new Error(followupError.message);
       }
       const priorIds = new Set((priorRows ?? []).map((message) => message.external_id));
       const newInbound = inboundRows.filter((row) => !priorIds.has(row.external_id));
@@ -510,6 +572,52 @@ export async function syncGmail(supabase: SupabaseClient, maxThreads = 75) {
           source: "automation",
           sourceReceiptId: `gmail:${thread.id}:${reply.external_id}`,
         });
+      }
+      if (inboundRows.length) {
+        const { data: actions, error: actionError } = await supabase
+          .from("action_queue")
+          .select("id,payload,result")
+          .eq("tenant_id", tenantId)
+          .eq("action_type", "create_gmail_draft")
+          .eq("status", "executed")
+          .contains("payload", { conversationId: conversation.id })
+          .limit(20);
+        if (actionError) throw new Error(actionError.message);
+        for (const reply of inboundRows) {
+          const sender = normalizeEmail(reply.sender_email ?? "");
+          const action = actions?.find((candidate) => {
+            const payload = candidate.payload as Record<string, unknown>;
+            const receipt = candidate.result as Record<string, unknown> | null;
+            return (
+              payload.workItemId &&
+              payload.conversationId === conversation.id &&
+              payload.opportunityId === opportunityId &&
+              normalizeEmail(String(payload.to ?? "")) === sender &&
+              receipt?.sent === false &&
+              receipt?.threadId === thread.id
+            );
+          });
+          const payload = action?.payload as Record<string, unknown> | undefined;
+          if (!action || typeof payload?.workItemId !== "string") continue;
+          const { error: closeError } = await supabase
+            .from("work_items")
+            .update({
+              status: "completed",
+              finished_at: new Date().toISOString(),
+              outcome: "The canonical contact replied in this Gmail thread. Review the conversation for any new work.",
+              next_check_at: null,
+              next_check_reason: null,
+              error: null,
+            })
+            .eq("tenant_id", tenantId)
+            .eq("id", payload.workItemId)
+            .eq("kind", "draft_followup")
+            .eq("entity_id", opportunityId)
+            .eq("status", "waiting")
+            .eq("outcome", "Follow-up sent from Gmail. Waiting for a reply.")
+            .is("lease_owner", null);
+          if (closeError) throw new Error(closeError.message);
+        }
       }
       stored++;
     } catch (error) {
@@ -1091,9 +1199,13 @@ function gmailDraftIdempotencyKey(input: {
   subject: string;
   body: string;
 }) {
-  const logicalKey = input.workItem
-    ? `work:${input.workItem.id}`
-    : [input.conversationId, normalizeEmail(input.to), input.subject.trim(), input.body.trim()].join("\n");
+  const logicalKey = [
+    input.workItem ? `work:${input.workItem.id}` : "gmail-draft",
+    input.conversationId,
+    normalizeEmail(input.to),
+    input.subject.trim(),
+    input.body.trim(),
+  ].join("\n");
   return `gmail-draft:${createHash("sha256").update(logicalKey).digest("hex")}`;
 }
 
@@ -1186,13 +1298,17 @@ export async function createGmailDraft(
     );
     for (const candidate of found.messages ?? []) {
       const detail = await googleFetch<GmailMessage>(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${encodeURIComponent(candidate.id)}?format=metadata&metadataHeaders=Message-ID`,
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${encodeURIComponent(candidate.id)}?format=full`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       if (
         detail.labelIds?.includes("DRAFT") &&
         parseRfcMessageId(header(detail, "Message-ID")) === rfcMessageId &&
-        detail.threadId === target.conversation.external_id
+        detail.threadId === target.conversation.external_id &&
+        normalizeEmail(parseAddress(header(detail, "To")) ?? "") === target.to &&
+        header(detail, "Subject") === prepared.subject &&
+        decodeBody(detail.payload).replace(/\r\n/g, "\n").trim() ===
+          target.body.replace(/\r\n/g, "\n").trim()
       ) {
         const metadata = {
           ...(claim?.metadata ?? {}),
@@ -1366,6 +1482,11 @@ export async function createGmailDraft(
       action_id: input.actionId,
       sent: false,
     },
+  }).catch(() => {
+    // Gmail and the durable message receipt are authoritative once draft
+    // creation succeeds; an audit outage must not report the saved draft as
+    // failed and invite a duplicate retry.
+    console.error("[gmail/draft-audit] saved draft audit receipt could not be written");
   });
   return receipt(
     {
