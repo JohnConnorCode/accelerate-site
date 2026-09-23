@@ -19,6 +19,24 @@ const results = [];
 
 try {
   for (const width of [1440, 390]) {
+    const noJsContext = await browser.newContext({
+      viewport: { width, height: 900 },
+      javaScriptEnabled: false,
+      reducedMotion: "reduce",
+    });
+    const noJsPage = await noJsContext.newPage();
+    const noJsResponse = await noJsPage.goto(`${base}/ai-readiness`);
+    assert.equal(noJsResponse?.status(), 200, `${width}px no-JavaScript route loads`);
+    assert.ok(
+      await noJsPage.getByRole("heading", { name: /Make AI useful where it counts/ }).isVisible(),
+      `${width}px hero content stays visible without JavaScript`,
+    );
+    assert.ok(
+      await noJsPage.getByRole("button", { name: /Start your assessment/ }).isVisible(),
+      `${width}px assessment entry stays visible without JavaScript`,
+    );
+    await noJsContext.close();
+
     const context = await browser.newContext({
       viewport: { width, height: 900 },
       reducedMotion: "reduce",
