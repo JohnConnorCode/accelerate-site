@@ -3072,7 +3072,22 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         writes: [],
         sends: [],
         moduleEnablement: [],
-        plan: { canApply: true, customAppBriefs: [], approvals: [], blocked: [] },
+        plan: { canApply: true, ready: [], customAppBriefs: [], approvals: [], blocked: [] },
+        scenario: { event: "opportunity.stage -> won" },
+        traces: [
+          {
+            event: "opportunity.stage -> won",
+            workflowKey: "won_welcome",
+            steps: [
+              {
+                key: "draft_welcome",
+                description: "Prepare a welcome draft after an opportunity is won.",
+                capabilityKey: "email.draft",
+                outcome: "Would draft internally. No live write.",
+              },
+            ],
+          },
+        ],
         simulated: true,
       });
     }
@@ -3081,11 +3096,65 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       if (blueprintPatch[1] !== DEMO_BLUEPRINT_DETAIL.blueprintId) {
         return jsonResponse({ error: "Blueprint not found in this workspace" }, 404);
       }
-      const input = body as { patch?: unknown; changeSummary?: unknown };
-      if (!input.patch || typeof input.patch !== "object" || typeof input.changeSummary !== "string") {
-        return jsonResponse({ error: "patch and changeSummary are required" }, 400);
+      const input = body as {
+        patch?: unknown;
+        proposal?: unknown;
+        changeSummary?: unknown;
+        expectedVersion?: unknown;
+        preview?: unknown;
+      };
+      if (
+        (!input.patch || typeof input.patch !== "object" || Array.isArray(input.patch)) &&
+        typeof input.proposal !== "string"
+      ) {
+        return jsonResponse({ error: "proposal or patch is required" }, 400);
       }
-      return jsonResponse({ version: DEMO_BLUEPRINT_DETAIL.version + 1, diff: { added: [], removed: [], changed: ["businessSummary"] }, applied: false, simulated: true });
+      if (typeof input.changeSummary !== "string") {
+        return jsonResponse({ error: "changeSummary is required" }, 400);
+      }
+      const proposal = typeof input.proposal === "string" ? input.proposal.trim() : "";
+      if (/entire[- ]account|all tenants|chain[- ]of[- ]thought/i.test(proposal))
+        return jsonResponse({ error: "This proposal is outside Architect review scope" }, 400);
+      const patch =
+        input.patch && typeof input.patch === "object" && !Array.isArray(input.patch)
+          ? (input.patch as Record<string, unknown>)
+          : {};
+      const summaryMatch = proposal.match(
+        /^(?:please\s+)?(?:set\s+)?(?:the\s+)?(?:business\s+)?summary(?:\s+to|:)\s+(.+)$/i,
+      );
+      const nextSummary =
+        (typeof patch.businessSummary === "string" && patch.businessSummary.trim()) ||
+        summaryMatch?.[1]?.trim() ||
+        (proposal.length >= 12 ? proposal : "");
+      if (!nextSummary) return jsonResponse({ error: "Could not read a Blueprint change" }, 400);
+      const currentVersion = state.blueprintEdits?.version ?? DEMO_BLUEPRINT_DETAIL.version;
+      if (input.preview === true) {
+        return jsonResponse({
+          preview: true,
+          version: currentVersion,
+          diff: { added: [], removed: [], changed: ["businessSummary"] },
+          next: { businessSummary: nextSummary },
+          applied: false,
+          simulated: true,
+        });
+      }
+      if (input.expectedVersion !== currentVersion) {
+        return jsonResponse({ error: "Blueprint version conflict" }, 409);
+      }
+      const next = currentVersion + 1;
+      state.blueprintEdits = {
+        version: next,
+        changeSummary: input.changeSummary.trim(),
+        summary: nextSummary,
+        createdAt: new Date().toISOString(),
+      };
+      saveState(scenarioId, state);
+      return jsonResponse({
+        version: next,
+        diff: { added: [], removed: [], changed: ["businessSummary"] },
+        applied: false,
+        simulated: true,
+      });
     }
     const blueprintApply = path.match(/^\/api\/admin\/blueprints\/([0-9a-f-]+)\/apply$/i);
     if (method === "POST" && blueprintApply) {
@@ -4153,31 +4222,58 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     }
     if (path === "/api/admin/activity")
       return jsonResponse(auditHistory(pack, url.searchParams, business));
-    if (path === "/api/admin/revenue-os/ai/conversations")
+    if (path === "/api/admin/revenue-os/ai/conversations") {
+      const architectId = `architect-${scenarioId}`;
+      const architectConversation = {
+        id: architectId,
+        title: `Workspace Blueprint for ${pack.name}`,
+        lastMessageAt: ago(1),
+        blueprintDraftId: DEMO_BLUEPRINT_DETAIL.blueprintId,
+      };
+      if (method === "POST")
+        return jsonResponse({ conversation: architectConversation }, 201);
+      const architect = url.searchParams.get("purpose") === "architect";
       return jsonResponse({
         schemaReady: true,
-        conversations: [
-          {
-            id: `ai-${scenarioId}`,
-            title: `Morning review for ${pack.name}`,
-            lastMessageAt: ago(1),
-          },
-        ],
+        conversations: architect
+          ? [architectConversation]
+          : [
+              {
+                id: `ai-${scenarioId}`,
+                title: `Morning review for ${pack.name}`,
+                lastMessageAt: ago(1),
+              },
+            ],
       });
+    }
     if (path.startsWith("/api/admin/revenue-os/ai/conversations/")) {
       const requestedId = decodeURIComponent(path.split("/").at(-1) || "");
-      if (requestedId !== `ai-${scenarioId}`)
+      const architect = requestedId === `architect-${scenarioId}`;
+      if (!architect && requestedId !== `ai-${scenarioId}`)
         return jsonResponse({ error: "AI conversation not found" }, 404);
       return jsonResponse({
-        messages: [
-          {
-            id: "ai-welcome",
-            role: "assistant",
-            content: `I am grounded in this fictional ${pack.name} workspace. ${pack.story[0]}.`,
-            runId: null,
-            createdAt: ago(1),
-          },
-        ],
+        conversation: architect
+          ? { id: requestedId, blueprintDraftId: DEMO_BLUEPRINT_DETAIL.blueprintId }
+          : { id: requestedId },
+        messages: architect
+          ? [
+              {
+                id: "architect-welcome",
+                role: "assistant",
+                content: `This fictional ${pack.name} workspace has a Blueprint draft ready for review.`,
+                runId: null,
+                createdAt: ago(1),
+              },
+            ]
+          : [
+              {
+                id: "ai-welcome",
+                role: "assistant",
+                content: `I am grounded in this fictional ${pack.name} workspace. ${pack.story[0]}.`,
+                runId: null,
+                createdAt: ago(1),
+              },
+            ],
       });
     }
     const legacyPayload = legacy(pack, path, state);
