@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -24,8 +25,15 @@ export function AIReadinessReport({
   reportToken?: string | null;
   onDownload?: () => void;
 }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+    requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
+  }, []);
+
   return (
-    <div className="mx-auto max-w-6xl space-y-8 pb-20">
+    <div className="mx-auto max-w-6xl space-y-8 pb-20 pt-28 sm:pt-36">
       <section className="relative overflow-hidden rounded-[2rem] bg-[var(--ink)] px-6 py-10 text-[var(--paper)] shadow-[0_24px_80px_-36px_rgba(0,0,0,.5)] sm:px-10 sm:py-14">
         <div
           aria-hidden
@@ -39,7 +47,11 @@ export function AIReadinessReport({
           <p className="font-mono text-[0.65rem] uppercase tracking-[0.24em] text-white/60">
             Accelerate / AI readiness
           </p>
-          <h1 className="mt-5 max-w-2xl text-balance font-display text-4xl font-semibold tracking-[-0.045em] sm:text-6xl">
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="mt-5 max-w-2xl text-balance font-display text-4xl font-semibold tracking-[-0.045em] focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-6xl"
+          >
             Your next useful move is clearer now.
           </h1>
           <p className="mt-6 max-w-2xl text-pretty text-base leading-7 text-white/70 sm:text-lg">
