@@ -495,7 +495,7 @@ export function AIReadinessAssessment({
                         </div>
                         <div className={styles.deliverable}>
                           <p className={styles.deliverableIndex}>03 / ACTION</p>
-                          <p className={styles.deliverableTitle}>A 30-day plan</p>
+                          <p className={styles.deliverableTitle}>A 90-day plan</p>
                           <p className={styles.deliverableCopy}>
                             A measured next step with clear review points.
                           </p>
@@ -879,7 +879,7 @@ export function AIReadinessAssessment({
                         Save the full action plan.
                       </h1>
                       <p className={styles.stepDescription}>
-                        Get the complete dimension breakdown, pilot guidance, 30-day plan, and a
+                        Get the complete dimension breakdown, pilot guidance, 90-day plan, and a
                         branded PDF you can share with your team.
                       </p>
                       <div className="mt-8 grid gap-5">
