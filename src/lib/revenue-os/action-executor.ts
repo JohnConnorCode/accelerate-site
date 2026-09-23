@@ -114,7 +114,9 @@ export async function approveAndExecuteAction(
   }
   if (action.action_type === "create_gmail_draft" && mode !== "approved") {
     await failAction(supabase, id, "Saving a Gmail draft requires explicit human approval");
-    throw new Error("Saving a Gmail draft requires explicit human approval; it cannot run autonomously");
+    throw new Error(
+      "Saving a Gmail draft requires explicit human approval; it cannot run autonomously",
+    );
   }
   const reversibility = reversibilityOf(String(action.action_type)).reversibility;
   // Irreversible effects leave the system, so they are permanently

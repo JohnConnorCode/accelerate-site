@@ -71,7 +71,7 @@ export async function loadTodaySnapshot(
         const result = await db
           .from("work_items")
           .select(
-            "id,kind,objective,status,coworker_id,outcome,error,next_check_at,next_check_reason,created_at",
+            "id,kind,entity_id,objective,status,coworker_id,outcome,error,next_check_at,next_check_reason,created_at",
           )
           .neq("status", "cancelled")
           .order("created_at", { ascending: false })
@@ -89,7 +89,10 @@ export async function loadTodaySnapshot(
           error: row.error,
           nextCheckAt: row.next_check_at,
           nextCheckReason: row.next_check_reason,
-          href: "/admin/ai",
+          href:
+            row.kind === "draft_followup" && row.entity_id
+              ? `/admin/pipeline/${row.entity_id}`
+              : "/admin/ai",
         }));
       },
       [],
