@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ButtonHTMLAttributes } from "react";
 import { ArrowLeft, ArrowRight, Check, Loader2, LockKeyhole, RotateCcw } from "lucide-react";
 import { trackConversion, trackEvent } from "@/lib/analytics";
@@ -62,6 +62,8 @@ export function AIReadinessAssessment({
   });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const hasMounted = useRef(false);
 
   useEffect(() => {
     trackEvent("ai_readiness_started");
@@ -84,10 +86,19 @@ export function AIReadinessAssessment({
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, profile, sessionToken }));
   }, [answers, profile, sessionToken, phase]);
 
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "auto" });
+    requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
+  }, [phase, questionIndex]);
+
   const question = readinessQuestions[questionIndex];
   const answered = question ? answers[question.id] : undefined;
   const progress = Math.round(
-    ((questionIndex + (phase === "questions" ? 0 : readinessQuestions.length)) /
+    ((questionIndex + (phase === "questions" ? 1 : readinessQuestions.length)) /
       readinessQuestions.length) *
       100,
   );
@@ -237,7 +248,11 @@ export function AIReadinessAssessment({
             <p className="font-mono text-[0.68rem] uppercase tracking-[0.22em] text-[var(--soft)]">
               A practical diagnostic for small business leaders
             </p>
-            <h1 className="mt-5 max-w-3xl text-balance font-display text-5xl font-semibold tracking-[-0.06em] sm:text-7xl">
+            <h1
+              ref={headingRef}
+              tabIndex={-1}
+              className="mt-5 max-w-3xl text-balance font-display text-5xl font-semibold tracking-[-0.06em] focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-7xl"
+            >
               Find where AI can help first.
             </h1>
             <p className="mt-7 max-w-2xl text-pretty text-lg leading-8 text-[var(--soft)]">
@@ -280,7 +295,11 @@ export function AIReadinessAssessment({
 
       {phase === "profile" && (
         <section className="max-w-2xl">
-          <h1 className="text-balance font-display text-4xl font-semibold tracking-[-0.045em] sm:text-6xl">
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="text-balance font-display text-4xl font-semibold tracking-[-0.045em] focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-6xl"
+          >
             Start with your context.
           </h1>
           <p className="mt-5 text-lg leading-7 text-[var(--soft)]">
@@ -432,7 +451,14 @@ export function AIReadinessAssessment({
 
       {phase === "questions" && question && (
         <section className="mx-auto max-w-2xl">
-          <div className="h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+          <div
+            className="h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/10"
+            role="progressbar"
+            aria-label={`Assessment progress: question ${questionIndex + 1} of ${readinessQuestions.length}`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+          >
             <span
               className="block h-full rounded-full bg-[var(--ink)] transition-[width] dark:bg-white"
               style={{ width: `${progress}%` }}
@@ -441,7 +467,11 @@ export function AIReadinessAssessment({
           <p className="mt-5 font-mono text-xs uppercase tracking-[0.18em] text-[var(--soft)]">
             {readinessDimensions.find((dimension) => dimension.key === question.dimension)?.label}
           </p>
-          <h1 className="mt-4 text-balance font-display text-4xl font-semibold tracking-[-0.045em] sm:text-5xl">
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="mt-4 text-balance font-display text-4xl font-semibold tracking-[-0.045em] focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-5xl"
+          >
             {question.prompt}
           </h1>
           <p className="mt-4 text-[var(--soft)]">{question.helper}</p>
@@ -504,6 +534,9 @@ export function AIReadinessAssessment({
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/60">
               Your preview
             </p>
+            <h1 ref={headingRef} tabIndex={-1} className="sr-only">
+              Your AI readiness preview
+            </h1>
             <div className="mt-6 flex flex-wrap items-end gap-7">
               <p className="font-display text-7xl font-semibold tracking-[-0.07em]">
                 {preview.score === null ? "—" : preview.score}
@@ -578,7 +611,11 @@ export function AIReadinessAssessment({
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--soft)]">
             Your report is ready
           </p>
-          <h1 className="mt-4 text-balance font-display text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="mt-4 text-balance font-display text-4xl font-semibold tracking-[-0.05em] focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-5xl"
+          >
             Save the full action plan.
           </h1>
           <p className="mt-5 leading-7 text-[var(--soft)]">
