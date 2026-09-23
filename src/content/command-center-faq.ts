@@ -2,6 +2,11 @@ import type { FAQ } from "@/lib/types";
 
 export const commandCenterFaqs: FAQ[] = [
   {
+    question: "Can my team sign in with Google?",
+    answer:
+      "Yes, once the installer enables Google in Supabase Auth and configures its OAuth client. The sign-in screen then shows Continue with Google alongside email and password. Google confirms identity; active workspace membership still determines who can open a workspace. This sign-in setup is separate from connecting Google Workspace data such as Gmail, Calendar or Drive.",
+  },
+  {
     question: "Can I install Command Center on my computer or phone?",
     answer:
       "Yes. On the dedicated Command Center app origin, an authenticated workspace can be added to a supported browser's desktop, dock or home screen and opened as a focused app. The installed shell keeps your tenant context, works responsively on mobile, and reports when it is offline or has an update ready. Offline mode is deliberately limited: it can show an approved low-risk summary and save non-sensitive drafts on that device, but it never queues a live action or sends data silently. Saved drafts can be read and reused. Sign-out waits for local cleanup and offers recovery guidance if the browser cannot confirm it. The public marketing site and AI Readiness assessment stay normal browser pages.",
