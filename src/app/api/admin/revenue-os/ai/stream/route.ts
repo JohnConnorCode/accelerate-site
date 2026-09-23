@@ -4,6 +4,7 @@ import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { runRevenueCommandAgent, type CommandPageContext } from "@/lib/revenue-os/ai-agent";
 import {
   AiConversationSchemaUnavailableError,
+  activeAiToolBundleFromHistory,
   appendAiAssistantMessage,
   architectEvidenceForRun,
   openAiConversationTurn,
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
           {
             surface: "admin_command_stream",
             conversationId: turn.conversationId,
+            activeToolBundleId: activeAiToolBundleFromHistory(turn.history),
             architectEvidence,
             pageContext,
             tenantConfig: {
@@ -133,7 +135,10 @@ export async function POST(request: NextRequest) {
           conversationId: turn.conversationId,
           content: result.text || "No response produced.",
           runId: result.runId,
-          metadata: { proposal_ids: proposalIds },
+          metadata: {
+            proposal_ids: proposalIds,
+            active_tool_bundle_id: result.activeToolBundleId,
+          },
         });
         send({
           type: "final",

@@ -19,6 +19,7 @@ import {
   executeRegisteredRevenueTool,
   selectRevenueToolPack,
   toActivatedOpenRouterTools,
+  availableRevenueToolBundles,
   refreshRevenueToolContext,
   type RevenueToolPackId,
 } from "./ai-tools";
@@ -55,6 +56,7 @@ export interface AgentProposalSummary {
 export interface CommandAgentOptions {
   surface?: string;
   conversationId?: string | null;
+  activeToolBundleId?: string | null;
   architectEvidence?: string | null;
   pageContext?: CommandPageContext | null;
   /** The calling tenant's active module configuration, so a disabled module's
@@ -158,7 +160,10 @@ export async function runRevenueCommandAgent(
   }));
   const toolNames: string[] = [];
   const stagedToolNames = new Set<string>();
-  let activeBundleId: string | null = null;
+  let activeBundleId =
+    typeof options.activeToolBundleId === "string" && options.activeToolBundleId.length <= 160
+      ? options.activeToolBundleId || null
+      : null;
   let inputTokens = 0;
   let outputTokens = 0;
   try {
@@ -223,10 +228,21 @@ export async function runRevenueCommandAgent(
       const liveContext = await refreshRevenueToolContext({
         supabase,
         actorEmail,
+        conversationId: options.conversationId,
         tenantConfig: options.tenantConfig,
       });
+      if (
+        activeBundleId &&
+        !availableRevenueToolBundles(liveContext).some(
+          (bundle) => bundle.bundleId === activeBundleId,
+        )
+      )
+        activeBundleId = null;
       const activeTools = toActivatedOpenRouterTools(activeBundleId, liveContext);
       const advertisedNames = new Set(activeTools.map((tool) => tool.function.name));
+      const activationScope = options.conversationId
+        ? "Activation remains selected in this conversation across reloads, subject to current permission and availability checks."
+        : "Activation applies to subsequent turns in this command run only.";
       const request = {
         database: supabase,
         job: "copilot-answer",
@@ -236,7 +252,7 @@ export async function runRevenueCommandAgent(
         messages: [
           {
             role: "system" as const,
-            content: `${SYSTEM_CONTRACT}\n\n${grounding}${options.architectEvidence ? `\n\n${options.architectEvidence}` : ""}\nThe initial pack is navigation context only. Use discover_tool_bundles for any admin capability missing from the current tools, then activate_tool_bundle. Activation replaces the previous bundle for subsequent turns of this run; it does not approve actions. Only call tools advertised on this turn. Active bundle: ${activeBundleId ?? "core only"}.`,
+            content: `${SYSTEM_CONTRACT}\n\n${grounding}${options.architectEvidence ? `\n\n${options.architectEvidence}` : ""}\nThe initial pack is navigation context only. Use discover_tool_bundles for any admin capability missing from the current tools, then activate_tool_bundle. ${activationScope} It does not approve actions. Only call tools advertised on this turn. Active bundle: ${activeBundleId ?? "core only"}.`,
           },
           ...transcript,
         ],
@@ -284,6 +300,7 @@ export async function runRevenueCommandAgent(
             text: safeAnswer,
             runId: run.id,
             proposedActions: [...stagedToolNames],
+            activeToolBundleId: activeBundleId,
           };
         }
         if (options.onAssistantDelta) options.onAssistantDelta(bufferedAnswer || text);
@@ -297,6 +314,7 @@ export async function runRevenueCommandAgent(
           text,
           runId: run.id,
           proposedActions: [...stagedToolNames],
+          activeToolBundleId: activeBundleId,
         };
       }
       for (const use of uses) {
@@ -318,6 +336,7 @@ export async function runRevenueCommandAgent(
           const dispatchContext = await refreshRevenueToolContext({
             supabase,
             actorEmail,
+            conversationId: options.conversationId,
             tenantConfig: options.tenantConfig,
           });
           const { output, tool } = await executeRegisteredRevenueTool(
@@ -405,7 +424,12 @@ export async function runRevenueCommandAgent(
       resultPreview: partial,
       error: `Stopped after ${MAX_TOOL_TURNS} tool turns without a final answer`,
     });
-    return { text: partial, runId: run.id, proposedActions: staged };
+    return {
+      text: partial,
+      runId: run.id,
+      proposedActions: staged,
+      activeToolBundleId: activeBundleId,
+    };
   } catch (error) {
     const cancelled =
       options.signal?.aborted || (error instanceof OpenRouterError && error.status === 499);

@@ -192,6 +192,7 @@ export type AiToolImpact = "read" | "internal_write" | "external_action" | "dest
 type AiToolContext = {
   supabase: SupabaseClient;
   actorEmail: string;
+  conversationId?: string | null;
   workItemId?: string;
   toolPack?: RevenueToolPackId;
   /** Server-owned context; never accepted from model arguments. */
@@ -634,7 +635,7 @@ const registry: AiToolRegistration[] = [
         total: ranked.length,
         nextOffset:
           input.offset + bundles.length < ranked.length ? input.offset + bundles.length : null,
-        activationScope: "current_command_run",
+        activationScope: context.conversationId ? "conversation" : "current_command_run",
         grantsApproval: false,
       };
     },
@@ -655,7 +656,7 @@ const registry: AiToolRegistration[] = [
       return {
         activeBundleId: bundle.bundleId,
         toolNames: bundle.toolNames,
-        activationScope: "current_command_run",
+        activationScope: context.conversationId ? "conversation" : "current_command_run",
         grantsApproval: false,
       };
     },

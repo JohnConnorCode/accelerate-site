@@ -211,19 +211,20 @@ bundle plus the core contributes at most 40 schemas per model turn. Every regist
 tool must have exactly one module owner. The shared discovery test fails CI for
 missing or duplicate ownership instead of silently dropping tools.
 
-Discovery searches module metadata and tool names with pagination. Activation
-loads schemas on the next turn of the current command run. The initial page/legacy
-pack remains navigation context, so it does not hide another admin domain. The
-host refuses a tool call that was not advertised on that turn, including an
-activation and new tool call attempted together. Tenant activity and live module
-configuration are refreshed before each turn and dispatch. Explicit caller module
-restrictions and legacy MCP pack restrictions remain in force; activation grants
-no approval, provider connection or new permission.
+Discovery searches module metadata and tool names with pagination. In the first-party
+command workspace, the selected bundle is saved in the assistant message metadata
+and restored when the conversation resumes. Every turn rechecks current module
+availability before advertising its tools; a disabled or unavailable bundle is
+cleared. MCP activation remains scoped to the current request/session. The initial
+page/legacy pack remains navigation context, so it does not hide another admin
+domain. The host refuses a tool call that was not advertised on that turn,
+including an activation and new tool call attempted together. Tenant activity and
+live module configuration are refreshed before each turn and dispatch. Explicit
+caller module restrictions and legacy MCP pack restrictions remain in force;
+activation grants no approval, provider connection or new permission.
 
 Proposals continue through existing services and the human approval queue. Only
 successfully returned proposals are reported as staged; refused attempts remain
-error receipts. Activation is traced but is **not restored across command runs or
-conversation reloads** yet. The broader progressive-disclosure card retains durable
-activation, richer live trust/recipe descriptions and SDK work. The 50-plugin
-fixture proves bounded schemas, complete reachability and exact-domain deterministic
-selection; it does not measure real-model natural-language selection accuracy.
+error receipts. The 50-plugin fixture proves bounded schemas, complete reachability
+and exact-domain deterministic selection; it does not measure real-model
+natural-language selection accuracy.
