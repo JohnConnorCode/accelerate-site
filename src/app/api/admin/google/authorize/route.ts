@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { buildGoogleAuthUrl } from "@/lib/revenue-os/google";
+import { commandCenterOrigin } from "@/lib/command-center/runtime";
 import {
   createGoogleOAuthStateBinding,
   googleOperatorError,
@@ -32,7 +33,7 @@ export async function GET() {
     return NextResponse.redirect(
       new URL(
         `/t/${auth.tenant.slug}/admin/integrations?google_error=${projected.code}`,
-        process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+        commandCenterOrigin || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
       ),
     );
   }

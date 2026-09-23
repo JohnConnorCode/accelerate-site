@@ -24,6 +24,7 @@ import { prepareGmailReply } from "./gmail-reply-mime";
 import { parseAddressList, parseRfcMessageId, resolveGmailDirection } from "./gmail-threading";
 import { createPreCallBriefWork, createPostMeetingProcessWork } from "./meeting-intel-coworker";
 import { assertActiveTenantExecution } from "@/lib/tenancy/system";
+import { commandCenterOrigin } from "@/lib/command-center/runtime";
 
 export const GOOGLE_SCOPES = [
   "openid",
@@ -37,7 +38,8 @@ export const GOOGLE_SCOPES = [
 function googleConfig() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl =
+    commandCenterOrigin || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   if (!clientId || !clientSecret) throw new Error("Google OAuth is not configured");
   return {
     clientId,
