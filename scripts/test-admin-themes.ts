@@ -45,6 +45,11 @@ for (const preset of themes) {
   assert.ok(!themeDeclarations(theme).includes("</style>"));
   assert.ok(workspaceBrandSchema.shape.adminTheme.safeParse(theme).success);
 }
+const paper = themes.find((theme) => theme.id === "light")!;
+assert.ok(
+  themeContrast(paper.tokens["--admin-nav-active-ink"]!, paper.tokens["--admin-nav-active-bg"]!) >= 4.5,
+  "Paper selected navigation must keep a legible cobalt label on its softened tint",
+);
 const valid = themeFromPreset("signal");
 assert.throws(
   () =>
