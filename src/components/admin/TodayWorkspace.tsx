@@ -592,14 +592,15 @@ export function TodayWorkspace() {
                 !item.nextCheckReason?.includes(item.outcome) && <p>{item.outcome}</p>}
               {item.kind === "draft_followup" &&
                 (item.outcome?.includes("Gmail draft saved") || item.error?.includes("Gmail")) && (
-                <a
-                  href="https://mail.google.com/mail/u/0/#drafts"
-                  target="_blank"
-                  rel="noreferrer"
-                  className={styles.textLink}
-                >
-                  Open Gmail Drafts <ArrowRight size={13} />
-                </a>
+                  <a
+                    href="https://mail.google.com/mail/u/0/#drafts"
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.textLink}
+                  >
+                  {item.error ? "Check Gmail Drafts before retrying" : "Open Gmail Drafts"}{" "}
+                  <ArrowRight size={13} />
+                  </a>
                 )}
               {!item.nextCheckReason && !item.outcome && (
                 <p>No additional result has been recorded.</p>
@@ -1258,19 +1259,20 @@ export function TodayWorkspace() {
         onClose={closeReview}
         onApprove={() => {
           if (reviewing)
-            void mutate(async () => {
-              await fetchJson("/api/admin/revenue-os/actions", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: reviewing.id, decision: "approve" }),
-              });
-              closeReview();
-              setInspectorOpen(false);
-            },
-            reviewing.action_type === "create_gmail_draft"
-              ? "Gmail draft saved. Not sent. Open Work → Follow-ups to review it in Gmail."
-              : "Approval processed. Check the recorded result.",
-          );
+            void mutate(
+              async () => {
+                await fetchJson("/api/admin/revenue-os/actions", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ id: reviewing.id, decision: "approve" }),
+                });
+                closeReview();
+                setInspectorOpen(false);
+              },
+              reviewing.action_type === "create_gmail_draft"
+                ? "Gmail draft saved. Not sent. Open Work → Follow-ups to review it in Gmail."
+                : "Approval processed. Check the recorded result.",
+            );
         }}
         onReject={() => {
           if (reviewing)
