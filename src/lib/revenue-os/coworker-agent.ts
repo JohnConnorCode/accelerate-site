@@ -161,8 +161,7 @@ export async function runCoworkerAgentTask(
     const tool = getRevenueAiTools().find((tool) => tool.name === name);
     if (!tool) return false;
     if (tool.impact === "read") return true;
-    if (workItem.kind === "draft_followup")
-      return ["propose_gmail_draft"].includes(name);
+    if (workItem.kind === "draft_followup") return ["propose_gmail_draft"].includes(name);
     return permittedWrites.has(name);
   };
 
@@ -301,7 +300,11 @@ export async function runCoworkerAgentTask(
           const proposal = await findWorkDraftProposal(supabase, workItem);
           result = proposal
             ? workDraftResult(proposal)
-            : { status: "partial", outcome: "No valid Gmail draft proposal was created", artifacts };
+            : {
+                status: "partial",
+                outcome: "No valid Gmail draft proposal was created",
+                artifacts,
+              };
         } else if (result.status === "completed" && actionIds.length) {
           result = {
             status: "awaiting_approval",
