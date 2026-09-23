@@ -7,7 +7,10 @@ import {
 } from "../src/lib/revenue-os/workspace-blueprint";
 import {
   ENTIRE_ACCOUNT_REFUSED,
+  VERSION_CONFLICT,
   applyConversationalPatch,
+  assertExpectedVersion,
+  proposalToTypedPatch,
   simulateBlueprint,
 } from "../src/lib/revenue-os/architect-review-simulation";
 import { compileBlueprintPlan } from "../src/lib/revenue-os/workspace-blueprint-compiler";
@@ -77,12 +80,24 @@ assert.throws(
   (error: unknown) => error instanceof Error && error.message === ENTIRE_ACCOUNT_REFUSED,
 );
 
-const simulation = simulateBlueprint(current, context);
+const typed = proposalToTypedPatch("Set the business summary to Kickoff after won jobs.");
+assert.equal(typed.businessSummary, "Kickoff after won jobs.");
+assert.throws(
+  () => proposalToTypedPatch("Use the entire account as context"),
+  (error: unknown) => error instanceof Error && error.message === ENTIRE_ACCOUNT_REFUSED,
+);
+
+const simulation = simulateBlueprint(current, context, { event: "opportunity.stage -> won" });
 assert.equal(simulation.kind, "simulation");
 assert.deepEqual(simulation.writes, []);
 assert.deepEqual(simulation.sends, []);
 assert.deepEqual(simulation.moduleEnablement, []);
 assert.deepEqual(simulation.plan, compileBlueprintPlan(current, context));
+assert.equal(simulation.traces[0]?.workflowKey, "won_welcome");
+assert.equal(simulation.traces[0]?.steps[0]?.outcome.includes("No live"), true);
+assert.throws(() => assertExpectedVersion(1, 2), (error: unknown) =>
+  error instanceof Error && error.message === VERSION_CONFLICT,
+);
 
 assert.throws(() => parseBlueprint({ ...current, schemaVersion: "nope" }));
 
@@ -92,6 +107,14 @@ const panel = readFileSync("src/components/admin/ArchitectBlueprintReview.tsx", 
 assert.match(panel, /min-h-11/);
 assert.match(panel, /sm:flex-row/);
 assert.match(panel, /Simulate/);
+assert.match(panel, /Preview patch/);
+assert.match(panel, /Conversational proposal/);
+assert.match(panel, /blueprintDraftId/);
+assert.match(panel, /Retry/);
+assert.doesNotMatch(panel, /blueprints\?\.\[0\]/);
 assert.doesNotMatch(panel, /applyApprovedBlueprint/);
+const patchRoute = readFileSync("src/app/api/admin/blueprints/[id]/patch/route.ts", "utf8");
+assert.match(patchRoute, /expectedVersion/);
+assert.match(patchRoute, /409/);
 
 console.log(JSON.stringify({ result: "passed", cases: ["AC1", "AC2", "AC3"] }, null, 2));
