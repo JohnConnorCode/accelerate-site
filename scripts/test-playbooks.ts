@@ -169,7 +169,11 @@ async function runTests() {
   {
     const roofing = resolvePlaybook("roofing");
     assert.equal(roofing.sourceTag, "roofing_qualifier");
-    assert.equal(roofing.path, tenant.playbooks[0]?.path);
+    // Branded installs configure the playbook; neutral ones synthesize it from the key.
+    assert.equal(
+      roofing.path,
+      tenant.playbooks.find((playbook) => playbook.key === "roofing")?.path ?? "/roofing",
+    );
     assert.equal(resolvePlaybook().key, "roofing");
     const legal = resolvePlaybook("legal");
     assert.equal(legal.sourceTag, "legal_qualifier");

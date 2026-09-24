@@ -133,6 +133,22 @@ export function createPlatformServiceRoleClient(source: string) {
   );
 }
 
+/** Tenant-bound administrative writer for an action the founder already
+ * approved. Carries the tenant header that tenant-scoped RPCs require; the
+ * handle stays inside the approved service and never reaches tools. */
+export function createApprovedTenantWriter(tenantId: string, source: string): SupabaseClient {
+  void source;
+  const client = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      global: { headers: { "x-tenant-id": tenantId } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    },
+  );
+  return bindTenantDatabase(client, tenantId, true);
+}
+
 export function createServiceRoleClient(systemContext?: TenantSystemContext) {
   const requestContext = getTenantRequestContext();
   if (requestContext?.kind === "actor") return requestContext.database;
