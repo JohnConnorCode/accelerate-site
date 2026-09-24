@@ -60,7 +60,7 @@ Never copy production credentials into a fork.
 
 **The AI layer is grounded, not generic.** Every model call runs against bounded, retrieved context with source citations, and every write it proposes goes through the same approval queue and audit trail as a human action. It doesn't get a side door around the rules everyone else follows.
 
-**Tenancy is structural, not bolted on.** One shared database, explicit tenant context on every request, isolated records, and a workspace can connect its own OpenRouter key so AI spend is billed to that tenant, not to you. Five fictional demo workspaces let you explore the entire product, including a live drag-and-drop feature-board kanban, with no setup at all.
+**Tenancy is structural, not bolted on.** One shared database, explicit tenant context on every request, isolated records, and a workspace can connect its own OpenRouter key so AI spend is billed to that tenant, not to you. Six fictional demo workspaces let you explore the entire product, including a live drag-and-drop feature-board kanban, with no setup at all.
 
 See [Roadmap](#roadmap) below for what's shipped, in progress, and planned next.
 
