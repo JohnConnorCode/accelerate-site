@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSurface } from "./AdminSurface";
 import { Button } from "@/components/ui/Button";

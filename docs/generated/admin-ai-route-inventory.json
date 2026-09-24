@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 119,
-  "mutationHandlerCount": 104,
+  "routeCount": 121,
+  "mutationHandlerCount": 106,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -285,9 +285,10 @@
       "imports": [
         "@/lib/admin/module-guard",
         "@/lib/revenue-os/content-calendar",
-        "next/server"
+        "next/server",
+        "zod"
       ],
-      "sourceSha256": "ed21eda53d88a880ab0fdb06b97c98071d663d5a58cda0f8c31a41fe58b93e85"
+      "sourceSha256": "e53f5044795f2009c4c6276358f3476bd2d6fe675a5061409e9433177d8e1ec2"
     },
     {
       "source": "src/app/api/admin/corrections/detect/route.ts",
@@ -796,6 +797,36 @@
       "sourceSha256": "b003702824ad4a8fdc6213d85d00aaf4710add8dc1b80c4110bbdab54c792f6a"
     },
     {
+      "source": "src/app/api/admin/memory/[id]/route.ts",
+      "handlers": [
+        "DELETE",
+        "PATCH"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "PATCH"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/memory",
+        "next/server"
+      ],
+      "sourceSha256": "0e9a6f69c75162331ccd6aea8e0fcf3e9a9177fa17cee8acdb2dc969f97b74d3"
+    },
+    {
+      "source": "src/app/api/admin/memory/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/revenue-os/memory",
+        "next/server"
+      ],
+      "sourceSha256": "d6b0932f6dbefa9b17da3e670400ee4739a100882a43f4c92de633525a95aec4"
+    },
+    {
       "source": "src/app/api/admin/metrics/route.ts",
       "handlers": [
         "GET"
@@ -943,16 +974,15 @@
         "POST"
       ],
       "imports": [
-        "@/config/tenant",
         "@/lib/admin/module-guard",
-        "@/lib/ai/approved-pricing",
         "@/lib/ai/openrouter",
         "@/lib/ai/openrouter-credentials",
+        "@/lib/ai/proposal-draft",
         "@/lib/rate-limit",
         "@/lib/revenue-os/shared-context",
         "next/server"
       ],
-      "sourceSha256": "772e202865d9a78f10ecf0e1a25f6c1b4884de5c621a1d2d4c8a64a7295aedca"
+      "sourceSha256": "8a84576ba5c4c13fee1113276920c60ca9c966581e3fc3dddd2bbc2ea0a1e3fe"
     },
     {
       "source": "src/app/api/admin/proposals/route.ts",
@@ -1199,7 +1229,7 @@
         "@/lib/revenue-os/ai-stream-contract",
         "next/server"
       ],
-      "sourceSha256": "07da63ae37c4fa75bfb6c769c151401beaacb7ca1bf80a2156011d3382fadaf5"
+      "sourceSha256": "318a6f8e282cc363fc3ae7b3108e2513cab0f7951053f6df03b1781060ce655d"
     },
     {
       "source": "src/app/api/admin/revenue-os/analytics/route.ts",
