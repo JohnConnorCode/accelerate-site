@@ -84,7 +84,7 @@
       "impact": "external_action",
       "reversibility": "irreversible"
     },
-    "contractHash": "4c98b860afde76e2ff3e7848a3ab4d0e25cd6ec20c3e556fab261012d6c3bdfc",
+    "contractHash": "8d41a675df783d30a471f1badeaaa1d5c2d2bdea8ad0dd5471815f320fa54209",
     "tools": [
       {
         "operation": "prepare-workflow",

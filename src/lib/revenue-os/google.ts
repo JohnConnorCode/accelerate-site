@@ -1368,7 +1368,8 @@ export async function createGmailDraft(
     try {
       const reconciled = await adoptFoundDraft();
       if (reconciled) return reconciled;
-    } catch {
+    } catch (error) {
+      console.error("[gmail/draft-reconciliation] Draft lookup failed", error);
       // A failed reconciliation read is still uncertain; it never authorizes another create.
     }
     throw new Error(

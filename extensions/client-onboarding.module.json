@@ -67,7 +67,7 @@
       "impact": "internal_write",
       "reversibility": "compensable"
     },
-    "contractHash": "b89e1ca2e8d2e9452c7cce54f8980f9e13353eb5063452f1eab19fdf12437614",
+    "contractHash": "504a2c57797ce6929e0afda44df1ff48692f1b2ce24a7b67b8609db29021f7cd",
     "tools": [
       {
         "operation": "prepare-workflow",
