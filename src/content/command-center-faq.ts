@@ -79,7 +79,7 @@ export const commandCenterFaqs: FAQ[] = [
   {
     question: "How do Today and Work fit together?",
     answer:
-      "Today puts decisions and follow-up first, then business changes and operational alerts. Pipeline facts, upcoming commitments and automation are supporting context. Automation details and completed results expand on demand. Customize preserves personal or shared arrangements; More contains view creation, duplication, deletion and the classic-view recovery option. Work provides task editing and the same approvals. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
+      "Today puts decisions and follow-up first, then business changes and operational alerts. Pipeline facts, upcoming commitments and automation are supporting context. Automation details and completed results expand on demand. Customize preserves personal or shared arrangements; More contains view creation, duplication, deletion and the classic-view recovery option. Work provides task editing and the same approvals, with list, board and calendar layouts over the same saved tasks. Pipeline also offers a calendar for dated next actions. Layout, fields and filters stay in this browser and are separated by workspace and signed-in member. Both use the same saved records and services; Apps retain their own lifecycles. AI interpretations cite source facts and disappear when those facts change.",
   },
   {
     question: "Can we build a completely different App or interface?",
