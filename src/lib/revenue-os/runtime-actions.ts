@@ -1,6 +1,11 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  bindTenantDatabase,
+  createPlatformServiceRoleClient,
+  tenantIdForDatabase,
+} from "@/lib/supabase/server";
+import {
   storeAgentMemory,
   recordLearnedPolicy,
   type AgentMemoryEntry,
@@ -38,6 +43,16 @@ export async function executeRuntimeAction(
   actorEmail: string,
 ) {
   if (actionType === "bootstrap_coworker") {
+    // Bootstrapping registers autonomy policies, which only the service role
+    // may write. The founder approved this action, so the approved bootstrap
+    // gets a tenant-bound administrative writer; no handle escapes to tools.
+    const tenantId = tenantIdForDatabase(db);
+    if (!tenantId) throw new Error("Coworker bootstrap requires a tenant-bound database");
+    const writer = bindTenantDatabase(
+      createPlatformServiceRoleClient("approved-coworker-bootstrap"),
+      tenantId,
+      true,
+    );
     const name = choice(input, "coworker", [
       "sales",
       "business_pulse",
@@ -47,21 +62,24 @@ export async function executeRuntimeAction(
     ]);
     switch (name) {
       case "sales":
-        return (await import("./sales-coworker")).bootstrapSalesCoworker(db, actorEmail);
+        return (await import("./sales-coworker")).bootstrapSalesCoworker(writer, actorEmail);
       case "business_pulse":
         return (await import("./business-pulse-coworker")).bootstrapBusinessPulseCoworker(
-          db,
+          writer,
           actorEmail,
         );
       case "meeting_intel":
         return (await import("./meeting-intel-coworker")).bootstrapMeetingIntelCoworker(
-          db,
+          writer,
           actorEmail,
         );
       case "finance":
-        return (await import("./finance-coworker")).bootstrapFinanceCoworker(db, actorEmail);
+        return (await import("./finance-coworker")).bootstrapFinanceCoworker(writer, actorEmail);
       case "operations":
-        return (await import("./operations-coworker")).bootstrapOperationsCoworker(db, actorEmail);
+        return (await import("./operations-coworker")).bootstrapOperationsCoworker(
+          writer,
+          actorEmail,
+        );
     }
   }
   if (actionType === "store_agent_memory")
