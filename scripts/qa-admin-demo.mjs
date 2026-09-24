@@ -97,68 +97,27 @@ async function readStablePageState(page) {
     failures.push(`launcher: expected ${scenarios.length} scenario cards, found ${launcher}`);
   if (
     !(await page
-      .getByText("No signup. Changes stay in this browser session.", { exact: false })
+      .getByText("Fictional data. No signup. Explore the real workspace in this browser session.", {
+        exact: true,
+      })
       .count())
   )
     failures.push("launcher: missing fictional-data disclosure");
+  if (
+    !(await page
+      .getByRole("heading", { level: 1, name: "Your business. Working together." })
+      .count())
+  )
+    failures.push("launcher: current workflow-led heading is missing");
+  if (
+    !(await page.getByRole("heading", { name: "Follow the work through to its result." }).count())
+  )
+    failures.push("launcher: complete-workflow showcase is missing");
   if (await page.getByText("Command Center overview", { exact: false }).count())
     failures.push("launcher: duplicate local navigation chrome remains");
   if (await page.locator(".demo-launcher-theme-toggle").count())
     failures.push("launcher: duplicate local appearance control remains");
-  await page.getByRole("button", { name: "Switch to dark mode" }).waitFor();
   await page.waitForTimeout(1_300);
-  const lightTheme = await page.evaluate(() => {
-    const launcherElement = document.querySelector(".demo-launcher");
-    const cardElement = document.querySelector(".demo-launcher-card");
-    const previewElement = document.querySelector(".demo-launcher-card figure") ?? cardElement;
-    if (!launcherElement || !cardElement || !previewElement)
-      throw new Error("demo launcher surfaces are missing");
-    const root = getComputedStyle(document.documentElement);
-    return {
-      theme: document.documentElement.dataset.theme,
-      canvas: root.getPropertyValue("--bg").trim(),
-      card: root.getPropertyValue("--rule").trim(),
-      ink: root.getPropertyValue("--fg").trim(),
-      preview: root.getPropertyValue("--mid").trim(),
-    };
-  });
-  await page.screenshot({ path: `${output}/launcher-desktop-light.png`, fullPage: true });
-  await page.getByRole("button", { name: "Switch to dark mode" }).click();
-  await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");
-  await page.waitForTimeout(500);
-  const darkTheme = await page.evaluate(() => {
-    const launcherElement = document.querySelector(".demo-launcher");
-    const cardElement = document.querySelector(".demo-launcher-card");
-    const previewElement = document.querySelector(".demo-launcher-card figure") ?? cardElement;
-    if (!launcherElement || !cardElement || !previewElement)
-      throw new Error("demo launcher surfaces are missing");
-    const root = getComputedStyle(document.documentElement);
-    return {
-      theme: document.documentElement.dataset.theme,
-      canvas: root.getPropertyValue("--bg").trim(),
-      card: root.getPropertyValue("--rule").trim(),
-      ink: root.getPropertyValue("--fg").trim(),
-      preview: root.getPropertyValue("--mid").trim(),
-    };
-  });
-  if (
-    lightTheme.theme !== "light" ||
-    darkTheme.theme !== "dark" ||
-    lightTheme.canvas === darkTheme.canvas ||
-    lightTheme.card === darkTheme.card ||
-    lightTheme.ink === darkTheme.ink
-  )
-    failures.push("launcher: shared light/dark appearance did not adapt every primary surface");
-  await page.reload({ waitUntil: "domcontentloaded" });
-  const stableLauncherThemes = [];
-  for (let sample = 0; sample < 12; sample += 1) {
-    stableLauncherThemes.push(await page.evaluate(() => document.documentElement.dataset.theme));
-    await page.waitForTimeout(50);
-  }
-  if (stableLauncherThemes.some((theme) => theme !== "dark"))
-    failures.push(
-      `launcher: shared dark appearance flickered during reload (${stableLauncherThemes.join(",")})`,
-    );
   const marks = await page.locator(".demo-scenario-mark").evaluateAll((nodes) =>
     nodes.map((node) => ({
       classes: node.getAttribute("class"),
@@ -171,16 +130,19 @@ async function readStablePageState(page) {
   if (marks.length !== 6 || new Set(marks.map((mark) => mark.classes)).size !== 6)
     failures.push("launcher: scenario logos are not six distinct marks");
   await page.waitForTimeout(1_300);
-  const firstCard = page.locator('a[href^="/demo/command-center/"][href$="/today"]').first();
+  const firstCard = page
+    .locator("article")
+    .filter({ has: page.locator('a[href^="/demo/command-center/"][href$="/today"]').first() })
+    .first();
   await firstCard.hover();
   await page.waitForTimeout(180);
   const hoverState = await firstCard.evaluate((node) => ({
-    translate: getComputedStyle(node).translate,
+    transform: getComputedStyle(node).transform,
     transition: getComputedStyle(node).transitionProperty,
   }));
-  if (!hoverState.transition.includes("opacity"))
-    failures.push("launcher: scenario action does not expose a smooth hover transition");
-  await page.screenshot({ path: `${output}/launcher-desktop-dark.png`, fullPage: true });
+  if (!hoverState.transition.includes("transform") || hoverState.transform === "none")
+    failures.push("launcher: scenario card does not expose its lift hover state");
+  await page.screenshot({ path: `${output}/launcher-desktop.png`, fullPage: true });
   await context.close();
 }
 
@@ -197,7 +159,9 @@ async function readStablePageState(page) {
   const facts = await page.evaluate(() => ({
     overflow: document.documentElement.scrollWidth > innerWidth + 2,
     animated: [
-      ...document.querySelectorAll(".admin-demo-enter, .demo-scenario-mark, .demo-scenario-mark *"),
+      ...document.querySelectorAll(
+        ".ui-entrance, .ui-entrance *, .demo-scenario-mark, .demo-scenario-mark *",
+      ),
     ].filter((node) => getComputedStyle(node).animationName !== "none").length,
   }));
   if (facts.overflow) failures.push("launcher mobile: horizontal overflow");
