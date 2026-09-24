@@ -293,6 +293,15 @@ for (const scenario of scenarios) {
             failures.push(`${scenario} ${label} contacts: relationship data is incomplete`);
           await historyLinks.first().click();
           await page.getByRole("heading", { level: 1, name: "Contact relationship" }).waitFor();
+          await page.goto(`${base}/demo/command-center/${scenario}/contacts?view=requests`, {
+            waitUntil: "networkidle",
+          });
+          await page.locator("[data-contact-row-toggle]").first().click();
+          await page.getByRole("button", { name: "Mark as read" }).click();
+          await page
+            .getByText(/Received .* · Read$/)
+            .first()
+            .waitFor();
         }
       }
       if (route === "inbox") {

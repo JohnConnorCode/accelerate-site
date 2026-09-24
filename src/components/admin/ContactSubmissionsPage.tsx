@@ -43,6 +43,7 @@ interface Contact {
   business_name?: string;
   message: string;
   created_at: string;
+  read_at?: string | null;
   revenue_os?: {
     contact_id: string | null;
     opportunity_id: string | null;
@@ -66,6 +67,7 @@ export default function ContactSubmissionsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [contactOpen, setContactOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [markingReadId, setMarkingReadId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -165,6 +167,26 @@ export default function ContactSubmissionsPage() {
       setToast({ message: "Submission could not be deleted", type: "error" });
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function markRead(id: string) {
+    if (markingReadId) return;
+    setMarkingReadId(id);
+    try {
+      const response = await fetch("/api/admin/contacts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, read: true }),
+      });
+      if (!response.ok) throw new Error("Read status could not be saved");
+      await contactsQuery.refetch();
+      window.dispatchEvent(new Event("admin:priority-refresh"));
+      setToast({ message: "Request marked as read", type: "success" });
+    } catch {
+      setToast({ message: "Read status could not be saved", type: "error" });
+    } finally {
+      setMarkingReadId(null);
     }
   }
 
@@ -398,6 +420,7 @@ export default function ContactSubmissionsPage() {
                   </h2>
                   <p className="admin-copy mt-0.5 truncate text-xs">
                     Received {formatDate(displayedContact.created_at)}
+                    {displayedContact.read_at ? " · Read" : " · Unread"}
                   </p>
                 </div>
               </div>
@@ -446,7 +469,7 @@ export default function ContactSubmissionsPage() {
                 type="button"
                 disabled={deletingId === displayedContact.id}
                 onClick={() => void handleDelete(displayedContact.id)}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-rose-500/10 hover:text-rose-700 active:scale-[0.96] disabled:opacity-50 dark:hover:text-rose-300"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-danger)] transition-[background-color,transform] duration-150 hover:bg-[var(--admin-danger-soft)] active:scale-[0.96] disabled:opacity-50"
               >
                 {deletingId === displayedContact.id ? (
                   <Loader2 className="size-3.5 animate-spin" />
@@ -456,6 +479,16 @@ export default function ContactSubmissionsPage() {
                 Delete
               </button>
               <div className="flex flex-wrap gap-2">
+                {!displayedContact.read_at && (
+                  <button
+                    type="button"
+                    disabled={markingReadId === displayedContact.id}
+                    onClick={() => void markRead(displayedContact.id)}
+                    className="admin-button admin-button--secondary"
+                  >
+                    {markingReadId === displayedContact.id ? "Saving…" : "Mark as read"}
+                  </button>
+                )}
                 <a
                   href={`mailto:${displayedContact.email}`}
                   className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"

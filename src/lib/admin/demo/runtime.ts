@@ -220,6 +220,7 @@ export type DemoState = {
   workViews?: Array<Record<string, unknown>>;
   workEvents?: Array<Record<string, unknown>>;
   contactDirectory?: Array<Record<string, unknown>>;
+  readContactIds?: string[];
   workReceipts?: Record<string, { fingerprint: string; card: unknown }>;
   moduleOverrides: Partial<Record<string, boolean>>;
   moduleSettings: Record<string, Record<string, unknown>>;
@@ -3969,6 +3970,16 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       window.dispatchEvent(new Event("admin:demo-state"));
       return jsonResponse({ simulated: true, decision: body.decision, actionId: action.id });
     }
+    if (path === "/api/admin/contacts" && method === "PATCH") {
+      const input = body as { id?: string; read?: boolean };
+      if (!pack.people.some((item) => item.id === input.id) || typeof input.read !== "boolean")
+        return jsonResponse({ error: "Website request not found" }, 404);
+      state.readContactIds = input.read
+        ? [...new Set([...(state.readContactIds ?? []), input.id!])]
+        : (state.readContactIds ?? []).filter((id) => id !== input.id);
+      saveState(scenarioId, state);
+      return jsonResponse({ success: true, readAt: input.read ? new Date().toISOString() : null });
+    }
     if (method !== "GET") {
       if (path === "/api/admin/revenue-os/pipeline") {
         const rows = opportunityRows(pack, state);
@@ -4340,6 +4351,16 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
         createdAt: ago(1),
       }));
       return jsonResponse({ invoices, hasMore: false, nextCursor: null });
+    }
+    if (path === "/api/admin/contacts" && method === "GET") {
+      const payload = legacy(pack, path, state) as { contacts: Array<Record<string, unknown>> };
+      return jsonResponse({
+        ...payload,
+        contacts: payload.contacts.map((contact) => ({
+          ...contact,
+          read_at: state.readContactIds?.includes(String(contact.id)) ? ago(0) : null,
+        })),
+      });
     }
     if (path === "/api/admin/contacts/timeline") {
       const requestedEmail = (url.searchParams.get("email") || "").toLowerCase();

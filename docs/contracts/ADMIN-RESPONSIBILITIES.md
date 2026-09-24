@@ -12,7 +12,7 @@ Each page has one source of truth. Cross page views may link to a record or proj
 | Invoicing     | All invoices in the connected Stripe account, draft and send operations, provider payment state | Collections owns collection cases, reminders, promises, and disputes. Subscriptions owns recurring plans. Both are linked from Invoicing.         |
 | Intake review | Incoming lead and partner submissions                                                           | Tasks, AI work, and approvals live in Work.                                                                                                       |
 
-The contact directory reads `contacts`. `/api/admin/contacts` remains the website submission compatibility API; new directory reads use `/api/admin/contacts/directory`. Manual contact edits need the shared action and AI parity path before they can be added. Opening a website request does not mark it reviewed. The operator explicitly marks it reviewed.
+The contact directory reads `contacts`. `/api/admin/contacts` remains the website submission compatibility API; new directory reads use `/api/admin/contacts/directory`. Manual contact edits need the shared action and AI parity path before they can be added. Opening a website request leaves its unread state intact. The operator marks it read explicitly after inspection.
 
 The invoice index reads all Stripe account invoices directly using bounded cursor pagination. Draft/send approvals and app operation history remain in Invoicing. A Stripe invoice status is not proof that an email was delivered. Collections owns follow-up cases and evidence.
 
