@@ -26,7 +26,7 @@ import {
 import { executeRuntimeAction } from "./runtime-actions";
 import { checkAutonomy } from "./autonomy-policy";
 import { recordAudit } from "./audit";
-import { reversibilityOf } from "./action-reversibility";
+import { ACTION_REVERSIBILITY, reversibilityOf } from "./action-reversibility";
 import { sendRecordedEmail } from "./communications";
 import { transitionOpportunity } from "./pipeline";
 import { activateCampaign, duplicateCampaign } from "./campaigns";
@@ -41,6 +41,7 @@ import {
 } from "./tasks";
 import { applyLayoutChange } from "./admin-layout";
 import { captureFounderNote } from "./notes";
+import { executeContentCalendarUpdate } from "./content-calendar";
 
 function stringValue(
   payload: Record<string, unknown>,
@@ -52,45 +53,8 @@ function stringValue(
   return value || undefined;
 }
 
-export const APPROVABLE_ACTIONS = [
-  "today_view_change",
-  "send_radar_outreach",
-  "review_radar_relationship",
-  "review_radar_assessment",
-  "update_radar_store",
-  "social_marketing_change",
-  "update_module_configuration",
-  "update_workspace_brand",
-  "create_stripe_invoice_draft",
-  "send_stripe_invoice",
-  "create_task_batch",
-  "publish_invoice_page",
-  "bootstrap_coworker",
-  "store_agent_memory",
-  "record_learned_policy",
-  "approve_learning",
-  "knowledge_document_change",
-  "send_collection_reminder",
-  "save_form_definition",
-  "publish_form",
-  "accept_form_submission",
-  "site_website_change",
-  "send_email",
-  "send_gmail_reply",
-  "transition_opportunity",
-  "create_task",
-  "update_task",
-  "delete_task",
-  "update_next_action",
-  "activate_campaign",
-  "duplicate_campaign",
-  "bulk_tag_contacts",
-  "bulk_suppress_contacts",
-  "bulk_enroll_contacts",
-  "admin_layout_change",
-  "create_founder_note",
-  "identity_review",
-] as const;
+/** Action metadata is the source of truth; dispatch below must cover every entry. */
+export const APPROVABLE_ACTIONS = ACTION_REVERSIBILITY.map((entry) => entry.actionType);
 
 export async function approveAndExecuteAction(
   supabase: SupabaseClient,
@@ -219,6 +183,11 @@ export async function approveAndExecuteAction(
       case "update_workspace_brand": {
         if (mode !== "approved") throw new Error("Branding changes require human approval");
         result = await executeWorkspaceBrandUpdate(supabase, payload, actorEmail);
+        break;
+      }
+      case "update_content_calendar_item": {
+        if (mode !== "approved") throw new Error("Content calendar edits require human approval");
+        result = await executeContentCalendarUpdate(supabase, payload, actorEmail);
         break;
       }
       case "today_view_change": {

@@ -37,7 +37,7 @@ import { InactiveTenantExecutionError } from "@/lib/tenancy/system";
  * Bump this on any material change to the envelope, guardrails, or prompt. The
  * founder's stored approval is version-pinned, so a bump suspends sending.
  */
-export const RESPONDER_POLICY_VERSION = "inbound-responder.v3";
+export const RESPONDER_POLICY_VERSION = "inbound-responder.v4";
 
 /** Non-secret admin_settings keys. Lowercase so they cannot collide with an
  *  environment variable name, which `getSetting` would let win permanently. */
@@ -121,7 +121,7 @@ function withinSendWindow(now: Date): boolean {
   return hour >= RESPONDER_POLICY.windowStartHour && hour < RESPONDER_POLICY.windowEndHour;
 }
 
-const SYSTEM_PROMPT = `Context contract ${AI_CONTEXT_VERSION}. Allowed context sources: ${RESPONDER_CONTEXT_SOURCE_ALLOWLIST.join(", ")}.
+export const RESPONDER_SYSTEM_PROMPT = `Context contract ${AI_CONTEXT_VERSION}. Allowed context sources: ${RESPONDER_CONTEXT_SOURCE_ALLOWLIST.join(", ")}.
 
 You write the first reply ${tenant.brand.name} sends to someone who just submitted an inquiry on the website. You are writing as ${tenant.founder.name}.
 
@@ -135,10 +135,14 @@ Absolute rules:
 - Never claim work has started, that anything is attached, or that you have looked at their website or account.
 - Do not invent a person's role, company size, or industry.
 - If the inquiry is too vague to reflect back, say plainly that you want to understand the situation properly and ask one specific question.
+- If they ask what it costs, how long it takes, or when it could start, do not answer. Say those specifics get worked out on a short call once you understand their situation. Never write the words price, pricing, cost, costs, fee, discount, retainer, or "per month", and never name a number of days or weeks.
+- Never include a web address or link of any kind.
+- Never repeat a day, date, or time the prospect mentions; say you will find a time that works for both of you.
+- Start directly with the first sentence. No separate greeting line such as "Hi Sam,".
 
-Style: plain sentences, second person, no marketing language, no bullet lists, no headings, no subject line, no signature block. Two or three short paragraphs at most. Never use an em dash.
+Style: plain sentences, second person, no marketing language, no bullet lists, no headings, no subject line, no signature block. Two or three short paragraphs, never more than three. Never use an em dash.
 
-End by inviting them to reply with a couple of times that work, or to use the contact page. Output only the body text.`;
+The final paragraph must use the word "reply": ask them to reply with a couple of times that work, or to use the contact page. Output only the body text.`;
 
 function boundedField(value: string, limit: number): string {
   return value.trim().slice(0, limit);
@@ -472,7 +476,7 @@ export async function respondToInbound(
       maxTokens: 400,
       temperature: 0.4,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: RESPONDER_SYSTEM_PROMPT },
         { role: "system", content: context.text },
         { role: "user", content: record },
       ],

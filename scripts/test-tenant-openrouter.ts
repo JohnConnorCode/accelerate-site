@@ -185,7 +185,7 @@ async function main() {
     "src/app/api/chat/route.ts",
     "src/app/api/generate-plan/route.ts",
     "src/app/api/admin/proposals/generate/route.ts",
-    "src/app/api/admin/ai-content-brief/route.ts",
+    "src/lib/revenue-os/content-brief.ts",
     "src/app/api/admin/settings/test/route.ts",
     "src/lib/revenue-os/ai-agent.ts",
     "src/lib/revenue-os/auto-responder.ts",

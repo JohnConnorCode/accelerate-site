@@ -282,6 +282,7 @@ export async function createProactiveIntelBriefWork(
     source: "proactive_intel",
     priority: "medium",
     dedupeKey: `proactive-intel:brief:${today}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
     surfaceInInbox: true,

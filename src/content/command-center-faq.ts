@@ -17,6 +17,11 @@ export const commandCenterFaqs: FAQ[] = [
       "An edited reply or explicit correction can create a proposal in Learning Inbox. You review its scope and approve it, then relevant later work receives the saved rule with a source receipt. Independent rules remain active together. Add private reference documents when the missing piece is information, and inspect execution failures when a service needs repair. A successful action or saved rule alone does not prove that quality improved; compare later results with the original example.",
   },
   {
+    question: "Can Ask AI check the content calendar?",
+    answer:
+      "Yes. With the Content module enabled, Ask AI can list the five most recently added calendar items by exact status or category and reports when more match. It can also prepare a grounded editorial brief from a title and optional keywords or category when an AI provider is configured. The brief is working copy; review it and add it to the calendar from Content.",
+  },
+  {
     question: "Can I edit my website from ChatGPT?",
     answer:
       "Yes, after your installer configures the owner-only Site Studio OAuth connection. It can read and edit website content, prepare an exact preview, save drafts, publish and restore revisions through the same editor services. Access lasts 30 days and can be revoked in Site Studio. ChatGPT manages write confirmations; the server records delegated authority and execution receipts. Ordinary workspace MCP keys remain proposal-only, and the website connection cannot operate other workspace tools.",
@@ -147,6 +152,7 @@ export const commandCenterFaqs: FAQ[] = [
 export const productFaqs = commandCenterFaqs.filter((faq) =>
   [
     "Can I try Command Center before setting it up?",
+    "Can Ask AI check the content calendar?",
     "Can we build a completely different App or interface?",
     "Can AI create Apps inside Command Center?",
     "Where does our data live?",

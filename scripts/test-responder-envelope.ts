@@ -27,6 +27,7 @@ import {
   runWithTenantRequestContext,
 } from "../src/lib/tenancy/context";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
+import { currentEvalEvidence, JOB_CONTRACT_FINGERPRINTS } from "../src/lib/ai/eval-contract";
 
 process.env.OPENROUTER_RESPONDER_MODEL = "fixture/responder";
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
@@ -57,13 +58,8 @@ function stubNetwork(reply: string, options: { sendFails?: boolean } = {}) {
         usage: { prompt_tokens: 10, completion_tokens: 20 },
         choices: [{ message: { role: "assistant", content: reply } }],
       };
-      return {
-        ok: true,
-        status: 200,
-        headers: new Headers(),
-        json: async () => body,
-        text: async () => JSON.stringify(body),
-      };
+      // The gateway reads a bounded body stream, as it does from real fetch.
+      return new Response(JSON.stringify(body), { status: 200 });
     }
     if (href.includes("resend.com")) {
       providerSends += 1;
@@ -126,9 +122,7 @@ function harness(
           supportsTools: false,
           supportsJson: true,
           contextWindow: 128000,
-          evalPassed: true,
-          evaluatedAt: "2026-09-20",
-          evaluatedBy: "fixture",
+          evalEvidence: currentEvalEvidence(Object.keys(JOB_CONTRACT_FINGERPRINTS)),
         }),
       },
     ],

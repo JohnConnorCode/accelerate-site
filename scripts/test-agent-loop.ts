@@ -21,17 +21,21 @@ import assert from "node:assert/strict";
 import { runRevenueCommandAgent } from "../src/lib/revenue-os/ai-agent";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
+import { currentEvalEvidence, JOB_CONTRACT_FINGERPRINTS } from "../src/lib/ai/eval-contract";
 
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 
 type Row = Record<string, unknown>;
 type Sent = {
   tools: Array<{ function: { name: string } }>;
-  messages: Array<{ role: string; content?: string }>;
+  messages: Array<{ role: string; content?: string; tool_call_id?: string }>;
 };
 
 const realFetch = globalThis.fetch;
 let sent: Sent[] = [];
+let measureToolQueries = false;
+let concurrentToolQueries = 0;
+let peakConcurrentToolQueries = 0;
 
 /** Reply the stub gives on each turn: a tool call, or a final answer. */
 function toolCallTurn(index: number) {
@@ -62,11 +66,15 @@ function stubOpenRouter(reply: (turn: number) => unknown) {
   globalThis.fetch = (async (_url: string, init: RequestInit) => {
     sent.push(JSON.parse(String(init.body)) as Sent);
     const body = reply(turn);
+    const toolCalls = (body as { choices?: Array<{ message?: { tool_calls?: unknown[] } }> })
+      .choices?.[0]?.message?.tool_calls;
+    measureToolQueries = Boolean(toolCalls?.length);
     turn += 1;
     return {
       ok: true,
       status: 200,
       headers: new Headers(),
+      body: new Response(JSON.stringify(body)).body,
       json: async () => body,
       text: async () => JSON.stringify(body),
     };
@@ -92,9 +100,7 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
           supportsTools: true,
           supportsJson: true,
           contextWindow: 1047576,
-          evalPassed: true,
-          evaluatedAt: "2026-09-06T00:00:00Z",
-          evaluatedBy: "fixture@example.test",
+          evalEvidence: currentEvalEvidence(Object.keys(JOB_CONTRACT_FINGERPRINTS)),
         }),
       },
     ],
@@ -142,7 +148,14 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
         return self;
       };
     }
-    self.then = (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
+    self.then = async (resolve: (result: { data: unknown; error: unknown }) => unknown) => {
+      const isRead = !pending;
+      if (measureToolQueries && isRead) {
+        concurrentToolQueries += 1;
+        peakConcurrentToolQueries = Math.max(peakConcurrentToolQueries, concurrentToolQueries);
+        await new Promise((done) => setTimeout(done, 5));
+        concurrentToolQueries -= 1;
+      }
       const rows = seededTables[table] ?? [];
       return resolve(
         pending
@@ -172,6 +185,63 @@ function systemPrompt(request: Sent): string {
 }
 
 async function main() {
+  // Independent read-only tool calls share a model turn and should not pay
+  // their database latency one at a time. Results still return in call order.
+  sent = [];
+  peakConcurrentToolQueries = 0;
+  stubOpenRouter((turn) =>
+    turn === 0
+      ? {
+          id: "parallel-reads",
+          model: "stub/model",
+          choices: [
+            {
+              message: {
+                role: "assistant",
+                tool_calls: [
+                  {
+                    id: "read-one",
+                    type: "function",
+                    function: { name: "get_today_snapshot", arguments: "{}" },
+                  },
+                  {
+                    id: "read-two",
+                    type: "function",
+                    function: {
+                      name: "search_contacts",
+                      arguments: JSON.stringify({ query: "sample" }),
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }
+      : {
+          id: "parallel-reads-final",
+          model: "stub/model",
+          choices: [
+            {
+              message: {
+                role: "assistant",
+                content:
+                  "Facts\nNo verified facts are available.\nInferences\nNone.\nMissing information\nNo current record matched.\nRecommended next steps\nAsk with a specific record name.",
+              },
+            },
+          ],
+        },
+  );
+  await runAgent(stubSupabase().client);
+  assert.ok(
+    peakConcurrentToolQueries > 1,
+    "independent read tools should overlap database latency",
+  );
+  const readReplies = sent[1]!.messages.filter((message) => message.role === "tool");
+  assert.deepEqual(
+    readReplies.map((message) => message.tool_call_id),
+    ["read-one", "read-two"],
+  );
+
   // ---- The agent must be told the current date ---------------------------
 
   sent = [];
@@ -394,6 +464,36 @@ async function main() {
   // The insert relies on action_queue's pending database default; no approval is written.
   assert.equal(noteWrites[0]!.payload.status, undefined);
   assert.deepEqual(crossResult.proposedActions, ["propose_founder_note"]);
+  assert.equal(crossResult.activeToolBundleId, "core-command:1");
+  sent = [];
+  stubOpenRouter(() => ({
+    id: "resumed-bundle",
+    model: "stub/model",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content:
+            "Facts\nNo verified facts are available.\nInferences\nNone.\nMissing information\nNo live snapshot was requested.\nRecommended next steps\nRequest the live today snapshot.",
+        },
+      },
+    ],
+  }));
+  const resumedBundle = await runRevenueCommandAgent(
+    bindTenantDatabaseForTest(crossDomain.client, ACCELERATE_TENANT_ID),
+    "test@acceleratewith.us",
+    [{ role: "user", content: "Record another founder note" }],
+    {
+      conversationId: "conversation-1",
+      activeToolBundleId: crossResult.activeToolBundleId,
+    },
+  );
+  assert.ok(
+    sent[0]!.tools.some((tool) => tool.function.name === "propose_founder_note"),
+    "a resumed conversation must restore its selected domain bundle",
+  );
+  assert.match(systemPrompt(sent[0]!), /across reloads/i);
+  assert.equal(resumedBundle.activeToolBundleId, "core-command:1");
   assert.equal(
     crossDomain.writes.filter(
       (write) =>
@@ -479,6 +579,11 @@ async function main() {
       (message) => message.role === "tool" && message.content?.includes("disabled"),
     ),
   );
+  assert.equal(
+    changingResult.activeToolBundleId,
+    null,
+    "a bundle disabled during the conversation must be cleared from durable state",
+  );
   assert.deepEqual(changingResult.proposedActions, []);
   assert.equal(changing.writes.filter((write) => write.table === "action_queue").length, 0);
 
@@ -554,6 +659,7 @@ async function main() {
           "transcript-bounded",
           "tool-receipt-provenance",
           "cross-domain-discovery-activation-pending-proposal",
+          "conversation-bundle-restored-after-reload",
           "unadvertised-calls-refuse-without-false-staging",
           "live-disablement-after-activation-refuses",
         ],

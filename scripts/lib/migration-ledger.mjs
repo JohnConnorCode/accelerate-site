@@ -62,6 +62,7 @@ END $guard$;
 CREATE TABLE IF NOT EXISTS public.accelerate_schema_migrations (
  file text PRIMARY KEY, checksum text NOT NULL CHECK(checksum ~ '^[a-f0-9]{64}$'), applied_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE public.accelerate_schema_migrations ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.accelerate_schema_migrations FROM PUBLIC, anon, authenticated, service_role;
 DO $guard$ BEGIN
  IF EXISTS(SELECT 1 FROM public.accelerate_schema_migrations WHERE file NOT IN (${catalog.map((m) => literal(m.file)).join(",")})) THEN

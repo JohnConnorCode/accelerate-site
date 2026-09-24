@@ -2,6 +2,33 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "ai-runtime-reliability",
+    slug: "ai-runtime-reliability",
+    title: "Ask AI answers faster and shows its sources",
+    description:
+      "Ask AI now streams its answer as it writes, and every dollar amount it states must come from your records or the conversation. Coworker work waits for your approval before a coworker starts, and each routine check runs once per period. On the Learning page you can review, correct or remove what the AI remembers, and each run shows the memories it used. Models qualify for sensitive work only after passing a recorded evaluation against the current instructions.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
+    id: "approval-backed-content-calendar-edits",
+    slug: "approval-backed-content-calendar-edits",
+    title: "Review AI content calendar edits before they are saved",
+    description:
+      "Ask AI can preview and propose up to five field changes to an existing Content Calendar item. The review queue shows the exact proposed values, and saving rechecks workspace access and the item revision. The admin editor and approved AI action share the same validated update path. Approval does not publish content; creation, deletion and column reordering remain manual operations.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
+    id: "shared-content-calendar-ai-read",
+    slug: "shared-content-calendar-ai-read",
+    title: "Ask AI can check the content calendar",
+    description:
+      "With the Content module enabled, Ask AI can list the five most recently added calendar items by status or category and tell you when more match. It can also prepare a grounded editorial brief when an AI provider is configured. The Content screen and assistant use the same calendar records, and generated briefs remain working copy until you review and add them.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
     id: "command-center-sign-in-clarity",
     slug: "command-center-sign-in-clarity",
     title: "A clearer Command Center sign-in",

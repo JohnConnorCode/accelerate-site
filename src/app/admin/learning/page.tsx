@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Brain, Loader2, Plus } from "lucide-react";
 import { LearningEvidence } from "@/components/admin/LearningEvidence";
 import { KnowledgeSources } from "@/components/admin/KnowledgeSources";
+import { AgentMemoryReview } from "@/components/admin/AgentMemoryReview";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/Button";
@@ -435,6 +436,7 @@ export default function LearningInboxPage() {
           </AdminSurface>
         </div>
         <KnowledgeSources />
+        <AgentMemoryReview />
         <LearningEvidence />
       </div>
 

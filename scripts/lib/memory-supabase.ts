@@ -375,8 +375,10 @@ export class MemorySupabase {
       if (sorts.length) {
         matched = [...matched].sort((a, b) => {
           for (const { column, ascending } of sorts) {
-            if (a[column] === b[column]) continue;
-            const comparison = String(a[column]) < String(b[column]) ? -1 : 1;
+            const left = String(a[column] ?? "");
+            const right = String(b[column] ?? "");
+            if (left === right) continue;
+            const comparison = left < right ? -1 : 1;
             return comparison * (ascending ? 1 : -1);
           }
           return 0;

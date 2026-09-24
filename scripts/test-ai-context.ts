@@ -17,6 +17,7 @@ import {
   buildRevenueAiGroundingContract,
   groundedAnswerFailure,
   validateGroundedRevenueAnswer,
+  unsourcedDollarFigures,
 } from "../src/lib/revenue-os/ai-context";
 
 const long = "x".repeat(MAX_CONVERSATION_MESSAGE_CHARS + 600);
@@ -112,6 +113,76 @@ assert.equal(
   validateGroundedRevenueAnswer(groundedAnswerFailure("Rejected output"), []).valid,
   true,
   "the deterministic degraded answer must itself satisfy the contract",
+);
+
+// The four sections are the shape for sourceless business answers, not for
+// every reply: cited answers, clarifying questions and staged-approval
+// confirmations may be plain prose, but never unsourced figures.
+assert.equal(
+  validateGroundedRevenueAnswer(
+    "Acme HVAC has been in proposal for 19 days. [source: registered_tool_result:search_pipeline]",
+    ["search_pipeline"],
+  ).valid,
+  true,
+  "a cited plain answer is grounded without the section scaffold",
+);
+assert.equal(
+  validateGroundedRevenueAnswer("Which Dana do you mean: Acme HVAC or Northside Dental?", []).valid,
+  true,
+  "a clarifying question states no facts",
+);
+assert.equal(
+  validateGroundedRevenueAnswer("I drafted the check-in email. It is waiting for your approval.", [
+    "discover_tool_bundles",
+    "propose_send_email",
+  ]).valid,
+  true,
+  "a staged-approval confirmation needs no record citation",
+);
+assert.equal(
+  validateGroundedRevenueAnswer("I'll start by finding Dana Reyes before drafting anything.", [])
+    .valid,
+  false,
+  "announcing a lookup instead of doing it is not an answer",
+);
+assert.equal(
+  validateGroundedRevenueAnswer("You have 3 stale deals worth $10,500?", []).valid,
+  false,
+  "figures without a live source fail closed even when phrased as a question",
+);
+assert.equal(
+  validateGroundedRevenueAnswer("Queued for approval: a 20% discount for Acme.", [
+    "propose_send_email",
+  ]).valid,
+  false,
+  "a staged confirmation may not carry unsourced figures",
+);
+
+// Figures must trace to evidence: exact values, small sums, or rounded "k".
+const dealEvidence = '{"deals":[{"value":4800},{"value":3200},{"value":2500}]}';
+assert.deepEqual(unsourcedDollarFigures("Acme is worth $4,800.", dealEvidence), []);
+assert.deepEqual(unsourcedDollarFigures("Open pipeline totals $10,500.", dealEvidence), []);
+assert.deepEqual(unsourcedDollarFigures("Roughly $10.5k is open.", dealEvidence), []);
+assert.deepEqual(unsourcedDollarFigures("Nothing is overdue ($0).", dealEvidence), []);
+assert.deepEqual(unsourcedDollarFigures("Expect about $7,500 this month.", dealEvidence), [
+  "$7,500",
+]);
+assert.equal(
+  validateGroundedRevenueAnswer(
+    "Two deals worth $7,500 need attention. [source: registered_tool_result:search_pipeline]",
+    ["search_pipeline"],
+    dealEvidence,
+  ).valid,
+  false,
+  "a cited answer still fails when it states an amount no source supports",
+);
+assert.equal(
+  validateGroundedRevenueAnswer(
+    "Acme ($4,800) and Harper ($2,500) total $7,300. [source: registered_tool_result:search_pipeline]",
+    ["search_pipeline"],
+    dealEvidence,
+  ).valid,
+  true,
 );
 
 // ai-bounded-context AC1: the headless coworker turn has an explicit context

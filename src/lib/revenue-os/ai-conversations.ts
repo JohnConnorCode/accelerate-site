@@ -59,6 +59,20 @@ export interface AiConversationMessage {
   metadata: Record<string, unknown>;
 }
 
+/** Restore the last server-recorded tool bundle, including an explicit clear. */
+export function activeAiToolBundleFromHistory(
+  messages: readonly AiConversationMessage[],
+): string | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message?.role !== "assistant" || !Object.hasOwn(message.metadata, "active_tool_bundle_id"))
+      continue;
+    const bundleId = message.metadata.active_tool_bundle_id;
+    return typeof bundleId === "string" && bundleId.length <= 160 ? bundleId || null : null;
+  }
+  return null;
+}
+
 export class AiConversationSchemaUnavailableError extends Error {
   constructor() {
     super(
@@ -251,10 +265,11 @@ export async function loadAiConversation(
     .from("ai_messages")
     .select("id,role,content,run_id,metadata,created_at")
     .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(Math.min(Math.max(limit, 1), 200));
   if (error) schemaError(error);
-  const messages = (data ?? []).map((row) => ({
+  const messages = [...(data ?? [])].reverse().map((row) => ({
     id: String(row.id),
     role: row.role as AiMessageRole,
     content: String(row.content),

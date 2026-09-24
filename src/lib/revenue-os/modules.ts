@@ -2,6 +2,7 @@ import { isCredentialSetting } from "./module-settings-policy";
 import { pluginSettingsContract } from "./plugin-settings-contract";
 import type { PluginToolDeclaration } from "./plugin-tool-contract";
 import type { WorkflowPolicy } from "./plugin-workflow-policy";
+import type { AiToolPackId } from "./ai-tool-contract";
 /**
  * Pluggable Module Contract for Revenue OS
  *
@@ -103,6 +104,8 @@ export interface RevenueOSModule {
   navLinkIds: string[];
   /** AI tool names in the ai-tools registry provided or used by this module. */
   aiToolNames?: string[];
+  /** Runtime packs that include this module's tools in their initial tool set. */
+  aiToolPacks?: AiToolPackId[];
   /** Admin route prefixes owned by this module. */
   routes?: string[];
   /** Exact read-only retained-record page; API authorization remains mandatory. */
@@ -369,6 +372,13 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
     defaultEnabled: true,
     navLinkIds: ["content"],
     routes: ["/admin/content"],
+    aiToolNames: [
+      "generate_content_brief",
+      "list_content_calendar",
+      "preview_content_calendar_update",
+      "propose_content_calendar_update",
+    ],
+    aiToolPacks: ["core"],
   },
   {
     id: "resources",
