@@ -55,10 +55,14 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
-  const body = z
-    .object({ id: z.uuid(), read: z.boolean() })
-    .strict()
-    .safeParse(await request.json().catch(() => null));
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch (error) {
+    console.error("[contacts] Invalid JSON request", error);
+    return NextResponse.json({ error: "Choose a valid website request" }, { status: 400 });
+  }
+  const body = z.object({ id: z.uuid(), read: z.boolean() }).strict().safeParse(payload);
   if (!body.success)
     return NextResponse.json({ error: "Choose a valid website request" }, { status: 400 });
   const supabase = auth.database;
