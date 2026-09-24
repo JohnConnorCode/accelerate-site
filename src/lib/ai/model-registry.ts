@@ -4,6 +4,7 @@ import { DEFAULT_SITE_MODEL } from "@/lib/site-studio/models";
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DEFAULT_OPENROUTER_MODEL } from "./openrouter-models";
+import { isEvidenceCurrent, parseEvalEvidence, type EvalEvidence } from "./eval-contract";
 
 /**
  * Audited model registry (ai-model-job-registry): AI calls name a registered
@@ -32,10 +33,12 @@ export interface ModelRegistration {
   /** Accepts the OpenRouter `reasoning` control; unknown models are assumed not to. */
   supportsReasoning: boolean;
   contextWindow: number;
-  /** Passed the eval for every consequential job. */
+  /** Derived: every job with recorded evidence is currently qualified. */
   evalPassed: boolean;
-  /** Consequential jobs this model passed individually (see `setModelEvalStatus`). */
+  /** Derived: jobs whose recorded evidence is current (see eval-contract). */
   evalPassedJobs: string[];
+  /** Versioned per-job eval evidence; the only source of qualification. */
+  evalEvidence: EvalEvidence;
   evaluatedAt: string | null;
   evaluatedBy: string | null;
 }
@@ -73,7 +76,7 @@ const BUILT_IN_MODEL_ID = DEFAULT_OPENROUTER_MODEL;
 
 const BUILT_IN_REGISTRATION: Omit<
   ModelRegistration,
-  "evalPassed" | "evalPassedJobs" | "evaluatedAt" | "evaluatedBy"
+  "evalPassed" | "evalPassedJobs" | "evalEvidence" | "evaluatedAt" | "evaluatedBy"
 > = {
   id: BUILT_IN_MODEL_ID,
   label: "DeepSeek V4.1 Flash (default)",
@@ -232,11 +235,16 @@ function toRegistration(
       label: modelId === BUILT_IN_MODEL_ID ? BUILT_IN_REGISTRATION.label : modelId,
       evalPassed: false,
       evalPassedJobs: [],
+      evalEvidence: {},
       evaluatedAt: null,
       evaluatedBy: null,
     };
   }
   const costTier = stored.costTier;
+  // A bare "passed" flag is not evidence; only versioned, current evidence qualifies.
+  const evalEvidence = parseEvalEvidence(stored.evalEvidence);
+  const evaluatedJobs = Object.keys(evalEvidence);
+  const evalPassedJobs = evaluatedJobs.filter((job) => isEvidenceCurrent(job, evalEvidence[job]));
   return {
     id: modelId,
     label: typeof stored.label === "string" ? stored.label : modelId,
@@ -248,10 +256,9 @@ function toRegistration(
     supportsJson: stored.supportsJson !== false,
     supportsReasoning: stored.supportsReasoning === true,
     contextWindow: Number.isFinite(Number(stored.contextWindow)) ? Number(stored.contextWindow) : 0,
-    evalPassed: stored.evalPassed === true,
-    evalPassedJobs: Array.isArray(stored.evalPassedJobs)
-      ? stored.evalPassedJobs.filter((job): job is string => typeof job === "string")
-      : [],
+    evalPassed: evaluatedJobs.length > 0 && evalPassedJobs.length === evaluatedJobs.length,
+    evalPassedJobs,
+    evalEvidence,
     evaluatedAt: typeof stored.evaluatedAt === "string" ? stored.evaluatedAt : null,
     evaluatedBy: typeof stored.evaluatedBy === "string" ? stored.evaluatedBy : null,
   };
@@ -287,8 +294,7 @@ export async function registerModel(
     contextWindow: Number.isFinite(Number(input.contextWindow))
       ? Number(input.contextWindow)
       : (existing?.contextWindow ?? 0),
-    evalPassed: existing?.evalPassed ?? false,
-    evalPassedJobs: existing?.evalPassedJobs ?? [],
+    evalEvidence: existing?.evalEvidence ?? {},
     evaluatedAt: existing?.evaluatedAt ?? null,
     evaluatedBy: existing?.evaluatedBy ?? null,
   };
@@ -358,18 +364,16 @@ export async function listModelRegistrations(supabase: SupabaseClient, tenantId:
 }
 
 /**
- * Record an eval outcome. Passing unlocks free/low-cost models for
- * consequential jobs; the who/when travels with the verdict. `passedJobs`
- * records a per-job verdict so one weak job does not lock the model out of
- * jobs it passed; omitted, `passed` applies to every job.
+ * Record eval evidence from the consequential-jobs suite. Evidence merges per
+ * job, so re-running one job keeps the others; qualification is derived from
+ * it at read time and lapses when a job's contract changes or it ages out.
  */
-export async function setModelEvalStatus(
+export async function recordModelEvalEvidence(
   supabase: SupabaseClient,
   input: {
     tenantId: string;
     modelId: string;
-    passed: boolean;
-    passedJobs?: string[];
+    evidence: EvalEvidence;
     actorEmail: string;
     notes?: string;
   },
@@ -378,30 +382,30 @@ export async function setModelEvalStatus(
   const current =
     (await getModelRegistration(supabase, tenantId, input.modelId)) ??
     (await registerModel(supabase, { tenantId, id: input.modelId, actorEmail: input.actorEmail }));
+  const stored = {
+    label: current.label,
+    costTier: current.costTier,
+    supportsTools: current.supportsTools,
+    supportsJson: current.supportsJson,
+    supportsReasoning: current.supportsReasoning,
+    contextWindow: current.contextWindow,
+    evalEvidence: { ...current.evalEvidence, ...parseEvalEvidence(input.evidence) },
+    evaluatedAt: new Date().toISOString(),
+    evaluatedBy: input.actorEmail,
+    notes: input.notes ?? null,
+  };
   const { error } = await supabase.from("admin_settings").upsert(
     {
       tenant_id: tenantId,
       key: settingKey(current.id),
-      value: JSON.stringify({
-        label: current.label,
-        costTier: current.costTier,
-        supportsTools: current.supportsTools,
-        supportsJson: current.supportsJson,
-        supportsReasoning: current.supportsReasoning,
-        contextWindow: current.contextWindow,
-        evalPassed: input.passed,
-        evalPassedJobs: input.passedJobs ?? [],
-        evaluatedAt: new Date().toISOString(),
-        evaluatedBy: input.actorEmail,
-        notes: input.notes ?? null,
-      }),
+      value: JSON.stringify(stored),
       is_secret: false,
       description: "AI model registry entry",
     },
     { onConflict: "tenant_id,key" },
   );
-  if (error) throw new Error(`Could not record eval status: ${error.message}`);
-  return { ...current, evalPassed: input.passed, evalPassedJobs: input.passedJobs ?? [] };
+  if (error) throw new Error(`Could not record eval evidence: ${error.message}`);
+  return toRegistration(current.id, stored);
 }
 
 export interface ModelResolution {
@@ -444,6 +448,7 @@ export async function resolveModelForJob(
           supportsReasoning: false,
           evalPassed: false,
           evalPassedJobs: [],
+          evalEvidence: {},
           evaluatedAt: null,
           evaluatedBy: null,
         }
@@ -462,11 +467,10 @@ export async function resolveModelForJob(
   if (
     job.consequential &&
     (model.costTier === "free" || model.costTier === "low") &&
-    !model.evalPassed &&
     !model.evalPassedJobs.includes(jobKey)
   )
     throw new Error(
-      `Model ${model.id} is ${model.costTier}-cost and unevaluated: it cannot run consequential job ${jobKey} until its eval set passes`,
+      `Model ${model.id} is ${model.costTier}-cost and unevaluated: it cannot run consequential job ${jobKey} until its eval set passes against the current contract (npm run eval:consequential-jobs -- --record)`,
     );
   return {
     job: jobKey,

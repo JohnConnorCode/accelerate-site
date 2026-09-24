@@ -21,6 +21,7 @@ import assert from "node:assert/strict";
 import { runRevenueCommandAgent } from "../src/lib/revenue-os/ai-agent";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
+import { currentEvalEvidence, JOB_CONTRACT_FINGERPRINTS } from "../src/lib/ai/eval-contract";
 
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 
@@ -99,9 +100,7 @@ function stubSupabase(tables: Record<string, Row[]> = {}) {
           supportsTools: true,
           supportsJson: true,
           contextWindow: 1047576,
-          evalPassed: true,
-          evaluatedAt: "2026-09-06T00:00:00Z",
-          evaluatedBy: "fixture@example.test",
+          evalEvidence: currentEvalEvidence(Object.keys(JOB_CONTRACT_FINGERPRINTS)),
         }),
       },
     ],

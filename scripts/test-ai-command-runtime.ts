@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
-import { setModelEvalStatus } from "../src/lib/ai/model-registry";
+import { recordModelEvalEvidence } from "../src/lib/ai/model-registry";
+import { currentEvalEvidence, JOB_CONTRACT_FINGERPRINTS } from "../src/lib/ai/eval-contract";
 import { MemorySupabase } from "./lib/memory-supabase";
 import {
   activeAiToolBundleFromHistory,
@@ -42,10 +43,10 @@ async function main() {
   const memory = new MemorySupabase({ tenants: [{ id: ACCELERATE_TENANT_ID, status: "active" }] });
   const database = bindTenantDatabase(memory.client, ACCELERATE_TENANT_ID, true);
   // Controlled transport fixture only; this is not an evaluation of a live model.
-  await setModelEvalStatus(database, {
+  await recordModelEvalEvidence(database, {
     tenantId: ACCELERATE_TENANT_ID,
     modelId: DEFAULT_OPENROUTER_MODEL,
-    passed: true,
+    evidence: currentEvalEvidence(Object.keys(JOB_CONTRACT_FINGERPRINTS)),
     actorEmail: "fixture@example.test",
     notes: "Mock transport fixture",
   });

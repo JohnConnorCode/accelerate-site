@@ -5,6 +5,7 @@ import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
 import { registerSalesWorkHandlers } from "../src/lib/revenue-os/sales-coworker";
 import { getWorkKindHandler } from "../src/lib/revenue-os/work-executor";
 import type { WorkItem } from "../src/lib/revenue-os/work-items";
+import { currentEvalEvidence, JOB_CONTRACT_FINGERPRINTS } from "../src/lib/ai/eval-contract";
 
 function fixture() {
   const tenant = ACCELERATE_TENANT_ID;
@@ -38,9 +39,7 @@ function fixture() {
           supportsTools: true,
           supportsJson: true,
           contextWindow: 1047576,
-          evalPassed: true,
-          evaluatedAt: "2026-09-06T00:00:00Z",
-          evaluatedBy: "fixture@example.test",
+          evalEvidence: currentEvalEvidence(Object.keys(JOB_CONTRACT_FINGERPRINTS)),
         }),
       },
     ],

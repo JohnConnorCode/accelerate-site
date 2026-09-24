@@ -10,10 +10,15 @@ import {
   recordModelCall,
   registerModel,
   resolveModelForJob,
-  setModelEvalStatus,
+  recordModelEvalEvidence,
 } from "../src/lib/ai/model-registry";
 import { DEFAULT_OPENROUTER_MODEL, getOpenRouterModel } from "../src/lib/ai/openrouter-models";
 import { MemorySupabase } from "./lib/memory-supabase";
+import {
+  currentEvalEvidence,
+  EVAL_MAX_AGE_DAYS,
+  JOB_CONTRACT_FINGERPRINTS,
+} from "../src/lib/ai/eval-contract";
 
 const TENANT = "tenant-a";
 const FOREIGN = "tenant-b";
@@ -146,12 +151,29 @@ async function main() {
     "tenant-registered models must never resolve cross-tenant",
   );
 
-  // 4a. A per-job verdict unlocks only the jobs that passed.
-  await setModelEvalStatus(db, {
+  // 4a. A bare "passed" flag is not evidence: legacy rows stay locked.
+  await registerModel(db, {
+    tenantId: TENANT,
+    id: "legacy/flagged",
+    costTier: "low",
+    contextWindow: 200_000,
+    actorEmail: "founder@example.com",
+  });
+  const legacyRow = mem
+    .rows("admin_settings")
+    .find((row) => row.key === "ai-model:legacy/flagged")!;
+  legacyRow.value = JSON.stringify({ ...JSON.parse(String(legacyRow.value)), evalPassed: true });
+  await assert.rejects(
+    () => resolveModelForJob(db, TENANT, "copilot-answer", "legacy/flagged"),
+    /unevaluated/,
+    "an unsupported pass flag must not qualify a model",
+  );
+
+  // 4b. Current evidence unlocks only the jobs it covers.
+  await recordModelEvalEvidence(db, {
     tenantId: TENANT,
     modelId: "openai/gpt-4.1-mini",
-    passed: false,
-    passedJobs: ["copilot-answer"],
+    evidence: currentEvalEvidence(["copilot-answer"]),
     actorEmail: "founder@example.com",
   });
   assert.equal(
@@ -161,18 +183,56 @@ async function main() {
   await assert.rejects(
     () => resolveModelForJob(db, TENANT, "responder-draft", "openai/gpt-4.1-mini"),
     /unevaluated/,
-    "a job the model did not pass stays locked",
+    "a job without evidence stays locked",
   );
 
-  // 4. Eval gate: passing unlocks the consequential path with provenance.
-  const evaluated = await setModelEvalStatus(db, {
+  // 4c. Evidence fails closed when stale, off-contract, or not fully passing.
+  const stale = new Date(Date.now() - (EVAL_MAX_AGE_DAYS + 1) * 86_400_000).toISOString();
+  for (const [label, evidence] of [
+    ["aged out", currentEvalEvidence(["proposal-draft"], stale)],
+    [
+      "contract changed",
+      {
+        "proposal-draft": {
+          ...currentEvalEvidence(["proposal-draft"])["proposal-draft"]!,
+          fingerprint: "0000000000000000",
+        },
+      },
+    ],
+    [
+      "a run failed",
+      {
+        "proposal-draft": {
+          ...currentEvalEvidence(["proposal-draft"])["proposal-draft"]!,
+          runs: 3,
+          passes: 2,
+        },
+      },
+    ],
+  ] as const) {
+    await recordModelEvalEvidence(db, {
+      tenantId: TENANT,
+      modelId: "openai/gpt-4.1-mini",
+      evidence,
+      actorEmail: "founder@example.com",
+    });
+    await assert.rejects(
+      () => resolveModelForJob(db, TENANT, "proposal-draft", "openai/gpt-4.1-mini"),
+      /unevaluated/,
+      `evidence that is ${label} must not qualify`,
+    );
+  }
+
+  // 4d. Full current evidence qualifies every covered job, with provenance.
+  const evaluated = await recordModelEvalEvidence(db, {
     tenantId: TENANT,
     modelId: "openai/gpt-4.1-mini",
-    passed: true,
+    evidence: currentEvalEvidence(Object.keys(JOB_CONTRACT_FINGERPRINTS)),
     actorEmail: "founder@example.com",
-    notes: "eval set v3 green",
+    notes: "eval set green",
   });
   assert.equal(evaluated.evalPassed, true);
+  assert.equal(evaluated.evaluatedBy, "founder@example.com");
   const after = await resolveModelForJob(db, TENANT, "copilot-answer", "openai/gpt-4.1-mini");
   assert.equal(after.resolved, "openai/gpt-4.1-mini");
 

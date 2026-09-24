@@ -209,6 +209,7 @@
     "test:integration-catalog": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-integration-catalog.ts",
     "qa:integration-catalog": "node --env-file=.env.local scripts/qa-integration-catalog.mjs",
     "test:command-center-scheduler": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-command-center-scheduler.ts",
+    "test:eval-contract": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-eval-contract.ts",
     "test:work-scheduler-dedupe": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-work-scheduler-dedupe.ts",
     "test:priority-selector": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-priority-selector.ts",
     "test:activity-ledger": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-activity-ledger.ts",

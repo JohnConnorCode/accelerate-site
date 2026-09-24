@@ -2,7 +2,7 @@
 /**
  * Live eval for the consequential AI jobs (copilot, coworker, responder,
  * proposal). A free/low-cost model cannot run these jobs until this passes and
- * records the verdict (model-registry `setModelEvalStatus`); before this
+ * records versioned evidence (model-registry `recordModelEvalEvidence`); before this
  * script existed nothing in the product could record one, so the copilot,
  * coworkers, responder and proposals were unreachable on the default model.
  *
@@ -25,7 +25,14 @@ import {
   openRouterTextStream,
 } from "../src/lib/ai/openrouter";
 import { SYSTEM_PROMPT as PUBLIC_CHAT_SYSTEM_PROMPT } from "../src/lib/chat/system-prompt";
-import { setModelEvalStatus } from "../src/lib/ai/model-registry";
+import { recordModelEvalEvidence } from "../src/lib/ai/model-registry";
+import {
+  currentEvalEvidence,
+  EVAL_SUITE_VERSION,
+  JOB_CONTRACT_FINGERPRINTS,
+  type EvalEvidence,
+} from "../src/lib/ai/eval-contract";
+import { computeJobContractFingerprint } from "../src/lib/ai/eval-contract-sources";
 import { APPROVED_SERVICE_PRICES } from "../src/lib/ai/approved-pricing";
 import {
   buildProposalUserPrompt,
@@ -87,9 +94,7 @@ function fixtureTables(): Record<string, Row[]> {
           supportsReasoning:
             MODEL === DEFAULT_OPENROUTER_MODEL ||
             process.env.EVAL_MODEL_SUPPORTS_REASONING === "true",
-          evalPassed: true,
-          evaluatedAt: new Date().toISOString(),
-          evaluatedBy: EVALUATOR,
+          evalEvidence: currentEvalEvidence(Object.keys(JOB_CONTRACT_FINGERPRINTS)),
         }),
       },
     ],
@@ -258,6 +263,7 @@ interface CaseResult {
   runs: number;
   passes: number;
   failures: string[];
+  latencies: number[];
 }
 const results: CaseResult[] = [];
 
@@ -265,7 +271,7 @@ const results: CaseResult[] = [];
  * reports its pass rate. The gate is every run of every case passing. */
 async function evalCase(job: string, name: string, run: () => Promise<string | null>) {
   if (ONLY && !`${job}/${name}`.includes(ONLY)) return;
-  const result: CaseResult = { job, name, runs: RUNS, passes: 0, failures: [] };
+  const result: CaseResult = { job, name, runs: RUNS, passes: 0, failures: [], latencies: [] };
   for (let attempt = 1; attempt <= RUNS; attempt++) {
     const startedAt = Date.now();
     let failure: string | null;
@@ -274,6 +280,7 @@ async function evalCase(job: string, name: string, run: () => Promise<string | n
     } catch (error) {
       failure = `threw: ${(error instanceof Error ? error.message : String(error)).slice(0, 300)}`;
     }
+    result.latencies.push(Date.now() - startedAt);
     if (failure === null) result.passes++;
     else result.failures.push(failure);
     console.error(
@@ -615,19 +622,36 @@ async function main() {
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!url || !key)
       throw new Error("Recording needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
+    const evaluatedAt = new Date().toISOString();
+    const evidence: EvalEvidence = {};
+    for (const job of jobs.filter((candidate) => candidate in JOB_CONTRACT_FINGERPRINTS)) {
+      const fingerprint = computeJobContractFingerprint(job);
+      if (fingerprint !== JOB_CONTRACT_FINGERPRINTS[job])
+        throw new Error(
+          `${job} contract changed but JOB_CONTRACT_FINGERPRINTS was not updated; run test:eval-contract`,
+        );
+      const jobResults = results.filter((result) => result.job === job);
+      const latencies = jobResults.flatMap((result) => result.latencies).sort((a, b) => a - b);
+      evidence[job] = {
+        suiteVersion: EVAL_SUITE_VERSION,
+        fingerprint,
+        evaluatedAt,
+        runs: jobResults.reduce((sum, result) => sum + result.runs, 0),
+        passes: jobResults.reduce((sum, result) => sum + result.passes, 0),
+        cases: jobResults.length,
+        p50LatencyMs: latencies[Math.floor(latencies.length / 2)] ?? 0,
+      };
+    }
     const live = createClient(url, key, { auth: { persistSession: false } });
-    await setModelEvalStatus(live, {
+    const registration = await recordModelEvalEvidence(live, {
       tenantId: ACCELERATE_TENANT_ID,
       modelId: MODEL,
-      passed,
-      passedJobs,
+      evidence,
       actorEmail: EVALUATOR,
-      notes: passed
-        ? `${results.length} consequential-job cases passed ${RUNS}/${RUNS} runs`
-        : `Failed: ${failed.map(({ job, name, passes, runs }) => `${job}/${name} ${passes}/${runs}`).join(", ")}`,
+      notes: summary.cases.join("; "),
     });
     console.error(
-      `Recorded ${MODEL}: evalPassed=${passed}, passedJobs=${passedJobs.join(", ") || "none"}`,
+      `Recorded evidence for ${MODEL}; qualified jobs: ${registration.evalPassedJobs.join(", ") || "none"}`,
     );
   }
   process.exit(passed ? 0 : 1);

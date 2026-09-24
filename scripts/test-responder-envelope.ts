@@ -27,6 +27,7 @@ import {
   runWithTenantRequestContext,
 } from "../src/lib/tenancy/context";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
+import { currentEvalEvidence, JOB_CONTRACT_FINGERPRINTS } from "../src/lib/ai/eval-contract";
 
 process.env.OPENROUTER_RESPONDER_MODEL = "fixture/responder";
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
@@ -121,9 +122,7 @@ function harness(
           supportsTools: false,
           supportsJson: true,
           contextWindow: 128000,
-          evalPassed: true,
-          evaluatedAt: "2026-09-20",
-          evaluatedBy: "fixture",
+          evalEvidence: currentEvalEvidence(Object.keys(JOB_CONTRACT_FINGERPRINTS)),
         }),
       },
     ],

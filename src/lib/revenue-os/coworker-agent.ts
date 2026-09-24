@@ -47,9 +47,9 @@ import { findWorkDraft } from "./work-drafts";
 // of the coworker's role rather than a founder-facing copilot.
 // ---------------------------------------------------------------------------
 
-const MAX_COWORKER_TOOL_TURNS = 5;
+export const MAX_COWORKER_TOOL_TURNS = 5;
 
-function coworkerSystemPrompt(coworkerRole: string, coworkerId: string, workspace: string): string {
+export function coworkerSystemPrompt(coworkerRole: string, coworkerId: string, workspace: string): string {
   return [
     `You are ${workspace}'s ${coworkerRole} coworker (id: ${coworkerId}).`,
     `Your job is to execute the assigned work item using the tools available to you.`,
