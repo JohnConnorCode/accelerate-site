@@ -171,6 +171,34 @@ async function main() {
     "the row must say why it failed",
   );
 
+  const autonomousDraft = seed(
+    pending({
+      action_type: "create_gmail_draft",
+      payload: {
+        conversationId: "conversation-1",
+        opportunityId: "opp-1",
+        contactId: "contact-1",
+        to: "alex@example.com",
+        subject: "Re: Hello",
+        body: "A reviewed reply",
+      },
+    }),
+  );
+  await rejects(
+    () =>
+      approveAndExecuteAction(autonomousDraft.client, "action-1", "john@acceleratewith.us", {
+        mode: "autonomous",
+      }),
+    "explicit human approval",
+    "Gmail draft creation must not run from autonomous execution",
+  );
+  assert.equal(
+    autonomousDraft.rows("messages").length,
+    0,
+    "autonomous refusal must not call Gmail",
+  );
+  assert.equal(autonomousDraft.rows("action_queue")[0]!.status, "failed");
+
   // ---- An invalid stage is rejected before the pipeline moves -----------
 
   const badStage = seed(

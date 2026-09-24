@@ -2,6 +2,33 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "capy-command-center-appearance",
+    slug: "capy-command-center-appearance",
+    title: "A brighter, warmer appearance for Command Center",
+    description:
+      "Capy now pairs a graphite navigation rail and crisp white workspace surfaces with seafoam actions, monospaced titles and compact controls. The reference-led design uses a subtle warm-neutral canvas and restrained offset depth, while keeping all product icons, illustrations and copy original. The shared appearance system applies it across admin pages, the picker and fictional demos with responsive, keyboard and reduced-motion support.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
+    id: "paper-admin-appearance",
+    slug: "paper-admin-appearance",
+    title: "A calmer Paper appearance for Command Center",
+    description:
+      "Paper now pairs its warm workspace canvas with a light sidebar and a quiet cobalt selection state. Primary actions keep the stronger cobalt fill, so navigation and actions have clearer visual priority.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
+    id: "shared-workflow-calendar-views",
+    slug: "shared-workflow-calendar-views",
+    title: "See tasks and pipeline work in the view that fits",
+    description:
+      "Tasks & approvals now switches between list, status board and calendar views over the same task records. Pipeline adds a calendar for dated next actions while retaining its board and list. Both calendars keep undated work visible, identify overdue and upcoming items, and open the existing record editor for validated date changes. Layout, fields and filters persist in the browser by workspace and signed-in member; unsupported timeline and dependency views stay unavailable without canonical data to support them.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
     id: "ai-runtime-reliability",
     slug: "ai-runtime-reliability",
     title: "Ask AI answers faster and shows its sources",

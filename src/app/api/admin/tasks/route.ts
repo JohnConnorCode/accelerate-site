@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
-  return NextResponse.json({ tasks: data || [], viewerId: auth.user.id });
+  return NextResponse.json({ tasks: data || [], viewerId: auth.user.id, tenantId: auth.tenant.id });
 }
 
 export async function POST(request: NextRequest) {

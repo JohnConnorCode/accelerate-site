@@ -7,12 +7,32 @@ import {
   googleServerErrorSummary,
   verifyGoogleOAuthStateBinding,
 } from "../src/lib/revenue-os/google-oauth";
+import {
+  buildGoogleAuthUrl,
+  GOOGLE_GMAIL_DRAFT_SCOPE,
+  GOOGLE_SCOPES,
+} from "../src/lib/revenue-os/google";
 
 const previousKey = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY;
+const previousClientId = process.env.GOOGLE_CLIENT_ID;
+const previousClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const previousSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 process.env.GOOGLE_TOKEN_ENCRYPTION_KEY = "deterministic-test-key-that-never-leaves-this-process";
+process.env.GOOGLE_CLIENT_ID = "test-client.apps.googleusercontent.com";
+process.env.GOOGLE_CLIENT_SECRET = "test-client-secret";
+process.env.NEXT_PUBLIC_SITE_URL = "https://example.test";
 
 try {
   const now = Date.parse("2026-08-31T12:00:00.000Z");
+  const baseScopes = new URL(buildGoogleAuthUrl("state")).searchParams.get("scope")!.split(" ");
+  const draftScopes = new URL(
+    buildGoogleAuthUrl("state", { includeGmailDrafts: true }),
+  ).searchParams
+    .get("scope")!
+    .split(" ");
+  assert.deepEqual(baseScopes, GOOGLE_SCOPES, "ordinary Google consent must not add draft access");
+  assert.ok(!baseScopes.includes(GOOGLE_GMAIL_DRAFT_SCOPE));
+  assert.deepEqual(draftScopes, [...GOOGLE_SCOPES, GOOGLE_GMAIL_DRAFT_SCOPE]);
   const expected = { state: "state-value", tenantId: "tenant-alpha", tenantSlug: "alpha" };
   const binding = createGoogleOAuthStateBinding(expected, now);
   assert.equal(verifyGoogleOAuthStateBinding(binding, expected, now), true);
@@ -84,9 +104,21 @@ try {
     /data\.google\.scopes\.map/,
     "Setup must render every granted scope exactly",
   );
+  assert.match(setupPage, /Grant Gmail draft access/);
+  assert.match(
+    readFileSync("src/app/api/admin/google/authorize/route.ts", "utf8"),
+    /capability.*gmail-drafts/,
+    "draft consent must require the explicit capability route",
+  );
 } finally {
   if (previousKey === undefined) delete process.env.GOOGLE_TOKEN_ENCRYPTION_KEY;
   else process.env.GOOGLE_TOKEN_ENCRYPTION_KEY = previousKey;
+  if (previousClientId === undefined) delete process.env.GOOGLE_CLIENT_ID;
+  else process.env.GOOGLE_CLIENT_ID = previousClientId;
+  if (previousClientSecret === undefined) delete process.env.GOOGLE_CLIENT_SECRET;
+  else process.env.GOOGLE_CLIENT_SECRET = previousClientSecret;
+  if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+  else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl;
 }
 
 console.log(JSON.stringify({ result: "passed", signedStateFailureModes: 4, safeErrorClasses: 4 }));

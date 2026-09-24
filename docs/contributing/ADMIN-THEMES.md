@@ -1,10 +1,19 @@
 # Admin themes
 
 Admin appearances share geometry, motion and semantic colors while keeping their
-own character. Paper, Night, Signal, Studio, Frost, Material 2026 and macOS live in
-`src/lib/admin/themes.json`. The picker and browser matrix derive from this
+own character. Paper, Night, Signal, Studio, Frost, Material 2026, macOS,
+Accelerate and Capy live in `src/lib/admin/themes.json`. The picker and browser matrix derive from this
 registry. `npm run themes:generate` produces `src/app/admin-themes.css`, including
 the dark utility selector from each definition's `mode`.
+
+Capy is a reference-led appearance based on the live [Capy AI](https://capy.ai/)
+product presentation reviewed on 2026-09-23. Reusable cues include a near-black
+header and workspace chrome, white canvas, seafoam calls to action, condensed
+display type, monospaced copy, compact activity cards, crisp dark outlines and
+small offset shadows. This theme translates those cues into a graphite navigation
+rail, mint actions, a warm-neutral canvas, monospaced titles and labels, compact
+corners and restrained depth. It uses this project's icons, illustrations and
+copy; no Capy logo, mascot art or proprietary assets are included.
 
 ## Add a built-in appearance
 
@@ -52,3 +61,10 @@ contrast, portable round trips, invalid data and optional legacy branding.
 radius restrictions and the decreasing legacy palette budget. Browser QA must
 also inspect real text, controls, focus, menus and dialogs: token tests alone
 cannot prove rendered contrast or layout.
+
+Run the complete browser matrix against the production build with
+`QA_PRODUCTION=1 npm run qa:admin-polish`. It covers all eight built-ins,
+desktop and phone layouts, board loading/error/empty/recovery states, shared
+controls, keyboard and touch interactions, reduced motion, custom-theme flows
+and scenario isolation. Screenshots and measurements go to
+`/tmp/admin-polish-qa` by default; set `QA_OUTPUT` to retain them elsewhere.

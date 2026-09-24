@@ -72,6 +72,7 @@ interface SetupResponse {
   google?: {
     accountEmail: string;
     connected: boolean;
+    gmailDraftsScopeGranted: boolean;
     settings: { drive_folder_ids?: string[] };
     scopes: string[];
     tokenHealth: {
@@ -857,6 +858,26 @@ export default function AdminSetupPage() {
                     Workspace
                   </button>
                 </div>
+                {!data.google.gmailDraftsScopeGranted && (
+                  <div className="mb-4 flex flex-col gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface-subtle)] p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--admin-ink)]">
+                        Gmail draft access is optional
+                      </p>
+                      <p className="admin-copy mt-1 max-w-3xl text-xs leading-5">
+                        Grant it only if you want an approved follow-up saved as an editable Gmail
+                        draft. Google’s permission also technically allows sending; this workflow
+                        only creates drafts and never sends.
+                      </p>
+                    </div>
+                    <Link
+                      href="/api/admin/google/authorize?capability=gmail-drafts"
+                      className="admin-button admin-button--primary shrink-0"
+                    >
+                      Grant Gmail draft access
+                    </Link>
+                  </div>
+                )}
                 <AdminSurface padding="lg">
                   <div className="mb-6 grid gap-2 sm:grid-cols-2">
                     <div className="rounded-xl bg-black/[0.025] p-4 dark:bg-white/[0.03]">

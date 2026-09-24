@@ -74,6 +74,9 @@ async function main() {
     "the canonical action catalog and executor dispatch must cover the same action types",
   );
   assert.throws(() => reversibilityOf("wire_money_somewhere"), /no reversibility class/);
+  assert.equal(reversibilityOf("create_gmail_draft").impact, "internal_write");
+  assert.equal(reversibilityOf("create_gmail_draft").reversibility, "compensable");
+  assert.match(reversibilityOf("create_gmail_draft").rationale, /never sends/);
 
   const mem = new MemorySupabase({
     opportunities: [

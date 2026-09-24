@@ -39,10 +39,12 @@ export const todayBriefSchema = z
 export type TodayBrief = z.infer<typeof todayBriefSchema>;
 export interface TodayHandledWork {
   id: string;
+  kind: string;
   title: string;
   status: string;
   owner: string;
   outcome: string | null;
+  error: string | null;
   nextCheckAt: string | null;
   nextCheckReason: string | null;
   href: string;

@@ -121,6 +121,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260920201517_ai_readiness_atomic_reports.sql",
   "migrations/20260929-shared-rate-limits.sql",
   "migrations/20260923-schema-migration-ledger-rls.sql",
+  "migrations/20260924-ai-conversation-sources-tenant-access.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

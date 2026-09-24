@@ -30,6 +30,8 @@ const ACTION_CONSEQUENCE: Record<string, string> = {
     "Saves the exact Today arrangement and preferences shown below. Business records are unchanged. Only the proposing member can approve it.",
   send_email: "Sends this email immediately. It cannot be recalled.",
   send_gmail_reply: "Sends this reply from your Gmail account immediately. It cannot be recalled.",
+  create_gmail_draft:
+    "Saves this exact reply as an editable Gmail draft. It is not sent. You can review, edit, or send it in Gmail Drafts.",
   activate_campaign:
     "Starts this campaign. Enrolled contacts begin receiving email on the next run.",
   duplicate_campaign:
@@ -174,7 +176,11 @@ export function ActionReviewDialog({
                     : "bg-[var(--admin-accent-soft)] text-[var(--admin-accent)]",
                 )}
               >
-                {external ? "External Action" : "Internal Mutation"}
+                {action.action_type === "create_gmail_draft"
+                  ? "Gmail Draft"
+                  : external
+                    ? "External Action"
+                    : "Internal Mutation"}
               </span>
             </div>
             <h2
@@ -385,7 +391,11 @@ export function ActionReviewDialog({
               ) : (
                 <Check className="size-3.5" />
               )}
-              {external ? "Approve and send" : "Approve"}
+              {action.action_type === "create_gmail_draft"
+                ? "Save draft to Gmail"
+                : external
+                  ? "Approve and send"
+                  : "Approve"}
             </button>
           </div>
         </div>

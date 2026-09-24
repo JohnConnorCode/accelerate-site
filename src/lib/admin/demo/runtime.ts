@@ -2662,10 +2662,12 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
             .runs.slice(0, 3)
             .map((run) => ({
               id: run.id,
+              kind: "ai_run",
               title: run.promptPreview,
               status: run.status,
               owner: "Workspace AI",
               outcome: run.resultPreview,
+              error: null,
               nextCheckAt: null,
               nextCheckReason: null,
               href: "/admin/ai",
@@ -4282,6 +4284,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (path === "/api/admin/revenue-os/pipeline")
       return jsonResponse({
         schemaReady: true,
+        tenantId: scenarioId,
+        viewerId: "demo-member",
         signalsReady: { calendar: true },
         opportunities: opportunityRows(pack, state),
       });
@@ -4464,6 +4468,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const viewerId = "00000000-0000-4000-8000-000000000079";
       return jsonResponse({
         viewerId,
+        tenantId: scenarioId,
         tasks: demoTaskRows(pack, state)
           .filter((item) => !url.searchParams.get("id") || item.id === url.searchParams.get("id"))
           .filter(

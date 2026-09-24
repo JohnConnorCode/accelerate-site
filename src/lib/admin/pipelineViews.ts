@@ -15,7 +15,7 @@ export type PipelineSystemViewId =
 export type PipelineSortField = "next_action_at" | "created_at" | "estimated_value" | "name";
 export type PipelineSortDirection = "asc" | "desc";
 export type PipelineVisibleField = "contact" | "source" | "value" | "next_action" | "owner";
-export type PipelineLayout = "board" | "list";
+export type PipelineLayout = "board" | "list" | "calendar";
 
 export interface PipelineViewOpportunity {
   id: string;
@@ -119,8 +119,9 @@ export const DEFAULT_PIPELINE_VIEW: PipelineViewState = {
   layout: "board",
 };
 
-const LAST_VIEW_KEY = "accelerate:pipeline-view-state:v1";
-const SAVED_VIEWS_KEY = "accelerate:pipeline-saved-views:v1";
+const LAST_VIEW_KEY = "accelerate:pipeline-view-state:v2";
+const SAVED_VIEWS_KEY = "accelerate:pipeline-saved-views:v2";
+const key = (base: string, scope: string) => `${base}:${encodeURIComponent(scope || "default")}`;
 const OPEN_STAGES = new Set<RevenueStage>([
   "new",
   "contacted",
@@ -314,7 +315,8 @@ function normalizeState(value: unknown): PipelineViewState {
       : DEFAULT_PIPELINE_VIEW.sortField,
     sortDirection: candidate.sortDirection === "desc" ? "desc" : "asc",
     visibleFields: visibleFields.length ? visibleFields : DEFAULT_PIPELINE_VIEW.visibleFields,
-    layout: candidate.layout === "list" ? "list" : "board",
+    layout:
+      candidate.layout === "list" || candidate.layout === "calendar" ? candidate.layout : "board",
   };
 }
 
@@ -336,20 +338,22 @@ function writeJson(key: string, value: unknown): void {
   }
 }
 
-export function loadLastPipelineView(): PipelineViewState {
-  return normalizeState(readJson(LAST_VIEW_KEY));
+export function loadLastPipelineView(scope = "default"): PipelineViewState {
+  return normalizeState(readJson(key(LAST_VIEW_KEY, scope)));
 }
 
-export function hasLastPipelineView(): boolean {
-  return typeof window !== "undefined" && window.localStorage.getItem(LAST_VIEW_KEY) !== null;
+export function hasLastPipelineView(scope = "default"): boolean {
+  return (
+    typeof window !== "undefined" && window.localStorage.getItem(key(LAST_VIEW_KEY, scope)) !== null
+  );
 }
 
-export function saveLastPipelineView(state: PipelineViewState): void {
-  writeJson(LAST_VIEW_KEY, normalizeState(state));
+export function saveLastPipelineView(state: PipelineViewState, scope = "default"): void {
+  writeJson(key(LAST_VIEW_KEY, scope), normalizeState(state));
 }
 
-export function loadSavedPipelineViews(): SavedPipelineView[] {
-  const value = readJson(SAVED_VIEWS_KEY);
+export function loadSavedPipelineViews(scope = "default"): SavedPipelineView[] {
+  const value = readJson(key(SAVED_VIEWS_KEY, scope));
   if (!Array.isArray(value)) return [];
   return value.flatMap((item) => {
     if (!item || typeof item !== "object") return [];
@@ -370,10 +374,14 @@ export function loadSavedPipelineViews(): SavedPipelineView[] {
   });
 }
 
-export function savePipelineView(name: string, state: PipelineViewState): SavedPipelineView[] {
+export function savePipelineView(
+  name: string,
+  state: PipelineViewState,
+  scope = "default",
+): SavedPipelineView[] {
   const trimmed = name.trim().slice(0, 60);
-  if (!trimmed) return loadSavedPipelineViews();
-  const existing = loadSavedPipelineViews();
+  if (!trimmed) return loadSavedPipelineViews(scope);
+  const existing = loadSavedPipelineViews(scope);
   const view: SavedPipelineView = {
     id: `pipeline-view-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: trimmed,
@@ -383,12 +391,12 @@ export function savePipelineView(name: string, state: PipelineViewState): SavedP
     ...existing.filter((item) => item.name.toLowerCase() !== trimmed.toLowerCase()),
     view,
   ].slice(-20);
-  writeJson(SAVED_VIEWS_KEY, next);
+  writeJson(key(SAVED_VIEWS_KEY, scope), next);
   return next;
 }
 
-export function removePipelineView(id: string): SavedPipelineView[] {
-  const next = loadSavedPipelineViews().filter((view) => view.id !== id);
-  writeJson(SAVED_VIEWS_KEY, next);
+export function removePipelineView(id: string, scope = "default"): SavedPipelineView[] {
+  const next = loadSavedPipelineViews(scope).filter((view) => view.id !== id);
+  writeJson(key(SAVED_VIEWS_KEY, scope), next);
   return next;
 }

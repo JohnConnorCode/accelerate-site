@@ -305,6 +305,10 @@
       "module": "core-conversations"
     },
     {
+      "tool": "propose_gmail_draft",
+      "module": "core-conversations"
+    },
+    {
       "tool": "get_radar_outreach_history",
       "module": "core-conversations"
     },

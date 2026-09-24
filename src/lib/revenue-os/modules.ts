@@ -188,6 +188,7 @@ const CORE_MODULES: readonly RevenueOSModule[] = [
       "propose_send_email",
       "search_conversations",
       "propose_conversation_reply",
+      "propose_gmail_draft",
       "get_radar_outreach_history",
       "reconcile_radar_outreach",
     ],

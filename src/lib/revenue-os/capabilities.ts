@@ -166,6 +166,43 @@ export async function registerCapability(
   return data as string;
 }
 
+/** Capabilities the Revenue OS provides itself. They need no provider
+ * connection, so a coworker that requires them is ready as soon as it exists. */
+const NATIVE_CAPABILITIES: Record<
+  string,
+  { direction: CapabilityDirection; impact: CapabilityImpact }
+> = {
+  "crm.read": { direction: "read", impact: "read" },
+  "crm.write": { direction: "write", impact: "internal_write" },
+};
+
+/**
+ * Register a capability a coworker requires. Native capabilities are
+ * available immediately; provider capabilities (Gmail, Calendar) stay
+ * unavailable until their integration connects. Failures surface to the
+ * approval that ran the bootstrap instead of leaving the coworker silently
+ * unready.
+ */
+export async function registerRequiredCapability(
+  supabase: SupabaseClient,
+  capabilityKey: string,
+): Promise<string> {
+  const label = capabilityKey
+    .split(".")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+  const native = NATIVE_CAPABILITIES[capabilityKey];
+  return registerCapability(supabase, {
+    capabilityKey,
+    label,
+    category: native ? "runtime" : "integration",
+    ...(native
+      ? { direction: native.direction, impact: native.impact, available: true, policy: "automatic" }
+      : {}),
+    source: native ? "native" : "coworker_bootstrap",
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Sync from integration-registry: bulk-register capabilities
 // ---------------------------------------------------------------------------

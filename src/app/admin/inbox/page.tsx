@@ -183,6 +183,14 @@ export default function AdminInboxPage() {
   };
 
   const handleActionDecision = async (item: AdminInboxItem, decision: "approve" | "reject") => {
+    if (decision === "approve") {
+      navigation.push(
+        `/admin/work?tab=approvals&action=${encodeURIComponent(item.id)}`,
+        "preserve",
+      );
+      toast.info("Review the exact action in Work before approving it");
+      return;
+    }
     try {
       await fetchJson("/api/admin/revenue-os/actions", {
         method: "PATCH",
@@ -204,7 +212,7 @@ export default function AdminInboxPage() {
             }
           : current,
       );
-      toast.success(decision === "approve" ? "Action approved" : "Action rejected");
+      toast.success("Action rejected");
     } catch (actionError) {
       toast.error(actionError instanceof Error ? actionError.message : "Couldn't process action");
     }

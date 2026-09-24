@@ -33,7 +33,7 @@
     "src/app/admin/forms/page.tsx": "8b2b917e0174872a6c7b2b1314540c0b00a4d20fbbfd80e5101c4858c0f8ec65",
     "src/app/admin/get-started/page.tsx": "9f4510837f1626a2262d2bec3258aaf1a1d8aa4992da7098acfc2811676f5ffd",
     "src/app/admin/identity-review/page.tsx": "93d875e879ea45822a3a66a45c017fee081c2ff13a89dc2f745fcf27549e7631",
-    "src/app/admin/inbox/page.tsx": "b1629c03a57338dcf12003224c8263a1473489f13cd49e38759be186372a1f31",
+    "src/app/admin/inbox/page.tsx": "e68393d6ed5462661be12b125eadf3543d2ca935f61454fa34e8914e0dc5e472",
     "src/app/admin/integrations/page.tsx": "554ced72015939ef8a2e662b90f4dfd029f36f60211523001741ca47c122dbde",
     "src/app/admin/invoicing/page.tsx": "47c4ec0ddd509e7631abd0dac7d363a0129df8a67568ca2a74051b6293c1a903",
     "src/app/admin/leads/page.tsx": "6bc4b71a8835b96c5a98508fbcd50d6d27489447de9ec648378a91354935549d",
@@ -43,7 +43,7 @@
     "src/app/admin/page.tsx": "98c79d9db2288115c77c549e3ab5c391cecae1f0db649d2c3a3b84764203bed3",
     "src/app/admin/partners/page.tsx": "f8f10cdafdf18f44f63b50e1b5e92af4002cad7d3ee79e2efc28ef10d784d8cc",
     "src/app/admin/pipeline/[id]/page.tsx": "8c68643fc06af47ce8d74c3b6cbd419ca81c3b5bce4a151a0fb8c9214c011920",
-    "src/app/admin/pipeline/page.tsx": "7acb32464bfd9086691bacf0dfbf52b3a04cb7739d0e5ebbb6293701e1ba2c8e",
+    "src/app/admin/pipeline/page.tsx": "af0a99e3daf3c014e027899d225b574808da3c2359a2110bbf88e0b2ea7f2514",
     "src/app/admin/plugins/page.tsx": "6a92761f3882c61cdf48b288dac64f0fbd8536dc3e505f858e68c52135358e6c",
     "src/app/admin/proposals/page.tsx": "6c7f8138a64fd5615cbcc693adb9e65bc2506a1cf34224a56be9e1a81aa9c5f2",
     "src/app/admin/radar/history/page.tsx": "623933fc9c5c073ae71be3f4b1811dc7be3b1da2b708d71b1e2a1f7fbc22329f",
@@ -54,7 +54,7 @@
     "src/app/admin/resources/page.tsx": "4f9c6539ebcdd69d96e0e81d5f60b746fc8d37b643ef33a94c1535902da0a3a3",
     "src/app/admin/revenue/page.tsx": "15339ff31bf48d4beb225fc4fa31260ffcdb16a2fb3fffb6e236e2a4be11b4a0",
     "src/app/admin/settings/page.tsx": "aa786e9c57c5dc78eca0aed6f1d8f3479ecdb1260d6b2a92d507a50c701f0e5c",
-    "src/app/admin/setup/page.tsx": "1ab29a274eba3f594859b65053b85696170dcacb4975b3c9c09dc91df2251aed",
+    "src/app/admin/setup/page.tsx": "c783e36a12b3c078bb05efecf19d44be0d95e8be5f3cbd75e3aa3153757fb95f",
     "src/app/admin/site/[id]/page.tsx": "967b7d53e5e731e05e9c88fa943853ee977b8bd8afd8ee2bb88a8d7ce016fee9",
     "src/app/admin/site/connect/page.tsx": "46746b81f2b127b7c002509cc1d3b04e673e8bb44e7ca389fcad43eca7c7dd74",
     "src/app/admin/site/page.tsx": "759acbf21797f27e6f49b56fd3c358b38fc354c810566c4db1d2bab4a8b63f4c",
@@ -68,7 +68,7 @@
     "src/app/admin/today/page.tsx": "cbbba1645450b9ecc3bce1771bd06029306e62c33025bff07d5b7b1a30d13a4c",
     "src/app/admin/update-password/page.tsx": "e62f24ee8b4843f033eb5b4d28f6ed4141765990678e88fde91799f7b35a8274",
     "src/app/admin/website-grades/page.tsx": "81e08a663b69ba64ae3f123857d3558dc7e71b8c562161f3df6df2f1c1765639",
-    "src/app/admin/work/page.tsx": "4ca619107e1bbbc0e3347a0d750730dba65ee854e8aa1cb2850b744d3ba71cfc",
+    "src/app/admin/work/page.tsx": "735adf5e90d1ed6749658658a543c3ee0638f3257a38df0497442849a65fabec",
     "src/app/api/admin/activity/route.ts": "e60e1e665e017301187159476c84b36def2506c69a49db031e1653c4be79c68f",
     "src/app/api/admin/blueprints/[id]/route.ts": "0f320be38283c086d60f7bc49c8138abba4e99ca967b14c90c20bb2a7047f67f",
     "src/app/api/admin/blueprints/route.ts": "3a2f86bd0731f495649c57ed173c00129bfcbe6a326139c0e6905fdfb56a016c",
@@ -136,14 +136,14 @@
     "src/app/api/admin/revenue-os/identity-review/route.ts": "2236f24ce31d1a8ccedc1ef29e7101ede67e992af4d860ef5a67f4df3a9b3952",
     "src/app/api/admin/revenue-os/layout/route.ts": "5bf242d5b14c5dcbcaf9fbaa22c3f503862fc91f0210394a1021d74dd882c5e4",
     "src/app/api/admin/revenue-os/overview/route.ts": "a478bb52f8425dd7a07436b536002caa6c1c213a2d6ab9406538c0b41c970831",
-    "src/app/api/admin/revenue-os/pipeline/route.ts": "3aea61d20f8382ed483f6507f50c43ecf140727b054e7cebea0fbb3188724a5b",
+    "src/app/api/admin/revenue-os/pipeline/route.ts": "aa7c743cdd2b3cccfb69143111f0d2bc29b2702a63dd11f7a0db59df021c3621",
     "src/app/api/admin/revenue-os/records/opportunity/[id]/route.ts": "bef9ce8396d295bb1ec3aa98cb5be52aead4e845559262b74d4fd0e670ca0384",
     "src/app/api/admin/revenue-os/recovery/route.ts": "618f42369e72b357efd35a846c19cfa21b1e32f06d405a20ccf7cf650fc8f288",
     "src/app/api/admin/revenue-os/tasks/route.ts": "0ac406649d939e53d45100d122044654aa52eb228f7b07243227f66387abcb95",
     "src/app/api/admin/revenue/route.ts": "62cea43d4598d5996c29cc57ee8f7eb33eaec82ade8a8a9bfbcfc1f53e6c2e3d",
     "src/app/api/admin/settings/route.ts": "7f2356ae469f754ec265ab3f64e759533f39d7b86c462c08b05f6f7794caa62e",
     "src/app/api/admin/settings/test/route.ts": "f8418e1833464d34dbcb16316986faa252b85d331627d1417f4e66ec64d352f4",
-    "src/app/api/admin/setup/route.ts": "9d5249139666033a0ebc65c308607fa9edd19daf1cf5911fc832cc374bf8e2a4",
+    "src/app/api/admin/setup/route.ts": "dd275356738ca89aab4c50ca5166915d0532ca74d2ca95023567be9f9201946d",
     "src/app/api/admin/site/delegations/route.ts": "3333c0a130adf584099b498e191d0d8fef5bbbc700305d5cefd4ca4770ad91fc",
     "src/app/api/admin/site/drafts/[id]/route.ts": "d1b109ec287325688acdd544984e10a0d91a0742dd5be50af106ce2950317692",
     "src/app/api/admin/site/drafts/[id]/sections/route.ts": "8bcadef5e0a52c3a3760c7619368451b9af9b5c133e2a22c2fe72a6d55cb8a6e",
@@ -155,7 +155,7 @@
     "src/app/api/admin/subscribers/export/route.ts": "cfa8b9c13595ad6fb26374bc855a34f581a6eee0bc467152ed86f0bc1a04ed63",
     "src/app/api/admin/subscribers/route.ts": "3463b6ca89854e49bd045cf80ae1076332078bcfdd602c09ac482031a16573e9",
     "src/app/api/admin/subscriptions/route.ts": "0ce8c7d379219cc74fba1dedb6cffb5ccc9756fa0ae5a043028e2af71063b855",
-    "src/app/api/admin/tasks/route.ts": "dc148f3e6fc5d6ce6e9666696d9a1ecad25b309ad307d9503df40a24c9c793c6",
+    "src/app/api/admin/tasks/route.ts": "86bb074a65ea4c3f4c57336d2561103b7d4db4b0c3141d1ade87ea1012e6710d",
     "src/app/api/admin/tenant/branding/route.ts": "71155b5029dc782635329d0c815372640b929399c61730372f3a9d6c00456fc5",
     "src/app/api/admin/tenant/modules/route.ts": "33e9b419aac5552c0a74663ab7851787289ad62dce4d6cd48bc4828a73dd38f1",
     "src/app/api/admin/tenant/providers/route.ts": "bdb7821e7409e4c79e742271390e31e021f7aae7d03bae7fff6cac597e97224e",
@@ -165,7 +165,7 @@
     "src/components/admin/AICapabilities.tsx": "a002a0ed29cca7fbbb4be4599b317dafbf5be1fad7b8ad17aef54864945c3b2b",
     "src/components/admin/AIReadinessPanel.tsx": "900a125a59bf92a1d91c7757b53deaf99c327aa7cc5f7aa92f731642a13064ce",
     "src/components/admin/AIRunHistory.tsx": "b3aa372fb87a449cb0a895c9d0e15ea0060e2d27c522043952cb2eb0837accdc",
-    "src/components/admin/ActionReviewDialog.tsx": "dda011650885506a6f7c7d1a34a7f77a41bce8a6764537d34bf1278eb51a09bf",
+    "src/components/admin/ActionReviewDialog.tsx": "ffca44e3b8d47ac30650aae31cb5ad3bd5bb153ac6ad482644d76f54f6ba1d7f",
     "src/components/admin/AddLeadModal.tsx": "11b0ff48f8565c956a81384c6b7e8f7ecc2258e1fe4fa2af5c18837dc53173de",
     "src/components/admin/AdminAIChat.tsx": "f88a855f5f100411b2b5ee9afb4b744147c44010164468098220fe9118e5822f",
     "src/components/admin/AdminAIPanel.tsx": "b7153809b5422c884a719a0ae3210eace4223838e4be334fc0b8340884ac647a",
@@ -264,8 +264,10 @@
     "src/components/admin/TenantProviderControls.tsx": "75b2b3130f88c5f0d11312e2d70525f5558d569aa8d802e8653c782959ca0872",
     "src/components/admin/Toaster.tsx": "5f927bce3bcb92973809d03f06792568d4e0d1b1e64dc7e95de85a84cca41e30",
     "src/components/admin/TodayViewEditor.tsx": "42d4e4a75daad4c6825adc7409a02485799d8e559d83f1eea4c0f67df061f338",
-    "src/components/admin/TodayWorkspace.tsx": "73616256d6f231c6d99849bff5521ff2798a0c29b8da2acd4b76c208b289654d",
+    "src/components/admin/TodayWorkspace.tsx": "cd3566c3967b3e7b1d7382d87752997ecaed18c5cb3a5a494e5c4c124050fb06",
     "src/components/admin/TodaysPriorities.tsx": "7aacbf6802c467c7db99987d3c7c8dd03843118de743c82b24bb5179947a8064",
+    "src/components/admin/WorkflowCalendar.tsx": "86a0e1972d87270f8d90a608eba1c48de9cd3122503a10300e8ece41223b90aa",
+    "src/components/admin/WorkflowLayoutSwitcher.tsx": "4bc7bf68e5464071f7345bd8c1b19863ae8db9a10905a58e2601b61643cc6e86",
     "src/components/admin/site/SiteEditorConnections.tsx": "0202597ce85f52e4e08b1a43728e471857ef0f5d0ccdcf4b443a1f7cd11fa47e",
     "src/components/admin/site/WebsiteAssets.tsx": "b5e4a83a145f48bfb9139712edd4e9dfff12baa8e10404aba44c80e3d0651a72",
     "src/components/admin/site/WebsiteCollections.tsx": "6aa3035ebdb68f35843569a690e5e44e2d87ed53f5a6de99326dfd2fc829fe26",
@@ -294,7 +296,7 @@
     "src/lib/email/resend.ts": "67142e46e23bf246c95cf462d6d3221f5bdb855dab84b18dde702380c43f0829",
     "src/lib/email/templates.ts": "983a8cd4f980e14772c8bef3c0242cfc2371db82aa8bf30a9727792f9dda67b2",
     "src/lib/revenue-os/README.md": "eb3e7c9684ec29a2175bbf0d59ce976dc47bf60b3e2c3272fb9456a7e746a035",
-    "src/lib/revenue-os/action-executor.ts": "324b26ceff802888d6bad4cdc3b4e417a7d396f8101af8e7b3be7b3efc887c63",
+    "src/lib/revenue-os/action-executor.ts": "df0a60082c40212cef7431950c053b40446ba4b4e6437865e88afad9070ea900",
     "src/lib/revenue-os/actions.ts": "50539fc9fa13b951d83739761e12eae4891ffe121124385b0e8294ff623e597c",
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
@@ -304,7 +306,7 @@
     "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
     "src/lib/revenue-os/ai-operations.ts": "87a1920d2f8c49a557cf3c54577909548fdcfcf64a8b30a8c5b8cc4a2aefe54b",
     "src/lib/revenue-os/ai-stream-contract.ts": "bc3125e15c4ddab9e4aeb396af279fd01fa1d21abb8186ea88cc611160532f4f",
-    "src/lib/revenue-os/ai-tools.ts": "704f118d82a74f2c291a572165c5b0bc4ddc7866e2570c5481a7e61fea40356a",
+    "src/lib/revenue-os/ai-tools.ts": "d716e000b58df5a412ab64218c2883c4c3f4ab702b043920789436f934b77354",
     "src/lib/revenue-os/analytics.ts": "9214e72876cce37f295a123f5e025d385908b2f82038543f22e0eadc893b9b1a",
     "src/lib/revenue-os/architect-understanding.ts": "5e0764b46aaacd1f9d4e9d519d38348f8617b2d639fc3e4716b50de84ea39a18",
     "src/lib/revenue-os/audit.ts": "67fb1e17f562e9c8b5aa9bd60b60ba2e31867243ffabc1b2bce8e5899a4c55fe",
@@ -330,12 +332,12 @@
     "src/lib/revenue-os/form-builder-contract.ts": "a2a3403c5b9aff4d70c55a64cb3b672bb84484f81fcba33d5ab2deee015d280a",
     "src/lib/revenue-os/form-builder.ts": "3f2c181efe1dca678ccd9457e8f76d309657770badb16429cc70a27fc835f862",
     "src/lib/revenue-os/google-oauth.ts": "2d9c5c5464096402cfdd3ceac244835ddbd4da4677bfeda58508051efcfa68bc",
-    "src/lib/revenue-os/google.ts": "e4b563b8abb32aa9bf782630bf427a2bfec71fe17bf338847b9102df44e381c0",
+    "src/lib/revenue-os/google.ts": "8a2525b55980e7ffa5c2480bb5245e19489bb3835a01fefb0092a044a5093214",
     "src/lib/revenue-os/health.ts": "d2aec6b40a32001b1a6f89d07fb29d00f5fca19d051ca301cdecd3fac3220d92",
     "src/lib/revenue-os/identity-review.ts": "3e488e1925758428bbf97f9f5cf70bdd88877e4fcb944a40acd353fa1a10e8f4",
     "src/lib/revenue-os/inbound.ts": "32e579b58271f5870400442b92e8e16a2f54b2d22d7125faa385e3d3926bbece",
     "src/lib/revenue-os/integration-adapters.ts": "7f427bb456d210228a21a62dc8afe84514a5c1c3f864815157d93742cf871baf",
-    "src/lib/revenue-os/integrations.ts": "38673d0ab3959857063045b2e466cc2c970768d04752188bd3cf8686ac4bae96",
+    "src/lib/revenue-os/integrations.ts": "8d4d468661f4325468c53e9dfd613fa5ecc7c84b85ece0cb36f8f5b00c7aa304",
     "src/lib/revenue-os/invoice-page-contract.ts": "350da047e7317f8e8e6d73cbce19749be9dd40bda82f180f8f0b8bd037da8baa",
     "src/lib/revenue-os/invoice-pages.ts": "6572730905437cc60ff24cb31bd2f80724c4f49d67d1297fe567c454656c3d06",
     "src/lib/revenue-os/knowledge-documents.ts": "47a34d44a1dd97fc57b136f4d1f746b18572f627a0d8b18b8c24f9d1c8b99481",
@@ -346,7 +348,7 @@
     "src/lib/revenue-os/memory.ts": "6b30e30b9cd7cfefbe83b78d9912aa24c898a436d8f095a34f60f011d0996db3",
     "src/lib/revenue-os/module-actions-contract.ts": "1482e1c97832daf052924225f0df1a747bb8db2ae704ce035b313123de216c0f",
     "src/lib/revenue-os/module-configuration.ts": "49dc143f9117ac8dcb9554f077ccd7cd108ca4f5c4f81196104ba536cd91004b",
-    "src/lib/revenue-os/modules.ts": "88b27d0fb0c84b38102ac4eac5c741db324b9f2874e5f5e9defbd07c25e155c7",
+    "src/lib/revenue-os/modules.ts": "231d7c3e3febda9b151f2993f0f4d98bc1928d5121d8842e8fa9ecbac76723aa",
     "src/lib/revenue-os/pipeline-stage-resolver.ts": "3581116b6b179a7955feba43e7b535fdfd7febc5f5823eebf804113665486f94",
     "src/lib/revenue-os/pipeline.ts": "c01c688af0c25fffd4f926e55ad4c134ccf12f2cbcfd553d27525a91f6ecb886",
     "src/lib/revenue-os/proposals.ts": "1cfb2a6d157df923f7f910c13fc41410af1617a5d11e765cb9cb5e4daa4d7fb3",
@@ -1082,7 +1084,7 @@
           "directTables": ["tasks"]
         }
       ],
-      "boundary": "Mixed source inbox; reconcile by source type and ID, not just combined row count.",
+      "boundary": "Mixed source inbox; reconcile by source type and ID, not just combined row count. Approval opens the exact action in Work for review; only rejection is decided directly from Inbox.",
       "followUp": {
         "key": "canonical-retained-tools-parity",
         "id": "b3be09c1-f11b-48c7-b419-c03921a1f8bc"
@@ -1293,7 +1295,7 @@
     {
       "route": "/admin/pipeline",
       "page": "src/app/admin/pipeline/page.tsx",
-      "primaryAction": "Create an opportunity and change its stage",
+      "primaryAction": "Create an opportunity, change its stage, and review dated next actions across saved layouts",
       "adapters": [
         {
           "path": "src/app/api/admin/revenue-os/pipeline/route.ts",
@@ -1313,7 +1315,7 @@
           ]
         }
       ],
-      "boundary": "Canonical pipeline services own opportunity transitions and terminal-stage policy. Shared Kanban separates stage and order saves, reconciles partial results and retains authoritative state; demo mutations stay in scenario storage.",
+      "boundary": "Canonical pipeline services own opportunity transitions and terminal-stage policy. Board, list and calendar are views of the same records; dated edits use the existing validated record path. Shared Kanban separates stage and order saves, reconciles partial results and retains authoritative state; demo mutations stay in scenario storage.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1557,7 +1559,7 @@
           ]
         }
       ],
-      "boundary": "Health and schema checks are operational evidence, not business record parity. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming.",
+      "boundary": "Health and schema checks are operational evidence, not business record parity. Optional Gmail draft permission reports connection and scope readiness without a scheduled run or exposing credentials. Shared OpenRouter ordinary callers retain their behavior; strict budget routing is opt-in for Radar briefing and refuses streaming.",
       "followUp": null,
       "specialBoundary": null
     },
@@ -1831,7 +1833,7 @@
     {
       "route": "/admin/work",
       "page": "src/app/admin/work/page.tsx",
-      "primaryAction": "Filter and edit canonical tasks; review exact pending approvals",
+      "primaryAction": "Review canonical tasks across saved layouts, edit tasks, and decide exact pending approvals",
       "adapters": [
         {
           "path": "src/app/api/admin/tasks/route.ts",
@@ -1855,7 +1857,7 @@
           "directTables": ["action_queue"]
         }
       ],
-      "boundary": "Read-only owner/status/source filters; writes reuse task domain validation and the same approval executor and inspector as Today. No new work lifecycle. Existing governed task update/completion and action decision paths retain AI parity.",
+      "boundary": "List, board and calendar reuse canonical task reads and owner/status/source filters; layout preferences stay per member and workspace. Task writes reuse domain validation and the same approval executor and inspector as Today. Approved Gmail drafts remain unsent and keep their WorkItem open for reconciliation. Existing governed task update/completion and action decision paths retain AI parity.",
       "followUp": null,
       "specialBoundary": null
     },

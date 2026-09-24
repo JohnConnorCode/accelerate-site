@@ -8,9 +8,7 @@ import {
   ArrowUpRight,
   BookmarkPlus,
   Check,
-  Columns3,
   GripVertical,
-  List,
   Loader2,
   Plus,
   RefreshCw,
@@ -48,6 +46,9 @@ import {
 } from "@/lib/admin/pipelineViews";
 import { cn } from "@/lib/utils";
 import { isInteractiveTarget } from "@/lib/admin/interaction";
+import { WorkflowCalendar } from "@/components/admin/WorkflowCalendar";
+import { WorkflowLayoutSwitcher } from "@/components/admin/WorkflowLayoutSwitcher";
+import type { WorkflowViewDescriptor } from "@/lib/admin/workflow-views";
 
 interface Opportunity {
   id: string;
@@ -70,6 +71,34 @@ interface Opportunity {
   contact?: { full_name: string; primary_email: string | null } | null;
   company?: { name: string; domain: string | null; industry: string | null } | null;
 }
+const pipelineWorkflowDescriptor = (
+  columns: readonly KanbanColumnRecord[],
+): WorkflowViewDescriptor<Opportunity> => ({
+  id: "pipeline",
+  label: "Pipeline",
+  layouts: ["list", "board", "calendar"],
+  fields: PIPELINE_VISIBLE_FIELDS,
+  groupBy: {
+    label: "Stage",
+    values: columns.map((column) => ({ id: column.column_key, label: column.label })),
+  },
+  sortBy: [
+    { id: "next_action_at", label: "Next action" },
+    { id: "created_at", label: "Created" },
+    { id: "estimated_value", label: "Value" },
+    { id: "name", label: "Name" },
+  ],
+  filters: [
+    { id: "stage", label: "Stage" },
+    { id: "owner", label: "Owner" },
+    { id: "search", label: "Search" },
+    { id: "systemView", label: "Saved view" },
+  ],
+  title: (item) => item.name || item.company?.name || item.email || "Opportunity",
+  dueDate: (item) => item.next_action_at,
+  status: (item) => item.canonical_stage ?? item.stage,
+  summary: (item) => item.next_action || item.company?.name || "No next action set",
+});
 
 /** Role-driven tone for the stage badge/dropdown — replaces the old
  * hardcoded per-canonical-stage-name lookup so a custom admin-created stage
@@ -102,6 +131,7 @@ export default function PipelinePage() {
   const [saved, setSaved] = useState<SavedPipelineView[]>([]);
   const [activeSaved, setActiveSaved] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [readyScope, setReadyScope] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -130,10 +160,14 @@ export default function PipelinePage() {
   };
   const pipelineQuery = useAdminQuery<{
     schemaReady: boolean;
+    tenantId?: string;
+    viewerId?: string;
     signalsReady?: { calendar: boolean };
     opportunities: Opportunity[];
   }>(["admin", "pipeline"], "/api/admin/revenue-os/pipeline");
   const data = pipelineQuery.data ?? null;
+  const preferenceScope =
+    data?.tenantId && data.viewerId ? `${data.tenantId}:${data.viewerId}` : "";
   const loading = pipelineQuery.isPending;
   const refreshing = pipelineQuery.isFetching;
   const error = actionError || pipelineQuery.error?.message || "";
@@ -144,7 +178,8 @@ export default function PipelinePage() {
     if (result.error) setActionError(result.error.message || "Could not load pipeline.");
   }, [refetchPipeline]);
   useEffect(() => {
-    const restored = loadLastPipelineView();
+    if (!preferenceScope) return;
+    const restored = loadLastPipelineView(preferenceScope);
     const deviceDefault = restored;
     const params = new URLSearchParams(window.location.search);
     const query = params.get("opportunity")?.trim() || params.get("search")?.trim();
@@ -153,12 +188,14 @@ export default function PipelinePage() {
         ? { ...deviceDefault, systemView: "all", stage: "all", owner: "all", search: query }
         : deviceDefault,
     );
-    setSaved(loadSavedPipelineViews());
+    setSaved(loadSavedPipelineViews(preferenceScope));
     setReady(true);
-  }, []);
+    setReadyScope(preferenceScope);
+  }, [preferenceScope]);
   useEffect(() => {
-    if (ready) saveLastPipelineView(state);
-  }, [ready, state]);
+    if (ready && preferenceScope && readyScope === preferenceScope)
+      saveLastPipelineView(state, preferenceScope);
+  }, [preferenceScope, ready, readyScope, state]);
 
   const items = useMemo(() => data?.opportunities ?? [], [data]);
   const [referenceNow] = useState(() => new Date());
@@ -182,6 +219,10 @@ export default function PipelinePage() {
     renameColumn,
     deleteColumn,
   } = useKanbanColumns("pipeline");
+  const workflowDescriptor = useMemo(
+    () => pipelineWorkflowDescriptor(pipelineColumns),
+    [pipelineColumns],
+  );
   const shownColumns = useMemo(
     () =>
       state.stage === "all"
@@ -292,7 +333,7 @@ export default function PipelinePage() {
   };
   const storeView = (event: FormEvent) => {
     event.preventDefault();
-    const next = savePipelineView(viewName, state);
+    const next = savePipelineView(viewName, state, preferenceScope);
     setSaved(next);
     setActiveSaved(
       next.find((item) => item.name.toLowerCase() === viewName.trim().toLowerCase())?.id ?? null,
@@ -439,17 +480,10 @@ export default function PipelinePage() {
                       role="group"
                       aria-label="Pipeline layout"
                     >
-                      <IconButton
-                        label="Board view"
-                        active={state.layout === "board"}
-                        onClick={() => patchState({ layout: "board" })}
-                        icon={Columns3}
-                      />
-                      <IconButton
-                        label="List view"
-                        active={state.layout === "list"}
-                        onClick={() => patchState({ layout: "list" })}
-                        icon={List}
+                      <WorkflowLayoutSwitcher
+                        value={state.layout}
+                        onChange={(layout) => patchState({ layout })}
+                        layouts={workflowDescriptor.layouts}
                       />
                     </div>
                   </div>
@@ -559,7 +593,7 @@ export default function PipelinePage() {
                           label={`Delete saved view ${saved.find((view) => view.id === activeSaved)?.name ?? ""}`}
                           icon={Trash2}
                           onClick={() => {
-                            setSaved(removePipelineView(activeSaved));
+                            setSaved(removePipelineView(activeSaved, preferenceScope));
                             setActiveSaved(null);
                           }}
                         />
@@ -567,7 +601,15 @@ export default function PipelinePage() {
                     </div>
                   </details>
                 </div>
-                {state.layout === "board" ? (
+                {state.layout === "calendar" ? (
+                  <div className="border-t border-[var(--admin-border)] p-3 sm:p-5">
+                    <WorkflowCalendar
+                      descriptor={workflowDescriptor}
+                      items={shown}
+                      onOpen={(item) => navigation.push(`/admin/pipeline/${item.id}`)}
+                    />
+                  </div>
+                ) : state.layout === "board" ? (
                   shownColumns.length > 0 ? (
                     <div className="w-full min-w-0 border-t border-[var(--admin-border)] bg-black/[0.012] p-4 dark:bg-white/[0.012] sm:p-5">
                       <KanbanBoard<Opportunity>
@@ -1013,32 +1055,6 @@ function ToolButton({
     >
       <Icon className="size-4" />
       {label}
-    </button>
-  );
-}
-function IconButton({
-  label,
-  active,
-  onClick,
-  icon: Icon,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  icon: typeof List;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        "grid size-9 place-items-center rounded-lg active:scale-[0.96]",
-        active ? "bg-[var(--admin-ink)] text-[var(--admin-surface)]" : "text-[var(--admin-muted)]",
-      )}
-    >
-      <Icon className="size-4" />
     </button>
   );
 }

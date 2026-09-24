@@ -1,11 +1,11 @@
 import "server-only";
 import { deferWork } from "./work-result";
-import { findWorkDraft } from "./work-drafts";
+import { findWorkDraftProposal, workDraftResult } from "./work-drafts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { registerCoworker, getCoworkerManifest, type Coworker } from "./coworkers";
 import { createWorkItem } from "./work-items";
 import { registerAutonomyPolicy } from "./autonomy-policy";
-import { registerCapability } from "./capabilities";
+import { registerRequiredCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
@@ -72,17 +72,7 @@ export async function bootstrapSalesCoworker(
 ): Promise<{ coworker: Coworker; capabilityGaps: string[]; readyToWork: boolean }> {
   // Register required capabilities
   for (const capKey of SALES_COWORKER_REQUIRED_CAPABILITIES) {
-    await registerCapability(supabase, {
-      capabilityKey: capKey,
-      label: capKey
-        .split(".")
-        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-        .join(" "),
-      category: "integration",
-      source: "coworker_bootstrap",
-    }).catch(() => {
-      // Capability may already exist — that's fine.
-    });
+    await registerRequiredCapability(supabase, capKey);
   }
 
   // Register autonomy policies
@@ -369,24 +359,19 @@ const draftFollowupHandler: WorkKindHandler = async (supabase, wi, signal) => {
       outcome: "Opportunity missing or closed; follow-up is no longer needed",
     };
   }
-  const existing = await findWorkDraft(supabase, wi);
-  if (existing)
-    return {
-      status: "completed",
-      outcome: "Follow-up proposal already prepared",
-      artifacts: [existing],
-    };
+  const existing = await findWorkDraftProposal(supabase, wi);
+  if (existing) return workDraftResult(existing);
   const result = await tryAiExecution(supabase, wi, signal);
   if (!result) return deferWork("AI model is unavailable; follow-up draft still needs preparation");
-  if (result.status !== "completed") return result;
-  const draft = await findWorkDraft(supabase, wi);
-  return draft
-    ? { status: "completed", outcome: "Follow-up draft prepared for approval", artifacts: [draft] }
-    : {
+  const proposal = await findWorkDraftProposal(supabase, wi);
+  if (proposal) return workDraftResult(proposal);
+  return result.status === "completed"
+    ? {
         status: "partial",
-        outcome: "Draft preparation returned without a valid proposal",
+        outcome: "Draft preparation returned without a valid Gmail proposal",
         artifacts: result.artifacts,
-      };
+      }
+    : result;
 };
 
 const reviewStaleProposalHandler: WorkKindHandler = async (supabase, wi) => {

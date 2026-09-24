@@ -83,9 +83,21 @@ function seed(wi = item()) {
       {
         id: "conv-1",
         tenant_id: "tenant-a",
+        external_id: "gmail-thread-1",
+        subject: "Follow-up",
         opportunity_id: "10000000-0000-4000-8000-000000000001",
         contact_id: "contact-1",
         channel: "gmail",
+      },
+    ],
+    messages: [
+      {
+        id: "message-1",
+        tenant_id: "tenant-a",
+        conversation_id: "conv-1",
+        external_id: "gmail-message-1",
+        subject: "Follow-up",
+        created_at: iso(-1000),
       },
     ],
   });
@@ -136,12 +148,14 @@ function proposal(wi = item(), overrides: Row = {}): Row {
     tenant_id: wi.tenant_id,
     dedupe_key: workDraftKey(wi),
     status: "pending",
-    action_type: "send_email",
-    entity_type: "opportunity",
-    entity_id: wi.entity_id,
+    action_type: "create_gmail_draft",
+    entity_type: "conversation",
+    entity_id: "conv-1",
     expires_at: iso(60_000),
     payload: {
       opportunityId: wi.entity_id,
+      conversationId: "conv-1",
+      contactId: "contact-1",
       workItemId: wi.id,
       to: "customer@example.test",
       subject: "Follow-up",
@@ -434,30 +448,27 @@ async function main() {
       },
     );
     await check(
-      "existing valid draft completes without a model and without another proposal",
+      "existing valid draft awaits approval without a model or another proposal",
       async () => {
         const db = seed();
         db.tables.action_queue = [proposal()];
         const result = await getWorkKindHandler("draft_followup")!(db.client, item());
-        assert.equal(result.status, "completed");
+        assert.equal(result.status, "awaiting_approval");
         assert.equal(result.artifacts?.[0]?.id, "proposal-1");
         assert.equal(db.rows("action_queue").length, 1);
       },
     );
-    await check(
-      "a linked pending proposal completes draft preparation without sending",
-      async () => {
-        const wi = item({ status: "pending", attempt_count: 0, coworker_id: null });
-        const db = seed(wi);
-        db.tables.action_queue = [proposal(wi, { work_item_id: wi.id })];
-        const result = await executeClaimableWork(db.client, { kinds: ["draft_followup"] });
-        assert.equal(result.completed, 1);
-        assert.equal(result.awaitingApproval, 0);
-        assert.equal(db.rows("action_queue").length, 1);
-        assert.equal(db.rows("action_queue")[0]!.status, "pending");
-        assert.equal(db.rows("work_items")[0]!.status, "completed");
-      },
-    );
+    await check("a linked pending proposal keeps draft work waiting for approval", async () => {
+      const wi = item({ status: "pending", attempt_count: 0, coworker_id: null });
+      const db = seed(wi);
+      db.tables.action_queue = [proposal(wi, { work_item_id: wi.id })];
+      const result = await executeClaimableWork(db.client, { kinds: ["draft_followup"] });
+      assert.equal(result.completed, 0);
+      assert.equal(result.awaitingApproval, 1);
+      assert.equal(db.rows("action_queue").length, 1);
+      assert.equal(db.rows("action_queue")[0]!.status, "pending");
+      assert.equal(db.rows("work_items")[0]!.status, "waiting");
+    });
     for (const overrides of [
       { tenant_id: "tenant-b" },
       { entity_id: "opp-other" },
@@ -482,7 +493,7 @@ async function main() {
       await assert.rejects(() => findWorkDraft(db.client, item()), /recipient/);
     });
     await check(
-      "server work identity deduplicates email proposals and leaves them pending",
+      "server work identity deduplicates Gmail draft proposals and leaves them pending",
       async () => {
         const db = seed();
         const wi = item();
@@ -493,18 +504,15 @@ async function main() {
           workItem: wi,
         };
         const input = {
-          to: "customer@example.test",
-          opportunityId: "10000000-0000-4000-8000-000000000001",
-          subject: "Follow-up",
+          conversationId: "conv-1",
           body: "Hello",
           reasoning: "Awaiting reply",
         };
-        const first = await executeRegisteredRevenueTool(context, "propose_send_email", input);
+        const first = await executeRegisteredRevenueTool(context, "propose_gmail_draft", input);
         // MemorySupabase has no tenant default; emulate the tenant-bound client's insert behavior.
         db.rows("action_queue")[0]!.tenant_id = "tenant-a";
-        const second = await executeRegisteredRevenueTool(context, "propose_send_email", {
+        const second = await executeRegisteredRevenueTool(context, "propose_gmail_draft", {
           ...input,
-          subject: "Changed wording",
           body: "Hello again",
         });
         assert.equal((first.output as Row).id, (second.output as Row).id);
@@ -593,16 +601,14 @@ async function main() {
         let turn = 0;
         const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
           chat: async (request) => {
-            assert.ok(request.tools?.some((t) => t.function.name === "propose_send_email"));
+            assert.ok(request.tools?.some((t) => t.function.name === "propose_gmail_draft"));
             assert.ok(
               !request.tools?.some((t) => t.function.name === "propose_campaign_activation"),
             );
             if (turn++ === 0)
               return chat([
-                call("propose_send_email", {
-                  to: "customer@example.test",
-                  opportunityId: "10000000-0000-4000-8000-000000000001",
-                  subject: "Follow-up",
+                call("propose_gmail_draft", {
+                  conversationId: "conv-1",
                   body: "Hello",
                   reasoning: "Awaiting reply",
                 }),
@@ -612,12 +618,12 @@ async function main() {
               {
                 role: "assistant",
                 content:
-                  "Facts\nA follow-up draft was proposed. [source: registered_tool_result:propose_send_email]\nInferences\nIt is ready for review.\nMissing information\nApproval is pending.\nRecommended next steps\nReview the draft.",
+                  "Facts\nA follow-up draft was proposed. [source: registered_tool_result:propose_gmail_draft]\nInferences\nIt is ready for review.\nMissing information\nApproval is pending.\nRecommended next steps\nReview the draft.",
               },
             ])(request);
           },
         });
-        assert.equal(result.status, "completed");
+        assert.equal(result.status, "awaiting_approval");
         assert.equal(result.artifacts?.length, 1);
         assert.equal(db.rows("action_queue")[0]!.status, "pending");
       },

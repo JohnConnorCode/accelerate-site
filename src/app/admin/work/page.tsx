@@ -3,7 +3,7 @@
 import { adminPageName } from "@/lib/admin/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -15,6 +15,17 @@ import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { relativeTime } from "@/lib/admin/work-presentation";
 import { cn } from "@/lib/utils";
+import { WorkflowCalendar } from "@/components/admin/WorkflowCalendar";
+import { WorkflowLayoutSwitcher } from "@/components/admin/WorkflowLayoutSwitcher";
+import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
+import {
+  readWorkflowPreference,
+  writeWorkflowPreference,
+  type WorkflowLayout,
+  type WorkflowViewDescriptor,
+} from "@/lib/admin/workflow-views";
+import type { TodaySnapshot } from "@/lib/admin/today-data";
+import { toast } from "@/lib/admin/useToast";
 
 interface TaskRow {
   id: string;
@@ -31,15 +42,56 @@ interface TaskRow {
   opportunity_id?: string | null;
 }
 const control = "admin-field";
+const taskViewDescriptor: WorkflowViewDescriptor<TaskRow> = {
+  id: "tasks",
+  label: "Tasks",
+  layouts: ["list", "board", "calendar"],
+  fields: [
+    { id: "task", label: "Task" },
+    { id: "related", label: "Related record" },
+    { id: "due", label: "Due date" },
+    { id: "priority", label: "Priority" },
+  ],
+  groupBy: {
+    label: "Status",
+    values: [
+      { id: "pending", label: "Open" },
+      { id: "snoozed", label: "Snoozed" },
+      { id: "completed", label: "Completed" },
+    ],
+  },
+  sortBy: [
+    { id: "due_date", label: "Due date" },
+    { id: "priority", label: "Priority" },
+  ],
+  filters: [
+    { id: "owner", label: "Ownership" },
+    { id: "status", label: "Status" },
+    { id: "source", label: "Source" },
+    { id: "search", label: "Search" },
+  ],
+  title: (task) => task.title,
+  dueDate: (task) => task.due_date,
+  status: (task) => task.status,
+  summary: (task) => [task.related_name, task.priority].filter(Boolean).join(" · "),
+};
 
 export default function WorkPage() {
+  const pathname = usePathname();
+  const scopeKey = pathname.replace(/\/work$/, "");
   const params = useSearchParams();
+  const demo = useAdminDemo();
   const router = useAdminNavigation();
   const tab = params.get("tab") === "approvals" ? "approvals" : "tasks";
   const [owner, setOwner] = useState("team");
   const [status, setStatus] = useState("pending");
   const [search, setSearch] = useState("");
   const [source, setSource] = useState("");
+  const [layout, setLayout] = useState<WorkflowLayout>("list");
+  const [visibleFields, setVisibleFields] = useState(
+    taskViewDescriptor.fields.map((field) => field.id),
+  );
+  const [viewReadyScope, setViewReadyScope] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -48,7 +100,7 @@ export default function WorkPage() {
   const [due, setDue] = useState("");
   const [priority, setPriority] = useState("medium");
   const [review, setReview] = useState<ActionRow | null>(null);
-  const tasksQuery = useAdminQuery<{ tasks: TaskRow[]; viewerId?: string }>(
+  const tasksQuery = useAdminQuery<{ tasks: TaskRow[]; viewerId?: string; tenantId?: string }>(
     ["work", "tasks", owner, status],
     `/api/admin/tasks?status=${status}&owner=${owner}`,
   );
@@ -56,7 +108,35 @@ export default function WorkPage() {
     ["today", "actions"],
     "/api/admin/revenue-os/actions",
   );
+  const todayQuery = useAdminQuery<TodaySnapshot>(
+    ["today-workspace", scopeKey],
+    "/api/admin/revenue-os/today",
+    { refetchOnWindowFocus: true },
+  );
   const tasks = tasksQuery.data?.tasks ?? [];
+  const routeTenant = pathname.match(/^\/t\/([^/]+)\/admin(?:\/|$)/)?.[1] ?? "accelerate";
+  const preferenceScope = tasksQuery.data?.viewerId
+    ? `${tasksQuery.data.tenantId ?? demo?.scenarioId ?? routeTenant}:${tasksQuery.data.viewerId}`
+    : "";
+  useEffect(() => {
+    if (!preferenceScope) return;
+    const saved = readWorkflowPreference(preferenceScope, taskViewDescriptor);
+    setLayout(saved.layout);
+    setVisibleFields(saved.visibleFields);
+    setOwner(saved.filters?.owner ?? "team");
+    setStatus(saved.filters?.status ?? "pending");
+    setSource(saved.filters?.source ?? "");
+    setSearch(saved.filters?.search ?? "");
+    setViewReadyScope(preferenceScope);
+  }, [preferenceScope]);
+  useEffect(() => {
+    if (!preferenceScope || viewReadyScope !== preferenceScope) return;
+    writeWorkflowPreference(preferenceScope, taskViewDescriptor, {
+      layout,
+      visibleFields,
+      filters: { owner, status, source, search },
+    });
+  }, [layout, owner, preferenceScope, search, source, status, viewReadyScope, visibleFields]);
   const actions = useMemo(
     () =>
       (actionsQuery.data?.actions ?? []).filter(
@@ -64,12 +144,19 @@ export default function WorkPage() {
       ),
     [actionsQuery.data],
   );
+  const followups = (todayQuery.data?.handling.data ?? []).filter(
+    (item) => item.kind === "draft_followup" && item.status !== "completed",
+  );
   const visible = tasks.filter(
     (t) =>
       (!source || t.source === source) &&
       `${t.title} ${t.related_name ?? ""}`.toLowerCase().includes(search.toLowerCase()),
   );
   const filtersChanged = owner !== "team" || status !== "pending" || Boolean(source || search);
+  const viewChanged =
+    filtersChanged ||
+    layout !== "list" ||
+    taskViewDescriptor.fields.some((field) => !visibleFields.includes(field.id));
   const requestedTask = params.get("task");
   const loadedTaskRef = useRef<string | null>(null);
   const selectedTaskQuery = useAdminQuery<{ tasks: TaskRow[] }>(
@@ -104,7 +191,7 @@ export default function WorkPage() {
     }
   }, [actionId, actions]);
   const refresh = async () => {
-    await Promise.all([tasksQuery.refetch(), actionsQuery.refetch()]);
+    await Promise.all([tasksQuery.refetch(), actionsQuery.refetch(), todayQuery.refetch()]);
   };
   const changed = async () => {
     await refresh();
@@ -124,6 +211,8 @@ export default function WorkPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: review.id, decision }),
       });
+      if (review.action_type === "create_gmail_draft")
+        toast.success("Gmail draft saved. Not sent. Open Work → Follow-ups to review it in Gmail.");
       closeReview();
       await changed();
     } catch (e) {
@@ -209,6 +298,103 @@ export default function WorkPage() {
       )}
       {tab === "tasks" ? (
         <>
+          <AdminSurface padding="none" elevation="flat">
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--admin-border)] px-5 py-4">
+              <div>
+                <h2 className="text-base font-semibold text-[var(--admin-ink)]">Follow-ups</h2>
+                <p className="mt-1 text-xs text-[var(--admin-muted)]">
+                  Keep the draft, sent message, and next check together until the contact replies.
+                </p>
+              </div>
+              <Link
+                href="/admin/work?tab=approvals"
+                className="admin-button admin-button-secondary"
+              >
+                Review approvals {actions.length ? `(${actions.length})` : ""}
+              </Link>
+            </div>
+            {todayQuery.error ? (
+              <p role="status" className="px-5 py-4 text-sm text-[var(--admin-muted)]">
+                Follow-up status is unavailable. Refresh to try again.
+              </p>
+            ) : followups.length ? (
+              <ul>
+                {followups.map((item) => {
+                  const draftSaved = item.outcome?.includes("Gmail draft saved") ?? false;
+                  const draftUncertain = item.error?.includes("Gmail") ?? false;
+                  const followupSent = item.outcome?.includes("Follow-up sent from Gmail") ?? false;
+                  return (
+                    <li
+                      key={item.id}
+                      className="border-b border-[var(--admin-border)] px-5 py-4 last:border-b-0"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-sm font-semibold text-[var(--admin-ink)]">
+                              {item.title}
+                            </h3>
+                            <span className="rounded-full bg-[var(--admin-surface-subtle)] px-2 py-0.5 text-[10px] font-medium capitalize text-[var(--admin-muted)]">
+                              {draftUncertain
+                                ? "reconciliation needed"
+                                : item.status.replaceAll("_", " ")}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs text-[var(--admin-muted)]">
+                            {item.error || item.outcome || "Review the linked follow-up."}
+                          </p>
+                          {item.nextCheckReason && item.nextCheckReason !== item.outcome && (
+                            <p className="mt-1 text-xs text-[var(--admin-muted)]">
+                              {item.nextCheckReason}
+                            </p>
+                          )}
+                          {item.nextCheckAt && (
+                            <p className="mt-1 text-[11px] text-[var(--admin-muted)]">
+                              Next check {new Date(item.nextCheckAt).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {draftSaved || draftUncertain ? (
+                            <a
+                              href="https://mail.google.com/mail/u/0/#drafts"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="admin-button admin-button--primary"
+                            >
+                              {draftUncertain
+                                ? "Check Gmail Drafts before retrying"
+                                : "Open Gmail Drafts"}
+                            </a>
+                          ) : followupSent ? (
+                            <Link href={item.href} className="admin-button admin-button--primary">
+                              Open opportunity
+                            </Link>
+                          ) : item.status === "waiting" ? (
+                            <Link
+                              href="/admin/work?tab=approvals"
+                              className="admin-button admin-button--primary"
+                            >
+                              Review approval
+                            </Link>
+                          ) : (
+                            <Link href={item.href} className="admin-button admin-button--primary">
+                              Open follow-up
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="px-5 py-4 text-sm text-[var(--admin-muted)]">
+                No open follow-ups. New follow-up work appears here when a customer or opportunity
+                needs a response.
+              </p>
+            )}
+          </AdminSurface>
           <div
             id="work-filters"
             data-expanded={filtersOpen}
@@ -281,6 +467,34 @@ export default function WorkPage() {
             </div>
           </div>
           <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 text-sm">
+            <WorkflowLayoutSwitcher value={layout} onChange={setLayout} />
+            <details className="relative">
+              <summary className="admin-button admin-button-secondary cursor-pointer list-none">
+                Fields
+              </summary>
+              <div className="absolute right-0 z-20 mt-2 grid min-w-44 gap-2 rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] p-3 shadow-[var(--admin-shadow)]">
+                {taskViewDescriptor.fields.map((field) => (
+                  <label
+                    key={field.id}
+                    className="flex min-h-11 items-center gap-2 text-xs text-[var(--admin-ink)]"
+                  >
+                    <input
+                      type="checkbox"
+                      disabled={field.id === "task"}
+                      checked={field.id === "task" || visibleFields.includes(field.id)}
+                      onChange={(event) =>
+                        setVisibleFields((current) =>
+                          event.target.checked
+                            ? [...current, field.id]
+                            : current.filter((id) => id !== field.id),
+                        )
+                      }
+                    />
+                    {field.label}
+                  </label>
+                ))}
+              </div>
+            </details>
             <button
               type="button"
               className="admin-button admin-button-secondary admin-work-filter-toggle"
@@ -299,7 +513,7 @@ export default function WorkPage() {
                 : `${visible.length} ${visible.length === 1 ? "task" : "tasks"} shown`}
               {tasksQuery.isFetching && !tasksQuery.isPending ? " · Updating…" : ""}
             </p>
-            {filtersChanged && (
+            {viewChanged && (
               <button
                 type="button"
                 className="admin-button admin-button-secondary"
@@ -308,90 +522,190 @@ export default function WorkPage() {
                   setStatus("pending");
                   setSource("");
                   setSearch("");
+                  setLayout("list");
+                  setVisibleFields(taskViewDescriptor.fields.map((field) => field.id));
                 }}
               >
-                Reset filters
+                Reset view
               </button>
             )}
           </div>
-          <AdminSurface padding="none" elevation="flat">
-            <div className="admin-work-heading" aria-hidden="true">
-              <div className="admin-work-columns">
-                <span>Task</span>
-                <span>Related record</span>
-                <span>Due</span>
-                <span>Priority</span>
-              </div>
-              <span>Action</span>
-            </div>
-            <ul>
-              {visible.map((row) => (
-                <li key={row.id} data-source-type="task" data-source-id={row.id}>
-                  <AdminRecordRow
-                    label={`Open task ${row.title}`}
-                    onOpen={() => edit(row)}
-                    actions={
-                      row.status !== "completed" ? (
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => void mutateTask(row, true)}
-                          aria-label={`Complete ${row.title}`}
-                          className="admin-work-complete inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-[var(--admin-ink)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
-                        >
-                          <CheckCircle2 className="size-4" aria-hidden="true" />
-                          <span className="admin-work-action-label">Complete</span>
-                        </button>
-                      ) : (
-                        <span className="admin-work-complete text-xs text-[var(--admin-muted)]">
-                          Completed
-                        </span>
-                      )
-                    }
-                  >
-                    <span className="admin-work-columns">
-                      <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-[var(--admin-ink)]">
-                          {row.title}
-                        </span>
-                        <span className="mt-1 block text-xs capitalize text-[var(--admin-muted)]">
-                          {row.status === "pending" ? "Open" : row.status}
-                          {row.source ? ` · ${row.source.replaceAll("_", " ")}` : ""}
-                        </span>
-                      </span>
-                      <span className="admin-work-related text-sm text-[var(--admin-muted)]">
-                        {row.related_name || "No related record"}
-                      </span>
-                      <span
-                        className={cn(
-                          "text-sm tabular-nums",
-                          row.status !== "completed" &&
-                            relativeTime(row.due_date).includes("overdue")
-                            ? "font-medium text-[var(--admin-danger)]"
-                            : "text-[var(--admin-muted)]",
-                        )}
-                      >
-                        {relativeTime(row.due_date)}
-                      </span>
-                      <span className="text-xs font-medium capitalize text-[var(--admin-ink)]">
-                        <span className="admin-work-mobile-label">Priority: </span>
-                        {row.priority === "normal" ? "medium" : row.priority}
-                      </span>
-                    </span>
-                  </AdminRecordRow>
-                </li>
-              ))}
-            </ul>
-            {!visible.length && (
-              <p className="p-5 text-sm text-[var(--admin-muted)]">
-                {tasksQuery.isPending ? "Loading tasks…" : "No tasks match these filters."}
+          {layout === "calendar" ? (
+            tasksQuery.isPending ? (
+              <p role="status" className="py-8 text-center text-sm text-[var(--admin-muted)]">
+                Loading task calendar…
               </p>
-            )}
-          </AdminSurface>
-          <p className="text-xs text-[var(--admin-muted)]">
-            Showing up to 100 tasks for the selected ownership and status. App-specific cases keep
-            their own workspaces.
-          </p>
+            ) : (
+              <WorkflowCalendar descriptor={taskViewDescriptor} items={visible} onOpen={edit} />
+            )
+          ) : layout === "board" ? (
+            <div className="flex gap-4 overflow-x-auto pb-3" aria-label="Tasks by status">
+              {taskViewDescriptor.groupBy.values
+                .filter((group) => status === "all" || group.id === status)
+                .map((group) => {
+                  const rows = visible.filter((row) => row.status === group.id);
+                  return (
+                    <section
+                      key={group.id}
+                      aria-labelledby={`work-column-${group.id}`}
+                      className="min-w-[min(82vw,20rem)] flex-1 space-y-3 rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface-subtle)] p-3 sm:min-w-72"
+                    >
+                      <h2
+                        id={`work-column-${group.id}`}
+                        className="flex items-center justify-between px-1 text-sm font-semibold text-[var(--admin-ink)]"
+                      >
+                        {group.label}
+                        <span className="text-xs font-normal text-[var(--admin-muted)]">
+                          {rows.length}
+                        </span>
+                      </h2>
+                      {rows.map((row) => (
+                        <AdminSurface
+                          key={row.id}
+                          padding="sm"
+                          elevation="flat"
+                          className="space-y-2"
+                        >
+                          <button
+                            type="button"
+                            className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]"
+                            onClick={() => edit(row)}
+                          >
+                            <span className="block text-sm font-semibold text-[var(--admin-ink)]">
+                              {row.title}
+                            </span>
+                            {visibleFields.includes("related") && (
+                              <span className="mt-1 block text-xs text-[var(--admin-muted)]">
+                                {row.related_name || "No related record"}
+                              </span>
+                            )}
+                          </button>
+                          <div className="flex items-center justify-between gap-2 text-xs text-[var(--admin-muted)]">
+                            {visibleFields.includes("due") && (
+                              <span>{relativeTime(row.due_date)}</span>
+                            )}
+                            {visibleFields.includes("priority") && (
+                              <span className="capitalize">
+                                {row.priority === "normal" ? "medium" : row.priority}
+                              </span>
+                            )}
+                          </div>
+                          {row.status !== "completed" && (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => void mutateTask(row, true)}
+                              className="admin-button admin-button-secondary min-h-10 w-full"
+                            >
+                              Complete task
+                            </button>
+                          )}
+                        </AdminSurface>
+                      ))}
+                      {!rows.length && (
+                        <p className="px-1 py-4 text-xs text-[var(--admin-muted)]">
+                          No {group.label.toLowerCase()} tasks.
+                        </p>
+                      )}
+                    </section>
+                  );
+                })}
+            </div>
+          ) : (
+            <>
+              <AdminSurface padding="none" elevation="flat">
+                <div className="admin-work-heading" aria-hidden="true">
+                  <div className="admin-work-columns">
+                    {visibleFields.includes("task") && <span>Task</span>}
+                    {visibleFields.includes("related") && <span>Related record</span>}
+                    {visibleFields.includes("due") && <span>Due</span>}
+                    {visibleFields.includes("priority") && <span>Priority</span>}
+                  </div>
+                  <span>Action</span>
+                </div>
+                <ul>
+                  {visible.map((row) => (
+                    <li key={row.id} data-source-type="task" data-source-id={row.id}>
+                      <AdminRecordRow
+                        label={`Open task ${row.title}`}
+                        onOpen={() => edit(row)}
+                        actions={
+                          row.status !== "completed" ? (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => void mutateTask(row, true)}
+                              aria-label={`Complete ${row.title}`}
+                              className="admin-work-complete inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-[var(--admin-ink)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
+                            >
+                              <CheckCircle2 className="size-4" aria-hidden="true" />
+                              <span className="admin-work-action-label">Complete</span>
+                            </button>
+                          ) : (
+                            <span className="admin-work-complete text-xs text-[var(--admin-muted)]">
+                              Completed
+                            </span>
+                          )
+                        }
+                      >
+                        <span
+                          className="admin-work-columns"
+                          style={{
+                            gridTemplateColumns: `repeat(${visibleFields.length}, minmax(0, 1fr))`,
+                          }}
+                        >
+                          {visibleFields.includes("task") && (
+                            <span className="min-w-0">
+                              <span className="block text-sm font-semibold text-[var(--admin-ink)]">
+                                {row.title}
+                              </span>
+                              <span className="mt-1 block text-xs capitalize text-[var(--admin-muted)]">
+                                {row.status === "pending" ? "Open" : row.status}
+                                {row.source ? ` · ${row.source.replaceAll("_", " ")}` : ""}
+                              </span>
+                            </span>
+                          )}
+                          {visibleFields.includes("related") && (
+                            <span className="admin-work-related text-sm text-[var(--admin-muted)]">
+                              {row.related_name || "No related record"}
+                            </span>
+                          )}
+                          {visibleFields.includes("due") && (
+                            <span
+                              className={cn(
+                                "text-sm tabular-nums",
+                                row.status !== "completed" &&
+                                  relativeTime(row.due_date).includes("overdue")
+                                  ? "font-medium text-[var(--admin-danger)]"
+                                  : "text-[var(--admin-muted)]",
+                              )}
+                            >
+                              {relativeTime(row.due_date)}
+                            </span>
+                          )}
+                          {visibleFields.includes("priority") && (
+                            <span className="text-xs font-medium capitalize text-[var(--admin-ink)]">
+                              <span className="admin-work-mobile-label">Priority: </span>
+                              {row.priority === "normal" ? "medium" : row.priority}
+                            </span>
+                          )}
+                        </span>
+                      </AdminRecordRow>
+                    </li>
+                  ))}
+                </ul>
+                {!visible.length && (
+                  <p className="p-5 text-sm text-[var(--admin-muted)]">
+                    {tasksQuery.isPending ? "Loading tasks…" : "No tasks match these filters."}
+                  </p>
+                )}
+              </AdminSurface>
+              <p className="text-xs text-[var(--admin-muted)]">
+                Showing up to 100 tasks for the selected ownership and status. App-specific cases
+                keep their own workspaces.
+              </p>
+            </>
+          )}
         </>
       ) : (
         <AdminSurface padding="none" elevation="flat">
