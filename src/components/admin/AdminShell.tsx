@@ -1,7 +1,7 @@
 "use client";
 
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
-import { tenant } from "@/config/tenant";
+import { siteUrl, tenant } from "@/config/tenant";
 import {
   useCallback,
   useEffect,
@@ -598,7 +598,7 @@ export default function AdminShell({
       description: `Open ${tenant.brand.domain} in a new tab`,
       keywords: "website public open",
       icon: ArrowUpRight,
-      run: () => window.open("/", "_blank", "noopener,noreferrer"),
+      run: () => window.open(siteUrl(), "_blank", "noopener,noreferrer"),
     },
   ];
 
@@ -1287,7 +1287,7 @@ function SidebarContent({
         {!demoScenarioId && (
           <>
             <Link
-              href="/"
+              href={siteUrl()}
               target="_blank"
               onClick={onNavigate}
               title={collapsed ? "View live site" : undefined}

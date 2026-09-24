@@ -190,7 +190,7 @@
     "src/components/admin/AdminRecordRow.tsx": "9748f883c556dfdbfd1f24a08ceb76e6b600aa962fee3dc69a2663a0259309af",
     "src/components/admin/AdminRouteSkeleton.tsx": "0249268d08d6dc7ec8a69f78185022a89d716ea798a615e87f9c1f4e7e101e03",
     "src/components/admin/AdminRouteStage.tsx": "5fff9f23d43a219c7b2cbe238c12c8da729035de5035fd9646620af6614c5186",
-    "src/components/admin/AdminShell.tsx": "678a0201c8594ea7f0a6666e4a6bd9f265d620a7ff149cf2b818829ea62cb5e6",
+    "src/components/admin/AdminShell.tsx": "9122e38157c5c220db608bfaafeced6158c5ea345ddbc0d1a1d316840c2ac26a",
     "src/components/admin/AdminShortcuts.tsx": "c8af898b63ab4b344b5093b9baee4ccabc77548593d935cc8467a9f9411c63ff",
     "src/components/admin/AdminStatusMessage.tsx": "2a6a04a62b69e69db7100cb7a768ff328d5c2dfea3bb04763863f848141583fe",
     "src/components/admin/AdminSurface.tsx": "e7b452317be1082926abf851d663d80ab9c18447482b3763762c4542a3ee5f25",
