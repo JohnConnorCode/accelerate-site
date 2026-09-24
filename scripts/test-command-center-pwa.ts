@@ -22,6 +22,7 @@ async function main() {
     googleAuthorize,
     googleCallback,
     workspaceBootstrap,
+    adminShell,
   ] = await Promise.all([
     read("src/app/manifest.ts"),
     read("src/proxy.ts"),
@@ -36,6 +37,7 @@ async function main() {
     read("src/app/api/admin/google/authorize/route.ts"),
     read("src/app/api/admin/google/callback/route.ts"),
     read("src/app/workspace/page.tsx"),
+    read("src/components/admin/AdminShell.tsx"),
   ]);
 
   assert.match(manifest, /display: "standalone"/);
@@ -68,6 +70,8 @@ async function main() {
   assert.match(workspaceBootstrap, /supabase\.auth\.getUser\(\)/);
   assert.match(workspaceBootstrap, /tenant_memberships/);
   assert.match(workspaceBootstrap, /activeSlugs\.includes\("accelerate"\)/);
+  assert.match(adminShell, /window\.open\(siteUrl\(\)/);
+  assert.match(adminShell, /href=\{siteUrl\(\)\}/);
   for (const route of [tenants, recovery, google, googleAuthorize, googleCallback])
     assert.match(route, /commandCenterOrigin/, "Account links must stay on the app origin");
 
