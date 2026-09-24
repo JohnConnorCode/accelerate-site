@@ -171,6 +171,52 @@ const GROUNDED_SECTION_NAMES = [
   "Recommended next steps",
 ] as const;
 
+/** Numbers a figure may be sourced from: every number in the run's evidence. */
+function evidenceNumbers(evidence: string): number[] {
+  const values = new Set<number>();
+  for (const match of evidence.matchAll(/\d[\d,]*(?:\.\d+)?/g)) {
+    const value = Number(match[0].replace(/,/g, ""));
+    if (Number.isFinite(value) && value > 0) values.add(value);
+  }
+  return [...values].slice(0, 60);
+}
+
+function dollarValue(raw: string): number {
+  const match = raw.match(/([\d,]+(?:\.\d+)?)\s*([kKmM])?/);
+  if (!match) return NaN;
+  const base = Number(match[1]!.replace(/,/g, ""));
+  const scale = match[2]?.toLowerCase() === "k" ? 1_000 : match[2]?.toLowerCase() === "m" ? 1e6 : 1;
+  return base * scale;
+}
+
+/**
+ * Dollar figures in an answer that no evidence supports. A figure is sourced
+ * when it equals a number from the run's evidence (tool results and the
+ * founder's own words), or a sum of up to three of them, so totals stay
+ * legitimate while invented amounts do not. Rounded "k"/"m" figures match
+ * within 5%.
+ */
+export function unsourcedDollarFigures(answer: string, evidence: string): string[] {
+  const known = evidenceNumbers(evidence);
+  const sums = new Set<number>(known);
+  for (let i = 0; i < known.length; i++)
+    for (let j = i + 1; j < known.length; j++) {
+      sums.add(known[i]! + known[j]!);
+      for (let k = j + 1; k < known.length; k++) sums.add(known[i]! + known[j]! + known[k]!);
+    }
+  return [...answer.matchAll(/\$\s?[\d,]+(?:\.\d+)?\s*[kKmM]?\b/g)]
+    .map((match) => match[0].trim())
+    .filter((raw) => {
+      const value = dollarValue(raw);
+      if (!Number.isFinite(value)) return false;
+      const rounded = /[kKmM]$/.test(raw);
+      for (const candidate of sums)
+        if (rounded ? Math.abs(candidate - value) <= value * 0.05 : candidate === value)
+          return false;
+      return true;
+    });
+}
+
 /** Tools that navigate or stage an approval rather than read business records. */
 function readsBusinessRecords(toolName: string): boolean {
   return (
@@ -192,7 +238,17 @@ function readsBusinessRecords(toolName: string): boolean {
 export function validateGroundedRevenueAnswer(
   answer: string,
   executedToolNames: string[],
+  /** Tool results and founder messages from this run; enables figure checks. */
+  evidence?: string,
 ): { valid: boolean; reason: string | null } {
+  if (evidence !== undefined) {
+    const unsourced = unsourcedDollarFigures(answer, evidence);
+    if (unsourced.length)
+      return {
+        valid: false,
+        reason: `Answer stated amounts no source supports: ${unsourced.slice(0, 3).join(", ")}`,
+      };
+  }
   const citations = [
     ...answer.matchAll(/\[source:\s*registered_tool_result:([A-Za-z0-9_-]+)\]/gi),
   ].map((match) => match[1]!);

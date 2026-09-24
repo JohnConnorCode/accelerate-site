@@ -467,9 +467,23 @@ async function evalProposals() {
 // ---------------------------------------------------------------------------
 async function askCopilot(prompt: string) {
   const db = fixtureDatabase();
-  const result = await runRevenueCommandAgent(db.client, "eval@acceleratewith.us", [
-    { role: "user", content: prompt },
-  ]);
+  // Stream as the command center does, so the eval covers the production path.
+  let streamed = "";
+  const result = await runRevenueCommandAgent(
+    db.client,
+    "eval@acceleratewith.us",
+    [{ role: "user", content: prompt }],
+    {
+      onAssistantDelta: (delta) => {
+        streamed += delta;
+      },
+      onAssistantReset: () => {
+        streamed = "";
+      },
+    },
+  );
+  if (streamed.trim() !== result.text.trim())
+    throw new Error("the streamed text did not end as the validated final answer");
   const queued = (db.tables.action_queue ?? []).map((row) => String(row.action_type));
   if (process.env.EVAL_DEBUG)
     for (const event of db.tables.agent_run_events ?? [])

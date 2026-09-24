@@ -209,6 +209,8 @@
     "test:integration-catalog": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-integration-catalog.ts",
     "qa:integration-catalog": "node --env-file=.env.local scripts/qa-integration-catalog.mjs",
     "test:command-center-scheduler": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-command-center-scheduler.ts",
+    "test:agent-memory-review": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-memory-review.ts",
+    "test:agent-streaming": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-agent-streaming.ts",
     "test:eval-contract": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-eval-contract.ts",
     "test:work-scheduler-dedupe": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-work-scheduler-dedupe.ts",
     "test:priority-selector": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-priority-selector.ts",

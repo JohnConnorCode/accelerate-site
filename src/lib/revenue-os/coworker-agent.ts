@@ -8,7 +8,7 @@ import { resolveModelForJob } from "@/lib/ai/model-registry";
 import { claimResourceBudget } from "./budgets";
 import { getCoworker } from "./coworkers";
 import { listWorkspaceCapabilities } from "./capabilities";
-import { retrieveAgentMemory } from "./memory";
+import { memoryReceipt, recentDistinctAgentMemory } from "./memory";
 import { loadContextPack, contextReceipt } from "./shared-context";
 import {
   executeRegisteredRevenueTool,
@@ -49,7 +49,11 @@ import { findWorkDraft } from "./work-drafts";
 
 export const MAX_COWORKER_TOOL_TURNS = 5;
 
-export function coworkerSystemPrompt(coworkerRole: string, coworkerId: string, workspace: string): string {
+export function coworkerSystemPrompt(
+  coworkerRole: string,
+  coworkerId: string,
+  workspace: string,
+): string {
   return [
     `You are ${workspace}'s ${coworkerRole} coworker (id: ${coworkerId}).`,
     `Your job is to execute the assigned work item using the tools available to you.`,
@@ -208,7 +212,11 @@ export async function runCoworkerAgentTask(
       eventType: "context_loaded",
       output: contextReceipt(contextPack),
     });
-    const recentMemory = await retrieveAgentMemory(supabase, { coworkerId, limit: 5 });
+    const recentMemory = await recentDistinctAgentMemory(supabase, { coworkerId, limit: 5 });
+    await recordAgentRunEvent(supabase, run, {
+      eventType: "memory_loaded",
+      output: memoryReceipt(recentMemory),
+    });
     const memorySummary =
       [
         contextPack.text,
@@ -307,7 +315,11 @@ export async function runCoworkerAgentTask(
       const uses = assistant.tool_calls ?? [];
       if (!uses.length) {
         const candidate = assistant.content?.trim() || "No result produced";
-        const grounding = validateGroundedRevenueAnswer(candidate, successfulToolNames);
+        const evidence = transcript
+          .filter((entry) => entry.role === "tool" || entry.role === "user")
+          .map((entry) => entry.content ?? "")
+          .join("\n");
+        const grounding = validateGroundedRevenueAnswer(candidate, successfulToolNames, evidence);
         const text = grounding.valid
           ? candidate
           : groundedAnswerFailure(

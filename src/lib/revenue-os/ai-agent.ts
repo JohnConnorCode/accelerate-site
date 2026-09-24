@@ -12,7 +12,7 @@ import { loadAgentLearningSignals } from "./agent-learning";
 import { listClaimableWork } from "./work-items";
 import { listWorkspaceCapabilities } from "./capabilities";
 import { listClaimsForEntity } from "./claims";
-import { retrieveAgentMemory } from "./memory";
+import { memoryReceipt, recentDistinctAgentMemory } from "./memory";
 import { loadContextPack, contextReceipt } from "./shared-context";
 import {
   AI_TOOL_REGISTRY_VERSION,
@@ -67,6 +67,8 @@ export interface CommandAgentOptions {
   signal?: AbortSignal;
   onRunStarted?: (event: { runId: string | null; model: string; pack: RevenueToolPackId }) => void;
   onAssistantDelta?: (delta: string) => void;
+  /** Streamed text so far is superseded: a tool turn, or a replaced answer. */
+  onAssistantReset?: () => void;
   onToolStarted?: (event: { name: string; index: number }) => void;
   onToolCompleted?: (event: {
     name: string;
@@ -200,7 +202,11 @@ export async function runRevenueCommandAgent(
       eventType: "context_loaded",
       output: contextReceipt(contextPack),
     });
-    const recentAgentMemory = await retrieveAgentMemory(supabase, { limit: 5 });
+    const recentAgentMemory = await recentDistinctAgentMemory(supabase, { limit: 5 });
+    await recordAgentRunEvent(supabase, run, {
+      eventType: "memory_loaded",
+      output: memoryReceipt(recentAgentMemory),
+    });
     const memorySummary =
       [
         contextPack.text,
@@ -262,7 +268,10 @@ export async function runRevenueCommandAgent(
       let bufferedAnswer = "";
       const response = options.onAssistantDelta
         ? await openRouterChatStream(request, (delta) => {
+            // Stream live; the final event still carries the validated answer,
+            // and a rejected or interim turn is reset below.
             bufferedAnswer += delta;
+            options.onAssistantDelta?.(delta);
           })
         : await openRouterChat(request);
       inputTokens += response.usage?.prompt_tokens ?? 0;
@@ -282,13 +291,22 @@ export async function runRevenueCommandAgent(
         },
       });
       const uses = assistant.tool_calls ?? [];
+      // Text streamed on a tool turn is working narration, not the answer.
+      if (uses.length && bufferedAnswer) options.onAssistantReset?.();
       if (!uses.length) {
         const text = assistant.content?.trim() || "";
-        const grounding = validateGroundedRevenueAnswer(text, toolNames);
+        // Earlier answers in this conversation were validated when given, so
+        // they count as evidence alongside this run's tool results.
+        const evidence = transcript
+          .filter((entry, index) => index < safeMessages.length || entry.role === "tool")
+          .map((entry) => entry.content ?? "")
+          .join("\n");
+        const grounding = validateGroundedRevenueAnswer(text, toolNames, evidence);
         if (!grounding.valid) {
           const safeAnswer = groundedAnswerFailure(
             grounding.reason || "The answer could not be verified",
           );
+          if (bufferedAnswer) options.onAssistantReset?.();
           options.onAssistantDelta?.(safeAnswer);
           await finishAgentRun(supabase, run, "partial", {
             toolNames,
@@ -304,7 +322,7 @@ export async function runRevenueCommandAgent(
             activeToolBundleId: activeBundleId,
           };
         }
-        if (options.onAssistantDelta) options.onAssistantDelta(bufferedAnswer || text);
+        if (options.onAssistantDelta && !bufferedAnswer) options.onAssistantDelta(text);
         await finishAgentRun(supabase, run, "completed", {
           toolNames,
           inputTokens,
@@ -435,6 +453,7 @@ export async function runRevenueCommandAgent(
       resultPreview: partial,
       error: `Stopped after ${MAX_TOOL_TURNS} tool turns without a final answer`,
     });
+    options.onAssistantDelta?.(partial);
     return {
       text: partial,
       runId: run.id,

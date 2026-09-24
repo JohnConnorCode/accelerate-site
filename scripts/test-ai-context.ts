@@ -17,6 +17,7 @@ import {
   buildRevenueAiGroundingContract,
   groundedAnswerFailure,
   validateGroundedRevenueAnswer,
+  unsourcedDollarFigures,
 } from "../src/lib/revenue-os/ai-context";
 
 const long = "x".repeat(MAX_CONVERSATION_MESSAGE_CHARS + 600);
@@ -155,6 +156,32 @@ assert.equal(
   ]).valid,
   false,
   "a staged confirmation may not carry unsourced figures",
+);
+
+// Figures must trace to evidence: exact values, small sums, or rounded "k".
+const dealEvidence = '{"deals":[{"value":4800},{"value":3200},{"value":2500}]}';
+assert.deepEqual(unsourcedDollarFigures("Acme is worth $4,800.", dealEvidence), []);
+assert.deepEqual(unsourcedDollarFigures("Open pipeline totals $10,500.", dealEvidence), []);
+assert.deepEqual(unsourcedDollarFigures("Roughly $10.5k is open.", dealEvidence), []);
+assert.deepEqual(unsourcedDollarFigures("Expect about $7,500 this month.", dealEvidence), [
+  "$7,500",
+]);
+assert.equal(
+  validateGroundedRevenueAnswer(
+    "Two deals worth $7,500 need attention. [source: registered_tool_result:search_pipeline]",
+    ["search_pipeline"],
+    dealEvidence,
+  ).valid,
+  false,
+  "a cited answer still fails when it states an amount no source supports",
+);
+assert.equal(
+  validateGroundedRevenueAnswer(
+    "Acme ($4,800) and Harper ($2,500) total $7,300. [source: registered_tool_result:search_pipeline]",
+    ["search_pipeline"],
+    dealEvidence,
+  ).valid,
+  true,
 );
 
 // ai-bounded-context AC1: the headless coworker turn has an explicit context

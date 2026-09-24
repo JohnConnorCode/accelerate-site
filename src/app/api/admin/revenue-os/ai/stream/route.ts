@@ -117,6 +117,7 @@ export async function POST(request: NextRequest) {
             signal: request.signal,
             onRunStarted: (event) => send({ type: "run_started", ...event }),
             onAssistantDelta: (delta) => send({ type: "assistant_delta", delta }),
+            onAssistantReset: () => send({ type: "assistant_reset" }),
             onToolStarted: (event) => send({ type: "tool_started", ...event }),
             onToolCompleted: (event) => send({ type: "tool_completed", ...event }),
             onProposalStaged: (proposal) => {
