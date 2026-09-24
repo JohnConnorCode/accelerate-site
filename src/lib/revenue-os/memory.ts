@@ -166,6 +166,180 @@ export async function retrieveAgentMemory(
 }
 
 // ---------------------------------------------------------------------------
+// Memory review: the founder can see, correct and remove what agents remember
+// ---------------------------------------------------------------------------
+
+const REVIEW_CATEGORIES: ReadonlyArray<AgentMemoryEntry["category"]> = [
+  "prior_work",
+  "prior_research",
+  "scheduled_check",
+  "unresolved_question",
+];
+const REVIEW_HORIZONS: ReadonlyArray<AgentMemoryEntry["relevance_horizon"]> = [
+  "session",
+  "daily",
+  "weekly",
+  "permanent",
+];
+
+/** Most recent memories with repeated subjects collapsed, so recurring
+ * routine entries cannot crowd everything else out of a prompt. */
+export async function recentDistinctAgentMemory(
+  supabase: SupabaseClient,
+  input: { coworkerId?: string; limit?: number },
+): Promise<AgentMemoryEntry[]> {
+  const limit = input.limit ?? 5;
+  const rows = await retrieveAgentMemory(supabase, {
+    coworkerId: input.coworkerId,
+    limit: limit * 4,
+  });
+  const seen = new Set<string>();
+  return rows
+    .filter((row) => {
+      const key = row.subject
+        .replace(/\d{4}-\d{2}-\d{2}/g, "")
+        .trim()
+        .toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit);
+}
+
+/** Run-trace receipt of the memories a prompt was given. */
+export function memoryReceipt(rows: AgentMemoryEntry[]) {
+  return {
+    memory: rows.map((row) => ({
+      id: row.id,
+      category: row.category,
+      subject: row.subject.slice(0, 120),
+      sourceRunId: row.agent_run_id,
+    })),
+  };
+}
+
+/** Newest-first page of memories with their source (run) and scope (coworker,
+ * entity). Expired rows are included only on request so the review shows what
+ * agents can currently see by default. */
+export async function listAgentMemoryForReview(
+  supabase: SupabaseClient,
+  input: {
+    category?: string | null;
+    coworkerId?: string | null;
+    search?: string | null;
+    includeExpired?: boolean;
+    limit?: number;
+  } = {},
+): Promise<AgentMemoryEntry[]> {
+  const limit = Math.min(Math.max(input.limit ?? 50, 1), 100);
+  let query = supabase
+    .from("agent_memory")
+    .select(
+      "id,tenant_id,coworker_id,agent_run_id,category,subject,body,entity_type,entity_id,relevance_horizon,created_at,expires_at",
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (!input.includeExpired)
+    query = query.or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
+  if (input.category) {
+    if (!REVIEW_CATEGORIES.includes(input.category as AgentMemoryEntry["category"]))
+      throw new Error("Unknown memory category");
+    query = query.eq("category", input.category);
+  }
+  if (input.coworkerId) query = query.eq("coworker_id", input.coworkerId);
+  const search = input.search
+    ?.replace(/[,%()]/g, " ")
+    .trim()
+    .slice(0, 120);
+  if (search) query = query.or(`subject.ilike.%${search}%,body.ilike.%${search}%`);
+  const { data, error } = await query;
+  if (error) throw new Error(`Failed to list agent memory: ${error.message}`);
+  return (data ?? []) as AgentMemoryEntry[];
+}
+
+/** Correct a memory in place. The previous text is kept in the audit log. */
+export async function updateAgentMemory(
+  supabase: SupabaseClient,
+  id: string,
+  changes: {
+    subject?: string;
+    body?: string;
+    relevanceHorizon?: AgentMemoryEntry["relevance_horizon"];
+  },
+  actorEmail: string,
+): Promise<AgentMemoryEntry> {
+  const patch: Record<string, unknown> = {};
+  if (changes.subject !== undefined) {
+    const subject = changes.subject.trim();
+    if (!subject || subject.length > 240) throw new Error("Subject must be 1-240 characters");
+    patch.subject = subject;
+  }
+  if (changes.body !== undefined) {
+    const body = changes.body.trim();
+    if (!body || body.length > 8000) throw new Error("Memory text must be 1-8000 characters");
+    patch.body = body;
+  }
+  if (changes.relevanceHorizon !== undefined) {
+    if (!REVIEW_HORIZONS.includes(changes.relevanceHorizon))
+      throw new Error("Unknown relevance horizon");
+    patch.relevance_horizon = changes.relevanceHorizon;
+    patch.expires_at = computeExpiry(changes.relevanceHorizon);
+  }
+  if (!Object.keys(patch).length) throw new Error("No memory change was provided");
+  const { data: before, error: readError } = await supabase
+    .from("agent_memory")
+    .select("id,subject,body,relevance_horizon,expires_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (readError) throw new Error(`Failed to read agent memory: ${readError.message}`);
+  if (!before) throw new Error("Memory not found");
+  const snapshot = { ...before };
+  const { data, error } = await supabase
+    .from("agent_memory")
+    .update(patch)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw new Error(`Failed to update agent memory: ${error.message}`);
+  await recordAudit(supabase, {
+    actorEmail,
+    action: "agent_memory.corrected",
+    entityType: "agent_memory",
+    entityId: id,
+    source: "admin",
+    before: snapshot,
+    after: patch,
+  });
+  return data as AgentMemoryEntry;
+}
+
+/** Remove a memory so no future run sees it. What was removed stays auditable. */
+export async function forgetAgentMemory(
+  supabase: SupabaseClient,
+  id: string,
+  actorEmail: string,
+): Promise<void> {
+  const { data: before, error: readError } = await supabase
+    .from("agent_memory")
+    .select("id,category,subject,coworker_id,agent_run_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (readError) throw new Error(`Failed to read agent memory: ${readError.message}`);
+  if (!before) throw new Error("Memory not found");
+  const { error } = await supabase.from("agent_memory").delete().eq("id", id);
+  if (error) throw new Error(`Failed to remove agent memory: ${error.message}`);
+  await recordAudit(supabase, {
+    actorEmail,
+    action: "agent_memory.forgotten",
+    entityType: "agent_memory",
+    entityId: id,
+    source: "admin",
+    before,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Learned policy: explicit rules derived from human decisions
 // ---------------------------------------------------------------------------
 
