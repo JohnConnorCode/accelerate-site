@@ -15,6 +15,7 @@ export const TENANT_SCOPED_TABLES = [
   "today_view_proposals",
   "today_workspace_views",
   "today_view_receipts",
+  "work_saved_views",
   "proposal_lifecycle_receipts",
   "radar_outreach_attempts",
   "radar_relationship_reviews",
@@ -174,6 +175,10 @@ const BASE_REVENUE_SCHEMA_TABLES = [
     columns: ["event_id", "event_type", "status", "received_at", "processed_at"],
   },
   { table: "today_workspace_views", columns: ["owner_key", "revision", "document", "updated_at"] },
+  {
+    table: "work_saved_views",
+    columns: ["owner_id", "name", "config", "visibility", "updated_at"],
+  },
   {
     table: "today_view_receipts",
     columns: ["actor_id", "request_id", "owner_key", "request_payload", "result", "created_at"],

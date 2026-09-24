@@ -7,24 +7,30 @@ export async function GET(request: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   const { searchParams } = new URL(request.url);
-  const email = searchParams.get("email");
+  const requestedId = searchParams.get("id");
+  const requestedEmail = searchParams.get("email");
 
-  if (!email) {
-    return NextResponse.json({ error: "Email parameter required" }, { status: 400 });
+  if (!requestedId && !requestedEmail) {
+    return NextResponse.json({ error: "Contact id or email required" }, { status: 400 });
   }
 
   const supabase = auth.database;
 
-  const canonicalContactResult = await supabase
+  const canonicalQuery = supabase
     .from("contacts")
     .select(
       "id,full_name,primary_email,phone,company_id,lifecycle_stage,communication_status,last_interaction_at,next_action,next_action_at",
     )
-    .ilike("primary_email", email.trim().toLowerCase())
-    .limit(2);
+    .eq("tenant_id", auth.tenant.id);
+  const canonicalContactResult = await (requestedId
+    ? canonicalQuery.eq("id", requestedId).limit(1)
+    : canonicalQuery.ilike("primary_email", requestedEmail!.trim().toLowerCase()).limit(2));
   const canonicalSchemaReady = !canonicalContactResult.error;
   const ambiguousIdentity = (canonicalContactResult.data?.length ?? 0) > 1;
   const canonicalContact = !ambiguousIdentity ? (canonicalContactResult.data?.[0] ?? null) : null;
+  if (requestedId && !canonicalContact)
+    return NextResponse.json({ error: "Contact not found" }, { status: 404 });
+  const email = requestedId ? canonicalContact?.primary_email || "__no_email__" : requestedEmail!;
 
   const [
     canonicalCompanyResult,

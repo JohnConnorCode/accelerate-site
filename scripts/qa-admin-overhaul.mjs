@@ -115,9 +115,7 @@ try {
             });
             if (width < 640) {
               // Mobile details use the visible back link instead of desktop breadcrumbs.
-              await page
-                .getByRole("link", { name: "Back to contact intake", exact: true })
-                .waitFor();
+              await page.getByRole("link", { name: "Back to contacts", exact: true }).waitFor();
             } else {
               await page
                 .locator('nav[aria-label="Breadcrumb"] a')

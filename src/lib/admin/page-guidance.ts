@@ -70,7 +70,7 @@ export const adminPageGuidance: Record<string, AdminPageGuidance> = {
       "Read customer messages, review the conversation history, and prepare your next reply.",
     steps: [
       "Select a conversation to see its messages and related customer records.",
-      "Review the recipient and reply before confirming a send. Use the Review queue to find items needing attention.",
+      "Review the recipient and reply before confirming a send. Use Work for tasks and approvals, or Intake review for new enquiries.",
     ],
     guideHref: "/docs/conversations/reply",
   },

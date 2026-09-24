@@ -412,10 +412,11 @@ async function main() {
           await page.waitForURL("**/services#strategy");
           await page.goBack({ waitUntil: "domcontentloaded" });
           for (const href of ["#systems", "#selected-work", "#command-center"]) {
-            await page
+            const link = page
               .getByRole("navigation", { name: "Explore the homepage" })
-              .locator(`a[href="${href}"]`)
-              .click();
+              .locator(`a[href="${href}"]`);
+            await link.evaluate((element) => element.scrollIntoView({ block: "center" }));
+            await link.click();
             await page.waitForURL(`**/${href}`);
             assert.ok(await page.locator(href).count());
           }

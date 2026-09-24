@@ -2,7 +2,7 @@
 
 import { adminPageName } from "@/lib/admin/navigation";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { CheckCircle2, Loader2, RefreshCw, X } from "lucide-react";
 import Link, { useAdminNavigation } from "@/components/admin/AdminLink";
@@ -26,6 +26,8 @@ import {
 } from "@/lib/admin/workflow-views";
 import type { TodaySnapshot } from "@/lib/admin/today-data";
 import { toast } from "@/lib/admin/useToast";
+import { AgentWorkPanel } from "@/components/admin/AgentWorkPanel";
+import { workViewConfigSchema, type WorkViewConfig } from "@/lib/admin/work-view-contract";
 
 interface TaskRow {
   id: string;
@@ -40,6 +42,13 @@ interface TaskRow {
   related_id?: string | null;
   related_name?: string | null;
   opportunity_id?: string | null;
+}
+interface SavedWorkView {
+  id: string;
+  name: string;
+  config: WorkViewConfig;
+  visibility: "private" | "workspace";
+  ownerId: string;
 }
 const control = "admin-field";
 const taskViewDescriptor: WorkflowViewDescriptor<TaskRow> = {
@@ -82,16 +91,22 @@ export default function WorkPage() {
   const params = useSearchParams();
   const demo = useAdminDemo();
   const router = useAdminNavigation();
-  const tab = params.get("tab") === "approvals" ? "approvals" : "tasks";
+  const tab =
+    params.get("tab") === "approvals" ? "approvals" : params.get("tab") === "ai" ? "ai" : "tasks";
   const [owner, setOwner] = useState("team");
   const [status, setStatus] = useState("pending");
   const [search, setSearch] = useState("");
   const [source, setSource] = useState("");
+  const [page, setPage] = useState(1);
+  const deferredSearch = useDeferredValue(search);
   const [layout, setLayout] = useState<WorkflowLayout>("list");
   const [visibleFields, setVisibleFields] = useState(
     taskViewDescriptor.fields.map((field) => field.id),
   );
   const [viewReadyScope, setViewReadyScope] = useState("");
+  const [selectedViewId, setSelectedViewId] = useState("");
+  const [viewName, setViewName] = useState("");
+  const [viewVisibility, setViewVisibility] = useState<"private" | "workspace">("private");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -100,13 +115,26 @@ export default function WorkPage() {
   const [due, setDue] = useState("");
   const [priority, setPriority] = useState("medium");
   const [review, setReview] = useState<ActionRow | null>(null);
-  const tasksQuery = useAdminQuery<{ tasks: TaskRow[]; viewerId?: string; tenantId?: string }>(
-    ["work", "tasks", owner, status],
-    `/api/admin/tasks?status=${status}&owner=${owner}`,
+  const taskParams = new URLSearchParams({ status, owner, page: String(page), pageSize: "100" });
+  if (source) taskParams.set("source", source);
+  if (deferredSearch) taskParams.set("q", deferredSearch);
+  const tasksQuery = useAdminQuery<{
+    tasks: TaskRow[];
+    total: number;
+    viewerId?: string;
+    tenantId?: string;
+  }>(
+    ["work", "tasks", owner, status, source, deferredSearch, page],
+    `/api/admin/tasks?${taskParams}`,
   );
   const actionsQuery = useAdminQuery<{ actions: ActionRow[] }>(
     ["today", "actions"],
     "/api/admin/revenue-os/actions",
+  );
+  const viewsQuery = useAdminQuery<{ views: SavedWorkView[]; viewerId: string }>(
+    ["work", "saved-views"],
+    "/api/admin/work/views",
+    { enabled: !demo?.scenarioId },
   );
   const todayQuery = useAdminQuery<TodaySnapshot>(
     ["today-workspace", scopeKey],
@@ -147,16 +175,81 @@ export default function WorkPage() {
   const followups = (todayQuery.data?.handling.data ?? []).filter(
     (item) => item.kind === "draft_followup" && item.status !== "completed",
   );
-  const visible = tasks.filter(
-    (t) =>
-      (!source || t.source === source) &&
-      `${t.title} ${t.related_name ?? ""}`.toLowerCase().includes(search.toLowerCase()),
-  );
+  const visible = tasks;
   const filtersChanged = owner !== "team" || status !== "pending" || Boolean(source || search);
   const viewChanged =
     filtersChanged ||
     layout !== "list" ||
     taskViewDescriptor.fields.some((field) => !visibleFields.includes(field.id));
+  const selectedView = viewsQuery.data?.views.find((view) => view.id === selectedViewId);
+  const chooseSavedView = (id: string) => {
+    setSelectedViewId(id);
+    setPage(1);
+    const view = viewsQuery.data?.views.find((candidate) => candidate.id === id);
+    if (!view) return;
+    setViewName(view.name);
+    setViewVisibility(view.visibility);
+    setOwner(view.config.owner);
+    setStatus(view.config.status);
+    setSource(view.config.source);
+    setSearch(view.config.search);
+    setLayout(view.config.layout);
+    setVisibleFields(view.config.visibleFields);
+  };
+  const saveView = async (update: boolean) => {
+    if (busy) return;
+    const config = workViewConfigSchema.safeParse({
+      owner,
+      status,
+      source,
+      search,
+      layout,
+      visibleFields,
+    });
+    if (!config.success || !viewName.trim()) {
+      setError("Name the view and check its filters before saving.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      const result = await fetchJson<{ view: { id: string } }>("/api/admin/work/views", {
+        method: update ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...(update ? { id: selectedViewId } : {}),
+          name: viewName.trim(),
+          visibility: viewVisibility,
+          config: config.data,
+        }),
+      });
+      await viewsQuery.refetch();
+      setSelectedViewId(result.view.id);
+      toast.success(update ? "Work view updated" : "Work view saved");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Work view could not be saved");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const removeView = async () => {
+    if (!selectedView || selectedView.ownerId !== viewsQuery.data?.viewerId || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await fetchJson(`/api/admin/work/views?id=${encodeURIComponent(selectedView.id)}`, {
+        method: "DELETE",
+      });
+      setSelectedViewId("");
+      setViewName("");
+      await viewsQuery.refetch();
+      toast.success("Work view removed");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Work view could not be removed");
+    } finally {
+      setBusy(false);
+    }
+  };
   const requestedTask = params.get("task");
   const loadedTaskRef = useRef<string | null>(null);
   const selectedTaskQuery = useAdminQuery<{ tasks: TaskRow[] }>(
@@ -272,7 +365,7 @@ export default function WorkPage() {
         }
       />
       <nav aria-label="Work views" className="flex gap-2 border-b border-[var(--admin-border)]">
-        {(["tasks", "approvals"] as const).map((value) => (
+        {(["tasks", "approvals", "ai"] as const).map((value) => (
           <Link
             key={value}
             href={`/admin/work?tab=${value}`}
@@ -284,7 +377,7 @@ export default function WorkPage() {
                 : "border-transparent text-[var(--admin-muted)]",
             )}
           >
-            {value === "tasks" ? "Tasks" : "Approvals"}
+            {value === "tasks" ? "Tasks" : value === "ai" ? "AI work" : "Approvals"}
           </Link>
         ))}
       </nav>
@@ -298,6 +391,84 @@ export default function WorkPage() {
       )}
       {tab === "tasks" ? (
         <>
+          {!demo?.scenarioId && (
+            <AdminSurface padding="md">
+              <div className="flex flex-wrap items-end gap-3">
+                <label className="min-w-40 flex-1 text-xs font-medium text-[var(--admin-ink)]">
+                  Saved views
+                  <select
+                    className="admin-field mt-1 w-full"
+                    value={selectedViewId}
+                    onChange={(event) => chooseSavedView(event.target.value)}
+                  >
+                    <option value="">Current view</option>
+                    {viewsQuery.data?.views.map((view) => (
+                      <option key={view.id} value={view.id}>
+                        {view.name}
+                        {view.visibility === "workspace" ? " · Shared" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="min-w-40 flex-1 text-xs font-medium text-[var(--admin-ink)]">
+                  View name
+                  <input
+                    className="admin-field mt-1 w-full"
+                    maxLength={80}
+                    value={viewName}
+                    onChange={(event) => setViewName(event.target.value)}
+                    placeholder="My follow-ups"
+                  />
+                </label>
+                <label className="text-xs font-medium text-[var(--admin-ink)]">
+                  Visibility
+                  <select
+                    className="admin-field mt-1 w-full"
+                    value={viewVisibility}
+                    onChange={(event) =>
+                      setViewVisibility(event.target.value as "private" | "workspace")
+                    }
+                  >
+                    <option value="private">Only me</option>
+                    <option value="workspace">Workspace</option>
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="admin-button admin-button--secondary"
+                  disabled={busy}
+                  onClick={() => void saveView(false)}
+                >
+                  Save new
+                </button>
+                {selectedView?.ownerId === viewsQuery.data?.viewerId && (
+                  <>
+                    <button
+                      type="button"
+                      className="admin-button admin-button--secondary"
+                      disabled={busy}
+                      onClick={() => void saveView(true)}
+                    >
+                      Update
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-button admin-button--secondary"
+                      disabled={busy}
+                      onClick={() => void removeView()}
+                    >
+                      Remove
+                    </button>
+                  </>
+                )}
+              </div>
+              {viewsQuery.error && (
+                <p role="alert" className="mt-2 text-sm text-[var(--admin-danger)]">
+                  Saved views could not load. Current task filters still work.
+                </p>
+              )}
+            </AdminSurface>
+          )}
           <AdminSurface padding="none" elevation="flat">
             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--admin-border)] px-5 py-4">
               <div>
@@ -409,7 +580,10 @@ export default function WorkPage() {
               <select
                 id="work-owner"
                 value={owner}
-                onChange={(e) => setOwner(e.target.value)}
+                onChange={(e) => {
+                  setOwner(e.target.value);
+                  setPage(1);
+                }}
                 className={control}
               >
                 <option value="team">Team work</option>
@@ -424,7 +598,10 @@ export default function WorkPage() {
               <select
                 id="work-status"
                 value={status}
-                onChange={(e) => setStatus(e.target.value)}
+                onChange={(e) => {
+                  setStatus(e.target.value);
+                  setPage(1);
+                }}
                 className={control}
               >
                 <option value="pending">Open</option>
@@ -437,13 +614,18 @@ export default function WorkPage() {
               <label className="admin-field-label" htmlFor="work-source">
                 App or source
               </label>
-              <select
+              <input
                 id="work-source"
+                list="work-source-options"
+                placeholder="All sources"
                 value={source}
-                onChange={(e) => setSource(e.target.value)}
+                onChange={(e) => {
+                  setSource(e.target.value);
+                  setPage(1);
+                }}
                 className={control}
-              >
-                <option value="">All sources</option>
+              />
+              <datalist id="work-source-options">
                 {Array.from(
                   new Set(tasks.map((t) => t.source).filter((s): s is string => Boolean(s))),
                 ).map((value) => (
@@ -451,7 +633,7 @@ export default function WorkPage() {
                     {value.replaceAll("_", " ")}
                   </option>
                 ))}
-              </select>
+              </datalist>
             </div>
             <div className="admin-toolbar-field admin-toolbar-search">
               <label className="admin-field-label" htmlFor="work-search">
@@ -461,7 +643,10 @@ export default function WorkPage() {
                 id="work-search"
                 placeholder="Find a task or related record"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
                 className={control}
               />
             </div>
@@ -510,7 +695,7 @@ export default function WorkPage() {
             <p role="status" className="text-[var(--admin-muted)]">
               {tasksQuery.isPending
                 ? "Loading tasks…"
-                : `${visible.length} ${visible.length === 1 ? "task" : "tasks"} shown`}
+                : `${tasksQuery.data?.total ?? visible.length} ${tasksQuery.data?.total === 1 ? "task" : "tasks"} found`}
               {tasksQuery.isFetching && !tasksQuery.isPending ? " · Updating…" : ""}
             </p>
             {viewChanged && (
@@ -522,6 +707,7 @@ export default function WorkPage() {
                   setStatus("pending");
                   setSource("");
                   setSearch("");
+                  setPage(1);
                   setLayout("list");
                   setVisibleFields(taskViewDescriptor.fields.map((field) => field.id));
                 }}
@@ -700,13 +886,34 @@ export default function WorkPage() {
                   </p>
                 )}
               </AdminSurface>
-              <p className="text-xs text-[var(--admin-muted)]">
-                Showing up to 100 tasks for the selected ownership and status. App-specific cases
-                keep their own workspaces.
-              </p>
             </>
           )}
+          {(tasksQuery.data?.total ?? 0) > 100 && (
+            <nav aria-label="Task pages" className="flex items-center justify-end gap-3 text-sm">
+              <button
+                type="button"
+                className="admin-button admin-button-secondary"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                Previous
+              </button>
+              <span className="text-[var(--admin-muted)]">
+                Page {page} of {Math.ceil((tasksQuery.data?.total ?? 0) / 100)}
+              </span>
+              <button
+                type="button"
+                className="admin-button admin-button-secondary"
+                disabled={page * 100 >= (tasksQuery.data?.total ?? 0)}
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </button>
+            </nav>
+          )}
         </>
+      ) : tab === "ai" ? (
+        <AgentWorkPanel />
       ) : (
         <AdminSurface padding="none" elevation="flat">
           <ul>

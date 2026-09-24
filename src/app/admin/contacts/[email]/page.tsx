@@ -34,6 +34,7 @@ interface CanonicalProfile {
   contact: {
     id: string;
     full_name: string;
+    primary_email: string | null;
     lifecycle_stage: string;
     communication_status: string;
     next_action: string | null;
@@ -45,13 +46,14 @@ interface CanonicalProfile {
 
 export default function ContactTimelinePage() {
   const params = useParams();
-  const email = decodeURIComponent(params.email as string);
+  const identifier = decodeURIComponent(params.email as string);
+  const isId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
   const relationship = useAdminQuery<{
     timeline?: TimelineItem[];
     canonical?: CanonicalProfile | null;
   }>(
-    ["admin", "contact-relationship", email],
-    `/api/admin/contacts/timeline?email=${encodeURIComponent(email)}`,
+    ["admin", "contact-relationship", identifier],
+    `/api/admin/contacts/timeline?${isId ? "id" : "email"}=${encodeURIComponent(identifier)}`,
     // Never show the previous person's relationship while a different record loads.
     { placeholderData: undefined },
   );
@@ -66,7 +68,7 @@ export default function ContactTimelinePage() {
           className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,scale] hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.97] dark:hover:bg-white/[0.06]"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to contact intake
+          Back to contacts
         </Link>
       </div>
 
@@ -91,9 +93,11 @@ export default function ContactTimelinePage() {
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-[var(--admin-ink)]">
-                  {canonical?.contact?.full_name || email}
+                  {canonical?.contact?.full_name || (isId ? "Contact" : identifier)}
                 </p>
-                {canonical?.contact && <p className="admin-copy truncate text-xs">{email}</p>}
+                {canonical?.contact?.primary_email && (
+                  <p className="admin-copy truncate text-xs">{canonical.contact.primary_email}</p>
+                )}
                 <p className="admin-copy text-xs">
                   {timeline.length} interaction{timeline.length !== 1 ? "s" : ""} found
                 </p>
@@ -121,7 +125,7 @@ export default function ContactTimelinePage() {
               )}
               {canonical?.opportunities?.length ? (
                 <Link
-                  href={`/admin/pipeline?search=${encodeURIComponent(email)}`}
+                  href={`/admin/pipeline?search=${encodeURIComponent(canonical?.contact?.primary_email || canonical?.contact?.full_name || identifier)}`}
                   className="inline-flex min-h-10 items-center gap-1.5 rounded-[var(--admin-control-radius)] bg-[var(--admin-ink)] px-3 text-xs font-semibold text-[var(--admin-surface)] transition-[opacity,transform] hover:opacity-85 active:scale-[0.97]"
                 >
                   Open in Pipeline <ArrowUpRight className="h-3.5 w-3.5" />

@@ -25,6 +25,8 @@ Enable **Stripe invoicing** in **Plugins**, configure the workspace's Stripe con
 
 A created draft, a sent invoice and a paid invoice are different states. The demo simulates provider actions with fictional records and does not create a live invoice.
 
+The **All invoices** section reads every invoice in the connected Stripe account, including invoices created outside this workspace. It loads results in bounded pages. The app's reviewed draft and send actions remain in the invoice tools below; Stripe's status is the source of truth for invoice payment state.
+
 ## Give the customer a coherent experience
 
 The invoice presentation controls support a branded customer page. Review an AI-assisted design before the separate publication approval. Public content should contain only information intended for the recipient. Demo previews remain inside the browser scenario; they are not live public links.

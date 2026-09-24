@@ -27,6 +27,8 @@ const routes = [
   "conversations",
   "inbox",
   "contacts",
+  "work",
+  "invoicing",
   "contact-imports",
   "emails",
   "campaigns",
@@ -274,22 +276,32 @@ for (const scenario of scenarios) {
           );
       }
       if (route === "contacts") {
-        const toggles = page.locator("[data-contact-row-toggle]");
-        const contactCount = await toggles.count();
-        if (!contactCount) {
+        const historyLinks = page.getByRole("link", { name: "Open history" });
+        if (!(await historyLinks.count())) {
           failures.push(`${scenario} ${label} contacts: demo has no populated contact rows`);
         } else {
-          await toggles.first().click();
-          await page.getByText("Full message", { exact: true }).first().waitFor();
           const profile = await page.evaluate(async () => {
-            const contacts = await fetch("/api/admin/contacts").then((response) => response.json());
-            const email = contacts.contacts?.[0]?.email;
+            const directory = await fetch("/api/admin/contacts/directory").then((response) =>
+              response.json(),
+            );
+            const email = directory.contacts?.[0]?.primary_email;
             return fetch(`/api/admin/contacts/timeline?email=${encodeURIComponent(email)}`).then(
               (response) => response.json(),
             );
           });
           if ((profile.timeline?.length || 0) < 4 || profile.canonical?.status !== "connected")
             failures.push(`${scenario} ${label} contacts: relationship data is incomplete`);
+          await historyLinks.first().click();
+          await page.getByRole("heading", { level: 1, name: "Contact relationship" }).waitFor();
+          await page.goto(`${base}/demo/command-center/${scenario}/contacts?view=requests`, {
+            waitUntil: "networkidle",
+          });
+          await page.locator("[data-contact-row-toggle]").first().click();
+          await page.getByRole("button", { name: "Mark as read" }).click();
+          await page
+            .getByText(/Received .* · Read$/)
+            .first()
+            .waitFor();
         }
       }
       if (route === "inbox") {
@@ -603,6 +615,7 @@ for (const scenario of scenarios) {
 
           const inboxHref = `/demo/command-center/${scenario}/inbox`;
           const todayHref = `/demo/command-center/${scenario}/today`;
+          await controlsScope.getByRole("button", { name: "Lead sources" }).click();
           await controlsScope.locator(`a.admin-nav-link[href="${inboxHref}"]`).click();
           await page.waitForURL(new RegExp(`/demo/command-center/${scenario}/inbox$`));
           if (

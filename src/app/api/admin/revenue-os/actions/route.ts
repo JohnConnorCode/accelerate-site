@@ -6,7 +6,7 @@ import { approveAndExecuteAction } from "@/lib/revenue-os/action-executor";
 import { rejectAction, sweepExpiredActions, retryPluginAction } from "@/lib/revenue-os/actions";
 import { isMissingRevenueSchema } from "@/lib/revenue-os/db";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
   const supabase = auth.database;
@@ -14,11 +14,14 @@ export async function GET() {
   // `expired` status, so dead proposals stayed `pending` and kept their dedupe
   // key, permanently blocking the same action from ever being staged again.
   await sweepExpiredActions(supabase);
-  const { data, error } = await supabase
-    .from("action_queue")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const requestedId = request.nextUrl.searchParams.get("id");
+  let query = supabase.from("action_queue").select("*").order("created_at", { ascending: false });
+  if (requestedId) {
+    if (!/^[0-9a-f-]{36}$/i.test(requestedId))
+      return NextResponse.json({ error: "Invalid action id" }, { status: 400 });
+    query = query.eq("id", requestedId);
+  } else query = query.limit(100);
+  const { data, error } = await query;
   if (error) {
     if (isMissingRevenueSchema(error))
       return NextResponse.json({ schemaReady: false, actions: [] });

@@ -86,11 +86,11 @@ try {
       "Appearance changes must not reinstall the demo runtime",
     );
     assert.equal(await demo.locator("html").getAttribute("data-theme"), "dark");
-    await demo
-      .getByRole("link", { name: "Pipeline", exact: true })
-      .filter({ visible: true })
-      .first()
-      .click();
+    if (width === 390) await demo.getByRole("button", { name: "Open More", exact: true }).click();
+    const commandSection = demo.locator('section[data-nav-section="Command"]:visible').first();
+    const command = commandSection.getByRole("button", { name: "Daily work", exact: true });
+    if ((await command.getAttribute("aria-expanded")) !== "true") await command.click();
+    await commandSection.getByRole("link", { name: "Pipeline", exact: true }).click();
     await demo.getByRole("heading", { name: "Pipeline", exact: true }).waitFor();
     assert.equal(await demo.locator("html").getAttribute("data-theme"), "dark");
     await demo.reload({ waitUntil: "networkidle" });
@@ -137,11 +137,13 @@ try {
       "mac",
       "Each demo business must retain its selected appearance",
     );
-    await demo
-      .getByRole("link", { name: "Conversations", exact: true })
-      .filter({ visible: true })
-      .first()
-      .click();
+    if (width === 390) await demo.getByRole("button", { name: "Open More", exact: true }).click();
+    const conversationsSection = demo
+      .locator('section[data-nav-section="Command"]:visible')
+      .first();
+    const dailyWork = conversationsSection.getByRole("button", { name: "Daily work", exact: true });
+    if ((await dailyWork.getAttribute("aria-expanded")) !== "true") await dailyWork.click();
+    await conversationsSection.getByRole("link", { name: "Conversations", exact: true }).click();
     await demo.getByRole("heading", { name: "Conversations", exact: true }).waitFor();
     await demo.screenshot({ path: `${output}/conversations-${width}.png`, fullPage: true });
     assert.deepEqual(errors, []);

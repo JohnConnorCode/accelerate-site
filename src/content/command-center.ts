@@ -156,7 +156,7 @@ export const capabilities: Capability[] = [
     title: "Tasks and commitments",
     promise: "Give work a title, date and source context so the team can follow it through.",
     detail:
-      "Use Tasks & approvals to view the same tasks as a list, status board or date calendar. Filter ownership, status and source; scan due dates and related records; then edit or complete work through its existing task service. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
+      "Use Work to view the same tasks as a list, status board or date calendar. Filter ownership, status and source; save a personal or workspace view; then edit or complete work through its existing task service. Onboarding and meeting workflows can create assigned checklists linked to their source records.",
   },
   {
     id: "notes",
@@ -197,7 +197,7 @@ export const capabilities: Capability[] = [
     title: "Review contact matches",
     promise: "Check suggested identities before linking an unfamiliar sender to a customer.",
     detail:
-      "Contact review lets you match a sender, create a contact when appropriate or leave the item for later. Imports also surface possible matches for review.",
+      "Identity matching lets you match a sender, create a contact when appropriate or leave the item for later. Imports also surface possible matches for review.",
   },
   {
     id: "opportunity-radar",

@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "command-center-work-and-contact-views",
+    slug: "command-center-work-and-contact-views",
+    title: "A clearer place for work and contact records",
+    description:
+      "Work brings tasks, exact approvals and coworker activity into nearby views. Connected workspaces can save the current task filters, layout and fields privately or share them with active members. Contacts opens a canonical people directory, with website requests, imports and identity matching nearby; existing submission links still work. Invoicing adds a paged account invoice list beside draft and payment operations. Proposal decline reasons stay out of audit snapshots, and the proposal transition function is restricted to the verified service role.",
+    category: "improvement",
+    publishedAt: "2026-09-24",
+  },
+  {
     id: "capy-command-center-appearance",
     slug: "capy-command-center-appearance",
     title: "A brighter, warmer appearance for Command Center",

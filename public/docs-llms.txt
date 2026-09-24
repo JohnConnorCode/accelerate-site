@@ -9,7 +9,7 @@ Learn the essentials and try your first complete workflow.
 - [For business owners](https://www.acceleratewith.us/docs/start/business-owners) (updated 2026-09-19): Decide whether it fits, run a small pilot, and know what to check before you rely on it.
 - [For agencies](https://www.acceleratewith.us/docs/start/agencies) (updated 2026-09-19): Plan one client pilot: who owns what, how to prove data stays separated, and how to hand it over.
 - [Your first workflow](https://www.acceleratewith.us/docs/start/daily-path) (updated 2026-09-19): Walk through the daily queue in the fictional demo: find work, review a proposal, and confirm what happened.
-- [Your first result](https://www.acceleratewith.us/docs/start/first-value) (updated 2026-09-20): Take one real inquiry from a connected workspace through to a reviewed action and its receipt.
+- [Your first result](https://www.acceleratewith.us/docs/start/first-value) (updated 2026-09-24): Take one real inquiry from a connected workspace through to a reviewed action and its receipt.
 - [Core concepts](https://www.acceleratewith.us/docs/start/core-concepts) (updated 2026-09-19): The vocabulary every other guide assumes: workspace, record, approval, receipt, and how they connect.
 - [Your workspace](https://www.acceleratewith.us/docs/start/workspace) (updated 2026-09-19): Check your business context, membership, and available features.
 - [Modules](https://www.acceleratewith.us/docs/start/modules) (updated 2026-09-19): Turn a whole area of the product on or off per workspace, without forking the application.
@@ -69,7 +69,7 @@ One shared operating layer for the businesses that need it, and how to run the d
 - [Capability reference](https://www.acceleratewith.us/docs/command-center/capabilities) (updated 2026-09-19): Find supported capabilities, their business purpose and the setup or review each needs.
 - [Make Today your daily workspace](https://www.acceleratewith.us/docs/command-center/today) (updated 2026-09-19): Arrange your business snapshot, decisions, work and App follow-up into saved views that fit your day.
 - [Inbox](https://www.acceleratewith.us/docs/command-center/inbox) (updated 2026-09-19): Every new lead, message, and staged action that hasn't found an owner yet, in one queue.
-- [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-23): The editing view over the same tasks and approvals Today shows you, with filters and full editing.
+- [Manage tasks and approvals in Work](https://www.acceleratewith.us/docs/command-center/work) (updated 2026-09-24): Review tasks, approvals and AI work, and save task views for your workspace.
 - [Review and approve actions](https://www.acceleratewith.us/docs/command-center/approvals) (updated 2026-09-23): How approval works, how it earns more autonomy over time, and what to check after a decision.
 - [Inspect activity](https://www.acceleratewith.us/docs/command-center/activity) (updated 2026-09-19): Trace a change back to who made it, what happened, and when.
 - [Ask AI](https://www.acceleratewith.us/docs/command-center/ask) (updated 2026-09-19): Ask a specific question, see the records it used to answer, and review anything it proposes.
@@ -83,7 +83,7 @@ The reply-ready inbox for Gmail, forms, chat, and transcripts.
 ## Contacts
 Identity resolution, intake, and reviewed list imports.
 
-- [Contacts](https://www.acceleratewith.us/docs/contacts/overview) (updated 2026-09-21): Find customer records, review unfamiliar senders and follow the work linked to each person.
+- [Contacts](https://www.acceleratewith.us/docs/contacts/overview) (updated 2026-09-24): Find customer records, review unfamiliar senders and follow the work linked to each person.
 - [Import contacts](https://www.acceleratewith.us/docs/contacts/import) (updated 2026-09-19): Review a CSV or pasted list, resolve contact matches and confirm the records to import.
 
 ## Pipeline

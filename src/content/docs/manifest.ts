@@ -188,8 +188,7 @@ export const docsManifest: DocsSection[] = [
       {
         slug: ["command-center", "work"],
         title: "Manage tasks and approvals in Work",
-        description:
-          "The editing view over the same tasks and approvals Today shows you, with filters and full editing.",
+        description: "Review tasks, approvals and AI work, and save task views for your workspace.",
       },
       {
         slug: ["command-center", "approvals"],

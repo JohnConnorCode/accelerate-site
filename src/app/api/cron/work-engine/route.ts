@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
             tenantCircuits.set(context.tenantSlug, circuit);
             const summary = await executeClaimableWork(supabase, {
               maxItems: 10,
-              deadlineMs: 20_000,
+              deadlineMs: 30_000,
               circuit,
               signal: request.signal,
               batchDeadlineMs: Math.max(1, deadlineAt - Date.now()),

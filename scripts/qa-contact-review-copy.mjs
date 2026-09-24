@@ -99,7 +99,7 @@ try {
       await page.goto(`${base}/demo/command-center/northline-roofing/identity-review`, {
         waitUntil: "networkidle",
       });
-      await page.getByRole("heading", { name: "Contact review", exact: true }).waitFor();
+      await page.getByRole("heading", { name: "Identity matching", exact: true }).waitFor();
       if (mode === "empty")
         await page.getByText("No contacts need review", { exact: true }).waitFor();
       if (mode === "populated") {
@@ -150,7 +150,13 @@ try {
         await page.evaluate(() => {
           window.reviewFixtureMode = "setup";
         });
-        await page.getByRole("link", { name: "Pipeline", exact: true }).first().click();
+        if (width === 390) {
+          await page.getByRole("button", { name: "Open More", exact: true }).click();
+        }
+        const commandSection = page.locator('section[data-nav-section="Command"]:visible').first();
+        const command = commandSection.getByRole("button", { name: "Daily work", exact: true });
+        if ((await command.getAttribute("aria-expanded")) !== "true") await command.click();
+        await commandSection.getByRole("link", { name: "Pipeline", exact: true }).click();
         await page.getByRole("heading", { name: "This feature needs setup" }).waitFor();
         const copy = await page.locator(".admin-main").innerText();
         assert.ok(copy.includes("Open Setup Center to see what’s missing"));

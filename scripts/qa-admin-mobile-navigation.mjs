@@ -19,21 +19,13 @@ await page.goto(`${base}/demo/command-center/northline-roofing/today`, {
 });
 await page.locator('[data-admin-async-state="ready"]').waitFor();
 
-const metrics = await page
-  .locator('[aria-label="Operating summary"] dl > div')
-  .evaluateAll((nodes) =>
-    nodes.map((node) => {
-      const rect = node.getBoundingClientRect();
-      return { x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width) };
-    }),
-  );
-check(metrics.length === 4, `Today: expected four metrics, found ${metrics.length}`);
 check(
-  metrics.length === 4 &&
-    metrics[0].y === metrics[1].y &&
-    metrics[2].y === metrics[3].y &&
-    metrics[0].x !== metrics[1].x,
-  "Today: mobile metrics are not a two-by-two grid",
+  (await page.getByRole("heading", { name: "Needs you" }).count()) === 1,
+  "Today: the primary attention view is missing",
+);
+check(
+  (await page.getByRole("heading", { name: "Business changes" }).count()) === 1,
+  "Today: the business changes view is missing",
 );
 check(
   (await page.getByText("Revenue integrations are not configured yet", { exact: true }).count()) ===
@@ -52,18 +44,16 @@ check(
   "Today: full operational ledger is visible in the primary mobile flow",
 );
 
-const pipeline = page
-  .locator('nav[aria-label="Primary navigation"] a')
-  .filter({ hasText: "Pipeline" });
+const work = page.locator('nav[aria-label="Primary navigation"] a').filter({ hasText: "Work" });
 const started = Date.now();
-await pipeline.click({ noWaitAfter: true });
+await work.click({ noWaitAfter: true });
 await Promise.race([
   page.locator('nav[aria-label="Primary navigation"] a[data-pending="true"]').waitFor(),
-  page.getByRole("heading", { level: 1, name: "Pipeline" }).waitFor(),
+  page.getByRole("heading", { level: 1, name: "Work" }).waitFor(),
 ]);
 const acknowledgedIn = Date.now() - started;
 check(acknowledgedIn <= 200, `Navigation: tap acknowledgement took ${acknowledgedIn}ms`);
-await page.getByRole("heading", { level: 1, name: "Pipeline" }).waitFor();
+await page.getByRole("heading", { level: 1, name: "Work" }).waitFor();
 const routeMotion = await page
   .locator("[data-admin-route-stage] .admin-page-introduction")
   .first()
@@ -71,10 +61,10 @@ const routeMotion = await page
     const style = getComputedStyle(node);
     return style.animationName !== "none" && Number.parseFloat(style.animationDuration) > 0;
   });
-check(routeMotion, "Navigation: committed Pipeline route has no declared entrance motion");
+check(routeMotion, "Navigation: committed Work route has no declared entrance motion");
 check(
   (await page.locator("[data-admin-route-loading]").count()) === 0,
-  "Navigation: full-page loading tree remained after Pipeline committed",
+  "Navigation: full-page loading tree remained after Work committed",
 );
 
 await page.getByRole("button", { name: "Open command palette" }).click();
@@ -104,7 +94,7 @@ check(
 await page.screenshot({ path: `${output}/search-mobile.png`, fullPage: false });
 await page.keyboard.press("Escape");
 await palette.waitFor({ state: "detached" });
-await page.screenshot({ path: `${output}/pipeline-mobile.png`, fullPage: false });
+await page.screenshot({ path: `${output}/work-mobile.png`, fullPage: false });
 await browser.close();
 
 if (failures.length) {

@@ -97,6 +97,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260921-architect-sessions.sql",
   "migrations/20260922-architect-understanding.sql",
   "migrations/20260923-workspace-blueprints.sql",
+  "migrations/20260923-work-saved-views.sql",
   "migrations/20260924-workspace-blueprint-applies.sql",
   "migrations/20260925-stripe-subscriptions.sql",
   "migrations/20260926-stripe-billing-server-only.sql",
@@ -123,6 +124,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260923-schema-migration-ledger-rls.sql",
   "migrations/20260924-ai-conversation-sources-tenant-access.sql",
   "migrations/20260924-proposal-audit-decline-reason.sql",
+  "migrations/20260924-proposal-lifecycle-service-role-only.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

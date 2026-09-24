@@ -219,6 +219,8 @@ export type DemoState = {
   } | null;
   workViews?: Array<Record<string, unknown>>;
   workEvents?: Array<Record<string, unknown>>;
+  contactDirectory?: Array<Record<string, unknown>>;
+  readContactIds?: string[];
   workReceipts?: Record<string, { fingerprint: string; card: unknown }>;
   moduleOverrides: Partial<Record<string, boolean>>;
   moduleSettings: Record<string, Record<string, unknown>>;
@@ -489,6 +491,7 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
       completed_at: patch?.completed_at ?? native?.completedAt ?? null,
       assigned_to:
         native?.assigneeUserId ?? (index % 3 ? "00000000-0000-4000-8000-000000000079" : null),
+      created_at: new Date(Date.now() - (index + 1) * 86_400_000).toISOString(),
       source: native ? "workflow" : "manual",
       related_name: person(pack, item.personId).name,
       related_id: item.personId,
@@ -496,7 +499,7 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
     };
   });
   const delivery = Object.values(state.deliveryHandoffs ?? {}).flatMap((h) =>
-    h.tasks.map((t) => ({
+    h.tasks.map((t, index) => ({
       id: t.id,
       title: t.title,
       status:
@@ -508,17 +511,25 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
       snoozed_until: null,
       completed_at: null,
       assigned_to: null,
+      created_at: new Date(Date.now() - (index + 1) * 86_400_000).toISOString(),
       source: "delivery_handoff",
       related_name: h.businessName,
       related_id: h.id,
       related_type: "client",
     })),
   );
-  return [
+  const rows = [
     ...base,
     ...delivery,
     ...(state.manualTasks ?? []).map((task) => ({ ...task, ...state.taskOverrides[task.id] })),
   ];
+  return rows.map((row, index) => ({
+    ...row,
+    created_at:
+      "created_at" in row && typeof row.created_at === "string"
+        ? row.created_at
+        : new Date(Date.now() - (index + 1) * 86_400_000).toISOString(),
+  }));
 }
 
 export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string) {
@@ -3959,6 +3970,16 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       window.dispatchEvent(new Event("admin:demo-state"));
       return jsonResponse({ simulated: true, decision: body.decision, actionId: action.id });
     }
+    if (path === "/api/admin/contacts" && method === "PATCH") {
+      const input = body as { id?: string; read?: boolean };
+      if (!pack.people.some((item) => item.id === input.id) || typeof input.read !== "boolean")
+        return jsonResponse({ error: "Website request not found" }, 404);
+      state.readContactIds = input.read
+        ? [...new Set([...(state.readContactIds ?? []), input.id!])]
+        : (state.readContactIds ?? []).filter((id) => id !== input.id);
+      saveState(scenarioId, state);
+      return jsonResponse({ success: true, readAt: input.read ? new Date().toISOString() : null });
+    }
     if (method !== "GET") {
       if (path === "/api/admin/revenue-os/pipeline") {
         const rows = opportunityRows(pack, state);
@@ -4292,9 +4313,61 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (path === "/api/admin/revenue-os/conversations")
       return jsonResponse(conversations(pack, state, url));
     if (path === "/api/admin/revenue-os/analytics") return jsonResponse(analytics(pack, state));
+    if (path === "/api/admin/contacts/directory") {
+      const search = (url.searchParams.get("search") || "").trim().toLowerCase();
+      const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+      const contacts = pack.people
+        .filter((item) => !search || `${item.name} ${item.email}`.toLowerCase().includes(search))
+        .map((item) => ({
+          id: item.email,
+          full_name: item.name,
+          primary_email: item.email,
+          phone: null,
+          title: null,
+          lifecycle_stage: "contact",
+          next_action: null,
+        }));
+      return jsonResponse({
+        contacts: contacts.slice((page - 1) * 50, page * 50),
+        total: contacts.length,
+        page,
+        pageSize: 50,
+      });
+    }
+    if (path === "/api/admin/work/agent-items")
+      return jsonResponse({ items: [], total: 0, page: 1 });
+    if (path === "/api/admin/invoicing/list") {
+      const invoices = business.invoices.map((item) => ({
+        id: item.receipt.invoiceId,
+        number: item.document.number,
+        status: item.receipt.status,
+        currency: item.receipt.currency,
+        amountDue: item.receipt.amountDue,
+        remaining: item.receipt.amountRemaining,
+        contactName: item.document.customerName,
+        contactEmail: item.document.customerEmail,
+        dueDate: item.document.dueLabel,
+        hostedInvoiceUrl: item.receipt.hostedInvoiceUrl,
+        createdAt: ago(1),
+      }));
+      return jsonResponse({ invoices, hasMore: false, nextCursor: null });
+    }
+    if (path === "/api/admin/contacts" && method === "GET") {
+      const payload = legacy(pack, path, state) as { contacts: Array<Record<string, unknown>> };
+      return jsonResponse({
+        ...payload,
+        contacts: payload.contacts.map((contact) => ({
+          ...contact,
+          read_at: state.readContactIds?.includes(String(contact.id)) ? ago(0) : null,
+        })),
+      });
+    }
     if (path === "/api/admin/contacts/timeline") {
       const requestedEmail = (url.searchParams.get("email") || "").toLowerCase();
-      const contact = pack.people.find((item) => item.email.toLowerCase() === requestedEmail);
+      const requestedId = url.searchParams.get("id");
+      const contact = pack.people.find((item) =>
+        requestedId ? item.id === requestedId : item.email.toLowerCase() === requestedEmail,
+      );
       if (!contact)
         return jsonResponse({
           timeline: [],
@@ -4355,6 +4428,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           contact: {
             id: contact.id,
             full_name: contact.name,
+            primary_email: contact.email,
             lifecycle_stage: opportunity?.stage ?? "contact",
             communication_status: "active",
             next_action: opportunity?.nextAction ?? null,
@@ -4466,37 +4540,76 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const status = url.searchParams.get("status");
       const owner = url.searchParams.get("owner");
       const viewerId = "00000000-0000-4000-8000-000000000079";
+      const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+      const pageSize = Math.min(100, Math.max(1, Number(url.searchParams.get("pageSize")) || 100));
+      const search = (url.searchParams.get("q") || "").trim().toLowerCase();
+      const source = url.searchParams.get("source") || "";
+      const priority = url.searchParams.get("priority") || "all";
+      const due = url.searchParams.get("due") || "any";
+      const relatedType = url.searchParams.get("related_type") || "";
+      const sortBy = url.searchParams.get("sortBy") || "due_date";
+      const sortDirection = url.searchParams.get("sortDirection") || "asc";
+      const today = new Date().toISOString().slice(0, 10);
+      const filtered = demoTaskRows(pack, state)
+        .filter((item) => !url.searchParams.get("id") || item.id === url.searchParams.get("id"))
+        .filter(
+          (item) =>
+            !url.searchParams.get("related_id") ||
+            (item.related_id === url.searchParams.get("related_id") &&
+              item.related_type === url.searchParams.get("related_type")),
+        )
+        .filter(
+          (item) => !url.searchParams.get("date") || item.due_date === url.searchParams.get("date"),
+        )
+        .filter(
+          (item) =>
+            url.searchParams.get("include_overdue") !== "true" ||
+            (item.status === "pending" &&
+              item.due_date &&
+              item.due_date <= new Date().toISOString().slice(0, 10)),
+        )
+        .filter((item) => !status || status === "all" || item.status === status)
+        .filter((item) =>
+          owner === "me"
+            ? item.assigned_to === viewerId
+            : owner === "unassigned"
+              ? !item.assigned_to
+              : true,
+        )
+        .filter((item) => !source || item.source === source)
+        .filter((item) => priority === "all" || item.priority === priority)
+        .filter((item) => !relatedType || item.related_type === relatedType)
+        .filter((item) =>
+          due === "any"
+            ? true
+            : due === "overdue"
+              ? item.status === "pending" && Boolean(item.due_date) && item.due_date! < today
+              : due === "today"
+                ? item.due_date === today
+                : due === "upcoming"
+                  ? Boolean(item.due_date) && item.due_date! > today
+                  : !item.due_date,
+        )
+        .filter(
+          (item) =>
+            !search || `${item.title} ${item.related_name ?? ""}`.toLowerCase().includes(search),
+        );
+      filtered.sort((a, b) => {
+        if (sortBy === "due_date" && a.due_date !== b.due_date) {
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+        }
+        const left = sortBy === "created_at" ? (a.created_at ?? "") : (a.due_date ?? "");
+        const right = sortBy === "created_at" ? (b.created_at ?? "") : (b.due_date ?? "");
+        const primary = left.localeCompare(right) * (sortDirection === "asc" ? 1 : -1);
+        if (primary) return primary;
+        return (a.created_at ?? "").localeCompare(b.created_at ?? "") * -1;
+      });
       return jsonResponse({
         viewerId,
         tenantId: scenarioId,
-        tasks: demoTaskRows(pack, state)
-          .filter((item) => !url.searchParams.get("id") || item.id === url.searchParams.get("id"))
-          .filter(
-            (item) =>
-              !url.searchParams.get("related_id") ||
-              (item.related_id === url.searchParams.get("related_id") &&
-                item.related_type === url.searchParams.get("related_type")),
-          )
-          .filter(
-            (item) =>
-              !url.searchParams.get("date") || item.due_date === url.searchParams.get("date"),
-          )
-          .filter(
-            (item) =>
-              url.searchParams.get("include_overdue") !== "true" ||
-              (item.status === "pending" &&
-                item.due_date &&
-                item.due_date <= new Date().toISOString().slice(0, 10)),
-          )
-          .filter((item) => !status || status === "all" || item.status === status)
-          .filter((item) =>
-            owner === "me"
-              ? item.assigned_to === viewerId
-              : owner === "unassigned"
-                ? !item.assigned_to
-                : true,
-          )
-          .slice(0, 100),
+        total: filtered.length,
+        tasks: filtered.slice((page - 1) * pageSize, page * pageSize),
       });
     }
     if (path === "/api/admin/revenue-os/identity-review" && method === "GET") {

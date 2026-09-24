@@ -348,7 +348,7 @@ export default function RecoveryPage() {
                         icon={Sparkles}
                         title="No recovery playbook yet"
                         description="Complete a contact import, then stage a bounded recovery campaign from its reviewed records."
-                        actionLabel="Open contact intake"
+                        actionLabel="Import contacts"
                         actionHref="/admin/contact-imports"
                       />
                     </AdminSurface>
