@@ -6,7 +6,7 @@ export const changelogEntries: ChangelogEntry[] = [
     slug: "capy-command-center-appearance",
     title: "A brighter, warmer appearance for Command Center",
     description:
-      "Capy adds a light workspace appearance with crisp white surfaces, warm orange actions, soft peach and green canvas color, and rounded controls. It follows the reference's clean, playful product presentation while using original tokens and no borrowed artwork, logo or copy. The shared appearance system applies it across admin pages, the appearance picker and the fictional demo, with the same responsive, keyboard and reduced-motion behavior as the other themes.",
+      "Capy now pairs a graphite navigation rail and crisp white workspace surfaces with seafoam actions, monospaced titles and compact controls. The reference-led design uses a subtle warm-neutral canvas and restrained offset depth, while keeping all product icons, illustrations and copy original. The shared appearance system applies it across admin pages, the picker and fictional demos with responsive, keyboard and reduced-motion support.",
     category: "improvement",
     publishedAt: "2026-09-23",
   },
