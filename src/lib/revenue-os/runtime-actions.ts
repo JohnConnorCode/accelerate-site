@@ -1,10 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  bindTenantDatabase,
-  createPlatformServiceRoleClient,
-  tenantIdForDatabase,
-} from "@/lib/supabase/server";
+import { createApprovedTenantWriter, tenantIdForDatabase } from "@/lib/supabase/server";
 import {
   storeAgentMemory,
   recordLearnedPolicy,
@@ -48,11 +44,7 @@ export async function executeRuntimeAction(
     // gets a tenant-bound administrative writer; no handle escapes to tools.
     const tenantId = tenantIdForDatabase(db);
     if (!tenantId) throw new Error("Coworker bootstrap requires a tenant-bound database");
-    const writer = bindTenantDatabase(
-      createPlatformServiceRoleClient("approved-coworker-bootstrap"),
-      tenantId,
-      true,
-    );
+    const writer = createApprovedTenantWriter(tenantId, "approved-coworker-bootstrap");
     const name = choice(input, "coworker", [
       "sales",
       "business_pulse",
