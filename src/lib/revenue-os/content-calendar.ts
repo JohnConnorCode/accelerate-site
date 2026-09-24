@@ -44,6 +44,8 @@ const contentCalendarValuesSchema = z
   })
   .strict();
 
+type ContentCalendarField = keyof z.infer<typeof contentCalendarValuesSchema>;
+
 export const contentCalendarChangesSchema = contentCalendarValuesSchema
   .partial()
   .strict()
@@ -131,7 +133,7 @@ export async function previewContentCalendarUpdate(database: SupabaseClient, raw
     after,
     revision,
   };
-  const changedFields = Object.keys(input.changes).filter(
+  const changedFields = (Object.keys(input.changes) as ContentCalendarField[]).filter(
     (field) => JSON.stringify(beforeValues[field]) !== JSON.stringify(after[field]),
   );
   if (!changedFields.length) throw new Error("No content calendar values would change");
@@ -203,7 +205,7 @@ export async function updateContentCalendarItem(
   if (expectedRevision !== undefined && current.updated_at !== expectedRevision)
     throw new Error("Content calendar item changed after approval. Preview and approve again.");
   if (
-    Object.keys(changes).every(
+    (Object.keys(changes) as ContentCalendarField[]).every(
       (field) => JSON.stringify(current[field] ?? null) === JSON.stringify(changes[field] ?? null),
     )
   )

@@ -193,6 +193,7 @@ import {
 } from "./ai-tool-contract";
 export { REVENUE_TOOL_PACKS };
 import type { AiToolPackId as RevenueToolPackId } from "./ai-tool-contract";
+export type { RevenueToolPackId };
 export type { TaskToolProfile } from "./tool-profiles";
 import { parseTaskToolProfile, type TaskToolProfile } from "./tool-profiles";
 
