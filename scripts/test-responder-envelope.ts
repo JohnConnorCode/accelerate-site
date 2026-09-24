@@ -57,13 +57,8 @@ function stubNetwork(reply: string, options: { sendFails?: boolean } = {}) {
         usage: { prompt_tokens: 10, completion_tokens: 20 },
         choices: [{ message: { role: "assistant", content: reply } }],
       };
-      return {
-        ok: true,
-        status: 200,
-        headers: new Headers(),
-        json: async () => body,
-        text: async () => JSON.stringify(body),
-      };
+      // The gateway reads a bounded body stream, as it does from real fetch.
+      return new Response(JSON.stringify(body), { status: 200 });
     }
     if (href.includes("resend.com")) {
       providerSends += 1;
