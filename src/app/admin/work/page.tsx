@@ -15,6 +15,18 @@ import { AgentWorkPanel } from "@/components/admin/AgentWorkPanel";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { relativeTime } from "@/lib/admin/work-presentation";
+import {
+  DEFAULT_WORK_VIEW_COLUMNS,
+  WORK_VIEW_COLUMNS,
+  WORK_VIEW_DUE_FILTERS,
+  WORK_VIEW_GROUPS,
+  WORK_VIEW_PRIORITY_FILTERS,
+  WORK_VIEW_RELATED_TYPES,
+  WORK_VIEW_SORT_DIRECTIONS,
+  WORK_VIEW_SORTS,
+  type WorkViewColumn,
+  type WorkViewConfig,
+} from "@/lib/admin/work-view-contract";
 import { cn } from "@/lib/utils";
 import { WorkflowCalendar } from "@/components/admin/WorkflowCalendar";
 import { WorkflowLayoutSwitcher } from "@/components/admin/WorkflowLayoutSwitcher";
@@ -47,13 +59,7 @@ type SavedView = {
   name: string;
   ownerId: string;
   visibility: "private" | "workspace";
-  config: {
-    owner: string;
-    status: string;
-    source: string;
-    search: string;
-    groupBy: "none" | "priority" | "source" | "related_type" | "status" | "owner" | "due_date";
-  };
+  config: WorkViewConfig;
 };
 const control = "admin-field";
 const taskViewDescriptor: WorkflowViewDescriptor<TaskRow> = {
@@ -267,7 +273,19 @@ export default function WorkPage() {
         body: JSON.stringify({
           ...(canEditSelected ? { id: selectedViewId } : {}),
           name: viewName.trim(),
-          config: { owner, status, source, search, groupBy },
+          config: {
+            owner,
+            status,
+            source,
+            search,
+            groupBy,
+            priority: priorityFilter,
+            due: dueFilter,
+            relatedType: relatedTypeFilter,
+            sortBy,
+            sortDirection,
+            columns,
+          },
           visibility: viewVisibility,
         }),
       });
@@ -294,10 +312,27 @@ export default function WorkPage() {
     setSource(view.config.source);
     setSearch(view.config.search);
     setGroupBy(view.config.groupBy);
-    setViewName(view.name);
-    setViewVisibility(view.visibility);
+    setPriorityFilter(view.config.priority ?? "all");
+    setDueFilter(view.config.due ?? "any");
+    setRelatedTypeFilter(view.config.relatedType);
+    setSortBy(view.config.sortBy);
+    setSortDirection(view.config.sortDirection);
+    setColumns(view.config.columns);
+    const ownedByViewer = view.ownerId === viewsQuery.data?.viewerId;
+    setViewName(ownedByViewer ? view.name : `${view.name} copy`);
+    setViewVisibility(ownedByViewer ? view.visibility : "private");
+    const taskQueryUnchanged =
+      view.config.owner === owner &&
+      view.config.status === status &&
+      view.config.source === source &&
+      view.config.search === search &&
+      view.config.priority === priorityFilter &&
+      view.config.due === dueFilter &&
+      view.config.relatedType === relatedTypeFilter &&
+      view.config.sortBy === sortBy &&
+      view.config.sortDirection === sortDirection;
     setPage(1);
-    setLoadedTasks([]);
+    if (!taskQueryUnchanged || page !== 1) setLoadedTasks([]);
   };
   const removeView = async () => {
     if (!selectedViewId) return;
@@ -353,6 +388,15 @@ export default function WorkPage() {
     } finally {
       setBusy(false);
     }
+  };
+  const toggleColumn = (column: WorkViewColumn) => {
+    setColumns((current) =>
+      current.includes(column)
+        ? current.length === 1
+          ? current
+          : current.filter((item) => item !== column)
+        : [...current, column],
+    );
   };
   return (
     <div className="space-y-5 pb-8">

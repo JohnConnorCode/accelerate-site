@@ -2,16 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
 import { recordAudit } from "@/lib/revenue-os/audit";
-
-const config = z
-  .object({
-    owner: z.enum(["team", "me", "unassigned"]),
-    status: z.enum(["pending", "snoozed", "completed", "all"]),
-    source: z.string().max(100),
-    search: z.string().max(100),
-    groupBy: z.enum(["none", "priority", "source", "related_type", "status", "owner", "due_date"]),
-  })
-  .strict();
+import { workViewConfigSchema } from "@/lib/admin/work-view-contract";
 
 async function readRequestBody(request: NextRequest) {
   try {
@@ -34,14 +25,21 @@ export async function GET() {
     .limit(50);
   if (error) return NextResponse.json({ error: "Saved views are unavailable" }, { status: 500 });
   return NextResponse.json({
-    views: (data ?? []).map((view) => ({
-      id: view.id,
-      name: view.name,
-      config: view.config,
-      visibility: view.visibility,
-      ownerId: view.owner_id,
-      updatedAt: view.updated_at,
-    })),
+    views: (data ?? []).flatMap((view) => {
+      const parsed = workViewConfigSchema.safeParse(view.config);
+      return parsed.success
+        ? [
+            {
+              id: view.id,
+              name: view.name,
+              config: parsed.data,
+              visibility: view.visibility,
+              ownerId: view.owner_id,
+              updatedAt: view.updated_at,
+            },
+          ]
+        : [];
+    }),
     viewerId: auth.user.id,
   });
 }
@@ -52,7 +50,7 @@ export async function POST(request: NextRequest) {
   const input = z
     .object({
       name: z.string().trim().min(1).max(80),
-      config,
+      config: workViewConfigSchema,
       visibility: z.enum(["private", "workspace"]),
     })
     .strict()
@@ -91,7 +89,7 @@ export async function PATCH(request: NextRequest) {
     .object({
       id: z.uuid(),
       name: z.string().trim().min(1).max(80),
-      config,
+      config: workViewConfigSchema,
       visibility: z.enum(["private", "workspace"]),
     })
     .strict()

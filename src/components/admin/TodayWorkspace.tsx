@@ -166,8 +166,6 @@ export function TodayWorkspace() {
     setInspectorOpen(false);
     setEditorOpen(false);
     setFactOpen(false);
-    setReviewOpen(false);
-    dismissedAction.current = null;
   }, [scopeKey]);
   const choices = useMemo(
     () => [

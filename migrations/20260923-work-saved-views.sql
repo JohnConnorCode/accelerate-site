@@ -24,6 +24,9 @@ BEGIN
   END IF;
 END $$;
 CREATE INDEX IF NOT EXISTS work_saved_views_owner ON public.work_saved_views(tenant_id, owner_id, updated_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS work_saved_views_workspace_name
+  ON public.work_saved_views(tenant_id, lower(name))
+  WHERE visibility = 'workspace';
 ALTER TABLE public.work_saved_views ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.work_saved_views FROM anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.work_saved_views TO authenticated;

@@ -258,7 +258,7 @@ export default function InvoicingPage() {
         </AdminLink>
       </nav>
       <div id="invoice-list">
-        <InvoiceIndex enabled={connected || demo} />
+        <InvoiceIndex enabled={connected || Boolean(demo)} />
       </div>
       <>
         {(error || providers.error || billing.error) && (

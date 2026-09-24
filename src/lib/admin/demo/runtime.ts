@@ -490,6 +490,7 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
       completed_at: patch?.completed_at ?? native?.completedAt ?? null,
       assigned_to:
         native?.assigneeUserId ?? (index % 3 ? "00000000-0000-4000-8000-000000000079" : null),
+      created_at: new Date(Date.now() - (index + 1) * 86_400_000).toISOString(),
       source: native ? "workflow" : "manual",
       related_name: person(pack, item.personId).name,
       related_id: item.personId,
@@ -497,7 +498,7 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
     };
   });
   const delivery = Object.values(state.deliveryHandoffs ?? {}).flatMap((h) =>
-    h.tasks.map((t) => ({
+    h.tasks.map((t, index) => ({
       id: t.id,
       title: t.title,
       status:
@@ -509,17 +510,25 @@ function demoTaskRows(pack: DemoScenarioPack, state: DemoState) {
       snoozed_until: null,
       completed_at: null,
       assigned_to: null,
+      created_at: new Date(Date.now() - (index + 1) * 86_400_000).toISOString(),
       source: "delivery_handoff",
       related_name: h.businessName,
       related_id: h.id,
       related_type: "client",
     })),
   );
-  return [
+  const rows = [
     ...base,
     ...delivery,
     ...(state.manualTasks ?? []).map((task) => ({ ...task, ...state.taskOverrides[task.id] })),
   ];
+  return rows.map((row, index) => ({
+    ...row,
+    created_at:
+      "created_at" in row && typeof row.created_at === "string"
+        ? row.created_at
+        : new Date(Date.now() - (index + 1) * 86_400_000).toISOString(),
+  }));
 }
 
 export function opportunityRecord(pack: DemoScenarioPack, state: DemoState, id: string) {
@@ -4471,6 +4480,12 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const pageSize = Math.min(100, Math.max(1, Number(url.searchParams.get("pageSize")) || 100));
       const search = (url.searchParams.get("q") || "").trim().toLowerCase();
       const source = url.searchParams.get("source") || "";
+      const priority = url.searchParams.get("priority") || "all";
+      const due = url.searchParams.get("due") || "any";
+      const relatedType = url.searchParams.get("related_type") || "";
+      const sortBy = url.searchParams.get("sortBy") || "due_date";
+      const sortDirection = url.searchParams.get("sortDirection") || "asc";
+      const today = new Date().toISOString().slice(0, 10);
       const filtered = demoTaskRows(pack, state)
         .filter((item) => !url.searchParams.get("id") || item.id === url.searchParams.get("id"))
         .filter(
@@ -4498,10 +4513,34 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
               : true,
         )
         .filter((item) => !source || item.source === source)
+        .filter((item) => priority === "all" || item.priority === priority)
+        .filter((item) => !relatedType || item.related_type === relatedType)
+        .filter((item) =>
+          due === "any"
+            ? true
+            : due === "overdue"
+              ? item.status === "pending" && Boolean(item.due_date) && item.due_date! < today
+              : due === "today"
+                ? item.due_date === today
+                : due === "upcoming"
+                  ? Boolean(item.due_date) && item.due_date! > today
+                  : !item.due_date,
+        )
         .filter(
           (item) =>
             !search || `${item.title} ${item.related_name ?? ""}`.toLowerCase().includes(search),
         );
+      filtered.sort((a, b) => {
+        if (sortBy === "due_date" && a.due_date !== b.due_date) {
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+        }
+        const left = sortBy === "created_at" ? (a.created_at ?? "") : (a.due_date ?? "");
+        const right = sortBy === "created_at" ? (b.created_at ?? "") : (b.due_date ?? "");
+        const primary = left.localeCompare(right) * (sortDirection === "asc" ? 1 : -1);
+        if (primary) return primary;
+        return (a.created_at ?? "").localeCompare(b.created_at ?? "") * -1;
+      });
       return jsonResponse({
         viewerId,
         tenantId: scenarioId,

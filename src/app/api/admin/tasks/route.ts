@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/auth";
 import { executeTaskWrite } from "@/lib/revenue-os/action-executor";
 
@@ -16,26 +17,81 @@ export async function GET(request: NextRequest) {
   const relatedId = searchParams.get("related_id");
   const source = searchParams.get("source")?.trim().slice(0, 100) ?? "";
   const search = searchParams.get("q")?.trim().slice(0, 100) ?? "";
+  const priority = searchParams.get("priority") || "all";
+  const due = searchParams.get("due") || "any";
+  const sortBy = searchParams.get("sortBy") || "due_date";
+  const sortDirection = searchParams.get("sortDirection") || "asc";
   const includeOverdue = searchParams.get("include_overdue");
+  const filters = z
+    .object({
+      status: z.enum(["pending", "snoozed", "completed", "all"]).nullable(),
+      owner: z.enum(["team", "me", "unassigned"]).nullable(),
+      source: z.string().max(100),
+      q: z.string().max(100),
+      priority: z.enum(["all", "high", "medium", "low"]),
+      due: z.enum(["any", "overdue", "today", "upcoming", "unscheduled"]),
+      sortBy: z.enum(["due_date", "created_at"]),
+      sortDirection: z.enum(["asc", "desc"]),
+      relatedType: z
+        .string()
+        .max(60)
+        .regex(/^[a-z_]+$/)
+        .or(z.literal(""))
+        .transform((value) => value || null)
+        .nullable(),
+    })
+    .safeParse({
+      status,
+      owner,
+      source,
+      q: search,
+      priority,
+      due,
+      sortBy,
+      sortDirection,
+      relatedType,
+    });
+  if (!filters.success)
+    return NextResponse.json({ error: "Check the task filters" }, { status: 400 });
+  const {
+    status: taskStatus,
+    owner: taskOwner,
+    source: taskSource,
+    q: taskSearch,
+    priority: taskPriority,
+    due: taskDue,
+    sortBy: taskSortBy,
+    sortDirection: taskSortDirection,
+    relatedType: taskRelatedType,
+  } = filters.data;
   const page = Math.max(1, Math.min(10000, Number(searchParams.get("page")) || 1));
   const pageSize = Math.max(1, Math.min(100, Number(searchParams.get("pageSize")) || 100));
 
-  let query = supabase
-    .from("tasks")
-    .select("*", { count: "exact" })
-    .order("due_date", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: false });
+  let query = supabase.from("tasks").select("*", { count: "exact" });
 
-  if (status && status !== "all") {
-    query = query.eq("status", status);
+  if (taskSortBy === "due_date")
+    query = query
+      .order("due_date", { ascending: taskSortDirection === "asc", nullsFirst: false })
+      .order("created_at", { ascending: false });
+  else query = query.order("created_at", { ascending: taskSortDirection === "asc" });
+
+  if (taskStatus && taskStatus !== "all") {
+    query = query.eq("status", taskStatus);
   }
 
   if (id) query = query.eq("id", id);
-  if (owner === "me") query = query.eq("assigned_to", auth.user.id);
-  if (owner === "unassigned") query = query.is("assigned_to", null);
-  if (source) query = query.eq("source", source);
-  if (search) {
-    const escaped = search.replace(/[%,()\\]/g, "");
+  if (taskOwner === "me") query = query.eq("assigned_to", auth.user.id);
+  if (taskOwner === "unassigned") query = query.is("assigned_to", null);
+  if (taskSource) query = query.eq("source", taskSource);
+  if (taskPriority !== "all") query = query.eq("priority", taskPriority);
+  if (taskRelatedType && !relatedId) query = query.eq("related_type", taskRelatedType);
+  const today = new Date().toISOString().split("T")[0]!;
+  if (taskDue === "overdue") query = query.eq("status", "pending").lt("due_date", today);
+  if (taskDue === "today") query = query.eq("due_date", today);
+  if (taskDue === "upcoming") query = query.gt("due_date", today);
+  if (taskDue === "unscheduled") query = query.is("due_date", null);
+  if (taskSearch) {
+    const escaped = taskSearch.replace(/[%,()\\]/g, "");
     if (escaped) query = query.or(`title.ilike.%${escaped}%,related_name.ilike.%${escaped}%`);
   }
 
@@ -43,8 +99,8 @@ export async function GET(request: NextRequest) {
     query = query.eq("due_date", date);
   }
 
-  if (relatedType && relatedId) {
-    query = query.eq("related_type", relatedType).eq("related_id", relatedId);
+  if (taskRelatedType && relatedId) {
+    query = query.eq("related_type", taskRelatedType).eq("related_id", relatedId);
   }
 
   if (includeOverdue === "true") {
