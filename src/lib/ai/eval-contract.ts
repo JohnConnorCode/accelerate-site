@@ -19,7 +19,7 @@ export const EVAL_MAX_AGE_DAYS = 30;
 export const JOB_CONTRACT_FINGERPRINTS: Readonly<Record<string, string>> = {
   "copilot-answer": "687421abb4a41892",
   "coworker-task": "cec069858e52a235",
-  "responder-draft": "976f33af37e62a94",
+  "responder-draft": "c13a5a5b1093415e",
   "proposal-draft": "ac715e5474aa2c18",
 };
 

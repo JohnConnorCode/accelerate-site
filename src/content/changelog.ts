@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "ai-runtime-reliability",
+    slug: "ai-runtime-reliability",
+    title: "Ask AI answers faster and shows its sources",
+    description:
+      "Ask AI now streams its answer as it writes, and every dollar amount it states must come from your records or the conversation. Coworker work waits for your approval before a coworker starts, and each routine check runs once per period. On the Learning page you can review, correct or remove what the AI remembers, and each run shows the memories it used. Models qualify for sensitive work only after passing a recorded evaluation against the current instructions.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
     id: "approval-backed-content-calendar-edits",
     slug: "approval-backed-content-calendar-edits",
     title: "Review AI content calendar edits before they are saved",
