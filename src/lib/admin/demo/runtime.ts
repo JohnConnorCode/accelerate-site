@@ -4302,9 +4302,51 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (path === "/api/admin/revenue-os/conversations")
       return jsonResponse(conversations(pack, state, url));
     if (path === "/api/admin/revenue-os/analytics") return jsonResponse(analytics(pack, state));
+    if (path === "/api/admin/contacts/directory") {
+      const search = (url.searchParams.get("search") || "").trim().toLowerCase();
+      const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+      const contacts = pack.people
+        .filter((item) => !search || `${item.name} ${item.email}`.toLowerCase().includes(search))
+        .map((item) => ({
+          id: item.email,
+          full_name: item.name,
+          primary_email: item.email,
+          phone: null,
+          title: null,
+          lifecycle_stage: "contact",
+          next_action: null,
+        }));
+      return jsonResponse({
+        contacts: contacts.slice((page - 1) * 50, page * 50),
+        total: contacts.length,
+        page,
+        pageSize: 50,
+      });
+    }
+    if (path === "/api/admin/work/agent-items")
+      return jsonResponse({ items: [], total: 0, page: 1 });
+    if (path === "/api/admin/invoicing/list") {
+      const invoices = business.invoices.map((item) => ({
+        id: item.receipt.invoiceId,
+        number: item.document.number,
+        status: item.receipt.status,
+        currency: item.receipt.currency,
+        amountDue: item.receipt.amountDue,
+        remaining: item.receipt.amountRemaining,
+        contactName: item.document.customerName,
+        contactEmail: item.document.customerEmail,
+        dueDate: item.document.dueLabel,
+        hostedInvoiceUrl: item.receipt.hostedInvoiceUrl,
+        createdAt: ago(1),
+      }));
+      return jsonResponse({ invoices, hasMore: false, nextCursor: null });
+    }
     if (path === "/api/admin/contacts/timeline") {
       const requestedEmail = (url.searchParams.get("email") || "").toLowerCase();
-      const contact = pack.people.find((item) => item.email.toLowerCase() === requestedEmail);
+      const requestedId = url.searchParams.get("id");
+      const contact = pack.people.find((item) =>
+        requestedId ? item.id === requestedId : item.email.toLowerCase() === requestedEmail,
+      );
       if (!contact)
         return jsonResponse({
           timeline: [],
@@ -4365,6 +4407,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           contact: {
             id: contact.id,
             full_name: contact.name,
+            primary_email: contact.email,
             lifecycle_stage: opportunity?.stage ?? "contact",
             communication_status: "active",
             next_action: opportunity?.nextAction ?? null,
@@ -4544,34 +4587,8 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({
         viewerId,
         tenantId: scenarioId,
-        tasks: demoTaskRows(pack, state)
-          .filter((item) => !url.searchParams.get("id") || item.id === url.searchParams.get("id"))
-          .filter(
-            (item) =>
-              !url.searchParams.get("related_id") ||
-              (item.related_id === url.searchParams.get("related_id") &&
-                item.related_type === url.searchParams.get("related_type")),
-          )
-          .filter(
-            (item) =>
-              !url.searchParams.get("date") || item.due_date === url.searchParams.get("date"),
-          )
-          .filter(
-            (item) =>
-              url.searchParams.get("include_overdue") !== "true" ||
-              (item.status === "pending" &&
-                item.due_date &&
-                item.due_date <= new Date().toISOString().slice(0, 10)),
-          )
-          .filter((item) => !status || status === "all" || item.status === status)
-          .filter((item) =>
-            owner === "me"
-              ? item.assigned_to === viewerId
-              : owner === "unassigned"
-                ? !item.assigned_to
-                : true,
-          )
-          .slice(0, 100),
+        total: filtered.length,
+        tasks: filtered.slice((page - 1) * pageSize, page * pageSize),
       });
     }
     if (path === "/api/admin/revenue-os/identity-review" && method === "GET") {

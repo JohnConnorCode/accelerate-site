@@ -7,8 +7,8 @@
     "Server actions, other API roots, direct client mutations and third-party plugin entrypoints require separate semantic review.",
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
-  "routeCount": 121,
-  "mutationHandlerCount": 106,
+  "routeCount": 125,
+  "mutationHandlerCount": 109,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -225,6 +225,18 @@
       "sourceSha256": "6570443cb6cc77d53e128dd6fd435afede6d6ad6e75731bb753f1d9eba124780"
     },
     {
+      "source": "src/app/api/admin/contacts/directory/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "next/server"
+      ],
+      "sourceSha256": "e1c99f7f6817bb642e44915be5b55aa306a985568673de4b6a187999ccbee2ef"
+    },
+    {
       "source": "src/app/api/admin/contacts/export/route.ts",
       "handlers": [
         "GET"
@@ -254,7 +266,7 @@
         "@/lib/revenue-os/retained-source-dispositions",
         "next/server"
       ],
-      "sourceSha256": "9b36abcbf2b01af819c7a7ba2ba254cba8c5ca129fb1fa3a80d4c8c579f9e258"
+      "sourceSha256": "3be4d437f5091d2b5c5183dfa7bf4742ae6309f832e900e6cdb1da7c8324e553"
     },
     {
       "source": "src/app/api/admin/contacts/timeline/route.ts",
@@ -267,7 +279,7 @@
         "@/lib/revenue-os/activities",
         "next/server"
       ],
-      "sourceSha256": "cecaa7448a188a1f85ddd5a8ead117bfa0a65c6c09e104404d0cb40babd88034"
+      "sourceSha256": "535d569ca9780a3af998c6e1c2e34a4f69edf717f597fffb64a3af39469bc36c"
     },
     {
       "source": "src/app/api/admin/content/route.ts",
@@ -557,6 +569,20 @@
         "next/server"
       ],
       "sourceSha256": "a774774dfc90ba9f3f6e02e5b2f7cf4300cd923817fd90937ced7086e9e1bccb"
+    },
+    {
+      "source": "src/app/api/admin/invoicing/list/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/module-guard",
+        "@/lib/revenue-os/stripe-adapter",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "2a3bd4e44af26484f636ddc379ee5e0176ee7836507a851615460c60a291b6f0"
     },
     {
       "source": "src/app/api/admin/invoicing/pages/route.ts",
@@ -1064,7 +1090,7 @@
         "@/lib/tenancy/context",
         "next/server"
       ],
-      "sourceSha256": "d00621269c6885c8e78ad906024f635b602b39ece01a9e9ff2ec7bef9d4e11e6"
+      "sourceSha256": "f5a664e8643da880d683199ddfaaa2882214b5f3cd2e11a75074903d57c5973d"
     },
     {
       "source": "src/app/api/admin/revenue-os/activity/route.ts",
@@ -1896,9 +1922,10 @@
       "imports": [
         "@/lib/admin/auth",
         "@/lib/revenue-os/action-executor",
-        "next/server"
+        "next/server",
+        "zod"
       ],
-      "sourceSha256": "86bb074a65ea4c3f4c57336d2561103b7d4db4b0c3141d1ade87ea1012e6710d"
+      "sourceSha256": "a8dcf117107438acfd5642593039fa9b95d320ef557faa81359f9e549357b5ce"
     },
     {
       "source": "src/app/api/admin/tenant/branding/route.ts",
@@ -2025,6 +2052,40 @@
         "next/server"
       ],
       "sourceSha256": "68a2973886e5e6ddb59d1c6896719ed61b7ce202f363d5bf52b75b8dd4970d98"
+    },
+    {
+      "source": "src/app/api/admin/work/agent-items/route.ts",
+      "handlers": [
+        "GET"
+      ],
+      "mutationHandlers": [],
+      "imports": [
+        "@/lib/admin/auth",
+        "next/server"
+      ],
+      "sourceSha256": "7cd6c8e2873c0c8d96a3008470453e6118f3486d8e2a19092f1fd50f1028fce5"
+    },
+    {
+      "source": "src/app/api/admin/work/views/route.ts",
+      "handlers": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "mutationHandlers": [
+        "DELETE",
+        "PATCH",
+        "POST"
+      ],
+      "imports": [
+        "@/lib/admin/auth",
+        "@/lib/admin/work-view-contract",
+        "@/lib/revenue-os/audit",
+        "next/server",
+        "zod"
+      ],
+      "sourceSha256": "b941c95457b8971316af37f48030aa82126b7b599eb1886f432beac7657c819a"
     }
   ]
 }

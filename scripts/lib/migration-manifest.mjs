@@ -124,6 +124,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260923-schema-migration-ledger-rls.sql",
   "migrations/20260924-ai-conversation-sources-tenant-access.sql",
   "migrations/20260924-proposal-audit-decline-reason.sql",
+  "migrations/20260924-proposal-lifecycle-service-role-only.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

@@ -32,6 +32,10 @@ REVOKE ALL ON public.work_saved_views FROM anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.work_saved_views TO authenticated;
 GRANT ALL ON public.work_saved_views TO service_role;
 DROP POLICY IF EXISTS work_saved_views_private ON public.work_saved_views;
+DROP POLICY IF EXISTS work_saved_views_read ON public.work_saved_views;
+DROP POLICY IF EXISTS work_saved_views_insert ON public.work_saved_views;
+DROP POLICY IF EXISTS work_saved_views_update ON public.work_saved_views;
+DROP POLICY IF EXISTS work_saved_views_delete ON public.work_saved_views;
 CREATE POLICY work_saved_views_read ON public.work_saved_views FOR SELECT TO authenticated
 USING (
   tenant_id = private.request_tenant_id()

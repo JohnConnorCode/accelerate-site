@@ -15,10 +15,7 @@ export async function GET(request: NextRequest) {
   // key, permanently blocking the same action from ever being staged again.
   await sweepExpiredActions(supabase);
   const requestedId = request.nextUrl.searchParams.get("id");
-  let query = supabase
-    .from("action_queue")
-    .select("*")
-    .order("created_at", { ascending: false });
+  let query = supabase.from("action_queue").select("*").order("created_at", { ascending: false });
   if (requestedId) {
     if (!/^[0-9a-f-]{36}$/i.test(requestedId))
       return NextResponse.json({ error: "Invalid action id" }, { status: 400 });

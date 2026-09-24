@@ -115,7 +115,7 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/contacts",
         icon: UsersRound,
         description:
-          "Manage your people in one directory, with website requests, imports, and matching nearby.",
+          "Find people in one directory, with website requests, imports, and matching nearby.",
         keywords: "contacts people directory submissions csv json paste ai dedupe import",
         mobilePrimary: true,
         moreGroup: "Revenue",
