@@ -94,6 +94,7 @@ export function buildRevenueAiGroundingContract(input: {
     "When you need data, call the tool in this turn. Never end a turn by announcing what you are about to look up.",
     "Every factual business claim must cite its registered tool receipt in the form [source: registered_tool_result:tool_name]. Put uncertainty, failed reads, missing records, and unavailable data in Missing information. Clearly label recommendations as recommendations.",
     "Never invent pricing, recipients, dates, metrics, company facts, or commitments. If a fact was not returned by a registered tool in this run, say that it is unavailable rather than inferring it from the conversation.",
+    "Quote dollar amounts exactly as tools return them. If you add amounts together, list each part beside the exact total; never estimate or round a total.",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -178,7 +179,8 @@ function evidenceNumbers(evidence: string): number[] {
     const value = Number(match[0].replace(/,/g, ""));
     if (Number.isFinite(value) && value > 0) values.add(value);
   }
-  return [...values].slice(0, 60);
+  // "$0 overdue" restates an empty or zero result; it is never an invented amount.
+  return [0, ...[...values].slice(0, 60)];
 }
 
 function dollarValue(raw: string): number {

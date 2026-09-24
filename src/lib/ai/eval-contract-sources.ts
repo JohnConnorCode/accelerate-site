@@ -6,6 +6,7 @@ import {
   AI_CONTEXT_VERSION,
   buildCoworkerGroundingContract,
   buildRevenueAiGroundingContract,
+  unsourcedDollarFigures,
   validateGroundedRevenueAnswer,
 } from "@/lib/revenue-os/ai-context";
 import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
@@ -39,6 +40,7 @@ function jobContractParts(job: string): unknown[] {
           toolPack: "<pack>",
         }),
         validateGroundedRevenueAnswer.toString(),
+        unsourcedDollarFigures.toString(),
       ];
     case "coworker-task":
       return [
@@ -49,6 +51,7 @@ function jobContractParts(job: string): unknown[] {
         AI_TOOL_REGISTRY_VERSION,
         buildCoworkerGroundingContract({ today: "<today>", toolPack: "<pack>" }),
         validateGroundedRevenueAnswer.toString(),
+        unsourcedDollarFigures.toString(),
       ];
     case "responder-draft":
       return [

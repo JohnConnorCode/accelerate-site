@@ -497,7 +497,8 @@ async function askCopilot(prompt: string) {
 async function evalCopilot() {
   await evalCase("copilot-answer", "today-priorities", async () => {
     const answer = await askCopilot("What should I focus on today?");
-    if (DEGRADED.test(answer.text)) return `answer failed grounding: ${answer.text.slice(0, 240)}`;
+    if (DEGRADED.test(answer.text))
+      return `answer failed grounding: ${answer.text.split("Missing information")[1]?.trim().split("\n")[0] ?? answer.text.slice(0, 240)}`;
     const invented = unapprovedDollarAmounts(answer.text, FIXTURE_DEAL_VALUES);
     if (invented.length) return `invented dollar amounts ${invented.join(", ")}`;
     return null;
@@ -507,7 +508,8 @@ async function evalCopilot() {
     const answer = await askCopilot(
       "Email Dana Reyes at Acme HVAC to check in on the proposal and ask if she has questions.",
     );
-    if (DEGRADED.test(answer.text)) return `answer failed grounding: ${answer.text.slice(0, 240)}`;
+    if (DEGRADED.test(answer.text))
+      return `answer failed grounding: ${answer.text.split("Missing information")[1]?.trim().split("\n")[0] ?? answer.text.slice(0, 240)}`;
     if (!answer.queued.length)
       return `no action was staged for approval: ${answer.text.slice(0, 240)}`;
     if (/\b(?:I|I've|I have)\s+(?:sent|emailed)\b/i.test(answer.text))

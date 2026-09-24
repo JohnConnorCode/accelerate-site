@@ -163,6 +163,7 @@ const dealEvidence = '{"deals":[{"value":4800},{"value":3200},{"value":2500}]}';
 assert.deepEqual(unsourcedDollarFigures("Acme is worth $4,800.", dealEvidence), []);
 assert.deepEqual(unsourcedDollarFigures("Open pipeline totals $10,500.", dealEvidence), []);
 assert.deepEqual(unsourcedDollarFigures("Roughly $10.5k is open.", dealEvidence), []);
+assert.deepEqual(unsourcedDollarFigures("Nothing is overdue ($0).", dealEvidence), []);
 assert.deepEqual(unsourcedDollarFigures("Expect about $7,500 this month.", dealEvidence), [
   "$7,500",
 ]);
