@@ -403,6 +403,28 @@ function eventSummary(event: RawEvent): AiRunEventSummary {
       createdAt: event.created_at,
     };
   }
+  if (event.event_type === "memory_loaded" || event.event_type === "context_loaded") {
+    const list = (value: unknown) => (Array.isArray(value) ? value : []);
+    const memory = list(output.memory) as Array<{ subject?: unknown }>;
+    const summary =
+      event.event_type === "memory_loaded"
+        ? memory.length
+          ? `Used ${memory.length} memor${memory.length === 1 ? "y" : "ies"}: ${memory
+              .map((entry) => bounded(entry.subject))
+              .filter(Boolean)
+              .join("; ")}`
+          : "No agent memory was used"
+        : `Used ${list(output.guidance).length} learned rule(s) and ${list(output.evidence).length} evidence source(s)`;
+    return {
+      id: event.id,
+      type: event.event_type,
+      label: event.event_type === "memory_loaded" ? "Memory used" : "Context used",
+      summary,
+      toolName: null,
+      status: "recorded",
+      createdAt: event.created_at,
+    };
+  }
   const model = bounded(output.model);
   return {
     id: event.id,

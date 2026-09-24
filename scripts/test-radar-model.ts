@@ -11,6 +11,7 @@ import {
 import { RADAR_PROFILE_DEFAULTS } from "../src/lib/revenue-os/radar-profile-contract";
 import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
 import { runBudgetedModel } from "../src/lib/ai/budgeted-model";
+import { currentEvalEvidence, JOB_CONTRACT_FINGERPRINTS } from "../src/lib/ai/eval-contract";
 const tenant = ACCELERATE_TENANT_ID;
 const oldFetch = globalThis.fetch,
   oldKey = process.env.OPENROUTER_API_KEY;
@@ -56,7 +57,7 @@ function fixture(overrides: Record<string, unknown> = {}) {
           costTier: "free",
           supportsJson: true,
           contextWindow: 32000,
-          evalPassed: true,
+          evalEvidence: currentEvalEvidence(Object.keys(JOB_CONTRACT_FINGERPRINTS)),
         }),
       },
     ],

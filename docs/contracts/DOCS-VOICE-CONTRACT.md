@@ -98,10 +98,10 @@ claims like "the system learns over time."
   that last group by design, not by accident).
 - **52 capabilities in six categories** (`src/content/command-center.ts`),
   each with an authored one-line promise. 9 of the 52 are gated.
-- **77 registered AI tools**, of which exactly 3 can act outside the
-  workspace: `propose_send_email`, `propose_conversation_reply`,
-  `propose_campaign_activation`. Everything else reads or writes internal
-  records that still require approval before they take effect externally.
+- **AI tool inventory and access** change with the registered runtime. Use the
+  generated [AI tools guide](/docs/intelligence/tools) for current tool names,
+  inputs and connection requirements. Check the action policy before describing
+  whether a capability can affect an external system.
 - **The six fictional demo businesses** (`src/lib/admin/demo/scenario-profiles.ts`):
   Northline Roofing & Exteriors (Evan Cole, roofing), Alder Ridge Injury Law,
   Ledgerstone Accounting & Advisory, Hearthline Realty Group, Common Table

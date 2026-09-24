@@ -67,6 +67,13 @@ export const ACTION_REVERSIBILITY: readonly ActionReversibility[] = [
       "Restore prior values with a new reviewed branding proposal against the current revision; no automatic inverse is promised.",
   },
   {
+    actionType: "update_content_calendar_item",
+    impact: "internal_write",
+    reversibility: "compensable",
+    rationale:
+      "Restore prior editorial values through a new reviewed update against the current item revision; no automatic inverse or publication is implied.",
+  },
+  {
     actionType: "create_task_batch",
     impact: "internal_write",
     reversibility: "compensable",

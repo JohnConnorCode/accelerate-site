@@ -108,6 +108,16 @@ assert.doesNotMatch(
   "the proof job is read-only and cannot widen an automation envelope",
 );
 
+// Missing coworkers are proposed for founder approval, never bootstrapped
+// silently; behaviour is pinned in test-work-scheduler-dedupe.
+const workScheduler = readFileSync("src/lib/revenue-os/work-scheduler.ts", "utf8");
+assert.match(workScheduler, /actionType: "bootstrap_coworker"/);
+assert.doesNotMatch(
+  workScheduler,
+  /bootstrap\w+Coworker\(/,
+  "the scheduler must not bootstrap coworkers (and their autonomy policies) without approval",
+);
+
 const configureScript = readFileSync("scripts/configure-command-center-scheduler.mjs", "utf8");
 assert.match(configureScript, /CRON_SECRET/);
 assert.match(
@@ -135,6 +145,7 @@ console.log(
         "authenticated wake",
         "revoked configuration function",
         "read-only workload",
+        "coworker bootstrap proposed for approval, never silent",
       ],
     },
     null,

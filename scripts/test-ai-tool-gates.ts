@@ -16,6 +16,7 @@
  * on the bug it targets is worse than no guard.
  */
 import assert from "node:assert/strict";
+import { boundToolResult } from "../src/lib/revenue-os/ai-context";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { readFileSync } from "node:fs";
 import {
@@ -131,6 +132,108 @@ async function rejects(run: () => Promise<unknown>, includes: string, because: s
 
 async function main() {
   const runtime = getRevenueAiTools();
+  const contentBriefTool = runtime.find((tool) => tool.name === "generate_content_brief");
+  assert.ok(contentBriefTool, "the shared content brief service must be an AI capability");
+  assert.equal(contentBriefTool.serviceTarget, "revenue-os.content-brief");
+  assert.ok(
+    getRevenueAiTools("core").some((tool) => tool.name === contentBriefTool.name),
+    "module-declared core pack membership must drive the runtime projection",
+  );
+  const calendarTool = runtime.find((tool) => tool.name === "list_content_calendar");
+  assert.ok(calendarTool, "content calendar reads must use the registered AI capability");
+  assert.equal(calendarTool.serviceTarget, "revenue-os.content-calendar");
+  assert.ok(
+    getRevenueAiTools("core").some((tool) => tool.name === calendarTool.name),
+    "the Content module must expose calendar reads through the core pack",
+  );
+  for (const moduleDef of REVENUE_OS_MODULES) {
+    for (const pack of moduleDef.aiToolPacks ?? []) {
+      for (const toolName of moduleDef.aiToolNames ?? []) {
+        assert.ok(
+          getRevenueAiTools(pack).some((tool) => tool.name === toolName),
+          `${moduleDef.id}.${toolName} declares ${pack} membership but is absent from that pack`,
+        );
+      }
+    }
+  }
+  assert.doesNotThrow(() =>
+    validateToolInput(contentBriefTool.name, contentBriefTool.inputSchema, {
+      title: "A grounded topic",
+      keywords: "research",
+    }),
+  );
+  assert.throws(
+    () =>
+      validateToolInput(contentBriefTool.name, contentBriefTool.inputSchema, {
+        title: "A grounded topic",
+        unsupported: true,
+      }),
+    /does not accept "unsupported"/i,
+  );
+  assert.throws(
+    () => calendarTool.parseInput!({ limit: 6 }),
+    /limit|too big|maximum/i,
+    "calendar reads must enforce a bounded result count",
+  );
+  const calendarRead = await executeRegisteredRevenueTool(
+    context(
+      stubSupabase({
+        content_calendar: {
+          data: Array.from({ length: 6 }, (_, index) => ({
+            id: `draft-${index + 1}`,
+            title: `A draft ${'"'.repeat(200)}`,
+            status: "draft".repeat(20),
+            category: "automation".repeat(10),
+            target_publish_date: "2026-10-01T12:00:00.000Z",
+            actual_publish_date: null,
+            notes: "Must not reach model context",
+          })),
+        },
+      }),
+    ),
+    "list_content_calendar",
+    { limit: 5 },
+  );
+  assert.deepEqual(calendarRead.output, {
+    items: [
+      {
+        id: "draft-1",
+        title: `A draft ${'"'.repeat(92)}`,
+        status: "draft".repeat(20).slice(0, 40),
+        category: "automation".repeat(10).slice(0, 40),
+        target_publish_date: "2026-10-01",
+        actual_publish_date: null,
+      },
+      ...Array.from({ length: 4 }, (_, index) => ({
+        id: `draft-${index + 2}`,
+        title: `A draft ${'"'.repeat(92)}`,
+        status: "draft".repeat(20).slice(0, 40),
+        category: "automation".repeat(10).slice(0, 40),
+        target_publish_date: "2026-10-01",
+        actual_publish_date: null,
+      })),
+    ],
+    count: 5,
+    truncated: true,
+  });
+  const boundedCalendar = JSON.parse(boundToolResult(calendarTool.name, calendarRead.output)) as {
+    truncated: boolean;
+    result?: unknown;
+  };
+  assert.equal(
+    boundedCalendar.truncated,
+    false,
+    "bounded calendar output must fit the shared AI tool-result context budget",
+  );
+  await rejects(
+    () =>
+      executeRegisteredRevenueTool(context(stubSupabase()), "generate_content_brief", {
+        title: "A grounded topic",
+        unsupported: true,
+      }),
+    "unrecognized key",
+    "content brief tool rejects fields outside its shared input contract",
+  );
   let pluginTools = 0;
   for (const moduleDef of REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow)) {
     const registeredModule = { ...moduleDef, workflow: moduleDef.workflow! };
@@ -469,6 +572,17 @@ async function main() {
     "did not stage an action",
     "a mutating tool that returns rows instead of a proposal must fail closed; mutating tools propose, they never act",
   );
+  await rejects(
+    async () =>
+      assertImpactHonoured(writeTool, { id: "queued-action-id", action_type: "unregistered" }),
+    "no reversibility class",
+    "a proposal must use an action type in the canonical action catalog",
+  );
+  await rejects(
+    async () => assertImpactHonoured(writeTool, { id: "queued-action-id" }),
+    "without a registered action type",
+    "a mutating tool must identify the canonical action it stages",
+  );
 
   const source = readFileSync("src/lib/revenue-os/ai-tools.ts", "utf8");
 
@@ -606,7 +720,7 @@ async function main() {
 
   // The registry version is what a stored trace is interpreted against. Adding
   // gates changes what a tool call means, so the version had to move.
-  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v21");
+  assert.equal(AI_TOOL_REGISTRY_VERSION, "revenue-os-tools.v25");
 
   // validateToolInput is exported and usable directly, which is how the agent
   // surfaces a correctable error back into the transcript.
@@ -679,6 +793,8 @@ async function main() {
           "founder-note-executor-wiring",
           "snapshot-bounds",
           "snapshot-read-errors",
+          "content-calendar-service-parity",
+          "content-calendar-result-bound",
         ],
         result: "passed",
       },

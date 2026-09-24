@@ -2,9 +2,11 @@
 import assert from "node:assert/strict";
 import { bindTenantDatabase } from "../src/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
-import { setModelEvalStatus } from "../src/lib/ai/model-registry";
+import { recordModelEvalEvidence } from "../src/lib/ai/model-registry";
+import { currentEvalEvidence, JOB_CONTRACT_FINGERPRINTS } from "../src/lib/ai/eval-contract";
 import { MemorySupabase } from "./lib/memory-supabase";
 import {
+  activeAiToolBundleFromHistory,
   appendAiAssistantMessage,
   archiveAiConversation,
   attachArchitectSource,
@@ -41,10 +43,10 @@ async function main() {
   const memory = new MemorySupabase({ tenants: [{ id: ACCELERATE_TENANT_ID, status: "active" }] });
   const database = bindTenantDatabase(memory.client, ACCELERATE_TENANT_ID, true);
   // Controlled transport fixture only; this is not an evaluation of a live model.
-  await setModelEvalStatus(database, {
+  await recordModelEvalEvidence(database, {
     tenantId: ACCELERATE_TENANT_ID,
     modelId: DEFAULT_OPENROUTER_MODEL,
-    passed: true,
+    evidence: currentEvalEvidence(Object.keys(JOB_CONTRACT_FINGERPRINTS)),
     actorEmail: "fixture@example.test",
     notes: "Mock transport fixture",
   });
@@ -74,6 +76,7 @@ async function main() {
     conversationId: first.conversationId,
     content: "One opportunity is overdue. Review its next action.",
     runId: "run-1",
+    metadata: { active_tool_bundle_id: "core-command:1" },
   });
   const loaded = await loadAiConversation(
     memory.client,
@@ -86,6 +89,11 @@ async function main() {
     "history must preserve ordered roles",
   );
   assert.equal(
+    activeAiToolBundleFromHistory(loaded.messages),
+    "core-command:1",
+    "a saved bundle selection must restore from persisted assistant metadata",
+  );
+  assert.equal(
     (await listAiConversations(memory.client, "founder@example.com")).length,
     1,
     "the owner must see the thread",
@@ -94,6 +102,31 @@ async function main() {
     () => loadAiConversation(memory.client, "other@example.com", first.conversationId),
     /not found/i,
     "another actor must not read the thread",
+  );
+  await appendAiAssistantMessage(memory.client, {
+    actorEmail: "founder@example.com",
+    conversationId: first.conversationId,
+    content: "The selected business tools are no longer available.",
+    runId: "run-2",
+    metadata: { active_tool_bundle_id: null },
+  });
+  assert.equal(
+    activeAiToolBundleFromHistory(
+      (await loadAiConversation(memory.client, "founder@example.com", first.conversationId))
+        .messages,
+    ),
+    null,
+    "a newer explicit clear must override an earlier bundle selection",
+  );
+  const newestOnly = await loadAiConversation(
+    memory.client,
+    "founder@example.com",
+    first.conversationId,
+    1,
+  );
+  assert.equal(
+    newestOnly.messages[0]?.content,
+    "The selected business tools are no longer available.",
   );
   await archiveAiConversation(memory.client, "founder@example.com", first.conversationId);
   assert.equal(
@@ -350,6 +383,7 @@ async function main() {
           "conversation-create",
           "message-replay",
           "history-order",
+          "tool-bundle-persistence-and-clear",
           "owner-isolation",
           "archive",
           "architect-session-reload",

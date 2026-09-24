@@ -23,7 +23,7 @@ export const TOOL_DISCOVERY_METADATA = [
   {
     name: "activate_tool_bundle",
     description:
-      "Load one discovered bundle for subsequent turns of this command run. Replaces the previous bundle; grants no approval or additional permission.",
+      "Load one discovered bundle for later turns. The command workspace remembers it in the conversation; other callers keep it for the current run. Replaces the previous bundle and grants no approval or additional permission.",
     impact: "read",
     confirmationRequired: false,
     serviceTarget: "revenue-os.tool-discovery",

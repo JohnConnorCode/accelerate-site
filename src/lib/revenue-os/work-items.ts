@@ -89,6 +89,9 @@ export async function createWorkItem(
     entityType?: string | null;
     entityId?: string | null;
     dedupeKey?: string | null;
+    /** Period-keyed work (e.g. `pulse:digest:2026-09-23`) runs once per key,
+     * so a finished or failed item still blocks re-creation. */
+    dedupeAcrossStatuses?: boolean;
     dueAt?: string | null;
     maxAttempts?: number;
     actorEmail?: string | null;
@@ -105,13 +108,15 @@ export async function createWorkItem(
   if (!reason) throw new Error("reason is required");
   if (!source) throw new Error("source is required");
 
-  // Dedupe: if a dedupe_key is provided, check for an existing open item.
+  // Dedupe: if a dedupe_key is provided, check for an existing open item
+  // (or any item, for period-keyed work).
   if (input.dedupeKey) {
-    const { data: existing, error } = await supabase
-      .from("work_items")
-      .select("*")
-      .eq("dedupe_key", input.dedupeKey)
-      .in("status", ["pending", "claimed", "in_progress", "waiting"])
+    let lookup = supabase.from("work_items").select("*").eq("dedupe_key", input.dedupeKey);
+    if (!input.dedupeAcrossStatuses)
+      lookup = lookup.in("status", ["pending", "claimed", "in_progress", "waiting"]);
+    const { data: existing, error } = await lookup
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (existing) return { workItem: existing as WorkItem, deduplicated: true };

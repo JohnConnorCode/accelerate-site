@@ -12,23 +12,32 @@ also requires the scoped access described below.
 
 <!--
 agent-execution-trigger:
-  intent: backlog-pickup-and-completion
-  phrases: [pick up backlog work, take the next task, continue the board, finish and commit, follow protocol]
+  intent: explicit-backlog-pickup
+  phrases: [pick up backlog work, take the next backlog task, continue the board, follow backlog protocol]
   first_action: npm run agent:go -- --json
   terminal_states: [HANDOFF_SUBMITTED, BLOCKED_REQUIRES_OPERATOR]
 -->
 
 ## Natural-language execution trigger
 
-If the user asks to pick up backlog work, take the next task, continue the
-board, finish and commit, or follow protocol, treat that plain-language request
-as an execution command. The user does not need to provide a card key or know a
-CLI name. After reading this entrypoint, run the internal `agent:go` runner and
-continue through implementation, verification, exact commit and evidence
-submission. Do not stop at orientation, `git status`, `git log`, a broad
-documentation scan, or a status-only answer. Stop only after handoff submission
-or a precise operator-required block. Read the complete contract in
+Use this workflow only when the user explicitly asks for backlog work, such as
+asking to pick up backlog work, take the next backlog task, or continue the
+board. The user does not need to provide a card key or know a CLI name. After
+reading this entrypoint, run the internal `agent:go` runner and continue through
+implementation, verification, exact commit and evidence submission. Do not stop
+at orientation, `git status`, `git log`, a broad documentation scan, or a
+status-only answer. Stop only after handoff submission or a precise
+operator-required block. Read the complete contract in
 [Natural-language agent execution](docs/contributing/NATURAL-LANGUAGE-AGENT.md).
+
+The user's latest direct request always controls scope and priority. Never let
+`agent:go`, remembered work, an active or expired attempt, a system suggestion,
+or an earlier assistant plan replace, interrupt, or reorder explicitly requested
+work. When a runner surfaces unrelated work, preserve its checkout and audit
+history, report the conflict briefly, and continue the user's request. Do not ask
+the user to choose between their request and unrelated recovered work. Ask only
+when a real dependency or ambiguity in the requested scope blocks progress, and
+state that blocker plainly.
 
 Never ask the user to paste board credentials, database credentials, tokens or
 secrets, and never offer “work unclaimed” or “prepare only, wait” as choices.
@@ -79,7 +88,7 @@ removing active worktrees. This does not authorize production deployment.
 
 ## Pick up and resume work
 
-Run `npm run agent:go` for the natural-language backlog flow. It performs
+Run `npm run agent:go` only for the explicit natural-language backlog flow. It performs
 read-only setup checks, continues the current attempt or eligible interrupted work
 before selecting a ready Now/Next card, claims new ownership atomically,
 creates the approved isolated worktree, repairs deterministic generated-report

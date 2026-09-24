@@ -12,13 +12,15 @@ import { loadAgentLearningSignals } from "./agent-learning";
 import { listClaimableWork } from "./work-items";
 import { listWorkspaceCapabilities } from "./capabilities";
 import { listClaimsForEntity } from "./claims";
-import { retrieveAgentMemory } from "./memory";
+import { memoryReceipt, recentDistinctAgentMemory } from "./memory";
 import { loadContextPack, contextReceipt } from "./shared-context";
 import {
   AI_TOOL_REGISTRY_VERSION,
+  canRunRevenueAiToolCallsConcurrently,
   executeRegisteredRevenueTool,
   selectRevenueToolPack,
   toActivatedOpenRouterTools,
+  availableRevenueToolBundles,
   refreshRevenueToolContext,
   type RevenueToolPackId,
 } from "./ai-tools";
@@ -33,8 +35,8 @@ import {
 } from "./ai-context";
 
 /** Tool steps allowed before the run reports what it has and stops. */
-const MAX_TOOL_TURNS = 5;
-const SYSTEM_CONTRACT = `You are ${tenant.brand.name}'s founder-only Revenue OS copilot. Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts. Read tools may run directly. Every write or outbound action must use a propose_* tool and clearly tell the founder it is awaiting approval. Prioritize revenue, replies, commitments, meetings, proposals, and campaign exceptions. Stripe remains the payment authority. Subscription checkout and account management are customer-facing workflows; do not claim a charge, renewal, invoice, or subscription change without current registered evidence, and do not attempt those actions unless a registered tool explicitly exposes them. ${tenant.ai.voice}`;
+export const MAX_TOOL_TURNS = 5;
+export const SYSTEM_CONTRACT = `You are ${tenant.brand.name}'s founder-only Revenue OS copilot. Ground every factual claim in tool results. Never invent numbers, people, pricing, dates, or business facts. Read tools may run directly. Every write or outbound action must use a propose_* tool and clearly tell the founder it is awaiting approval. When the founder asks for a write or outbound action, gather what it needs and stage it in this run; approval is the confirmation step, so do not stop to ask permission first. Prioritize revenue, replies, commitments, meetings, proposals, and campaign exceptions. Stripe remains the payment authority. Subscription checkout and account management are customer-facing workflows; do not claim a charge, renewal, invoice, or subscription change without current registered evidence, and do not attempt those actions unless a registered tool explicitly exposes them. ${tenant.ai.voice}`;
 
 export interface CommandMessage {
   role: "user" | "assistant";
@@ -55,6 +57,7 @@ export interface AgentProposalSummary {
 export interface CommandAgentOptions {
   surface?: string;
   conversationId?: string | null;
+  activeToolBundleId?: string | null;
   architectEvidence?: string | null;
   pageContext?: CommandPageContext | null;
   /** The calling tenant's active module configuration, so a disabled module's
@@ -64,6 +67,8 @@ export interface CommandAgentOptions {
   signal?: AbortSignal;
   onRunStarted?: (event: { runId: string | null; model: string; pack: RevenueToolPackId }) => void;
   onAssistantDelta?: (delta: string) => void;
+  /** Streamed text so far is superseded: a tool turn, or a replaced answer. */
+  onAssistantReset?: () => void;
   onToolStarted?: (event: { name: string; index: number }) => void;
   onToolCompleted?: (event: {
     name: string;
@@ -158,7 +163,10 @@ export async function runRevenueCommandAgent(
   }));
   const toolNames: string[] = [];
   const stagedToolNames = new Set<string>();
-  let activeBundleId: string | null = null;
+  let activeBundleId =
+    typeof options.activeToolBundleId === "string" && options.activeToolBundleId.length <= 160
+      ? options.activeToolBundleId || null
+      : null;
   let inputTokens = 0;
   let outputTokens = 0;
   try {
@@ -174,7 +182,7 @@ export async function runRevenueCommandAgent(
     });
     const capabilitySummary = availableCapabilities.length
       ? `Workspace capabilities (${availableCapabilities.length} available): ${availableCapabilities.map((c) => `${c.capability_key}${c.policy === "approval_required" ? "[approval]" : ""}`).join(", ")}. Use get_workspace_capabilities for details.`
-      : "No workspace capabilities registered yet.";
+      : "No provider capabilities are registered yet. That does not limit your tools: every advertised tool, including propose_* drafts that wait for approval, is available.";
     // Entity-scoped claims summary when page context has an entity.
     let claimsSummary: string | undefined;
     const pageEntity = options.pageContext?.entity;
@@ -194,7 +202,11 @@ export async function runRevenueCommandAgent(
       eventType: "context_loaded",
       output: contextReceipt(contextPack),
     });
-    const recentAgentMemory = await retrieveAgentMemory(supabase, { limit: 5 });
+    const recentAgentMemory = await recentDistinctAgentMemory(supabase, { limit: 5 });
+    await recordAgentRunEvent(supabase, run, {
+      eventType: "memory_loaded",
+      output: memoryReceipt(recentAgentMemory),
+    });
     const memorySummary =
       [
         contextPack.text,
@@ -223,10 +235,21 @@ export async function runRevenueCommandAgent(
       const liveContext = await refreshRevenueToolContext({
         supabase,
         actorEmail,
+        conversationId: options.conversationId,
         tenantConfig: options.tenantConfig,
       });
+      if (
+        activeBundleId &&
+        !availableRevenueToolBundles(liveContext).some(
+          (bundle) => bundle.bundleId === activeBundleId,
+        )
+      )
+        activeBundleId = null;
       const activeTools = toActivatedOpenRouterTools(activeBundleId, liveContext);
       const advertisedNames = new Set(activeTools.map((tool) => tool.function.name));
+      const activationScope = options.conversationId
+        ? "Activation remains selected in this conversation across reloads, subject to current permission and availability checks."
+        : "Activation applies to subsequent turns in this command run only.";
       const request = {
         database: supabase,
         job: "copilot-answer",
@@ -236,7 +259,7 @@ export async function runRevenueCommandAgent(
         messages: [
           {
             role: "system" as const,
-            content: `${SYSTEM_CONTRACT}\n\n${grounding}${options.architectEvidence ? `\n\n${options.architectEvidence}` : ""}\nThe initial pack is navigation context only. Use discover_tool_bundles for any admin capability missing from the current tools, then activate_tool_bundle. Activation replaces the previous bundle for subsequent turns of this run; it does not approve actions. Only call tools advertised on this turn. Active bundle: ${activeBundleId ?? "core only"}.`,
+            content: `${SYSTEM_CONTRACT}\n\n${grounding}${options.architectEvidence ? `\n\n${options.architectEvidence}` : ""}\nThe initial pack is navigation context only. Use discover_tool_bundles for any admin capability missing from the current tools, then activate_tool_bundle. ${activationScope} It does not approve actions. Only call tools advertised on this turn. Active bundle: ${activeBundleId ?? "core only"}.`,
           },
           ...transcript,
         ],
@@ -245,7 +268,10 @@ export async function runRevenueCommandAgent(
       let bufferedAnswer = "";
       const response = options.onAssistantDelta
         ? await openRouterChatStream(request, (delta) => {
+            // Stream live; the final event still carries the validated answer,
+            // and a rejected or interim turn is reset below.
             bufferedAnswer += delta;
+            options.onAssistantDelta?.(delta);
           })
         : await openRouterChat(request);
       inputTokens += response.usage?.prompt_tokens ?? 0;
@@ -265,13 +291,22 @@ export async function runRevenueCommandAgent(
         },
       });
       const uses = assistant.tool_calls ?? [];
+      // Text streamed on a tool turn is working narration, not the answer.
+      if (uses.length && bufferedAnswer) options.onAssistantReset?.();
       if (!uses.length) {
         const text = assistant.content?.trim() || "";
-        const grounding = validateGroundedRevenueAnswer(text, toolNames);
+        // Earlier answers in this conversation were validated when given, so
+        // they count as evidence alongside this run's tool results.
+        const evidence = transcript
+          .filter((entry, index) => index < safeMessages.length || entry.role === "tool")
+          .map((entry) => entry.content ?? "")
+          .join("\n");
+        const grounding = validateGroundedRevenueAnswer(text, toolNames, evidence);
         if (!grounding.valid) {
           const safeAnswer = groundedAnswerFailure(
             grounding.reason || "The answer could not be verified",
           );
+          if (bufferedAnswer) options.onAssistantReset?.();
           options.onAssistantDelta?.(safeAnswer);
           await finishAgentRun(supabase, run, "partial", {
             toolNames,
@@ -284,9 +319,10 @@ export async function runRevenueCommandAgent(
             text: safeAnswer,
             runId: run.id,
             proposedActions: [...stagedToolNames],
+            activeToolBundleId: activeBundleId,
           };
         }
-        if (options.onAssistantDelta) options.onAssistantDelta(bufferedAnswer || text);
+        if (options.onAssistantDelta && !bufferedAnswer) options.onAssistantDelta(text);
         await finishAgentRun(supabase, run, "completed", {
           toolNames,
           inputTokens,
@@ -297,12 +333,12 @@ export async function runRevenueCommandAgent(
           text,
           runId: run.id,
           proposedActions: [...stagedToolNames],
+          activeToolBundleId: activeBundleId,
         };
       }
-      for (const use of uses) {
+      const processToolUse = async (use: (typeof uses)[number], toolIndex: number) => {
         const name = use.function.name;
-        const toolIndex = toolNames.length;
-        toolNames.push(name);
+        toolNames[toolIndex] = name;
         options.onToolStarted?.({ name, index: toolIndex });
         let toolInput: Record<string, unknown> = {};
         try {
@@ -318,6 +354,7 @@ export async function runRevenueCommandAgent(
           const dispatchContext = await refreshRevenueToolContext({
             supabase,
             actorEmail,
+            conversationId: options.conversationId,
             tenantConfig: options.tenantConfig,
           });
           const { output, tool } = await executeRegisteredRevenueTool(
@@ -341,11 +378,11 @@ export async function runRevenueCommandAgent(
               registry_version: AI_TOOL_REGISTRY_VERSION,
             },
           });
-          transcript.push({
+          const reply: OpenRouterMessage = {
             role: "tool",
             tool_call_id: use.id,
             content: boundToolResult(name, output),
-          });
+          };
           options.onToolCompleted?.({
             name,
             index: toolIndex,
@@ -357,6 +394,7 @@ export async function runRevenueCommandAgent(
             stagedToolNames.add(name);
             options.onProposalStaged?.(proposal);
           }
+          return reply;
         } catch (error) {
           const message = error instanceof Error ? error.message : "Tool failed";
           await recordAgentRunEvent(supabase, run, {
@@ -365,19 +403,29 @@ export async function runRevenueCommandAgent(
             input: traceValue(toolInput),
             output: { error: message.slice(0, 500), registry_version: AI_TOOL_REGISTRY_VERSION },
           });
-          transcript.push({
+          const reply: OpenRouterMessage = {
             role: "tool",
             tool_call_id: use.id,
             content: JSON.stringify({ error: message }),
-          });
+          };
           options.onToolCompleted?.({
             name,
             index: toolIndex,
             summary: message.slice(0, 180),
             failed: true,
           });
+          return reply;
         }
-      }
+      };
+      const firstToolIndex = toolNames.length;
+      const toolResults = canRunRevenueAiToolCallsConcurrently(uses.map((use) => use.function.name))
+        ? await Promise.all(uses.map((use, index) => processToolUse(use, firstToolIndex + index)))
+        : await (async () => {
+            const results: OpenRouterMessage[] = [];
+            for (const use of uses) results.push(await processToolUse(use, toolNames.length));
+            return results;
+          })();
+      transcript.push(...toolResults);
     }
     // Turn exhaustion used to throw: the founder lost the whole answer, the run
     // was marked failed, and any propose_* actions staged on earlier turns
@@ -405,7 +453,13 @@ export async function runRevenueCommandAgent(
       resultPreview: partial,
       error: `Stopped after ${MAX_TOOL_TURNS} tool turns without a final answer`,
     });
-    return { text: partial, runId: run.id, proposedActions: staged };
+    options.onAssistantDelta?.(partial);
+    return {
+      text: partial,
+      runId: run.id,
+      proposedActions: staged,
+      activeToolBundleId: activeBundleId,
+    };
   } catch (error) {
     const cancelled =
       options.signal?.aborted || (error instanceof OpenRouterError && error.status === 499);

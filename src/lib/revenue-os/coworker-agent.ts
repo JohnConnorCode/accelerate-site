@@ -1,13 +1,14 @@
 import { MAX_ACTIVE_AI_TOOLS } from "./ai-tool-bundles";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import "server-only";
-import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { getOpenRouterModel, openRouterChat, type OpenRouterMessage } from "@/lib/ai/openrouter";
+import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
+import { resolveModelForJob } from "@/lib/ai/model-registry";
 import { claimResourceBudget } from "./budgets";
 import { getCoworker } from "./coworkers";
 import { listWorkspaceCapabilities } from "./capabilities";
-import { retrieveAgentMemory } from "./memory";
+import { memoryReceipt, recentDistinctAgentMemory } from "./memory";
 import { loadContextPack, contextReceipt } from "./shared-context";
 import {
   executeRegisteredRevenueTool,
@@ -46,9 +47,13 @@ import { findWorkDraft } from "./work-drafts";
 // of the coworker's role rather than a founder-facing copilot.
 // ---------------------------------------------------------------------------
 
-const MAX_COWORKER_TOOL_TURNS = 5;
+export const MAX_COWORKER_TOOL_TURNS = 5;
 
-function coworkerSystemPrompt(coworkerRole: string, coworkerId: string, workspace: string): string {
+export function coworkerSystemPrompt(
+  coworkerRole: string,
+  coworkerId: string,
+  workspace: string,
+): string {
   return [
     `You are ${workspace}'s ${coworkerRole} coworker (id: ${coworkerId}).`,
     `Your job is to execute the assigned work item using the tools available to you.`,
@@ -61,6 +66,25 @@ function coworkerSystemPrompt(coworkerRole: string, coworkerId: string, workspac
 }
 
 export type CoworkerAgentResult = WorkResult & { runId: string };
+
+/** AI execution is available once the tenant has a credential and the
+ * registry will serve `coworker-task` (i.e. the model has passed its eval). */
+async function coworkerAiReady(supabase: SupabaseClient): Promise<boolean> {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) return false;
+  try {
+    if (!(await isTenantOpenRouterConfigured(supabase))) return false;
+    await resolveModelForJob(
+      supabase,
+      tenantId,
+      "coworker-task",
+      process.env.OPENROUTER_AGENT_MODEL,
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function runCoworkerAgentTask(
   supabase: SupabaseClient,
@@ -175,7 +199,7 @@ export async function runCoworkerAgentTask(
           .slice(0, 50)
           .map((c) => c.capability_key)
           .join(", ")}`
-      : "No workspace capabilities registered.";
+      : "No provider capabilities are registered yet. That does not limit your tools: every advertised tool, including propose_* drafts that wait for approval, is available.";
 
     const contextPack = await loadContextPack(supabase, {
       coworkerId,
@@ -188,7 +212,11 @@ export async function runCoworkerAgentTask(
       eventType: "context_loaded",
       output: contextReceipt(contextPack),
     });
-    const recentMemory = await retrieveAgentMemory(supabase, { coworkerId, limit: 5 });
+    const recentMemory = await recentDistinctAgentMemory(supabase, { coworkerId, limit: 5 });
+    await recordAgentRunEvent(supabase, run, {
+      eventType: "memory_loaded",
+      output: memoryReceipt(recentMemory),
+    });
     const memorySummary =
       [
         contextPack.text,
@@ -287,7 +315,11 @@ export async function runCoworkerAgentTask(
       const uses = assistant.tool_calls ?? [];
       if (!uses.length) {
         const candidate = assistant.content?.trim() || "No result produced";
-        const grounding = validateGroundedRevenueAnswer(candidate, successfulToolNames);
+        const evidence = transcript
+          .filter((entry) => entry.role === "tool" || entry.role === "user")
+          .map((entry) => entry.content ?? "")
+          .join("\n");
+        const grounding = validateGroundedRevenueAnswer(candidate, successfulToolNames, evidence);
         const text = grounding.valid
           ? candidate
           : groundedAnswerFailure(
@@ -453,6 +485,6 @@ export async function tryCoworkerAgentTask(
   item: WorkItem,
   signal?: AbortSignal,
 ): Promise<CoworkerAgentResult | null> {
-  if (!(await isTenantOpenRouterConfigured(supabase))) return null;
+  if (!item.coworker_id || !(await coworkerAiReady(supabase))) return null;
   return runCoworkerAgentTask(supabase, item, { signal });
 }

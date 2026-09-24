@@ -96,6 +96,14 @@ import {
 import { readModuleConfiguration } from "./module-configuration-read";
 import { previewModuleConfiguration, proposeModuleConfiguration } from "./module-actions";
 import { readWorkspaceBrand } from "./branding";
+import {
+  listContentCalendarItems,
+  previewContentCalendarUpdate,
+  proposeContentCalendarUpdate,
+  contentCalendarPreviewSchema,
+  contentCalendarProposalSchema,
+} from "./content-calendar";
+import { generateContentBrief, parseContentBriefInput } from "./content-brief";
 import { previewWorkspaceBrandUpdate, proposeWorkspaceBrandUpdate } from "./branding-actions";
 import {
   BRANDING_TOOLS,
@@ -107,6 +115,7 @@ import type { AiToolConnectionRequirement } from "./ai-tool-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OpenRouterTool } from "@/lib/ai/openrouter";
 import { proposeAction, withProposalWorkContext } from "./actions";
+import { reversibilityOf } from "./action-reversibility-contract";
 import { assertWorkDraftTarget, findWorkDraft, workDraftKey } from "./work-drafts";
 import { loadOperatorQueue } from "./queue";
 import { loadActivityTimeline } from "./activities";
@@ -178,9 +187,13 @@ import {
 import { checkBudgets, listBudgetLimits, type BudgetKind, type BudgetLimit } from "./budgets";
 
 export { AI_TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
-import { AI_TOOL_REGISTRY_VERSION as TOOL_REGISTRY_VERSION } from "./ai-tool-contract";
-export const REVENUE_TOOL_PACKS = ["core", "pipeline", "outreach"] as const;
-export type RevenueToolPackId = (typeof REVENUE_TOOL_PACKS)[number];
+import {
+  AI_TOOL_PACKS as REVENUE_TOOL_PACKS,
+  AI_TOOL_REGISTRY_VERSION as TOOL_REGISTRY_VERSION,
+} from "./ai-tool-contract";
+export { REVENUE_TOOL_PACKS };
+import type { AiToolPackId as RevenueToolPackId } from "./ai-tool-contract";
+export type { RevenueToolPackId };
 export type { TaskToolProfile } from "./tool-profiles";
 import { parseTaskToolProfile, type TaskToolProfile } from "./tool-profiles";
 
@@ -192,6 +205,7 @@ export type AiToolImpact = "read" | "internal_write" | "external_action" | "dest
 type AiToolContext = {
   supabase: SupabaseClient;
   actorEmail: string;
+  conversationId?: string | null;
   workItemId?: string;
   toolPack?: RevenueToolPackId;
   /** Server-owned context; never accepted from model arguments. */
@@ -478,6 +492,14 @@ export function assertImpactHonoured(
       `${tool.name} is registered as ${tool.impact} but did not stage an action for approval. Mutating tools must propose; they never act directly.`,
     );
   }
+  if (staged && (tool.impact === "internal_write" || tool.impact === "external_action")) {
+    const actionType = (output as { action_type?: unknown }).action_type;
+    if (typeof actionType !== "string")
+      throw new Error(`${tool.name} staged an action without a registered action type`);
+    const action = reversibilityOf(actionType);
+    if (action.impact === "read")
+      throw new Error(`${tool.name} staged read-only action type ${actionType}`);
+  }
 }
 
 const discoveryInput = z
@@ -487,6 +509,20 @@ const discoveryInput = z
   })
   .strict();
 const activationInput = z.object({ bundleId: z.string().min(1).max(160) }).strict();
+const contentBriefInputSchema = z
+  .object({
+    title: z.string().min(1).max(240),
+    keywords: z.string().max(900).nullable().optional(),
+    category: z.string().max(120).nullable().optional(),
+  })
+  .strict();
+const contentCalendarReadSchema = z
+  .object({
+    status: z.string().min(1).max(120).optional(),
+    category: z.string().min(1).max(120).optional(),
+    limit: z.number().int().min(1).max(5).optional(),
+  })
+  .strict();
 // Every registered operation has exactly one reviewed adapter. Type checking
 // rejects missing/extra handlers; declarations choose operations, never imports.
 const PLUGIN_TOOL_EXECUTORS = {
@@ -525,6 +561,149 @@ const PLUGIN_TOOL_EXECUTORS = {
 >;
 
 const registry: AiToolRegistration[] = [
+  {
+    name: "list_content_calendar",
+    description:
+      "List the five most recently added content calendar items. Filter by exact status or category. Returns only bounded identity and publishing-stage fields and indicates when more match.",
+    inputSchema: z.toJSONSchema(contentCalendarReadSchema),
+    parseInput: (input) => contentCalendarReadSchema.parse(input),
+    outputSchema: {
+      type: "object",
+      required: ["items", "count", "truncated"],
+      properties: {
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            required: [
+              "id",
+              "title",
+              "status",
+              "category",
+              "target_publish_date",
+              "actual_publish_date",
+            ],
+            properties: {
+              id: { type: "string" },
+              title: { type: "string" },
+              status: { type: "string" },
+              category: { type: ["string", "null"] },
+              target_publish_date: { type: ["string", "null"] },
+              actual_publish_date: { type: ["string", "null"] },
+            },
+          },
+        },
+        count: { type: "number" },
+        truncated: { type: "boolean" },
+      },
+    },
+    serviceTarget: "revenue-os.content-calendar",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const result = await listContentCalendarItems(supabase, {
+        status: input.status as string | undefined,
+        category: input.category as string | undefined,
+        limit: (input.limit as number | undefined) ?? 5,
+      });
+      return {
+        ...result,
+        items: result.items.map((item) => ({
+          id: typeof item.id === "string" ? item.id.slice(0, 36) : "",
+          title: typeof item.title === "string" ? item.title.slice(0, 100) : "",
+          status: typeof item.status === "string" ? item.status.slice(0, 40) : "",
+          category: typeof item.category === "string" ? item.category.slice(0, 40) : null,
+          target_publish_date:
+            typeof item.target_publish_date === "string"
+              ? item.target_publish_date.slice(0, 10)
+              : null,
+          actual_publish_date:
+            typeof item.actual_publish_date === "string"
+              ? item.actual_publish_date.slice(0, 10)
+              : null,
+        })),
+      };
+    },
+  },
+  {
+    name: "preview_content_calendar_update",
+    description:
+      "Preview changes to an existing content calendar item. Supply its id and up to five fields to change. Returns bounded before/after values, the changed fields and a digest. Long values may be shortened in the preview; the approval queue shows the exact proposed values. This never saves the item or publishes content.",
+    inputSchema: z.toJSONSchema(contentCalendarPreviewSchema),
+    parseInput: (input) => contentCalendarPreviewSchema.parse(input),
+    outputSchema: {
+      type: "object",
+      required: ["id", "changes", "digest", "requiresHumanApproval"],
+      properties: {
+        id: { type: "string" },
+        changes: {
+          type: "array",
+          items: {
+            type: "object",
+            required: ["field", "before", "after", "truncated"],
+            properties: {
+              field: { type: "string" },
+              before: { type: "string" },
+              after: { type: "string" },
+              truncated: { type: "boolean" },
+            },
+          },
+        },
+        digest: { type: "string", pattern: "^[a-f0-9]{64}$" },
+        requiresHumanApproval: { type: "boolean" },
+      },
+    },
+    serviceTarget: "revenue-os.content-calendar",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: async ({ supabase }, input) => {
+      const preview = await previewContentCalendarUpdate(supabase, input);
+      return {
+        id: preview.id,
+        changes: preview.changes.map((change) => {
+          const before = JSON.stringify(change.before);
+          const after = JSON.stringify(change.after);
+          return {
+            field: change.field,
+            before: before.length > 160 ? `${before.slice(0, 157)}...` : before,
+            after: after.length > 160 ? `${after.slice(0, 157)}...` : after,
+            truncated: before.length > 160 || after.length > 160,
+          };
+        }),
+        digest: preview.digest,
+        requiresHumanApproval: preview.requiresHumanApproval,
+      };
+    },
+  },
+  {
+    name: "propose_content_calendar_update",
+    description:
+      "Queue the exact content calendar preview for human approval. Provide the same id, changes and digest returned by preview_content_calendar_update. Nothing changes until an administrator approves it; approval does not publish content.",
+    inputSchema: z.toJSONSchema(contentCalendarProposalSchema),
+    parseInput: (input) => contentCalendarProposalSchema.parse(input),
+    outputSchema: ACTION_OUTPUT_SCHEMA,
+    serviceTarget: "revenue-os.content-calendar",
+    connectionRequirement: "none",
+    impact: "internal_write",
+    confirmationRequired: true,
+    execute: ({ supabase, actorEmail }, input) =>
+      proposeContentCalendarUpdate(supabase, input, actorEmail),
+  },
+  {
+    name: "generate_content_brief",
+    description:
+      "Generate a grounded editorial brief from a title, optional keywords, and optional category. Uses the same bounded context and validation service as the Content Operations page. Returns a draft only; it does not create or publish content.",
+    inputSchema: z.toJSONSchema(contentBriefInputSchema),
+    parseInput: (input) => parseContentBriefInput(contentBriefInputSchema.parse(input)),
+    outputSchema: { type: "object", required: ["brief", "context"] },
+    serviceTarget: "revenue-os.content-brief",
+    connectionRequirement: "none",
+    impact: "read",
+    confirmationRequired: false,
+    execute: (context, input) => generateContentBrief(context.supabase, input),
+  },
   {
     name: "read_site_editor",
     description:
@@ -634,7 +813,7 @@ const registry: AiToolRegistration[] = [
         total: ranked.length,
         nextOffset:
           input.offset + bundles.length < ranked.length ? input.offset + bundles.length : null,
-        activationScope: "current_command_run",
+        activationScope: context.conversationId ? "conversation" : "current_command_run",
         grantsApproval: false,
       };
     },
@@ -655,7 +834,7 @@ const registry: AiToolRegistration[] = [
       return {
         activeBundleId: bundle.bundleId,
         toolNames: bundle.toolNames,
-        activationScope: "current_command_run",
+        activationScope: context.conversationId ? "conversation" : "current_command_run",
         grantsApproval: false,
       };
     },
@@ -2968,6 +3147,7 @@ const registry: AiToolRegistration[] = [
 
 const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
   core: [
+    "generate_content_brief",
     "get_social_workspace",
     "prepare_social_week",
     "preview_social_change",
@@ -2999,6 +3179,9 @@ const PACK_TOOL_NAMES: Record<RevenueToolPackId, readonly string[]> = {
     ...COLLECTION_AGENT_TOOL_NAMES,
     ...FORM_BUILDER_TOOL_NAMES,
     ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.workflow).flatMap(
+      (moduleDef) => moduleDef.aiToolNames || [],
+    ),
+    ...REVENUE_OS_MODULES.filter((moduleDef) => moduleDef.aiToolPacks?.includes("core")).flatMap(
       (moduleDef) => moduleDef.aiToolNames || [],
     ),
     ...REVENUE_OS_MODULES.filter((module) => module.report).map(
@@ -3182,6 +3365,17 @@ export async function executeRegisteredRevenueTool(
   validateToolOutput(tool.name, tool.outputSchema, output);
   assertImpactHonoured(tool, output, context);
   return { output, tool };
+}
+
+/** True only when a complete model tool-call batch can run without ordered state changes. */
+const STATEFUL_AI_NAVIGATION_TOOLS = new Set(["discover_tool_bundles", "activate_tool_bundle"]);
+
+export function canRunRevenueAiToolCallsConcurrently(names: readonly string[]): boolean {
+  if (names.length < 2) return false;
+  return names.every((name) => {
+    const tool = registry.find((candidate) => candidate.name === name);
+    return tool?.impact === "read" && !STATEFUL_AI_NAVIGATION_TOOLS.has(name);
+  });
 }
 
 /** Refresh live module state without broadening an explicit caller restriction. */

@@ -327,6 +327,14 @@ export function AdminAIProvider({ children }: { children: React.ReactNode }) {
               ),
             );
           }
+          if (event.type === "assistant_reset") {
+            streamed = "";
+            setMessages((current) =>
+              current.map((message) =>
+                message.id === assistantId ? { ...message, content: "" } : message,
+              ),
+            );
+          }
           if (event.type === "assistant_delta") {
             streamed += event.delta;
             setMessages((current) =>

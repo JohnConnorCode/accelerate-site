@@ -34,6 +34,13 @@ business control. Installation, enable/disable and upgrade must update discovery
 disabled execution is rechecked at dispatch, including already queued changes.
 Historical records and receipts remain accessible through authorized core reads.
 
+All provider calls use the shared AI gateway. It bounds ordinary non-streaming
+responses to 1 MiB, budgeted responses to 128 KiB, streaming responses to 1 MiB,
+and provider error bodies to 128 KiB before retaining or parsing them. A malformed
+or oversized success response fails once; transient provider status codes keep
+the bounded retry policy. Feature adapters must not add a second unbounded
+provider request path.
+
 ## The conversation is the work interface
 
 For example, “Change Acme's owner to Maya, move the opportunity to Qualified,
@@ -169,6 +176,34 @@ initiatives remain open. The demo continues to use its session-local branding
 transport and shared capability metadata; its assistant is a simulation, not a
 live provider-backed agent.
 
+## Implemented shared content brief service
+
+The Content Operations API and the global assistant now call the same
+`revenue-os.content-brief` service. It owns tenant provider readiness, bounded
+shared context, the content brief schema, grounding validation and the provider
+receipt. The route is an authentication and HTTP error adapter. The assistant
+exposes `generate_content_brief` through the Content module, shared capability
+catalogue, and core tool pack, so page context does not restrict its availability.
+Both the route and assistant recheck current Content module enablement.
+The tool returns a draft and cannot create or publish content. The demo remains
+fictional and does not call this live service.
+
+This is one parity slice, not universal content-operation coverage. Content
+calendar reads now use the same bounded `revenue-os.content-calendar` service in
+the admin GET route and the global `list_content_calendar` tool. Filters are
+validated, results are capped at five concise records to fit the shared model
+context budget, and additional matches are disclosed. Existing-item updates use
+the same validated `revenue-os.content-calendar` writer from the admin route
+and approved-action executor. AI must preview the exact edit, submit that
+digest for review, and wait for an administrator decision. Execution rechecks
+the active tenant admin, current module enablement and item revision before a
+tenant-scoped compare-and-set write. Approval does not publish content.
+
+Content calendar creation, deletion and column reordering are not yet part of
+this AI parity path. Creation/deletion and other domain write paths still need
+their own shared operation services and governance where appropriate, so the
+content domain is not complete parity.
+
 ## Implemented plugin and module configuration path
 
 `get_module_configuration` returns current enablement, declared public settings,
@@ -192,8 +227,9 @@ are separate operations; no atomic rollback across them is claimed.
 No secret values or arbitrary tenant settings are exposed. Provider credentials,
 OAuth, sync controls and the other domain cards remain outstanding. The module
 configuration tool does not run a newly enabled business workflow or grant standing
-autonomy. Registry `revenue-os-tools.v8` includes 56 tools; the shared demo catalogue
-uses the same module-control metadata with simulated outcomes.
+autonomy. The shared demo catalogue uses the same module-control metadata with
+simulated outcomes. Registry versions and tool counts are maintained by the
+runtime contract and tests, not repeated here.
 
 ## Cross-domain tool discovery (implemented, run scoped)
 
@@ -204,19 +240,20 @@ bundle plus the core contributes at most 40 schemas per model turn. Every regist
 tool must have exactly one module owner. The shared discovery test fails CI for
 missing or duplicate ownership instead of silently dropping tools.
 
-Discovery searches module metadata and tool names with pagination. Activation
-loads schemas on the next turn of the current command run. The initial page/legacy
-pack remains navigation context, so it does not hide another admin domain. The
-host refuses a tool call that was not advertised on that turn, including an
-activation and new tool call attempted together. Tenant activity and live module
-configuration are refreshed before each turn and dispatch. Explicit caller module
-restrictions and legacy MCP pack restrictions remain in force; activation grants
-no approval, provider connection or new permission.
+Discovery searches module metadata and tool names with pagination. In the first-party
+command workspace, the selected bundle is saved in the assistant message metadata
+and restored when the conversation resumes. Every turn rechecks current module
+availability before advertising its tools; a disabled or unavailable bundle is
+cleared. MCP activation remains scoped to the current request/session. The initial
+page/legacy pack remains navigation context, so it does not hide another admin
+domain. The host refuses a tool call that was not advertised on that turn,
+including an activation and new tool call attempted together. Tenant activity and
+live module configuration are refreshed before each turn and dispatch. Explicit
+caller module restrictions and legacy MCP pack restrictions remain in force;
+activation grants no approval, provider connection or new permission.
 
 Proposals continue through existing services and the human approval queue. Only
 successfully returned proposals are reported as staged; refused attempts remain
-error receipts. Activation is traced but is **not restored across command runs or
-conversation reloads** yet. The broader progressive-disclosure card retains durable
-activation, richer live trust/recipe descriptions and SDK work. The 50-plugin
-fixture proves bounded schemas, complete reachability and exact-domain deterministic
-selection; it does not measure real-model natural-language selection accuracy.
+error receipts. The 50-plugin fixture proves bounded schemas, complete reachability
+and exact-domain deterministic selection; it does not measure real-model
+natural-language selection accuracy.
