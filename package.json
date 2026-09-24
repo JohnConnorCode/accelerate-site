@@ -59,6 +59,8 @@
     "test:pipeline-saved-views": "npx tsx scripts/test-pipeline-saved-views.ts",
     "test:analytics-decision-model": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-analytics-decision-model.ts",
     "test:ai-readiness": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-ai-readiness-assessment.ts && node scripts/test-ai-readiness-postgres.mjs",
+    "qa:ai-readiness-motion": "node --import tsx scripts/qa-ai-readiness-accessibility.mjs",
+    "qa:ai-readiness-accessibility": "node --import tsx scripts/qa-ai-readiness-accessibility.mjs",
     "test:analytics-workspace": "node --env-file=.env.local scripts/qa-analytics-workspace.mjs",
     "test:record-workspace": "node --env-file=.env.local scripts/qa-record-detail-workspace.mjs",
     "test:admin-recovery": "node --env-file=.env.local scripts/qa-admin-recovery.mjs",

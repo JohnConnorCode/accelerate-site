@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -10,6 +11,9 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { ReadinessReport, WebsiteAudit } from "@/lib/ai-readiness";
+import { PublicHeroEntrance } from "@/components/motion/PublicHeroEntrance";
+import { Section } from "@/components/v2/studio/primitives";
+import styles from "./AIReadiness.module.css";
 
 function scoreText(score: number | null) {
   return score === null ? "—" : `${score}`;
@@ -24,9 +28,16 @@ export function AIReadinessReport({
   reportToken?: string | null;
   onDownload?: () => void;
 }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+    requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
+  }, []);
+
   return (
-    <div className="mx-auto max-w-6xl space-y-8 pb-20">
-      <section className="relative overflow-hidden rounded-[2rem] bg-[var(--ink)] px-6 py-10 text-[var(--paper)] shadow-[0_24px_80px_-36px_rgba(0,0,0,.5)] sm:px-10 sm:py-14">
+    <div className="mx-auto max-w-6xl space-y-8 px-4 pb-20 pt-28 sm:px-0 sm:pt-36">
+      <PublicHeroEntrance className={styles.reportHero}>
         <div
           aria-hidden
           className="absolute -right-20 -top-24 h-72 w-72 rounded-full border border-white/15"
@@ -36,16 +47,27 @@ export function AIReadinessReport({
           className="absolute -right-8 -top-12 h-48 w-48 rounded-full border border-white/10"
         />
         <div className="relative max-w-3xl">
-          <p className="font-mono text-[0.65rem] uppercase tracking-[0.24em] text-white/60">
+          <p
+            data-hero-step="1"
+            className="font-mono text-[0.65rem] uppercase tracking-[0.24em] text-white/60"
+          >
             Accelerate / AI readiness
           </p>
-          <h1 className="mt-5 max-w-2xl text-balance font-display text-4xl font-semibold tracking-[-0.045em] sm:text-6xl">
+          <h1
+            ref={headingRef}
+            data-hero-step="2"
+            tabIndex={-1}
+            className="mt-5 max-w-2xl text-balance font-display text-4xl font-semibold tracking-[-0.045em] focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-6xl"
+          >
             Your next useful move is clearer now.
           </h1>
-          <p className="mt-6 max-w-2xl text-pretty text-base leading-7 text-white/70 sm:text-lg">
+          <p
+            data-hero-step="3"
+            className="mt-6 max-w-2xl text-pretty text-base leading-7 text-white/70 sm:text-lg"
+          >
             {report.summary}
           </p>
-          <div className="mt-9 flex flex-wrap items-end gap-8">
+          <div data-hero-step="4" className="mt-9 flex flex-wrap items-end gap-8">
             <div>
               <p className="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-white/50">
                 Readiness score
@@ -63,9 +85,9 @@ export function AIReadinessReport({
             </div>
           </div>
         </div>
-      </section>
+      </PublicHeroEntrance>
 
-      <section className="grid gap-4 md:grid-cols-5">
+      <Section bleed className={`${styles.reportSection} grid gap-4 md:grid-cols-5`}>
         {report.dimensionScores.map((dimension) => (
           <div
             key={dimension.key}
@@ -88,11 +110,11 @@ export function AIReadinessReport({
             <p className="mt-3 text-xs leading-5 text-[var(--soft)]">{dimension.description}</p>
           </div>
         ))}
-      </section>
+      </Section>
 
       {report.websiteAudit && <WebsiteAuditSection audit={report.websiteAudit} />}
 
-      <section className="grid gap-8 lg:grid-cols-[1.2fr_.8fr]">
+      <Section bleed className={`${styles.reportSection} grid gap-8 lg:grid-cols-[1.2fr_.8fr]`}>
         <div className="space-y-4">
           <div>
             <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
@@ -200,9 +222,12 @@ export function AIReadinessReport({
             </div>
           </div>
         </aside>
-      </section>
+      </Section>
 
-      <section className="rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
+      <Section
+        bleed
+        className={`${styles.reportSection} rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-8`}
+      >
         <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[var(--soft)]">
           30-day action plan
         </p>
@@ -215,9 +240,12 @@ export function AIReadinessReport({
             </div>
           ))}
         </div>
-      </section>
+      </Section>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-black/10 pt-7 dark:border-white/10">
+      <Section
+        bleed
+        className={`${styles.reportSection} flex flex-wrap items-center justify-between gap-4 border-t border-black/10 pt-7 dark:border-white/10`}
+      >
         <p className="max-w-xl text-sm leading-6 text-[var(--soft)]">
           Want help choosing the first workflow or setting a useful baseline? We can map that in a
           free 30-minute strategy session.
@@ -241,7 +269,7 @@ export function AIReadinessReport({
             Talk through the first step
           </Link>
         </div>
-      </div>
+      </Section>
     </div>
   );
 }
@@ -249,7 +277,10 @@ export function AIReadinessReport({
 function WebsiteAuditSection({ audit }: { audit: WebsiteAudit }) {
   const completed = audit.status === "completed";
   return (
-    <section className="rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-8">
+    <Section
+      bleed
+      className={`${styles.reportSection} rounded-2xl border border-black/10 bg-white/70 p-6 dark:border-white/10 dark:bg-white/[0.04] sm:p-8`}
+    >
       <div className="flex flex-wrap items-start justify-between gap-5">
         <div>
           <div className="flex items-center gap-3">
@@ -342,6 +373,6 @@ function WebsiteAuditSection({ audit }: { audit: WebsiteAudit }) {
       <p className="mt-6 text-xs leading-5 text-[var(--soft)]">
         {audit.note} Checked {new Date(audit.checkedAt).toLocaleDateString()}.
       </p>
-    </section>
+    </Section>
   );
 }
