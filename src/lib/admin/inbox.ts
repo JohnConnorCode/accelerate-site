@@ -1,5 +1,4 @@
-export type AdminInboxKind =
-  "lead" | "contact" | "chat" | "partner" | "task" | "proposal" | "coworker" | "action";
+export type AdminInboxKind = "lead" | "chat" | "partner" | "proposal";
 export type AdminInboxPriority = "urgent" | "important" | "normal";
 
 export interface AdminInboxItem {

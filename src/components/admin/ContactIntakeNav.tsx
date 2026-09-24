@@ -1,17 +1,29 @@
 "use client";
 
 import Link from "@/components/admin/AdminLink";
-import { FileUp, Inbox } from "lucide-react";
+import { FileUp, Inbox, UsersRound, UserRoundCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const views = [
-  { id: "submissions", label: "Website submissions", href: "/admin/contacts", icon: Inbox },
+  { id: "directory", label: "All contacts", href: "/admin/contacts", icon: UsersRound },
+  {
+    id: "submissions",
+    label: "Website requests",
+    href: "/admin/contacts?view=requests",
+    icon: Inbox,
+  },
   { id: "import", label: "List import", href: "/admin/contact-imports", icon: FileUp },
+  {
+    id: "matching",
+    label: "Identity matching",
+    href: "/admin/identity-review",
+    icon: UserRoundCheck,
+  },
 ] as const;
 
 export function ContactIntakeNav({ active }: { active: (typeof views)[number]["id"] }) {
   return (
-    <nav className="admin-tabs mb-5" aria-label="Contact intake views">
+    <nav className="admin-tabs mb-5" aria-label="Contact views">
       {views.map((view) => {
         const Icon = view.icon;
         const selected = active === view.id;

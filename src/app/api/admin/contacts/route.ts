@@ -28,22 +28,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Database operation failed" }, { status: 500 });
   }
 
-  // Auto-mark fetched contacts as read (fire-and-forget).
-  // The dashboard unread count queries read_at IS NULL, so this keeps it accurate.
-  const unreadIds = (data || [])
-    .filter((c: { id: string; read_at: string | null }) => !c.read_at)
-    .map((c: { id: string }) => c.id);
-  if (unreadIds.length > 0) {
-    supabase
-      .from("contact_submissions")
-      .update({ read_at: new Date().toISOString() })
-      .in("id", unreadIds)
-      .then(
-        () => {},
-        (err: unknown) => console.error("Failed to mark contacts read:", err),
-      );
-  }
-
   const linked = await attachRevenueLinkageWithTelemetry(
     supabase,
     data || [],

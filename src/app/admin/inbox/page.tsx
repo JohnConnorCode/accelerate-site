@@ -11,7 +11,6 @@ import {
   AtSign,
   Bot,
   Check,
-  CheckSquare,
   Clock3,
   Copy,
   FileCheck,
@@ -22,9 +21,7 @@ import {
   Phone,
   RefreshCw,
   Search,
-  ShieldCheck,
   Users,
-  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -34,7 +31,6 @@ import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
 import { adminListItemVariants, adminListVariants, adminSectionVariants } from "@/lib/admin/motion";
 import type { AdminInboxKind, AdminInboxResponse, AdminInboxItem } from "@/lib/admin/inbox";
@@ -43,24 +39,16 @@ import { isInteractiveTarget } from "@/lib/admin/interaction";
 const filters: { key: AdminInboxKind | "all"; label: string; icon: LucideIcon }[] = [
   { key: "all", label: "All", icon: Inbox },
   { key: "lead", label: "Leads", icon: Users },
-  { key: "contact", label: "Contacts", icon: AtSign },
   { key: "chat", label: "Chat", icon: MessageCircle },
-  { key: "task", label: "Tasks", icon: CheckSquare },
   { key: "proposal", label: "Proposals", icon: FileCheck },
   { key: "partner", label: "Partners", icon: Handshake },
-  { key: "coworker", label: "Coworkers", icon: Bot },
-  { key: "action", label: "Actions", icon: ShieldCheck },
 ];
 
 const kindMeta: Record<AdminInboxKind, { label: string; icon: LucideIcon }> = {
   lead: { label: "Lead", icon: Users },
-  contact: { label: "Contact", icon: AtSign },
   chat: { label: "Chat handoff", icon: MessageCircle },
-  task: { label: "Task", icon: CheckSquare },
   proposal: { label: "Proposal", icon: FileCheck },
   partner: { label: "Partner", icon: Handshake },
-  coworker: { label: "Coworker", icon: Bot },
-  action: { label: "Action", icon: ShieldCheck },
 };
 
 function timeAgo(value: string) {
@@ -78,12 +66,6 @@ export default function AdminInboxPage() {
   const queryClient = useQueryClient();
   const inboxQuery = useAdminQuery<AdminInboxResponse>(["admin", "inbox"], "/api/admin/inbox");
   const data = inboxQuery.data ?? null;
-  const setData = (updater: (current: AdminInboxResponse | null) => AdminInboxResponse | null) => {
-    queryClient.setQueryData(
-      ["admin", "inbox"],
-      (current: AdminInboxResponse | undefined) => updater(current ?? null) ?? undefined,
-    );
-  };
   const [kind, setKind] = useState<AdminInboxKind | "all">("all");
   const [query, setQuery] = useState("");
   const loading = inboxQuery.isPending;
@@ -223,7 +205,7 @@ export default function AdminInboxPage() {
       <motion.div variants={adminSectionVariants}>
         <PageHeader
           title={adminPageName("inbox")}
-          subtitle="Review incoming items and follow-ups that need a decision."
+          subtitle="Review incoming enquiries. Tasks, AI work, and approvals live in Work."
           actions={
             <Button
               size="sm"
@@ -248,6 +230,20 @@ export default function AdminInboxPage() {
         loadingFallback={<LoadingSkeleton variant="page" />}
         label="Loading operator inbox"
       >
+        <div className="mb-5 flex flex-wrap gap-2">
+          <Link className="admin-button admin-button--secondary" href="/admin/work">
+            Open Work
+          </Link>
+          <Link
+            className="admin-button admin-button--secondary"
+            href="/admin/contacts?view=requests"
+          >
+            Website requests
+          </Link>
+          <Link className="admin-button admin-button--secondary" href="/admin/identity-review">
+            Identity matching
+          </Link>
+        </div>
         <motion.div
           variants={adminSectionVariants}
           className="mb-5 grid gap-3 sm:grid-cols-[1fr_auto]"

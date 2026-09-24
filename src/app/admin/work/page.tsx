@@ -11,6 +11,7 @@ import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminDialog } from "@/components/admin/AdminDialog";
 import { AdminRecordRow } from "@/components/admin/AdminRecordRow";
 import { ActionReviewDialog, type ActionRow } from "@/components/admin/ActionReviewDialog";
+import { AgentWorkPanel } from "@/components/admin/AgentWorkPanel";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { relativeTime } from "@/lib/admin/work-presentation";
@@ -41,6 +42,19 @@ interface TaskRow {
   related_name?: string | null;
   opportunity_id?: string | null;
 }
+type SavedView = {
+  id: string;
+  name: string;
+  ownerId: string;
+  visibility: "private" | "workspace";
+  config: {
+    owner: string;
+    status: string;
+    source: string;
+    search: string;
+    groupBy: "none" | "priority" | "source" | "related_type" | "status" | "owner" | "due_date";
+  };
+};
 const control = "admin-field";
 const taskViewDescriptor: WorkflowViewDescriptor<TaskRow> = {
   id: "tasks",
@@ -82,7 +96,8 @@ export default function WorkPage() {
   const params = useSearchParams();
   const demo = useAdminDemo();
   const router = useAdminNavigation();
-  const tab = params.get("tab") === "approvals" ? "approvals" : "tasks";
+  const tab =
+    params.get("tab") === "approvals" ? "approvals" : params.get("tab") === "ai" ? "ai" : "tasks";
   const [owner, setOwner] = useState("team");
   const [status, setStatus] = useState("pending");
   const [search, setSearch] = useState("");
@@ -140,7 +155,10 @@ export default function WorkPage() {
   const actions = useMemo(
     () =>
       (actionsQuery.data?.actions ?? []).filter(
-        (a) => a.status === "pending" && (!a.expires_at || Date.parse(a.expires_at) > Date.now()),
+        (a) =>
+          a.status === "pending" &&
+          a.action_type !== "identity_review" &&
+          (!a.expires_at || Date.parse(a.expires_at) > Date.now()),
       ),
     [actionsQuery.data],
   );
@@ -183,13 +201,16 @@ export default function WorkPage() {
     setTask(null);
     if (requestedTask) router.replace("/admin/work", "preserve");
   };
-  const actionId = params.get("action");
   useEffect(() => {
     if (actionId) {
-      const row = actions.find((a) => a.id === actionId);
+      const row = actions.find((a) => a.id === actionId) ?? selectedActionQuery.data?.actions[0];
+      if (row?.action_type === "identity_review") {
+        router.replace("/admin/identity-review", "preserve");
+        return;
+      }
       if (row) setReview(row);
     }
-  }, [actionId, actions]);
+  }, [actionId, actions, router, selectedActionQuery.data]);
   const refresh = async () => {
     await Promise.all([tasksQuery.refetch(), actionsQuery.refetch(), todayQuery.refetch()]);
   };
@@ -227,6 +248,89 @@ export default function WorkPage() {
     setDue(row.due_date ?? "");
     setPriority(row.priority === "normal" ? "medium" : row.priority);
     setError("");
+    setFeedbackNote("");
+    setFeedbackSaved(false);
+  };
+  const saveView = async () => {
+    if (!viewName.trim()) {
+      setError("Name this view before saving.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    const selectedView = viewsQuery.data?.views.find((view) => view.id === selectedViewId);
+    const canEditSelected = selectedView?.ownerId === viewsQuery.data?.viewerId;
+    try {
+      await fetchJson("/api/admin/work/views", {
+        method: canEditSelected ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...(canEditSelected ? { id: selectedViewId } : {}),
+          name: viewName.trim(),
+          config: { owner, status, source, search, groupBy },
+          visibility: viewVisibility,
+        }),
+      });
+      setViewName("");
+      setSelectedViewId("");
+      await viewsQuery.refetch();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "View could not be saved.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const chooseView = (id: string) => {
+    setSelectedViewId(id);
+    if (!id) {
+      setViewName("");
+      setViewVisibility("private");
+      return;
+    }
+    const view = viewsQuery.data?.views.find((item) => item.id === id);
+    if (!view) return;
+    setOwner(view.config.owner);
+    setStatus(view.config.status);
+    setSource(view.config.source);
+    setSearch(view.config.search);
+    setGroupBy(view.config.groupBy);
+    setViewName(view.name);
+    setViewVisibility(view.visibility);
+    setPage(1);
+    setLoadedTasks([]);
+  };
+  const removeView = async () => {
+    if (!selectedViewId) return;
+    setBusy(true);
+    try {
+      await fetchJson(`/api/admin/work/views?id=${encodeURIComponent(selectedViewId)}`, {
+        method: "DELETE",
+      });
+      setSelectedViewId("");
+      await viewsQuery.refetch();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "View could not be removed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const sendFeedback = async (rating: "helpful" | "not_helpful") => {
+    if (!task || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await fetchJson("/api/admin/tasks/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId: task.id, rating, note: feedbackNote }),
+      });
+      setFeedbackSaved(true);
+      setFeedbackNote("");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Feedback could not be saved.");
+    } finally {
+      setBusy(false);
+    }
   };
   const mutateTask = async (row: TaskRow, complete = false) => {
     if (busy) return;
@@ -254,7 +358,7 @@ export default function WorkPage() {
     <div className="space-y-5 pb-8">
       <PageHeader
         title={adminPageName("work")}
-        subtitle="Track assigned tasks and review actions waiting for your approval."
+        subtitle="Manage tasks, AI work, and decisions from one queue."
         utilityActions={
           <button
             type="button"
@@ -272,7 +376,7 @@ export default function WorkPage() {
         }
       />
       <nav aria-label="Work views" className="flex gap-2 border-b border-[var(--admin-border)]">
-        {(["tasks", "approvals"] as const).map((value) => (
+        {(["tasks", "ai", "approvals"] as const).map((value) => (
           <Link
             key={value}
             href={`/admin/work?tab=${value}`}
@@ -284,7 +388,7 @@ export default function WorkPage() {
                 : "border-transparent text-[var(--admin-muted)]",
             )}
           >
-            {value === "tasks" ? "Tasks" : "Approvals"}
+            {value === "tasks" ? "Tasks" : value === "ai" ? "AI work" : "Approvals"}
           </Link>
         ))}
       </nav>
@@ -734,8 +838,65 @@ export default function WorkPage() {
             <p className="p-5 text-sm text-[var(--admin-muted)]">
               {actionsQuery.isPending ? "Loading approvals…" : "No decisions waiting."}
             </p>
-          )}
-        </AdminSurface>
+            <button
+              type="button"
+              className="admin-button admin-button--secondary"
+              disabled={tasksQuery.isFetching || tasks.length >= (tasksQuery.data?.total ?? 0)}
+              onClick={() => setPage(page + 1)}
+            >
+              {tasksQuery.isFetching ? "Loading…" : "Load more"}
+            </button>
+          </div>
+        </>
+      ) : tab === "ai" ? (
+        <AgentWorkPanel />
+      ) : (
+        <>
+          <Link
+            href="/admin/identity-review"
+            className="inline-flex min-h-10 items-center text-sm font-medium underline"
+          >
+            Review contact matches
+          </Link>
+          <AdminSurface padding="none" elevation="flat">
+            <ul className="divide-y divide-[var(--admin-border)]">
+              {actions.map((row) => (
+                <li
+                  key={row.id}
+                  data-source-type="approval"
+                  data-source-id={row.id}
+                  className="px-4 py-3"
+                >
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    onClick={() => {
+                      setReview(row);
+                      setError("");
+                      router.push(`/admin/work?tab=approvals&action=${row.id}`, "preserve");
+                    }}
+                    className="flex min-h-11 w-full items-center justify-between gap-3 text-left"
+                  >
+                    <span>
+                      <span className="block text-sm font-semibold text-[var(--admin-ink)]">
+                        {row.title}
+                      </span>
+                      <span className="mt-1 block text-xs text-[var(--admin-muted)]">
+                        {row.reasoning || row.description || "Review the exact proposed change."}
+                      </span>
+                    </span>
+                    <ArrowRight className="size-4 shrink-0" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {!actions.length && (
+              <p className="p-5 text-sm text-[var(--admin-muted)]">
+                {actionsQuery.isPending ? "Loading approvals…" : "No decisions waiting."}
+              </p>
+            )}
+          </AdminSurface>
+        </>
       )}
       <ActionReviewDialog
         open={Boolean(review)}
@@ -822,6 +983,44 @@ export default function WorkPage() {
             <p className="text-xs text-[var(--admin-muted)]">
               Status: {task?.status}. Changes save to the same task shown in Today.
             </p>
+            <div className="rounded-lg border border-[var(--admin-border)] p-3">
+              <h3 className="text-sm font-semibold">Feedback on this task</h3>
+              <p className="admin-copy mt-1 text-xs">
+                Your rating helps measure task quality. Notes stay in the audit history; the AI uses
+                rating totals only.
+              </p>
+              <textarea
+                className="admin-field mt-3 w-full"
+                value={feedbackNote}
+                onChange={(event) => setFeedbackNote(event.target.value)}
+                maxLength={1000}
+                rows={3}
+                placeholder="What should improve? (optional)"
+              />
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={busy}
+                  className="admin-button admin-button--secondary"
+                  onClick={() => void sendFeedback("helpful")}
+                >
+                  Helpful
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  className="admin-button admin-button--secondary"
+                  onClick={() => void sendFeedback("not_helpful")}
+                >
+                  Needs work
+                </button>
+              </div>
+              {feedbackSaved && (
+                <p role="status" className="mt-2 text-xs">
+                  Feedback recorded.
+                </p>
+              )}
+            </div>
           </div>
           <div className="border-t border-[var(--admin-border)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <button

@@ -219,6 +219,7 @@ export type DemoState = {
   } | null;
   workViews?: Array<Record<string, unknown>>;
   workEvents?: Array<Record<string, unknown>>;
+  contactDirectory?: Array<Record<string, unknown>>;
   workReceipts?: Record<string, { fingerprint: string; card: unknown }>;
   moduleOverrides: Partial<Record<string, boolean>>;
   moduleSettings: Record<string, Record<string, unknown>>;
@@ -4466,6 +4467,41 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       const status = url.searchParams.get("status");
       const owner = url.searchParams.get("owner");
       const viewerId = "00000000-0000-4000-8000-000000000079";
+      const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+      const pageSize = Math.min(100, Math.max(1, Number(url.searchParams.get("pageSize")) || 100));
+      const search = (url.searchParams.get("q") || "").trim().toLowerCase();
+      const source = url.searchParams.get("source") || "";
+      const filtered = demoTaskRows(pack, state)
+        .filter((item) => !url.searchParams.get("id") || item.id === url.searchParams.get("id"))
+        .filter(
+          (item) =>
+            !url.searchParams.get("related_id") ||
+            (item.related_id === url.searchParams.get("related_id") &&
+              item.related_type === url.searchParams.get("related_type")),
+        )
+        .filter(
+          (item) => !url.searchParams.get("date") || item.due_date === url.searchParams.get("date"),
+        )
+        .filter(
+          (item) =>
+            url.searchParams.get("include_overdue") !== "true" ||
+            (item.status === "pending" &&
+              item.due_date &&
+              item.due_date <= new Date().toISOString().slice(0, 10)),
+        )
+        .filter((item) => !status || status === "all" || item.status === status)
+        .filter((item) =>
+          owner === "me"
+            ? item.assigned_to === viewerId
+            : owner === "unassigned"
+              ? !item.assigned_to
+              : true,
+        )
+        .filter((item) => !source || item.source === source)
+        .filter(
+          (item) =>
+            !search || `${item.title} ${item.related_name ?? ""}`.toLowerCase().includes(search),
+        );
       return jsonResponse({
         viewerId,
         tenantId: scenarioId,

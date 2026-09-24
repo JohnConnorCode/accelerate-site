@@ -298,7 +298,7 @@ export default function ContactImportsPage() {
   return (
     <div>
       <PageHeader
-        title="Contact intake"
+        title="Import contacts"
         subtitle="Review website inquiries and bring external contact lists into the same controlled intake workflow."
         actions={
           batch && !finished ? (

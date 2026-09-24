@@ -106,7 +106,7 @@ export function operatorTaskRecordHref(task: {
   if (!task.related_id) return "/admin/today";
   if (task.related_type === "proposal") return `/admin/proposals?proposal=${task.related_id}`;
   if (task.related_type === "client") return `/admin/clients/${task.related_id}`;
-  if (task.related_type === "contact") return `/admin/contacts?contact=${task.related_id}`;
+  if (task.related_type === "contact") return `/admin/contacts/${task.related_id}`;
   if (task.related_type === "campaign") return `/admin/campaigns?campaign=${task.related_id}`;
   if (task.related_type === "lead") return "/admin/leads";
   return "/admin/today";

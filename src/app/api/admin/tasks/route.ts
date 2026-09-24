@@ -14,11 +14,15 @@ export async function GET(request: NextRequest) {
   const id = searchParams.get("id");
   const relatedType = searchParams.get("related_type");
   const relatedId = searchParams.get("related_id");
+  const source = searchParams.get("source")?.trim().slice(0, 100) ?? "";
+  const search = searchParams.get("q")?.trim().slice(0, 100) ?? "";
   const includeOverdue = searchParams.get("include_overdue");
+  const page = Math.max(1, Math.min(10000, Number(searchParams.get("page")) || 1));
+  const pageSize = Math.max(1, Math.min(100, Number(searchParams.get("pageSize")) || 100));
 
   let query = supabase
     .from("tasks")
-    .select("*")
+    .select("*", { count: "exact" })
     .order("due_date", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
 
@@ -29,6 +33,11 @@ export async function GET(request: NextRequest) {
   if (id) query = query.eq("id", id);
   if (owner === "me") query = query.eq("assigned_to", auth.user.id);
   if (owner === "unassigned") query = query.is("assigned_to", null);
+  if (source) query = query.eq("source", source);
+  if (search) {
+    const escaped = search.replace(/[%,()\\]/g, "");
+    if (escaped) query = query.or(`title.ilike.%${escaped}%,related_name.ilike.%${escaped}%`);
+  }
 
   if (date) {
     query = query.eq("due_date", date);
@@ -43,7 +52,7 @@ export async function GET(request: NextRequest) {
     query = query.eq("status", "pending").lte("due_date", today);
   }
 
-  const { data, error } = await query.limit(100);
+  const { data, count, error } = await query.range((page - 1) * pageSize, page * pageSize - 1);
 
   if (error) {
     console.error("Database error:", error.message);

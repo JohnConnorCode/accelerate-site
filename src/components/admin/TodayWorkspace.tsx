@@ -19,7 +19,6 @@ import {
 import { PageHeader } from "./PageHeader";
 import { AdminDialog } from "./AdminDialog";
 import { AdminAsyncRegion } from "./AdminAsyncRegion";
-import { ActionReviewDialog, type ActionRow } from "./ActionReviewDialog";
 import { TodayViewEditor } from "./TodayViewEditor";
 import { useAdminAI } from "./AdminAIProvider";
 import LegacyToday from "./LegacyToday";
@@ -132,11 +131,6 @@ export function TodayWorkspace() {
     "/api/admin/revenue-os/today/views",
     { placeholderData: undefined, refetchOnWindowFocus: true },
   );
-  const actionsQuery = useAdminQuery<{ actions: ActionRow[] }>(
-    ["today", "actions"],
-    "/api/admin/revenue-os/actions",
-    { refetchInterval: 60000, refetchOnWindowFocus: true },
-  );
   const views = viewsQuery.data ?? defaultTodayViews();
   const [chosenView, setChosenView] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<TodaySnapshot | null>(query.data ?? null);
@@ -152,17 +146,14 @@ export function TodayWorkspace() {
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [fact, setFact] = useState<TodayFact | null>(null);
   const [factOpen, setFactOpen] = useState(false);
-  const [reviewing, setReviewing] = useState<ActionRow | null>(null);
-  const [reviewOpen, setReviewOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [allAttention, setAllAttention] = useState(false);
   const [snoozeDate, setSnoozeDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const dismissedAction = useRef<string | null>(null);
   const pendingSave = useRef<{ fingerprint: string; requestId: string } | null>(null);
-  const editing = editorOpen || inspectorOpen || reviewOpen || factOpen || busy;
+  const editing = editorOpen || inspectorOpen || factOpen || busy;
   useEffect(() => {
     if (query.data && (!snapshot || (!editing && !interacting))) setSnapshot(query.data);
   }, [query.data, editing, interacting, snapshot]);
@@ -246,30 +237,8 @@ export function TodayWorkspace() {
       : focus === "commitments"
         ? ["work", "upcoming"]
         : [];
-  const pendingActions = (actionsQuery.data?.actions ?? []).filter(
-    (action) =>
-      action.status === "pending" &&
-      (!action.expires_at || Date.parse(action.expires_at) > Date.now()),
-  );
-  useEffect(() => {
-    const id = search.get("action");
-    // A local open can precede its URL transition. Retain an explicit dismissal
-    // while that navigation is pending so a late action query cannot reopen it.
-    if (!id) return;
-    if (dismissedAction.current === id) return;
-    const action = pendingActions.find((row) => row.id === id);
-    if (action) {
-      setReviewing(action);
-      setReviewOpen(true);
-    }
-  }, [search, pendingActions]);
-  const closeReview = () => {
-    dismissedAction.current = reviewing?.id ?? search.get("action");
-    setReviewOpen(false);
-    router.replace("/admin/today?focus=approval", "preserve");
-  };
   async function refresh() {
-    const [next] = await Promise.all([query.refetch(), actionsQuery.refetch()]);
+    const next = await query.refetch();
     if (next.data && !editing) setSnapshot(next.data);
   }
   async function saveDocument(scope: TodayScope, document: TodayDocument) {

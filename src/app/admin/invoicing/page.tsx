@@ -10,6 +10,7 @@ import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, ReceiptText, RefreshCw, Send, Trash2 } from "lucide-react";
 import { InvoicePageDesigner } from "@/components/admin/InvoicePageDesigner";
+import { InvoiceIndex } from "@/components/admin/InvoiceIndex";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { useAdminDemo } from "@/components/admin/AdminDemoBoundary";
@@ -234,7 +235,7 @@ export default function InvoicingPage() {
     <div className="space-y-6 pb-10">
       <PageHeader
         title="Invoicing"
-        subtitle="From customer agreement to a reviewed invoice and a clear payment status."
+        subtitle="Manage invoices, create reviewed drafts, and follow payment status in one place."
         actions={
           <AdminLink href="/admin/plugins" className={button}>
             Manage plugins
@@ -242,6 +243,23 @@ export default function InvoicingPage() {
         }
       />
       <DemoBusinessNotice />
+      <nav aria-label="Invoice sections" className="flex flex-wrap gap-2">
+        <a className={button} href="#invoice-list">
+          All invoices
+        </a>
+        <a className={button} href="#new-invoice">
+          Create invoice
+        </a>
+        <AdminLink className={button} href="/admin/collections">
+          Collections
+        </AdminLink>
+        <AdminLink className={button} href="/admin/subscriptions">
+          Subscriptions
+        </AdminLink>
+      </nav>
+      <div id="invoice-list">
+        <InvoiceIndex enabled={connected || demo} />
+      </div>
       <>
         {(error || providers.error || billing.error) && (
           <div
@@ -267,8 +285,8 @@ export default function InvoicingPage() {
               <div>
                 <h2 className="text-lg font-semibold">Connect your Stripe account</h2>
                 <p className="admin-copy mt-2 max-w-2xl text-sm leading-6">
-                  Use a restricted key with account and customer read access and invoice write
-                  access. The key stays encrypted in this workspace. Start with a test key to
+                  Use a restricted key with account, customer, and invoice read access, plus invoice
+                  write access. The key stays encrypted in this workspace. Start with a test key to
                   exercise the full workflow without sending customer emails.
                 </p>
               </div>
@@ -400,7 +418,7 @@ export default function InvoicingPage() {
                 </button>
               </details>
             )}
-            <div className="admin-split">
+            <div id="new-invoice" className="admin-split">
               <AdminSurface padding="lg">
                 <h2 className="text-lg font-semibold">New customer invoice</h2>
                 <p className="admin-copy mt-2 text-sm">
@@ -724,7 +742,7 @@ export default function InvoicingPage() {
                 onProposed={refresh}
               />
             )}
-            <AdminSurface padding="lg">
+            <AdminSurface padding="lg" id="invoice-operations">
               <h2 className="text-lg font-semibold">Invoice operations</h2>
               <p className="admin-copy mt-2 text-sm">
                 Approvals, provider results, and recoverable failures stay together.

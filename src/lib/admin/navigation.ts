@@ -66,10 +66,11 @@ export const adminNavSections: AdminNavSection[] = [
       },
       {
         id: "work",
-        label: "Tasks & approvals",
+        label: "Work",
         href: "/admin/work",
         icon: ListChecks,
         description: "Track assigned tasks and review actions waiting for your approval.",
+        mobilePrimary: true,
         keywords: "tasks approvals commitments team assigned work",
       },
       {
@@ -78,7 +79,6 @@ export const adminNavSections: AdminNavSection[] = [
         href: "/admin/pipeline",
         icon: Target,
         description: "See where each opportunity stands and decide how to move it forward.",
-        mobilePrimary: true,
       },
       {
         id: "conversations",
@@ -87,19 +87,17 @@ export const adminNavSections: AdminNavSection[] = [
         icon: MessageSquareText,
         description:
           "Read customer messages, review the conversation history, and prepare your next reply.",
-        mobilePrimary: true,
       },
       {
         id: "inbox",
-        label: "Review queue",
+        label: "Intake review",
         href: "/admin/inbox",
         icon: Inbox,
         description: "Review incoming items and follow-ups that need a decision.",
-        mobilePrimary: true,
       },
       {
         id: "identity-review",
-        label: "Contact review",
+        label: "Identity matching",
         href: "/admin/identity-review",
         icon: UserPlus,
         description:
@@ -113,12 +111,13 @@ export const adminNavSections: AdminNavSection[] = [
     links: [
       {
         id: "contacts",
-        label: "Contact intake",
+        label: "Contacts",
         href: "/admin/contacts",
         icon: UsersRound,
         description:
-          "Review website submissions and import contact lists for your team to follow up.",
-        keywords: "contacts submissions csv json paste ai dedupe import",
+          "Manage your people in one directory, with website requests, imports, and matching nearby.",
+        keywords: "contacts people directory submissions csv json paste ai dedupe import",
+        mobilePrimary: true,
         moreGroup: "Revenue",
       },
       {
@@ -410,6 +409,26 @@ for (const link of EXTENSION_NAV_LINKS) {
     ...(link.keywords ? { keywords: link.keywords } : {}),
     ...(link.moreGroup ? { moreGroup: link.moreGroup } : {}),
   });
+}
+
+// The first navigation group names the records an operator manages each day.
+// Intake and matching are specialist contact workflows, reached from Contacts.
+const command = adminNavSections.find((section) => section.label === "Command")!;
+const revenue = adminNavSections.find((section) => section.label === "Revenue")!;
+const sources = adminNavSections.find((section) => section.label === "More tools")!;
+for (const id of ["inbox", "identity-review"]) {
+  const link = command.links.find((item) => item.id === id);
+  if (link) {
+    command.links = command.links.filter((item) => item.id !== id);
+    sources.links.push({ ...link, moreGroup: "Sources" });
+  }
+}
+for (const id of ["contacts", "stripe-invoicing"]) {
+  const link = revenue.links.find((item) => item.id === id);
+  if (link) {
+    revenue.links = revenue.links.filter((item) => item.id !== id);
+    command.links.push(id === "stripe-invoicing" ? { ...link, mobilePrimary: true } : link);
+  }
 }
 
 // Stable section keys preserve saved expansion state and extension group contracts.

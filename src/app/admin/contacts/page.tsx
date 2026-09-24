@@ -4,7 +4,6 @@ import { adminPageName } from "@/lib/admin/navigation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import Link from "@/components/admin/AdminLink";
 import { useAdminNavigation } from "@/components/admin/AdminLink";
 import {
@@ -34,7 +33,7 @@ import { adminListItemVariants, adminListVariants } from "@/lib/admin/motion";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import type { SourceFieldDisposition } from "@/lib/revenue-os/retained-source-dispositions";
 
-interface Contact {
+type Contact = {
   id: string;
   name: string;
   email: string;
@@ -118,40 +117,44 @@ export default function ContactsPage() {
       }),
     [contacts, dateFrom, dateTo, searchQuery],
   );
-  const selectedContact = useMemo(
-    () => contacts.find((contact) => contact.id === expandedId) ?? null,
-    [contacts, expandedId],
-  );
-  const displayedContact = selectedContact;
-  const openContact = (id: string, trigger?: HTMLElement) => {
-    dismissedContactRef.current = null;
-    contactTriggerRef.current = trigger ?? null;
-    setExpandedId(id);
-    setContactOpen(true);
-    router.push(`/admin/contacts?contact=${encodeURIComponent(id)}`, "preserve");
+  const rows = directory.data?.contacts ?? [];
+  const selected = rows.find((contact) => contact.id === editing);
+  const open = (contact?: Contact) => {
+    setEditing(contact?.id ?? "new");
+    setDraft(
+      contact
+        ? {
+            fullName: contact.full_name,
+            email: contact.primary_email ?? "",
+            phone: contact.phone ?? "",
+            title: contact.title ?? "",
+            lifecycleStage: contact.lifecycle_stage,
+            nextAction: contact.next_action ?? "",
+            nextActionAt: contact.next_action_at?.slice(0, 16) ?? "",
+          }
+        : empty,
+    );
+    setError("");
   };
-  const closeContact = () => {
-    const contactId = expandedId ?? searchParams.get("contact");
-    dismissedContactRef.current = contactId;
-    setContactOpen(false);
-    if (searchParams.has("contact")) router.replace("/admin/contacts", "preserve");
-    window.setTimeout(() => {
-      const fallback = contactId
-        ? document.querySelector<HTMLElement>(
-            `[data-contact-row-toggle="${CSS.escape(contactId)}"]`,
-          )
-        : null;
-      (contactTriggerRef.current?.isConnected ? contactTriggerRef.current : fallback)?.focus();
-    }, 260);
-  };
-
-  async function handleDelete(id: string) {
-    setDeletingId(id);
+  const save = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
     try {
-      const response = await fetch("/api/admin/contacts", {
-        method: "DELETE",
+      await fetchJson("/api/admin/contacts/directory", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({
+          ...(editing !== "new" ? { id: editing } : {}),
+          ...(editing !== "new" ? { updatedAt: selected?.updated_at } : {}),
+          fullName: draft.fullName,
+          email: draft.email || null,
+          phone: draft.phone || null,
+          title: draft.title || null,
+          lifecycleStage: draft.lifecycleStage,
+          nextAction: draft.nextAction || null,
+          nextActionAt: draft.nextActionAt ? new Date(draft.nextActionAt).toISOString() : null,
+        }),
       });
       if (!response.ok) throw new Error("Delete failed");
       await contactsQuery.refetch();
@@ -161,22 +164,21 @@ export default function ContactsPage() {
     } catch {
       setToast({ message: "Submission could not be deleted", type: "error" });
     } finally {
-      setDeletingId(null);
+      setBusy(false);
     }
-  }
-
+  };
   return (
-    <div>
+    <div className="space-y-5 pb-8">
       <PageHeader
-        title={adminPageName("contacts")}
-        subtitle="Review website submissions and import contact lists for your team to follow up."
+        title="Contacts"
+        subtitle="Find and manage every person in your workspace."
         actions={
           <button
             type="button"
-            onClick={() => window.open("/api/admin/contacts/export", "_blank")}
-            className="inline-flex min-h-10 items-center gap-2 rounded-[var(--admin-control-radius)] px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
+            className="admin-button admin-button--primary"
+            onClick={() => open()}
           >
-            <Download className="size-3.5" /> Export
+            Add contact
           </button>
         }
       />
@@ -432,55 +434,145 @@ export default function ContactsPage() {
                 </div>
               </dl>
               <div>
-                <p className="admin-eyebrow">Full message</p>
-                <p className="mt-2 whitespace-pre-wrap text-pretty rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface-subtle)] p-4 text-sm leading-6 text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)]">
-                  {displayedContact.message || "No message was supplied with this submission."}
+                <button
+                  type="button"
+                  className="text-left font-semibold hover:underline"
+                  onClick={() => open(contact)}
+                >
+                  {contact.full_name}
+                </button>
+                <p className="admin-copy text-sm">
+                  {contact.primary_email || contact.phone || "No email or phone"}
+                  {contact.title ? ` · ${contact.title}` : ""}
+                </p>
+                <p className="admin-copy text-xs">
+                  {contact.lifecycle_stage.replaceAll("_", " ")}
+                  {contact.next_action ? ` · Next: ${contact.next_action}` : ""}
                 </p>
               </div>
-            </div>
-            <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--admin-border)] bg-[var(--admin-surface)]/95 px-5 py-4 backdrop-blur-xl sm:px-6">
-              <button
-                type="button"
-                disabled={deletingId === displayedContact.id}
-                onClick={() => void handleDelete(displayedContact.id)}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,transform] duration-150 hover:bg-rose-500/10 hover:text-rose-700 active:scale-[0.96] disabled:opacity-50 dark:hover:text-rose-300"
-              >
-                {deletingId === displayedContact.id ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Trash2 className="size-3.5" />
-                )}{" "}
-                Delete
-              </button>
-              <div className="flex flex-wrap gap-2">
-                <a
-                  href={`mailto:${displayedContact.email}`}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
+              <div className="flex gap-2">
+                <button
+                  className="admin-button admin-button--secondary"
+                  type="button"
+                  onClick={() => open(contact)}
                 >
-                  <Mail className="size-3.5" /> Email
-                </a>
-                {displayedContact.phone && (
-                  <a
-                    href={`tel:${displayedContact.phone}`}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-[var(--admin-ink)] shadow-[var(--admin-shadow-border)] transition-[box-shadow,transform] duration-150 hover:shadow-[var(--admin-shadow-border-hover)] active:scale-[0.96]"
-                  >
-                    <Phone className="size-3.5" /> Call
-                  </a>
-                )}
+                  Edit
+                </button>
                 <Link
-                  href={`/admin/contacts/${encodeURIComponent(displayedContact.email)}`}
-                  className="admin-button admin-button--primary"
+                  className="admin-button admin-button--secondary"
+                  href={`/admin/contacts/${contact.id}`}
                 >
-                  Open relationship <ArrowRight className="size-3.5" />
+                  History
                 </Link>
               </div>
             </div>
-          </div>
-        )}
-      </AdminDialog>
-      {toast && (
-        <Toast message={toast.message} type={toast.type} isVisible onClose={() => setToast(null)} />
+          ))}
+        </div>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <button
+            className="admin-button admin-button--secondary"
+            type="button"
+            disabled={page <= 1}
+            onClick={() => setPage(page - 1)}
+          >
+            Previous
+          </button>
+          <span className="admin-copy text-sm">Page {page}</span>
+          <button
+            className="admin-button admin-button--secondary"
+            type="button"
+            disabled={page * 50 >= (directory.data?.total ?? 0)}
+            onClick={() => setPage(page + 1)}
+          >
+            Next page
+          </button>
+        </div>
+      </AdminSurface>
+      {editing && (
+        <AdminSurface padding="lg">
+          <h2 className="text-lg font-semibold">
+            {editing === "new" ? "Add contact" : `Edit ${selected?.full_name ?? "contact"}`}
+          </h2>
+          <form onSubmit={save} className="mt-4 grid max-w-2xl gap-4 sm:grid-cols-2">
+            {(
+              [
+                ["fullName", "Full name"],
+                ["email", "Email"],
+                ["phone", "Phone"],
+                ["title", "Role or title"],
+                ["nextAction", "Next action"],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className="text-sm font-medium">
+                {label}
+                <input
+                  className="admin-field mt-2 w-full"
+                  type={key === "email" ? "email" : "text"}
+                  required={key === "fullName"}
+                  value={draft[key]}
+                  onChange={(event) => setDraft({ ...draft, [key]: event.target.value })}
+                />
+              </label>
+            ))}
+            <label className="text-sm font-medium">
+              Stage
+              <select
+                className="admin-field mt-2 w-full"
+                value={draft.lifecycleStage}
+                onChange={(event) => setDraft({ ...draft, lifecycleStage: event.target.value })}
+              >
+                {!(["lead", "prospect", "customer", "former_customer"] as string[]).includes(
+                  draft.lifecycleStage,
+                ) && (
+                  <option value={draft.lifecycleStage}>
+                    {draft.lifecycleStage.replaceAll("_", " ")}
+                  </option>
+                )}
+                {["lead", "prospect", "customer", "former_customer"].map((stage) => (
+                  <option key={stage} value={stage}>
+                    {stage.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm font-medium">
+              Next action date
+              <input
+                className="admin-field mt-2 w-full"
+                type="datetime-local"
+                value={draft.nextActionAt}
+                onChange={(event) => setDraft({ ...draft, nextActionAt: event.target.value })}
+              />
+            </label>
+            {error && (
+              <p role="alert" className="sm:col-span-2 text-sm text-[var(--admin-danger)]">
+                {error}
+              </p>
+            )}
+            <div className="flex gap-2 sm:col-span-2">
+              <button className="admin-button admin-button--primary" disabled={busy} type="submit">
+                {busy ? "Saving…" : "Save contact"}
+              </button>
+              <button
+                className="admin-button admin-button--secondary"
+                type="button"
+                onClick={() => setEditing(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </AdminSurface>
       )}
     </div>
+  );
+}
+
+export default function ContactsPage() {
+  const params = useSearchParams();
+  return params.get("view") === "requests" || params.has("submission") ? (
+    <ContactSubmissionsPage />
+  ) : (
+    <DirectoryPage />
   );
 }

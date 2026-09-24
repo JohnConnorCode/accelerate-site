@@ -4,7 +4,7 @@ import { adminPageName } from "@/lib/admin/navigation";
 
 import { AttentionList } from "@/components/admin/AttentionList";
 import { projectOperatorAttention } from "@/lib/revenue-os/operator-attention";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "@/components/admin/AdminLink";
@@ -16,7 +16,7 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import { AdminAsyncRegion } from "@/components/admin/AdminAsyncRegion";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
-import { ActionReviewDialog, type ActionRow } from "@/components/admin/ActionReviewDialog";
+import type { ActionRow } from "@/components/admin/ActionReviewDialog";
 import { relativeTime } from "@/lib/admin/work-presentation";
 import { RevenueAICommand } from "@/components/admin/RevenueAICommand";
 import { RevenueSetupGate } from "@/components/admin/RevenueSetupGate";
@@ -148,15 +148,10 @@ export default function TodayPage() {
         action.status === "pending" && (!action.expires_at || Date.parse(action.expires_at) > now),
     );
   }, [actionsQuery.data]);
-  const [reviewing, setReviewing] = useState<ActionRow | null>(null);
-  const [reviewOpen, setReviewOpen] = useState(false);
   const [mutationError, setMutationError] = useState("");
-  const [acting, setActing] = useState<string | null>(null);
   const [taskActioning, setTaskActioning] = useState<string | null>(null);
   const [focus, setFocus] = useState<(typeof focusOptions)[number]["id"]>("all");
   const [customizeOpen, setCustomizeOpen] = useState(false);
-  const dismissedActionRef = useRef<string | null>(null);
-  const reviewTriggerRef = useRef<HTMLElement | null>(null);
   const loading = overviewQuery.isPending || actionsQuery.isPending;
   const refreshing = overviewQuery.isFetching || actionsQuery.isFetching;
   const error = mutationError || overviewQuery.error?.message || actionsQuery.error?.message || "";
@@ -172,73 +167,6 @@ export default function TodayPage() {
     } else if (focusOptions.some((option) => option.id === requestedFocus))
       setFocus(requestedFocus as (typeof focusOptions)[number]["id"]);
   }, [searchParams]);
-
-  useEffect(() => {
-    const actionId = searchParams.get("action");
-    if (!actionId) {
-      dismissedActionRef.current = null;
-      return;
-    }
-    if (dismissedActionRef.current === actionId) return;
-    const requested = actions.find((action) => action.id === actionId);
-    if (requested) {
-      if (reviewing?.id !== requested.id) setReviewing(requested);
-      setReviewOpen(true);
-    }
-  }, [actions, reviewing?.id, searchParams]);
-
-  const closeReview = () => {
-    const actionId = reviewing?.id ?? searchParams.get("action");
-    dismissedActionRef.current = actionId;
-    setReviewOpen(false);
-    if (searchParams.has("action")) router.replace(`/admin/today?focus=${focus}`, "preserve");
-    window.setTimeout(() => {
-      const fallback = actionId
-        ? document.querySelector<HTMLElement>(`[data-approval-review="${CSS.escape(actionId)}"]`)
-        : null;
-      (reviewTriggerRef.current?.isConnected ? reviewTriggerRef.current : fallback)?.focus();
-    }, 260);
-  };
-
-  const openReview = (
-    action: ActionRow,
-    href = `/admin/today?focus=approval&action=${encodeURIComponent(action.id)}`,
-    trigger?: HTMLElement,
-  ) => {
-    dismissedActionRef.current = null;
-    reviewTriggerRef.current = trigger ?? null;
-    setReviewing(action);
-    setReviewOpen(true);
-    router.push(href, "preserve");
-  };
-
-  const decide = async (id: string, decision: "approve" | "reject") => {
-    setActing(id);
-    try {
-      await fetchJson("/api/admin/revenue-os/actions", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, decision }),
-      });
-      closeReview();
-      queryClient.setQueryData<{ actions: ActionRow[] }>(["today", "actions"], (current) =>
-        current ? { actions: current.actions.filter((action) => action.id !== id) } : current,
-      );
-      queryClient.setQueryData<Overview>(["today", "overview"], (current) =>
-        current
-          ? { ...current, queue: current.queue.filter((item) => item.id !== `action:${id}`) }
-          : current,
-      );
-      await refresh();
-      window.dispatchEvent(new Event("admin:priority-refresh"));
-    } catch (decisionError) {
-      setMutationError(
-        decisionError instanceof Error ? decisionError.message : "Could not handle the action.",
-      );
-    } finally {
-      setActing(null);
-    }
-  };
 
   const updateTask = async (id: string, action: "complete" | "snooze") => {
     setTaskActioning(`${id}:${action}`);
@@ -606,9 +534,12 @@ export default function TodayPage() {
                 items={projectOperatorAttention(visibleQueue)}
                 busyTask={taskActioning}
                 onTask={(id, action) => void updateTask(id, action)}
-                onReview={(id, trigger) => {
+                onReview={(id) => {
                   const action = actions.find((item) => item.id === id);
-                  if (action) openReview(action, undefined, trigger);
+                  if (action)
+                    router.push(
+                      `/admin/work?tab=approvals&action=${encodeURIComponent(action.id)}`,
+                    );
                   else
                     setMutationError(
                       "This approval is no longer pending. Refresh to see its current state.",
@@ -682,19 +613,6 @@ export default function TodayPage() {
                 <Fragment key={region.id}>{tailRegionNodes[region.id]}</Fragment>
               ))}
 
-              <ActionReviewDialog
-                error={mutationError}
-                open={reviewOpen}
-                action={reviewing}
-                busy={Boolean(reviewing && acting === reviewing.id)}
-                onClose={closeReview}
-                onApprove={() => {
-                  if (reviewing) void decide(reviewing.id, "approve");
-                }}
-                onReject={() => {
-                  if (reviewing) void decide(reviewing.id, "reject");
-                }}
-              />
               <LayoutCustomizeDialog
                 open={customizeOpen}
                 onClose={() => setCustomizeOpen(false)}

@@ -34,6 +34,7 @@ interface CanonicalProfile {
   contact: {
     id: string;
     full_name: string;
+    primary_email: string | null;
     lifecycle_stage: string;
     communication_status: string;
     next_action: string | null;
@@ -66,7 +67,7 @@ export default function ContactTimelinePage() {
           className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-[var(--admin-muted)] transition-[background-color,color,scale] hover:bg-black/[0.04] hover:text-[var(--admin-ink)] active:scale-[0.97] dark:hover:bg-white/[0.06]"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to contact intake
+          Back to contacts
         </Link>
       </div>
 

@@ -232,6 +232,14 @@ export async function tenantStripeClient(db: SupabaseClient) {
       if (!/^cus_[A-Za-z0-9]{1,80}$/.test(id)) throw new Error("Invalid Stripe customer");
       return stripeRequest(apiKey, `/invoices?customer=${encodeURIComponent(id)}&limit=20`);
     },
+    invoices: async (startingAfter?: string) => {
+      if (startingAfter && !/^in_[A-Za-z0-9]{1,80}$/.test(startingAfter))
+        throw new Error("Invalid invoice cursor");
+      await assertCurrentConnection();
+      const params = new URLSearchParams({ limit: "50" });
+      if (startingAfter) params.set("starting_after", startingAfter);
+      return stripeRequest(apiKey, `/invoices?${params}`);
+    },
     billingPortal: async (body: URLSearchParams, key: string) => {
       await assertCurrentConnection();
       return stripeRequest(apiKey, "/billing_portal/sessions", body, key);

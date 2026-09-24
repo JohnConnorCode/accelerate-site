@@ -97,6 +97,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260921-architect-sessions.sql",
   "migrations/20260922-architect-understanding.sql",
   "migrations/20260923-workspace-blueprints.sql",
+  "migrations/20260923-work-saved-views.sql",
   "migrations/20260924-workspace-blueprint-applies.sql",
   "migrations/20260925-stripe-subscriptions.sql",
   "migrations/20260926-stripe-billing-server-only.sql",
