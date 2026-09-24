@@ -121,7 +121,7 @@ function withinSendWindow(now: Date): boolean {
   return hour >= RESPONDER_POLICY.windowStartHour && hour < RESPONDER_POLICY.windowEndHour;
 }
 
-const SYSTEM_PROMPT = `Context contract ${AI_CONTEXT_VERSION}. Allowed context sources: ${RESPONDER_CONTEXT_SOURCE_ALLOWLIST.join(", ")}.
+export const RESPONDER_SYSTEM_PROMPT = `Context contract ${AI_CONTEXT_VERSION}. Allowed context sources: ${RESPONDER_CONTEXT_SOURCE_ALLOWLIST.join(", ")}.
 
 You write the first reply ${tenant.brand.name} sends to someone who just submitted an inquiry on the website. You are writing as ${tenant.founder.name}.
 
@@ -472,7 +472,7 @@ export async function respondToInbound(
       maxTokens: 400,
       temperature: 0.4,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: RESPONDER_SYSTEM_PROMPT },
         { role: "system", content: context.text },
         { role: "user", content: record },
       ],

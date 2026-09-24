@@ -9,6 +9,7 @@ import {
   assertApprovedPricingRows,
 } from "../src/lib/ai/approved-pricing";
 import { PLAN_SYSTEM_PROMPT } from "../src/lib/ai/prompts";
+import { validateProposal } from "../src/lib/ai/proposal-draft";
 
 assert.ok(APPROVED_SERVICE_PRICES.length > 0, "the approved service catalog must not be empty");
 const first = APPROVED_SERVICE_PRICES[0]!;
@@ -38,17 +39,31 @@ assert.throws(
 assert.match(approvedPricingPromptContext(), new RegExp(first.name));
 assert.match(PLAN_SYSTEM_PROMPT, /only source permitted for money/i);
 assert.match(PLAN_SYSTEM_PROMPT, /Founder scope confirmation required/i);
-for (const route of [
-  "src/app/api/generate-plan/route.ts",
-  "src/app/api/admin/proposals/generate/route.ts",
-]) {
-  const source = readFileSync(route, "utf8");
-  assert.match(
-    source,
-    /assertApprovedPricingRows/,
-    `${route} must reject model pricing outside the catalog before it reaches a draft`,
-  );
-}
+assert.match(
+  readFileSync("src/app/api/generate-plan/route.ts", "utf8"),
+  /assertApprovedPricingRows/,
+  "the growth plan route must reject model pricing outside the catalog before it reaches a draft",
+);
+assert.throws(
+  () =>
+    validateProposal({
+      sections: [
+        {
+          title: "Investment",
+          content: null,
+          items: null,
+          pricing: [{ item: "Invented enterprise bundle", monthly: 1000, oneTime: 12000 }],
+        },
+      ],
+    }),
+  /not an approved catalog price/i,
+  "proposal drafts must reject model pricing outside the catalog",
+);
+assert.match(
+  readFileSync("src/app/api/admin/proposals/generate/route.ts", "utf8"),
+  /validate: validateProposal/,
+  "the proposal route must validate drafts against the catalog before they reach the founder",
+);
 
 console.log(
   JSON.stringify(

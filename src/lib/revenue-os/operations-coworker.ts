@@ -110,6 +110,7 @@ export async function createDailyHealthCheckWork(
     priority: "medium",
     coworkerId: OPERATIONS_COWORKER_ID,
     dedupeKey: `ops:health:${today}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
     surfaceInInbox: true,
@@ -128,6 +129,7 @@ export async function createIntegrationStatusAuditWork(
     priority: "medium",
     coworkerId: OPERATIONS_COWORKER_ID,
     dedupeKey: `ops:integration-audit:${new Date().toISOString().slice(0, 10)}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
   });
@@ -145,6 +147,7 @@ export async function createDataQualityScanWork(
     priority: "low",
     coworkerId: OPERATIONS_COWORKER_ID,
     dedupeKey: `ops:data-quality:${new Date().toISOString().slice(0, 10)}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
   });

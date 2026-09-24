@@ -31,7 +31,14 @@ import { DEFAULT_OPENROUTER_MODEL } from "../src/lib/ai/openrouter-models";
 // credential is involved.
 process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 
-type StubResponse = { status: number; body?: unknown; delayMs?: number; sse?: string };
+type StubResponse = {
+  status: number;
+  body?: unknown;
+  delayMs?: number;
+  sse?: string;
+  /** Delivered as separate network reads, as a real provider stream is. */
+  sseChunks?: string[];
+};
 const realFetch = globalThis.fetch;
 let calls: Array<{ body: Record<string, unknown>; signal?: AbortSignal | null }> = [];
 
@@ -57,8 +64,16 @@ function stubFetch(responses: StubResponse[]) {
         );
       });
     }
-    const stream =
-      spec.sse === undefined
+    const stream = spec.sseChunks
+      ? new ReadableStream<Uint8Array>({
+          async pull(controller) {
+            const next = spec.sseChunks!.shift();
+            if (next === undefined) return controller.close();
+            await new Promise((resolve) => setTimeout(resolve, 5));
+            controller.enqueue(new TextEncoder().encode(next));
+          },
+        })
+      : spec.sse === undefined
         ? new Response(JSON.stringify(spec.body ?? { error: { message: `status ${spec.status}` } }))
             .body
         : new ReadableStream<Uint8Array>({
@@ -416,6 +431,42 @@ async function main() {
       "anthropic/claude-haiku-4.5",
     ]);
     delete process.env.OPENROUTER_FALLBACK_MODEL;
+  });
+
+  await scenario("text streaming survives chunks that carry no visible text", async () => {
+    // Keepalives, role-only deltas and reasoning deltas arrive as their own
+    // reads. A pull that returned without enqueueing stalled the stream
+    // forever, so the website chat hung until the visitor gave up.
+    stubFetch([
+      {
+        status: 200,
+        sseChunks: [
+          ": OPENROUTER PROCESSING\n\n",
+          'data: {"id":"gen-quiet","choices":[{"delta":{"role":"assistant","content":""}}]}\n\n',
+          'data: {"id":"gen-quiet","choices":[{"delta":{"content":"","reasoning":"Thinking"}}]}\n\n',
+          'data: {"id":"gen-quiet","choices":[{"delta":{"content":"Hello"}}]}\n\n',
+          "data: [DONE]\n\n",
+        ],
+      },
+    ]);
+    const stream = await openRouterTextStream(ask);
+    const reader = stream.getReader();
+    let text = "";
+    const drained = (async () => {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) return;
+        text += new TextDecoder().decode(value);
+      }
+    })();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    await Promise.race([
+      drained,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("stream stalled on a textless chunk")), 2_000);
+      }),
+    ]).finally(() => clearTimeout(timer));
+    assert.equal(text, "Hello");
   });
 
   const jsonSchema = {

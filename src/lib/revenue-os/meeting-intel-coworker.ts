@@ -133,6 +133,7 @@ export async function createPreCallBriefWork(
     entityType: "contact",
     entityId: input.contactId,
     dedupeKey: `meeting:brief:${input.contactId}:${input.meetingAt.slice(0, 10)}`,
+    dedupeAcrossStatuses: true,
     dueAt: input.meetingAt,
     maxAttempts: 2,
     actorEmail: input.actorEmail,

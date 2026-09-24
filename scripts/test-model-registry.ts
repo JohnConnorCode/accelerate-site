@@ -146,6 +146,24 @@ async function main() {
     "tenant-registered models must never resolve cross-tenant",
   );
 
+  // 4a. A per-job verdict unlocks only the jobs that passed.
+  await setModelEvalStatus(db, {
+    tenantId: TENANT,
+    modelId: "openai/gpt-4.1-mini",
+    passed: false,
+    passedJobs: ["copilot-answer"],
+    actorEmail: "founder@example.com",
+  });
+  assert.equal(
+    (await resolveModelForJob(db, TENANT, "copilot-answer", "openai/gpt-4.1-mini")).resolved,
+    "openai/gpt-4.1-mini",
+  );
+  await assert.rejects(
+    () => resolveModelForJob(db, TENANT, "responder-draft", "openai/gpt-4.1-mini"),
+    /unevaluated/,
+    "a job the model did not pass stays locked",
+  );
+
   // 4. Eval gate: passing unlocks the consequential path with provenance.
   const evaluated = await setModelEvalStatus(db, {
     tenantId: TENANT,

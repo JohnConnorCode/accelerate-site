@@ -117,6 +117,7 @@ export async function createDailyDigestWork(
     priority: "medium",
     coworkerId: BUSINESS_PULSE_COWORKER_ID,
     dedupeKey: `pulse:digest:${today}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
     surfaceInInbox: false,
@@ -135,6 +136,7 @@ export async function createDetectStaleDealsWork(
     priority: "high",
     coworkerId: BUSINESS_PULSE_COWORKER_ID,
     dedupeKey: `pulse:stale:${new Date().toISOString().slice(0, 10)}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
   });
@@ -152,6 +154,7 @@ export async function createDetectStageBottleneckWork(
     priority: "medium",
     coworkerId: BUSINESS_PULSE_COWORKER_ID,
     dedupeKey: `pulse:bottleneck:${new Date().toISOString().slice(0, 10)}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
   });
@@ -169,6 +172,7 @@ export async function createDetectVelocityChangeWork(
     priority: "medium",
     coworkerId: BUSINESS_PULSE_COWORKER_ID,
     dedupeKey: `pulse:velocity:${new Date().toISOString().slice(0, 10)}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
   });

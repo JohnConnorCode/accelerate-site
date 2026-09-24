@@ -29,8 +29,13 @@ export interface ModelRegistration {
   costTier: ModelCostTier;
   supportsTools: boolean;
   supportsJson: boolean;
+  /** Accepts the OpenRouter `reasoning` control; unknown models are assumed not to. */
+  supportsReasoning: boolean;
   contextWindow: number;
+  /** Passed the eval for every consequential job. */
   evalPassed: boolean;
+  /** Consequential jobs this model passed individually (see `setModelEvalStatus`). */
+  evalPassedJobs: string[];
   evaluatedAt: string | null;
   evaluatedBy: string | null;
 }
@@ -46,21 +51,38 @@ export interface JobRegistration {
   defaultModel: string;
   /** Optional explicit allowlist intersecting the capability match. */
   allowedModels?: string[];
+  /** Overrides DEFAULT_JOB_REASONING when a job's token budget is sized for it. */
+  reasoning?: JobReasoning;
 }
+
+export interface JobReasoning {
+  effort: "none" | "minimal" | "low" | "medium" | "high";
+  exclude?: boolean;
+}
+
+/**
+ * Job token budgets are sized for the visible answer. Reasoning models (the
+ * DeepSeek default included) otherwise spend the whole budget thinking and
+ * return empty or truncated content, so reasoning is off unless a job opts in.
+ */
+export const DEFAULT_JOB_REASONING: JobReasoning = { effort: "none" };
 
 /** Built-in seed: the only model id grounded in this repository (the live
  * default). Everything else is operator-registered, never invented. */
 const BUILT_IN_MODEL_ID = DEFAULT_OPENROUTER_MODEL;
 
-const BUILT_IN_REGISTRATION: Omit<ModelRegistration, "evalPassed" | "evaluatedAt" | "evaluatedBy"> =
-  {
-    id: BUILT_IN_MODEL_ID,
-    label: "DeepSeek V4.1 Flash (default)",
-    costTier: "low",
-    supportsTools: true,
-    supportsJson: true,
-    contextWindow: 1_048_576,
-  };
+const BUILT_IN_REGISTRATION: Omit<
+  ModelRegistration,
+  "evalPassed" | "evalPassedJobs" | "evaluatedAt" | "evaluatedBy"
+> = {
+  id: BUILT_IN_MODEL_ID,
+  label: "DeepSeek V4.1 Flash (default)",
+  costTier: "low",
+  supportsTools: true,
+  supportsJson: true,
+  supportsReasoning: true,
+  contextWindow: 1_048_576,
+};
 
 export const AI_JOBS: readonly JobRegistration[] = [
   {
@@ -209,6 +231,7 @@ function toRegistration(
       id: modelId,
       label: modelId === BUILT_IN_MODEL_ID ? BUILT_IN_REGISTRATION.label : modelId,
       evalPassed: false,
+      evalPassedJobs: [],
       evaluatedAt: null,
       evaluatedBy: null,
     };
@@ -223,8 +246,12 @@ function toRegistration(
         : "standard",
     supportsTools: stored.supportsTools !== false,
     supportsJson: stored.supportsJson !== false,
+    supportsReasoning: stored.supportsReasoning === true,
     contextWindow: Number.isFinite(Number(stored.contextWindow)) ? Number(stored.contextWindow) : 0,
     evalPassed: stored.evalPassed === true,
+    evalPassedJobs: Array.isArray(stored.evalPassedJobs)
+      ? stored.evalPassedJobs.filter((job): job is string => typeof job === "string")
+      : [],
     evaluatedAt: typeof stored.evaluatedAt === "string" ? stored.evaluatedAt : null,
     evaluatedBy: typeof stored.evaluatedBy === "string" ? stored.evaluatedBy : null,
   };
@@ -243,6 +270,7 @@ export async function registerModel(
     costTier?: ModelCostTier;
     supportsTools?: boolean;
     supportsJson?: boolean;
+    supportsReasoning?: boolean;
     contextWindow?: number;
     actorEmail: string;
   },
@@ -255,10 +283,12 @@ export async function registerModel(
     costTier: input.costTier || existing?.costTier || "standard",
     supportsTools: input.supportsTools ?? existing?.supportsTools ?? true,
     supportsJson: input.supportsJson ?? existing?.supportsJson ?? true,
+    supportsReasoning: input.supportsReasoning ?? existing?.supportsReasoning ?? false,
     contextWindow: Number.isFinite(Number(input.contextWindow))
       ? Number(input.contextWindow)
       : (existing?.contextWindow ?? 0),
     evalPassed: existing?.evalPassed ?? false,
+    evalPassedJobs: existing?.evalPassedJobs ?? [],
     evaluatedAt: existing?.evaluatedAt ?? null,
     evaluatedBy: existing?.evaluatedBy ?? null,
   };
@@ -329,11 +359,20 @@ export async function listModelRegistrations(supabase: SupabaseClient, tenantId:
 
 /**
  * Record an eval outcome. Passing unlocks free/low-cost models for
- * consequential jobs; the who/when travels with the verdict.
+ * consequential jobs; the who/when travels with the verdict. `passedJobs`
+ * records a per-job verdict so one weak job does not lock the model out of
+ * jobs it passed; omitted, `passed` applies to every job.
  */
 export async function setModelEvalStatus(
   supabase: SupabaseClient,
-  input: { tenantId: string; modelId: string; passed: boolean; actorEmail: string; notes?: string },
+  input: {
+    tenantId: string;
+    modelId: string;
+    passed: boolean;
+    passedJobs?: string[];
+    actorEmail: string;
+    notes?: string;
+  },
 ): Promise<ModelRegistration> {
   const tenantId = requireTenant(input.tenantId);
   const current =
@@ -348,8 +387,10 @@ export async function setModelEvalStatus(
         costTier: current.costTier,
         supportsTools: current.supportsTools,
         supportsJson: current.supportsJson,
+        supportsReasoning: current.supportsReasoning,
         contextWindow: current.contextWindow,
         evalPassed: input.passed,
+        evalPassedJobs: input.passedJobs ?? [],
         evaluatedAt: new Date().toISOString(),
         evaluatedBy: input.actorEmail,
         notes: input.notes ?? null,
@@ -360,7 +401,7 @@ export async function setModelEvalStatus(
     { onConflict: "tenant_id,key" },
   );
   if (error) throw new Error(`Could not record eval status: ${error.message}`);
-  return { ...current, evalPassed: input.passed };
+  return { ...current, evalPassed: input.passed, evalPassedJobs: input.passedJobs ?? [] };
 }
 
 export interface ModelResolution {
@@ -368,6 +409,8 @@ export interface ModelResolution {
   requested: string;
   resolved: string;
   fallbackEligible: boolean;
+  /** The job's reasoning control, or null when the model does not accept one. */
+  reasoning: JobReasoning | null;
 }
 
 /**
@@ -398,7 +441,9 @@ export async function resolveModelForJob(
           contextWindow: siteDefault.contextWindow,
           supportsTools: false,
           supportsJson: true,
+          supportsReasoning: false,
           evalPassed: false,
+          evalPassedJobs: [],
           evaluatedAt: null,
           evaluatedBy: null,
         }
@@ -417,12 +462,19 @@ export async function resolveModelForJob(
   if (
     job.consequential &&
     (model.costTier === "free" || model.costTier === "low") &&
-    !model.evalPassed
+    !model.evalPassed &&
+    !model.evalPassedJobs.includes(jobKey)
   )
     throw new Error(
       `Model ${model.id} is ${model.costTier}-cost and unevaluated: it cannot run consequential job ${jobKey} until its eval set passes`,
     );
-  return { job: jobKey, requested, resolved: model.id, fallbackEligible: true };
+  return {
+    job: jobKey,
+    requested,
+    resolved: model.id,
+    fallbackEligible: true,
+    reasoning: model.supportsReasoning ? (job.reasoning ?? DEFAULT_JOB_REASONING) : null,
+  };
 }
 
 /**

@@ -110,6 +110,7 @@ export async function createWeeklyReconciliationWork(
     priority: "high",
     coworkerId: FINANCE_COWORKER_ID,
     dedupeKey: `finance:reconciliation:${week}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
     surfaceInInbox: true,
@@ -128,6 +129,7 @@ export async function createDetectOverduePaymentsWork(
     priority: "high",
     coworkerId: FINANCE_COWORKER_ID,
     dedupeKey: `finance:overdue:${new Date().toISOString().slice(0, 10)}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
   });
@@ -145,6 +147,7 @@ export async function createRevenueStageAuditWork(
     priority: "medium",
     coworkerId: FINANCE_COWORKER_ID,
     dedupeKey: `finance:stage-audit:${new Date().toISOString().slice(0, 10)}`,
+    dedupeAcrossStatuses: true,
     maxAttempts: 2,
     actorEmail: input?.actorEmail,
   });

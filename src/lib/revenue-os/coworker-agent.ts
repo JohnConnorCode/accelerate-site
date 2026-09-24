@@ -1,9 +1,10 @@
 import { MAX_ACTIVE_AI_TOOLS } from "./ai-tool-bundles";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import "server-only";
-import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
 import { tenantIdForDatabase } from "@/lib/supabase/server";
 import { getOpenRouterModel, openRouterChat, type OpenRouterMessage } from "@/lib/ai/openrouter";
+import { isTenantOpenRouterConfigured } from "@/lib/ai/openrouter-credentials";
+import { resolveModelForJob } from "@/lib/ai/model-registry";
 import { claimResourceBudget } from "./budgets";
 import { getCoworker } from "./coworkers";
 import { listWorkspaceCapabilities } from "./capabilities";
@@ -61,6 +62,25 @@ function coworkerSystemPrompt(coworkerRole: string, coworkerId: string, workspac
 }
 
 export type CoworkerAgentResult = WorkResult & { runId: string };
+
+/** AI execution is available once the tenant has a credential and the
+ * registry will serve `coworker-task` (i.e. the model has passed its eval). */
+async function coworkerAiReady(supabase: SupabaseClient): Promise<boolean> {
+  const tenantId = tenantIdForDatabase(supabase);
+  if (!tenantId) return false;
+  try {
+    if (!(await isTenantOpenRouterConfigured(supabase))) return false;
+    await resolveModelForJob(
+      supabase,
+      tenantId,
+      "coworker-task",
+      process.env.OPENROUTER_AGENT_MODEL,
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function runCoworkerAgentTask(
   supabase: SupabaseClient,
@@ -175,7 +195,7 @@ export async function runCoworkerAgentTask(
           .slice(0, 50)
           .map((c) => c.capability_key)
           .join(", ")}`
-      : "No workspace capabilities registered.";
+      : "No provider capabilities are registered yet. That does not limit your tools: every advertised tool, including propose_* drafts that wait for approval, is available.";
 
     const contextPack = await loadContextPack(supabase, {
       coworkerId,
@@ -453,6 +473,6 @@ export async function tryCoworkerAgentTask(
   item: WorkItem,
   signal?: AbortSignal,
 ): Promise<CoworkerAgentResult | null> {
-  if (!(await isTenantOpenRouterConfigured(supabase))) return null;
+  if (!item.coworker_id || !(await coworkerAiReady(supabase))) return null;
   return runCoworkerAgentTask(supabase, item, { signal });
 }
