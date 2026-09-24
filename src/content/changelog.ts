@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "capy-command-center-appearance",
+    slug: "capy-command-center-appearance",
+    title: "A brighter, warmer appearance for Command Center",
+    description:
+      "Capy now pairs a graphite navigation rail and crisp white workspace surfaces with seafoam actions, monospaced titles and compact controls. The reference-led design uses a subtle warm-neutral canvas and restrained offset depth, while keeping all product icons, illustrations and copy original. The shared appearance system applies it across admin pages, the picker and fictional demos with responsive, keyboard and reduced-motion support.",
+    category: "improvement",
+    publishedAt: "2026-09-23",
+  },
+  {
     id: "paper-admin-appearance",
     slug: "paper-admin-appearance",
     title: "A calmer Paper appearance for Command Center",

@@ -321,7 +321,7 @@ export function OpenSourcePageContent() {
       <Section width="wide" divide>
         <Eyebrow className="mb-6">every screen</Eyebrow>
         <Heading size={2} as="h2" className="mb-3 max-w-2xl">
-          Seven screens, seven appearances.
+          Seven screens, nine appearances.
         </Heading>
         <p className="mb-10 max-w-2xl text-base leading-relaxed text-white-muted">
           The slider above is a preview, not the whole product. Open any screen full size, and arrow
