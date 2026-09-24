@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { registerCoworker, getCoworkerManifest, type Coworker } from "./coworkers";
 import { createWorkItem } from "./work-items";
 import { registerAutonomyPolicy } from "./autonomy-policy";
-import { registerCapability } from "./capabilities";
+import { registerRequiredCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
@@ -45,15 +45,7 @@ export async function bootstrapOperationsCoworker(
   actorEmail?: string | null,
 ): Promise<{ coworker: Coworker; capabilityGaps: string[]; readyToWork: boolean }> {
   for (const capKey of OPERATIONS_REQUIRED_CAPABILITIES) {
-    await registerCapability(supabase, {
-      capabilityKey: capKey,
-      label: capKey
-        .split(".")
-        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-        .join(" "),
-      category: "integration",
-      source: "coworker_bootstrap",
-    }).catch(() => {});
+    await registerRequiredCapability(supabase, capKey);
   }
 
   for (const policy of OPERATIONS_AUTONOMY_POLICIES) {
