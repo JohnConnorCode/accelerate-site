@@ -1,7 +1,7 @@
 ---
 title: "Review and approve actions"
 description: "How approval works, how it earns more autonomy over time, and what to check after a decision."
-updated: "2026-09-19"
+updated: "2026-09-23"
 ---
 
 When AI prepares a customer reply or a workflow proposes several tasks, review the exact change before it runs. Approvals keeps that decision connected to its context and recorded result. Eligible actions can earn a proposed increase in autonomy, which a person reviews separately.
@@ -26,11 +26,16 @@ A manual action you take yourself is different and does not route through this q
 2. Read the proposed action and the context behind it. For a message, that means the actual recipient and the actual wording, not just the fact that a message exists.
 3. Choose the decision that matches what you want.
 
-| Decision | What happens                                                                                                                           |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Approve  | The action runs as shown. Approving an email proposal can put a message in front of a real customer, not just mark a draft as read.    |
-| Revise   | The proposal goes back to whatever produced it, AI or workflow, so you can change it and review the new version before deciding again. |
-| Reject   | The action does not run. Give a reason when the screen offers one; it is what the system learns from.                                  |
+| Decision            | What happens                                                                                                                                               |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Approve             | The action runs as shown. Approving an email proposal can put a message in front of a real customer, not just mark a draft as read.                        |
+| Save draft to Gmail | For a `create_gmail_draft` proposal, saves the exact reviewed reply as an editable Gmail draft. It is not sent; review, edit, and send it in Gmail Drafts. |
+| Revise              | The proposal goes back to whatever produced it, AI or workflow, so you can change it and review the new version before deciding again.                     |
+| Reject              | The action does not run. Give a reason when the screen offers one; it is what the system learns from.                                                      |
+
+Gmail follow-ups stay in **Work → Follow-ups** after the draft is saved. Open the draft there, then send it manually from Gmail when it is ready. Gmail sync records the sent message and keeps the follow-up open while waiting for a reply. A matching reply closes that loop; the reply itself remains available in Conversations for any new work. If sync is stale or the provider result is uncertain, the item remains open for reconciliation rather than being silently closed or retried.
+
+Draft access is optional in **Setup → Gmail draft access**. Google’s `gmail.compose` scope technically permits sending too, but this follow-up action calls Gmail’s draft-creation method only. It never calls a send method. See Google’s [draft creation reference](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create) and [OAuth scope list](https://developers.google.com/workspace/gmail/api/auth/scopes) for the provider-level distinction.
 
 Approving and the action succeeding are two different events. A provider outage can leave an approved send unfinished, so check the result afterward rather than assuming approval was the last step. [Receipts and audit](/docs/start/receipts) covers the exact statuses to look for.
 

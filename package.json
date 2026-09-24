@@ -177,6 +177,8 @@
     "test:drive-sync-plan": "npx tsx scripts/test-drive-sync-plan.ts",
     "test:gmail-reply-mime": "npx tsx scripts/test-gmail-reply-mime.ts",
     "test:gmail-threading": "npx tsx scripts/test-gmail-threading.ts",
+    "test:gmail-followup-workflow": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-gmail-followup-workflow.ts",
+    "test:gmail-draft-provider": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-gmail-draft-provider.ts",
     "test:gmail-send-receipt": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-gmail-send-receipt.ts",
     "test:google-oauth": "NODE_OPTIONS=--conditions=react-server npx tsx scripts/test-google-oauth.ts",
     "test:google-readiness": "node scripts/test-google-oauth-readiness.mjs",

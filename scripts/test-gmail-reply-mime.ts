@@ -41,6 +41,17 @@ assert.match(prepared.raw, /^References: <root@mail> <msg-9>$/m);
 assert.match(prepared.raw, /Thanks — I can do Thursday\./);
 assert.equal(prepared.raw.includes("\r\n"), true, "Gmail raw MIME must use CRLF");
 
+const draftPrepared = prepareGmailReply({
+  ownerEmail: "john@acceleratewith.us",
+  recipient: "alex@example.com",
+  conversationSubject: "Scope review",
+  latest: { external_id: "msg-9", subject: "Scope review", references_header: null },
+  body: "Reviewed reply.",
+  messageId: "<stable-draft-id@example.test>",
+});
+assert.match(draftPrepared.raw, /^Message-ID: <stable-draft-id@example\.test>$/m);
+assert.equal(draftPrepared.subject, "Re: Scope review");
+
 assert.throws(
   () =>
     prepareGmailReply({
@@ -76,6 +87,20 @@ assert.doesNotMatch(
   raw,
   /In-Reply-To: <id-1>\nReferences/,
   "headers must not collapse onto one LF-only line",
+);
+const injectionSafeRaw = buildGmailReplyRaw({
+  from: "owner@example.test\r\nBcc: attacker@example.test",
+  to: "person@example.test",
+  subject: "Approved subject\r\nBcc: attacker@example.test",
+  messageId: "<draft@example.test>\r\nBcc: attacker@example.test",
+  inReplyTo: null,
+  references: null,
+  body: "Reply",
+});
+assert.doesNotMatch(
+  injectionSafeRaw,
+  /^Bcc: attacker@example\.test$/m,
+  "header values cannot inject new headers",
 );
 
 // A retained RFC parent produces real RFC threading headers: the reply
