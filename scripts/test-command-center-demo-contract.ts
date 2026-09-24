@@ -63,7 +63,7 @@ console.log(
 );
 
 assert.equal(demoWorkflows.length, 3);
-assert.equal(productFaqs.length, 6);
+assert.equal(productFaqs.length, 7);
 assert.equal(
   new Set(workflowRecipes.map((recipe) => recipe.description)).size,
   workflowRecipes.length,
