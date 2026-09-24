@@ -1278,13 +1278,14 @@ export async function createGmailDraft(
       "The Gmail thread subject changed. Refresh the conversation and review a new draft.",
     );
 
-  let claim: {
+  type DraftMessageClaim = {
     id: string;
     status: string;
     external_id: string | null;
     provider_id: string | null;
     metadata: Record<string, unknown>;
-  } | null = null;
+  };
+  let claim: DraftMessageClaim | null = null;
   const { data: prior, error: priorError } = await supabase
     .from("messages")
     .select("id,status,external_id,provider_id,metadata")
@@ -1292,8 +1293,8 @@ export async function createGmailDraft(
     .eq("idempotency_key", logicalIdempotencyKey)
     .maybeSingle();
   if (priorError) throw new Error(priorError.message);
-  claim = prior as typeof claim;
-  const receipt = (row: typeof claim, recovered = false) => ({
+  claim = prior as DraftMessageClaim | null;
+  const receipt = (row: DraftMessageClaim | null, recovered = false) => ({
     status: "drafted" as const,
     draftId: typeof row?.metadata?.gmail_draft_id === "string" ? row.metadata.gmail_draft_id : null,
     messageId: row?.external_id ?? row?.provider_id ?? null,
@@ -1419,7 +1420,7 @@ export async function createGmailDraft(
         );
       throw new Error(error.message);
     }
-    claim = data as typeof claim;
+    claim = data as DraftMessageClaim;
   }
 
   let created: { id: string; message?: { id?: string; threadId?: string } };

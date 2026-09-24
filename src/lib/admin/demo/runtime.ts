@@ -2662,10 +2662,12 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
             .runs.slice(0, 3)
             .map((run) => ({
               id: run.id,
+              kind: "ai_run",
               title: run.promptPreview,
               status: run.status,
               owner: "Workspace AI",
               outcome: run.resultPreview,
+              error: null,
               nextCheckAt: null,
               nextCheckReason: null,
               href: "/admin/ai",

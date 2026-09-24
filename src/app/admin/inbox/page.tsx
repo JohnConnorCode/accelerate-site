@@ -212,7 +212,7 @@ export default function AdminInboxPage() {
             }
           : current,
       );
-      toast.success(decision === "approve" ? "Action approved" : "Action rejected");
+      toast.success("Action rejected");
     } catch (actionError) {
       toast.error(actionError instanceof Error ? actionError.message : "Couldn't process action");
     }

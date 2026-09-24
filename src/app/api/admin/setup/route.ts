@@ -520,6 +520,7 @@ export async function GET() {
             : "action",
       required: false,
       keys: [GOOGLE_GMAIL_DRAFT_SCOPE],
+      nextRun: setupNextRun("config"),
       action: {
         label: gmailDraftsScopeGranted ? "Review Google connection" : "Grant Gmail draft access",
         href: gmailDraftsScopeGranted

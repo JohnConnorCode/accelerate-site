@@ -148,7 +148,8 @@ export async function executeClaimableWork(
       supabase,
       kind,
       async (item, signal) => {
-        // Draft preparation completes on a saved proposal; action execution work waits for execution receipts.
+        // Draft follow-up work keeps its own approval and Gmail receipt lifecycle.
+        // Other work kinds reconcile linked action receipts here.
         if (kind !== "draft_followup") {
           // The action stores its work link in the original insert. This survives
           // interruption between proposal creation and updating the work/run trace.
