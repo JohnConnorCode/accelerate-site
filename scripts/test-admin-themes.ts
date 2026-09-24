@@ -47,7 +47,8 @@ for (const preset of themes) {
 }
 const paper = themes.find((theme) => theme.id === "light")!;
 assert.ok(
-  themeContrast(paper.tokens["--admin-nav-active-ink"]!, paper.tokens["--admin-nav-active-bg"]!) >= 4.5,
+  themeContrast(paper.tokens["--admin-nav-active-ink"]!, paper.tokens["--admin-nav-active-bg"]!) >=
+    4.5,
   "Paper selected navigation must keep a legible cobalt label on its softened tint",
 );
 const valid = themeFromPreset("signal");

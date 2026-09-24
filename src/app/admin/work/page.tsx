@@ -88,7 +88,9 @@ export default function WorkPage() {
   const [search, setSearch] = useState("");
   const [source, setSource] = useState("");
   const [layout, setLayout] = useState<WorkflowLayout>("list");
-  const [visibleFields, setVisibleFields] = useState(taskViewDescriptor.fields.map((field) => field.id));
+  const [visibleFields, setVisibleFields] = useState(
+    taskViewDescriptor.fields.map((field) => field.id),
+  );
   const [viewReadyScope, setViewReadyScope] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -467,11 +469,27 @@ export default function WorkPage() {
           <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 text-sm">
             <WorkflowLayoutSwitcher value={layout} onChange={setLayout} />
             <details className="relative">
-              <summary className="admin-button admin-button-secondary cursor-pointer list-none">Fields</summary>
+              <summary className="admin-button admin-button-secondary cursor-pointer list-none">
+                Fields
+              </summary>
               <div className="absolute right-0 z-20 mt-2 grid min-w-44 gap-2 rounded-[var(--admin-control-radius)] border border-[var(--admin-border)] bg-[var(--admin-surface)] p-3 shadow-[var(--admin-shadow)]">
                 {taskViewDescriptor.fields.map((field) => (
-                  <label key={field.id} className="flex min-h-11 items-center gap-2 text-xs text-[var(--admin-ink)]">
-                    <input type="checkbox" disabled={field.id === "task"} checked={field.id === "task" || visibleFields.includes(field.id)} onChange={(event) => setVisibleFields((current) => event.target.checked ? [...current, field.id] : current.filter((id) => id !== field.id))} />
+                  <label
+                    key={field.id}
+                    className="flex min-h-11 items-center gap-2 text-xs text-[var(--admin-ink)]"
+                  >
+                    <input
+                      type="checkbox"
+                      disabled={field.id === "task"}
+                      checked={field.id === "task" || visibleFields.includes(field.id)}
+                      onChange={(event) =>
+                        setVisibleFields((current) =>
+                          event.target.checked
+                            ? [...current, field.id]
+                            : current.filter((id) => id !== field.id),
+                        )
+                      }
+                    />
                     {field.label}
                   </label>
                 ))}
@@ -527,115 +545,166 @@ export default function WorkPage() {
                 .map((group) => {
                   const rows = visible.filter((row) => row.status === group.id);
                   return (
-                    <section key={group.id} aria-labelledby={`work-column-${group.id}`} className="min-w-[min(82vw,20rem)] flex-1 space-y-3 rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface-subtle)] p-3 sm:min-w-72">
-                      <h2 id={`work-column-${group.id}`} className="flex items-center justify-between px-1 text-sm font-semibold text-[var(--admin-ink)]">{group.label}<span className="text-xs font-normal text-[var(--admin-muted)]">{rows.length}</span></h2>
+                    <section
+                      key={group.id}
+                      aria-labelledby={`work-column-${group.id}`}
+                      className="min-w-[min(82vw,20rem)] flex-1 space-y-3 rounded-[var(--admin-surface-radius)] bg-[var(--admin-surface-subtle)] p-3 sm:min-w-72"
+                    >
+                      <h2
+                        id={`work-column-${group.id}`}
+                        className="flex items-center justify-between px-1 text-sm font-semibold text-[var(--admin-ink)]"
+                      >
+                        {group.label}
+                        <span className="text-xs font-normal text-[var(--admin-muted)]">
+                          {rows.length}
+                        </span>
+                      </h2>
                       {rows.map((row) => (
-                        <AdminSurface key={row.id} padding="sm" elevation="flat" className="space-y-2">
-                          <button type="button" className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]" onClick={() => edit(row)}>
-                            <span className="block text-sm font-semibold text-[var(--admin-ink)]">{row.title}</span>
-                            {visibleFields.includes("related") && <span className="mt-1 block text-xs text-[var(--admin-muted)]">{row.related_name || "No related record"}</span>}
+                        <AdminSurface
+                          key={row.id}
+                          padding="sm"
+                          elevation="flat"
+                          className="space-y-2"
+                        >
+                          <button
+                            type="button"
+                            className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]"
+                            onClick={() => edit(row)}
+                          >
+                            <span className="block text-sm font-semibold text-[var(--admin-ink)]">
+                              {row.title}
+                            </span>
+                            {visibleFields.includes("related") && (
+                              <span className="mt-1 block text-xs text-[var(--admin-muted)]">
+                                {row.related_name || "No related record"}
+                              </span>
+                            )}
                           </button>
                           <div className="flex items-center justify-between gap-2 text-xs text-[var(--admin-muted)]">
-                            {visibleFields.includes("due") && <span>{relativeTime(row.due_date)}</span>}
-                            {visibleFields.includes("priority") && <span className="capitalize">{row.priority === "normal" ? "medium" : row.priority}</span>}
+                            {visibleFields.includes("due") && (
+                              <span>{relativeTime(row.due_date)}</span>
+                            )}
+                            {visibleFields.includes("priority") && (
+                              <span className="capitalize">
+                                {row.priority === "normal" ? "medium" : row.priority}
+                              </span>
+                            )}
                           </div>
-                          {row.status !== "completed" && <button type="button" disabled={busy} onClick={() => void mutateTask(row, true)} className="admin-button admin-button-secondary min-h-10 w-full">Complete task</button>}
+                          {row.status !== "completed" && (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => void mutateTask(row, true)}
+                              className="admin-button admin-button-secondary min-h-10 w-full"
+                            >
+                              Complete task
+                            </button>
+                          )}
                         </AdminSurface>
                       ))}
-                      {!rows.length && <p className="px-1 py-4 text-xs text-[var(--admin-muted)]">No {group.label.toLowerCase()} tasks.</p>}
+                      {!rows.length && (
+                        <p className="px-1 py-4 text-xs text-[var(--admin-muted)]">
+                          No {group.label.toLowerCase()} tasks.
+                        </p>
+                      )}
                     </section>
                   );
                 })}
             </div>
           ) : (
-          <>
-          <AdminSurface padding="none" elevation="flat">
-            <div className="admin-work-heading" aria-hidden="true">
-              <div className="admin-work-columns">
-                {visibleFields.includes("task") && <span>Task</span>}
-                {visibleFields.includes("related") && <span>Related record</span>}
-                {visibleFields.includes("due") && <span>Due</span>}
-                {visibleFields.includes("priority") && <span>Priority</span>}
-              </div>
-              <span>Action</span>
-            </div>
-            <ul>
-              {visible.map((row) => (
-                <li key={row.id} data-source-type="task" data-source-id={row.id}>
-                  <AdminRecordRow
-                    label={`Open task ${row.title}`}
-                    onOpen={() => edit(row)}
-                    actions={
-                      row.status !== "completed" ? (
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => void mutateTask(row, true)}
-                          aria-label={`Complete ${row.title}`}
-                          className="admin-work-complete inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-[var(--admin-ink)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
-                        >
-                          <CheckCircle2 className="size-4" aria-hidden="true" />
-                          <span className="admin-work-action-label">Complete</span>
-                        </button>
-                      ) : (
-                        <span className="admin-work-complete text-xs text-[var(--admin-muted)]">
-                          Completed
-                        </span>
-                      )
-                    }
-                  >
-                    <span className="admin-work-columns" style={{ gridTemplateColumns: `repeat(${visibleFields.length}, minmax(0, 1fr))` }}>
-                      {visibleFields.includes("task") && (
-                      <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-[var(--admin-ink)]">
-                          {row.title}
-                        </span>
-                        <span className="mt-1 block text-xs capitalize text-[var(--admin-muted)]">
-                          {row.status === "pending" ? "Open" : row.status}
-                          {row.source ? ` · ${row.source.replaceAll("_", " ")}` : ""}
-                        </span>
-                      </span>
-                      )}
-                      {visibleFields.includes("related") && (
-                      <span className="admin-work-related text-sm text-[var(--admin-muted)]">
-                        {row.related_name || "No related record"}
-                      </span>
-                      )}
-                      {visibleFields.includes("due") && (
-                      <span
-                        className={cn(
-                          "text-sm tabular-nums",
-                          row.status !== "completed" &&
-                            relativeTime(row.due_date).includes("overdue")
-                            ? "font-medium text-[var(--admin-danger)]"
-                            : "text-[var(--admin-muted)]",
-                        )}
+            <>
+              <AdminSurface padding="none" elevation="flat">
+                <div className="admin-work-heading" aria-hidden="true">
+                  <div className="admin-work-columns">
+                    {visibleFields.includes("task") && <span>Task</span>}
+                    {visibleFields.includes("related") && <span>Related record</span>}
+                    {visibleFields.includes("due") && <span>Due</span>}
+                    {visibleFields.includes("priority") && <span>Priority</span>}
+                  </div>
+                  <span>Action</span>
+                </div>
+                <ul>
+                  {visible.map((row) => (
+                    <li key={row.id} data-source-type="task" data-source-id={row.id}>
+                      <AdminRecordRow
+                        label={`Open task ${row.title}`}
+                        onOpen={() => edit(row)}
+                        actions={
+                          row.status !== "completed" ? (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => void mutateTask(row, true)}
+                              aria-label={`Complete ${row.title}`}
+                              className="admin-work-complete inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-[var(--admin-ink)] hover:bg-[var(--admin-success-soft)] disabled:opacity-50"
+                            >
+                              <CheckCircle2 className="size-4" aria-hidden="true" />
+                              <span className="admin-work-action-label">Complete</span>
+                            </button>
+                          ) : (
+                            <span className="admin-work-complete text-xs text-[var(--admin-muted)]">
+                              Completed
+                            </span>
+                          )
+                        }
                       >
-                        {relativeTime(row.due_date)}
-                      </span>
-                      )}
-                      {visibleFields.includes("priority") && (
-                      <span className="text-xs font-medium capitalize text-[var(--admin-ink)]">
-                        <span className="admin-work-mobile-label">Priority: </span>
-                        {row.priority === "normal" ? "medium" : row.priority}
-                      </span>
-                      )}
-                    </span>
-                  </AdminRecordRow>
-                </li>
-              ))}
-            </ul>
-            {!visible.length && (
-              <p className="p-5 text-sm text-[var(--admin-muted)]">
-                {tasksQuery.isPending ? "Loading tasks…" : "No tasks match these filters."}
+                        <span
+                          className="admin-work-columns"
+                          style={{
+                            gridTemplateColumns: `repeat(${visibleFields.length}, minmax(0, 1fr))`,
+                          }}
+                        >
+                          {visibleFields.includes("task") && (
+                            <span className="min-w-0">
+                              <span className="block text-sm font-semibold text-[var(--admin-ink)]">
+                                {row.title}
+                              </span>
+                              <span className="mt-1 block text-xs capitalize text-[var(--admin-muted)]">
+                                {row.status === "pending" ? "Open" : row.status}
+                                {row.source ? ` · ${row.source.replaceAll("_", " ")}` : ""}
+                              </span>
+                            </span>
+                          )}
+                          {visibleFields.includes("related") && (
+                            <span className="admin-work-related text-sm text-[var(--admin-muted)]">
+                              {row.related_name || "No related record"}
+                            </span>
+                          )}
+                          {visibleFields.includes("due") && (
+                            <span
+                              className={cn(
+                                "text-sm tabular-nums",
+                                row.status !== "completed" &&
+                                  relativeTime(row.due_date).includes("overdue")
+                                  ? "font-medium text-[var(--admin-danger)]"
+                                  : "text-[var(--admin-muted)]",
+                              )}
+                            >
+                              {relativeTime(row.due_date)}
+                            </span>
+                          )}
+                          {visibleFields.includes("priority") && (
+                            <span className="text-xs font-medium capitalize text-[var(--admin-ink)]">
+                              <span className="admin-work-mobile-label">Priority: </span>
+                              {row.priority === "normal" ? "medium" : row.priority}
+                            </span>
+                          )}
+                        </span>
+                      </AdminRecordRow>
+                    </li>
+                  ))}
+                </ul>
+                {!visible.length && (
+                  <p className="p-5 text-sm text-[var(--admin-muted)]">
+                    {tasksQuery.isPending ? "Loading tasks…" : "No tasks match these filters."}
+                  </p>
+                )}
+              </AdminSurface>
+              <p className="text-xs text-[var(--admin-muted)]">
+                Showing up to 100 tasks for the selected ownership and status. App-specific cases
+                keep their own workspaces.
               </p>
-            )}
-          </AdminSurface>
-          <p className="text-xs text-[var(--admin-muted)]">
-            Showing up to 100 tasks for the selected ownership and status. App-specific cases keep
-            their own workspaces.
-          </p>
-          </>
+            </>
           )}
         </>
       ) : (

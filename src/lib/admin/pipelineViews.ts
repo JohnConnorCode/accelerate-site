@@ -343,7 +343,9 @@ export function loadLastPipelineView(scope = "default"): PipelineViewState {
 }
 
 export function hasLastPipelineView(scope = "default"): boolean {
-  return typeof window !== "undefined" && window.localStorage.getItem(key(LAST_VIEW_KEY, scope)) !== null;
+  return (
+    typeof window !== "undefined" && window.localStorage.getItem(key(LAST_VIEW_KEY, scope)) !== null
+  );
 }
 
 export function saveLastPipelineView(state: PipelineViewState, scope = "default"): void {
@@ -372,7 +374,11 @@ export function loadSavedPipelineViews(scope = "default"): SavedPipelineView[] {
   });
 }
 
-export function savePipelineView(name: string, state: PipelineViewState, scope = "default"): SavedPipelineView[] {
+export function savePipelineView(
+  name: string,
+  state: PipelineViewState,
+  scope = "default",
+): SavedPipelineView[] {
   const trimmed = name.trim().slice(0, 60);
   if (!trimmed) return loadSavedPipelineViews(scope);
   const existing = loadSavedPipelineViews(scope);

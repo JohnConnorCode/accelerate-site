@@ -71,12 +71,17 @@ interface Opportunity {
   contact?: { full_name: string; primary_email: string | null } | null;
   company?: { name: string; domain: string | null; industry: string | null } | null;
 }
-const pipelineWorkflowDescriptor = (columns: readonly KanbanColumnRecord[]): WorkflowViewDescriptor<Opportunity> => ({
+const pipelineWorkflowDescriptor = (
+  columns: readonly KanbanColumnRecord[],
+): WorkflowViewDescriptor<Opportunity> => ({
   id: "pipeline",
   label: "Pipeline",
   layouts: ["list", "board", "calendar"],
   fields: PIPELINE_VISIBLE_FIELDS,
-  groupBy: { label: "Stage", values: columns.map((column) => ({ id: column.column_key, label: column.label })) },
+  groupBy: {
+    label: "Stage",
+    values: columns.map((column) => ({ id: column.column_key, label: column.label })),
+  },
   sortBy: [
     { id: "next_action_at", label: "Next action" },
     { id: "created_at", label: "Created" },
@@ -161,7 +166,8 @@ export default function PipelinePage() {
     opportunities: Opportunity[];
   }>(["admin", "pipeline"], "/api/admin/revenue-os/pipeline");
   const data = pipelineQuery.data ?? null;
-  const preferenceScope = data?.tenantId && data.viewerId ? `${data.tenantId}:${data.viewerId}` : "";
+  const preferenceScope =
+    data?.tenantId && data.viewerId ? `${data.tenantId}:${data.viewerId}` : "";
   const loading = pipelineQuery.isPending;
   const refreshing = pipelineQuery.isFetching;
   const error = actionError || pipelineQuery.error?.message || "";

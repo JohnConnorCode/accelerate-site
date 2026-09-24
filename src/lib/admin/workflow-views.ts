@@ -35,13 +35,17 @@ export function normalizeWorkflowPreference(
           typeof id === "string" && descriptor.fields.some((field) => field.id === id),
       )
     : fallback.visibleFields;
-  const filters = raw.filters && typeof raw.filters === "object"
-    ? Object.fromEntries(
-        Object.entries(raw.filters).filter(
-          ([id, value]) => descriptor.filters.some((filter) => filter.id === id) && typeof value === "string",
-        ).map(([id, value]) => [id, (value as string).slice(0, 200)]),
-      )
-    : undefined;
+  const filters =
+    raw.filters && typeof raw.filters === "object"
+      ? Object.fromEntries(
+          Object.entries(raw.filters)
+            .filter(
+              ([id, value]) =>
+                descriptor.filters.some((filter) => filter.id === id) && typeof value === "string",
+            )
+            .map(([id, value]) => [id, (value as string).slice(0, 200)]),
+        )
+      : undefined;
   return {
     layout:
       typeof raw.layout === "string" && descriptor.layouts.includes(raw.layout as WorkflowLayout)
@@ -112,6 +116,12 @@ export function workflowDayKey(date: Date): string {
 export function workflowCalendarDays(month: Date): Date[] {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const start = new Date(first.getFullYear(), first.getMonth(), first.getDate() - first.getDay());
-  const count = Math.ceil((first.getDay() + new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()) / 7) * 7;
-  return Array.from({ length: count }, (_, index) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + index));
+  const count =
+    Math.ceil(
+      (first.getDay() + new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()) / 7,
+    ) * 7;
+  return Array.from(
+    { length: count },
+    (_, index) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + index),
+  );
 }
