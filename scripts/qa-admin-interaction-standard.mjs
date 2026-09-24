@@ -32,7 +32,7 @@ assert.match(
 await page.screenshot({ path: `${output}/today-row-detail.png`, fullPage: true });
 
 await page.goto(`${base}/demo/command-center/northline-roofing/work`, { waitUntil: "networkidle" });
-await page.getByRole("heading", { name: "Tasks & approvals" }).waitFor();
+await page.getByRole("heading", { name: "Work" }).waitFor();
 const recordRow = page.locator("[data-record-row]").first();
 assert.ok(await recordRow.count(), "Work page has shared record rows");
 await recordRow.getByRole("button").first().click();
@@ -62,7 +62,7 @@ assert.ok(await page.locator("table").isVisible(), "Desktop keeps proposal list 
 await page.goto(`${base}/demo/command-center/northline-roofing/inbox`, {
   waitUntil: "networkidle",
 });
-await page.getByRole("heading", { name: "Review queue" }).waitFor();
+await page.getByRole("heading", { name: "Intake review" }).waitFor();
 const inboxRow = page.locator("article[tabindex='0']").first();
 assert.ok(await inboxRow.count(), "Review queue rows are keyboard focusable");
 await Promise.all([
@@ -76,7 +76,10 @@ await page.goto(`${base}/demo/command-center/northline-roofing/pipeline`, {
   waitUntil: "networkidle",
 });
 await page.getByRole("heading", { name: "Pipeline" }).waitFor();
-await page.getByRole("button", { name: "List view" }).click();
+await page
+  .getByRole("group", { name: "Pipeline layout" })
+  .getByRole("button", { name: "List" })
+  .click();
 const pipelineRow = page.locator("tr[data-opportunity-id]").first();
 assert.equal(
   await pipelineRow.getAttribute("tabindex"),
