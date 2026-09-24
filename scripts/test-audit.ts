@@ -157,6 +157,10 @@ async function main() {
     activityPage: readFileSync("src/app/admin/activity/page.tsx", "utf8"),
     proposals: readFileSync("src/app/api/admin/proposals/route.ts", "utf8"),
     publicProposal: readFileSync("src/app/api/proposal/[token]/route.ts", "utf8"),
+    proposalLifecycle: readFileSync(
+      "migrations/20260924-proposal-audit-decline-reason.sql",
+      "utf8",
+    ),
     settings: readFileSync("src/app/api/admin/settings/route.ts", "utf8"),
     calendar: readFileSync("src/lib/revenue-os/google.ts", "utf8"),
     features: readFileSync("src/app/api/admin/features/route.ts", "utf8"),
@@ -178,18 +182,16 @@ async function main() {
     /after:\s*data/,
     "Proposal audit must not persist the full proposal document",
   );
-  assert.match(coverage.publicProposal, /proposal\.viewed/);
+  // Public views and decisions are audited inside apply_proposal_lifecycle,
+  // atomically with the transition, rather than by a best-effort route write.
+  assert.match(coverage.publicProposal, /recordProposalView/);
+  assert.match(coverage.proposalLifecycle, /'proposal\.'\|\|coalesce\(event/);
   assert.match(
-    coverage.publicProposal,
-    /Proposal view audit failed/,
-    "A public view must still return after an audit write failure",
-  );
-  assert.match(coverage.publicProposal, /proposal\.accepted/);
-  assert.match(
-    coverage.publicProposal,
-    /has_reason/,
+    coverage.proposalLifecycle,
+    /ARRAY\['share_token','content','decline_reason'\]/,
     "Decline reasons stay out of the audit payload",
   );
+  assert.match(coverage.proposalLifecycle, /'has_reason',p\.decline_reason IS NOT NULL/);
   assert.match(coverage.settings, /settings\.updated/);
   assert.match(coverage.settings, /configured: Boolean/);
   assert.doesNotMatch(
@@ -206,7 +208,9 @@ async function main() {
     /attendees/,
     "Calendar audit summaries must not include attendee payloads",
   );
-  assert.match(coverage.features, /feature\.updated/);
+  // Feature board changes are recorded in the work board's own event ledger.
+  assert.match(coverage.features, /mutateWorkBoard/);
+  assert.match(coverage.features, /workHistory/);
   assert.match(coverage.demo, /auditHistory\(/);
   assert.doesNotMatch(coverage.demo, /type: \["lead", "email", "task", "proposal"\]/);
 
