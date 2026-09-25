@@ -159,7 +159,7 @@ export default function ProposalsPage() {
             <button
               type="button"
               onClick={handleCreateBlank}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-gold-gradient px-3 text-sm font-medium transition-[filter,transform] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]"
+              className="admin-action-control px-3 text-sm font-medium"
             >
               + New Proposal
             </button>

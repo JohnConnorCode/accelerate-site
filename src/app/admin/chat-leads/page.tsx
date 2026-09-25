@@ -298,7 +298,7 @@ export default function ChatLeadsPage() {
                                     </a>
                                     <Link
                                       href={`/admin/contacts/${encodeURIComponent(lead.email)}`}
-                                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-gold-gradient px-3 text-xs font-semibold text-black transition-[filter,transform] hover:brightness-110 active:scale-[0.96]"
+                                      className="admin-action-control min-h-10 px-3 text-xs font-semibold active:scale-[0.96]"
                                     >
                                       Open contact <ExternalLink className="h-3.5 w-3.5" />
                                     </Link>

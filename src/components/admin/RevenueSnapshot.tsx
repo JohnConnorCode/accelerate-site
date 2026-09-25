@@ -79,13 +79,13 @@ export function RevenueSnapshot({
         <div className="admin-grid admin-grid--metrics mb-6">
           <div className="rounded-lg bg-white/5 p-4">
             <p className="text-xs text-white-muted mb-1">Total Pipeline</p>
-            <p className="text-xl font-display font-bold text-gold-gradient">
+            <p className="text-xl font-display font-bold text-[var(--admin-ink)]">
               ${totalPipelineValue.toLocaleString()}
             </p>
           </div>
           <div className="rounded-lg bg-white/5 p-4">
             <p className="text-xs text-white-muted mb-1">Won Revenue</p>
-            <p className="text-xl font-display font-bold text-emerald-400">
+            <p className="text-xl font-display font-bold text-[var(--admin-success)]">
               ${wonRevenue.toLocaleString()}
             </p>
           </div>
