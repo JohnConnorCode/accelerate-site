@@ -886,6 +886,27 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   box-shadow: var(--admin-focus-ring);
   background: var(--admin-surface);
 }
+/* One coordinated dropdown affordance for every native admin select, in all
+ * themes. Selects that already paint their own overlay icon carry
+ * `appearance-none` and are left alone. */
+.admin-shell select:not(.appearance-none) {
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: var(--admin-select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 14px 14px;
+  cursor: pointer;
+}
+.admin-shell select:not(.appearance-none):disabled {
+  cursor: not-allowed;
+}
+/* Keep the native date picker indicator clear of the field edge. */
+.admin-shell input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+  margin-left: 2px;
+}
 
 .admin-route-frame {
   width: 100%;

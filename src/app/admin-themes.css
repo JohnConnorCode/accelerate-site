@@ -76,6 +76,7 @@
   --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 4%, transparent);
   --admin-hover-glow: 0 0 0 0 transparent;
   --admin-radius-button: var(--admin-control-radius);
+  --admin-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23626570' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -155,6 +156,7 @@
   --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 4%, transparent);
   --admin-hover-glow: 0 0 0 0 transparent;
   --admin-radius-button: var(--admin-control-radius);
+  --admin-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23adb3ba' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: dark;
 }
 
@@ -234,6 +236,7 @@
   --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 4%, transparent);
   --admin-hover-glow: 0 0 0 0 transparent;
   --admin-radius-button: var(--admin-control-radius);
+  --admin-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a0bdc5' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: dark;
 }
 
@@ -313,6 +316,7 @@
   --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 4%, transparent);
   --admin-hover-glow: 0 0 0 0 transparent;
   --admin-radius-button: var(--admin-control-radius);
+  --admin-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b6259' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -392,6 +396,7 @@
   --admin-hover-tint: color-mix(in srgb, var(--admin-accent) 8%, transparent);
   --admin-hover-glow: 0 0 0 3px color-mix(in srgb, var(--admin-accent) 22%, transparent);
   --admin-radius-button: var(--admin-control-radius);
+  --admin-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23526873' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -471,6 +476,7 @@
   --admin-hover-tint: color-mix(in srgb, var(--admin-accent) 6%, transparent);
   --admin-hover-glow: 0 0 0 0 transparent;
   --admin-radius-button: 999px;
+  --admin-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23685c70' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -550,6 +556,7 @@
   --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 5%, transparent);
   --admin-hover-glow: 0 0 0 0 transparent;
   --admin-radius-button: var(--admin-control-radius);
+  --admin-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23626770' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -629,6 +636,7 @@
   --admin-hover-tint: color-mix(in srgb, var(--admin-ink) 5%, transparent);
   --admin-hover-glow: 0 0 0 0 transparent;
   --admin-radius-button: var(--admin-control-radius);
+  --admin-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2345453f' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -708,5 +716,6 @@
   --admin-hover-tint: color-mix(in srgb, var(--admin-accent) 7%, transparent);
   --admin-hover-glow: 0 0 0 0 transparent;
   --admin-radius-button: 8px;
+  --admin-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234f575a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: light;
 }

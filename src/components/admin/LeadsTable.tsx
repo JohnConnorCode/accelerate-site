@@ -9,6 +9,8 @@ import {
   Search,
   Download,
   ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
   Trash2,
   Users,
   Tag,
@@ -510,13 +512,21 @@ export function LeadsTable({
                   className="flex cursor-pointer items-center gap-1 uppercase hover:text-white-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]/40 focus-visible:ring-offset-2"
                 >
                   Score
-                  <ArrowUpDown
-                    className={cn(
-                      "h-3 w-3",
-                      scoreSort ? "text-white-primary" : "text-white-muted/50",
-                    )}
-                  />
-                  {scoreSort && <span className="text-[10px] text-white-muted">{scoreSort}</span>}
+                  {scoreSort &&
+                    (scoreSort === "asc" ? (
+                      <ArrowUp
+                        className="h-3 w-3 text-white-primary"
+                        aria-label="sorted ascending"
+                      />
+                    ) : (
+                      <ArrowDown
+                        className="h-3 w-3 text-white-primary"
+                        aria-label="sorted descending"
+                      />
+                    ))}
+                  {!scoreSort && (
+                    <ArrowUpDown className="h-3 w-3 text-white-muted/50" aria-hidden="true" />
+                  )}
                 </button>
               </th>
               <SortHeader
@@ -595,7 +605,10 @@ export function LeadsTable({
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={cn("text-xs font-semibold rounded-full px-2 py-0.5", scoreColor)}
+                        className={cn(
+                          "inline-flex items-center whitespace-nowrap text-xs font-semibold rounded-full px-2 py-0.5",
+                          scoreColor,
+                        )}
                       >
                         {label} {score}
                       </span>
@@ -772,13 +785,14 @@ function SortHeader({ field, children, onSort, sortField, sortOrder }: SortHeade
         className="flex cursor-pointer items-center gap-1 uppercase hover:text-white-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-base)]/40 focus-visible:ring-offset-2"
       >
         {children}
-        <ArrowUpDown
-          className={cn("h-3 w-3", active ? "text-white-primary" : "text-white-muted/50")}
-        />
-        {active && (
-          <span className="text-[10px] text-white-muted">
-            {sortOrder === "asc" ? "asc" : "desc"}
-          </span>
+        {active ? (
+          sortOrder === "asc" ? (
+            <ArrowUp className="h-3 w-3 text-white-primary" aria-label="sorted ascending" />
+          ) : (
+            <ArrowDown className="h-3 w-3 text-white-primary" aria-label="sorted descending" />
+          )
+        ) : (
+          <ArrowUpDown className="h-3 w-3 text-white-muted/50" aria-hidden="true" />
         )}
       </button>
     </th>
