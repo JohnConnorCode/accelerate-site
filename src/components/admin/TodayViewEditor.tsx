@@ -1,6 +1,15 @@
 "use client";
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Check, GripVertical, Plus, Trash2, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  ChevronDown,
+  GripVertical,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import { AdminDialog } from "./AdminDialog";
 import {
   TODAY_MODULES,
@@ -150,8 +159,14 @@ export function TodayViewEditor({
             <h3>Your modules</h3>
             <span>{draft.modules.length} of 16</span>
           </div>
-          <details className={styles.arrangementPreview}>
-            <summary>Preview arrangement</summary>
+          <details className={`${styles.arrangementPreview} group`}>
+            <summary className="flex cursor-pointer list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden">
+              Preview arrangement
+              <ChevronDown
+                className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                aria-hidden="true"
+              />
+            </summary>
             <div className={styles.previewGrid}>
               {draft.modules.map((module) => (
                 <div

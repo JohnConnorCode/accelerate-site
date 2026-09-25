@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Play, PlugZap } from "lucide-react";
+import { ChevronDown, Play, PlugZap } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 import AdminLink from "@/components/admin/AdminLink";
@@ -183,8 +183,14 @@ export default function PluginsPage() {
                           <p className="admin-copy mt-1 text-xs leading-5 break-words">
                             {item.detail}
                           </p>
-                          <details className="admin-copy mt-1 text-xs">
-                            <summary className="cursor-pointer py-2">Source reference</summary>
+                          <details className="admin-copy group mt-1 text-xs">
+                            <summary className="flex cursor-pointer list-none items-center gap-1.5 py-2 [&::-webkit-details-marker]:hidden">
+                              Source reference
+                              <ChevronDown
+                                className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                                aria-hidden="true"
+                              />
+                            </summary>
                             <code className="break-all">
                               {item.source} / {item.id}
                             </code>

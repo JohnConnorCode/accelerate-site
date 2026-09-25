@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw, TriangleAlert } from "lucide-react";
+import { ChevronDown, RefreshCw, TriangleAlert } from "lucide-react";
 import { AdminAsyncRegion } from "@/components/admin/AdminAsyncRegion";
 import { AdminSurface } from "@/components/admin/AdminSurface";
 
@@ -46,8 +46,14 @@ export function AdminReadBody({
             Try again. If the problem continues, check Setup for any connection that needs
             attention.
           </p>
-          <details className="admin-error-details mt-2 text-xs">
-            <summary>View error details</summary>
+          <details className="admin-error-details group mt-2 text-xs">
+            <summary className="flex cursor-pointer list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden">
+              View error details
+              <ChevronDown
+                className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                aria-hidden="true"
+              />
+            </summary>
             <p className="mt-2 break-words">{error}</p>
           </details>
           {onRetry && (

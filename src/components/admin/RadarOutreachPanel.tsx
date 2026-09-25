@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mail, RefreshCw } from "lucide-react";
+import { ChevronDown, Mail, RefreshCw } from "lucide-react";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { AdminSurface } from "./AdminSurface";
 import { AdminDialog } from "./AdminDialog";
@@ -183,9 +183,13 @@ export function RadarOutreachPanel({
               ))}
             </select>
           </label>
-          <details className="rounded-xl bg-[var(--admin-surface-subtle)] p-4">
-            <summary className="min-h-10 cursor-pointer text-sm font-semibold">
+          <details className="group rounded-xl bg-[var(--admin-surface-subtle)] p-4">
+            <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
               Prepare a new outreach draft
+              <ChevronDown
+                className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                aria-hidden="true"
+              />
             </summary>
             <label className="mt-3 block text-sm">
               Useful contribution

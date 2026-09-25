@@ -1,4 +1,5 @@
 "use client";
+import { ChevronDown } from "lucide-react";
 import { readableReason } from "@/lib/work-packet";
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/admin/fetchJson";
@@ -226,9 +227,13 @@ export function WorkControls({
         )}
       </div>
       {feature.status === "in_progress" && (
-        <details>
-          <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">
+        <details className="group">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Submit verification for review
+            <ChevronDown
+              className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+              aria-hidden="true"
+            />
           </summary>
           <div className="space-y-3">
             <label className="block text-xs">
@@ -281,9 +286,13 @@ export function WorkControls({
           </div>
         </details>
       )}
-      <details>
-        <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">
+      <details className="group">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
           Dependencies ({dependencies.length})
+          <ChevronDown
+            className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+            aria-hidden="true"
+          />
         </summary>
         <div className="max-h-60 space-y-1 overflow-auto">
           {cards
@@ -317,9 +326,13 @@ export function WorkControls({
           </button>
         )}
       </details>
-      <details>
-        <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">
+      <details className="group">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
           Implementation contract
+          <ChevronDown
+            className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+            aria-hidden="true"
+          />
         </summary>
         {feature.work_spec?.businessValue != null && (
           <p className="mb-3 text-sm">{String(feature.work_spec.businessValue)}</p>
@@ -398,9 +411,13 @@ export function WorkControls({
           ),
         )}
         {planning && (
-          <details className="my-4">
-            <summary className="min-h-11 cursor-pointer py-3 text-xs font-semibold">
+          <details className="group my-4">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 py-3 text-xs font-semibold [&::-webkit-details-marker]:hidden">
               Edit full execution packet
+              <ChevronDown
+                className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                aria-hidden="true"
+              />
             </summary>
             <p className="mb-2 text-xs text-[var(--admin-muted)]">
               Use the versioned packet to set the north star outcome, repository base, references,
@@ -466,9 +483,13 @@ export function WorkControls({
         )}
       </details>
       {Object.keys(feature.work_delivery ?? {}).length > 0 && (
-        <details>
-          <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">
+        <details className="group">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Delivery evidence
+            <ChevronDown
+              className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+              aria-hidden="true"
+            />
           </summary>
           <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words text-xs">
             {JSON.stringify(feature.work_delivery, null, 2)}
@@ -479,9 +500,13 @@ export function WorkControls({
         </details>
       )}
       {feature.status === "shipped" && (
-        <details>
-          <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">
+        <details className="group">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Record merge or deployment evidence
+            <ChevronDown
+              className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+              aria-hidden="true"
+            />
           </summary>
           <p className="mb-3 text-xs">
             Record a completed external action with its evidence. These controls do not merge or

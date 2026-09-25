@@ -1,6 +1,6 @@
 "use client";
 import type { Dispatch, SetStateAction } from "react";
-import { Sparkles, X } from "lucide-react";
+import { ChevronDown, Sparkles, X } from "lucide-react";
 import { AdminDialog } from "./AdminDialog";
 import { button, primary, field, label, words } from "./RadarUI";
 import { RADAR_FACTORS, type RadarAssessment } from "@/lib/revenue-os/radar-ranking-contract";
@@ -370,9 +370,13 @@ export function RadarEditorDialog({
                       max={500}
                     />
                   </div>
-                  <details className="mt-3 text-xs">
-                    <summary className="min-h-10 cursor-pointer py-3 font-semibold">
+                  <details className="group mt-3 text-xs">
+                    <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 py-3 font-semibold [&::-webkit-details-marker]:hidden">
                       Cited sources ({a.estimates[key].sourceVersionIds.length})
+                      <ChevronDown
+                        className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                        aria-hidden="true"
+                      />
                     </summary>
                     {sources.map((source) => (
                       <label key={source.id} className="flex min-h-11 items-center gap-3">

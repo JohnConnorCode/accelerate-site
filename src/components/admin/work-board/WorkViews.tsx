@@ -2,7 +2,7 @@
 import { NORTHSTAR_PHASES } from "@/lib/work-packet";
 import { useState, type ReactNode } from "react";
 import { AdminDialog } from "@/components/admin/AdminDialog";
-import { SlidersHorizontal, X } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
@@ -165,9 +165,13 @@ export function WorkViews({
               unmerged or undeployed.
             </p>
           )}
-          <details>
-            <summary className="min-h-10 cursor-pointer py-2 text-xs font-semibold">
+          <details className="group">
+            <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 py-2 text-xs font-semibold [&::-webkit-details-marker]:hidden">
               Saved views and sharing
+              <ChevronDown
+                className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                aria-hidden="true"
+              />
             </summary>
             <div className="flex flex-wrap gap-2">
               {query.data?.views.map((v) => (

@@ -1,6 +1,6 @@
 "use client";
 import { AdminSurface } from "./AdminSurface";
-import { FilePlus2 } from "lucide-react";
+import { ChevronDown, FilePlus2 } from "lucide-react";
 import { button, words, Pill } from "./RadarUI";
 import type {
   RadarWorkspaceData,
@@ -141,9 +141,13 @@ export function RadarOpportunityDetail({
                   </p>
                 )}
                 {packet.assessmentCurrent && packet.assessment.classification === "business" && (
-                  <details className="mt-4 text-xs">
-                    <summary className="min-h-11 cursor-pointer py-3 font-semibold">
+                  <details className="group mt-4 text-xs">
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 py-3 font-semibold [&::-webkit-details-marker]:hidden">
                       Estimate rationale and evidence
+                      <ChevronDown
+                        className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                        aria-hidden="true"
+                      />
                     </summary>
                     <dl className="space-y-4">
                       {RADAR_FACTORS.map((key) => {

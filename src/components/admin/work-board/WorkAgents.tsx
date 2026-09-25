@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
 import { fetchJson } from "@/lib/admin/fetchJson";
 import { toast } from "@/lib/admin/useToast";
@@ -54,9 +55,15 @@ export function WorkAgents() {
         setOpen(e.currentTarget.open);
         if (!e.currentTarget.open) setToken("");
       }}
-      className="rounded-2xl border border-[var(--admin-border)] p-4"
+      className="group rounded-2xl border border-[var(--admin-border)] p-4"
     >
-      <summary className="min-h-10 cursor-pointer py-2 text-sm font-semibold">Agent access</summary>
+      <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 py-2 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+        Agent access
+        <ChevronDown
+          className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+          aria-hidden="true"
+        />
+      </summary>
       <p className="mb-3 text-xs text-[var(--admin-muted)]">
         Scoped credentials connect agents through HTTP, MCP or the CLI. Review remains with the
         operator.

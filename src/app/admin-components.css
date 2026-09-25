@@ -1141,11 +1141,19 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   font-weight: 600;
 }
 .admin-disclosure > summary::before {
-  content: "›";
+  content: "";
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  background-image: var(--admin-select-chevron);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transform: rotate(-90deg);
   transition: transform var(--admin-motion-fast) var(--admin-motion-ease);
 }
 .admin-disclosure[open] > summary::before {
-  transform: rotate(90deg);
+  transform: rotate(0deg);
 }
 .admin-disclosure > summary::-webkit-details-marker {
   display: none;
