@@ -234,7 +234,8 @@ export async function requestLearningApproval(
     entityId: current.id,
     dedupeKey: `approve-learning:${current.id}`,
     proposedBy: input.actorEmail ?? undefined,
-  })) as unknown as { id: string };
+  })) as unknown as { id: string } | null;
+  if (!action?.id) throw new Error("Approval action was not staged; try again");
 
   // Link the approval so the inbox shows awaiting-approval state. The
   // dedupe collapse may return a pre-existing action; either way the

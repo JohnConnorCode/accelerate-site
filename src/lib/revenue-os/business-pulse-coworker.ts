@@ -7,6 +7,7 @@ import { registerRequiredCapability } from "./capabilities";
 import { recordAudit } from "./audit";
 import { registerWorkKindHandler, type WorkKindHandler } from "./work-executor";
 import { storeAgentMemory } from "./memory";
+import { concludeSilently } from "./work-result";
 import { generateTodayBrief } from "./today-brief";
 
 // ---------------------------------------------------------------------------
@@ -191,7 +192,13 @@ const detectStaleDealsHandler: WorkKindHandler = async (supabase) => {
 
   const count = stale?.length ?? 0;
   if (count === 0) {
-    return { status: "completed", outcome: "No stale deals detected" };
+    // A scheduled sweep that found nothing is a quiet success, not a finding.
+    // Reporting it as a completed detection would put "nothing to do" in front
+    // of a person every single day until they stopped reading it.
+    return concludeSilently(
+      "open opportunities updated in the last 7 days",
+      "No deal is stale, so there is nothing to act on.",
+    );
   }
 
   const summary = (stale ?? [])

@@ -2,9 +2,11 @@ import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordAudit } from "./audit";
+import { recordActivity } from "./activities";
 import { recordStaleClaimRecovery, STALE_CLAIM_WINDOW_MS } from "./runs";
 import { recordLearnedPolicy } from "./memory";
 import { storeAgentMemory } from "./memory";
+import { evaluateTriage, triageReceipt, type TriageDecision } from "./triage";
 
 const proposalWorkContext = new AsyncLocalStorage<string>();
 export function withProposalWorkContext<T>(
@@ -51,30 +53,105 @@ export async function sweepExpiredActions(supabase: SupabaseClient): Promise<num
   return data?.length ?? 0;
 }
 
+export interface ActionProposal {
+  actionType: string;
+  title: string;
+  description?: string;
+  urgency?: ActionUrgency;
+  payload: Record<string, unknown>;
+  reasoning?: string;
+  sourceContext: string;
+  entityType?: string;
+  entityId?: string;
+  dedupeKey?: string;
+  proposedBy?: string;
+  expiresAt?: string;
+  /** Structured evidence for the write-provenance validator (quotes,
+   * receipts, resolved entities). Stored verbatim; validated downstream. */
+  evidence?: Record<string, unknown>;
+  /** A human asked for this directly. Explicit proposals are never suppressed. */
+  explicit?: boolean;
+}
+
+/**
+ * Propose an action for approval, or decline to.
+ *
+ * Returns the created row, or null when triage decided this proposal was not
+ * worth a person's attention. Null is a real outcome with a recorded receipt,
+ * not a silent drop: the caller asked for something, the system worked out that
+ * showing it would cost more than it was worth, and the reason is durable.
+ *
+ * The gate only applies to proposals raised by autonomous work, identified by the
+ * existing work-item context. A proposal a person triggered — an admin save, a
+ * reply they asked for, a chat command — is never gated, so the human path is
+ * unchanged and a person is never second-guessed by a heuristic.
+ */
 export async function proposeAction(
   supabase: SupabaseClient,
-  input: {
-    actionType: string;
-    title: string;
-    description?: string;
-    urgency?: ActionUrgency;
-    payload: Record<string, unknown>;
-    reasoning?: string;
-    sourceContext: string;
-    entityType?: string;
-    entityId?: string;
-    dedupeKey?: string;
-    proposedBy?: string;
-    expiresAt?: string;
-    /** Structured evidence for the write-provenance validator (quotes,
-     * receipts, resolved entities). Stored verbatim; validated downstream. */
-    evidence?: Record<string, unknown>;
-  },
+  input: ActionProposal,
 ) {
+  const workItemId = proposalWorkContext.getStore();
+  const explicit = input.explicit === true || !workItemId;
+  let triage: Record<string, unknown> | undefined;
+  if (!explicit) {
+    let decision: TriageDecision | null = null;
+    try {
+      decision = await evaluateTriage(supabase, {
+        actionType: input.actionType,
+        urgency: input.urgency,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        reasoning: input.reasoning,
+        description: input.description,
+        evidence: input.evidence,
+        explicit: false,
+      });
+    } catch (error) {
+      // A broken gate must never cost real work. Fall through and queue the
+      // proposal exactly as the pre-gate system did, and say so in the audit.
+      console.error("[actions] triage unavailable, proposing unchanged:", error);
+      await recordAudit(supabase, {
+        actorEmail: "system",
+        action: "action.triage_unavailable",
+        entityType: "action_queue",
+        entityId: workItemId,
+        metadata: {
+          action_type: input.actionType,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      }).catch(() => {});
+    }
+    if (decision?.action === "pass") {
+      await recordTriageSkip(supabase, {
+        workItemId,
+        dedupeKey: input.dedupeKey,
+        actionType: input.actionType,
+        title: input.title,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        decision,
+      });
+      return null;
+    }
+    if (decision?.action === "investigate") {
+      // Investigation is a scheduling decision, not a suppression: the work item
+      // stays open and the operator is not interrupted to hear about a hunch.
+      await recordAudit(supabase, {
+        actorEmail: "system",
+        action: "action.triage_investigate",
+        entityType: "action_queue",
+        entityId: workItemId,
+        metadata: { action_type: input.actionType, ...triageReceipt(decision) },
+      }).catch(() => {});
+      return null;
+    }
+    if (decision) triage = triageReceipt(decision);
+  }
   // Learned observations remain reviewable context. Authority is evaluated
   // from structured autonomy policies at execution, never from prose keywords.
   const row = {
-    ...(proposalWorkContext.getStore() ? { work_item_id: proposalWorkContext.getStore() } : {}),
+    ...(workItemId ? { work_item_id: workItemId } : {}),
+    ...(triage ? { triage } : {}),
     action_type: input.actionType,
     title: input.title,
     description: input.description ?? null,
@@ -96,6 +173,7 @@ export async function proposeAction(
   if (insertResult.error && (insertResult.error as { code?: string }).code === "42703") {
     const rowWithoutEvidence: Record<string, unknown> = { ...row };
     delete rowWithoutEvidence.evidence;
+    delete rowWithoutEvidence.triage;
     insertResult = await supabase
       .from("action_queue")
       .insert(rowWithoutEvidence)
@@ -123,6 +201,54 @@ export async function proposeAction(
     throw new Error(error.message);
   }
   return data;
+}
+
+/**
+ * Receipt for a proposal triage declined to show.
+ *
+ * "Nothing worth surfacing" is a decision, so it is recorded like one. The
+ * activity entry is what the operator sees when they ask why nothing appeared;
+ * the audit entry is the immutable history. Both are keyed so a replayed work
+ * item cannot manufacture a second receipt for the same finding.
+ */
+async function recordTriageSkip(
+  supabase: SupabaseClient,
+  input: {
+    workItemId?: string;
+    dedupeKey?: string;
+    actionType: string;
+    title: string;
+    entityType?: string;
+    entityId?: string;
+    decision: TriageDecision;
+  },
+) {
+  const key = `triage-skip:${input.workItemId ?? "no-work-item"}:${input.dedupeKey ?? input.actionType}`;
+  const metadata = {
+    action_type: input.actionType,
+    proposed_title: input.title,
+    entity_type: input.entityType ?? null,
+    entity_id: input.entityId ?? null,
+    work_item_id: input.workItemId ?? null,
+    ...triageReceipt(input.decision),
+  };
+  // Best effort by design: the work item still finishes its own receipt, and a
+  // missing explanation must never turn a suppression into a failure.
+  await recordActivity(supabase, {
+    activityType: "agent_triage_skipped",
+    title: `Checked and held back: ${input.title}`,
+    summary: input.decision.reason,
+    source: "triage",
+    externalId: key,
+    metadata,
+  }).catch(() => {});
+  await recordAudit(supabase, {
+    actorEmail: "system",
+    action: "action.triage_skipped",
+    entityType: "action_queue",
+    entityId: input.workItemId ?? null,
+    metadata,
+  }).catch(() => {});
 }
 
 export async function recoverStaleExecutingActions(supabase: SupabaseClient): Promise<number> {
