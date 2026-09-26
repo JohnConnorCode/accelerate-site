@@ -14,9 +14,17 @@ import { navItems as defaultNavLinks } from "@/content/navigation";
 import { websiteHeaderContent } from "@/content/site-studio/shared";
 import type { WebsiteHeader } from "@/lib/site-studio/website-chrome";
 import type { NavItem as NavLink } from "@/lib/types";
-import { SearchDialog, useSearchShortcut } from "@/components/search/SearchDialog";
+import dynamic from "next/dynamic";
+import { useSearchShortcut } from "@/components/search/useSearchShortcut";
 import { headerEntrance, headerLogoReveal, headerNavItem, headerCtaReveal } from "@/lib/animations";
 import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
+
+/* Search is a shortcut away, never part of the first paint. The dialog keeps
+   its own exit animation by mounting on first open and staying mounted. */
+const SearchDialog = dynamic(
+  () => import("@/components/search/SearchDialog").then((module) => module.SearchDialog),
+  { ssr: false },
+);
 
 // Shared underline used by every nav item — grows from the left on hover and
 // stays full-width for the current route. The single source of the nav's
@@ -44,7 +52,12 @@ export function Header({
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  useSearchShortcut(useCallback(() => setSearchOpen(true), []));
+  const [searchMounted, setSearchMounted] = useState(false);
+  const openSearch = useCallback(() => {
+    setSearchOpen(true);
+    setSearchMounted(true);
+  }, []);
+  useSearchShortcut(openSearch);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const headerRef = useRef<HTMLElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
@@ -241,7 +254,7 @@ export function Header({
           <motion.div variants={headerCtaReveal} className="hidden xl:flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setSearchOpen(true)}
+              onClick={openSearch}
               aria-label="Search the site"
               title="Search (press / or Cmd K)"
               className={cn(
@@ -268,7 +281,7 @@ export function Header({
             <motion.button
               variants={headerCtaReveal}
               type="button"
-              onClick={() => setSearchOpen(true)}
+              onClick={openSearch}
               aria-label="Search the site"
               className={cn(
                 "relative flex h-11 w-11 items-center justify-center cursor-pointer rounded-lg transition-transform duration-150 active:scale-[0.96]",
@@ -314,7 +327,7 @@ export function Header({
         showThemeToggle={showThemeToggle}
       />
 
-      <SearchDialog open={searchOpen} onOpenChangeAction={setSearchOpen} />
+      {searchMounted ? <SearchDialog open={searchOpen} onOpenChangeAction={setSearchOpen} /> : null}
     </>
   );
 }

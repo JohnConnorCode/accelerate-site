@@ -27,7 +27,7 @@ async function main() {
   const rows: Awaited<ReturnType<typeof listWorkBoard>>["features"] = [];
   let offset: number | null = 0;
   while (offset !== null) {
-    const result = await listWorkBoard(db, actor, { offset, limit: 500 });
+    const result = await listWorkBoard(db, actor, { offset, limit: 250 });
     rows.push(...result.features);
     offset = result.nextOffset;
   }

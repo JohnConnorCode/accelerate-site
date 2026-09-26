@@ -148,7 +148,7 @@
     "src/app/api/admin/site/drafts/[id]/route.ts": "d1b109ec287325688acdd544984e10a0d91a0742dd5be50af106ce2950317692",
     "src/app/api/admin/site/drafts/[id]/sections/route.ts": "8bcadef5e0a52c3a3760c7619368451b9af9b5c133e2a22c2fe72a6d55cb8a6e",
     "src/app/api/admin/site/drafts/route.ts": "38ece6df30f16a0f108d76702b6bf75b340fd8616d2477b561c0c3cc78cd1579",
-    "src/app/api/admin/site/website/route.ts": "2fc0c107af46890d94e2a19b912cc2fa251747c22bacf63b5491dd04537c3a0a",
+    "src/app/api/admin/site/website/route.ts": "3d44da98b8e98d1ba8c8355a8d0f526c7657b5c3888160f695b1d8aab2c42469",
     "src/app/api/admin/site/website/suggest/route.ts": "f45ad05f4f39f1d62fe55f328fe7a354d29c2e4af8eb15bd3e34f6b0ff8e46f4",
     "src/app/api/admin/social-history/route.ts": "6c763c4d22eeadf9cd10b64256416fb06bda6439f0fa53a38c0fb899d313ee0b",
     "src/app/api/admin/social/route.ts": "3ed15ebef11c14c15ca17526cf2e03f1296cafb4090cbb20bb83593f6864a57c",
@@ -389,6 +389,7 @@
     "src/lib/site-studio/website-ai.ts": "5c08897bfb6eded0335d2c0d1f1f26eee705b156ee0172d109f59e9d5f8f1000",
     "src/lib/site-studio/website-commands.ts": "064486605dce783b163a46b9620947f4b0b01b8c080eb746b4e90076500ecad2",
     "src/lib/site-studio/website-document.ts": "f11491f0a4fa55a8a34833469737a233f2d7d5b03cbaec17f9deeb0483bb601f",
+    "src/lib/site-studio/website-public.ts": "043a3c01da82a5c366634e8ae9d9b9c3096ea8faf266167ba8cd526f98e477b5",
     "src/lib/site-studio/website-seed.ts": "16c3e4fcb517c18278d230aee6bbf7ccbd9b41f6bcfea13e2f954c4cb0785255",
     "src/lib/site-studio/website-store.ts": "00cb5c9da5ba8fd5faed1b16c9444e9462d8959316d668503aab813367f340f4",
     "src/lib/tenancy/context.ts": "980fc542bbc744ffa66bc58cd463ef0c7508ac1d847c560f0de7a9cfefd38c7d",
@@ -1942,6 +1943,7 @@
           "domainImports": [
             "@/lib/site-studio/website-commands",
             "@/lib/site-studio/website-document",
+            "@/lib/site-studio/website-public",
             "@/lib/site-studio/website-seed",
             "@/lib/site-studio/website-store"
           ],
@@ -1974,6 +1976,7 @@
           "domainImports": [
             "@/lib/site-studio/website-commands",
             "@/lib/site-studio/website-document",
+            "@/lib/site-studio/website-public",
             "@/lib/site-studio/website-seed",
             "@/lib/site-studio/website-store"
           ],

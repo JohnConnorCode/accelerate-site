@@ -1,12 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { isApplicationWorkspace } from "@/lib/navigation/public-chrome";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBubble } from "./ChatBubble";
-import { ChatPanel } from "./ChatPanel";
 import { cn } from "@/lib/utils";
+
+/* The panel is a real conversation UI with its own lead capture and booking
+   flow. It only ever renders once a visitor opens the chat, so it loads on
+   demand instead of on every public page load. */
+const ChatPanel = dynamic(() => import("./ChatPanel").then((module) => module.ChatPanel), {
+  ssr: false,
+});
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +36,12 @@ export function ChatWidget() {
   const openChat = useCallback(() => {
     returnFocusRef.current = document.activeElement as HTMLElement | null;
     setIsOpen(true);
+  }, []);
+
+  // The panel loads on demand, so the focus handoff waits for it to exist
+  // rather than assuming it is already in the DOM when the chat opens.
+  const focusPanel = useCallback(() => {
+    rootRef.current?.querySelector<HTMLElement>("[data-chat-close]")?.focus();
   }, []);
 
   useEffect(() => {
@@ -62,12 +75,12 @@ export function ChatWidget() {
         first.focus();
       }
     };
-    rootRef.current?.querySelector<HTMLElement>("[data-chat-close]")?.focus();
+    focusPanel();
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [closeChat, isOpen]);
+  }, [closeChat, focusPanel, isOpen]);
 
   useEffect(() => {
     if (isOpen) document.body.classList.add("modal-open");
@@ -153,7 +166,7 @@ export function ChatWidget() {
               transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
               className="h-full w-full origin-bottom-right sm:h-auto sm:w-auto"
             >
-              <ChatPanel onClose={closeChat} />
+              <ChatPanel onClose={closeChat} onReady={focusPanel} />
             </motion.div>
           )}
         </AnimatePresence>
