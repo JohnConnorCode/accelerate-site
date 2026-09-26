@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-30",
   },
   {
+    id: "admin-control-affordances",
+    slug: "admin-control-affordances",
+    title: "Controls now show what they will do",
+    description:
+      "Sortable columns in the leads table state the current direction with an arrow and a spoken label, so the sort order is clear without reading the column. Disclosure controls across invoicing, plugins, error details and the work board open with the same rotating chevron, row and view actions sit in a consistent place, and the accent colors follow the active workspace appearance instead of a fixed palette.",
+    category: "improvement",
+    publishedAt: "2026-09-25",
+  },
+  {
     id: "command-center-work-and-contact-views",
     slug: "command-center-work-and-contact-views",
     title: "A clearer place for work and contact records",
