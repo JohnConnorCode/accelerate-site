@@ -8,7 +8,7 @@ export const changelogEntries: ChangelogEntry[] = [
     description:
       "Autonomous work now checks a proposal before it reaches your queue instead of after you dismiss it. Each proposal is scored for usefulness, evidence, attention cost and whether it needs checking first, then surfaced with its reason, checked further, or held back with a recorded receipt. Anything you asked for directly is never held back, a broken check queues the proposal anyway rather than losing it, and background sweeps that find nothing actionable finish quietly in Activity instead of reporting that they found nothing.",
     category: "improvement",
-    publishedAt: "2026-09-30",
+    publishedAt: "2026-09-26",
   },
   {
     id: "public-site-performance",
