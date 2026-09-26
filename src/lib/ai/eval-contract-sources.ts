@@ -13,6 +13,11 @@ import { AI_TOOL_REGISTRY_VERSION } from "@/lib/revenue-os/ai-tool-contract";
 import { MAX_TOOL_TURNS, SYSTEM_CONTRACT } from "@/lib/revenue-os/ai-agent";
 import { coworkerSystemPrompt, MAX_COWORKER_TOOL_TURNS } from "@/lib/revenue-os/coworker-agent";
 import {
+  BUDGET_WARN_STEPS,
+  stepBudgetInstruction,
+  stepBudgetState,
+} from "@/lib/revenue-os/step-budget";
+import {
   checkGrounding,
   RESPONDER_POLICY_VERSION,
   RESPONDER_SYSTEM_PROMPT,
@@ -31,6 +36,11 @@ function jobContractParts(job: string): unknown[] {
         ...shared,
         SYSTEM_CONTRACT,
         MAX_TOOL_TURNS,
+        // The budget reminder is part of this job's prompt, so removing it must
+        // retire the evidence rather than slip through an unchanged fingerprint.
+        BUDGET_WARN_STEPS,
+        stepBudgetInstruction.toString(),
+        stepBudgetState.toString(),
         AI_CONTEXT_VERSION,
         AI_TOOL_REGISTRY_VERSION,
         buildRevenueAiGroundingContract({
@@ -47,6 +57,9 @@ function jobContractParts(job: string): unknown[] {
         ...shared,
         coworkerSystemPrompt("<role>", "<id>", "<workspace>"),
         MAX_COWORKER_TOOL_TURNS,
+        BUDGET_WARN_STEPS,
+        stepBudgetInstruction.toString(),
+        stepBudgetState.toString(),
         AI_CONTEXT_VERSION,
         AI_TOOL_REGISTRY_VERSION,
         buildCoworkerGroundingContract({ today: "<today>", toolPack: "<pack>" }),

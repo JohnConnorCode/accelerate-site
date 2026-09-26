@@ -26,6 +26,11 @@ import {
 } from "./ai-tools";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
 import {
+  budgetExhaustedReceipt,
+  stepBudgetInstruction,
+  stepBudgetState,
+} from "./step-budget";
+import {
   AI_CONTEXT_VERSION,
   boundFounderConversation,
   boundToolResult,
@@ -245,7 +250,12 @@ export async function runRevenueCommandAgent(
         )
       )
         activeBundleId = null;
-      const activeTools = toActivatedOpenRouterTools(activeBundleId, liveContext);
+      const budget = stepBudgetState(turn, MAX_TOOL_TURNS);
+      // On the final step no tool is advertised, so the model cannot open work
+      // it has no budget to finish and has to answer from what it already has.
+      const activeTools = budget.toolsAllowed
+        ? toActivatedOpenRouterTools(activeBundleId, liveContext)
+        : [];
       const advertisedNames = new Set(activeTools.map((tool) => tool.function.name));
       const activationScope = options.conversationId
         ? "Activation remains selected in this conversation across reloads, subject to current permission and availability checks."
@@ -259,7 +269,7 @@ export async function runRevenueCommandAgent(
         messages: [
           {
             role: "system" as const,
-            content: `${SYSTEM_CONTRACT}\n\n${grounding}${options.architectEvidence ? `\n\n${options.architectEvidence}` : ""}\nThe initial pack is navigation context only. Use discover_tool_bundles for any admin capability missing from the current tools, then activate_tool_bundle. ${activationScope} It does not approve actions. Only call tools advertised on this turn. Active bundle: ${activeBundleId ?? "core only"}.`,
+            content: `${SYSTEM_CONTRACT}\n\n${grounding}${options.architectEvidence ? `\n\n${options.architectEvidence}` : ""}\nThe initial pack is navigation context only. Use discover_tool_bundles for any admin capability missing from the current tools, then activate_tool_bundle. ${activationScope} It does not approve actions. Only call tools advertised on this turn. Active bundle: ${activeBundleId ?? "core only"}.${stepBudgetInstruction(budget) ? `\n${stepBudgetInstruction(budget)}` : ""}`,
           },
           ...transcript,
         ],
@@ -431,7 +441,25 @@ export async function runRevenueCommandAgent(
     // was marked failed, and any propose_* actions staged on earlier turns
     // stayed in the queue as orphans with no conversation explaining them.
     // Return what was gathered and name the proposals instead.
+    //
+    // Reached far less often now that the final step forces an answer, but it is
+    // still reachable when the model returns nothing at all on that step, so it
+    // stays a first-class, recorded outcome rather than a silent gap.
     const staged = [...stagedToolNames];
+    const gatheredText = transcript.some(
+      (entry) => entry.role === "assistant" && !!entry.content?.trim(),
+    );
+    await recordAgentRunEvent(supabase, run, {
+      eventType: "budget_exhausted",
+      output: budgetExhaustedReceipt({
+        limit: MAX_TOOL_TURNS,
+        inputTokens,
+        outputTokens,
+        durationMs: Date.now() - run.startedAt,
+        stagedToolNames: staged,
+        gatheredText,
+      }),
+    });
     const partial = [
       transcript
         .filter((entry) => entry.role === "assistant")
