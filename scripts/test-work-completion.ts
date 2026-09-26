@@ -680,6 +680,43 @@ async function main() {
         "the staged action is still reported to the work item",
       );
     });
+    await check(
+      "a run driven to the budget answers from what it gathered instead of stalling",
+      async () => {
+        const db = seed();
+        // Use every step, then answer on the tool-free final step. Before this
+        // change the fifth step could open yet another lookup and the run would
+        // end as a shrug; the whole point is that it ends with an answer.
+        let turn = 0;
+        const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
+          chat: async () => {
+            turn++;
+            if (turn < MAX_COWORKER_TOOL_TURNS)
+              return chat([call("get_pending_actions")])({} as never);
+            return chat([
+              {
+                role: "assistant",
+                content:
+                  "Facts\nThe pending approval queue was read. [source: registered_tool_result:get_pending_actions]\nMissing information\nNone for this question.\nRecommended next steps\nNo further action is needed.",
+              },
+            ])({} as never);
+          },
+        });
+        assert.equal(turn, MAX_COWORKER_TOOL_TURNS, "the run used its whole budget");
+        assert.ok(
+          result.outcome.includes("The pending approval queue was read"),
+          "the answer the model gave on the final step is what the operator receives",
+        );
+        assert.equal(
+          db
+            .rows("agent_run_events")
+            .filter((row) => row.event_type === "budget_exhausted").length,
+          0,
+          "a run that answered on the final step never exhausted its budget",
+        );
+        assert.equal(db.rows("agent_runs")[0]!.status, "completed");
+      },
+    );
     await check("AI failure stays failed", async () => {
       const db = seed();
       const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
