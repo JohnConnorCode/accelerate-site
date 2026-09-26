@@ -13,9 +13,12 @@ Commit: `02e68f37 (origin/main; initial measurements taken on 8b39fd17, re-valid
 - `test:house-style-copy`: passed (586 files, 4 allowlisted).
 - `git diff --check`: clean.
 
-## Blocked (shared-machine disk)
+## Blocked (shared-machine disk) — CLEARED 2026-09-25
 
-- `typecheck`, `lint`, `build` refused by the resource gate: 2.6 GiB free, 5 GiB required (receipt retained, no bypass). Disk fell during this session as other agents run heavy jobs and fill `/tmp`. These must run in CI on the PR (remote runner) or after disk is freed. README/docs edits do not affect compiled output, but the gate record must still be green before any release cut.
+- `typecheck` (`tsc --noEmit` via resource gate): PASS, exit 0, on merged tree.
+- `lint` (eslint via resource gate): PASS, exit 0.
+- `build` (production `next-release` build): PASS, exit 0. Build output removed after verification.
+- Main CI on the squash merge is fully green (checks, build, neutral-starter, full-product-fork, verify).
 
 ## Still required for Gate 5 pass
 
