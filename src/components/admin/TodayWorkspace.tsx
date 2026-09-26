@@ -8,7 +8,6 @@ import {
   CalendarDays,
   ChartNoAxesCombined,
   Check,
-  ChevronDown,
   CircleAlert,
   Focus,
   Layers,
@@ -565,17 +564,13 @@ export function TodayWorkspace() {
       const completed = snapshot.handling.data.filter((item) => item.status === "completed");
       const renderWork = (item: (typeof work)[number]) => (
         <article className={styles.automationRow} key={item.id}>
-          <details className="group">
+          <details>
             <summary className={styles.automationSummary}>
               <strong>{item.title}</strong>
               <span className={styles.automationMeta}>
                 <span className={styles.badge}>{item.status.replaceAll("_", " ")}</span>
                 {item.owner !== "Workspace" && <span>{item.owner}</span>}
                 <span className={styles.textLink}>Details</span>
-                <ChevronDown
-                  className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
-                  aria-hidden="true"
-                />
               </span>
             </summary>
             <div className={styles.automationDetail}>
@@ -621,26 +616,14 @@ export function TodayWorkspace() {
             <div className={styles.rows}>
               {work.slice(0, isStandard ? 3 : module.limit).map(renderWork)}
               {work.length > (isStandard ? 3 : module.limit) && (
-                <details className={`${styles.moreWork} group`}>
-                  <summary className="flex cursor-pointer list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden">
-                    Show all current work ({work.length})
-                    <ChevronDown
-                      className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
-                      aria-hidden="true"
-                    />
-                  </summary>
+                <details className={styles.moreWork}>
+                  <summary>Show all current work ({work.length})</summary>
                   {work.slice(isStandard ? 3 : module.limit).map(renderWork)}
                 </details>
               )}
               {completed.length > 0 && (
-                <details className={`${styles.moreWork} group`}>
-                  <summary className="flex cursor-pointer list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden">
-                    Completed results ({completed.length})
-                    <ChevronDown
-                      className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
-                      aria-hidden="true"
-                    />
-                  </summary>
+                <details className={styles.moreWork}>
+                  <summary>Completed results ({completed.length})</summary>
                   {completed.map(renderWork)}
                 </details>
               )}

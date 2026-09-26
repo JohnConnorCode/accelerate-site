@@ -901,6 +901,12 @@ body.admin-mobile-nav-open .admin-mobile-dock {
 .admin-shell select:not(.appearance-none):disabled {
   cursor: not-allowed;
 }
+@media (max-width: 640px) {
+  .admin-shell select:not(.appearance-none) {
+    padding-right: 1.75rem;
+    background-position: right 0.5rem center;
+  }
+}
 /* Keep the native date picker indicator clear of the field edge. */
 .admin-shell input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0.6;
