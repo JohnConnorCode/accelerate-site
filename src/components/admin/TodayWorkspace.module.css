@@ -701,7 +701,8 @@
     margin: 18px 0;
   }
   .viewSelect {
-    max-width: 155px;
+    max-width: none;
+    flex: 1 1 100%;
     padding-inline: 10px 8px;
     font-size: 12px;
   }
