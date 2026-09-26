@@ -36,11 +36,7 @@ export function CommandCenter({
         </div>
 
         <Reveal rv as="div" delay={0.1} style={{ marginTop: "clamp(32px,4vw,54px)" }}>
-          <ProductSlider
-            slides={content.slides}
-            groupLabel={content.groupLabel}
-            priority={false}
-          />
+          <ProductSlider slides={content.slides} groupLabel={content.groupLabel} priority={false} />
         </Reveal>
 
         <Reveal

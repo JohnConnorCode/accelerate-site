@@ -327,9 +327,7 @@ export function Header({
         showThemeToggle={showThemeToggle}
       />
 
-      {searchMounted ? (
-        <SearchDialog open={searchOpen} onOpenChangeAction={setSearchOpen} />
-      ) : null}
+      {searchMounted ? <SearchDialog open={searchOpen} onOpenChangeAction={setSearchOpen} /> : null}
     </>
   );
 }
