@@ -23,7 +23,10 @@ import {
   getWorkKindHandler,
   workExecutionStatus,
 } from "../src/lib/revenue-os/work-executor";
-import { runCoworkerAgentTask } from "../src/lib/revenue-os/coworker-agent";
+import {
+  runCoworkerAgentTask,
+  MAX_COWORKER_TOOL_TURNS,
+} from "../src/lib/revenue-os/coworker-agent";
 import { registerSalesWorkHandlers } from "../src/lib/revenue-os/sales-coworker";
 import { findWorkDraft, workDraftKey } from "../src/lib/revenue-os/work-drafts";
 import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
@@ -574,16 +577,144 @@ async function main() {
       assert.equal(db.rows("agent_runs")[0]!.status, "partial");
       assert.equal(db.rows("work_items")[0]!.agent_run_id, result.runId);
     });
-    await check("AI turn exhaustion stays partial with a durable run link", async () => {
+    await check(
+      "turn exhaustion with no gathered context defers with a reason instead of closing partial",
+      async () => {
+        const db = seed();
+        const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
+          chat: chat([call("get_pending_actions")]),
+        });
+        // Nothing was read, staged or produced. Recording that as `partial`
+        // claims half a job was done; deferring puts it back on the schedule
+        // with the reason a retry is the actual remedy.
+        assert.equal(result.status, "deferred");
+        assert.ok(result.nextCheckAt, "the work item goes back on the schedule");
+        assert.match(result.outcome, /Ran out of steps/);
+        assert.ok(result.runId);
+        assert.equal(db.rows("work_items")[0]!.agent_run_id, result.runId);
+        assert.equal(db.rows("agent_runs")[0]!.status, "partial");
+        assert.equal(db.rows("action_queue").length, 0, "nothing was staged");
+      },
+    );
+    await check("the final step withholds tools and exhaustion is a recorded event", async () => {
       const db = seed();
-      const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
-        chat: chat([call("get_pending_actions")]),
+      // Capture what each step actually advertised, so this asserts the wiring
+      // and not just the helper that computes it.
+      const advertisedPerStep: number[] = [];
+      const systemPerStep: string[] = [];
+      let index = 0;
+      const scripted: OpenRouterMessage[] = [call("get_pending_actions")];
+      await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
+        chat: async (request) => {
+          advertisedPerStep.push(request.tools?.length ?? 0);
+          systemPerStep.push(String((request.messages as OpenRouterMessage[])[0]?.content ?? ""));
+          return {
+            id: "test-response",
+            model: "test-model",
+            choices: [{ message: scripted[Math.min(index++, scripted.length - 1)]! }],
+          } as Awaited<ReturnType<typeof openRouterChat>>;
+        },
       });
-      assert.equal(result.status, "partial");
-      assert.ok(result.runId);
-      assert.equal(db.rows("work_items")[0]!.agent_run_id, result.runId);
-      assert.equal(db.rows("agent_runs")[0]!.status, "partial");
+      assert.equal(advertisedPerStep.length, MAX_COWORKER_TOOL_TURNS);
+      assert.ok(
+        advertisedPerStep.slice(0, -1).every((count) => count > 0),
+        "every step before the last advertises tools",
+      );
+      assert.equal(
+        advertisedPerStep[advertisedPerStep.length - 1],
+        0,
+        "the last step advertises nothing, so the model cannot open work it cannot finish",
+      );
+      assert.ok(
+        !systemPerStep[0]!.includes("steps remaining"),
+        "a first step with room to work is not told to wrap up",
+      );
+      assert.match(
+        systemPerStep[systemPerStep.length - 1]!,
+        /final step and no tools are available/,
+        "the tool-free step says why",
+      );
+      const events = db.rows("agent_run_events");
+      const exhausted = events.filter((row) => row.event_type === "budget_exhausted");
+      assert.equal(exhausted.length, 1, "exhaustion is recorded once as its own event");
+      const output = exhausted[0]!.output as Record<string, unknown>;
+      assert.equal(output.reason, "step_budget_exhausted");
+      assert.equal(output.step_limit, MAX_COWORKER_TOOL_TURNS);
+      assert.equal(output.steps_used, MAX_COWORKER_TOOL_TURNS);
+      assert.equal(output.gathered_context, false);
+      assert.equal(typeof output.duration_ms, "number");
     });
+    await check("work staged before the final step survives the tool-free wrap-up", async () => {
+      const db = seed();
+      // Stage real work on the first step, then keep the model busy so the run
+      // reaches its limit. Withholding tools on the last step must not orphan
+      // what was already staged — that was the original reason this path
+      // returns instead of throwing.
+      let index = 0;
+      const scripted: OpenRouterMessage[] = [
+        call("propose_gmail_draft", {
+          conversationId: "conv-1",
+          body: "Hello",
+          reasoning: "Awaiting reply",
+        }),
+        call("get_pending_actions"),
+      ];
+      const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
+        chat: async () =>
+          ({
+            id: "test-response",
+            model: "test-model",
+            choices: [{ message: scripted[Math.min(index++, 1)]! }],
+          }) as Awaited<ReturnType<typeof openRouterChat>>,
+      });
+      const staged = db.rows("action_queue");
+      assert.ok(staged.length > 0, "the proposal staged on an early step was written");
+      assert.ok(
+        staged.every((row) => row.status === "pending"),
+        "staged work is still pending and reviewable after tool hiding",
+      );
+      assert.ok(
+        (result.artifacts ?? []).some((artifact) => artifact.type === "action"),
+        "the staged action is still reported to the work item",
+      );
+    });
+    await check(
+      "a run driven to the budget answers from what it gathered instead of stalling",
+      async () => {
+        // A review kind, so a grounded conclusion is a valid completion rather
+        // than a missing draft proposal.
+        const db = seed(item({ kind: "review_pipeline" }));
+        // Use every step, then answer on the tool-free final step. Before this
+        // change the fifth step could open yet another lookup and the run would
+        // end as a shrug; the whole point is that it ends with an answer.
+        let turn = 0;
+        const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
+          chat: async () => {
+            turn++;
+            if (turn < MAX_COWORKER_TOOL_TURNS)
+              return chat([call("get_pending_actions")])({} as never);
+            return chat([
+              {
+                role: "assistant",
+                content:
+                  "Facts\nThe pending approval queue was read. [source: registered_tool_result:get_pending_actions]\nMissing information\nNone for this question.\nRecommended next steps\nNo further action is needed.",
+              },
+            ])({} as never);
+          },
+        });
+        assert.equal(turn, MAX_COWORKER_TOOL_TURNS, "the run used its whole budget");
+        assert.ok(
+          result.outcome.includes("The pending approval queue was read"),
+          "the answer the model gave on the final step is what the operator receives",
+        );
+        assert.equal(
+          db.rows("agent_run_events").filter((row) => row.event_type === "budget_exhausted").length,
+          0,
+          "a run that answered on the final step never exhausted its budget",
+        );
+        assert.equal(db.rows("agent_runs")[0]!.status, "completed");
+      },
+    );
     await check("AI failure stays failed", async () => {
       const db = seed();
       const result = await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {

@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OperatorQueueItem } from "./types";
 import { loadOperationalHealth } from "./health";
+import { triageReason } from "./triage";
 
 const URGENCY_RANK = { critical: 0, high: 1, normal: 2, low: 3 } as const;
 const KIND_RANK: Record<OperatorQueueItem["kind"], number> = {
@@ -124,7 +125,7 @@ export async function loadOperatorQueue(
     await Promise.all([
       supabase
         .from("action_queue")
-        .select("id,title,description,urgency,entity_type,entity_id,created_at,expires_at")
+        .select("id,title,description,urgency,entity_type,entity_id,created_at,expires_at,triage")
         .eq("status", "pending")
         .or(`expires_at.is.null,expires_at.gt.${now}`)
         .limit(50),
@@ -198,7 +199,9 @@ export async function loadOperatorQueue(
       urgency: action.urgency,
       dueAt: action.expires_at ?? null,
       sourceTimestamp: action.created_at,
-      priorityReason: "Approval required before execution",
+      // Why this row is here at all. A row the operator cannot explain is a row
+      // they will learn to dismiss without reading.
+      priorityReason: triageReason(action.triage) ?? "Approval required before execution",
       recommendedNextAction: "Review the exact action and approve or reject it.",
       href: `/admin/today?focus=approval&action=${action.id}`,
       entityType: action.entity_type || undefined,

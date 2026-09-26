@@ -37,6 +37,11 @@ export const commandCenterFaqs: FAQ[] = [
       "Yes. Changing the level, the limits, or where a permission came from clears the standing approval, so a person approves it again. Changing only a label or description keeps the decision. A few actions stay behind a human decision permanently, no matter how much trust everything else has earned.",
   },
   {
+    question: "Why do some agent findings never reach my queue?",
+    answer:
+      "Autonomous work checks a proposal before it reaches you, because a queue that cannot explain itself trains you to dismiss it. Each proposal is scored for usefulness, how well it is evidenced, how much attention it costs, and whether it needs checking before anyone is interrupted. It is then surfaced with that reason, checked further without interrupting you, or held back with a recorded receipt you can find in Activity. Nothing you asked for directly is ever held back, and if the check itself cannot run the proposal is queued anyway, so a broken heuristic cannot quietly lose real work. A workspace can also set a usefulness threshold; a workspace with no threshold keeps the previous behavior.",
+  },
+  {
     question: "Can I navigate boards without dragging cards?",
     answer:
       "Yes. Scroll across the columns, or press Tab to a column button and press Enter. The board itself takes keyboard focus for arrow-key scrolling, and reduced motion makes the column jumps instant. Refreshing or closing an editor keeps your place, and browser Back returns you to the pipeline board.",

@@ -71,6 +71,7 @@ export const TENANT_SCOPED_TABLES = [
   "budget_limits",
   "budget_usage",
   "budget_receipts",
+  "triage_settings",
   "model_call_receipts",
   "model_call_events",
   "plugins",

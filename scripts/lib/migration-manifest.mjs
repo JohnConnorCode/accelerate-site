@@ -125,6 +125,7 @@ export const MIGRATION_MANIFEST = [
   "migrations/20260924-ai-conversation-sources-tenant-access.sql",
   "migrations/20260924-proposal-audit-decline-reason.sql",
   "migrations/20260924-proposal-lifecycle-service-role-only.sql",
+  "migrations/20260930-triage-gate.sql",
 ];
 
 export const EXCLUDED_MIGRATIONS = {

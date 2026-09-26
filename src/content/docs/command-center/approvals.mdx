@@ -1,7 +1,7 @@
 ---
 title: "Review and approve actions"
 description: "How approval works, how it earns more autonomy over time, and what to check after a decision."
-updated: "2026-09-23"
+updated: "2026-09-30"
 ---
 
 When AI prepares a customer reply or a workflow proposes several tasks, review the exact change before it runs. Approvals keeps that decision connected to its context and recorded result. Eligible actions can earn a proposed increase in autonomy, which a person reviews separately.
@@ -39,7 +39,27 @@ Draft access is optional in **Setup → Gmail draft access**. Google’s `gmail.
 
 Approving and the action succeeding are two different events. A provider outage can leave an approved send unfinished, so check the result afterward rather than assuming approval was the last step. [Receipts and audit](/docs/start/receipts) covers the exact statuses to look for.
 
-## How approval turns into autonomy
+## Why an action reached you
+
+Autonomous work proposes changes on a schedule whether or not you are waiting, so something has to decide which proposals are worth your attention. That check runs before the proposal is written, and every item in the queue carries the reason it earned a place.
+
+Each proposal is scored for how much a decision would change the business, how well the evidence supports it, how much of your attention it costs, and whether it is worth checking before anyone is interrupted. From those scores it takes one of three routes:
+
+| Route        | What happens                                                                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Surface it   | The proposal is queued for review with the reason attached, so you can see why it reached you.                                                          |
+| Check first  | The finding is too thin to act on but too promising to drop. It stays with the work that raised it, and no approval is created.                         |
+| Hold it back | The proposal is not written to the queue. A recorded receipt keeps the scores and the reason, so the decision stays auditable rather than disappearing. |
+
+Two things are never held back. Anything you asked for directly is always surfaced, however small, and so is anything that would pass a threshold your workspace has set. A workspace with no threshold configured keeps the previous behavior and loses nothing.
+
+If the check itself cannot run, the proposal is queued anyway. A broken heuristic is never allowed to quietly discard real work.
+
+## When nothing is reported
+
+Background checks that find nothing actionable finish quietly instead of reporting that they found nothing. A daily sweep that sees no stale deals records that it looked and concludes there is nothing to do; it does not add a line to your queue. That is a successful check, not a failure, and it is not a sign the automation stopped.
+
+Look for these conclusions in [Activity](/docs/command-center/activity) when you want to confirm a check ran. If a check that should have run is missing from Activity entirely, treat that as a real problem rather than a quiet outcome.
 
 An autonomy policy sets how a particular action is allowed to run. New policies default to `always_ask`, which requires review. An action configured as `ask_until_trusted` can become eligible for a proposed promotion when its executed approvals meet the current threshold of three approvals over at least seven days, subject to the policy checks.
 

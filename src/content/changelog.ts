@@ -2,6 +2,15 @@ import type { ChangelogEntry } from "@/lib/types";
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    id: "approval-queue-triage-gate",
+    slug: "approval-queue-triage-gate",
+    title: "A quieter approvals queue that explains itself",
+    description:
+      "Autonomous work now checks a proposal before it reaches your queue instead of after you dismiss it. Each proposal is scored for usefulness, evidence, attention cost and whether it needs checking first, then surfaced with its reason, checked further, or held back with a recorded receipt. Anything you asked for directly is never held back, a broken check queues the proposal anyway rather than losing it, and background sweeps that find nothing actionable finish quietly in Activity instead of reporting that they found nothing.",
+    category: "improvement",
+    publishedAt: "2026-09-30",
+  },
+  {
     id: "public-site-performance",
     slug: "public-site-performance",
     title: "The public site loads and moves between pages faster",
