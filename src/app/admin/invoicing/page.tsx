@@ -8,7 +8,7 @@ import {
 import type { WorkspaceBrand } from "@/lib/revenue-os/branding-contract";
 import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, ReceiptText, RefreshCw, Send, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, ReceiptText, RefreshCw, Send, Trash2 } from "lucide-react";
 import { InvoicePageDesigner } from "@/components/admin/InvoicePageDesigner";
 import { InvoiceIndex } from "@/components/admin/InvoiceIndex";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -350,9 +350,13 @@ export default function InvoicingPage() {
               </button>
             </div>
             {!demo && (
-              <details className="rounded-xl border border-[var(--admin-border)] px-4 py-2">
-                <summary className="min-h-10 cursor-pointer py-2 text-sm font-medium">
+              <details className="group rounded-xl border border-[var(--admin-border)] px-4 py-2">
+                <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
                   Stripe connection settings
+                  <ChevronDown
+                    className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                    aria-hidden="true"
+                  />
                 </summary>
                 <p className="admin-copy mt-2 max-w-2xl text-sm leading-6">
                   Replace the workspace key when rotating credentials. Disconnecting pauses invoice

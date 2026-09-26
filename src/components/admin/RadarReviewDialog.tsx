@@ -1,5 +1,5 @@
 "use client";
-import { Check } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { AdminDialog } from "./AdminDialog";
 import { button, primary, words, Pill } from "./RadarUI";
 import type { RadarStoreChange } from "@/lib/revenue-os/radar-store-contract";
@@ -61,8 +61,14 @@ export function RadarReviewDialog({
                 >
                   Read referenced source
                 </button>
-                <details className="mt-2 text-[10px] text-[var(--admin-muted)]">
-                  <summary>Source reference</summary>
+                <details className="group mt-2 text-[10px] text-[var(--admin-muted)]">
+                  <summary className="flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden">
+                    Source reference
+                    <ChevronDown
+                      className="size-3 shrink-0 transition-transform duration-200 group-open:rotate-180"
+                      aria-hidden="true"
+                    />
+                  </summary>
                   <code>{String(id)}</code>
                 </details>
               </li>

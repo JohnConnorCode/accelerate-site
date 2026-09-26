@@ -117,6 +117,13 @@ export function validateAdminTheme(raw: unknown): AdminThemeDefinition {
     throw new Error("Control corners must fit within surface corners.");
   return theme;
 }
+/** Decorative select chevron tinted with the theme's muted ink, so native
+ *  dropdowns keep one coordinated affordance in every preset and in custom
+ *  themes compiled through this module. */
+function selectChevron(color: string) {
+  const stroke = color.startsWith("#") ? `%23${color.slice(1)}` : encodeURIComponent(color);
+  return `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='${stroke}' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`;
+}
 function opaquePresetColor(value: string, canvas: string) {
   if (/^#[0-9a-f]{6}$/i.test(value)) return value;
   const parts = value
@@ -316,6 +323,7 @@ export function compileAdminTheme(raw: unknown): Record<string, string> {
     "--admin-line": border,
     "--admin-ink": p.ink,
     "--admin-muted": readable(p.muted),
+    "--admin-select-chevron": selectChevron(readable(p.muted)),
     "--admin-accent": readable(p.accent),
     "--admin-accent-soft": mix(p.accent, 10),
     "--admin-sidebar": p.sidebar,

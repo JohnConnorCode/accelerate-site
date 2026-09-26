@@ -113,7 +113,7 @@ const COLOR_BUDGET = {
   "src/components/admin/ProposalEditor.tsx": 1,
   "src/components/admin/RevenueAICommand.tsx": 5,
   "src/components/admin/RevenueSetupGate.tsx": 3,
-  "src/components/admin/RevenueSnapshot.tsx": 5,
+  "src/components/admin/RevenueSnapshot.tsx": 4,
   "src/components/admin/StatusBadge.tsx": 0,
   "src/components/admin/TaskWidget.tsx": 5,
   "src/components/admin/TenantProviderControls.tsx": 11,

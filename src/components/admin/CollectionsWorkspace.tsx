@@ -1,5 +1,6 @@
 "use client";
 import { useSearchParams } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "./PageHeader";
@@ -448,9 +449,13 @@ export function CollectionsWorkspace() {
                         </p>
                       )}
                       {a.preview && (
-                        <details className="my-3 text-sm">
-                          <summary className="cursor-pointer">
+                        <details className="group my-3 text-sm">
+                          <summary className="flex cursor-pointer list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden">
                             Review queued recipient and content
+                            <ChevronDown
+                              className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                              aria-hidden="true"
+                            />
                           </summary>
                           <pre className="mt-2 whitespace-pre-wrap break-words font-sans">
                             {a.preview.to}

@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   BookmarkPlus,
   Check,
+  ChevronDown,
   GripVertical,
   Loader2,
   Plus,
@@ -563,8 +564,12 @@ export default function PipelinePage() {
                       </button>
                     )}
                   </div>
-                  <details className="admin-view-options">
-                    <summary className="min-h-10 cursor-pointer rounded-lg py-2 text-sm font-medium text-[var(--admin-muted)]">
+                  <details className="admin-view-options group">
+                    <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 rounded-lg py-2 text-sm font-medium text-[var(--admin-muted)] [&::-webkit-details-marker]:hidden">
+                      <ChevronDown
+                        className="size-3.5 shrink-0 transition-transform duration-200 group-open:rotate-180"
+                        aria-hidden="true"
+                      />
                       View options
                     </summary>
                     <div className="admin-toolbar pt-2">

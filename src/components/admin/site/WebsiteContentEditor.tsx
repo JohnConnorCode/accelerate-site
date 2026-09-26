@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import type { WebsitePage, WebsiteRichText } from "@/lib/site-studio/website-document";
 import { nativeTemplateDefaults } from "@/lib/site-studio/native-templates";
 import { servicePageTemplate } from "@/lib/site-studio/templates";
@@ -73,12 +74,21 @@ export function WebsiteContentEditor({
         />
       )}
       {rows.map((section, index) => (
-        <details key={section.id} className="rounded-lg border border-[var(--admin-border)] p-3">
-          <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium">
-            {index + 1}.{" "}
-            {"template" in section
-              ? section.template.replace(/^home-/, "").replace(/-/g, " ")
-              : section.children.map((child) => child.type).join(", ")}
+        <details
+          key={section.id}
+          className="group rounded-lg border border-[var(--admin-border)] p-3"
+        >
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
+            <span>
+              {index + 1}.{" "}
+              {"template" in section
+                ? section.template.replace(/^home-/, "").replace(/-/g, " ")
+                : section.children.map((child) => child.type).join(", ")}
+            </span>
+            <ChevronDown
+              className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+              aria-hidden="true"
+            />
           </summary>
           <div className="mb-4 flex flex-wrap gap-2">
             {[-1, 1].map((direction) => (
@@ -265,9 +275,19 @@ export function WebsiteRichTextEditor({
     <fieldset className="space-y-3">
       <legend className="mb-3 text-sm font-semibold">Article content</legend>
       {value.map((block, index) => (
-        <details key={index} open className="rounded-lg border border-[var(--admin-border)] p-3">
-          <summary className="min-h-10 py-2 text-sm font-medium">
-            {index + 1}. {block.type}
+        <details
+          key={index}
+          open
+          className="group rounded-lg border border-[var(--admin-border)] p-3"
+        >
+          <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
+            <span>
+              {index + 1}. {block.type}
+            </span>
+            <ChevronDown
+              className="size-4 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+              aria-hidden="true"
+            />
           </summary>
           <WebsiteFields
             value={block}

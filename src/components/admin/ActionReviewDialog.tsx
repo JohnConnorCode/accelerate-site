@@ -1,5 +1,5 @@
 "use client";
-import { Check, Loader2, TriangleAlert, X } from "lucide-react";
+import { Check, ChevronDown, Loader2, TriangleAlert, X } from "lucide-react";
 import { AdminDialog } from "./AdminDialog";
 import { ADMIN_LAYOUT_SCOPES } from "@/lib/admin/layout-scopes";
 import { relativeTime } from "@/lib/admin/work-presentation";
@@ -265,9 +265,13 @@ export function ActionReviewDialog({
                             .join(" → ")}
                         </p>
                       ))}
-                      <details>
-                        <summary className="cursor-pointer py-2">
+                      <details className="group">
+                        <summary className="flex cursor-pointer list-none items-center gap-1.5 py-2 [&::-webkit-details-marker]:hidden">
                           Inspect all settings and preferences
+                          <ChevronDown
+                            className="size-3.5 shrink-0 text-[var(--admin-muted)] transition-transform duration-200 group-open:rotate-180"
+                            aria-hidden="true"
+                          />
                         </summary>
                         <pre className="overflow-auto whitespace-pre-wrap break-all text-[10px]">
                           {JSON.stringify(todayPreview.data![phase], null, 2)}
