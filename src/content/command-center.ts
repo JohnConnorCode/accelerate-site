@@ -318,7 +318,7 @@ export const capabilities: Capability[] = [
     title: "Shared approvals",
     promise: "Review AI proposals and workflow plans in one place, with their source context.",
     detail:
-      "Approval records the decision; execution records the result. Eligible autonomy changes need a separate human decision, and restricted external actions keep their approval requirements.",
+      "Approval records the decision; execution records the result. Autonomous proposals are checked before they reach the queue, and each one explains why it earned your attention. Anything you asked for directly is never held back, and a background check that finds nothing finishes quietly instead of reporting it. Eligible autonomy changes need a separate human decision, and restricted external actions keep their approval requirements.",
     gated: true,
   },
 

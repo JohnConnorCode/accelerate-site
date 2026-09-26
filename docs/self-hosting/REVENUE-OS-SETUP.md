@@ -255,6 +255,22 @@ Each workspace admin connects a dedicated OpenRouter API key in Integrations. Th
 
 Create a separate OpenRouter key per tenant and set a provider-side monthly limit. `OPENROUTER_MODEL` is optional because the gateway defaults to `deepseek/deepseek-v4.1-flash`; `OPENROUTER_FALLBACK_MODEL` selects a model fallback, not a credential fallback; and workflow-specific `OPENROUTER_*_MODEL` variables can tune a workflow without adding another provider SDK. The same tenant key serves Contact Import, Revenue Copilot, website chat, plan generation, content briefs, proposals, and the responder. Email sends, Gmail replies, pipeline movements, task creation, and campaign activation retain their normal confirmation and policy boundaries.
 
+## Approval queue triage threshold
+
+Autonomous proposals pass a deterministic triage check before they are written to `action_queue`. The check scores usefulness, confidence, noise, interruption cost and investigation value, then routes to surface, check-first, or hold-back. It is deterministic on purpose: the inputs are structured metadata the proposal already carries, and Northstar section 8 keeps facts in software.
+
+Two behaviors are fixed and not configurable. A proposal a person triggered is never gated, because a human is never second-guessed by a heuristic. And if the check cannot run, the proposal is queued anyway, so a broken or unapplied gate cannot quietly discard real work.
+
+`public.triage_settings` holds the one optional per-tenant value:
+
+| Column                   | Effect                                                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `suppression_threshold`  | Minimum usefulness (0-100) a proposal must reach to be queued. `NULL` — the default — keeps pre-gate behavior.         |
+
+Set it only after watching real queue volume. A high threshold buys a quieter queue at the cost of findings you never see; held-back proposals stay auditable in `activities` and `audit_log`, so raise or lower it from evidence rather than guesswork. The high-noise and low-confidence routes apply regardless of this value.
+
+The check runs in the application request path, not a new provider call, so it needs no model registration, budget or API key.
+
 ## Booking mode
 
 `src/lib/booking.ts` owns public booking mode for every embed and admin instruction:

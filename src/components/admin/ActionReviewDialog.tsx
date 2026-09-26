@@ -18,6 +18,14 @@ export interface ActionRow {
   created_at: string;
   expires_at: string | null;
   payload: Record<string, unknown> | null;
+  /** Triage receipt recorded when this proposal passed the operator-queue gate. */
+  triage?: Record<string, unknown> | null;
+}
+
+/** Plain-language triage reason, or null when the row predates the gate. */
+function triageReason(triage: Record<string, unknown> | null | undefined): string | null {
+  const reason = triage?.reason;
+  return typeof reason === "string" && reason.trim() ? reason : null;
 }
 
 /**
@@ -352,6 +360,17 @@ export function ActionReviewDialog({
               </p>
               <p className="admin-copy mt-1.5 text-pretty text-xs leading-5">
                 {action.reasoning || action.description}
+              </p>
+            </div>
+          )}
+
+          {triageReason(action.triage) && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--admin-muted)]">
+                Why this reached you
+              </p>
+              <p className="admin-copy mt-1.5 text-pretty text-xs leading-5">
+                {triageReason(action.triage)}
               </p>
             </div>
           )}
