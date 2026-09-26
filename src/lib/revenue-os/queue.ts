@@ -201,8 +201,7 @@ export async function loadOperatorQueue(
       sourceTimestamp: action.created_at,
       // Why this row is here at all. A row the operator cannot explain is a row
       // they will learn to dismiss without reading.
-      priorityReason:
-        triageReason(action.triage) ?? "Approval required before execution",
+      priorityReason: triageReason(action.triage) ?? "Approval required before execution",
       recommendedNextAction: "Review the exact action and approve or reject it.",
       href: `/admin/today?focus=approval&action=${action.id}`,
       entityType: action.entity_type || undefined,

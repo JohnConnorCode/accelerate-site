@@ -263,9 +263,9 @@ Two behaviors are fixed and not configurable. A proposal a person triggered is n
 
 `public.triage_settings` holds the one optional per-tenant value:
 
-| Column                   | Effect                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `suppression_threshold`  | Minimum usefulness (0-100) a proposal must reach to be queued. `NULL` — the default — keeps pre-gate behavior.         |
+| Column                  | Effect                                                                                                         |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `suppression_threshold` | Minimum usefulness (0-100) a proposal must reach to be queued. `NULL` — the default — keeps pre-gate behavior. |
 
 Set it only after watching real queue volume. A high threshold buys a quieter queue at the cost of findings you never see; held-back proposals stay auditable in `activities` and `audit_log`, so raise or lower it from evidence rather than guesswork. The high-noise and low-confidence routes apply regardless of this value.
 

@@ -18,6 +18,8 @@ export const changelogEntries: ChangelogEntry[] = [
       "Sortable columns in the leads table state the current direction with an arrow and a spoken label, so the sort order is clear without reading the column. Disclosure controls across invoicing, plugins, error details and the work board open with the same rotating chevron, row and view actions sit in a consistent place, and the accent colors follow the active workspace appearance instead of a fixed palette.",
     category: "improvement",
     publishedAt: "2026-09-25",
+  },
+  {
     id: "approval-queue-triage-gate",
     slug: "approval-queue-triage-gate",
     title: "A quieter approvals queue that explains itself",

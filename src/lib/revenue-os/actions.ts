@@ -86,10 +86,7 @@ export interface ActionProposal {
  * reply they asked for, a chat command — is never gated, so the human path is
  * unchanged and a person is never second-guessed by a heuristic.
  */
-export async function proposeAction(
-  supabase: SupabaseClient,
-  input: ActionProposal,
-) {
+export async function proposeAction(supabase: SupabaseClient, input: ActionProposal) {
   const workItemId = proposalWorkContext.getStore();
   const explicit = input.explicit === true || !workItemId;
   let triage: Record<string, unknown> | undefined;
@@ -119,7 +116,12 @@ export async function proposeAction(
           action_type: input.actionType,
           error: error instanceof Error ? error.message : String(error),
         },
-      }).catch(() => {});
+      }).catch((error: unknown) => {
+        console.error(
+          "[actions] triage unavailable audit failed; proposal retained:",
+          error instanceof Error ? error.message : String(error),
+        );
+      });
     }
     if (decision?.action === "pass") {
       await recordTriageSkip(supabase, {
@@ -142,7 +144,12 @@ export async function proposeAction(
         entityType: "action_queue",
         entityId: workItemId,
         metadata: { action_type: input.actionType, ...triageReceipt(decision) },
-      }).catch(() => {});
+      }).catch((error: unknown) => {
+        console.error(
+          "[actions] triage investigate audit failed; proposal retained:",
+          error instanceof Error ? error.message : String(error),
+        );
+      });
       return null;
     }
     if (decision) triage = triageReceipt(decision);
@@ -241,14 +248,24 @@ async function recordTriageSkip(
     source: "triage",
     externalId: key,
     metadata,
-  }).catch(() => {});
+  }).catch((error: unknown) => {
+    console.error(
+      "[actions] triage hold activity receipt failed; hold retained:",
+      error instanceof Error ? error.message : String(error),
+    );
+  });
   await recordAudit(supabase, {
     actorEmail: "system",
     action: "action.triage_skipped",
     entityType: "action_queue",
     entityId: input.workItemId ?? null,
     metadata,
-  }).catch(() => {});
+  }).catch((error: unknown) => {
+    console.error(
+      "[actions] triage skip audit failed; hold retained:",
+      error instanceof Error ? error.message : String(error),
+    );
+  });
 }
 
 export async function recoverStaleExecutingActions(supabase: SupabaseClient): Promise<number> {
