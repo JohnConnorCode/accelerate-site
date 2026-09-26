@@ -17,8 +17,8 @@ export const EVAL_MAX_AGE_DAYS = 30;
 
 /** sha256 of each job's contract, computed by `computeJobContractFingerprints`. */
 export const JOB_CONTRACT_FINGERPRINTS: Readonly<Record<string, string>> = {
-  "copilot-answer": "687421abb4a41892",
-  "coworker-task": "cec069858e52a235",
+  "copilot-answer": "478b4212de614998",
+  "coworker-task": "e95222a6f5139c82",
   "responder-draft": "c13a5a5b1093415e",
   "proposal-draft": "ac715e5474aa2c18",
 };
