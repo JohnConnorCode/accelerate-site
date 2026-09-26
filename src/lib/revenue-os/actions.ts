@@ -86,10 +86,7 @@ export interface ActionProposal {
  * reply they asked for, a chat command — is never gated, so the human path is
  * unchanged and a person is never second-guessed by a heuristic.
  */
-export async function proposeAction(
-  supabase: SupabaseClient,
-  input: ActionProposal,
-) {
+export async function proposeAction(supabase: SupabaseClient, input: ActionProposal) {
   const workItemId = proposalWorkContext.getStore();
   const explicit = input.explicit === true || !workItemId;
   let triage: Record<string, unknown> | undefined;

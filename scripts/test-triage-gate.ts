@@ -36,8 +36,7 @@ function settings(overrides: Partial<{ suppression_threshold: number | null }> =
 }
 
 async function propose(db: MemorySupabase, input: Record<string, unknown>, background = true) {
-  const call = () =>
-    proposeAction(db.client as never, input as never) as Promise<Row | null>;
+  const call = () => proposeAction(db.client as never, input as never) as Promise<Row | null>;
   return background ? withProposalWorkContext(WORK_ITEM_ID, call) : call();
 }
 
@@ -112,7 +111,8 @@ async function main() {
   });
   assert.deepEqual(
     await loadTriageSettings(
-      new MemorySupabase({ triage_settings: settings({ suppression_threshold: 60 }) }).client as never,
+      new MemorySupabase({ triage_settings: settings({ suppression_threshold: 60 }) })
+        .client as never,
     ),
     { suppressionThreshold: 60 },
   );
@@ -185,7 +185,9 @@ async function main() {
   assert.equal(humanDb.rows("activities").length, 0, "no suppression receipt on the human path");
 
   // Even a background proposal can be declared explicit by its caller.
-  const declared = new MemorySupabase({ triage_settings: settings({ suppression_threshold: 100 }) });
+  const declared = new MemorySupabase({
+    triage_settings: settings({ suppression_threshold: 100 }),
+  });
   const declaredRow = await propose(declared, { ...ambientSweep, explicit: true });
   assert.ok(declaredRow?.id, "an explicitly flagged proposal is not suppressed");
 
@@ -237,8 +239,9 @@ async function main() {
       return baseClient.from(table);
     },
   } as never;
-  const brokenRow = await withProposalWorkContext(WORK_ITEM_ID, () =>
-    proposeAction(brokenClient, ambientSweep as never) as Promise<Row | null>,
+  const brokenRow = await withProposalWorkContext(
+    WORK_ITEM_ID,
+    () => proposeAction(brokenClient, ambientSweep as never) as Promise<Row | null>,
   );
   assert.ok(brokenRow?.id, "a broken gate queues the proposal rather than losing it");
   assert.equal(brokenGate.rows("action_queue").length, 1);

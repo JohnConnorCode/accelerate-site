@@ -27,9 +27,17 @@ process.env.OPENROUTER_API_KEY = "sk-or-v1-test-key-not-real";
 
 type Row = Record<string, unknown>;
 type Sent = {
-  tools: Array<{ function: { name: string } }>;
+  /**
+   * Absent when the request advertised no tools at all: the provider payload
+   * omits the field for an empty tool set, which is how the final step of a
+   * budgeted loop forbids new tool calls.
+   */
+  tools?: Array<{ function: { name: string } }>;
   messages: Array<{ role: string; content?: string; tool_call_id?: string }>;
 };
+
+/** Tools a request advertised; an absent field means none. */
+const sentTools = (request: Sent) => request.tools ?? [];
 
 const realFetch = globalThis.fetch;
 let sent: Sent[] = [];
@@ -442,9 +450,9 @@ async function main() {
       },
     },
   );
-  assert.ok(sent.every((request) => request.tools.length <= 40));
-  assert.ok(!sent[0]!.tools.some((tool) => tool.function.name === "propose_founder_note"));
-  assert.ok(sent[3]!.tools.some((tool) => tool.function.name === "propose_founder_note"));
+  assert.ok(sent.every((request) => sentTools(request).length <= 40));
+  assert.ok(!sentTools(sent[0]!).some((tool) => tool.function.name === "propose_founder_note"));
+  assert.ok(sentTools(sent[3]!).some((tool) => tool.function.name === "propose_founder_note"));
   assert.match(
     sent[1]!.messages.find((message) => message.role === "tool")!.content!,
     /not loaded/,
@@ -489,7 +497,7 @@ async function main() {
     },
   );
   assert.ok(
-    sent[0]!.tools.some((tool) => tool.function.name === "propose_founder_note"),
+    sentTools(sent[0]!).some((tool) => tool.function.name === "propose_founder_note"),
     "a resumed conversation must restore its selected domain bundle",
   );
   assert.match(systemPrompt(sent[0]!), /across reloads/i);
@@ -572,8 +580,12 @@ async function main() {
     };
   });
   const changingResult = await runAgent(changing.client);
-  assert.ok(sent[1]!.tools.some((tool) => tool.function.name === "propose_campaign_activation"));
-  assert.ok(!sent[2]!.tools.some((tool) => tool.function.name === "propose_campaign_activation"));
+  assert.ok(
+    sentTools(sent[1]!).some((tool) => tool.function.name === "propose_campaign_activation"),
+  );
+  assert.ok(
+    !sentTools(sent[2]!).some((tool) => tool.function.name === "propose_campaign_activation"),
+  );
   assert.ok(
     sent[2]!.messages.some(
       (message) => message.role === "tool" && message.content?.includes("disabled"),

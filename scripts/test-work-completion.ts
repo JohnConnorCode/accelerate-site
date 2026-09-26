@@ -23,7 +23,10 @@ import {
   getWorkKindHandler,
   workExecutionStatus,
 } from "../src/lib/revenue-os/work-executor";
-import { runCoworkerAgentTask, MAX_COWORKER_TOOL_TURNS } from "../src/lib/revenue-os/coworker-agent";
+import {
+  runCoworkerAgentTask,
+  MAX_COWORKER_TOOL_TURNS,
+} from "../src/lib/revenue-os/coworker-agent";
 import { registerSalesWorkHandlers } from "../src/lib/revenue-os/sales-coworker";
 import { findWorkDraft, workDraftKey } from "../src/lib/revenue-os/work-drafts";
 import { executeRegisteredRevenueTool } from "../src/lib/revenue-os/ai-tools";
@@ -593,59 +596,54 @@ async function main() {
         assert.equal(db.rows("action_queue").length, 0, "nothing was staged");
       },
     );
-    await check(
-      "the final step withholds tools and exhaustion is a recorded event",
-      async () => {
-        const db = seed();
-        // Capture what each step actually advertised, so this asserts the wiring
-        // and not just the helper that computes it.
-        const advertisedPerStep: number[] = [];
-        const systemPerStep: string[] = [];
-        let index = 0;
-        const scripted: OpenRouterMessage[] = [call("get_pending_actions")];
-        await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
-          chat: async (request) => {
-            advertisedPerStep.push(request.tools?.length ?? 0);
-            systemPerStep.push(
-              String((request.messages as OpenRouterMessage[])[0]?.content ?? ""),
-            );
-            return {
-              id: "test-response",
-              model: "test-model",
-              choices: [{ message: scripted[Math.min(index++, scripted.length - 1)]! }],
-            } as Awaited<ReturnType<typeof openRouterChat>>;
-          },
-        });
-        assert.equal(advertisedPerStep.length, MAX_COWORKER_TOOL_TURNS);
-        assert.ok(
-          advertisedPerStep.slice(0, -1).every((count) => count > 0),
-          "every step before the last advertises tools",
-        );
-        assert.equal(
-          advertisedPerStep[advertisedPerStep.length - 1],
-          0,
-          "the last step advertises nothing, so the model cannot open work it cannot finish",
-        );
-        assert.ok(
-          !systemPerStep[0]!.includes("steps remaining"),
-          "a first step with room to work is not told to wrap up",
-        );
-        assert.match(
-          systemPerStep[systemPerStep.length - 1]!,
-          /final step and no tools are available/,
-          "the tool-free step says why",
-        );
-        const events = db.rows("agent_run_events");
-        const exhausted = events.filter((row) => row.event_type === "budget_exhausted");
-        assert.equal(exhausted.length, 1, "exhaustion is recorded once as its own event");
-        const output = exhausted[0]!.output as Record<string, unknown>;
-        assert.equal(output.reason, "step_budget_exhausted");
-        assert.equal(output.step_limit, MAX_COWORKER_TOOL_TURNS);
-        assert.equal(output.steps_used, MAX_COWORKER_TOOL_TURNS);
-        assert.equal(output.gathered_context, false);
-        assert.equal(typeof output.duration_ms, "number");
-      },
-    );
+    await check("the final step withholds tools and exhaustion is a recorded event", async () => {
+      const db = seed();
+      // Capture what each step actually advertised, so this asserts the wiring
+      // and not just the helper that computes it.
+      const advertisedPerStep: number[] = [];
+      const systemPerStep: string[] = [];
+      let index = 0;
+      const scripted: OpenRouterMessage[] = [call("get_pending_actions")];
+      await runCoworkerAgentTask(db.client, item(db.rows("work_items")[0]), {
+        chat: async (request) => {
+          advertisedPerStep.push(request.tools?.length ?? 0);
+          systemPerStep.push(String((request.messages as OpenRouterMessage[])[0]?.content ?? ""));
+          return {
+            id: "test-response",
+            model: "test-model",
+            choices: [{ message: scripted[Math.min(index++, scripted.length - 1)]! }],
+          } as Awaited<ReturnType<typeof openRouterChat>>;
+        },
+      });
+      assert.equal(advertisedPerStep.length, MAX_COWORKER_TOOL_TURNS);
+      assert.ok(
+        advertisedPerStep.slice(0, -1).every((count) => count > 0),
+        "every step before the last advertises tools",
+      );
+      assert.equal(
+        advertisedPerStep[advertisedPerStep.length - 1],
+        0,
+        "the last step advertises nothing, so the model cannot open work it cannot finish",
+      );
+      assert.ok(
+        !systemPerStep[0]!.includes("steps remaining"),
+        "a first step with room to work is not told to wrap up",
+      );
+      assert.match(
+        systemPerStep[systemPerStep.length - 1]!,
+        /final step and no tools are available/,
+        "the tool-free step says why",
+      );
+      const events = db.rows("agent_run_events");
+      const exhausted = events.filter((row) => row.event_type === "budget_exhausted");
+      assert.equal(exhausted.length, 1, "exhaustion is recorded once as its own event");
+      const output = exhausted[0]!.output as Record<string, unknown>;
+      assert.equal(output.reason, "step_budget_exhausted");
+      assert.equal(output.step_limit, MAX_COWORKER_TOOL_TURNS);
+      assert.equal(output.steps_used, MAX_COWORKER_TOOL_TURNS);
+      assert.equal(output.gathered_context, false);
+      assert.equal(typeof output.duration_ms, "number");
+    });
     await check("work staged before the final step survives the tool-free wrap-up", async () => {
       const db = seed();
       // Stage real work on the first step, then keep the model busy so the run
@@ -710,9 +708,7 @@ async function main() {
           "the answer the model gave on the final step is what the operator receives",
         );
         assert.equal(
-          db
-            .rows("agent_run_events")
-            .filter((row) => row.event_type === "budget_exhausted").length,
+          db.rows("agent_run_events").filter((row) => row.event_type === "budget_exhausted").length,
           0,
           "a run that answered on the final step never exhausted its budget",
         );

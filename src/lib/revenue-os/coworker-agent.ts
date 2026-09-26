@@ -19,11 +19,7 @@ import {
   type RevenueToolPackId,
 } from "./ai-tools";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
-import {
-  budgetExhaustedReceipt,
-  stepBudgetInstruction,
-  stepBudgetState,
-} from "./step-budget";
+import { budgetExhaustedReceipt, stepBudgetInstruction, stepBudgetState } from "./step-budget";
 import {
   AI_CONTEXT_VERSION,
   boundToolResult,
