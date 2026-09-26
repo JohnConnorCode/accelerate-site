@@ -119,7 +119,9 @@ export async function proposeAction(
           action_type: input.actionType,
           error: error instanceof Error ? error.message : String(error),
         },
-      }).catch(() => {});
+      }).catch((error) => {
+        console.error("[actions] triage fallback audit unavailable:", error);
+      });
     }
     if (decision?.action === "pass") {
       await recordTriageSkip(supabase, {
@@ -142,7 +144,9 @@ export async function proposeAction(
         entityType: "action_queue",
         entityId: workItemId,
         metadata: { action_type: input.actionType, ...triageReceipt(decision) },
-      }).catch(() => {});
+      }).catch((error) => {
+        console.error("[actions] triage investigate audit unavailable:", error);
+      });
       return null;
     }
     if (decision) triage = triageReceipt(decision);
@@ -241,14 +245,18 @@ async function recordTriageSkip(
     source: "triage",
     externalId: key,
     metadata,
-  }).catch(() => {});
+  }).catch((error) => {
+    console.error("[actions] triage skip activity receipt unavailable:", error);
+  });
   await recordAudit(supabase, {
     actorEmail: "system",
     action: "action.triage_skipped",
     entityType: "action_queue",
     entityId: input.workItemId ?? null,
     metadata,
-  }).catch(() => {});
+  }).catch((error) => {
+    console.error("[actions] triage skip audit unavailable:", error);
+  });
 }
 
 export async function recoverStaleExecutingActions(supabase: SupabaseClient): Promise<number> {
