@@ -17,6 +17,7 @@ export const TENANT_SCOPED_TABLES = [
   "today_view_receipts",
   "work_saved_views",
   "proposal_lifecycle_receipts",
+  "triage_settings",
   "radar_outreach_attempts",
   "radar_relationship_reviews",
   "radar_current_relationships",
