@@ -1,6 +1,6 @@
 @import "./admin-foundations.css";
-@import "./admin-themes.css";
-@import "./admin-components.css";
+@import "./theme-variants.css";
+@import "./public-admin-surfaces.css";
 @import "./admin-shape.css";
 @import "tailwindcss";
 

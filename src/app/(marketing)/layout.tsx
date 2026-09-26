@@ -4,6 +4,10 @@ import { notFound } from "next/navigation";
 import { MarketingChrome } from "@/components/layout/MarketingChrome";
 import { createNeutralWebsite } from "@/lib/site-studio/neutral-website";
 
+// Public pages are prerendered and revalidated on this window. The publish
+// write path invalidates them immediately; this is only the fallback.
+export const revalidate = 60;
+
 export default async function MarketingLayout({
   children,
 }: Readonly<{

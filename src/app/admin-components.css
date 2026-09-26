@@ -811,10 +811,7 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   gap: var(--admin-section-gap);
   min-width: 0;
 }
-.admin-copy {
-  color: var(--admin-muted);
-  text-wrap: pretty;
-}
+
 .admin-number {
   font-variant-numeric: tabular-nums;
 }
@@ -852,40 +849,14 @@ body.admin-mobile-nav-open .admin-mobile-dock {
   align-items: center;
   gap: 6px;
 }
-.admin-field {
-  font-family: var(--admin-font);
-  min-height: var(--admin-control-height);
-  width: 100%;
-  border: 1px solid color-mix(in srgb, var(--admin-ink) 13%, transparent);
-  border-radius: var(--admin-control-radius);
-  background: var(--admin-field-fill);
-  padding: 0 12px;
-  color: var(--admin-ink);
-  font-size: var(--admin-text-body);
-  outline: none;
-  transition-property: border-color, box-shadow, background-color;
-  transition-duration: var(--admin-motion-fast);
-}
-.admin-field::placeholder {
-  color: var(--admin-muted);
-  opacity: 1;
-}
-.admin-field:disabled {
-  cursor: not-allowed;
-  background: var(--admin-surface-subtle);
-  color: var(--admin-muted);
-}
+
 @media (pointer: coarse) {
   .admin-field,
   .admin-button {
     min-height: max(44px, var(--admin-control-height));
   }
 }
-.admin-field:focus {
-  border-color: var(--admin-action);
-  box-shadow: var(--admin-focus-ring);
-  background: var(--admin-surface);
-}
+
 /* One coordinated dropdown affordance for every native admin select, in all
  * themes. Selects that already paint their own overlay icon carry
  * `appearance-none` and are left alone. */
@@ -1090,10 +1061,6 @@ body.admin-dialog-open iframe {
 
 body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   visibility: hidden !important;
-}
-
-.admin-field.pl-10 {
-  padding-left: 2.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1617,9 +1584,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   outline-offset: -2px;
   background: var(--admin-accent-soft);
 }
-.admin-field {
-  font-weight: 400;
-}
+
 .admin-conversation-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1668,20 +1633,6 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
 .admin-record-row {
   min-height: calc(var(--admin-control-height) + var(--admin-space-4));
   padding: var(--admin-row-padding) var(--admin-panel-padding);
-}
-.admin-field--leading-icon {
-  padding-left: calc(var(--admin-space-6) + var(--admin-space-4));
-}
-.admin-field--trailing-icon {
-  padding-right: calc(var(--admin-space-6) + var(--admin-space-4));
-}
-textarea.admin-field {
-  padding-block: var(--admin-space-3);
-}
-
-.admin-field--inline {
-  width: revert-layer;
-  max-width: 100%;
 }
 
 :is(.admin-shell, .admin-overlay-token-scope)
