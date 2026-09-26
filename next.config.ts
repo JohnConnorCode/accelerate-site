@@ -1,5 +1,15 @@
+import { lstatSync } from "node:fs";
+import { dirname, join } from "node:path";
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
+
+// Shared worktree checkouts symlink node_modules to a sibling tree. Turbopack
+// only resolves modules inside its root, so a link out of the checkout panics
+// the build. Widen the root to the parent that holds both the checkout and the
+// linked dependencies; a real node_modules directory keeps the default root.
+const linkedNodeModules = lstatSync(join(__dirname, "node_modules"), {
+  throwIfNoEntry: false,
+})?.isSymbolicLink();
 
 const rawDeploymentId = process.env.NEXT_DEPLOYMENT_ID || process.env.VERCEL_GIT_COMMIT_SHA;
 // Vercel custom deployment IDs for prebuilt output are user-managed values:
@@ -11,6 +21,7 @@ if (requestedDistDir && !/^\.next-[a-z0-9-]+$/.test(requestedDistDir)) {
 }
 
 const nextConfig: NextConfig = {
+  ...(linkedNodeModules ? { turbopack: { root: dirname(__dirname) } } : {}),
   // Allows browser verification to use an isolated artifact when another local
   // worktree process is building concurrently. Production remains on `.next`.
   distDir: requestedDistDir || ".next",

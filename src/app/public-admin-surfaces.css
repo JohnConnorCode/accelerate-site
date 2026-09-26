@@ -1,0 +1,66 @@
+/* Public surfaces that reuse admin field and copy primitives: the public
+   intake form, the changelog filter and the roadmap feedback box. The rest
+   of the operations component sheet loads only behind the admin chrome, so
+   these few rules are kept where the public site can still reach them. */
+
+.admin-copy {
+  color: var(--admin-muted);
+  text-wrap: pretty;
+}
+
+.admin-field {
+  font-family: var(--admin-font);
+  min-height: var(--admin-control-height);
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--admin-ink) 13%, transparent);
+  border-radius: var(--admin-control-radius);
+  background: var(--admin-field-fill);
+  padding: 0 12px;
+  color: var(--admin-ink);
+  font-size: var(--admin-text-body);
+  outline: none;
+  transition-property: border-color, box-shadow, background-color;
+  transition-duration: var(--admin-motion-fast);
+}
+
+.admin-field::placeholder {
+  color: var(--admin-muted);
+  opacity: 1;
+}
+
+.admin-field:disabled {
+  cursor: not-allowed;
+  background: var(--admin-surface-subtle);
+  color: var(--admin-muted);
+}
+
+.admin-field:focus {
+  border-color: var(--admin-action);
+  box-shadow: var(--admin-focus-ring);
+  background: var(--admin-surface);
+}
+
+.admin-field.pl-10 {
+  padding-left: 2.5rem;
+}
+
+.admin-field {
+  font-weight: 400;
+}
+
+.admin-field--leading-icon {
+  padding-left: calc(var(--admin-space-6) + var(--admin-space-4));
+}
+
+.admin-field--trailing-icon {
+  padding-right: calc(var(--admin-space-6) + var(--admin-space-4));
+}
+
+textarea.admin-field {
+  padding-block: var(--admin-space-3);
+}
+
+.admin-field--inline {
+  width: revert-layer;
+  max-width: 100%;
+}

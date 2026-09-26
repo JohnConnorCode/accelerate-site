@@ -11,6 +11,15 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-30",
   },
   {
+    id: "public-site-performance",
+    slug: "public-site-performance",
+    title: "The public site loads and moves between pages faster",
+    description:
+      "Marketing pages are served as prerendered pages, so a visit starts receiving the page immediately instead of waiting for a server render, and a fresh version is produced within a minute. Publishing a website update makes that revision visible on the next visit, so the public page still matches the saved revision. Operations styling now loads only on Command Center screens instead of on every public page, the chat panel and site search load the first time someone opens them, and the product screenshot carousel further down the home page no longer preloads an image nobody has scrolled to yet.",
+    category: "improvement",
+    publishedAt: "2026-09-26",
+  },
+  {
     id: "admin-control-affordances",
     slug: "admin-control-affordances",
     title: "Controls now show what they will do",

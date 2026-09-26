@@ -1,3 +1,4 @@
+import "../../admin-chrome.css";
 import { notFound } from "next/navigation";
 import { AdminDesignPreview } from "@/components/admin/AdminDesignPreview";
 export default function AdminDesignPage() {

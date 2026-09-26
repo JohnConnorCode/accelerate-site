@@ -214,6 +214,7 @@ export const LOOP_ONE = [
   "autonomous-inbound-responder",
   "scheduling-substrate-decision",
   "workshelter-reuse-baseline",
+  "public-site-performance",
 ];
 const LOOP_ONE_SET = new Set(LOOP_ONE);
 
@@ -5852,6 +5853,209 @@ export const featureBacklog = [
       "2026-08-27 navigation architecture: public pages now share one fail-open route runtime with the founder workspace and fictional demos. It distinguishes initial hydration from client navigation, records per-entry scroll without replacing Next.js history state, restores Back and Forward after asynchronous layout growth, sends new destinations to the top, provides delayed progress and accessible focus feedback, and owns one restrained incoming entrance with a zero-motion reduced state. Browser coverage proves public forward and Back behavior at desktop, mobile, and reduced motion. 2026-08-26 final motion repair: the document receives one prepaint `motion-ready` gate before first paint, while `MotionRuntime` confirms hydration and a watchdog fails open. This removes the visible-hidden-visible eyebrow flash and restores one shared blur/rise reveal recipe without per-page readiness classes. Generic reveals exclude Work-owned reveals, and media parallax now keeps server and first-client markup identical before activating viewport-derived transforms. Public-motion passed 40 smoke routes, eight traversals, three motion/device profiles, delayed/no JavaScript, mobile chat, accessibility, and the delayed-hydration first-frame eyebrow regression. 2026-08-26 art-direction pass completed: one shared compositor-only `MediaParallax` primitive now adds overscanned, spring-smoothed scroll depth to homepage industry stills, homepage Selected Work, Work index covers, and case-study photography without adding another entrance owner or layout shift. Contain-fit product evidence uses a smaller travel range; reduced motion force-disables every parallax transform. Homepage Selected Work now has independently triggered heading/copy/CTA entrances and a four-card 7/5 then 5/7 editorial rhythm. The Work index uses asymmetric flagship and supporting grids with varied cinematic/editorial crops while preserving project order and mobile single-column flow. Industry stills gained interruptible saturation, scrim, copy-lift, and press feedback. The full-admin demo launcher was rebuilt as an on-brand ink-and-paper composition with a five-stage hero sequence, three staggered scenario cards, stronger mobile hierarchy, and a no-animation reduced-motion state. QA now measures parallax response, reduced-motion shutdown, Work-grid asymmetry, document-height-aware reveal timing, and launcher stagger completeness. The exhaustive Work matrix passed seven public routes plus archive across four viewports, light/dark, normal/reduced motion, media/lightbox, runtime, overflow, and accessibility. The full-admin scenario matrix passed the launcher plus 28 shared routes on desktop/mobile; settled desktop/mobile launcher and homepage/Work screenshots were opened and reviewed. The 325-page static/SSG production build, TypeScript, lint, static contracts, agent contract, and diff check passed. Earlier evidence: live instrumentation exposed the previous false-positive contract, with homepage elements firing at 101–105% of viewport height and Work content at 87–94%. The repaired shared observer uses a negative bottom root margin and one-shot entry at 76–78% viewport height; Work heroes and cards retain ordered semantic staggering and delayed/no-JavaScript fail-open behavior.",
     verification:
       "npm run verify:agent-contract; npx tsc --noEmit; npm run lint; npm run verify:guardrails; npm run test:no-fabricated-claims; npm run test:positioning-copy; npm run test:work-portfolio; npm run test:public-motion; npm run test:work-portfolio-qa; npm run build; npm run verify:public-prerender; npx next experimental-analyze --output; git diff --check.",
+  }),
+  card({
+    key: "public-site-performance",
+    title: "Public marketing pages load and navigate fast",
+    workstream: "site",
+    phase: 5,
+    status: "planned",
+    priority: "high",
+    description:
+      "Every public marketing route rendered on each request and shipped the whole operations stylesheet, so a first visit waited on a server render and downloaded admin CSS it never used. Marketing pages now prerender behind a short revalidation window that a publish invalidates immediately, admin theme and component sheets load only behind the admin chrome, the chat panel and site search load on first open, the below-fold product slider stops preloading its image, and the route focus handoff only re-runs when its destination was actually replaced.",
+    acceptance: [
+      "The public home page and the other marketing routes are prerendered and answer with a cached response in the low milliseconds, with a revalidation window of about a minute",
+      "Publishing, rolling back or unpublishing a website revision makes that revision visible on the next visit without waiting out the window",
+      "A transient database failure degrades to the bundled or unavailable path and is never stored as the cached truth for the window",
+      "Public routes do not request the admin theme or component stylesheet, and admin routes still load them",
+      "Public surfaces that reuse admin field and copy primitives, including the public intake form, the changelog filter and the roadmap feedback box, keep their styling",
+      "The chat panel and site search load on first open, keep their exit animation, receive focus when opened and keep their keyboard focus loop",
+      "The home page no longer preloads a product screenshot that sits far below the fold, while the pages where that carousel is above the fold still preload it",
+      "Route focus still lands on the destination heading after a client navigation, including when a client data boundary replaces that heading",
+      "Recorded before and after measurements on the same machine show lower home TTFB, no worse first contentful paint, fewer long tasks and a lower navigation commit p95, with no console errors",
+      "The product changelog carries a dated entry for the change, and the public guides, Command Center descriptions and plugin references are reviewed with reasons recorded",
+    ],
+    dependencies: [],
+    start:
+      "src/lib/site-studio/website-public.ts; src/app/(marketing)/layout.tsx; src/app/api/admin/site/website/route.ts; src/app/globals.css; src/app/admin-chrome.css; src/app/public-admin-surfaces.css; src/app/theme-variants.css; src/components/chat/ChatWidget.tsx; src/components/layout/Header.tsx; src/components/media/ProductSlider.tsx; src/components/navigation/NavigationRuntime.tsx; scripts/generate-admin-themes.mjs",
+    guardrails:
+      "Keep prerendered content visible before hydration and when JavaScript fails. Never cache an unavailable database read as the published truth. Keep every admin stylesheet rule that public surfaces rely on reachable from the root stylesheet. Preserve public positioning, admin visual design, the fictional demos, route focus and reduced-motion behavior. Do not deploy unless asked.",
+    labels: ["reliability", "testing", "playwright"],
+    workSpec: {
+      packetVersion: 2,
+      northstar: {
+        phase: "A",
+        layers: ["See", "Act"],
+        contribution:
+          "A prospective business reaches the public site and can read it and move between pages without waiting on a server render or on operations code it never touches.",
+      },
+      currentBehavior:
+        "Public marketing routes read the published website through a per-request service call, so Next could not prerender them and every request paid a database round trip. The root stylesheet imported the admin theme and component sheets, so every visitor downloaded roughly half a megabyte of operations CSS. The chat panel, site search and the first product screenshot were all part of the initial public bundle.",
+      failureModes: [
+        "A published revision stays invisible to visitors until the revalidation window expires.",
+        "A transient database error becomes the cached truth for the whole window instead of degrading to the bundled site.",
+        "Public surfaces that reuse admin field and copy primitives lose their styling once the admin sheet stops loading.",
+        "A lazily loaded overlay opens without receiving focus, or traps focus outside itself.",
+      ],
+      blockerResolution:
+        "Publishing, rollback and unpublish invalidate the public website tag and revalidate the marketing layout, so the saved revision is visible on the next visit. The cached read throws instead of returning an unavailable result, so a transient error is never stored. The rules public surfaces reuse are extracted into a sheet the root stylesheet still imports, and both lazily loaded overlays receive focus once they exist.",
+      businessValue:
+        "First impressions decide whether a prospect keeps reading. Removing the per-request render and the unused operations CSS shortens the wait before the page is readable and reduces the bytes every visitor downloads.",
+      scope: [
+        "Prerender public marketing routes behind a 60 second revalidation window with explicit publish invalidation.",
+        "Load admin theme and component sheets only behind the admin chrome, keeping the shared dark variant and the rules public surfaces reuse in the root stylesheet.",
+        "Load the chat panel and site search on first open instead of on first load.",
+        "Stop preloading a product screenshot that sits far below the fold on the home page.",
+        "Limit the route focus MutationObserver to the case where its focused destination was replaced.",
+      ],
+      exclusions: [
+        "Scroll restoration and route handoff animation design are unchanged.",
+        "No change to admin visual design, admin routes, or the fictional demos.",
+        "No image re-encoding: delivered variants are already resized by the optimizer.",
+        "No change to production deployment, hosting configuration or provider credentials.",
+      ],
+      references: [
+        {
+          path: "docs/contracts/NAVIGATION-RUNTIME-CONTRACT.md",
+          reason:
+            "Route focus, history restoration and transition opacity rules the change must preserve.",
+        },
+        {
+          path: "docs/contributing/DOCUMENTATION.md",
+          reason: "Required release-content review for a user-visible change.",
+        },
+      ],
+      workflow: [
+        "Measure the current home load, navigation profile and stylesheet size on the same machine and build.",
+        "Prerender the public marketing routes and invalidate the public website tag on publish, rollback and unpublish.",
+        "Move the admin theme and component sheets behind the admin chrome and keep the dark variant plus the public-needed rules in the root stylesheet.",
+        "Load the chat panel and site search on first open, and preserve their focus handoff.",
+        "Stop the below-fold product screenshot preload and bound the route focus observer.",
+        "Re-measure the same metrics and run the contract, prerender, motion and navigation suites.",
+      ],
+      requiredCapabilities: ["typescript", "postgres", "playwright"],
+      unresolvedDependencies: [],
+      repository: {
+        url: "https://github.com/JohnConnorCode/accelerate-site.git",
+        baseBranch: "main",
+        baseCommit: "34ed2cae5f3810af5842a017d7491fbcc2716966",
+      },
+      verification: [
+        {
+          command: "npm run typecheck",
+          expected: "TypeScript validation passes with no errors.",
+          environment: "local",
+        },
+        { command: "npm run lint", expected: "ESLint reports no problems.", environment: "local" },
+        {
+          command: "npm run build",
+          expected:
+            "Production build succeeds and the prerender manifest contains the public marketing routes.",
+          environment: "local",
+        },
+        {
+          command: "npm run verify:public-prerender",
+          expected:
+            "All required public routes are prerendered and the strict documentation check passes with zero errors.",
+          environment: "local",
+        },
+        {
+          command: "npm run verify:agent-contract",
+          expected: "The agent contract verifier passes.",
+          environment: "local",
+        },
+        {
+          command: "npm run verify:admin-tokens",
+          expected:
+            "Admin token, color, radius and control recipe contracts pass after the stylesheet split.",
+          environment: "local",
+        },
+        {
+          command: "npm run test:admin-themes",
+          expected: "Theme generation stays consistent with the new two-file output.",
+          environment: "local",
+        },
+        {
+          command: "PLAYWRIGHT_BASE_URL=http://localhost:3000 npm run test:public-motion",
+          expected:
+            "Public motion, accessibility and chat focus coverage passes across 41 smoke routes and 3 viewports.",
+          environment: "local",
+        },
+        {
+          command: "PLAYWRIGHT_BASE_URL=http://localhost:3000 npm run qa:home-hero-timing",
+          expected: "Home hero timing contract passes.",
+          environment: "local",
+        },
+        {
+          command: "node /tmp/measure-home.mjs http://localhost:3000",
+          expected:
+            "Home TTFB stays in the low milliseconds with no console errors, and total transferred bytes fall against the recorded baseline.",
+          environment: "local",
+        },
+      ],
+      acceptance: [
+        {
+          id: "public-prerendered",
+          criterion:
+            "The public home page and the other marketing routes are prerendered and answer with a cached response in the low milliseconds, with a revalidation window of about a minute.",
+          environment: "local",
+        },
+        {
+          id: "publish-invalidates",
+          criterion:
+            "Publishing, rolling back or unpublishing a website revision makes that revision visible on the next visit without waiting out the window.",
+          environment: "local",
+        },
+        {
+          id: "degraded-read",
+          criterion:
+            "A transient database failure degrades to the bundled or unavailable path and is never stored as the cached truth for the window.",
+          environment: "local",
+        },
+        {
+          id: "public-css-split",
+          criterion:
+            "Public routes do not request the admin theme or component stylesheet, and admin routes still load them.",
+          environment: "local",
+        },
+        {
+          id: "public-primitives",
+          criterion:
+            "Public surfaces that reuse admin field and copy primitives, including the public intake form, the changelog filter and the roadmap feedback box, keep their styling.",
+          environment: "local",
+        },
+        {
+          id: "overlays-on-demand",
+          criterion:
+            "The chat panel and site search load on first open, keep their exit animation, receive focus when opened and keep their keyboard focus loop.",
+          environment: "local",
+        },
+        {
+          id: "no-below-fold-preload",
+          criterion:
+            "The home page no longer preloads a product screenshot that sits far below the fold, while the pages where that carousel is above the fold still preload it.",
+          environment: "local",
+        },
+        {
+          id: "route-focus",
+          criterion:
+            "Route focus still lands on the destination heading after a client navigation, including when a client data boundary replaces that heading.",
+          environment: "local",
+        },
+        {
+          id: "measured",
+          criterion:
+            "Recorded before and after measurements on the same machine show lower home TTFB, no worse first contentful paint, fewer long tasks and a lower navigation commit p95, with no console errors.",
+          environment: "local",
+        },
+        {
+          id: "release-content",
+          criterion:
+            "The product changelog carries a dated entry for the change, and the public guides, Command Center descriptions and plugin references are reviewed with reasons recorded.",
+          environment: "local",
+        },
+      ],
+    },
   }),
   card({
     key: "agent-runbooks",
