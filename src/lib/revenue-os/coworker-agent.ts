@@ -20,6 +20,11 @@ import {
 } from "./ai-tools";
 import { finishAgentRun, recordAgentRunEvent, startAgentRun } from "./agent-trace";
 import {
+  budgetExhaustedReceipt,
+  stepBudgetInstruction,
+  stepBudgetState,
+} from "./step-budget";
+import {
   AI_CONTEXT_VERSION,
   boundToolResult,
   boundCoworkerText,
@@ -246,7 +251,8 @@ export async function runCoworkerAgentTask(
         workItemId: workItem.id,
         ...(workItem.kind === "draft_followup" ? { workItem } : {}),
       });
-      const tools = (
+      const budget = stepBudgetState(turn, MAX_COWORKER_TOOL_TURNS);
+      const stepTools = (
         workItem.kind === "daily_digest"
           ? toOpenRouterTools(toolPack)
           : Array.from(
@@ -264,6 +270,10 @@ export async function runCoworkerAgentTask(
       )
         .filter((tool) => toolAllowed(tool.function.name))
         .slice(0, MAX_ACTIVE_AI_TOOLS);
+      // A scheduled coworker is not a person waiting on a reply. On the final
+      // step it gets no tools, so it must produce its conclusion from what it
+      // already read instead of starting work it cannot finish or report.
+      const tools = budget.toolsAllowed ? stepTools : [];
       const advertisedNames = new Set(tools.map((tool) => tool.function.name));
       const response = await (options.chat ?? openRouterChat)({
         database: supabase,
@@ -283,7 +293,7 @@ export async function runCoworkerAgentTask(
         messages: [
           {
             role: "system",
-            content: `${coworkerSystemPrompt(role, coworkerId, String(workspace.name).slice(0, 120))}\n\n${grounding}`,
+            content: `${coworkerSystemPrompt(role, coworkerId, String(workspace.name).slice(0, 120))}\n\n${grounding}${stepBudgetInstruction(budget) ? `\n${stepBudgetInstruction(budget)}` : ""}`,
           },
           ...transcript,
         ],
@@ -437,9 +447,45 @@ export async function runCoworkerAgentTask(
         .filter((entry) => entry.role === "assistant")
         .map((entry) => entry.content?.trim())
         .filter(Boolean)
-        .join("\n\n") || `Stopped after ${MAX_COWORKER_TOOL_TURNS} tool turns`;
+        .join("\n\n") || "";
+    const gatheredText = gathered.length > 0;
+    await recordAgentRunEvent(supabase, run, {
+      eventType: "budget_exhausted",
+      output: budgetExhaustedReceipt({
+        limit: MAX_COWORKER_TOOL_TURNS,
+        inputTokens,
+        outputTokens,
+        durationMs: Date.now() - run.startedAt,
+        stagedToolNames: successfulToolNames,
+        gatheredText,
+      }),
+    });
 
-    const exhaustedGrounding = validateGroundedRevenueAnswer(gathered, successfulToolNames);
+    // Nothing gathered and nothing staged means the forced wrap-up had no
+    // context to work from. That is not a conclusion, it is an unfinished job,
+    // so it goes back on the schedule with a reason instead of closing as
+    // partial — a retry with fresh context is the actual remedy.
+    if (!gatheredText && !actionIds.length && !artifacts.length) {
+      await finishAgentRun(supabase, run, "partial", {
+        toolNames,
+        inputTokens,
+        outputTokens,
+        error: `Reached the ${MAX_COWORKER_TOOL_TURNS}-step limit without gathering context or staging work`,
+      });
+      return {
+        ...deferWork(
+          `Ran out of steps before reading anything for ${workItem.objective}. No work was staged.`,
+          new Date(Date.now() + 30 * 60_000).toISOString(),
+        ),
+        artifacts,
+        runId: run.id,
+      };
+    }
+
+    const exhaustedGrounding = validateGroundedRevenueAnswer(
+      gathered || `Stopped after ${MAX_COWORKER_TOOL_TURNS} tool turns`,
+      successfulToolNames,
+    );
     const partial = exhaustedGrounding.valid
       ? gathered
       : groundedAnswerFailure(exhaustedGrounding.reason ?? "Coworker turn limit reached");
