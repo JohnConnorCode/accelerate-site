@@ -205,6 +205,7 @@ export function TodayWorkspace() {
     };
   const useColumns = useSyncExternalStore(subscribeColumns, readColumns, serverColumns);
   const standard = defaultTodayView();
+  const standardAttention = standard.modules.find((module) => module.type === "attention");
   const isStandard =
     current.view.id === standard.id &&
     current.view.name === standard.name &&
@@ -447,8 +448,18 @@ export function TodayWorkspace() {
                     >
                       <strong>{item.title}</strong>
                       {item.sourceType !== "operational_health" && <p>{item.priorityReason}</p>}
+                      {kind === "attention" &&
+                        item.recommendedNextAction &&
+                        item.recommendedNextAction !== item.priorityReason && (
+                          <p>Next: {item.recommendedNextAction}</p>
+                        )}
                       <span className={styles.rowMeta}>
-                        {!["attention"].includes(kind) && (
+                        {kind === "attention" && (
+                          <span className={styles.badge}>
+                            {item.sourceType.replaceAll("_", " ")}
+                          </span>
+                        )}
+                        {kind !== "attention" && (
                           <span
                             className={cn(
                               styles.badge,
@@ -524,15 +535,18 @@ export function TodayWorkspace() {
               <strong>{snapshot.metrics.data?.openOpportunities ?? "—"}</strong>
             </Link>
             <Link className={styles.factButton} href="/admin/pipeline">
-              <span>Pipeline value</span>
+              <span>Recorded pipeline value</span>
               <strong>
                 {snapshot.metrics.data
-                  ? new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                      maximumFractionDigits: 0,
-                      notation: "compact",
-                    }).format(snapshot.metrics.data.pipelineValue)
+                  ? snapshot.metrics.data.openOpportunities > 0 &&
+                    snapshot.metrics.data.pipelineValue === 0
+                    ? "No positive estimates"
+                    : new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                        maximumFractionDigits: 0,
+                        notation: "compact",
+                      }).format(snapshot.metrics.data.pipelineValue)
                   : "—"}
               </strong>
             </Link>
@@ -712,14 +726,17 @@ export function TodayWorkspace() {
                   <dd>{snapshot.metrics.data.openOpportunities}</dd>
                 </div>
                 <div>
-                  <dt>Pipeline value</dt>
+                  <dt>Recorded pipeline value</dt>
                   <dd>
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                      maximumFractionDigits: 0,
-                      notation: "compact",
-                    }).format(snapshot.metrics.data.pipelineValue)}
+                    {snapshot.metrics.data.openOpportunities > 0 &&
+                    snapshot.metrics.data.pipelineValue === 0
+                      ? "No positive estimates"
+                      : new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                          maximumFractionDigits: 0,
+                          notation: "compact",
+                        }).format(snapshot.metrics.data.pipelineValue)}
                   </dd>
                 </div>
               </dl>
@@ -955,12 +972,9 @@ export function TodayWorkspace() {
               if (!e.currentTarget.contains(e.relatedTarget as Node)) setInteracting(false);
             }}
           >
-            {allAttention && (
+            {allAttention && standardAttention && (
               <div data-width="full" id="today-attention">
-                {renderRows(
-                  { ...defaultTodayView().modules[1]!, limit: items.length || 1 },
-                  "attention",
-                )}
+                {renderRows({ ...standardAttention, limit: items.length || 1 }, "attention")}
               </div>
             )}
             {moduleGroups.map((group) =>

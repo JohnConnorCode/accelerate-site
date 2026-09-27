@@ -35,10 +35,17 @@ try {
     await demo.getByRole("heading", { name: "Conversations", exact: true }).waitFor();
     await publicPage.bringToFront();
     // Public and live admin use the same shared provider and existing "theme" preference.
-    await publicPage
-      .getByRole("button", { name: "Switch to dark mode", exact: true })
-      .first()
-      .click();
+    const publicToggle = publicPage.getByRole("button", {
+      name: "Switch to dark mode",
+      exact: true,
+    });
+    if (await publicToggle.count()) {
+      await publicToggle.first().click();
+    } else {
+      // A published Site Studio header can omit the public appearance control.
+      await publicPage.evaluate(() => localStorage.setItem("theme", "dark"));
+      await publicPage.reload({ waitUntil: "networkidle" });
+    }
     await publicPage.waitForTimeout(1200);
     const current = await publicPage.locator("html").getAttribute("data-theme");
     if (process.argv.includes("--reproduce")) {
@@ -87,10 +94,10 @@ try {
     );
     assert.equal(await demo.locator("html").getAttribute("data-theme"), "dark");
     if (width === 390) await demo.getByRole("button", { name: "Open More", exact: true }).click();
-    const commandSection = demo.locator('section[data-nav-section="Command"]:visible').first();
-    const command = commandSection.getByRole("button", { name: "Daily work", exact: true });
-    if ((await command.getAttribute("aria-expanded")) !== "true") await command.click();
-    await commandSection.getByRole("link", { name: "Pipeline", exact: true }).click();
+    const recordsSection = demo.locator('section[data-nav-section="Records"]:visible').first();
+    const records = recordsSection.getByRole("button", { name: "Expand Records links" });
+    if (await records.count()) await records.click();
+    await recordsSection.getByRole("link", { name: "Pipeline", exact: true }).click();
     await demo.getByRole("heading", { name: "Pipeline", exact: true }).waitFor();
     assert.equal(await demo.locator("html").getAttribute("data-theme"), "dark");
     await demo.reload({ waitUntil: "networkidle" });
@@ -139,10 +146,8 @@ try {
     );
     if (width === 390) await demo.getByRole("button", { name: "Open More", exact: true }).click();
     const conversationsSection = demo
-      .locator('section[data-nav-section="Command"]:visible')
+      .locator('section[data-nav-section="Conversations"]:visible')
       .first();
-    const dailyWork = conversationsSection.getByRole("button", { name: "Daily work", exact: true });
-    if ((await dailyWork.getAttribute("aria-expanded")) !== "true") await dailyWork.click();
     await conversationsSection.getByRole("link", { name: "Conversations", exact: true }).click();
     await demo.getByRole("heading", { name: "Conversations", exact: true }).waitFor();
     await demo.screenshot({ path: `${output}/conversations-${width}.png`, fullPage: true });

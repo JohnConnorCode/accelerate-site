@@ -20,6 +20,7 @@ import type { AdminThemeDefinition } from "@/lib/admin/theme-definition";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   ArrowUpRight,
+  BookOpen,
   Bot,
   ChevronDown,
   CheckSquare,
@@ -28,6 +29,7 @@ import {
   LifeBuoy,
   LogOut,
   Mail,
+  MessageSquareText,
   MonitorPlay,
   MoreHorizontal,
   NotebookPen,
@@ -37,6 +39,10 @@ import {
   Search,
   Settings,
   User,
+  UsersRound,
+  LayoutDashboard,
+  ListChecks,
+  PlugZap,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -108,6 +114,107 @@ interface WorkspaceOption {
   slug: string;
   name: string;
   status: string;
+}
+
+const mobilePrimaryLinks = adminMobileLinks.filter((link) =>
+  ["today", "work", "contacts"].includes(link.id),
+);
+const primaryRecordLinks = new Set(["pipeline", "clients", "stripe-invoicing", "proposals"]);
+
+const sidebarGroups: Array<{
+  id: string;
+  label: string;
+  primaryId: string;
+  icon: LucideIcon;
+  members: string[];
+}> = [
+  {
+    id: "today",
+    label: "Today",
+    primaryId: "today",
+    icon: LayoutDashboard,
+    members: ["today", "analytics", "activity", "opportunity-radar"],
+  },
+  {
+    id: "work",
+    label: "Work",
+    primaryId: "work",
+    icon: ListChecks,
+    members: ["work", "inbox", "bookings"],
+  },
+  {
+    id: "records",
+    label: "Records",
+    primaryId: "contacts",
+    icon: UsersRound,
+    members: [
+      "contacts",
+      "pipeline",
+      "clients",
+      "proposals",
+      "revenue",
+      "recovery",
+      "leads",
+      "chat-leads",
+      "subscribers",
+      "partners",
+      "website-grades",
+      "identity-review",
+      "stripe-invoicing",
+      "stripe-subscriptions",
+      "receivables-collections",
+    ],
+  },
+  {
+    id: "conversations",
+    label: "Conversations",
+    primaryId: "conversations",
+    icon: MessageSquareText,
+    members: ["conversations", "emails", "campaigns", "delivery-runs"],
+  },
+  {
+    id: "knowledge",
+    label: "Knowledge",
+    primaryId: "learning",
+    icon: BookOpen,
+    members: ["learning", "blueprints", "architect", "resources", "content"],
+  },
+  {
+    id: "coworkers",
+    label: "Coworkers",
+    primaryId: "coworkers",
+    icon: Bot,
+    members: ["coworkers", "ai"],
+  },
+  {
+    id: "apps",
+    label: "Apps",
+    primaryId: "integrations",
+    icon: PlugZap,
+    members: ["integrations"],
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    primaryId: "settings",
+    icon: Settings,
+    members: ["settings", "branding", "tenants", "setup", "get-started", "features"],
+  },
+];
+
+function groupSidebarLinks(sections: AdminNavSection[]) {
+  const links = sections.flatMap((section) => section.links);
+  const assigned = new Set(sidebarGroups.flatMap((group) => group.members));
+  return sidebarGroups
+    .map((group) => {
+      const members = links.filter(
+        (link) =>
+          group.members.includes(link.id) || (group.id === "apps" && !assigned.has(link.id)),
+      );
+      const primary = members.find((link) => link.id === group.primaryId) ?? members[0];
+      return { ...group, primary, links: members.filter((link) => link.id !== primary?.id) };
+    })
+    .filter((group) => group.primary);
 }
 
 export default function AdminShell({
@@ -488,15 +595,15 @@ export default function AdminShell({
       (pendingAdminPath === href || (href !== "/admin" && pendingAdminPath.startsWith(href))),
     );
   const routeIsPending = Boolean(pendingAdminPath && pendingAdminPath !== effectivePathname);
-  const pendingMobileIndex = adminMobileLinks.findIndex((link) => isPendingActive(link.href));
-  const committedMobileIndex = adminMobileLinks.findIndex((link) => isActive(link.href));
+  const pendingMobileIndex = mobilePrimaryLinks.findIndex((link) => isPendingActive(link.href));
+  const committedMobileIndex = mobilePrimaryLinks.findIndex((link) => isActive(link.href));
   const mobileDockIndex = pendingAdminPath
     ? pendingMobileIndex >= 0
       ? pendingMobileIndex
-      : adminMobileLinks.length
+      : mobilePrimaryLinks.length
     : committedMobileIndex >= 0
       ? committedMobileIndex
-      : adminMobileLinks.length;
+      : mobilePrimaryLinks.length;
 
   const commandActions: CommandAction[] = [
     {
@@ -847,11 +954,11 @@ export default function AdminShell({
                 <nav
                   inert={mobileOpen}
                   style={{ "--admin-mobile-dock-index": mobileDockIndex } as CSSProperties}
-                  className="admin-mobile-dock fixed inset-x-4 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-5 items-stretch rounded-[var(--admin-surface-radius)] p-1 lg:hidden"
+                  className="admin-mobile-dock fixed inset-x-4 bottom-[max(0.55rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-4 items-stretch rounded-[var(--admin-surface-radius)] p-1 lg:hidden"
                   aria-label="Primary navigation"
                 >
                   <span className="admin-mobile-dock-active" aria-hidden="true" />
-                  {adminMobileLinks.map((link) => {
+                  {mobilePrimaryLinks.map((link) => {
                     const committed = isActive(link.href);
                     const active = isPendingActive(link.href) || (!pendingAdminPath && committed);
                     return (
@@ -867,7 +974,9 @@ export default function AdminShell({
                         )}
                       >
                         <link.icon className="relative z-10 size-[17px]" aria-hidden="true" />
-                        <span className="relative z-10 max-w-full truncate">{link.label}</span>
+                        <span className="relative z-10 max-w-full truncate">
+                          {link.id === "contacts" ? "Records" : link.label}
+                        </span>
                       </Link>
                     );
                   })}
@@ -877,7 +986,7 @@ export default function AdminShell({
                     onClick={() => setMobileOpen(true)}
                     className={cn(
                       "admin-mobile-dock-item relative flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-[var(--admin-surface-radius)] px-1 text-[9px] font-semibold transition-[color,background-color,transform] duration-200 active:scale-[0.96]",
-                      mobileDockIndex === adminMobileLinks.length && "is-active",
+                      mobileDockIndex === mobilePrimaryLinks.length && "is-active",
                     )}
                     aria-label="Open More"
                     aria-expanded={mobileOpen}
@@ -952,9 +1061,10 @@ function SidebarContent({
   workspaces: WorkspaceOption[];
   onSwitchWorkspace: (slug: string) => void;
 }) {
-  const activeSection = navigationSections.find((section) =>
-    section.links.some((link) => isActive(link.href)),
-  )?.label;
+  const groups = groupSidebarLinks(navigationSections);
+  const activeGroup = groups.find((group) =>
+    [group.primary, ...group.links].some((link) => link && isActive(link.href)),
+  )?.id;
   const { pendingHref } = useNavigationRuntime();
   const pendingPath = pendingHref
     ? new URL(pendingHref, "http://accelerate.local").pathname.replace(
@@ -962,31 +1072,9 @@ function SidebarContent({
         "/admin",
       )
     : null;
-  const [sectionState, setSectionState] = useState({
-    routeSection: activeSection,
-    expanded: activeSection ? [activeSection] : [navigationSections[0]!.label],
-  });
-  // Remember user disclosures while revealing a newly selected destination.
-  // Updating this component's state during render avoids a late effect/jump.
-  if (sectionState.routeSection !== activeSection) {
-    setSectionState({
-      routeSection: activeSection,
-      expanded:
-        activeSection && !sectionState.expanded.includes(activeSection)
-          ? [...sectionState.expanded, activeSection]
-          : sectionState.expanded,
-    });
-  }
-  const expandedSections = sectionState.expanded;
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [recordsMoreOverride, setRecordsMoreOverride] = useState<boolean | null>(null);
   const demoScenario = demoScenarioId ? DEMO_SCENARIOS[demoScenarioId] : null;
-  const toggleSection = (label: string) => {
-    setSectionState((current) => ({
-      ...current,
-      expanded: current.expanded.includes(label)
-        ? current.expanded.filter((section) => section !== label)
-        : [...current.expanded, label],
-    }));
-  };
 
   return (
     <>
@@ -1094,121 +1182,164 @@ function SidebarContent({
       </div>
 
       <nav
-        className="admin-nav-scroll flex-1 space-y-2 overflow-y-auto overscroll-contain"
+        className="admin-nav-scroll flex-1 space-y-1 overflow-y-auto overscroll-contain"
         aria-label="Admin navigation"
       >
-        {navigationSections.map((section) => (
-          <section key={section.label} data-nav-section={section.label}>
-            {(() => {
-              const expanded = collapsed || expandedSections.includes(section.label);
-              const panelId = `${idPrefix}-nav-${section.label.toLowerCase()}`;
-              return (
-                <>
-                  {!collapsed ? (
-                    <button
-                      type="button"
-                      onClick={() => toggleSection(section.label)}
-                      className="admin-nav-section-button group flex min-h-11 w-full items-center justify-between rounded-[var(--admin-control-radius)] px-2.5 text-left font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.96]"
-                      aria-expanded={expanded}
-                      aria-controls={panelId}
-                    >
-                      <span className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "size-1.5 rounded-full bg-current transition-opacity duration-150",
-                            expanded ? "opacity-80" : "opacity-25",
-                          )}
-                          aria-hidden="true"
-                        />
-                        {section.title ?? section.label}
-                      </span>
-                      <ChevronDown
-                        className={cn(
-                          "h-3.5 w-3.5 transition-transform duration-200",
-                          expanded && "rotate-180",
-                        )}
-                      />
-                    </button>
-                  ) : (
-                    <div className="admin-nav-rule mx-2 my-2 h-px" aria-hidden="true" />
+        {groups.map((group) => {
+          const primary = group.primary!;
+          const active = activeGroup === group.id;
+          const expanded = !collapsed && (openGroup === group.id || (openGroup === null && active));
+          const panelId = `${idPrefix}-nav-${group.id}`;
+          const Icon = group.icon;
+          const extraLinks =
+            group.id === "records"
+              ? group.links.filter((link) => !primaryRecordLinks.has(link.id))
+              : [];
+          const directLinks =
+            group.id === "records"
+              ? group.links.filter((link) => primaryRecordLinks.has(link.id))
+              : group.links;
+          const recordsMoreExpanded =
+            recordsMoreOverride ?? extraLinks.some((link) => isActive(link.href));
+          const renderChildLink = (link: AdminNavLink) => {
+            const selected = isActive(link.href);
+            return (
+              <Link
+                key={link.id}
+                href={link.href}
+                onClick={() => {
+                  setOpenGroup(null);
+                  setRecordsMoreOverride(null);
+                  onNavigate?.();
+                }}
+                title={link.description}
+                aria-current={selected ? "page" : undefined}
+                data-pending={pendingPath === link.href && !selected ? "true" : undefined}
+                className="admin-nav-link flex min-h-10 items-center gap-2 rounded-[var(--admin-control-radius)] px-2.5 text-xs font-medium transition-[color,background-color] duration-150"
+              >
+                <link.icon className="size-3.5 shrink-0" aria-hidden="true" />
+                <span className="min-w-0 truncate">{link.label}</span>
+              </Link>
+            );
+          };
+          return (
+            <section key={group.id} data-nav-section={group.label}>
+              <div className="flex items-center gap-0.5">
+                <Link
+                  href={primary.href}
+                  onClick={() => {
+                    setOpenGroup(null);
+                    setRecordsMoreOverride(null);
+                    onNavigate?.();
+                  }}
+                  aria-label={collapsed ? group.label : undefined}
+                  title={collapsed ? group.label : primary.description}
+                  aria-current={isActive(primary.href) ? "page" : undefined}
+                  data-pending={
+                    pendingPath === primary.href && !isActive(primary.href) ? "true" : undefined
+                  }
+                  className={cn(
+                    "admin-nav-link group relative flex min-h-11 min-w-0 flex-1 items-center rounded-[var(--admin-control-radius)] text-[13.5px] font-semibold transition-[color,background-color,transform] duration-150 active:scale-[0.96]",
+                    collapsed ? "justify-center" : "gap-3 px-2.5",
+                    active &&
+                      !isActive(primary.href) &&
+                      "bg-[var(--admin-nav-hover)] text-[var(--admin-nav-ink)]",
                   )}
-                  <div
-                    id={panelId}
-                    inert={!expanded}
-                    aria-hidden={!expanded}
-                    className={cn(
-                      "admin-nav-disclosure grid",
-                      expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
-                    )}
+                >
+                  <Icon className="size-4 shrink-0" aria-hidden="true" />
+                  {!collapsed && <span className="min-w-0 flex-1 truncate">{group.label}</span>}
+                  {group.id === "today" && priorityCount > 0 && (
+                    <span
+                      className={cn(
+                        "rounded-full bg-[var(--admin-nav-hover)] px-1.5 py-0.5 font-mono text-[9px] font-semibold tabular-nums",
+                        collapsed && "absolute right-0 top-0 size-2 p-0 text-transparent",
+                      )}
+                      aria-label={`${priorityCount} urgent priorities`}
+                    >
+                      {priorityCount > 99 ? "99+" : priorityCount}
+                    </span>
+                  )}
+                  {active && (
+                    <motion.span
+                      layoutId={`${idPrefix}-nav-active`}
+                      className="admin-nav-active-indicator absolute inset-y-2 -left-4 w-0.5 rounded-r"
+                      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    />
+                  )}
+                </Link>
+                {!collapsed && group.links.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setOpenGroup(expanded ? "" : group.id)}
+                    aria-label={`${expanded ? "Collapse" : "Expand"} ${group.label} links`}
+                    aria-controls={panelId}
+                    aria-expanded={expanded}
+                    className="admin-nav-control grid size-10 shrink-0 place-items-center rounded-[var(--admin-control-radius)]"
                   >
-                    <div className="min-h-0 overflow-hidden">
-                      <div className="space-y-0.5 pb-1.5 pt-0.5">
-                        {section.links.map((link) => {
-                          const active = isActive(link.href);
-                          return (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              onClick={onNavigate}
-                              aria-label={collapsed ? link.label : undefined}
-                              title={collapsed ? link.label : link.description}
+                    <ChevronDown
+                      className={cn(
+                        "size-3.5 transition-transform duration-200",
+                        expanded && "rotate-180",
+                      )}
+                    />
+                  </button>
+                )}
+              </div>
+              {group.links.length > 0 && !collapsed && (
+                <div
+                  id={panelId}
+                  inert={!expanded}
+                  aria-hidden={!expanded}
+                  className={cn(
+                    "admin-nav-disclosure grid",
+                    expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                  )}
+                >
+                  <div className="min-h-0 overflow-hidden">
+                    <div className="space-y-0.5 pb-1 pl-6 pt-0.5">
+                      {directLinks.map(renderChildLink)}
+                      {extraLinks.length > 0 && (
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setRecordsMoreOverride(!recordsMoreExpanded)}
+                            aria-expanded={recordsMoreExpanded}
+                            aria-controls={`${panelId}-more`}
+                            className="admin-nav-link flex min-h-10 w-full items-center justify-between rounded-[var(--admin-control-radius)] px-2.5 text-left text-xs font-medium transition-colors duration-150"
+                          >
+                            More records
+                            <ChevronDown
                               className={cn(
-                                "admin-nav-link group relative flex min-h-11 items-center rounded-[var(--admin-control-radius)] text-[13.5px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.96]",
-                                collapsed ? "justify-center px-0" : "gap-3 px-2.5",
+                                "size-3.5 transition-transform duration-200",
+                                recordsMoreExpanded && "rotate-180",
                               )}
-                              aria-current={active ? "page" : undefined}
-                              data-pending={
-                                pendingPath === link.href && !active ? "true" : undefined
-                              }
-                            >
-                              <link.icon className="h-4 w-4 shrink-0 transition-colors duration-150" />
-                              <span
-                                className="admin-nav-label min-w-0 truncate"
-                                aria-hidden={collapsed}
-                              >
-                                {link.label}
-                              </span>
-                              {link.href === "/admin/today" &&
-                                priorityCount > 0 &&
-                                (collapsed ? (
-                                  <span
-                                    className={cn(
-                                      "absolute right-2 top-2 size-2 rounded-full",
-                                      active ? "bg-rose-600" : "bg-rose-400",
-                                    )}
-                                    aria-label={`${priorityCount} urgent priorities`}
-                                  />
-                                ) : (
-                                  <span
-                                    className={cn(
-                                      "ml-auto min-w-5 rounded-full px-1.5 py-0.5 text-center font-mono text-[9px] font-semibold tabular-nums",
-                                      active
-                                        ? "bg-black/10 text-[var(--admin-nav-active-ink)]"
-                                        : "bg-[var(--admin-nav-hover)] text-[var(--admin-nav-ink)]",
-                                    )}
-                                    aria-label={`${priorityCount} urgent priorities`}
-                                  >
-                                    {priorityCount > 99 ? "99+" : priorityCount}
-                                  </span>
-                                ))}
-                              {active && (
-                                <motion.span
-                                  layoutId={`${idPrefix}-nav-active`}
-                                  className="admin-nav-active-indicator absolute inset-y-2 -left-4 w-0.5 rounded-r"
-                                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                                />
-                              )}
-                            </Link>
-                          );
-                        })}
-                      </div>
+                              aria-hidden="true"
+                            />
+                          </button>
+                          <div
+                            id={`${panelId}-more`}
+                            inert={!recordsMoreExpanded}
+                            aria-hidden={!recordsMoreExpanded}
+                            className={cn(
+                              "admin-nav-disclosure grid",
+                              recordsMoreExpanded
+                                ? "grid-rows-[1fr] opacity-100"
+                                : "grid-rows-[0fr] opacity-0",
+                            )}
+                          >
+                            <div className="min-h-0 space-y-0.5 overflow-hidden pl-2">
+                              {extraLinks.map(renderChildLink)}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </>
-              );
-            })()}
-          </section>
-        ))}
+                </div>
+              )}
+            </section>
+          );
+        })}
       </nav>
 
       <div className="admin-nav-footer mt-3 shrink-0 border-t pt-3">

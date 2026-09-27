@@ -146,8 +146,8 @@ export function newTodayModule(type: TodayModule["type"], id: string = type): To
 }
 export function defaultTodayView(legacy?: LayoutDoc | null): TodayView {
   const types: TodayModule["type"][] = [
-    "brief",
     "attention",
+    "brief",
     "handling",
     "changes",
     "upcoming",
