@@ -8,7 +8,7 @@
     "Updating a fingerprint acknowledges source drift only; acceptance still requires the live domain card failure matrix."
   ],
   "routeCount": 125,
-  "mutationHandlerCount": 109,
+  "mutationHandlerCount": 110,
   "routes": [
     {
       "source": "src/app/api/admin/activity/route.ts",
@@ -227,14 +227,19 @@
     {
       "source": "src/app/api/admin/contacts/directory/route.ts",
       "handlers": [
-        "GET"
+        "GET",
+        "POST"
       ],
-      "mutationHandlers": [],
+      "mutationHandlers": [
+        "POST"
+      ],
       "imports": [
         "@/lib/admin/auth",
-        "next/server"
+        "@/lib/revenue-os/identity",
+        "next/server",
+        "zod"
       ],
-      "sourceSha256": "e1c99f7f6817bb642e44915be5b55aa306a985568673de4b6a187999ccbee2ef"
+      "sourceSha256": "1ca4fedf5bead3f4a43767e7c31f4a1481c412d2f87cda6d74bc26d427e27d37"
     },
     {
       "source": "src/app/api/admin/contacts/export/route.ts",

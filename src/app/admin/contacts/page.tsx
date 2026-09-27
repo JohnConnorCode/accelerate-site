@@ -5,9 +5,12 @@ import { useSearchParams } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
 import { ContactIntakeNav } from "@/components/admin/ContactIntakeNav";
 import ContactSubmissionsPage from "@/components/admin/ContactSubmissionsPage";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminSurface } from "@/components/admin/AdminSurface";
+import { fetchJson } from "@/lib/admin/fetchJson";
 import { useAdminQuery } from "@/lib/admin/useAdminQuery";
+import { toast } from "@/lib/admin/useToast";
 
 type Contact = {
   id: string;
@@ -24,16 +27,58 @@ function DirectoryPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [createError, setCreateError] = useState("");
   const directory = useAdminQuery<Directory>(
     ["contacts", "directory", page, query],
     `/api/admin/contacts/directory?${new URLSearchParams({ page: String(page), search: query })}`,
   );
   const rows = directory.data?.contacts ?? [];
+  const addContact = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    setCreateError("");
+    try {
+      await fetchJson("/api/admin/contacts/directory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone }),
+      });
+      setCreating(false);
+      setName("");
+      setEmail("");
+      setPhone("");
+      setPage(1);
+      setSearch("");
+      setQuery("");
+      void directory.refetch();
+      toast.success("Contact added");
+    } catch (error) {
+      setCreateError(error instanceof Error ? error.message : "Contact could not be added");
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <div className="space-y-5 pb-8">
       <PageHeader
         title="Contacts"
         subtitle="Find every person and open the work connected to them."
+        actions={
+          <button
+            className="admin-button admin-button--primary"
+            onClick={() => {
+              setCreateError("");
+              setCreating(true);
+            }}
+          >
+            Add contact
+          </button>
+        }
       />
       <ContactIntakeNav active="directory" />
       <AdminSurface padding="lg">
@@ -121,6 +166,77 @@ function DirectoryPage() {
           </button>
         </div>
       </AdminSurface>
+      <AdminDialog
+        open={creating}
+        onClose={() => {
+          if (!saving) setCreating(false);
+        }}
+        title="Add contact"
+        labelledBy="add-contact-title"
+        maxWidth="sm"
+      >
+        <AdminSurface padding="lg" className="admin-dialog-surface">
+          <h2 id="add-contact-title" className="admin-dialog-title mb-5">
+            Add contact
+          </h2>
+          <form className="space-y-4" onSubmit={(event) => void addContact(event)}>
+            <label className="admin-field-label">
+              Full name
+              <input
+                className="admin-field"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={200}
+                required
+                data-admin-autofocus
+              />
+            </label>
+            <label className="admin-field-label">
+              Email
+              <input
+                className="admin-field"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                maxLength={254}
+                required
+              />
+            </label>
+            <label className="admin-field-label">
+              Phone (optional)
+              <input
+                className="admin-field"
+                type="tel"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                maxLength={80}
+              />
+            </label>
+            {createError && (
+              <p role="alert" className="text-sm text-[var(--admin-danger)]">
+                {createError}
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                className="admin-button admin-button--secondary"
+                onClick={() => setCreating(false)}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="admin-button admin-button--primary"
+                disabled={saving || !name.trim() || !email.trim()}
+              >
+                {saving ? "Adding…" : "Add contact"}
+              </button>
+            </div>
+          </form>
+        </AdminSurface>
+      </AdminDialog>
     </div>
   );
 }

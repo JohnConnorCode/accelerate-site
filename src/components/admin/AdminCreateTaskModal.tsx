@@ -15,9 +15,18 @@ export function AdminCreateTaskModal() {
   const [dueDate, setDueDate] = useState("");
   const [priority, setPriority] = useState("medium");
   const [saving, setSaving] = useState(false);
+  const [contact, setContact] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
-    const show = () => setOpen(true);
+    const show = (event: Event) => {
+      const detail = event instanceof CustomEvent ? event.detail : null;
+      setContact(
+        detail?.contactId && detail?.contactName
+          ? { id: detail.contactId, name: detail.contactName }
+          : null,
+      );
+      setOpen(true);
+    };
     window.addEventListener("admin:add-task", show);
     return () => window.removeEventListener("admin:add-task", show);
   }, []);
@@ -38,9 +47,16 @@ export function AdminCreateTaskModal() {
           title: title.trim(),
           due_date: dueDate || null,
           priority,
+          ...(contact
+            ? { related_type: "contact", related_id: contact.id, related_name: contact.name }
+            : {}),
         }),
       });
       toast.success("Task added to the operator queue");
+      if (contact)
+        window.dispatchEvent(
+          new CustomEvent("admin:refresh-contact", { detail: { id: contact.id } }),
+        );
       setTitle("");
       setDueDate("");
       setPriority("medium");
@@ -68,6 +84,7 @@ export function AdminCreateTaskModal() {
             <h2 id="admin-task-title" className="admin-dialog-title">
               Add a follow-up
             </h2>
+            {contact && <p className="admin-copy mt-1 text-sm">For {contact.name}</p>}
           </div>
           <button type="button" onClick={close} className="admin-icon-button" aria-label="Close">
             <X className="h-4 w-4" />
