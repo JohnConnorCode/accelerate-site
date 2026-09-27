@@ -131,7 +131,8 @@ After deployment, verify the canonical domain, exact release identity, authentic
 `npm run resources:run -- npm run test:cold-start:postgres` creates a disposable
 local PostgreSQL cluster, runs the guided setup against real business migrations,
 and verifies owner identity, membership, neutral branding and a persisted contact
-and completed task. It requires `initdb`, `pg_ctl` and `psql`. Auth and Storage
+and completed task. It requires PostgreSQL 15+ binaries on `PATH` (`initdb`,
+`pg_ctl`, `psql`, `pg_dump` and `pg_restore`). Auth and Storage
 interfaces are simulated; the Supabase scheduler extension migration is excluded.
 It does not verify hosted authentication or browser writes to a hosted project.
 
