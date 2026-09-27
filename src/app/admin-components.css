@@ -1731,6 +1731,7 @@ body.admin-dialog-open .admin-route-frame div:has(> iframe) {
   }
 }
 .admin-work-columns {
+  --admin-work-grid: minmax(0, 2fr) minmax(0, 1fr) 120px 72px;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
