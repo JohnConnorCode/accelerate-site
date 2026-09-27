@@ -59,10 +59,14 @@ server.stderr.on("data", (data) => (serverLog += data));
 const checks = [];
 let browser;
 async function visit(page, route) {
-  const response = await page.goto(base + route, { waitUntil: "networkidle", timeout: 60000 });
+  // The optional booking iframe can keep /contact active after its document is ready.
+  const response = await page.goto(base + route, {
+    waitUntil: route === "/contact" ? "domcontentloaded" : "networkidle",
+    timeout: 60000,
+  });
   assert(response?.ok(), `${route}: HTTP ${response?.status()}`);
+  await page.locator("main h1").first().waitFor({ state: "visible" });
   assert.equal(await page.locator("main h1").count(), 1, `${route}: one page heading`);
-  assert(await page.locator("main h1").isVisible());
   assert(await page.locator('link[rel="canonical"]').getAttribute("href"), `${route}: canonical`);
 }
 async function inspect(page, route, width, theme) {
