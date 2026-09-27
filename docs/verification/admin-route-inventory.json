@@ -304,7 +304,7 @@
     "src/lib/revenue-os/activities.ts": "c7ee97ddb80f294d9296d6a6555e0def0f9b72bfde2e0736710b60d8e74c8646",
     "src/lib/revenue-os/admin-layout.ts": "7f5b7e4021b1f5ce9f62c5db274900a09c404be4c515d889922eb5e851d7889b",
     "src/lib/revenue-os/agent-learning.ts": "3b2441450c62c53bb00c93761f9d287d5b7587d9ea730137f3b1b548d25b4827",
-    "src/lib/revenue-os/ai-agent.ts": "c5f6cb65ad1252f1a89d6c6dfcbfbdade228be8133b8eb8a5a914a7458f89292",
+    "src/lib/revenue-os/ai-agent.ts": "799722bd7990ab4d3b3969c7fc76df8916b88c46d9aba16445a5e25294a67475",
     "src/lib/revenue-os/ai-conversations.ts": "e1c24666ab9b00840d804e7301d347dada1e424c85637710811e2d603ac952b7",
     "src/lib/revenue-os/ai-operations-contract.ts": "8a3bcc4df066ad715df7964741bd18f8e0be7dafaa8ce48b66d8e24c35634a79",
     "src/lib/revenue-os/ai-operations.ts": "87a1920d2f8c49a557cf3c54577909548fdcfcf64a8b30a8c5b8cc4a2aefe54b",
