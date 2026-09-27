@@ -5,6 +5,7 @@ import { adminPageName } from "@/lib/admin/navigation";
 import { useCallback } from "react";
 import { CalendarCheck2, DollarSign, Target, UserCheck } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
+import Link from "@/components/admin/AdminLink";
 import { AdminReadBody } from "@/components/admin/AdminReadBody";
 import { LoadingSkeleton } from "@/components/admin/LoadingSkeleton";
 import { AdminSurface } from "@/components/admin/AdminSurface";
@@ -93,6 +94,9 @@ export default function AdminBookingsPage() {
         title={adminPageName("bookings")}
         subtitle="Review meeting requests, scheduled appointments, and booking details."
       />
+      <Link href="/admin/debates" className="admin-button admin-button--secondary inline-flex">
+        Open debate productions
+      </Link>
       <AdminReadBody
         loading={loading}
         hasData={Boolean(bookingsQuery.data)}

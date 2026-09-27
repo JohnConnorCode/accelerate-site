@@ -1,4 +1,5 @@
 import { scheduleSocialReconciliation, scheduleSocialWeeklyDrafts } from "./social-marketing-work";
+import { scheduleDebateBookingReconciliation } from "./debate-booking-work";
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -319,6 +320,15 @@ export async function scheduleRecurringWork(
     await scheduleSocialReconciliation(supabase);
   } catch {
     daily.errors.push("Social publication receipts could not be scheduled for reconciliation");
+  }
+  try {
+    const bookings = await scheduleDebateBookingReconciliation(supabase);
+    daily.created += bookings.created;
+    daily.skipped += bookings.skipped;
+  } catch (error) {
+    daily.errors.push(
+      `Debate invitation reconciliation: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 
   // Monday = day 1 in ISO weekday.

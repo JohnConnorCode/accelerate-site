@@ -113,3 +113,123 @@ await import("./test-campaign-duplicate-postgres.mjs");
 
 await import("./test-delivery-handoff-postgres.mjs");
 await import("./test-contact-bulk-postgres.mjs");
+
+// The booking ledger must preserve individual commitments and reject foreign
+// evidence even when a privileged host invokes its service-only RPC.
+sql(`BEGIN;
+INSERT INTO contacts(id,tenant_id,full_name,primary_email) VALUES
+ ('aaaa1111-1111-4111-8111-111111111111','${a}','Debate lead','debate-lead@test.example'),
+ ('bbbb2222-2222-4222-8222-222222222222','${a}','Debate counterpart','debate-counter@test.example');
+INSERT INTO debate_productions(id,tenant_id,request_key,title,lead_contact_id,counterpart_contact_id,target_at)
+ VALUES('cccc3333-3333-4333-8333-333333333333','${a}','debate-native-proof','Native debate proof',
+ 'aaaa1111-1111-4111-8111-111111111111','bbbb2222-2222-4222-8222-222222222222','2026-10-21T18:00:00Z');
+INSERT INTO calendar_events(id,tenant_id,provider,external_id,title,start_at,status,metadata)
+ VALUES('ffff6666-6666-4666-8666-666666666666','${a}','google','cancelled-debate-proof',
+ 'Canceled debate','2026-10-21T18:00:00Z','cancelled',jsonb_build_object('debate_verified_at',now()));
+INSERT INTO calendar_events(id,tenant_id,provider,external_id,title,start_at,status,metadata)
+ VALUES('ffff6666-6666-4666-8666-777777777777','${a}','google','verified-debate-proof',
+ 'Verified debate','2026-10-21T18:00:00Z','confirmed',jsonb_build_object(
+   'debate_integrity','verified','debate_production_id','cccc3333-3333-4333-8333-333333333333'));
+INSERT INTO debate_productions(id,tenant_id,request_key,title,lead_contact_id,counterpart_contact_id,
+ target_at,calendar_event_id) VALUES('99997777-7777-4777-8777-777777777777','${a}',
+ 'debate-cancelled-proof','Canceled debate proof','aaaa1111-1111-4111-8111-111111111111',
+ 'bbbb2222-2222-4222-8222-222222222222','2026-10-21T18:00:00Z',
+ 'ffff6666-6666-4666-8666-666666666666');
+INSERT INTO conversations(id,tenant_id,channel,external_id)
+ VALUES('dddd4444-4444-4444-8444-444444444444','${b}','gmail','foreign-debate-proof');
+INSERT INTO messages(id,tenant_id,conversation_id,direction,sender_email,body_text)
+ VALUES('eeee5555-5555-4555-8555-555555555555','${b}','dddd4444-4444-4444-8444-444444444444',
+ 'inbound','foreign@test.example','Unrelated');
+SET request.headers='{"x-tenant-id":"${a}"}';
+SET request.jwt.claim.role='service_role';
+SET ROLE service_role;
+DO $$
+DECLARE first jsonb; second jsonb; created jsonb; replay jsonb; blocked boolean;
+BEGIN
+ SELECT write_debate_production('create',jsonb_build_object('requestKey','debate-rpc-replay',
+   'title','RPC debate proof','leadContactId','aaaa1111-1111-4111-8111-111111111111'),
+   'owner@example.test') INTO created;
+ SELECT write_debate_production('create',jsonb_build_object('requestKey','debate-rpc-replay',
+   'title','RPC debate proof','leadContactId','aaaa1111-1111-4111-8111-111111111111'),
+   'owner@example.test') INTO replay;
+ IF created->>'id' <> replay->>'id' OR replay->>'duplicate' <> 'true'
+   THEN RAISE EXCEPTION 'Production create replay was not idempotent'; END IF;
+ SELECT record_debate_milestone('cccc3333-3333-4333-8333-333333333333','topic_interest',
+   'verified','Interested','founder_confirmation','owner@example.test',now(),'owner@example.test') INTO first;
+ IF first->>'status' <> 'verified' THEN RAISE EXCEPTION 'First booking milestone failed'; END IF;
+ SELECT record_debate_milestone('cccc3333-3333-4333-8333-333333333333','topic_interest',
+   'declined','Declined','founder_confirmation','owner@example.test',now(),'owner@example.test') INTO second;
+ IF second->>'claimId' = first->>'claimId' THEN
+   RAISE EXCEPTION 'Changed commitment did not supersede its old claim';
+ END IF;
+ blocked := false;
+ BEGIN
+  PERFORM record_debate_milestone('cccc3333-3333-4333-8333-333333333333','proposition',
+    'verified','Wrong source','gmail_message','eeee5555-5555-4555-8555-555555555555',now(),'owner@example.test');
+ EXCEPTION WHEN OTHERS THEN blocked := true; END;
+ IF NOT blocked THEN RAISE EXCEPTION 'Foreign tenant evidence was accepted'; END IF;
+ blocked := false;
+ BEGIN
+  PERFORM record_debate_milestone('cccc3333-3333-4333-8333-333333333333','invitation',
+    'verified','No event','founder_confirmation','owner@example.test',now(),'owner@example.test');
+ EXCEPTION WHEN OTHERS THEN blocked := true; END;
+ IF NOT blocked THEN RAISE EXCEPTION 'Invitation was verified without a provider event'; END IF;
+ SELECT record_debate_milestone('cccc3333-3333-4333-8333-333333333333','date',
+   'verified','October 21','founder_confirmation','owner@example.test',now(),'owner@example.test') INTO second;
+ blocked := false;
+ BEGIN
+  PERFORM write_debate_production('update',jsonb_build_object('productionId',
+    'cccc3333-3333-4333-8333-333333333333','expectedRevision',0,'targetAt','2026-10-22T18:00:00Z'),
+    'owner@example.test');
+ EXCEPTION WHEN OTHERS THEN blocked := true; END;
+ IF NOT blocked THEN RAISE EXCEPTION 'Confirmed date was changed directly'; END IF;
+ SELECT write_debate_production('link_invitation',jsonb_build_object('productionId',
+   'cccc3333-3333-4333-8333-333333333333','expectedRevision',0,
+   'calendarEventId','ffff6666-6666-4666-8666-777777777777'),
+   'owner@example.test') INTO second;
+ IF second->>'calendar_event_id' <> 'ffff6666-6666-4666-8666-777777777777'
+   OR second->>'revision' <> '1' THEN
+   RAISE EXCEPTION 'Verified invitation was not linked'; END IF;
+ SELECT record_debate_milestone('cccc3333-3333-4333-8333-333333333333','invitation',
+   'verified','verified-debate-proof','calendar_event','ffff6666-6666-4666-8666-777777777777',
+   now(),'owner@example.test') INTO second;
+ IF second->>'status' <> 'verified' THEN RAISE EXCEPTION 'Invitation receipt was not recorded'; END IF;
+ SELECT write_debate_production('reopen_cancelled_invitation',jsonb_build_object(
+   'productionId','99997777-7777-4777-8777-777777777777','expectedRevision',0),
+   'owner@example.test') INTO second;
+ IF second->>'calendar_event_id' IS NOT NULL OR second->>'revision' <> '1'
+   THEN RAISE EXCEPTION 'Canceled invitation did not reopen'; END IF;
+END $$;
+RESET ROLE;
+DO $$ BEGIN
+ IF (SELECT count(*) FROM claims WHERE tenant_id='${a}' AND entity_type='debate_production'
+   AND field='topic_interest' AND status='superseded') <> 1 THEN
+   RAISE EXCEPTION 'Old commitment claim was not superseded';
+ END IF;
+ IF NOT EXISTS(SELECT 1 FROM debate_milestones
+   WHERE production_id='99997777-7777-4777-8777-777777777777'
+     AND milestone='invitation' AND status='cancelled') THEN
+   RAISE EXCEPTION 'Canceled invitation lacks its evidence';
+ END IF;
+END $$;
+ROLLBACK;`);
+assert.equal(
+  sql(`SELECT has_function_privilege('authenticated',
+  'public.record_debate_milestone(uuid,text,text,text,text,text,timestamptz,text)','EXECUTE');`),
+  "f",
+);
+assert.equal(
+  sql("SELECT has_table_privilege('authenticated','public.debate_milestones','INSERT');"),
+  "f",
+);
+assert.equal(
+  sql("SELECT has_table_privilege('authenticated','public.debate_productions','UPDATE');"),
+  "f",
+);
+assert.equal(
+  sql("SELECT has_table_privilege('authenticated','public.debate_productions','INSERT');"),
+  "f",
+);
+console.log(
+  "PASS: booking create replay, claim supersession, date protection, foreign evidence and invitation checks; direct writes are closed.",
+);
