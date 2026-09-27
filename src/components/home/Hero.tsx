@@ -1,427 +1,128 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useReducedMotion,
-  useMotionValue,
-  useSpring,
-} from "framer-motion";
 import { trackConversion } from "@/lib/analytics";
 import { homeHeroContent } from "@/content/site-studio/home";
 import type { HomeHeroContent } from "@/lib/site-studio/native-templates";
 
-// The headline's original, deliberately mechanical scramble: a constant
-// cadence and a simple left-to-right lock. Spaces remain spaces so the phrase
-// can wrap naturally on a phone while its letters resolve.
-function ScrambleText({
-  text,
-  delay = 0,
-  trigger = true,
-  reducedMotion = false,
-}: {
-  text: string;
-  delay?: number;
-  trigger?: boolean;
-  reducedMotion?: boolean;
-}) {
-  const [display, setDisplay] = useState(text.replace(/./g, " ")); // Non-breaking spaces for layout stability
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+function ScrambleText({ text, play }: { text: string; play: boolean }) {
+  // Keep the real words in the HTML and visible before hydration.
+  const [display, setDisplay] = useState(text);
   useEffect(() => {
-    if (!trigger || reducedMotion) return;
-
-    let interval: ReturnType<typeof setInterval>;
-    const timeout = setTimeout(() => {
-      let iteration = 0;
-      interval = setInterval(() => {
-        setDisplay(
-          text
-            .split("")
-            .map((letter, index) => {
-              if (letter === " " || index < iteration) {
-                return letter;
-              }
-              return chars[Math.floor(Math.random() * chars.length)];
-            })
-            .join(""),
-        );
-
-        if (iteration >= text.length) {
-          clearInterval(interval);
-        }
-
-        iteration += 1;
-      }, 30);
-    }, delay);
-
+    if (!play || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let settled = 0;
+    let interval: number | undefined;
+    const start = window.setTimeout(() => {
+      interval = window.setInterval(() => {
+        settled += 2;
+        setDisplay(text.split("").map((letter, index) =>
+          letter === " " || index < settled ? letter : glyphs[Math.floor(Math.random() * glyphs.length)]
+        ).join(""));
+        if (settled >= text.length) window.clearInterval(interval);
+      }, 32);
+    }, 250);
     return () => {
-      clearTimeout(timeout);
-      if (interval) clearInterval(interval);
+      window.clearTimeout(start);
+      if (interval) window.clearInterval(interval);
+      setDisplay(text);
     };
-  }, [text, delay, trigger, reducedMotion]);
-
-  return <span className="inline-block max-w-full">{display}</span>;
+  }, [text, play]);
+  return (
+    <span className="hero-scramble">
+      <span className="hero-scramble-measure">{text}</span>
+      <span className="hero-scramble-display">{display}</span>
+    </span>
+  );
 }
+
+const diagramNodes = [
+  { number: "01", label: "Strategy", position: "strategy" },
+  { number: "02", label: "Custom systems", position: "build" },
+  { number: "03", label: "Managed execution", position: "run" },
+  { number: "04", label: "Team enablement", position: "train" },
+];
 
 export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent }) {
   const [loaded, setLoaded] = useState(false);
-  const entranceRaf = useRef<number | undefined>(undefined);
-  const entranceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const sectionRef = useRef<HTMLElement>(null);
-  const reduced = useReducedMotion();
-  const [finePointer, setFinePointer] = useState(false);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-  const fade = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
-  const lift = useTransform(scrollYProgress, [0, 1], [0, -80]);
-  const gridDrift = useTransform(scrollYProgress, [0, 1], [0, 130]);
-
-  // 3D Tilt Values
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  // Smooth springs for the tilt
-  const springConfig = { damping: 25, stiffness: 120 };
-  const smoothX = useSpring(mouseX, springConfig);
-  const smoothY = useSpring(mouseY, springConfig);
-
-  // Rotate values based on normalized coordinates (-1 to 1)
-  const gridRotateX = useTransform(smoothY, [-1, 1], [4, -4]);
-  const gridRotateY = useTransform(smoothX, [-1, 1], [-4, 4]);
-
-  // Text tilts the opposite way for intense spatial parallax
-  const textRotateX = useTransform(smoothY, [-1, 1], [-2, 2]);
-  const textRotateY = useTransform(smoothX, [-1, 1], [2, -2]);
-
-  // 3D transforms are a desktop detail, not a mobile requirement. Touch
-  // retains the responsive spotlight below without paying to composite a
-  // tilted full-screen grid while the user scrolls.
   useEffect(() => {
-    const media = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const sync = () => setFinePointer(media.matches);
-    sync();
-    media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
-  }, []);
-
-  useEffect(() => {
-    let spotlightRaf: number | undefined;
-    const supportsFinePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    const restartEntrance = () => {
-      // App-router and bfcache restores can retain a completed CSS animation.
-      // Remove the lifecycle class for one rendered frame, then add it back on
-      // the next one. The browser sees a genuine new animation instead of a
-      // settled hero that only *looks* as though it has replayed.
+    let frame = 0;
+    const replay = () => {
       setLoaded(false);
-      if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
-      if (entranceTimer.current) clearTimeout(entranceTimer.current);
-      entranceRaf.current = requestAnimationFrame(() => {
-        entranceRaf.current = requestAnimationFrame(() => {
-          entranceTimer.current = setTimeout(() => setLoaded(true), 16);
-        });
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        frame = window.requestAnimationFrame(() => setLoaded(true));
       });
     };
-    restartEntrance();
-
-    const el = sectionRef.current;
-    if (!el || reduced)
-      return () => {
-        if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
-        if (entranceTimer.current) clearTimeout(entranceTimer.current);
-      };
-
-    // The lit grid has one continuous position rather than separate idle and
-    // hover animations. At rest it follows a slow, asymmetric orbit. A fine
-    // pointer temporarily becomes the target; on leave, the same damped
-    // position catches up with wherever the orbit has progressed instead of
-    // restarting or snapping to a canned keyframe.
-    let pointerHasControl = false;
-    let currentX = 50;
-    let currentY = 48;
-    let targetX = currentX;
-    let targetY = currentY;
-    let previousTime = performance.now();
-    let touchReleaseTimer: ReturnType<typeof setTimeout> | undefined;
-    let heroIsVisible = true;
-
-    const idlePosition = (time: number) => {
-      const seconds = time / 1000;
-      return {
-        x: 50 + Math.sin(seconds * 0.13) * 24 + Math.sin(seconds * 0.043 + 0.8) * 6,
-        y: 48 + Math.sin(seconds * 0.103 + 1.2) * 18 + Math.cos(seconds * 0.057) * 6,
-      };
-    };
-
-    const animateSpotlight = (time: number) => {
-      const delta = Math.min(time - previousTime, 64);
-      previousTime = time;
-
-      if (!pointerHasControl) {
-        const idle = idlePosition(time);
-        targetX = idle.x;
-        targetY = idle.y;
-      }
-
-      // Hover should feel connected; the idle return is intentionally more
-      // languid so the handoff disappears into the ambient motion.
-      const response = pointerHasControl ? 85 : 1400;
-      const blend = 1 - Math.exp(-delta / response);
-      currentX += (targetX - currentX) * blend;
-      currentY += (targetY - currentY) * blend;
-
-      el.style.setProperty("--spotlight-x", `${currentX.toFixed(3)}%`);
-      el.style.setProperty("--spotlight-y", `${currentY.toFixed(3)}%`);
-      spotlightRaf = requestAnimationFrame(animateSpotlight);
-    };
-
-    const startSpotlight = () => {
-      if (spotlightRaf !== undefined) return;
-      previousTime = performance.now();
-      spotlightRaf = requestAnimationFrame(animateSpotlight);
-    };
-
-    const stopSpotlight = () => {
-      if (spotlightRaf === undefined) return;
-      cancelAnimationFrame(spotlightRaf);
-      spotlightRaf = undefined;
-    };
-
-    const pointSpotlightAt = (clientX: number, clientY: number, tilt: boolean) => {
-      const rect = el.getBoundingClientRect();
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
-
-      pointerHasControl = true;
-      targetX = Math.max(0, Math.min(100, (x / rect.width) * 100));
-      targetY = Math.max(0, Math.min(100, (y / rect.height) * 100));
-
-      if (tilt) {
-        const normX = (x / rect.width) * 2 - 1;
-        const normY = (y / rect.height) * 2 - 1;
-        mouseX.set(normX);
-        mouseY.set(normY);
-      }
-    };
-
-    const releasePointerControl = () => {
-      pointerHasControl = false;
-      mouseX.set(0);
-      mouseY.set(0);
-      if (!supportsFinePointer) stopSpotlight();
-    };
-
-    const onPointerMove = (e: PointerEvent) => {
-      if (e.pointerType === "touch") return;
-      pointSpotlightAt(e.clientX, e.clientY, true);
-    };
-
-    const onPointerDown = (e: PointerEvent) => {
-      if (e.pointerType !== "touch") return;
-      if (touchReleaseTimer) clearTimeout(touchReleaseTimer);
-
-      // A tap becomes the mobile equivalent of hover. It does not prevent the
-      // native gesture, capture the pointer, or alter focus, so links and
-      // vertical scrolling remain fully native.
-      pointSpotlightAt(e.clientX, e.clientY, false);
-      startSpotlight();
-      touchReleaseTimer = setTimeout(releasePointerControl, 1050);
-    };
-
-    const onPointerLeave = (e: PointerEvent) => {
-      if (e.pointerType === "touch") return;
-      releasePointerControl();
-    };
-
-    el.addEventListener("pointermove", onPointerMove);
-    el.addEventListener("pointerdown", onPointerDown, { passive: true });
-    el.addEventListener("pointerleave", onPointerLeave);
-
-    // Do not spend animation frames on a hero that is several sections above
-    // the viewport. The orbit is time-based, so it still resumes at the point
-    // it would have reached rather than visibly starting over.
-    const visibilityObserver = new IntersectionObserver(
-      ([entry]) => {
-        heroIsVisible = Boolean(entry?.isIntersecting);
-        if (supportsFinePointer && heroIsVisible && !document.hidden) startSpotlight();
-        else stopSpotlight();
-      },
-      { rootMargin: "120px 0px" },
-    );
-    visibilityObserver.observe(el);
-
-    const onVisibilityChange = () => {
-      if (document.hidden || !heroIsVisible) stopSpotlight();
-      else if (supportsFinePointer) startSpotlight();
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    if (supportsFinePointer && !document.hidden) startSpotlight();
-
     const onPageShow = (event: PageTransitionEvent) => {
-      if (event.persisted) restartEntrance();
+      if (event.persisted) replay();
     };
+    replay();
     window.addEventListener("pageshow", onPageShow);
-
     return () => {
-      if (entranceRaf.current) cancelAnimationFrame(entranceRaf.current);
-      stopSpotlight();
-      if (entranceTimer.current) clearTimeout(entranceTimer.current);
-      if (touchReleaseTimer) clearTimeout(touchReleaseTimer);
-      visibilityObserver.disconnect();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      el.removeEventListener("pointermove", onPointerMove);
-      el.removeEventListener("pointerdown", onPointerDown);
-      el.removeEventListener("pointerleave", onPointerLeave);
+      window.cancelAnimationFrame(frame);
       window.removeEventListener("pageshow", onPageShow);
     };
-  }, [reduced, mouseX, mouseY]);
-
-  const spatialMotion = !reduced && finePointer;
+  }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className={`hero${loaded ? " loaded" : ""}`}
-      id="hero"
-      style={spatialMotion ? { perspective: "1200px" } : undefined}
-    >
-      <motion.div
-        className="hero-field"
-        aria-hidden="true"
-        style={
-          spatialMotion
-            ? {
-                y: gridDrift,
-                rotateX: gridRotateX,
-                rotateY: gridRotateY,
-                scale: 1.05, // Prevent edges from showing when tilted
-                transformStyle: "preserve-3d",
-              }
-            : undefined
-        }
-      >
-        <div className="hero-grid-base" />
-        <div className="hero-grid-lit interactive" />
-        <span className="hero-tick hero-tick-tl" />
-        <span className="hero-tick hero-tick-br" />
-      </motion.div>
-      <motion.div
-        className="wrap"
-        style={
-          spatialMotion
-            ? {
-                opacity: fade,
-                y: lift,
-                rotateX: textRotateX,
-                rotateY: textRotateY,
-                transformStyle: "preserve-3d",
-              }
-            : undefined
-        }
-      >
+    <section className={`hero${loaded ? " loaded" : ""}`} id="hero">
+      <div className="hero-field" aria-hidden="true" />
+      <div className="wrap hero-layout">
         <div className="hero-top">
-          <p className={`label eyebrow-anim rv${loaded ? " in" : ""}`}>{content.eyebrow}</p>
-          <h1 className="h1">
-            {/* "We architect and deploy intelligent automation to scale
-                your productivity" flows as ONE continuous flex-wrap row —
-                not split into separate containers per "sentence," which is
-                what forced awkward line breaks regardless of how much room
-                was actually left (e.g. "deploy" stranded alone with empty
-                space beside it). Each word still carries its own --d so
-                the reveal cascade reads identically to before; only the
-                line-break decision is now the browser's, based on real
-                available width. */}
-            <span className="h1-word-row">
-              {content.prefix
-                .split(/\s+/)
-                .filter(Boolean)
-                .map((w, i) => (
-                  <span key={`${i}-${w}`} className="word">
-                    <span style={{ "--d": `${0.2 + i * 0.2}s` } as CSSProperties}>{w}</span>
-                  </span>
-                ))}
-              {/* "intelligent automation" — the original single combined
-                  scramble (ScrambleText below), restored verbatim. This is
-                  the effect and speed that was actually working. */}
-              <span className="word">
-                <span style={{ "--d": "1.00s" } as CSSProperties}>
-                  {/* The visible phrase is swapped between two aria-hidden layers
-                      (the static one is display:none except under reduced motion),
-                      so the accessible copy lives in one visually-hidden node. An
-                      aria-label here was invalid: a bare <span> has no role that
-                      may be named, so assistive tech ignored it entirely. */}
-                  <span className="sr-only">{content.highlighted}</span>
-                  <span className="hero-intelligent-static" aria-hidden="true">
-                    {content.highlighted}
-                  </span>
-                  <span className="hero-intelligent-scramble" aria-hidden="true">
-                    <ScrambleText
-                      text={content.highlighted}
-                      delay={1250}
-                      trigger={loaded}
-                      reducedMotion={Boolean(reduced)}
-                    />
-                  </span>
+          <p className="label hero-eyebrow">{content.eyebrow}</p>
+          <h1 className="h1" aria-label={`${content.prefix} ${content.highlighted} ${content.suffix} ${content.finalWord}`}>
+            <span className="h1-word-row" aria-hidden="true">
+              {content.prefix.split(/\s+/).filter(Boolean).map((word, index) => (
+                <span className="word" key={`${index}-${word}`}>
+                  <span style={{ "--d": `${index * 0.07}s` } as CSSProperties}>{word}</span>
+                </span>
+              ))}
+              <span className="word hero-highlight">
+                <span style={{ "--d": "0.28s" } as CSSProperties}>
+                  <ScrambleText text={content.highlighted} play={loaded} />
                 </span>
               </span>
-              {content.suffix
-                .split(/\s+/)
-                .filter(Boolean)
-                .map((w, i) => (
-                  <span key={`${i}-${w}`} className="word">
-                    <span style={{ "--d": `${2.2 + i * 0.2}s` } as CSSProperties}>{w}</span>
-                  </span>
-                ))}
-              <span className="word">
-                <span style={{ "--d": "2.80s" } as CSSProperties}>
-                  <span className="strike">{content.replacedWord}</span>
+              {content.suffix.split(/\s+/).filter(Boolean).map((word, index) => (
+                <span className="word" key={`${index}-${word}`}>
+                  <span style={{ "--d": `${0.36 + index * 0.07}s` } as CSSProperties}>{word}</span>
                 </span>
-              </span>
+              ))}
             </span>
-            {/* PROFIT + CTA are a deliberate second row, always starting
-                below the paragraph above regardless of viewport width —
-                not part of the natural reflow. PROFIT stays OUT of the
-                .word system: plain text, pure opacity/blur fade (.swap),
-                no scramble and no slide-up. The CTA gets the same pure
-                blur-in treatment and reveals once the underline finishes
-                drawing. */}
-            <span className="hero-row-cta">
-              <span
-                className="hero-profit-slot"
-                style={{ overflow: "visible", display: "inline-block" }}
-              >
-                <span
-                  className="swap it rev-ul hero-profit"
-                  style={
-                    { position: "relative", zIndex: 10, display: "inline-block" } as CSSProperties
-                  }
-                >
-                  {content.finalWord}
-                </span>
-              </span>
-              <span className="hero-inline-cta" style={{ "--d": "6.10s" } as CSSProperties}>
-                <Link
-                  href={content.ctaHref}
-                  onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })}
-                  className="btn"
-                >
-                  {content.ctaLabel}{" "}
-                  <span className="arw" aria-hidden="true">
-                    →
-                  </span>
-                </Link>
-              </span>
+            <span className="hero-outcome" aria-hidden="true">
+              <span className="strike">{content.replacedWord}</span>
+              <span className="hero-profit rev-ul">{content.finalWord}</span>
             </span>
           </h1>
+          <p className="hero-support">{content.support ?? homeHeroContent.support}</p>
+          <div className="hero-row-cta">
+            <span className="hero-inline-cta">
+              <Link href={content.ctaHref} onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })} className="btn">
+                {content.ctaLabel} <span className="arw" aria-hidden="true">→</span>
+              </Link>
+            </span>
+            <span className="hero-cta-note">30 minutes · a clear next step</span>
+          </div>
         </div>
-      </motion.div>
+        <div className="hero-system" aria-hidden="true">
+          <div className="hero-system-heading"><span>01 / 04</span><span>BUILT AROUND YOU</span></div>
+          <svg className="hero-system-lines" viewBox="0 0 480 480" preserveAspectRatio="xMidYMid meet">
+            <circle cx="240" cy="240" r="154" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2 8" />
+            <path d="M240 240 L118 118 M240 240 L362 118 M240 240 L118 362 M240 240 L362 362" fill="none" stroke="currentColor" strokeWidth="1" />
+            <circle cx="240" cy="240" r="90" fill="none" stroke="currentColor" strokeWidth="1" />
+          </svg>
+          <div className="hero-system-core"><span className="hero-system-core-mark">✳</span><span>YOUR<br />BUSINESS</span></div>
+          {diagramNodes.map((node) => (
+            <div className={`hero-system-node hero-system-node-${node.position}`} key={node.number}>
+              <span>{node.number}</span><strong>{node.label}</strong><i aria-hidden="true" />
+            </div>
+          ))}
+          <div className="hero-system-footer"><span>DIAGNOSE</span><span>DESIGN</span><span>DEPLOY</span><span>IMPROVE</span></div>
+        </div>
+      </div>
     </section>
   );
 }

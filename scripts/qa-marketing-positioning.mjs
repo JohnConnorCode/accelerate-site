@@ -53,6 +53,9 @@ for (const viewport of viewports) {
     runtimeErrors.push(`page: ${error.message}`);
   });
   page.on("requestfailed", (request) => {
+    // Playwright's next page.goto cancels speculative Next.js RSC prefetches.
+    if (request.url().includes("_rsc=") && request.failure()?.errorText === "net::ERR_ABORTED")
+      return;
     if (request.url().startsWith(base)) {
       runtimeErrors.push(
         `request: ${request.method()} ${request.url()} (${request.failure()?.errorText ?? "failed"})`,
@@ -79,9 +82,7 @@ for (const viewport of viewports) {
     }
 
     if (route === "/") {
-      // The letter scramble is JavaScript-driven and intentionally finishes
-      // even when CSS motion is reduced. Capture the settled copy, not its
-      // intermediate placeholder glyphs.
+      // Reduced motion keeps the complete headline and action static.
       await page.waitForTimeout(1_600);
       await page.screenshot({ path: `${output}/home-${viewport.name}.png`, fullPage: false });
       const visibility = await page.evaluate(() => ({
@@ -113,11 +114,11 @@ const motionContext = await browser.newContext({
 });
 const motionPage = await motionContext.newPage();
 await motionPage.goto(`${base}/`, { waitUntil: "networkidle", timeout: 60_000 });
-await motionPage.waitForTimeout(4_200);
+await motionPage.waitForTimeout(1_600);
 const hero = await motionPage.evaluate(() => {
   const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
   const header = rect(".site-header");
-  const eyebrow = rect(".eyebrow-anim");
+  const eyebrow = rect(".hero-eyebrow");
   const struck = rect(".strike");
   const profit = rect(".hero-profit");
   const cta = rect(".hero-inline-cta");
@@ -125,7 +126,7 @@ const hero = await motionPage.evaluate(() => {
   return {
     headerGap: eyebrow.top - header.bottom,
     outcomeGap: profit.top - struck.bottom,
-    actionGap: cta.top - profit.bottom,
+    actionGap: cta.top - rect(".hero-support").bottom,
     profitOpacity: Number.parseFloat(
       getComputedStyle(document.querySelector(".hero-profit")).opacity,
     ),
@@ -140,10 +141,10 @@ if (hero.headerGap < 20)
   failures.push(`phone hero: only ${hero.headerGap.toFixed(1)}px below the header`);
 if (hero.outcomeGap > 48)
   failures.push(`phone hero: ${hero.outcomeGap.toFixed(1)}px between productivity and PROFIT`);
-if (hero.actionGap > 40)
-  failures.push(`phone hero: ${hero.actionGap.toFixed(1)}px between PROFIT and CTA`);
+if (hero.actionGap < 12 || hero.actionGap > 48)
+  failures.push(`phone hero: ${hero.actionGap.toFixed(1)}px between support copy and CTA`);
 if (hero.profitOpacity < 0.99 || hero.ctaOpacity < 0.99)
-  failures.push("phone hero: outcome or CTA still hidden after 4.2s");
+  failures.push("phone hero: outcome or CTA hidden after the short entrance");
 if (hero.statementTop < hero.viewportHeight - 1)
   failures.push(
     `phone hero: explanatory statement begins ${hero.statementTop.toFixed(1)}px into the opening viewport instead of below the fold`,

@@ -34,10 +34,9 @@ they have no animated card ancestor. Nested entrance wrappers are prohibited.
 - Generic public reveals hide only while `data-reveal-state="pending"` after
   the motion-ready gate. Work reveals keep a delayed-hydration pending frame
   via `.motion-ready .work-reveal:not(.in)`.
-- The homepage hero is not a Work reveal. Its eyebrow, word cascade, PROFIT
-  fade, and booking button are timed off `.hero.loaded`. Do not initialize
-  that flag to true or mark hero copy `reveal-immediate` to make first paint
-  look settled.
+- The homepage hero is not a Work reveal. Its short word, strike, and PROFIT
+  sequence is timed off `.hero.loaded`; full copy and the booking button
+  remain visible before hydration. Keep that lifecycle replayable on Back.
 - One inline root bootstrap arms every public reveal before first paint when
   JavaScript is available. A hydration watchdog removes that gate if the
   application runtime fails to start.

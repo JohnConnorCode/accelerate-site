@@ -515,91 +515,29 @@ for (const config of [
   if (config.label === "mobile") {
     for (let reload = 1; reload <= 3; reload += 1) {
       await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
-      await page.locator(".hero.loaded").waitFor({ timeout: 4_000 });
       const opening = await page.evaluate(() => ({
-        staticPhrase: getComputedStyle(document.querySelector(".hero-intelligent-static")).display,
-        scramblePhrase: getComputedStyle(document.querySelector(".hero-intelligent-scramble"))
-          .display,
-        wordAnimations: [...document.querySelectorAll(".hero .word > span")].map(
-          (node) => getComputedStyle(node).animationName,
-        ),
+        cta: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
+        fullText: document.querySelector(".hero .h1")?.getAttribute("aria-label"),
+        aboveFold: document.querySelector(".hero-inline-cta").getBoundingClientRect().bottom <= innerHeight,
       }));
-      if (
-        opening.staticPhrase !== "none" ||
-        opening.scramblePhrase === "none" ||
-        opening.wordAnimations.length !== 9 ||
-        opening.wordAnimations.some((name) => !name.includes("word-blur-in"))
-      )
-        failures.push(`mobile reload ${reload}: hero did not begin its shared scramble cascade`);
-      await page.waitForTimeout(7_400);
-      const settledHero = await page.evaluate(() => {
-        const words = document.querySelector(".hero .h1-word-row").getBoundingClientRect();
-        const closing = document.querySelector(".hero-row-cta").getBoundingClientRect();
-        const profit = document.querySelector(".hero-profit").getBoundingClientRect();
-        const cta = document.querySelector(".hero-inline-cta").getBoundingClientRect();
-        return {
-          statementGap: closing.top - words.bottom,
-          profitOffset: profit.top - closing.top,
-          actionGap: cta.top - profit.bottom,
-          profitOpacity: Number.parseFloat(
-            getComputedStyle(document.querySelector(".hero-profit")).opacity,
-          ),
-          ctaOpacity: Number.parseFloat(
-            getComputedStyle(document.querySelector(".hero-inline-cta")).opacity,
-          ),
-        };
-      });
-      if (
-        settledHero.statementGap < 24 ||
-        settledHero.statementGap > 42 ||
-        Math.abs(settledHero.profitOffset) > 2
-      )
-        failures.push(
-          `mobile reload ${reload}: Profit has an unbalanced headline gap (${settledHero.statementGap.toFixed(1)}px gap, ${settledHero.profitOffset.toFixed(1)}px offset)`,
-        );
-      if (settledHero.actionGap < 16 || settledHero.actionGap > 34)
-        failures.push(
-          `mobile reload ${reload}: CTA has an unbalanced Profit gap (${settledHero.actionGap.toFixed(1)}px)`,
-        );
-      if (settledHero.profitOpacity < 0.99 || settledHero.ctaOpacity < 0.99)
-        failures.push(`mobile reload ${reload}: hero sequence did not settle visibly`);
+      if (opening.cta < 0.99 || !opening.aboveFold || !opening.fullText?.includes("PROFIT"))
+        failures.push(`mobile reload ${reload}: hero action or headline is not visible immediately`);
+      await page.locator(".hero.loaded").waitFor({ timeout: 4_000 });
+      await page.waitForTimeout(1_600);
+      const settled = await page.evaluate(() => ({
+        word: document.querySelector(".hero-scramble-display")?.textContent?.trim(),
+        profit: Number(getComputedStyle(document.querySelector(".hero-profit")).opacity),
+      }));
+      if (settled.word !== "the right AI" || settled.profit < 0.99)
+        failures.push(`mobile reload ${reload}: short hero sequence did not settle`);
     }
-    // Router cache restores must create a new hero lifecycle rather than
-    // inheriting a completed document-level animation.
     await page.goto(`${baseUrl}/services`, { waitUntil: "domcontentloaded" });
     await page.goBack();
     await page.waitForURL(baseUrl + "/");
     await page.locator(".hero.loaded").waitFor({ timeout: 4_000 });
-    const restoredHero = await page.evaluate(() => ({
-      loaded: document.querySelector(".hero")?.classList.contains("loaded"),
-      profitTransitionDelay: getComputedStyle(document.querySelector(".hero-profit"))
-        .transitionDelay,
-      ctaTransitionDelay: getComputedStyle(document.querySelector(".hero-inline-cta"))
-        .transitionDelay,
-      profitOpacity: Number.parseFloat(
-        getComputedStyle(document.querySelector(".hero-profit")).opacity,
-      ),
-      ctaOpacity: Number.parseFloat(
-        getComputedStyle(document.querySelector(".hero-inline-cta")).opacity,
-      ),
-    }));
-    if (
-      !restoredHero.loaded ||
-      !restoredHero.profitTransitionDelay.includes("4.7s") ||
-      !restoredHero.ctaTransitionDelay.includes("6.1s") ||
-      restoredHero.profitOpacity > 0.1 ||
-      restoredHero.ctaOpacity > 0.1
-    )
-      failures.push(
-        "mobile back navigation: hero did not restart the shared timed outcome and CTA sequence",
-      );
-    await page.waitForTimeout(7_400);
-    const restoredVisibility = await page.evaluate(() => ({
-      profit: Number.parseFloat(getComputedStyle(document.querySelector(".hero-profit")).opacity),
-      cta: Number.parseFloat(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
-    }));
-    if (restoredVisibility.profit < 0.99 || restoredVisibility.cta < 0.99)
-      failures.push("mobile back navigation: hero did not settle visibly after replay");
+    const restoredCta = await page.locator(".hero-inline-cta").evaluate((node) => Number(getComputedStyle(node).opacity));
+    if (restoredCta < 0.99) failures.push("mobile back navigation: hero CTA became hidden");
+    await page.waitForTimeout(1_600);
     await page.screenshot({ path: `${output}/mobile-home-hero-settled.png`, fullPage: false });
 
     await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
@@ -695,28 +633,16 @@ await firstFramePage.route("**/_next/static/chunks/*.js", async (route) => {
   await route.continue();
 });
 const firstFrameNavigation = firstFramePage.goto(`${baseUrl}/`, { waitUntil: "load" });
-await firstFramePage.waitForSelector(".hero .eyebrow-anim");
-const eyebrowInitial = await firstFramePage.locator(".hero .eyebrow-anim").evaluate((node) => ({
-  motionReady: document.documentElement.classList.contains("motion-ready"),
-  in: node.classList.contains("in"),
-  opacity: Number.parseFloat(getComputedStyle(node).opacity),
+await firstFramePage.waitForSelector(".hero .hero-eyebrow");
+const firstPaint = await firstFramePage.evaluate(() => ({
+  headline: document.querySelector(".hero .h1")?.getAttribute("aria-label"),
+  eyebrowOpacity: Number(getComputedStyle(document.querySelector(".hero-eyebrow")).opacity),
+  ctaOpacity: Number(getComputedStyle(document.querySelector(".hero-inline-cta")).opacity),
 }));
-// The CSS-only hero sequence starts before hydration by design. Depending on
-// the exact paint sampled after the server document arrives, the eyebrow may
-// have begun its first few percent; it must still be visually concealed and
-// must never wait fully visible for client JavaScript.
-if (!eyebrowInitial.motionReady || eyebrowInitial.in || eyebrowInitial.opacity > 0.12) {
-  failures.push(
-    `home eyebrow did not begin in a stable pre-paint state (${JSON.stringify(eyebrowInitial)})`,
-  );
-}
+if (!firstPaint.headline?.includes("PROFIT") || firstPaint.eyebrowOpacity < 0.99 || firstPaint.ctaOpacity < 0.99)
+  failures.push(`home first paint hid the message or action (${JSON.stringify(firstPaint)})`);
 await firstFrameNavigation;
-await firstFramePage.waitForSelector(".hero .eyebrow-anim.in");
-const eyebrowAnimated = await firstFramePage
-  .locator(".hero .eyebrow-anim")
-  .evaluate((node) => getComputedStyle(node).animationName);
-if (!eyebrowAnimated.includes("rv-in"))
-  failures.push(`home eyebrow did not use the shared blur entrance (${eyebrowAnimated})`);
+await firstFramePage.locator(".hero.loaded").waitFor({ timeout: 4_000 });
 await firstFramePage.waitForTimeout(160);
 await firstFramePage.screenshot({
   path: `${output}/mobile-home-eyebrow-entry.png`,

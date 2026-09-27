@@ -66,6 +66,7 @@ export const homeHeroSchema = z
     suffix: label,
     replacedWord: label,
     finalWord: label,
+    support: text.optional(),
     ctaLabel: label,
     ctaHref: href,
   })

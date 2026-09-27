@@ -38,12 +38,13 @@ export const homeFaqContent = {
 };
 
 export const homeHeroContent = {
-  eyebrow: "AI systems, built and run for operators",
-  prefix: "We architect and deploy",
-  highlighted: "intelligent automation",
-  suffix: "to scale your",
+  eyebrow: "AI strategy, custom systems, and execution",
+  prefix: "We design, build, and run",
+  highlighted: "the right AI",
+  suffix: "to improve",
   replacedWord: "productivity",
   finalWord: "PROFIT",
+  support: "A practical path from AI strategy to the systems and execution your business needs.",
   ctaLabel: "Book a free strategy session",
   ctaHref: "/contact",
 };

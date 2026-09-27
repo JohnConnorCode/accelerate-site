@@ -259,92 +259,16 @@ assert.doesNotMatch(
   "Learn listings must not serialize MDX bodies",
 );
 const hero = readFileSync("src/components/home/Hero.tsx", "utf8");
-assert.match(
-  hero,
-  /const \[loaded, setLoaded\] = useState\(false\)/,
-  "Hero must start unloaded so PROFIT and the CTA can transition in",
-);
-assert.match(
-  hero,
-  /const restartEntrance = \(\) =>/,
-  "Hero must own a restartable entrance lifecycle",
-);
-assert.match(
-  hero,
-  /if \(event\.persisted\) restartEntrance\(\)/,
-  "Hero must replay after a bfcache restoration",
-);
-assert.match(
-  hero,
-  /if \(supportsFinePointer && !document\.hidden\) startSpotlight\(\)/,
-  "Mobile must not run the hero spotlight loop continuously without pointer input",
-);
-assert.match(
-  hero,
-  /eyebrow-anim rv\$\{loaded \? " in" : ""\}/,
-  "Hero eyebrow must wait on the same loaded gate as the rest of the sequence",
-);
-assert.doesNotMatch(hero, /reveal-immediate/, "Hero copy must not skip its authored entrance");
-assert.match(
-  styles,
-  /\.motion-ready \.hero:not\(\.loaded\) \.swap/,
-  "PROFIT must stay hidden until the loaded gate flips",
-);
-assert.match(
-  styles,
-  /\.motion-ready \.hero:not\(\.loaded\) \.hero-inline-cta/,
-  "The hero CTA must stay hidden until the loaded gate flips",
-);
-assert.match(
-  styles,
-  /\.hero-intelligent-static\s*\{\s*display:\s*none;\s*\}/,
-  "Mobile must preserve the signature intelligent-automation scramble rather than replacing it with static copy",
-);
-assert.match(
-  styles,
-  /\.hero-intelligent-scramble\s*\{\s*display:\s*inline;\s*\}/,
-  "Mobile must render the same scramble treatment as desktop",
-);
-assert.doesNotMatch(
-  styles,
-  /hero-mobile-focus-in|hero-mobile-rule-in/,
-  "Mobile must not replace the desktop hero choreography with a compressed phone-only timeline",
-);
-assert.match(
-  styles,
-  /\.loaded \.strike::after \{[^}]*3\.85s/,
-  "Every viewport must share the desktop productivity-strike beat",
-);
-assert.match(
-  styles,
-  /\.loaded \.swap \{[^}]*4\.7s/,
-  "Every viewport must share the desktop PROFIT beat",
-);
-assert.match(
-  styles,
-  /\.loaded \.rev-ul::after \{[^}]*5\.1s/,
-  "Every viewport must share the desktop PROFIT underline beat",
-);
-assert.match(
-  hero,
-  /className="hero-inline-cta"[\s\S]*?"--d": "6\.10s"/,
-  "Every viewport must share the desktop CTA beat",
-);
-assert.match(
-  styles,
-  /\.loaded \.swap \{[^}]*transition:/,
-  "PROFIT entrance is a delayed transition off .loaded, not a first-paint rest state",
-);
-assert.match(
-  styles,
-  /\.loaded \.hero-inline-cta \{[^}]*transition:/,
-  "Hero CTA entrance is a delayed transition off .loaded",
-);
-assert.doesNotMatch(
-  styles,
-  /\.motion-ready \.hero \.rv:not\(\.in\)/,
-  "Hero rv copy must not bypass the loaded entrance",
-);
+assert.match(hero, /const \[loaded, setLoaded\] = useState\(false\)/, "Hero keeps a replayable entrance");
+assert.match(hero, /if \(event\.persisted\) replay\(\)/, "Hero replays on bfcache restore");
+assert.match(hero, /useState\(text\)/, "Scramble must start with server-visible words");
+assert.match(hero, /hero-system-node/, "Hero keeps the lightweight system graphic");
+assert.doesNotMatch(hero, /animateSpotlight|useScroll|useMotionValue/, "Hero must not run a full-screen animation loop");
+assert.match(styles, /\.motion-ready \.hero:not\(\.loaded\) \.hero-inline-cta \{ opacity: 1; filter: none; \}/, "Hero CTA is visible before hydration");
+assert.match(styles, /\.hero\.loaded \.word > span \{[^}]*hero-word-enter/, "Words retain the short entrance");
+assert.match(styles, /\.hero\.loaded \.strike::after \{[^}]*0\.6s/, "Strike remains in the sequence");
+assert.match(styles, /\.hero\.loaded \.hero-profit \{[^}]*0\.75s/, "PROFIT remains in the sequence");
+assert.match(styles, /\.hero\.loaded \.rev-ul::after \{[^}]*1\.05s/, "Outcome underline closes the sequence");
 const rootNotFound = readFileSync("src/app/not-found.tsx", "utf8");
 const marketingNotFound = readFileSync("src/app/(marketing)/not-found.tsx", "utf8");
 assert.match(

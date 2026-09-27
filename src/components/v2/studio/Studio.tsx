@@ -21,9 +21,8 @@ import { FinalCta } from "@/components/home/FinalCta";
 export function Studio() {
   return (
     <>
-      {/* The opening hero owns the first viewport. Its explanatory beat enters
-          as a separate scroll section before the marquee, so the CTA keeps a
-          clean, decisive silhouette at every breakpoint. */}
+      {/* The hero keeps its message and CTA in the opening viewport. The
+          explanatory beat follows the system graphic before the marquee. */}
       <div className="hero-band">
         <Hero />
         <HeroStatement />
