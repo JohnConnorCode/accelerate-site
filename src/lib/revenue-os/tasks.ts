@@ -35,6 +35,20 @@ export async function createRevenueTask(
 ) {
   const title = input.title.trim();
   if (!title) throw new Error("Task title is required");
+  let contactId: string | null = null;
+  if (input.relatedType === "contact") {
+    if (!input.relatedId) throw new Error("Select a contact for this follow-up");
+    const tenantId = tenantIdForDatabase(supabase);
+    if (!tenantId) throw new Error("Contact follow-up requires a tenant-bound workspace");
+    const { data: contact, error } = await supabase
+      .from("contacts")
+      .select("id")
+      .eq("tenant_id", tenantId)
+      .eq("id", input.relatedId)
+      .maybeSingle();
+    if (error || !contact) throw new Error("This contact is unavailable in your workspace");
+    contactId = contact.id;
+  }
   if (input.assigneeUserId) {
     if (!tenantIdForDatabase(supabase))
       throw new Error("Assignment requires a tenant-bound workspace");
@@ -71,6 +85,7 @@ export async function createRevenueTask(
       related_type: input.relatedType || null,
       related_id: input.relatedId || null,
       related_name: input.relatedName || null,
+      contact_id: contactId,
       opportunity_id: input.opportunityId || null,
       source: input.source,
       dedupe_key: input.dedupeKey || null,

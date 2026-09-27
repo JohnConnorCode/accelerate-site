@@ -169,6 +169,14 @@ export type DemoState = {
   resolvedIdentityReviews: string[];
   subscriptionOverrides?: DemoSubscriptionsState;
   taskOverrides: Record<string, Partial<OperatorTaskPatchInput> & { completed_at?: string | null }>;
+  manualContacts?: Array<{
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    company: string;
+    role: string;
+  }>;
   manualTasks?: Array<{
     id: string;
     title: string;
@@ -3867,7 +3875,9 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
           ? clientRows(pack, state).find((item) => item.id === relatedId)
           : undefined;
       const relatedPerson =
-        relatedType !== "client" ? pack.people.find((item) => item.id === relatedId) : undefined;
+        relatedType !== "client"
+          ? [...pack.people, ...(state.manualContacts ?? [])].find((item) => item.id === relatedId)
+          : undefined;
       if (
         !title ||
         title.length > 500 ||
@@ -3981,6 +3991,33 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
       return jsonResponse({ success: true, readAt: input.read ? new Date().toISOString() : null });
     }
     if (method !== "GET") {
+      if (path === "/api/admin/contacts/directory" && method === "POST") {
+        const name = typeof body.name === "string" ? body.name.trim() : "";
+        const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+        const phone = typeof body.phone === "string" ? body.phone.trim() : "";
+        if (
+          !name ||
+          name.length > 200 ||
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+          email.length > 254 ||
+          phone.length > 80
+        )
+          return jsonResponse({ error: "Enter a name and valid email address" }, 400);
+        if (
+          [...pack.people, ...(state.manualContacts ?? [])].some(
+            (item) => item.email.toLowerCase() === email,
+          )
+        )
+          return jsonResponse({ error: "A contact with this email already exists" }, 409);
+        const contact = { id: crypto.randomUUID(), name, email, phone, company: "", role: "" };
+        state.manualContacts = [contact, ...(state.manualContacts ?? [])];
+        saveState(scenarioId, state);
+        window.dispatchEvent(new Event("admin:demo-state"));
+        return jsonResponse(
+          { contact: { id: contact.id, full_name: name, primary_email: email }, simulated: true },
+          201,
+        );
+      }
       if (path === "/api/admin/revenue-os/pipeline") {
         const rows = opportunityRows(pack, state);
         if (Array.isArray(body.reorder)) {
@@ -4316,13 +4353,16 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (path === "/api/admin/contacts/directory") {
       const search = (url.searchParams.get("search") || "").trim().toLowerCase();
       const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
-      const contacts = pack.people
+      const contacts = [
+        ...(state.manualContacts ?? []).map((item) => ({ ...item, directoryId: item.id })),
+        ...pack.people.map((item) => ({ ...item, directoryId: item.email })),
+      ]
         .filter((item) => !search || `${item.name} ${item.email}`.toLowerCase().includes(search))
         .map((item) => ({
-          id: item.email,
+          id: item.directoryId,
           full_name: item.name,
           primary_email: item.email,
-          phone: null,
+          phone: item.phone || null,
           title: null,
           lifecycle_stage: "contact",
           next_action: null,
@@ -4365,7 +4405,7 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
     if (path === "/api/admin/contacts/timeline") {
       const requestedEmail = (url.searchParams.get("email") || "").toLowerCase();
       const requestedId = url.searchParams.get("id");
-      const contact = pack.people.find((item) =>
+      const contact = [...pack.people, ...(state.manualContacts ?? [])].find((item) =>
         requestedId ? item.id === requestedId : item.email.toLowerCase() === requestedEmail,
       );
       if (!contact)
@@ -4434,12 +4474,14 @@ export function installAdminDemoRuntime(scenarioId: DemoScenarioId) {
             next_action: opportunity?.nextAction ?? null,
             next_action_at: opportunity ? dateOffset(1) : null,
           },
-          company: {
-            id: `company-${contact.id}`,
-            name: contact.company,
-            domain: `${contact.company.toLowerCase().replace(/[^a-z0-9]+/g, "")}.example`,
-            industry: pack.category,
-          },
+          company: contact.company
+            ? {
+                id: `company-${contact.id}`,
+                name: contact.company,
+                domain: `${contact.company.toLowerCase().replace(/[^a-z0-9]+/g, "")}.example`,
+                industry: pack.category,
+              }
+            : null,
           opportunities: opportunity
             ? [
                 {

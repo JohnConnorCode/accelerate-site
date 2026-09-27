@@ -17,6 +17,7 @@ import assert from "node:assert/strict";
 import { MemorySupabase } from "./lib/memory-supabase";
 import { failJobRun, finishJobRun, startJobRun, withJobRun } from "../src/lib/revenue-os/runs";
 import { createRevenueTask } from "../src/lib/revenue-os/tasks";
+import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import {
   globalDailySendCap,
   normalizeCampaignPolicy,
@@ -286,6 +287,41 @@ async function main() {
     2,
     "without a dedupe key every task must be created",
   );
+
+  const tenantA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const tenantB = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  const linked = new MemorySupabase({
+    contacts: [
+      { id: "contact-a", tenant_id: tenantA },
+      { id: "contact-b", tenant_id: tenantB },
+    ],
+    tasks: [],
+    audit_log: [],
+    activities: [],
+  });
+  const tenantDatabase = bindTenantDatabaseForTest(linked.client as never, tenantA);
+  await createRevenueTask(tenantDatabase, {
+    title: "Call Jane",
+    source: "manual",
+    actorEmail: "founder@local.test",
+    relatedType: "contact",
+    relatedId: "contact-a",
+    relatedName: "Jane",
+  });
+  assert.equal(linked.rows("tasks")[0]?.contact_id, "contact-a");
+  await rejects(
+    () =>
+      createRevenueTask(tenantDatabase, {
+        title: "Call another tenant",
+        source: "manual",
+        actorEmail: "founder@local.test",
+        relatedType: "contact",
+        relatedId: "contact-b",
+      }),
+    "unavailable",
+    "a related follow-up must not link a contact from another workspace",
+  );
+  assert.equal(linked.rows("tasks").length, 1);
 
   await rejects(
     () =>
