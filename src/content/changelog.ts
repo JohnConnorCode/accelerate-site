@@ -11,6 +11,24 @@ export const changelogEntries: ChangelogEntry[] = [
     publishedAt: "2026-09-27",
   },
   {
+    id: "ai-readiness-evidence-and-roadmap",
+    slug: "ai-readiness-evidence-and-roadmap",
+    title: "AI Readiness shows the evidence behind its plan",
+    description:
+      "The assessment now shows which answers shaped its recommendation and explains when there is too little scored evidence for an overall score. Its report and PDF use a 90-day pilot roadmap with a measured baseline and human review points. An optional website check samples the homepage and up to three linked public pages, naming pages it could not review. Resources separates assessment engagement, report downloads and website check outcomes; these activity counts are limited to the selected window and available event records.",
+    category: "improvement",
+    publishedAt: "2026-09-27",
+  },
+  {
+    id: "command-center-public-guides",
+    slug: "command-center-public-guides",
+    title: "Clearer Command Center setup and daily-work guides",
+    description:
+      "The public Command Center guides now follow a task from Today through its source record, Work, and the recorded result. Setup explains how to confirm a connection with a real sync or send, and Intake review covers its current filters, row actions, exact approval review, and refresh recovery. The feature page links directly to the operator guide and distinguishes managed workspace boundaries from self-hosted data ownership.",
+    category: "improvement",
+    publishedAt: "2026-09-27",
+  },
+  {
     id: "command-center-daily-work-navigation",
     slug: "command-center-daily-work-navigation",
     title: "Command Center puts daily work and contact context first",

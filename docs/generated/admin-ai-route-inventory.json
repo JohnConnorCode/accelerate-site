@@ -47,9 +47,10 @@
       "mutationHandlers": [],
       "imports": [
         "@/lib/admin/module-guard",
+        "@/lib/ai-readiness-analytics",
         "next/server"
       ],
-      "sourceSha256": "e801ca6553e655038b30b894111362b78e0c98ad8d1793afa92112dcb11c7067"
+      "sourceSha256": "9573fce4d7d17d3154dc3bb60041f963bc72d80b2b8fdb2b1d9135e4c6b2e611"
     },
     {
       "source": "src/app/api/admin/analytics/route.ts",

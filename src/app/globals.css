@@ -1361,6 +1361,24 @@ a.tag:active {
   transition: color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   transition-delay: 0s;
 }
+@media (max-width: 400px) {
+  .ai-readiness-site-logo .logo-word {
+    font-size: 1rem;
+  }
+  .ai-readiness-site-logo .logo-letter {
+    letter-spacing: 0.08em;
+  }
+}
+@media (max-width: 380px) {
+  .ai-readiness-site-logo .logo-word {
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 350px) {
+  .ai-readiness-site-logo .logo-word {
+    display: none;
+  }
+}
 .logo-link:hover .logo-letter,
 .logo-link:focus-visible .logo-letter {
   color: var(--fg);

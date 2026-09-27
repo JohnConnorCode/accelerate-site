@@ -69,6 +69,7 @@ async function enrichReport(
   supabase: SupabaseClient,
   report: ReadinessReport,
 ): Promise<ReadinessReport> {
+  const stageLabels = ["Days 1–30", "Days 31–60", "Days 61–90", "Ongoing"] as const;
   const response = await openRouterJson({
     database: supabase,
     job: "ai-readiness-report",
@@ -120,14 +121,17 @@ async function enrichReport(
         throw new Error("Invalid enrichment steps");
       return {
         summary: candidate.summary,
-        actionPlan: candidate.actionPlan as ReadinessReport["actionPlan"],
+        actionPlan: (candidate.actionPlan as ReadinessReport["actionPlan"]).map((step, index) => ({
+          ...step,
+          week: stageLabels[index]!,
+        })),
       };
     },
     messages: [
       {
         role: "system",
         content:
-          "You tailor a practical AI readiness report. Use only supplied facts. Never invent savings, benchmarks, prices, guarantees, or capabilities. Keep language plain and specific. Return exactly four action-plan steps.",
+          "You tailor a practical AI readiness report. Use only supplied facts. Never invent savings, benchmarks, prices, guarantees, capabilities, baselines, or owners. Keep language plain and specific. Return exactly four action-plan stages with week labels 'Days 1–30', 'Days 31–60', 'Days 61–90', and 'Ongoing'. Start with the named workflow and its measured readiness evidence. Set a real baseline before proposing targets. Keep customer-facing actions under human review until a pilot validates safety and usefulness. The ongoing stage must say to expand only when evidence supports it.",
       },
       {
         role: "user",
@@ -373,5 +377,6 @@ export async function loadReport(reportToken: string) {
     .limit(1)
     .maybeSingle();
   if (report.error || !report.data) return null;
-  return report.data.report as ReadinessReport;
+  const stored = report.data.report as ReadinessReport;
+  return { ...stored, evidence: Array.isArray(stored.evidence) ? stored.evidence : [] };
 }

@@ -21,7 +21,7 @@ import {
 
 type Phase = "intro" | "profile" | "questions" | "preview" | "unlock" | "report";
 type Direction = 1 | -1;
-const STORAGE_KEY = "accelerate:ai-readiness:v2";
+const STORAGE_KEY = "accelerate:ai-readiness:v3";
 
 const phaseNames: Record<Phase, string> = {
   intro: "Start",
@@ -101,7 +101,6 @@ export function AIReadinessAssessment({
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
-    trackEvent("ai_readiness_started");
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") as {
         answers?: AssessmentAnswers;
@@ -115,6 +114,14 @@ export function AIReadinessAssessment({
       /* stale local progress is disposable */
     }
   }, []);
+
+  useEffect(() => {
+    if (phase === "intro" || phase === "report") return;
+    trackEvent("ai_readiness_step_viewed", {
+      step: phase === "questions" ? "assessment" : phase,
+      ...(phase === "questions" ? { question_number: questionIndex + 1 } : {}),
+    });
+  }, [phase, questionIndex]);
 
   useEffect(() => {
     if (phase === "report") return;
@@ -158,6 +165,7 @@ export function AIReadinessAssessment({
   }
 
   function start() {
+    trackEvent("ai_readiness_began");
     trackEvent("ai_readiness_profile_started");
     transitionTo("profile");
   }
@@ -205,6 +213,24 @@ export function AIReadinessAssessment({
       if (!response.ok) throw new Error(data.error || "We could not score those answers.");
       setSessionToken(data.sessionToken);
       setPreview(data.preview);
+      if (data.preview.websiteAudit) {
+        const audit = data.preview.websiteAudit;
+        const hasPageFailures = audit.pages?.some(
+          (page: { status: string }) => page.status !== "completed",
+        );
+        const scanEvent =
+          audit.status !== "completed"
+            ? "ai_readiness_site_scan_failed"
+            : hasPageFailures
+              ? "ai_readiness_site_scan_partial"
+              : "ai_readiness_site_scan_completed";
+        trackEvent(scanEvent, {
+          status: audit.status,
+          pages_checked:
+            audit.pages?.filter((page: { status: string }) => page.status === "completed").length ??
+            0,
+        });
+      }
       trackConversion("ai_readiness_previewed", {
         score_available: data.preview.score === null ? 0 : 1,
       });
@@ -469,7 +495,7 @@ export function AIReadinessAssessment({
                         </div>
                         <div className={styles.deliverable}>
                           <p className={styles.deliverableIndex}>03 / ACTION</p>
-                          <p className={styles.deliverableTitle}>A 30-day plan</p>
+                          <p className={styles.deliverableTitle}>A 90-day plan</p>
                           <p className={styles.deliverableCopy}>
                             A measured next step with clear review points.
                           </p>
@@ -524,8 +550,9 @@ export function AIReadinessAssessment({
                             className="min-h-12 rounded-xl border border-black/15 bg-white/60 px-4 font-normal outline-none transition-colors focus:border-black dark:border-white/15 dark:bg-white/[0.04] dark:focus:border-white"
                           />
                           <span className="text-xs font-normal leading-5 text-[var(--soft)]">
-                            We check the public homepage for visible SEO, mobile, accessibility,
-                            trust, and conversion signals. No login or private pages.
+                            We check the homepage and up to three linked public pages for visible
+                            search, mobile, accessibility, trust, and conversion signals. We do not
+                            access private pages; JavaScript-rendered content may not be visible.
                           </span>
                           {profile.websiteUrl?.trim() &&
                             !/^https?:\/\/[^\s]+$/i.test(profile.websiteUrl.trim()) && (
@@ -717,7 +744,9 @@ export function AIReadinessAssessment({
                             {busy ? (
                               <>
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                {profile.websiteUrl?.trim() ? "Checking site" : "Scoring answers"}
+                                {profile.websiteUrl?.trim()
+                                  ? "Reviewing up to 4 pages"
+                                  : "Scoring answers"}
                               </>
                             ) : (
                               "See my preview"
@@ -775,6 +804,24 @@ export function AIReadinessAssessment({
                         <p className={styles.stepEyebrow}>The clearest first opportunity</p>
                         <h2 className={styles.stepTitle}>{previewRecommendation.title}</h2>
                         <p className={styles.stepDescription}>{previewRecommendation.summary}</p>
+                        {!!preview.evidence?.length && (
+                          <div className="mt-5 rounded-xl border border-black/10 bg-black/[0.03] p-4 dark:border-white/10 dark:bg-white/[0.04]">
+                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--soft)]">
+                              Evidence from your answers
+                            </p>
+                            <ul className="mt-3 space-y-2">
+                              {preview.evidence.map((item) => (
+                                <li
+                                  key={`${item.question}-${item.answer}`}
+                                  className="text-sm leading-5"
+                                >
+                                  <span className="font-semibold">{item.dimension}:</span>{" "}
+                                  {item.answer}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                         {preview.websiteAudit && (
                           <div className="mt-7 rounded-2xl border border-black/10 bg-black/[0.03] p-5 dark:border-white/10 dark:bg-white/[0.04]">
                             <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -832,7 +879,7 @@ export function AIReadinessAssessment({
                         Save the full action plan.
                       </h1>
                       <p className={styles.stepDescription}>
-                        Get the complete dimension breakdown, pilot guidance, 30-day plan, and a
+                        Get the complete dimension breakdown, pilot guidance, 90-day plan, and a
                         branded PDF you can share with your team.
                       </p>
                       <div className="mt-8 grid gap-5">

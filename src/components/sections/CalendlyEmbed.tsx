@@ -23,7 +23,7 @@ const EMBED_SRC = `${CALENDLY_URL}?hide_gdpr_banner=1&embed_domain=${EMBED_DOMAI
    event, and it gives us no cross-origin signal for when it finally paints
    (its "calendly.*" postMessage events never fire without widget.js driving
    the handshake — verified). So instead of guessing one cutover moment, the
-   placeholder holds through the load event and then dissolves slowly, letting
+   placeholder holds through the load event and then fades, letting
    the real calendar surface through the fade whenever it arrives. It is
    pointer-events-none throughout, so it can never swallow a click. */
 const HOLD_AFTER_LOAD_MS = 1200;
@@ -41,10 +41,22 @@ export function CalendlyEmbed() {
 
   return (
     <>
-      <div
-        className="relative overflow-hidden rounded-2xl border border-border-glass"
-        style={{ minWidth: "280px", height: "700px" }}
-      >
+      <div className="mb-3 flex items-center justify-between gap-3 px-2">
+        <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-white-muted">
+          Live availability
+        </span>
+        <a
+          href={CALENDLY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-cursor="link"
+          aria-label="Open calendar in a new tab"
+          className="whitespace-nowrap text-xs font-medium text-heading underline underline-offset-4 transition-opacity hover:opacity-65"
+        >
+          Open calendar <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+      <div className="relative h-[700px] w-full overflow-hidden bg-white">
         <iframe
           src={EMBED_SRC}
           title="Book a 30-minute strategy call"
@@ -56,33 +68,27 @@ export function CalendlyEmbed() {
 
         <div
           aria-hidden={fading}
-          className={`pointer-events-none absolute inset-0 grid place-items-center bg-[color-mix(in_srgb,var(--bg-elevated)_98%,transparent)] transition-opacity duration-[2200ms] ease-out ${
+          role="status"
+          className={`pointer-events-none absolute inset-0 grid place-items-center bg-white transition-opacity duration-500 ease-out motion-reduce:transition-none ${
             fading ? "opacity-0" : "opacity-100"
           }`}
         >
-          <div className="flex flex-col items-center gap-4 px-6 text-center">
-            <span className="h-7 w-7 animate-spin rounded-full border-2 border-border-glass border-t-gold" />
-            <span className="font-mono text-[0.6rem] uppercase tracking-[0.22em] text-white-muted">
+          <div className="w-full max-w-sm px-7 text-center">
+            <span className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-neutral-500">
               Loading available times
             </span>
+            <div className="mt-7 grid grid-cols-7 gap-2" aria-hidden="true">
+              {Array.from({ length: 28 }, (_, day) => (
+                <span
+                  key={day}
+                  className="aspect-square border border-neutral-200 bg-neutral-50 motion-safe:animate-pulse"
+                  style={{ animationDelay: `${(day % 7) * 80}ms` }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* escape hatch if the embed is blocked (privacy extensions, corporate
-          networks) or just crawling on a bad connection */}
-      <p className="mt-3 px-2 text-center text-xs text-white-muted">
-        Calendar not loading?{" "}
-        <a
-          href={CALENDLY_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-cursor="link"
-          className="underline underline-offset-4 transition-colors hover:text-heading"
-        >
-          Open it in a new tab
-        </a>
-      </p>
     </>
   );
 }

@@ -1,7 +1,7 @@
 ---
 title: "Connect your installation"
 description: "Create the owner account, apply the ordered schema, and sign in to a workspace you control."
-updated: "2026-09-23"
+updated: "2026-09-27"
 ---
 
 This walkthrough turns a local demo into a connected installation you control: database, authentication, and a real owner account. You need a working checkout, a new empty Supabase project, access to its authentication settings, and a chosen owner email; complete [the local quickstart](/docs/self-hosting) first if you haven't already.
@@ -72,7 +72,7 @@ The lower-level `npm run verify:migrations`, `npm run db:migrate:all`, `npm run 
 
 ## 4. Sign in and check the workspace
 
-Restart your local development server after editing environment configuration. Sign in at `/admin` with the owner account. Confirm the intended business identity and workspace, then open [Setup Center](/docs/workspace/setup).
+Restart your local development server after editing environment configuration. Sign in at `/admin` with the owner account. Confirm the intended business identity and workspace, then open [Setup](/docs/workspace/setup).
 
 If authentication succeeds but workspace access fails, inspect the owner email match, account creation order, membership, and workspace status. Do not weaken authentication or manually grant broad access to hide a setup error.
 
@@ -86,7 +86,7 @@ Before connecting providers, create a fictional contact and a task for its next 
 
 Add the provider required for your first workflow through the documented connection path. Email sending needs a verified sending setup; AI workloads need the configured AI connection. See [Integrations](/docs/workspace/integrations).
 
-Check Setup Center, then run a controlled workflow with fictional records and a destination you control. Inspect the resulting activity and provider outcome. Saved credentials alone are not a successful connection test.
+Check Setup, then run a controlled workflow with fictional records and a destination you control. Inspect the resulting activity and provider outcome. Saved credentials alone are not a successful connection test.
 
 ## 7. Establish readiness before real use
 
@@ -107,4 +107,4 @@ See the repository `deployment/README.md` for DNS, updates and retained data.
 
 Before importing customer records, keep recovery copies of the database, uploaded files and encryption configuration, then test restoring them into an isolated installation. Follow the repository's [backup and recovery guide](https://github.com/JohnConnorCode/accelerate-site/blob/main/docs/self-hosting/BACKUP-RECOVERY.md) and record the result so the next maintainer can repeat it.
 
-Protected actions share request limits across server instances. A 429 response means the limit was reached; wait for the indicated retry time. A 503 means the action is temporarily unavailable, so check Setup Center, the migration catalog and server configuration before retrying. The request stops before sending messages or starting the protected action.
+Protected actions share request limits across server instances. A 429 response means the limit was reached; wait for the indicated retry time. A 503 means the action is temporarily unavailable, so check Setup, the migration catalog and server configuration before retrying. The request stops before sending messages or starting the protected action.

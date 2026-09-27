@@ -9,7 +9,8 @@ import { Section, Container, Eyebrow, Heading } from "@/components/v2/studio/pri
 import { RevealHeading } from "@/components/v2/studio/RevealHeading";
 import { HERO_HEADING } from "@/lib/type-recipes";
 import { ContactForm } from "@/components/sections/ContactForm";
-import { CALENDLY_URL, hasScheduler } from "@/lib/booking";
+import { CalendlyEmbed } from "@/components/sections/CalendlyEmbed";
+import { hasScheduler } from "@/lib/booking";
 
 const INFO_CARDS = [
   {
@@ -114,11 +115,7 @@ export function ContactPageContent() {
                     <p className="mb-5 px-2 text-pretty text-sm leading-6 text-white-secondary">
                       Choose a time directly on John’s calendar.
                     </p>
-                    <iframe
-                      src={`${CALENDLY_URL}?hide_gdpr_banner=1&embed_domain=acceleratewith.us&embed_type=Inline`}
-                      title="Book your free AI strategy session with John"
-                      className="h-[700px] w-full rounded-xl border-0 bg-white"
-                    />
+                    <CalendlyEmbed />
                     <details className="mt-5 border border-[color-mix(in_srgb,var(--fg)_14%,transparent)] px-4 py-3">
                       <summary className="cursor-pointer text-sm font-medium text-heading">
                         Prefer to send context first?

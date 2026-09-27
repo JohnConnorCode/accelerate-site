@@ -4,8 +4,14 @@ import AxeBuilder from "@axe-core/playwright";
 import { calculateReadiness, publicPreview, readinessQuestions } from "../src/lib/ai-readiness.ts";
 
 const base = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000";
+const allStrong = process.env.AI_READINESS_QA_ALL_STRONG === "1";
 const answers = Object.fromEntries(
-  readinessQuestions.map((question) => [question.id, question.options[0]?.value ?? "unknown"]),
+  readinessQuestions.map((question) => [
+    question.id,
+    (allStrong
+      ? question.options[question.options.length - 1]?.value
+      : question.options[0]?.value) ?? "unknown",
+  ]),
 );
 const report = calculateReadiness(answers, {
   businessType: "professional services",
@@ -37,19 +43,18 @@ try {
     );
     await noJsContext.close();
 
-    const context = await browser.newContext({
-      viewport: { width, height: 900 },
-      reducedMotion: "reduce",
-    });
+    const context = await browser.newContext({ viewport: { width, height: 900 } });
     const page = await context.newPage();
     const errors = [];
+    const analyticsEvents = [];
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => {
       if (message.type() === "error") errors.push(message.text());
     });
-    await page.route("**/api/analytics/events", (route) =>
-      route.fulfill({ status: 204, body: "" }),
-    );
+    await page.route("**/api/analytics/events", async (route) => {
+      analyticsEvents.push(route.request().postDataJSON());
+      await route.fulfill({ status: 204, body: "" });
+    });
     await page.route("**/api/ai-readiness", async (route) => {
       const request = route.request().postDataJSON();
       await route.fulfill({
@@ -192,6 +197,7 @@ try {
     const previewAxe = await new AxeBuilder({ page }).analyze();
     assert.deepEqual(previewAxe.violations, [], `${width}px preview has no axe violations`);
 
+    await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.getByRole("button", { name: /Unlock full action plan/ }).click();
     await page.getByLabel("Your name").fill("Controlled QA contact");
     await page.getByLabel("Work email").fill("qa@example.test");
@@ -205,6 +211,51 @@ try {
     );
     const reportAxe = await new AxeBuilder({ page }).analyze();
     assert.deepEqual(reportAxe.violations, [], `${width}px report has no axe violations`);
+    await page.getByText("90-day action plan", { exact: false }).waitFor();
+    await page
+      .getByText(
+        allStrong ? /Your current readiness is 100\/100/ : /You answered 100% of the assessment/,
+      )
+      .waitFor();
+    await page.waitForLoadState("networkidle");
+    const firstReportSection = page.locator('section[data-motion-role="section"]').first();
+    await firstReportSection.scrollIntoViewIfNeeded();
+    await firstReportSection.waitFor({ state: "visible" });
+    await page.waitForFunction(() => {
+      const section = document.querySelector('section[data-motion-role="section"]');
+      return section?.classList.contains("in");
+    });
+    const reportMotion = await firstReportSection.evaluate((section) => ({
+      section: getComputedStyle(section.firstElementChild).animationName,
+      scoreBar: getComputedStyle(section.querySelector('[class*="scoreBar"]')).animationName,
+    }));
+    assert.match(reportMotion.section, /readiness-step-in/, "report cards reveal sequentially");
+    assert.match(reportMotion.scoreBar, /readiness-bar-in/, "dimension evidence bars animate in");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const reducedReportMotion = await firstReportSection.evaluate(
+      (section) => getComputedStyle(section.firstElementChild).animationName,
+    );
+    assert.equal(reducedReportMotion, "none", "report reveals respect reduced motion");
+    if (analyticsEvents.length) {
+      assert.equal(
+        analyticsEvents.filter((event) => event.name === "ai_readiness_began").length,
+        1,
+        "start analytics fires only after the visitor starts the assessment",
+      );
+      assert.ok(
+        analyticsEvents.some((event) => event.name === "ai_readiness_step_viewed"),
+        "step views are recorded",
+      );
+      assert.ok(
+        analyticsEvents
+          .filter((event) => event.name === "ai_readiness_question_answered")
+          .every(
+            (event) =>
+              !Object.keys(event.properties || {}).some((key) => /answer|value/i.test(key)),
+          ),
+        "analytics records question IDs without selected answer values",
+      );
+    }
     if (process.env.AI_READINESS_QA_SCREENSHOTS === "1") {
       await page.screenshot({ path: `/tmp/ai-readiness-${width}-report.png` });
     }
@@ -214,8 +265,42 @@ try {
       documentWidth: document.documentElement.scrollWidth,
     }));
     assert.equal(dimensions.documentWidth, dimensions.width, `${width}px page has no overflow`);
+    if (width === 390) {
+      const mobileWordmark = await page.evaluate(() => {
+        const link = document.querySelector(".ai-readiness-site-logo");
+        const word = link?.querySelector(".logo-word");
+        return {
+          visible: !!word && getComputedStyle(word).display !== "none",
+          fits: !!word && word.scrollWidth <= word.clientWidth,
+          accessibleName: link?.getAttribute("aria-label") || "",
+        };
+      });
+      assert.ok(
+        mobileWordmark.visible && mobileWordmark.fits,
+        "390px brand wordmark stays legible",
+      );
+      assert.ok(mobileWordmark.accessibleName, "mobile brand keeps its accessible name");
+      await page.setViewportSize({ width: 320, height: 900 });
+      const narrowScreen = await page.evaluate(() => ({
+        width: window.innerWidth,
+        documentWidth: document.documentElement.scrollWidth,
+        wordDisplay: getComputedStyle(document.querySelector(".ai-readiness-site-logo .logo-word"))
+          .display,
+        accessibleName: document
+          .querySelector(".ai-readiness-site-logo")
+          ?.getAttribute("aria-label"),
+      }));
+      assert.equal(narrowScreen.wordDisplay, "none", "320px brand mark stays clear of controls");
+      assert.ok(narrowScreen.accessibleName, "icon-only brand remains accessible");
+      assert.equal(narrowScreen.documentWidth, narrowScreen.width, "320px report has no overflow");
+    }
     assert.deepEqual(errors, [], `${width}px flow has no browser errors`);
-    results.push({ width, questionCount: readinessQuestions.length, dimensions });
+    results.push({
+      width,
+      questionCount: readinessQuestions.length,
+      analyticsEventCount: analyticsEvents.length,
+      dimensions,
+    });
     await context.close();
   }
 } finally {

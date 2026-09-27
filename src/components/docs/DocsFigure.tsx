@@ -7,12 +7,14 @@ export function DocsFigure({
   caption,
   width = 1400,
   height = 875,
+  loading = "lazy",
 }: {
   src: string;
   alt: string;
   caption: string;
   width?: number;
   height?: number;
+  loading?: "eager" | "lazy";
 }) {
   // Original guide screenshots are omitted from the neutral distribution.
   if (distributionProfile() === "neutral" && src.startsWith("/images/docs/")) return null;
@@ -29,6 +31,7 @@ export function DocsFigure({
           alt={alt}
           width={width}
           height={height}
+          loading={loading}
           sizes="(max-width: 1023px) 100vw, 800px"
           className="h-auto w-full rounded-xl outline outline-1 outline-black/10"
         />
