@@ -255,7 +255,7 @@ export const capabilities: Capability[] = [
     title: "Context-aware reply drafts",
     promise: "Ask AI to prepare a reply using the available conversation and business records.",
     detail:
-      "Review the wording, recipient and commitments before approving a send. Source context helps the draft, while your review establishes whether it is appropriate.",
+      "An explicit outreach request can stage a reviewable email proposal in the same conversation. Check the wording, recipient and commitments in Work before approving a send, then inspect its recorded result.",
     gated: true,
   },
   {

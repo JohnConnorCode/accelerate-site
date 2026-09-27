@@ -18,7 +18,11 @@
  *     across the run until it exhausted the context window mid-answer.
  */
 import assert from "node:assert/strict";
-import { runRevenueCommandAgent } from "../src/lib/revenue-os/ai-agent";
+import {
+  defaultCommandBundle,
+  finalizeStagedAnswer,
+  runRevenueCommandAgent,
+} from "../src/lib/revenue-os/ai-agent";
 import { bindTenantDatabaseForTest } from "../src/lib/supabase/server";
 import { ACCELERATE_TENANT_ID } from "../src/lib/tenancy/context";
 import { currentEvalEvidence, JOB_CONTRACT_FINGERPRINTS } from "../src/lib/ai/eval-contract";
@@ -404,6 +408,83 @@ async function main() {
     "the caller must receive the staged proposals so the approval surface can reflect them",
   );
 
+  // A model may describe a proposal as a completed external effect. The
+  // founder must see the actual approval state, regardless of that wording.
+  assert.match(finalizeStagedAnswer("I emailed Dana.", 1), /Nothing has been sent or changed/);
+  assert.match(finalizeStagedAnswer("The email was sent.", 1), /staged.*approval/);
+  assert.equal(
+    finalizeStagedAnswer("I staged a reply for approval.", 1),
+    "I staged a reply for approval.",
+  );
+  const conversationBundle = [
+    {
+      bundleId: "core-conversations:1",
+      moduleId: "core-conversations",
+      toolNames: ["propose_send_email"],
+    },
+  ];
+  assert.equal(defaultCommandBundle("outreach", conversationBundle), "core-conversations:1");
+  assert.equal(defaultCommandBundle("core", conversationBundle), null);
+  assert.equal(defaultCommandBundle("outreach", []), null);
+
+  sent = [];
+  stubOpenRouter(() => ({
+    id: "outreach-tools",
+    model: "stub/model",
+    choices: [{ message: { role: "assistant", content: "Which Dana do you mean?" } }],
+  }));
+  const outreach = stubSupabase();
+  await runRevenueCommandAgent(
+    bindTenantDatabaseForTest(outreach.client, ACCELERATE_TENANT_ID),
+    "test@acceleratewith.us",
+    [{ role: "user", content: "Email Dana about the proposal" }],
+  );
+  assert.ok(
+    sentTools(sent[0]!).some((tool) => tool.function.name === "propose_send_email"),
+    "outreach must advertise its governed proposal tool before the step budget runs out",
+  );
+  sent = [];
+  stubOpenRouter((turn) =>
+    turn === 0
+      ? {
+          id: "false-send-tool",
+          model: "stub/model",
+          choices: [
+            {
+              message: {
+                role: "assistant",
+                tool_calls: [
+                  {
+                    id: "false-send-call",
+                    type: "function",
+                    function: {
+                      name: "propose_task",
+                      arguments: JSON.stringify({ title: "Follow up Dana", priority: "high" }),
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }
+      : {
+          id: "false-send-answer",
+          model: "stub/model",
+          choices: [
+            {
+              message: {
+                role: "assistant",
+                content: "I emailed Dana. [source: registered_tool_result:propose_task]",
+              },
+            },
+          ],
+        },
+  );
+  const falseSend = await runAgent(stubSupabase().client);
+  assert.match(falseSend.text, /Nothing has been sent or changed/);
+  assert.doesNotMatch(falseSend.text, /I emailed Dana/);
+  assert.ok(falseSend.proposedActions.includes("propose_task"));
+
   // Discover a different domain from an opportunity page, activate on the next
   // turn, and stage through the real registry. A same-turn jump is refused.
   sent = [];
@@ -668,6 +749,8 @@ async function main() {
           "exhaustion-returns-partial",
           "exhaustion-is-terminal",
           "staged-proposals-named",
+          "staged-effects-not-claimed-complete",
+          "outreach-proposal-bundle-initially-available",
           "transcript-bounded",
           "tool-receipt-provenance",
           "cross-domain-discovery-activation-pending-proposal",

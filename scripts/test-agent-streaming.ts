@@ -107,12 +107,56 @@ async function main() {
     assert.equal(rejected.events[1], "reset", "an ungrounded answer is withdrawn");
     assert.match(rejected.events[2] ?? "", /did not pass the grounding contract/);
     assert.match(rejected.result.text, /did not pass the grounding contract/);
+
+    const proposal = await run([
+      [
+        text("Staging a task."),
+        {
+          id: "gen",
+          model: "stub",
+          choices: [
+            {
+              delta: {
+                tool_calls: [
+                  {
+                    index: 0,
+                    id: "propose-1",
+                    type: "function",
+                    function: {
+                      name: "propose_task",
+                      arguments: JSON.stringify({ title: "Follow up Dana", priority: "high" }),
+                    },
+                  },
+                ],
+              },
+              finish_reason: "tool_calls",
+            },
+          ],
+        },
+      ],
+      [text("I emailed Dana. [source: registered_tool_result:propose_task]")],
+    ]);
+    assert.ok(proposal.result.proposedActions.includes("propose_task"));
+    assert.match(proposal.result.text, /Nothing has been sent or changed/);
+    assert.deepEqual(
+      proposal.events,
+      ["delta:Staging a task.", "reset", `delta:${proposal.result.text}`],
+      "a staged action's unverified final wording must never be streamed",
+    );
   } finally {
     globalThis.fetch = realFetch;
   }
   console.log(
     JSON.stringify(
-      { result: "passed", checks: ["live-deltas", "tool-turn-reset", "ungrounded-replaced"] },
+      {
+        result: "passed",
+        checks: [
+          "live-deltas",
+          "tool-turn-reset",
+          "ungrounded-replaced",
+          "staged-action-final-held",
+        ],
+      },
       null,
       2,
     ),
