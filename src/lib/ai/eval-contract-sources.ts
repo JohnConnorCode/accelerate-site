@@ -1,7 +1,11 @@
 import { createHash } from "node:crypto";
 import { AI_JOBS, DEFAULT_JOB_REASONING } from "./model-registry";
 import { approvedPricingPromptContext } from "./approved-pricing";
-import { PROPOSAL_SCHEMA, PROPOSAL_SYSTEM_PROMPT_TEMPLATE, validateProposal } from "./proposal-draft";
+import {
+  PROPOSAL_SCHEMA,
+  PROPOSAL_SYSTEM_PROMPT_TEMPLATE,
+  validateProposal,
+} from "./proposal-draft";
 import {
   AI_CONTEXT_VERSION,
   buildCoworkerGroundingContract,

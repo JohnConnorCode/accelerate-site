@@ -143,9 +143,10 @@ Absolute rules:
 Style: plain sentences, second person, no marketing language, no bullet lists, no headings, no subject line, no signature block. Two or three short paragraphs, never more than three. Never use an em dash.
 
 The final paragraph must use the word "reply": ask them to reply with a couple of times that work, or to use the contact page. Output only the body text.`;
-export const RESPONDER_SYSTEM_PROMPT = RESPONDER_SYSTEM_PROMPT_TEMPLATE
-  .replace("<business>", tenant.brand.name)
-  .replace("<founder>", tenant.founder.name);
+export const RESPONDER_SYSTEM_PROMPT = RESPONDER_SYSTEM_PROMPT_TEMPLATE.replace(
+  "<business>",
+  tenant.brand.name,
+).replace("<founder>", tenant.founder.name);
 
 function boundedField(value: string, limit: number): string {
   return value.trim().slice(0, limit);
