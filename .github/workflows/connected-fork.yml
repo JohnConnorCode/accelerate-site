@@ -1,0 +1,62 @@
+name: Connected fork
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/connected-fork.yml
+      - scripts/qa-connected-fork.mjs
+      - scripts/workspace-setup.mjs
+      - scripts/lib/workspace-setup.mjs
+      - src/app/admin/contacts/**
+      - src/app/api/admin/contacts/**
+      - src/lib/revenue-os/identity.ts
+      - src/lib/revenue-os/tasks.ts
+      - migrations/**
+
+permissions:
+  contents: read
+
+jobs:
+  connected-fork:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.72.7
+      - name: Start isolated local Supabase services
+        run: |
+          mkdir -p "$RUNNER_TEMP/fork-connected-ci"
+          supabase init --yes --workdir "$RUNNER_TEMP/fork-connected-ci"
+          sed -i 's/^major_version = .*/major_version = 17/' "$RUNNER_TEMP/fork-connected-ci/supabase/config.toml"
+          supabase start --workdir "$RUNNER_TEMP/fork-connected-ci" \
+            --exclude realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor \
+            > "$RUNNER_TEMP/supabase-start.log" 2>&1
+          supabase status -o env --workdir "$RUNNER_TEMP/fork-connected-ci" > "$RUNNER_TEMP/supabase-status.env"
+          node scripts/qa-connected-fork.mjs prepare "$RUNNER_TEMP/supabase-status.env"
+          echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+      - name: Install the actual fork and owner
+        run: npm run setup -- --apply --project fork-connected-ci
+      - name: Build and exercise connected desktop/mobile journeys
+        run: |
+          npm run build
+          npx playwright install --with-deps chromium
+          node scripts/qa-connected-fork.mjs run
+      - name: Retain fictional connected-fork evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: connected-fork-evidence
+          path: ${{ runner.temp }}/accelerate-connected-fork/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Stop isolated local services
+        if: ${{ always() }}
+        run: supabase stop --no-backup --project-id fork-connected-ci
