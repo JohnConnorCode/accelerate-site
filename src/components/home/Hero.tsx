@@ -97,7 +97,9 @@ export function Hero({ content = homeHeroContent }: { content?: HomeHeroContent 
               <span className="hero-profit rev-ul">{content.finalWord}</span>
             </span>
           </h1>
-          <p className="hero-support">{content.support ?? homeHeroContent.support}</p>
+          <p className="hero-support">
+            {content.support ?? "We find the right next step, then help put it to work."}
+          </p>
           <div className="hero-row-cta">
             <span className="hero-inline-cta">
               <Link href={content.ctaHref} onClick={() => trackConversion("Strategy Call CTA Clicked", { location: "hero" })} className="btn">
