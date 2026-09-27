@@ -270,7 +270,7 @@
     "src/components/admin/TenantProviderControls.tsx": "75b2b3130f88c5f0d11312e2d70525f5558d569aa8d802e8653c782959ca0872",
     "src/components/admin/Toaster.tsx": "5f927bce3bcb92973809d03f06792568d4e0d1b1e64dc7e95de85a84cca41e30",
     "src/components/admin/TodayViewEditor.tsx": "e1d59a1c8a0796a14af5d03d016fa5891222da2dd79f7bbb71c7d75d21ae0913",
-    "src/components/admin/TodayWorkspace.tsx": "f870ed6375c890334aa0096ddbcfcb3d0b864f2f5c8936e7ce91a768e5830923",
+    "src/components/admin/TodayWorkspace.tsx": "8ae93ad94e6e8c29593aa9ba249aa3e4f0fdd4665ac1fd6a207820e7bcb82f7d",
     "src/components/admin/TodaysPriorities.tsx": "7aacbf6802c467c7db99987d3c7c8dd03843118de743c82b24bb5179947a8064",
     "src/components/admin/WorkflowCalendar.tsx": "86a0e1972d87270f8d90a608eba1c48de9cd3122503a10300e8ece41223b90aa",
     "src/components/admin/WorkflowLayoutSwitcher.tsx": "4bc7bf68e5464071f7345bd8c1b19863ae8db9a10905a58e2601b61643cc6e86",
