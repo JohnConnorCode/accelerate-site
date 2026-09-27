@@ -204,6 +204,7 @@ export function TodayWorkspace() {
     };
   const useColumns = useSyncExternalStore(subscribeColumns, readColumns, serverColumns);
   const standard = defaultTodayView();
+  const standardAttention = standard.modules.find((module) => module.type === "attention");
   const isStandard =
     current.view.id === standard.id &&
     current.view.name === standard.name &&
@@ -970,12 +971,9 @@ export function TodayWorkspace() {
               if (!e.currentTarget.contains(e.relatedTarget as Node)) setInteracting(false);
             }}
           >
-            {allAttention && (
+            {allAttention && standardAttention && (
               <div data-width="full" id="today-attention">
-                {renderRows(
-                  { ...defaultTodayView().modules[1]!, limit: items.length || 1 },
-                  "attention",
-                )}
+                {renderRows({ ...standardAttention, limit: items.length || 1 }, "attention")}
               </div>
             )}
             {moduleGroups.map((group) =>
