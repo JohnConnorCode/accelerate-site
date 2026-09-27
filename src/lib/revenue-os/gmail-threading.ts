@@ -21,6 +21,27 @@
 
 export type GmailDirection = "inbound" | "outbound";
 
+/** Reply to the latest message's external participants, retaining its To/Cc list. */
+export function gmailReplyRecipients(input: {
+  from: string[];
+  to: string[];
+  cc: string[];
+  ownerEmails: ReadonlySet<string>;
+}): { to: string; cc: string[] } {
+  const external = (emails: string[]) =>
+    [...new Set(emails.map((email) => email.trim().toLowerCase()))].filter(
+      (email) => email && !input.ownerEmails.has(email),
+    );
+  const sender = external(input.from);
+  const recipients = external([...input.to, ...input.cc]);
+  const to = sender[0] ?? recipients[0];
+  if (!to) throw new Error("Could not identify the Gmail reply recipient");
+  return {
+    to,
+    cc: [...new Set([...sender.slice(1), ...recipients])].filter((email) => email !== to),
+  };
+}
+
 /** Extract every `<token>` RFC Message-ID from a raw header value. */
 export function parseRfcMessageIds(headerValue: string | null | undefined): string[] {
   if (!headerValue) return [];

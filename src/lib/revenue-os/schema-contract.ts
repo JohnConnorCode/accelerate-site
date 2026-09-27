@@ -55,6 +55,8 @@ export const TENANT_SCOPED_TABLES = [
   "form_submission_commands",
 
   "invoice_pages",
+  "debate_productions",
+  "debate_milestones",
   "work_items",
   "workspace_blueprints",
   "workspace_blueprint_versions",

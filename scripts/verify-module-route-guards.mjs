@@ -34,7 +34,7 @@ const MODULE_API_DIRECTORIES = {
   "email-studio": ["src/app/api/admin/emails"],
   recovery: ["src/app/api/admin/revenue-os/recovery"],
   revenue: ["src/app/api/admin/revenue"],
-  bookings: ["src/app/api/admin/bookings"],
+  bookings: ["src/app/api/admin/bookings", "src/app/api/admin/revenue-os/debates"],
   clients: ["src/app/api/admin/clients"],
   content: ["src/app/api/admin/content"],
   resources: ["src/app/api/admin/resources"],

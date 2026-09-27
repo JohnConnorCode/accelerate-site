@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   buildRfcReferencesValue,
+  gmailReplyRecipients,
   parseAddressList,
   parseRfcMessageId,
   parseRfcMessageIds,
@@ -35,6 +36,24 @@ assert.equal(
 );
 assert.equal(resolveGmailDirection("alex@example.com", owners), "inbound");
 assert.equal(resolveGmailDirection(null, owners), "inbound");
+assert.deepEqual(
+  gmailReplyRecipients({
+    from: ["alex@example.com"],
+    to: ["john@acceleratewith.us", "pat@example.com"],
+    cc: ["sam@example.com", "john@alsobuilds.com"],
+    ownerEmails: owners,
+  }),
+  { to: "alex@example.com", cc: ["pat@example.com", "sam@example.com"] },
+);
+assert.deepEqual(
+  gmailReplyRecipients({
+    from: ["john@alsobuilds.com"],
+    to: ["alex@example.com", "pat@example.com"],
+    cc: ["sam@example.com"],
+    ownerEmails: owners,
+  }),
+  { to: "alex@example.com", cc: ["pat@example.com", "sam@example.com"] },
+);
 
 // Reply parent: real RFC chain wins; provider id is only a fallback.
 const parent = resolveReplyParent({
@@ -67,6 +86,7 @@ console.log(
         "rfc-message-id-extraction",
         "participant-address-lists",
         "alias-aware-direction",
+        "reply-all-recipient-preservation",
         "rfc-reply-parent-resolution",
         "provider-id-fallback-only",
       ],

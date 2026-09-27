@@ -302,6 +302,27 @@ export async function callSocialRpc(
   return callVerifiedHostRpc(database, operation, args);
 }
 
+/** Reviewed booking claims use a single transactional host command. */
+export async function callDebateMilestoneHostRpc(
+  database: SupabaseClient,
+  args: Record<string, unknown>,
+) {
+  return callVerifiedHostRpc(database, "record_debate_milestone", args);
+}
+
+export async function callDebateProductionHostRpc(
+  database: SupabaseClient,
+  operation: "create" | "update" | "link_invitation" | "reopen_cancelled_invitation",
+  input: Record<string, unknown>,
+  actorEmail: string,
+) {
+  return callVerifiedHostRpc(database, "write_debate_production", {
+    p_operation: operation,
+    p_input: input,
+    p_actor_email: actorEmail,
+  });
+}
+
 async function callVerifiedHostRpc(
   database: SupabaseClient,
   operation: string,

@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { OperatorQueueItem } from "./types";
 import { loadOperationalHealth } from "./health";
 import { triageReason } from "./triage";
+import { listDebateProductions } from "./debate-bookings";
 
 const URGENCY_RANK = { critical: 0, high: 1, normal: 2, low: 3 } as const;
 const KIND_RANK: Record<OperatorQueueItem["kind"], number> = {
@@ -121,7 +122,7 @@ export async function loadOperatorQueue(
   const now = nowDate.toISOString();
   const inFortyEightHours = new Date(nowDate.getTime() + 48 * 3_600_000).toISOString();
   const inSevenDays = new Date(nowDate.getTime() + 7 * 86_400_000).toISOString();
-  const [actions, tasks, conversations, proposals, meetings, campaignExceptions, health] =
+  const [actions, tasks, conversations, proposals, meetings, campaignExceptions, health, debates] =
     await Promise.all([
       supabase
         .from("action_queue")
@@ -167,6 +168,11 @@ export async function loadOperatorQueue(
         if (!options) throw error;
         options.onSourceError("Connection health");
         return { concerns: [] };
+      }),
+      listDebateProductions(supabase, 12).catch((error) => {
+        if (!options) throw error;
+        options.onSourceError("Debate bookings");
+        return [];
       }),
     ]);
   const firstError = [
@@ -326,6 +332,31 @@ export async function loadOperatorQueue(
       href: `/admin/campaigns?campaign=${member.campaign_id}`,
       entityType: "campaign_member",
       entityId: member.id,
+    });
+  }
+  for (const debate of debates) {
+    if (debate.nextAction.kind === "complete") continue;
+    const target = debate.production.target_at as string | null;
+    const soon = Boolean(target && Date.parse(target) < Date.now() + 14 * 86_400_000);
+    items.push({
+      id: `debate:${debate.production.id}`,
+      kind:
+        debate.nextAction.kind === "reply" || debate.nextAction.kind === "follow_up"
+          ? "reply"
+          : "task",
+      title: debate.production.title,
+      summary: debate.nextAction.reason,
+      urgency: debate.nextAction.kind === "escalation" ? "high" : soon ? "high" : "normal",
+      dueAt: target,
+      sourceTimestamp: debate.production.updated_at,
+      priorityReason: debate.nextAction.booked
+        ? "Production milestone due"
+        : "Debate booking is incomplete",
+      recommendedNextAction: `Open the production and resolve ${debate.nextAction.milestone?.replaceAll("_", " ") ?? "the blocker"}.`,
+      href: `/admin/debates?production=${debate.production.id}`,
+      entityType: "debate_production",
+      entityId: debate.production.id,
+      attention: { sourceType: "debate_production", sourceId: debate.production.id, kind: "work" },
     });
   }
   for (const concern of health.concerns)

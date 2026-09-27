@@ -28,6 +28,7 @@ assert.equal(
 const prepared = prepareGmailReply({
   ownerEmail: "john@acceleratewith.us",
   recipient: "alex@example.com",
+  ccRecipients: ["pat@example.com", "john@acceleratewith.us"],
   conversationSubject: "Scope review",
   latest: { external_id: "msg-9", subject: "Scope review", references_header: "<root@mail>" },
   body: "Thanks — I can do Thursday.",
@@ -37,6 +38,8 @@ assert.equal(prepared.inReplyTo, "<msg-9>");
 assert.match(prepared.references ?? "", /<root@mail>/);
 assert.match(prepared.references ?? "", /<msg-9>/);
 assert.match(prepared.raw, /^In-Reply-To: <msg-9>$/m);
+assert.match(prepared.raw, /^Cc: pat@example\.com$/m);
+assert.deepEqual(prepared.ccRecipients, ["pat@example.com"]);
 assert.match(prepared.raw, /^References: <root@mail> <msg-9>$/m);
 assert.match(prepared.raw, /Thanks — I can do Thursday\./);
 assert.equal(prepared.raw.includes("\r\n"), true, "Gmail raw MIME must use CRLF");

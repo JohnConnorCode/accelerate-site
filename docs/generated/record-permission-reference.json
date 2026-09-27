@@ -293,6 +293,10 @@
       "module": "core-pipeline"
     },
     {
+      "tool": "read_complete_gmail_thread",
+      "module": "core-conversations"
+    },
+    {
       "tool": "propose_send_email",
       "module": "core-conversations"
     },
@@ -479,6 +483,18 @@
     {
       "tool": "propose_campaign_duplicate",
       "module": "campaigns"
+    },
+    {
+      "tool": "get_debate_production",
+      "module": "bookings"
+    },
+    {
+      "tool": "propose_debate_milestone",
+      "module": "bookings"
+    },
+    {
+      "tool": "propose_debate_invitation",
+      "module": "bookings"
     },
     {
       "tool": "generate_content_brief",
